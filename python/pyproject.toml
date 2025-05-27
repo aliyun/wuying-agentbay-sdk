@@ -3,15 +3,23 @@ name = "wuying-agentbay-sdk"
 version = "0.1.0"
 description = "Python SDK for interacting with the Wuying AgentBay cloud runtime environment"
 readme = "README.md"
-packages = [{include = "wuying_agentbay"}]
+packages = [{include = "agentbay"}]
 
 [tool.poetry.dependencies]
-python = ">=3.12"
+python = ">=3.10"
 darabonba-core = ">=1.0.0,<2.0.0"
 alibabacloud-tea-openapi = "0.4.0rc3"
 httpx = "^0.28.1"
 cryptography = "^45.0.2"
 alibabacloud-tea-util = "^0.3.13"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^6.0.0"
+pytest-asyncio = "^0.25.0"
+black = "^24.0.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

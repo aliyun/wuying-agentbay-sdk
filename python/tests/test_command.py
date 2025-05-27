@@ -63,7 +63,7 @@ class TestCommand(unittest.TestCase):
         self.session.client.call_mcp_tool.side_effect = Exception("mock error")
         with self.assertRaises(CommandError) as context:
             self.command.execute_command("ls -la")
-        self.assertIn("Failed to read file: mock error", str(context.exception))
+        self.assertIn("Failed to execute command: mock error", str(context.exception))
 
 if __name__ == "__main__":
     unittest.main()
