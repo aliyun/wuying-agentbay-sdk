@@ -2,13 +2,15 @@ import os
 import json
 from typing import Dict, Any
 
+
 def default_config() -> Dict[str, Any]:
     """Return the default configuration"""
     return {
         "region_id": "cn-hangzhou",
         "endpoint": "wuyingai-pre.cn-hangzhou.aliyuncs.com",
-        "timeout_ms": 60000
+        "timeout_ms": 60000,
     }
+
 
 def load_config() -> Dict[str, Any]:
     """Load configuration from file"""
@@ -31,7 +33,7 @@ def load_config() -> Dict[str, Any]:
 
     try:
         # Read the config file
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config = json.load(f)
     except Exception as e:
         print(f"Warning: Failed to read configuration file: {e}, using default values")

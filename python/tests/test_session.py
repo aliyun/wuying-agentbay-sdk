@@ -3,10 +3,12 @@ from unittest.mock import MagicMock, patch
 
 from agentbay.session import Session
 
+
 class DummyAgentBay:
     def __init__(self):
         self.api_key = "test_api_key"
         self.client = MagicMock()
+
 
 class TestSession(unittest.TestCase):
     def setUp(self):
@@ -23,6 +25,7 @@ class TestSession(unittest.TestCase):
         self.assertEqual(self.session.file_system.session, self.session)
         self.assertEqual(self.session.command.session, self.session)
         self.assertEqual(self.session.adb.session, self.session)
+
     def test_get_api_key(self):
         self.assertEqual(self.session.get_api_key(), "test_api_key")
 
@@ -39,8 +42,7 @@ class TestSession(unittest.TestCase):
         self.agent_bay.client.release_mcp_session.return_value = "deleted"
         self.session.delete()
         MockReleaseMcpSessionRequest.assert_called_once_with(
-            authorization="Bearer test_api_key",
-            session_id="test_session_id"
+            authorization="Bearer test_api_key", session_id="test_session_id"
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
 
@@ -53,13 +55,13 @@ class TestSession(unittest.TestCase):
             self.session.delete()
         self.assertEqual(
             str(context.exception),
-            f"Failed to delete session {self.session_id}: Test error"
+            f"Failed to delete session {self.session_id}: Test error",
         )
         MockReleaseMcpSessionRequest.assert_called_once_with(
-            authorization="Bearer test_api_key",
-            session_id="test_session_id"
+            authorization="Bearer test_api_key", session_id="test_session_id"
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
+
 
 if __name__ == "__main__":
     unittest.main()

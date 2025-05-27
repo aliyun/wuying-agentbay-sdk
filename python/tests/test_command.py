@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from agentbay.command.command import Command
 from agentbay.exceptions import CommandError
 
+
 class DummySession:
     def __init__(self):
         self.api_key = "dummy_key"
@@ -18,6 +19,7 @@ class DummySession:
     def get_client(self):
         return self.client
 
+
 class TestCommand(unittest.TestCase):
     def setUp(self):
         self.session = DummySession()
@@ -27,14 +29,7 @@ class TestCommand(unittest.TestCase):
     def test_execute_command_success(self, MockCallMcpToolRequest):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {"text": "line1"},
-                        {"text": "line2"}
-                    ]
-                }
-            }
+            "body": {"Data": {"content": [{"text": "line1"}, {"text": "line2"}]}}
         }
         self.session.client.call_mcp_tool.return_value = mock_response
 
@@ -64,6 +59,7 @@ class TestCommand(unittest.TestCase):
         with self.assertRaises(CommandError) as context:
             self.command.execute_command("ls -la")
         self.assertIn("Failed to execute command: mock error", str(context.exception))
+
 
 if __name__ == "__main__":
     unittest.main()
