@@ -5,9 +5,9 @@ import (
 	"os"
 	"sync"
 
-	mcp "github.com/agentbay/agentbay-sdk/golang/api/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
+	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 )
 
 // AgentBay represents the main client for interacting with the AgentBay cloud runtime environment.

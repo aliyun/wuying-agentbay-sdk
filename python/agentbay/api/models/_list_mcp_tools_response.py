@@ -27,27 +27,26 @@ class ListMcpToolsResponse(DaraModel):
         if _map is not None:
             result = _map
         if self.headers is not None:
-            result['headers'] = self.headers
+            result["headers"] = self.headers
 
         if self.status_code is not None:
-            result['statusCode'] = self.status_code
+            result["statusCode"] = self.status_code
 
         if self.body is not None:
-            result['body'] = self.body.to_map()
+            result["body"] = self.body.to_map()
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('headers') is not None:
-            self.headers = m.get('headers')
+        if m.get("headers") is not None:
+            self.headers = m.get("headers")
 
-        if m.get('statusCode') is not None:
-            self.status_code = m.get('statusCode')
+        if m.get("statusCode") is not None:
+            self.status_code = m.get("statusCode")
 
-        if m.get('body') is not None:
+        if m.get("body") is not None:
             temp_model = main_models.ListMcpToolsResponseBody()
-            self.body = temp_model.from_map(m.get('body'))
+            self.body = temp_model.from_map(m.get("body"))
 
         return self
-

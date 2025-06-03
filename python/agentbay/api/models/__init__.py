@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 
-
 from ._create_mcp_session_response_body_data import CreateMcpSessionResponseBodyData
-from ._get_mcp_resource_response_body_data_desktop_info import GetMcpResourceResponseBodyDataDesktopInfo
+from ._get_mcp_resource_response_body_data_desktop_info import (
+    GetMcpResourceResponseBodyDataDesktopInfo,
+)
 from ._get_mcp_resource_response_body_data import GetMcpResourceResponseBodyData
 from ._call_mcp_tool_request import CallMcpToolRequest
 from ._call_mcp_tool_response_body import CallMcpToolResponseBody
@@ -41,5 +42,5 @@ __all__ = [
     ListMcpToolsResponse,
     ReleaseMcpSessionRequest,
     ReleaseMcpSessionResponseBody,
-    ReleaseMcpSessionResponse
+    ReleaseMcpSessionResponse,
 ]

@@ -19,7 +19,7 @@ import (
 	"fmt"
 	
 	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
-	"github.com/agentbay/agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 )
 
 func main() {

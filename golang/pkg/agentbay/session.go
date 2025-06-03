@@ -3,11 +3,11 @@ package agentbay
 import (
 	"fmt"
 
-	mcp "github.com/agentbay/agentbay-sdk/golang/api/client"
-	"github.com/agentbay/agentbay-sdk/golang/pkg/agentbay/adb"
-	"github.com/agentbay/agentbay-sdk/golang/pkg/agentbay/command"
-	"github.com/agentbay/agentbay-sdk/golang/pkg/agentbay/filesystem"
 	"github.com/alibabacloud-go/tea/tea"
+	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/adb"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 )
 
 // Session represents a session in the AgentBay cloud environment.

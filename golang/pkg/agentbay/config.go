@@ -17,8 +17,8 @@ type Config struct {
 // DefaultConfig returns the default configuration
 func DefaultConfig() Config {
 	return Config{
-		RegionID:  "cn-hangzhou",
-		Endpoint:  "wuyingai-pre.cn-hangzhou.aliyuncs.com",
+		RegionID:  "cn-shanghai",
+		Endpoint:  "uyingai.cn-shanghai.aliyuncs.com",
 		TimeoutMs: 60000,
 	}
 }

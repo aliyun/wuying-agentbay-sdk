@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	mcp "github.com/agentbay/agentbay-sdk/golang/api/client"
 	"github.com/alibabacloud-go/tea/tea"
+	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 )
 
 // Adb handles ADB operations in the AgentBay mobile environment.

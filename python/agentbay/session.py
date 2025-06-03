@@ -35,8 +35,7 @@ class Session:
         """Delete this session."""
         try:
             request = ReleaseMcpSessionRequest(
-                authorization = f"Bearer {self.get_api_key()}",
-                session_id = self.session_id
+                authorization=f"Bearer {self.get_api_key()}", session_id=self.session_id
             )
             response = self.get_client().release_mcp_session(request)
             print(response)

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/agentbay/agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {

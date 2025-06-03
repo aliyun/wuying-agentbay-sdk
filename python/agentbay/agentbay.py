@@ -44,14 +44,13 @@ class AgentBay:
             response = self.client.create_mcp_session(request)
             print("response =", response)
             session_id = (
-                    response.to_map()
-                    .get("body", {})
-                    .get("Data", {})
-                    .get("SessionId")
-                )
+                response.to_map().get("body", {}).get("Data", {}).get("SessionId")
+            )
             print("session_id =", session_id)
             if not session_id:
-                raise RuntimeError(f"Failed to get session_id from response: {response}")
+                raise RuntimeError(
+                    f"Failed to get session_id from response: {response}"
+                )
             session = Session(self, session_id)
             with self._lock:
                 self._sessions[session_id] = session
