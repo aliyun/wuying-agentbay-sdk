@@ -3,7 +3,7 @@ from agentbay.filesystem import FileSystem
 from agentbay.command import Command
 from agentbay.adb import Adb
 from agentbay.api.models import ReleaseMcpSessionRequest
-
+import logging # Import the logging module
 
 class Session:
     """
@@ -42,3 +42,18 @@ class Session:
         except Exception as e:
             print("Error calling release_mcp_session:", e)
             raise SessionError(f"Failed to delete session {self.session_id}: {e}")
+
+    def __enter__(self):
+        """Enter the context manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager."""
+        try:
+            self.delete()
+        except Exception as e:
+            # Log the exception but do not suppress it
+            logging.error(f"Error deleting session {self.session_id} in __exit__: {e}")
+            # Re-raise the exception if it's critical (optional, based on requirements)
+            # For now, we'll let all exceptions propagate by returning False
+        return False # Ensure exceptions from the 'with' block are re-raised
