@@ -62,6 +62,34 @@ class TestSession(unittest.TestCase):
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
 
+    def test_session_as_context_manager(self):
+        # Reset mock to ensure we're testing the call from __exit__
+        self.agent_bay.client.release_mcp_session.reset_mock()
+
+        with self.session as sess:
+            self.assertIs(sess, self.session) # __enter__ should return self
+            # Simulate some operations within the context
+            print(f"Using session {sess.session_id} in a context manager")
+
+        # Check that delete was called by __exit__
+        # The actual call to release_mcp_session is what delete() does.
+        self.agent_bay.client.release_mcp_session.assert_called_once()
+
+    def test_context_manager_exception_propagation(self):
+        # Reset mock
+        self.agent_bay.client.release_mcp_session.reset_mock()
+
+        class TestException(Exception):
+            pass
+
+        with self.assertRaises(TestException):
+            with self.session as sess:
+                self.assertIs(sess, self.session)
+                raise TestException("Testing exception propagation")
+
+        # Ensure delete was still called
+        self.agent_bay.client.release_mcp_session.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
