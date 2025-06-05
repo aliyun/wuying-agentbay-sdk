@@ -15,7 +15,7 @@ Wuying AgentBay SDK provides APIs for Python, TypeScript, and Golang to interact
 
 ## Installation
 
-(Note: The following installation methods will be available in the future. Please refer to the current project documentation for setup instructions.)
+(Note: The following installation methods will be available in the future. Please first use the source code to integrate with the SDK.)
 
 ### Python
 
