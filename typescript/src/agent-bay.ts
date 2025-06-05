@@ -53,6 +53,7 @@ export class AgentBay {
     })
     
     config.readTimeout = configData.timeout_ms;
+    config.connectTimeout = configData.timeout_ms;
     try{
       this.client = new $_client.Client(config)
       

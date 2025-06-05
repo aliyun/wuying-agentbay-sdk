@@ -25,25 +25,49 @@ export function loadConfig(): Config {
   // First check if the config file path is specified in environment variables
   let configPath = process.env.AGENTBAY_CONFIG_PATH;
   if (!configPath) {
-    // Try to find the config file in the project root directory
-    // First try the current directory
-    configPath = 'config.json';
-    if (!fs.existsSync(configPath)) {
-      // Then try the parent directory
-      configPath = path.join('..', 'config.json');
-      if (!fs.existsSync(configPath)) {
-        // Then try the grandparent directory
-        configPath = path.join('..', '..', 'config.json');
-        if (!fs.existsSync(configPath)) {
-          // Config file not found, return default config
-          console.log('Warning: Configuration file not found, using default values');
-          return defaultConfig();
+    try {
+      // Try to find the config file by traversing up from the current directory
+      let dirPath = process.cwd();
+      let found = false;
+      
+      // Start from current directory and traverse up to find config.json
+      // This will check current dir, parent, grandparent, etc. up to filesystem root
+      for (let i = 0; i < 10; i++) { // Limit search depth to prevent infinite loop
+        const possibleConfigPath = path.join(dirPath, 'config.json');
+        if (fs.existsSync(possibleConfigPath)) {
+          configPath = possibleConfigPath;
+          found = true;
+          console.log(`Found config file at: ${possibleConfigPath}`);
+          break;
         }
+        
+        // Move up one directory
+        const parentDir = path.dirname(dirPath);
+        if (parentDir === dirPath) {
+          // We've reached the filesystem root
+          break;
+        }
+        dirPath = parentDir;
       }
+      
+      if (!found) {
+        // Config file not found, return default config
+        console.log('Warning: Configuration file not found, using default values');
+        return defaultConfig();
+      }
+    } catch (error) {
+      console.log(`Warning: Failed to search for configuration file: ${error}, using default values`);
+      return defaultConfig();
     }
   }
 
   try {
+    // Make sure configPath is defined
+    if (!configPath) {
+      console.log('Warning: Configuration file path is undefined, using default values');
+      return defaultConfig();
+    }
+    
     // Read the config file
     const data = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(data) as Config;
