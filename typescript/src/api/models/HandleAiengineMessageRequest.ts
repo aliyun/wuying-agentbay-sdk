@@ -3,22 +3,22 @@ import * as $dara from '@darabonba/typescript';
 
 
 export class HandleAIEngineMessageRequest extends $dara.Model {
+  data?: string;
   msgType?: string;
   sessionToken?: string;
-  body?: string;
   static names(): { [key: string]: string } {
     return {
+      data: 'Data',
       msgType: 'MsgType',
       sessionToken: 'SessionToken',
-      body: 'body',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
+      data: 'string',
       msgType: 'string',
       sessionToken: 'string',
-      body: 'string',
     };
   }
 

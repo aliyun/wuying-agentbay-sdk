@@ -39,9 +39,13 @@ export default class Client extends OpenApi {
    */
   async applyMqttTokenWithOptions(request: $_model.ApplyMqttTokenRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ApplyMqttTokenResponse> {
     request.validate();
-    let query : {[key: string ]: any} = { };
-    if (!$dara.isNull(request.securityToken)) {
-      query["SecurityToken"] = request.securityToken;
+    let query = { };
+    if (!$dara.isNull(request.desktopId)) {
+      query["DesktopId"] = request.desktopId;
+    }
+
+    if (!$dara.isNull(request.sessionToken)) {
+      query["SessionToken"] = request.sessionToken;
     }
 
     let req = new $OpenApiUtil.OpenApiRequest({
@@ -135,8 +139,6 @@ export default class Client extends OpenApi {
    */
   async callMcpTool(request: $_model.CallMcpToolRequest): Promise<$_model.CallMcpToolResponse> {
     let runtime = new $dara.RuntimeOptions({ });
-    
-    
     return await this.callMcpToolWithOptions(request, runtime);
   }
 
@@ -154,8 +156,16 @@ export default class Client extends OpenApi {
       body["Authorization"] = request.authorization;
     }
 
+    if (!$dara.isNull(request.contextId)) {
+      body["ContextId"] = request.contextId;
+    }
+
     if (!$dara.isNull(request.externalUserId)) {
       body["ExternalUserId"] = request.externalUserId;
+    }
+
+    if (!$dara.isNull(request.labels)) {
+      body["Labels"] = request.labels;
     }
 
     if (!$dara.isNull(request.sessionId)) {
@@ -188,6 +198,156 @@ export default class Client extends OpenApi {
   async createMcpSession(request: $_model.CreateMcpSessionRequest): Promise<$_model.CreateMcpSessionResponse> {
     let runtime = new $dara.RuntimeOptions({ });
     return await this.createMcpSessionWithOptions(request, runtime);
+  }
+
+  /**
+   * 删除持久化上下文
+   * 
+   * @param request - DeleteContextRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns DeleteContextResponse
+   */
+  async deleteContextWithOptions(request: $_model.DeleteContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.DeleteContextResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.id)) {
+      body["Id"] = request.id;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "DeleteContext",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.DeleteContextResponse>(await this.callApi(params, req, runtime), new $_model.DeleteContextResponse({}));
+  }
+
+  /**
+   * 删除持久化上下文
+   * 
+   * @param request - DeleteContextRequest
+   * @returns DeleteContextResponse
+   */
+  async deleteContext(request: $_model.DeleteContextRequest): Promise<$_model.DeleteContextResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.deleteContextWithOptions(request, runtime);
+  }
+
+  /**
+   * 获取上下文
+   * 
+   * @param request - GetContextRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetContextResponse
+   */
+  async getContextWithOptions(request: $_model.GetContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.GetContextResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.allowCreate)) {
+      body["AllowCreate"] = request.allowCreate;
+    }
+
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.name)) {
+      body["Name"] = request.name;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "GetContext",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetContextResponse>(await this.callApi(params, req, runtime), new $_model.GetContextResponse({}));
+  }
+
+  /**
+   * 获取上下文
+   * 
+   * @param request - GetContextRequest
+   * @returns GetContextResponse
+   */
+  async getContext(request: $_model.GetContextRequest): Promise<$_model.GetContextResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.getContextWithOptions(request, runtime);
+  }
+
+  /**
+   * 获取标签
+   * 
+   * @param request - GetLabelRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetLabelResponse
+   */
+  async getLabelWithOptions(request: $_model.GetLabelRequest, runtime: $dara.RuntimeOptions): Promise<$_model.GetLabelResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.maxResults)) {
+      body["MaxResults"] = request.maxResults;
+    }
+
+    if (!$dara.isNull(request.nextToken)) {
+      body["NextToken"] = request.nextToken;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "GetLabel",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetLabelResponse>(await this.callApi(params, req, runtime), new $_model.GetLabelResponse({}));
+  }
+
+  /**
+   * 获取标签
+   * 
+   * @param request - GetLabelRequest
+   * @returns GetLabelResponse
+   */
+  async getLabel(request: $_model.GetLabelRequest): Promise<$_model.GetLabelResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.getLabelWithOptions(request, runtime);
   }
 
   /**
@@ -245,18 +405,18 @@ export default class Client extends OpenApi {
    */
   async handleAIEngineMessageWithOptions(request: $_model.HandleAIEngineMessageRequest, runtime: $dara.RuntimeOptions): Promise<$_model.HandleAIEngineMessageResponse> {
     request.validate();
-    let query : {[key: string ]: any} = { };
+    let query = { };
     if (!$dara.isNull(request.sessionToken)) {
       query["SessionToken"] = request.sessionToken;
     }
 
     let body : {[key: string ]: any} = { };
-    if (!$dara.isNull(request.msgType)) {
-      body["MsgType"] = request.msgType;
+    if (!$dara.isNull(request.data)) {
+      body["Data"] = request.data;
     }
 
-    if (!$dara.isNull(request.body)) {
-      body["body"] = request.body;
+    if (!$dara.isNull(request.msgType)) {
+      body["MsgType"] = request.msgType;
     }
 
     let req = new $OpenApiUtil.OpenApiRequest({
@@ -286,6 +446,56 @@ export default class Client extends OpenApi {
   async handleAIEngineMessage(request: $_model.HandleAIEngineMessageRequest): Promise<$_model.HandleAIEngineMessageResponse> {
     let runtime = new $dara.RuntimeOptions({ });
     return await this.handleAIEngineMessageWithOptions(request, runtime);
+  }
+
+  /**
+   * 获取上下文列表
+   * 
+   * @param request - ListContextsRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns ListContextsResponse
+   */
+  async listContextsWithOptions(request: $_model.ListContextsRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ListContextsResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.maxResults)) {
+      body["MaxResults"] = request.maxResults;
+    }
+
+    if (!$dara.isNull(request.nextToken)) {
+      body["NextToken"] = request.nextToken;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "ListContexts",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.ListContextsResponse>(await this.callApi(params, req, runtime), new $_model.ListContextsResponse({}));
+  }
+
+  /**
+   * 获取上下文列表
+   * 
+   * @param request - ListContextsRequest
+   * @returns ListContextsResponse
+   */
+  async listContexts(request: $_model.ListContextsRequest): Promise<$_model.ListContextsResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.listContextsWithOptions(request, runtime);
   }
 
   /**
@@ -328,6 +538,110 @@ export default class Client extends OpenApi {
   async listMcpTools(request: $_model.ListMcpToolsRequest): Promise<$_model.ListMcpToolsResponse> {
     let runtime = new $dara.RuntimeOptions({ });
     return await this.listMcpToolsWithOptions(request, runtime);
+  }
+
+  /**
+   * 根据Lable查询Session列表
+   * 
+   * @param request - ListSessionRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns ListSessionResponse
+   */
+  async listSessionWithOptions(request: $_model.ListSessionRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ListSessionResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.labels)) {
+      body["Labels"] = request.labels;
+    }
+
+    if (!$dara.isNull(request.maxResults)) {
+      body["MaxResults"] = request.maxResults;
+    }
+
+    if (!$dara.isNull(request.nextToken)) {
+      body["NextToken"] = request.nextToken;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "ListSession",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.ListSessionResponse>(await this.callApi(params, req, runtime), new $_model.ListSessionResponse({}));
+  }
+
+  /**
+   * 根据Lable查询Session列表
+   * 
+   * @param request - ListSessionRequest
+   * @returns ListSessionResponse
+   */
+  async listSession(request: $_model.ListSessionRequest): Promise<$_model.ListSessionResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.listSessionWithOptions(request, runtime);
+  }
+
+  /**
+   * 修改上下文
+   * 
+   * @param request - ModifyContextRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns ModifyContextResponse
+   */
+  async modifyContextWithOptions(request: $_model.ModifyContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ModifyContextResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.id)) {
+      body["Id"] = request.id;
+    }
+
+    if (!$dara.isNull(request.name)) {
+      body["Name"] = request.name;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "ModifyContext",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.ModifyContextResponse>(await this.callApi(params, req, runtime), new $_model.ModifyContextResponse({}));
+  }
+
+  /**
+   * 修改上下文
+   * 
+   * @param request - ModifyContextRequest
+   * @returns ModifyContextResponse
+   */
+  async modifyContext(request: $_model.ModifyContextRequest): Promise<$_model.ModifyContextResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.modifyContextWithOptions(request, runtime);
   }
 
   /**
@@ -374,6 +688,56 @@ export default class Client extends OpenApi {
   async releaseMcpSession(request: $_model.ReleaseMcpSessionRequest): Promise<$_model.ReleaseMcpSessionResponse> {
     let runtime = new $dara.RuntimeOptions({ });
     return await this.releaseMcpSessionWithOptions(request, runtime);
+  }
+
+  /**
+   * 设置标签
+   * 
+   * @param request - SetLabelRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns SetLabelResponse
+   */
+  async setLabelWithOptions(request: $_model.SetLabelRequest, runtime: $dara.RuntimeOptions): Promise<$_model.SetLabelResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.labels)) {
+      body["Labels"] = request.labels;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "SetLabel",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.SetLabelResponse>(await this.callApi(params, req, runtime), new $_model.SetLabelResponse({}));
+  }
+
+  /**
+   * 设置标签
+   * 
+   * @param request - SetLabelRequest
+   * @returns SetLabelResponse
+   */
+  async setLabel(request: $_model.SetLabelRequest): Promise<$_model.SetLabelResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.setLabelWithOptions(request, runtime);
   }
 
 }

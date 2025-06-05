@@ -44,9 +44,20 @@ func (c *Command) ExecuteCommand(command string) (string, error) {
 		Name:          tea.String("execute_command"),
 		Args:          tea.String(string(argsJSON)),
 	}
+
+	// Log API request
+	fmt.Println("API Call: CallMcpTool - execute_command")
+	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
+
 	response, err := c.Session.GetClient().CallMcpTool(callToolRequest)
+
+	// Log API response
 	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
+		fmt.Println("Error calling CallMcpTool - execute_command:", err)
+		return "", fmt.Errorf("failed to execute command: %w", err)
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from CallMcpTool - execute_command:", response.Body)
 	}
 
 	// 将 interface{} 转换为 map

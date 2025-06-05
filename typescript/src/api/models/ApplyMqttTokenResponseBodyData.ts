@@ -6,6 +6,7 @@ import * as $dara from '@darabonba/typescript';
  */
 export class ApplyMqttTokenResponseBodyData extends $dara.Model {
   accessKeyId?: string;
+  clientId?: string;
   expiration?: string;
   instanceId?: string;
   regionId?: string;
@@ -13,6 +14,7 @@ export class ApplyMqttTokenResponseBodyData extends $dara.Model {
   static names(): { [key: string]: string } {
     return {
       accessKeyId: 'AccessKeyId',
+      clientId: 'ClientId',
       expiration: 'Expiration',
       instanceId: 'InstanceId',
       regionId: 'RegionId',
@@ -23,6 +25,7 @@ export class ApplyMqttTokenResponseBodyData extends $dara.Model {
   static types(): { [key: string]: any } {
     return {
       accessKeyId: 'string',
+      clientId: 'string',
       expiration: 'string',
       instanceId: 'string',
       regionId: 'string',

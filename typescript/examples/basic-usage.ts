@@ -15,12 +15,12 @@ async function main() {
 
     // Execute a command
     console.log('\nExecuting a command...');
-    const result = await session.command.execute_command('ls -la');
+    const result = await session.command.executeCommand('ls -la');
     console.log('Command result:', result);
 
     // Read a file
     console.log('\nReading a file...');
-    const content = await session.filesystem.read_file('/etc/hosts');
+    const content = await session.filesystem.readFile('/etc/hosts');
     console.log(`File content: ${content}`);
 
     // Execute an ADB shell command (for mobile environments)

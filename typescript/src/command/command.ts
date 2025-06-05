@@ -27,7 +27,7 @@ export class Command {
    * @param command - The command to execute.
    * @returns The result of the command execution.
    */
-  async execute_command(command: string): Promise<string> {
+  async executeCommand(command: string): Promise<string> {
     try {
       const args = {
         command

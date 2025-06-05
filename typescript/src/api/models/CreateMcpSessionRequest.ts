@@ -4,12 +4,16 @@ import * as $dara from '@darabonba/typescript';
 
 export class CreateMcpSessionRequest extends $dara.Model {
   authorization?: string;
+  contextId?: string;
   externalUserId?: string;
+  labels?: string;
   sessionId?: string;
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
+      contextId: 'ContextId',
       externalUserId: 'ExternalUserId',
+      labels: 'Labels',
       sessionId: 'SessionId',
     };
   }
@@ -17,7 +21,9 @@ export class CreateMcpSessionRequest extends $dara.Model {
   static types(): { [key: string]: any } {
     return {
       authorization: 'string',
+      contextId: 'string',
       externalUserId: 'string',
+      labels: 'string',
       sessionId: 'string',
     };
   }

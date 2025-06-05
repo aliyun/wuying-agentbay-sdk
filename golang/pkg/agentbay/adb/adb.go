@@ -44,9 +44,20 @@ func (a *Adb) Shell(command string) (string, error) {
 		Name:          tea.String("shell"),
 		Args:          tea.String(string(argsJSON)),
 	}
+
+	// Log API request
+	fmt.Println("API Call: CallMcpTool - shell")
+	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
+
 	response, err := a.Session.GetClient().CallMcpTool(callToolRequest)
+
+	// Log API response
 	if err != nil {
+		fmt.Println("Error calling CallMcpTool - shell:", err)
 		return "", fmt.Errorf("failed to execute adb shell command: %w", err)
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from CallMcpTool - shell:", response.Body)
 	}
 
 	// Convert interface{} to map

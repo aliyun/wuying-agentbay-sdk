@@ -44,11 +44,21 @@ func (fs *FileSystem) ReadFile(path string) (string, error) {
 		Name:          tea.String("read_file"),
 		Args:          tea.String(string(argsJSON)),
 	}
+
+	// Log API request
+	fmt.Println("API Call: CallMcpTool - read_file")
+	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
+
 	response, err := fs.Session.GetClient().CallMcpTool(callToolRequest)
+
+	// Log API response
 	if err != nil {
+		fmt.Println("Error calling CallMcpTool - read_file:", err)
 		return "", fmt.Errorf("failed to read file: %w", err)
 	}
-	fmt.Println(response)
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from CallMcpTool - read_file:", response.Body)
+	}
 
 	// 将 interface{} 转换为 map
 	data, ok := response.Body.Data.(map[string]interface{})

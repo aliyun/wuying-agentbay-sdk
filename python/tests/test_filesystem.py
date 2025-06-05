@@ -1,8 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from agentbay.filesystem.filesystem import (
-    FileSystem,
-)  # Adjust based on actual module path
+from agentbay.filesystem.filesystem import FileSystem  # Adjust based on actual module path
 from agentbay.exceptions import FileError
 
 
@@ -32,7 +30,11 @@ class TestFileSystem(unittest.TestCase):
         print("test_read_file_success")
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
-            "body": {"Data": {"content": [{"text": "file content"}]}}
+            "body": {
+                "Data": {
+                    "content": [{"text": "file content"}]
+                }
+            }
         }
         self.session.client.call_mcp_tool.return_value = mock_response
 
@@ -46,14 +48,11 @@ class TestFileSystem(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {
-                "Data": {
-                    "isError": True,
-                    "content": [{"text": "some error message"}],
-                }  # No content field
+                "Data": {"isError":True, "content": [{"text": "some error message"}]}  # No content field
             }
         }
         self.session.client.call_mcp_tool.return_value = mock_response
-
+        
         with self.assertRaises(FileError) as context:
             self.fs.read_file("/path/to/file.txt")
 
@@ -63,15 +62,16 @@ class TestFileSystem(unittest.TestCase):
     def test_read_file_error_format(self, MockCallMcpToolRequest):
         print("test_read_file_no_content")
         mock_response = MagicMock()
-        mock_response.to_map.return_value = {"some_unknown_key": {""}}
+        mock_response.to_map.return_value = {
+            "some_unknown_key":{""}
+        }
         self.session.client.call_mcp_tool.return_value = mock_response
-
+        
         with self.assertRaises(FileError) as context:
             self.fs.read_file("/path/to/file.txt")
 
         self.assertIn("Failed to read file:", str(context.exception))
         self.assertIn("KeyError", str(context.exception))
-
-
+        
 if __name__ == "__main__":
     unittest.main()

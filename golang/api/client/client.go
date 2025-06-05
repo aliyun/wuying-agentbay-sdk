@@ -58,6 +58,68 @@ func (client *Client) GetEndpoint(productId *string, regionId *string, endpointR
 
 // Summary:
 //
+// 获取STS Token
+//
+// @param request - ApplyMqttTokenRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return ApplyMqttTokenResponse
+func (client *Client) ApplyMqttTokenWithOptions(request *ApplyMqttTokenRequest, runtime *dara.RuntimeOptions) (_result *ApplyMqttTokenResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+	if !dara.IsNil(request.DesktopId) {
+		query["DesktopId"] = request.DesktopId
+	}
+
+	if !dara.IsNil(request.SessionToken) {
+		query["SessionToken"] = request.SessionToken
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("ApplyMqttToken"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取STS Token
+//
+// @param request - ApplyMqttTokenRequest
+//
+// @return ApplyMqttTokenResponse
+func (client *Client) ApplyMqttToken(request *ApplyMqttTokenRequest) (_result *ApplyMqttTokenResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.ApplyMqttTokenWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
 // 调用mcp工具
 //
 // @param request - CallMcpToolRequest
@@ -157,8 +219,16 @@ func (client *Client) CreateMcpSessionWithOptions(request *CreateMcpSessionReque
 		body["Authorization"] = request.Authorization
 	}
 
+	if !dara.IsNil(request.ContextId) {
+		body["ContextId"] = request.ContextId
+	}
+
 	if !dara.IsNil(request.ExternalUserId) {
 		body["ExternalUserId"] = request.ExternalUserId
+	}
+
+	if !dara.IsNil(request.Labels) {
+		body["Labels"] = request.Labels
 	}
 
 	if !dara.IsNil(request.SessionId) {
@@ -197,6 +267,204 @@ func (client *Client) CreateMcpSessionWithOptions(request *CreateMcpSessionReque
 func (client *Client) CreateMcpSession(request *CreateMcpSessionRequest) (_result *CreateMcpSessionResponse, _err error) {
 	runtime := &dara.RuntimeOptions{}
 	_body, _err := client.CreateMcpSessionWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 删除持久化上下文
+//
+// @param request - DeleteContextRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return DeleteContextResponse
+func (client *Client) DeleteContextWithOptions(request *DeleteContextRequest, runtime *dara.RuntimeOptions) (_result *DeleteContextResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.Id) {
+		body["Id"] = request.Id
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DeleteContext"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 删除持久化上下文
+//
+// @param request - DeleteContextRequest
+//
+// @return DeleteContextResponse
+func (client *Client) DeleteContext(request *DeleteContextRequest) (_result *DeleteContextResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.DeleteContextWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上下文
+//
+// @param request - GetContextRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return GetContextResponse
+func (client *Client) GetContextWithOptions(request *GetContextRequest, runtime *dara.RuntimeOptions) (_result *GetContextResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.AllowCreate) {
+		body["AllowCreate"] = request.AllowCreate
+	}
+
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.Name) {
+		body["Name"] = request.Name
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("GetContext"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上下文
+//
+// @param request - GetContextRequest
+//
+// @return GetContextResponse
+func (client *Client) GetContext(request *GetContextRequest) (_result *GetContextResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.GetContextWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取标签
+//
+// @param request - GetLabelRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return GetLabelResponse
+func (client *Client) GetLabelWithOptions(request *GetLabelRequest, runtime *dara.RuntimeOptions) (_result *GetLabelResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.MaxResults) {
+		body["MaxResults"] = request.MaxResults
+	}
+
+	if !dara.IsNil(request.NextToken) {
+		body["NextToken"] = request.NextToken
+	}
+
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("GetLabel"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取标签
+//
+// @param request - GetLabelRequest
+//
+// @return GetLabelResponse
+func (client *Client) GetLabel(request *GetLabelRequest) (_result *GetLabelResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.GetLabelWithOptions(request, runtime)
 	if _err != nil {
 		return _result, _err
 	}
@@ -268,6 +536,140 @@ func (client *Client) GetMcpResource(request *GetMcpResourceRequest) (_result *G
 
 // Summary:
 //
+// 处理来自AI Engine的消息
+//
+// @param request - HandleAIEngineMessageRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return HandleAIEngineMessageResponse
+func (client *Client) HandleAIEngineMessageWithOptions(request *HandleAIEngineMessageRequest, runtime *dara.RuntimeOptions) (_result *HandleAIEngineMessageResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+	if !dara.IsNil(request.SessionToken) {
+		query["SessionToken"] = request.SessionToken
+	}
+
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Data) {
+		body["Data"] = request.Data
+	}
+
+	if !dara.IsNil(request.MsgType) {
+		body["MsgType"] = request.MsgType
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+		Body:  openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("HandleAIEngineMessage"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 处理来自AI Engine的消息
+//
+// @param request - HandleAIEngineMessageRequest
+//
+// @return HandleAIEngineMessageResponse
+func (client *Client) HandleAIEngineMessage(request *HandleAIEngineMessageRequest) (_result *HandleAIEngineMessageResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.HandleAIEngineMessageWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上下文列表
+//
+// @param request - ListContextsRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return ListContextsResponse
+func (client *Client) ListContextsWithOptions(request *ListContextsRequest, runtime *dara.RuntimeOptions) (_result *ListContextsResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.MaxResults) {
+		body["MaxResults"] = request.MaxResults
+	}
+
+	if !dara.IsNil(request.NextToken) {
+		body["NextToken"] = request.NextToken
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("ListContexts"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上下文列表
+//
+// @param request - ListContextsRequest
+//
+// @return ListContextsResponse
+func (client *Client) ListContexts(request *ListContextsRequest) (_result *ListContextsResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.ListContextsWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
 // # ListMcpTools
 //
 // @param request - ListMcpToolsRequest
@@ -317,6 +719,142 @@ func (client *Client) ListMcpToolsWithOptions(request *ListMcpToolsRequest, runt
 func (client *Client) ListMcpTools(request *ListMcpToolsRequest) (_result *ListMcpToolsResponse, _err error) {
 	runtime := &dara.RuntimeOptions{}
 	_body, _err := client.ListMcpToolsWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 根据Lable查询Session列表
+//
+// @param request - ListSessionRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return ListSessionResponse
+func (client *Client) ListSessionWithOptions(request *ListSessionRequest, runtime *dara.RuntimeOptions) (_result *ListSessionResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.Labels) {
+		body["Labels"] = request.Labels
+	}
+
+	if !dara.IsNil(request.MaxResults) {
+		body["MaxResults"] = request.MaxResults
+	}
+
+	if !dara.IsNil(request.NextToken) {
+		body["NextToken"] = request.NextToken
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("ListSession"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 根据Lable查询Session列表
+//
+// @param request - ListSessionRequest
+//
+// @return ListSessionResponse
+func (client *Client) ListSession(request *ListSessionRequest) (_result *ListSessionResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.ListSessionWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 修改上下文
+//
+// @param request - ModifyContextRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return ModifyContextResponse
+func (client *Client) ModifyContextWithOptions(request *ModifyContextRequest, runtime *dara.RuntimeOptions) (_result *ModifyContextResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.Id) {
+		body["Id"] = request.Id
+	}
+
+	if !dara.IsNil(request.Name) {
+		body["Name"] = request.Name
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("ModifyContext"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 修改上下文
+//
+// @param request - ModifyContextRequest
+//
+// @return ModifyContextResponse
+func (client *Client) ModifyContext(request *ModifyContextRequest) (_result *ModifyContextResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.ModifyContextWithOptions(request, runtime)
 	if _err != nil {
 		return _result, _err
 	}
@@ -379,6 +917,72 @@ func (client *Client) ReleaseMcpSessionWithOptions(request *ReleaseMcpSessionReq
 func (client *Client) ReleaseMcpSession(request *ReleaseMcpSessionRequest) (_result *ReleaseMcpSessionResponse, _err error) {
 	runtime := &dara.RuntimeOptions{}
 	_body, _err := client.ReleaseMcpSessionWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 设置标签
+//
+// @param request - SetLabelRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return SetLabelResponse
+func (client *Client) SetLabelWithOptions(request *SetLabelRequest, runtime *dara.RuntimeOptions) (_result *SetLabelResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.Labels) {
+		body["Labels"] = request.Labels
+	}
+
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("SetLabel"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 设置标签
+//
+// @param request - SetLabelRequest
+//
+// @return SetLabelResponse
+func (client *Client) SetLabel(request *SetLabelRequest) (_result *SetLabelResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_body, _err := client.SetLabelWithOptions(request, runtime)
 	if _err != nil {
 		return _result, _err
 	}

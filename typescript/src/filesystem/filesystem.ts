@@ -26,7 +26,7 @@ export class FileSystem {
    * @param path - Path to the file to read.
    * @returns The contents of the file.
    */
-  async read_file(path: string): Promise<string> {
+  async readFile(path: string): Promise<string> {
     try {
       const args = {
         path

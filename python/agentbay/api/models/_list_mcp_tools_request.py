@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel
+from darabonba.model import DaraModel 
 
 
 class ListMcpToolsRequest(DaraModel):
@@ -20,13 +20,14 @@ class ListMcpToolsRequest(DaraModel):
         if _map is not None:
             result = _map
         if self.authorization is not None:
-            result["Authorization"] = self.authorization
+            result['Authorization'] = self.authorization
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get("Authorization") is not None:
-            self.authorization = m.get("Authorization")
+        if m.get('Authorization') is not None:
+            self.authorization = m.get('Authorization')
 
         return self
+

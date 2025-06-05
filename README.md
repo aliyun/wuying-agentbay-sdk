@@ -8,6 +8,10 @@ Wuying AgentBay SDK provides APIs for Python, TypeScript, and Golang to interact
 - **File Management**: Read files in the cloud environment
 - **Command Execution**: Run commands
 - **ADB Operations**: Execute ADB shell commands in mobile environments (Android)
+- **Application Management**: List, start, and stop applications
+- **Window Management**: List, activate, and manipulate windows
+- **Label Management**: Categorize and filter sessions using labels
+- **Context Management**: Work with persistent storage contexts
 
 ## Installation
 
@@ -43,18 +47,19 @@ agent_bay = AgentBay(api_key="your_api_key")
 
 # Create a session
 session = agent_bay.create()
+print(f"Session created with ID: {session.session_id}")
 
 # Execute a command
 result = session.command.execute_command("ls -la")
-print(result)
+print(f"Command result: {result}")
 
 # Read a file
 content = session.filesystem.read_file("/path/to/file.txt")
-print(content)
+print(f"File content: {content}")
 
 # Execute an ADB shell command (for mobile environments)
 adb_result = session.adb.shell("ls /sdcard")
-print(adb_result)
+print(f"ADB shell result: {adb_result}")
 ```
 
 ### TypeScript
@@ -70,11 +75,11 @@ async function main() {
   const session = await agentBay.create();
   
   // Execute a command
-  const result = await session.command.execute_command('ls -la');
+  const result = await session.command.executeCommand('ls -la');
   console.log(result);
 
   // Read a file
-  const content = await session.filesystem.read_file('/path/to/file.txt');
+  const content = await session.filesystem.readFile('/path/to/file.txt');
   console.log(content);
 
   // Execute an ADB shell command (for mobile environments)
@@ -148,3 +153,7 @@ Authentication is done using an API key, which can be provided in several ways:
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Documentation
+
+For more detailed documentation, examples, and advanced usage, please refer to the [docs](docs/) directory.

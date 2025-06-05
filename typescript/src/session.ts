@@ -3,8 +3,10 @@ import { APIError } from './exceptions';
 import { FileSystem } from './filesystem';
 import { Command } from './command';
 import { Adb } from './adb';
+import { ApplicationManager } from './application';
+import { WindowManager } from './window';
 import Client from './api/client';
-import { ReleaseMcpSessionRequest } from './api/models/model';
+import { ReleaseMcpSessionRequest, SetLabelRequest, GetLabelRequest } from './api/models/model';
 import * as $_client from './api';
 
 /**
@@ -19,6 +21,10 @@ export class Session {
   public filesystem: FileSystem;
   public command: Command;
   public adb: Adb;
+  
+  // Application and window management
+  public application: ApplicationManager;
+  public window: WindowManager;
 
   /**
    * Initialize a Session object.
@@ -36,6 +42,10 @@ export class Session {
     this.filesystem = new FileSystem(this);
     this.command = new Command(this);
     this.adb = new Adb(this);
+    
+    // Initialize application and window managers
+    this.application = new ApplicationManager(this);
+    this.window = new WindowManager(this);
   }
 
   /**
@@ -69,6 +79,57 @@ export class Session {
       return true;
     } catch (error) {
       throw new APIError(`Failed to delete session: ${error}`);
+    }
+  }
+  
+  /**
+   * Sets the labels for this session.
+   * 
+   * @param labels - The labels to set for the session.
+   * @throws APIError if the operation fails.
+   */
+  async setLabels(labels: Record<string, string>): Promise<void> {
+    try {
+      // Convert labels to JSON string
+      const labelsJSON = JSON.stringify(labels);
+      
+      const request = new SetLabelRequest({
+        authorization: `Bearer ${this.getAPIKey()}`,
+        sessionId: this.sessionId,
+        labels: labelsJSON
+      });
+      
+      await this.client.setLabel(request);
+    } catch (error) {
+      throw new APIError(`Failed to set labels for session: ${error}`);
+    }
+  }
+  
+  /**
+   * Gets the labels for this session.
+   * 
+   * @returns The labels for the session.
+   * @throws APIError if the operation fails.
+   */
+  async getLabels(): Promise<Record<string, string>> {
+    try {
+      const request = new GetLabelRequest({
+        authorization: `Bearer ${this.getAPIKey()}`,
+        sessionId: this.sessionId
+      });
+      
+      const response = await this.client.getLabel(request);
+      
+      // Extract labels from response
+      const labelsJSON = response.body?.data?.labels;
+      
+      if (labelsJSON) {
+        return JSON.parse(labelsJSON);
+      }
+      
+      return {};
+    } catch (error) {
+      throw new APIError(`Failed to get labels for session: ${error}`);
     }
   }
   

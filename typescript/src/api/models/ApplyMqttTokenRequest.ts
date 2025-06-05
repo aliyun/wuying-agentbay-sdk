@@ -3,16 +3,19 @@ import * as $dara from '@darabonba/typescript';
 
 
 export class ApplyMqttTokenRequest extends $dara.Model {
-  securityToken?: string;
+  desktopId?: string;
+  sessionToken?: string;
   static names(): { [key: string]: string } {
     return {
-      securityToken: 'SecurityToken',
+      desktopId: 'DesktopId',
+      sessionToken: 'SessionToken',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      securityToken: 'string',
+      desktopId: 'string',
+      sessionToken: 'string',
     };
   }
 

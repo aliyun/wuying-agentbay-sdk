@@ -13,7 +13,7 @@ interface Config {
 export function defaultConfig(): Config {
   return {
       region_id: 'cn-shanghai',
-      endpoint: 'uyingai.cn-shanghai.aliyuncs.com',
+      endpoint: 'wuyingai.cn-shanghai.aliyuncs.com',
     timeout_ms: 60000
   };
 }

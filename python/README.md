@@ -42,6 +42,7 @@ python examples/basic_usage.py
 ```python
 from wuying_agentbay import AgentBay
 from wuying_agentbay.exceptions import AgentBayError
+from wuying_agentbay.session_params import CreateSessionParams
 
 def main():
     # Initialize with API key
@@ -50,8 +51,13 @@ def main():
     try:
         agent_bay = AgentBay(api_key=api_key)
         
-        # Create a session
-        session = agent_bay.create()
+        # Create a session with labels
+        params = CreateSessionParams()
+        params.labels = {
+            "purpose": "demo",
+            "environment": "development"
+        }
+        session = agent_bay.create(params)
         print(f"Session created with ID: {session.session_id}")
         
         # Execute a command
@@ -59,8 +65,36 @@ def main():
         print(f"Command result: {result}")
         
         # Read a file
-        content = session.file_system.read_file("/path/to/file.txt")
+        content = session.filesystem.read_file("/path/to/file.txt")
         print(f"File content: {content}")
+        
+        # Get installed applications
+        apps = session.application.get_installed_apps(include_system_apps=True, 
+                                                     include_store_apps=False, 
+                                                     include_desktop_apps=True)
+        print(f"Found {len(apps)} installed applications")
+        
+        # List visible applications
+        processes = session.application.list_visible_apps()
+        print(f"Found {len(processes)} visible applications")
+        
+        # List root windows
+        windows = session.window.list_root_windows()
+        print(f"Found {len(windows)} root windows")
+        
+        # Get active window
+        active_window = session.window.get_active_window()
+        print(f"Active window: {active_window.title}")
+        
+        # Get session labels
+        labels = session.get_labels()
+        print(f"Session labels: {labels}")
+        
+        # List sessions by labels
+        filtered_sessions = agent_bay.list_by_labels({
+            "purpose": "demo"
+        })
+        print(f"Found {len(filtered_sessions)} matching sessions")
         
         # Clean up
         agent_bay.delete(session)
@@ -87,4 +121,4 @@ poetry build
 poetry run pytest
 ```
 
-For more detailed documentation, please refer to the main [README](../README.md) and [SDK Reference](../SDK_Reference.md) in the project root.
+For more detailed documentation, please refer to the main [README](../README.md) and [SDK Documentation](../docs/README.md) in the project root.
