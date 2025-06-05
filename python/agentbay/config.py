@@ -15,19 +15,35 @@ def load_config() -> Dict[str, Any]:
     # First check if the config file path is specified in environment variables
     config_path = os.getenv("AGENTBAY_CONFIG_PATH")
     if not config_path:
-        # Try to find the config file in the project root directory
-        # First try the current directory
-        config_path = "config.json"
-        if not os.path.exists(config_path):
-            # Then try the parent directory
-            config_path = os.path.join("..", "config.json")
-            if not os.path.exists(config_path):
-                # Then try the grandparent directory
-                config_path = os.path.join("..", "..", "config.json")
-                if not os.path.exists(config_path):
-                    # Config file not found, return default config
-                    print("Warning: Configuration file not found, using default values")
-                    return default_config()
+        # Try to find the config file by traversing up from the current directory
+        try:
+            dir_path = os.getcwd()
+            found = False
+            
+            # Start from current directory and traverse up to find config.json
+            # This will check current dir, parent, grandparent, etc. up to filesystem root
+            for _ in range(10):  # Limit search depth to prevent infinite loop
+                possible_config_path = os.path.join(dir_path, "config.json")
+                if os.path.exists(possible_config_path):
+                    config_path = possible_config_path
+                    found = True
+                    print(f"Found config file at: {possible_config_path}")
+                    break
+                
+                # Move up one directory
+                parent_dir = os.path.dirname(dir_path)
+                if parent_dir == dir_path:
+                    # We've reached the filesystem root
+                    break
+                dir_path = parent_dir
+                
+            if not found:
+                # Config file not found, return default config
+                print("Warning: Configuration file not found, using default values")
+                return default_config()
+        except Exception as e:
+            print(f"Warning: Failed to search for configuration file: {e}, using default values")
+            return default_config()
 
     try:
         # Read the config file

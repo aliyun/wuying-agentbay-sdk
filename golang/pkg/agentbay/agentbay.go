@@ -39,6 +39,8 @@ func NewAgentBay(apiKey string) (*AgentBay, error) {
 		Endpoint: tea.String(config.Endpoint),
 	}
 	apiConfig.ReadTimeout = tea.Int(config.TimeoutMs)
+	apiConfig.ConnectTimeout = tea.Int(config.TimeoutMs)
+
 	client, err := mcp.NewClient(apiConfig)
 	if err != nil {
 		return nil, fmt.Errorf("create openapi client fails")

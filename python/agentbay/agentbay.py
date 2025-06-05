@@ -36,6 +36,7 @@ class AgentBay:
         config = open_api_models.Config()
         config.endpoint = config_data["endpoint"]
         config.read_timeout = config_data["timeout_ms"]
+        config.connect_timeout = config_data["timeout_ms"]
 
         self.client = mcp_client(config)
         self._sessions = {}
