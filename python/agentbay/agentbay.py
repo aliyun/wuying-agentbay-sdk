@@ -1,17 +1,18 @@
 import json
 import os
+from threading import Lock
 from typing import Dict, List, Optional
-from agentbay.exceptions import AgentBayError
+
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_openapi.exceptions._client import ClientException
-from threading import Lock
 
-from agentbay.session import Session
-from agentbay.context import ContextService
-from agentbay.session_params import CreateSessionParams
 from agentbay.api.client import Client as mcp_client
 from agentbay.api.models import CreateMcpSessionRequest, ListSessionRequest
 from agentbay.config import load_config
+from agentbay.context import ContextService
+from agentbay.exceptions import AgentBayError
+from agentbay.session import Session
+from agentbay.session_params import CreateSessionParams
 
 
 class AgentBay:
@@ -75,19 +76,27 @@ class AgentBay:
             session_data = response.to_map()
 
             if not isinstance(session_data, dict):
-                raise AgentBayError("Invalid response format: expected a dictionary from response.to_map()")
+                raise AgentBayError(
+                    "Invalid response format: expected a dictionary from response.to_map()"
+                )
 
             body = session_data.get("body", {})
             if not isinstance(body, dict):
-                raise AgentBayError("Invalid response format: 'body' field is not a dictionary")
+                raise AgentBayError(
+                    "Invalid response format: 'body' field is not a dictionary"
+                )
 
             data = body.get("Data", {})
             if not isinstance(data, dict):
-                raise AgentBayError("Invalid response format: 'Data' field is not a dictionary")
+                raise AgentBayError(
+                    "Invalid response format: 'Data' field is not a dictionary"
+                )
 
             session_id = data.get("SessionId")
             if not session_id:
-                raise AgentBayError(f"Failed to get session_id from response: {response}")
+                raise AgentBayError(
+                    f"Failed to get session_id from response: {response}"
+                )
 
             print("session_id =", session_id)
 
@@ -131,8 +140,7 @@ class AgentBay:
             labels_json = json.dumps(labels)
 
             request = ListSessionRequest(
-                authorization=f"Bearer {self.api_key}",
-                labels=labels_json
+                authorization=f"Bearer {self.api_key}", labels=labels_json
             )
 
             response = self.client.list_session(request)

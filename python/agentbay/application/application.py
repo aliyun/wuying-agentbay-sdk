@@ -1,7 +1,8 @@
 import json
-from typing import Dict, List, Optional, Any
-from agentbay.exceptions import AgentBayError
+from typing import Any, Dict, List, Optional
+
 from agentbay.api.models import CallMcpToolRequest
+from agentbay.exceptions import AgentBayError
 
 
 class InstalledApp:
@@ -20,7 +21,7 @@ class InstalledApp:
         name: str,
         start_cmd: str,
         stop_cmd: Optional[str] = None,
-        work_directory: Optional[str] = None
+        work_directory: Optional[str] = None,
     ):
         """
         Initialize an InstalledApp object.
@@ -37,7 +38,7 @@ class InstalledApp:
         self.work_directory = work_directory
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'InstalledApp':
+    def from_dict(cls, data: Dict[str, Any]) -> "InstalledApp":
         """
         Create an InstalledApp object from a dictionary.
 
@@ -48,10 +49,10 @@ class InstalledApp:
             InstalledApp: The created InstalledApp object.
         """
         return cls(
-            name=data.get('name', ''),
-            start_cmd=data.get('start_cmd', ''),
-            stop_cmd=data.get('stop_cmd'),
-            work_directory=data.get('work_directory')
+            name=data.get("name", ""),
+            start_cmd=data.get("start_cmd", ""),
+            stop_cmd=data.get("stop_cmd"),
+            work_directory=data.get("work_directory"),
         )
 
 
@@ -65,12 +66,7 @@ class Process:
         cmdline (Optional[str]): The command line used to start the process.
     """
 
-    def __init__(
-        self,
-        pname: str,
-        pid: int,
-        cmdline: Optional[str] = None
-    ):
+    def __init__(self, pname: str, pid: int, cmdline: Optional[str] = None):
         """
         Initialize a Process object.
 
@@ -84,7 +80,7 @@ class Process:
         self.cmdline = cmdline
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Process':
+    def from_dict(cls, data: Dict[str, Any]) -> "Process":
         """
         Create a Process object from a dictionary.
 
@@ -95,9 +91,9 @@ class Process:
             Process: The created Process object.
         """
         return cls(
-            pname=data.get('pname', ''),
-            pid=data.get('pid', 0),
-            cmdline=data.get('cmdline')
+            pname=data.get("pname", ""),
+            pid=data.get("pid", 0),
+            cmdline=data.get("cmdline"),
         )
 
 
@@ -135,7 +131,7 @@ class ApplicationManager:
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
                 name=name,
-                args=args_json
+                args=args_json,
             )
 
             response = self.session.get_client().call_mcp_tool(request)
@@ -151,7 +147,11 @@ class ApplicationManager:
 
             if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", "Unknown error")
-                error_message = "; ".join(item.get("text", "") for item in error_content if isinstance(item, dict))
+                error_message = "; ".join(
+                    item.get("text", "")
+                    for item in error_content
+                    if isinstance(item, dict)
+                )
                 raise AgentBayError(f"{error_message}")
 
             response_data = body.get("Data", {})
@@ -178,7 +178,7 @@ class ApplicationManager:
         self,
         start_menu: bool = True,
         desktop: bool = True,
-        ignore_system_apps: bool = True
+        ignore_system_apps: bool = True,
     ) -> List[InstalledApp]:
         """
         Retrieves a list of installed applications.
@@ -197,7 +197,7 @@ class ApplicationManager:
         args = {
             "start_menu": start_menu,
             "desktop": desktop,
-            "ignore_system_apps": ignore_system_apps
+            "ignore_system_apps": ignore_system_apps,
         }
 
         try:
@@ -206,11 +206,7 @@ class ApplicationManager:
         except Exception as e:
             raise AgentBayError(f"Failed to get installed apps: {e}")
 
-    def start_app(
-        self,
-        start_cmd: str,
-        work_directory: str = ""
-    ) -> List[Process]:
+    def start_app(self, start_cmd: str, work_directory: str = "") -> List[Process]:
         """
         Starts an application with the given command and optional working directory.
 
@@ -224,9 +220,7 @@ class ApplicationManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "start_cmd": start_cmd
-        }
+        args = {"start_cmd": start_cmd}
 
         if work_directory:
             args["work_directory"] = work_directory
@@ -247,9 +241,7 @@ class ApplicationManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "pname": pname
-        }
+        args = {"pname": pname}
 
         try:
             self._call_mcp_tool("stop_app_by_pname", args)
@@ -266,9 +258,7 @@ class ApplicationManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "pid": pid
-        }
+        args = {"pid": pid}
 
         try:
             self._call_mcp_tool("stop_app_by_pid", args)
@@ -285,9 +275,7 @@ class ApplicationManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "stop_cmd": stop_cmd
-        }
+        args = {"stop_cmd": stop_cmd}
 
         try:
             self._call_mcp_tool("stop_app_by_cmd", args)

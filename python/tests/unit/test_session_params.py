@@ -1,5 +1,6 @@
-import unittest
 import json
+import unittest
+
 from agentbay.session_params import CreateSessionParams
 
 
@@ -36,10 +37,10 @@ class TestCreateSessionParams(unittest.TestCase):
         """Test that labels can be converted to JSON for the API request."""
         labels = {"username": "alice", "project": "my-project"}
         params = CreateSessionParams(labels=labels)
-        
+
         # Simulate what happens in AgentBay.create()
         labels_json = json.dumps(params.labels)
-        
+
         # Verify the JSON string
         parsed_labels = json.loads(labels_json)
         self.assertEqual(parsed_labels, labels)

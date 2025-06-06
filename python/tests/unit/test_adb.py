@@ -30,16 +30,12 @@ class TestAdb(unittest.TestCase):
     def test_execute_adb_command_success(self, MockCallMcpToolRequest):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "rlt1"},{"text": "rlt2"}]
-                }
-            }
+            "body": {"Data": {"content": [{"text": "rlt1"}, {"text": "rlt2"}]}}
         }
         self.session.client.call_mcp_tool.return_value = mock_response
 
         result = self.adb.shell("ls /sdcard")
-        
+
         self.assertEqual(result, "rlt1\nrlt2")
         MockCallMcpToolRequest.assert_called_once()
 
@@ -48,7 +44,10 @@ class TestAdb(unittest.TestCase):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {
-                "Data": {"isError":True, "content": [{"text": "some error message"}]}  # No content field
+                "Data": {
+                    "isError": True,
+                    "content": [{"text": "some error message"}],
+                }  # No content field
             }
         }
         self.session.client.call_mcp_tool.return_value = mock_response
@@ -60,14 +59,16 @@ class TestAdb(unittest.TestCase):
 
     @patch("agentbay.adb.adb.CallMcpToolRequest")
     def test_execute_adb_command_exception(self, MockCallMcpToolRequest):
-        self.session.client.call_mcp_tool.side_effect = Exception("adb connection failed")
+        self.session.client.call_mcp_tool.side_effect = Exception(
+            "adb connection failed"
+        )
 
-        #self.adb.shell("ls /sdcard")
         with self.assertRaises(AdbError) as context:
             self.adb.shell("ls /sdcard")
 
         self.assertIn("Failed to execute ADB shell command", str(context.exception))
         self.assertIn("adb connection failed", str(context.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

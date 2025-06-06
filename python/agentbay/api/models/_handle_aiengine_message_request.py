@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
+
+from darabonba.model import DaraModel
 
 
 class HandleAIEngineMessageRequest(DaraModel):
@@ -24,26 +25,25 @@ class HandleAIEngineMessageRequest(DaraModel):
         if _map is not None:
             result = _map
         if self.data is not None:
-            result['Data'] = self.data
+            result["Data"] = self.data
 
         if self.msg_type is not None:
-            result['MsgType'] = self.msg_type
+            result["MsgType"] = self.msg_type
 
         if self.session_token is not None:
-            result['SessionToken'] = self.session_token
+            result["SessionToken"] = self.session_token
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('Data') is not None:
-            self.data = m.get('Data')
+        if m.get("Data") is not None:
+            self.data = m.get("Data")
 
-        if m.get('MsgType') is not None:
-            self.msg_type = m.get('MsgType')
+        if m.get("MsgType") is not None:
+            self.msg_type = m.get("MsgType")
 
-        if m.get('SessionToken') is not None:
-            self.session_token = m.get('SessionToken')
+        if m.get("SessionToken") is not None:
+            self.session_token = m.get("SessionToken")
 
         return self
-

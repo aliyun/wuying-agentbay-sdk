@@ -12,11 +12,12 @@ install:
 test:
 	@echo "Running tests..."
 	poetry run pytest
-	
+
 # Format code
 format:
 	@echo "Formatting code..."
 	poetry run black agentbay tests
+	poetry run isort agentbay tests
 
 # Clean build artifacts
 clean:
@@ -40,4 +41,4 @@ publish-test: build
 # Publish to PyPI
 publish: build
 	@echo "Publishing $(VERSION) to PyPI..."
-	poetry publish 
+	poetry publish

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
+
+from darabonba.model import DaraModel
 
 
 class ListSessionResponseBodyData(DaraModel):
@@ -20,14 +21,13 @@ class ListSessionResponseBodyData(DaraModel):
         if _map is not None:
             result = _map
         if self.session_id is not None:
-            result['SessionId'] = self.session_id
+            result["SessionId"] = self.session_id
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('SessionId') is not None:
-            self.session_id = m.get('SessionId')
+        if m.get("SessionId") is not None:
+            self.session_id = m.get("SessionId")
 
         return self
-
