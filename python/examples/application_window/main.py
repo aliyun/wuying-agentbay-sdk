@@ -64,6 +64,7 @@ def main():
 
         # List root windows
         print("\nListing root windows...")
+        root_windows = []
         try:
             root_windows = session.window.list_root_windows()
             print(f"Found {len(root_windows)} root windows")

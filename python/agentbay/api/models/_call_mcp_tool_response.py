@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
-from alibabacloud_wuyingai20250506 import models as main_models 
+from darabonba.model import DaraModel
+from agentbay.api import models as main_models
 from typing import Dict
-
 
 class CallMcpToolResponse(DaraModel):
     def __init__(
@@ -20,12 +19,12 @@ class CallMcpToolResponse(DaraModel):
     def validate(self):
         if self.body:
             self.body.validate()
-
-    def to_map(self):
+    def to_map(self) -> Dict:
         result = dict()
         _map = super().to_map()
         if _map is not None:
             result = _map
+
         if self.headers is not None:
             result['headers'] = self.headers
 
@@ -37,7 +36,7 @@ class CallMcpToolResponse(DaraModel):
 
         return result
 
-    def from_map(self, m: dict = None):
+    def from_map(self, m: dict = None) -> 'CallMcpToolResponse':
         m = m or dict()
         if m.get('headers') is not None:
             self.headers = m.get('headers')

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from alibabacloud_tea_openapi.client import Client as OpenApiClient 
-from alibabacloud_tea_openapi import utils_models as open_api_util_models 
-from darabonba.core import DaraCore as DaraCore 
-from alibabacloud_tea_openapi.utils import Utils 
-from alibabacloud_wuyingai20250506 import models as main_models 
-from darabonba.runtime import RuntimeOptions 
+from alibabacloud_tea_openapi.client import Client as OpenApiClient
+from alibabacloud_tea_openapi import utils_models as open_api_util_models
+from darabonba.core import DaraCore as DaraCore
+from alibabacloud_tea_openapi.utils import Utils
+from agentbay.api import models as main_models
+from darabonba.runtime import RuntimeOptions
 from typing import Dict
 
 
