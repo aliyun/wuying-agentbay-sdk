@@ -1,8 +1,10 @@
 import json
-from typing import Dict, Any
+import traceback
+from typing import Any, Dict
+
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import AdbError
-import traceback
+
 
 class Adb:
     """
@@ -31,21 +33,19 @@ class Adb:
         Raises:
             Exception: If the command execution fails.
         """
-        args = {
-            "command": command
-        }
+        args = {"command": command}
 
         request = CallMcpToolRequest(
             args=json.dumps(args, ensure_ascii=False),
-            authorization='Bearer ' + str(self.session.get_api_key()),
+            authorization="Bearer " + str(self.session.get_api_key()),
             name="shell",
-            session_id=str(self.session.get_session_id())
+            session_id=str(self.session.get_session_id()),
         )
 
         try:
             response = self.session.get_client().call_mcp_tool(request)
             respoonse_map = response.to_map()
-            
+
             body_map = respoonse_map["body"]
             data_map = body_map["Data"]
             if data_map.get("isError", False):
@@ -62,6 +62,8 @@ class Adb:
                     continue
             result = "\n".join(text_array)
             return result
-        except (Exception) as error:
+        except Exception as error:
             error_detail = traceback.format_exc()
-            raise AdbError(f"Failed to execute ADB shell command: {error}\n{error_detail}")
+            raise AdbError(
+                f"Failed to execute ADB shell command: {error}\n{error_detail}"
+            )

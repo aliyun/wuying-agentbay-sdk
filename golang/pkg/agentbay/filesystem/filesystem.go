@@ -3,9 +3,11 @@ package filesystem
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
 )
 
 // FileSystem handles file operations in the AgentBay cloud environment.
@@ -90,4 +92,42 @@ func (fs *FileSystem) ReadFile(path string) (string, error) {
 	}
 
 	return fullText, nil
+}
+
+// WriteFile writes content to a file.
+// API Parameters:
+//
+//	{
+//	  "path": "file/path/to/write",
+//	  "content": "Content to write to the file",
+//	  "mode": "overwrite"  // Optional: "overwrite" (default) or "append"
+//	}
+func (fs *FileSystem) WriteFile(path, content string, mode string) (bool, error) {
+	// Create a new Command object using the same session
+	cmd := command.NewCommand(fs.Session)
+
+	// If mode is not specified or invalid, default to "overwrite"
+	if mode != "append" && mode != "overwrite" {
+		mode = "overwrite"
+	}
+
+	// Determine the redirection operator based on the mode
+	redirectOp := ">"
+	if mode == "append" {
+		redirectOp = ">>"
+	}
+
+	// Escape special characters in the content
+	escapedContent := strings.Replace(content, "'", "'\\''", -1)
+
+	// Construct the command to write content to file
+	commandStr := fmt.Sprintf("echo -n '%s' %s '%s'", escapedContent, redirectOp, path)
+
+	// Execute the command
+	_, err := cmd.ExecuteCommand(commandStr)
+	if err != nil {
+		return false, fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	return true, nil
 }

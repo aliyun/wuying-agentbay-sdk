@@ -7,6 +7,7 @@ The `Session` class represents a session in the AgentBay cloud environment. A se
 ### Python
 
 - `session_id`: The ID of the session.
+- `resource_url`: The resource URL associated with the session.
 - `filesystem`: The FileSystem instance for this session.
 - `command`: The Command instance for this session.
 - `adb`: The Adb instance for this session.
@@ -16,6 +17,7 @@ The `Session` class represents a session in the AgentBay cloud environment. A se
 ### TypeScript
 
 - `sessionId`: The ID of the session.
+- `resourceUrl`: The resource URL associated with the session.
 - `filesystem`: The FileSystem instance for this session.
 - `command`: The Command instance for this session.
 - `adb`: The Adb instance for this session.
@@ -25,6 +27,7 @@ The `Session` class represents a session in the AgentBay cloud environment. A se
 ### Golang
 
 - `SessionID`: The ID of the session.
+- `ResourceUrl`: The resource URL associated with the session.
 - `FileSystem`: The FileSystem instance for this session.
 - `Command`: The Command instance for this session.
 - `Adb`: The Adb instance for this session.
@@ -148,6 +151,65 @@ GetLabels() (string, error)
 - `string`: A JSON string of labels for the session.
 - `error`: An error if getting the labels fails.
 
+### info
+
+Gets information about the session, including the session ID, resource URL, and desktop information. This method also updates the session's ResourceUrl field with the latest value from the server.
+
+#### Python
+
+```python
+info() -> SessionInfo
+```
+
+**Returns:**
+- `SessionInfo`: An object containing information about the session, with the following properties:
+  - `session_id` (str): The ID of the session.
+  - `resource_url` (str): The resource URL associated with the session.
+  - `app_id` (str): The application ID associated with the desktop.
+  - `auth_code` (str): The authentication code for the desktop.
+  - `connection_properties` (str): Connection properties for the desktop.
+  - `resource_id` (str): The resource ID of the desktop.
+  - `resource_type` (str): The type of the desktop resource.
+
+**Raises:**
+- `SessionError`: If getting the session information fails.
+
+#### TypeScript
+
+```typescript
+info(): Promise<SessionInfo>
+```
+
+**Returns:**
+- `Promise<SessionInfo>`: A promise that resolves to an object containing information about the session, with the following properties:
+  - `sessionId` (string): The ID of the session.
+  - `resourceUrl` (string): The resource URL associated with the session.
+  - `appId` (string, optional): The application ID associated with the desktop.
+  - `authCode` (string, optional): The authentication code for the desktop.
+  - `connectionProperties` (string, optional): Connection properties for the desktop.
+  - `resourceId` (string, optional): The resource ID of the desktop.
+  - `resourceType` (string, optional): The type of the desktop resource.
+
+**Throws:**
+- `APIError`: If getting the session information fails.
+
+#### Golang
+
+```go
+Info() (*SessionInfo, error)
+```
+
+**Returns:**
+- `*SessionInfo`: An object containing information about the session, with the following properties:
+  - `SessionId` (string): The ID of the session.
+  - `ResourceUrl` (string): The resource URL associated with the session.
+  - `AppId` (string): The application ID associated with the desktop.
+  - `AuthCode` (string): The authentication code for the desktop.
+  - `ConnectionProperties` (string): Connection properties for the desktop.
+  - `ResourceId` (string): The resource ID of the desktop.
+  - `ResourceType` (string): The type of the desktop resource.
+- `error`: An error if getting the session information fails.
+
 ## Related Classes
 
 The Session class provides access to several other classes that provide specific functionality:
@@ -194,6 +256,16 @@ active_window = session.window.get_active_window()
 # Get session labels
 labels = session.get_labels()
 
+# Get session info
+session_info = session.info()
+print(f"Session ID: {session_info.session_id}")
+print(f"Resource URL: {session_info.resource_url}")
+print(f"App ID: {session_info.app_id}")
+print(f"Auth Code: {session_info.auth_code}")
+print(f"Connection Properties: {session_info.connection_properties}")
+print(f"Resource ID: {session_info.resource_id}")
+print(f"Resource Type: {session_info.resource_type}")
+
 # Delete the session
 session.delete()
 ```
@@ -229,6 +301,16 @@ const activeWindow = await session.window.getActiveWindow();
 
 // Get session labels
 const labels = await session.getLabels();
+
+// Get session info
+const sessionInfo = await session.info();
+console.log(`Session ID: ${sessionInfo.sessionId}`);
+console.log(`Resource URL: ${sessionInfo.resourceUrl}`);
+console.log(`App ID: ${sessionInfo.appId}`);
+console.log(`Auth Code: ${sessionInfo.authCode}`);
+console.log(`Connection Properties: ${sessionInfo.connectionProperties}`);
+console.log(`Resource ID: ${sessionInfo.resourceId}`);
+console.log(`Resource Type: ${sessionInfo.resourceType}`);
 
 // Delete the session
 await session.delete();
@@ -289,6 +371,19 @@ labels, err := session.GetLabels()
 if err != nil {
     // Handle error
 }
+
+// Get session info
+sessionInfo, err := session.Info()
+if err != nil {
+    // Handle error
+}
+fmt.Printf("Session ID: %s\n", sessionInfo.SessionId)
+fmt.Printf("Resource URL: %s\n", sessionInfo.ResourceUrl)
+fmt.Printf("App ID: %s\n", sessionInfo.AppId)
+fmt.Printf("Auth Code: %s\n", sessionInfo.AuthCode)
+fmt.Printf("Connection Properties: %s\n", sessionInfo.ConnectionProperties)
+fmt.Printf("Resource ID: %s\n", sessionInfo.ResourceId)
+fmt.Printf("Resource Type: %s\n", sessionInfo.ResourceType)
 
 // Delete the session
 err = client.Delete(session)

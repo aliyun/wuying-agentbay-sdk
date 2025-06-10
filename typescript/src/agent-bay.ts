@@ -97,12 +97,19 @@ export class AgentBay {
         console.log('agentBay create session response',response);
         const sessionId = response.body?.data?.sessionId;
         if (!sessionId) {
-          throw new APIError('Invalid session ID in response')
-        }else{
-          const session =  new Session(this, response.body?.data?.sessionId||'');
-          this.sessions.set(session.sessionId, session);
-          return session;
+          throw new APIError('Invalid session ID in response');
         }
+        
+        // ResourceUrl is optional in CreateMcpSession response
+        const resourceUrl = response.body?.data?.resourceUrl;
+        
+        const session = new Session(this, sessionId);
+        if (resourceUrl) {
+          session.resourceUrl = resourceUrl;
+        }
+        
+        this.sessions.set(session.sessionId, session);
+        return session;
        
     } catch (error) {
       throw new APIError(`Failed to create session: ${error}`);

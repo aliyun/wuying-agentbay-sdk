@@ -131,8 +131,16 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
 		return nil, fmt.Errorf("no session ID returned from CreateMcpSession")
 	}
 
-	// 使用 session.go 中的 Create 函数创建新的 Session
+	// ResourceUrl is optional in CreateMcpSession response
+
+	// Create a new Session using the NewSession function from session.go
 	session := NewSession(a, *response.Body.Data.SessionId)
+
+	// Set the ResourceUrl field from the response data if present
+	if response.Body.Data.ResourceUrl != nil {
+		session.ResourceUrl = *response.Body.Data.ResourceUrl
+	}
+
 	a.Sessions.Store(session.SessionID, *session)
 	return session, nil
 }

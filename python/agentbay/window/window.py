@@ -1,7 +1,8 @@
 import json
-from typing import Dict, List, Optional, Any, Union
-from agentbay.exceptions import AgentBayError
+from typing import Any, Dict, List, Optional, Union
+
 from agentbay.api.models import CallMcpToolRequest
+from agentbay.exceptions import AgentBayError
 
 
 class Window:
@@ -30,7 +31,7 @@ class Window:
         height: Optional[int] = None,
         pid: Optional[int] = None,
         pname: Optional[str] = None,
-        child_windows: Optional[List['Window']] = None
+        child_windows: Optional[List["Window"]] = None,
     ):
         """
         Initialize a Window object.
@@ -57,7 +58,7 @@ class Window:
         self.child_windows = child_windows or []
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Window':
+    def from_dict(cls, data: Dict[str, Any]) -> "Window":
         """
         Create a Window object from a dictionary.
 
@@ -68,19 +69,19 @@ class Window:
             Window: The created Window object.
         """
         child_windows = []
-        if 'child_windows' in data and data['child_windows']:
-            child_windows = [cls.from_dict(child) for child in data['child_windows']]
+        if "child_windows" in data and data["child_windows"]:
+            child_windows = [cls.from_dict(child) for child in data["child_windows"]]
 
         return cls(
-            window_id=data.get('window_id', 0),
-            title=data.get('title', ''),
-            absolute_upper_left_x=data.get('absolute_upper_left_x'),
-            absolute_upper_left_y=data.get('absolute_upper_left_y'),
-            width=data.get('width'),
-            height=data.get('height'),
-            pid=data.get('pid'),
-            pname=data.get('pname'),
-            child_windows=child_windows
+            window_id=data.get("window_id", 0),
+            title=data.get("title", ""),
+            absolute_upper_left_x=data.get("absolute_upper_left_x"),
+            absolute_upper_left_y=data.get("absolute_upper_left_y"),
+            width=data.get("width"),
+            height=data.get("height"),
+            pid=data.get("pid"),
+            pname=data.get("pname"),
+            child_windows=child_windows,
         )
 
 
@@ -118,7 +119,7 @@ class WindowManager:
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
                 name=name,
-                args=args_json
+                args=args_json,
             )
 
             response = self.session.get_client().call_mcp_tool(request)
@@ -134,7 +135,11 @@ class WindowManager:
 
             if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", "Unknown error")
-                error_message = "; ".join(item.get("text", "") for item in error_content if isinstance(item, dict))
+                error_message = "; ".join(
+                    item.get("text", "")
+                    for item in error_content
+                    if isinstance(item, dict)
+                )
                 raise AgentBayError(f"{error_message}")
 
             response_data = body.get("Data", {})
@@ -170,9 +175,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "pname": pname
-        }
+        args = {"pname": pname}
 
         try:
             result = self._call_mcp_tool("get_window_info_by_pname", args)
@@ -193,9 +196,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "pid": pid
-        }
+        args = {"pid": pid}
 
         try:
             result = self._call_mcp_tool("get_window_info_by_pid", args)
@@ -249,9 +250,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("activate_window", args)
@@ -268,9 +267,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("maximize_window", args)
@@ -287,9 +284,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("minimize_window", args)
@@ -306,9 +301,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("restore_window", args)
@@ -325,9 +318,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("close_window", args)
@@ -344,9 +335,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id
-        }
+        args = {"window_id": window_id}
 
         try:
             self._call_mcp_tool("fullscreen_window", args)
@@ -365,11 +354,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "window_id": window_id,
-            "width": width,
-            "height": height
-        }
+        args = {"window_id": window_id, "width": width, "height": height}
 
         try:
             self._call_mcp_tool("resize_window", args)
@@ -386,9 +371,7 @@ class WindowManager:
         Raises:
             AgentBayError: If the operation fails.
         """
-        args = {
-            "on": on
-        }
+        args = {"on": on}
 
         try:
             self._call_mcp_tool("focus_mode", args)

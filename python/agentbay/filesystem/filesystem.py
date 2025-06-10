@@ -1,8 +1,9 @@
 import json
+import traceback
 
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import FileError
-import traceback
+
 
 class FileSystem:
     """
@@ -17,7 +18,7 @@ class FileSystem:
             session: The Session instance that this FileSystem belongs to.
         """
         self.session = session
-        #self._base_url = f"{session._base_url}/files"
+        # self._base_url = f"{session._base_url}/files"
 
     def read_file(self, path: str) -> str:
         """
@@ -29,15 +30,13 @@ class FileSystem:
         Returns:
             str: The contents of the file.
         """
-        args = {
-            "path": path
-        }
+        args = {"path": path}
 
         request = CallMcpToolRequest(
             args=json.dumps(args, ensure_ascii=False),
-            authorization='Bearer ' + str(self.session.get_api_key()),
+            authorization="Bearer " + str(self.session.get_api_key()),
             name="read_file",
-            session_id=str(self.session.get_session_id())
+            session_id=str(self.session.get_session_id()),
         )
 
         try:
@@ -45,7 +44,7 @@ class FileSystem:
             respoonse_map = response.to_map()
             body_map = respoonse_map["body"]
             data_map = body_map["Data"]
-            
+
             if data_map.get("isError", False):
                 error_msg = json.dumps(data_map, ensure_ascii=False)
                 raise FileError(error_msg)
@@ -60,6 +59,6 @@ class FileSystem:
                     continue
             result = "\n".join(text_array)
             return result
-        except (Exception) as error:
+        except Exception as error:
             error_detail = traceback.format_exc()
             raise FileError(f"Failed to read file: {error}\n{error_detail}")

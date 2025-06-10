@@ -12,10 +12,22 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/window"
 )
 
+// SessionInfo contains information about a session.
+type SessionInfo struct {
+	SessionId            string
+	ResourceUrl          string
+	AppId                string
+	AuthCode             string
+	ConnectionProperties string
+	ResourceId           string
+	ResourceType         string
+}
+
 // Session represents a session in the AgentBay cloud environment.
 type Session struct {
-	AgentBay  *AgentBay
-	SessionID string
+	AgentBay    *AgentBay
+	SessionID   string
+	ResourceUrl string
 
 	// File, command, and adb handlers
 	FileSystem *filesystem.FileSystem
@@ -139,4 +151,72 @@ func (s *Session) GetLabels() (string, error) {
 	}
 
 	return "", nil
+}
+
+// Info gets information about this session.
+func (s *Session) Info() (*SessionInfo, error) {
+	getMcpResourceRequest := &mcp.GetMcpResourceRequest{
+		Authorization: tea.String("Bearer " + s.GetAPIKey()),
+		SessionId:     tea.String(s.SessionID),
+	}
+
+	// Log API request
+	fmt.Println("API Call: GetMcpResource")
+	fmt.Printf("Request: SessionId=%s\n", *getMcpResourceRequest.SessionId)
+
+	response, err := s.GetClient().GetMcpResource(getMcpResourceRequest)
+
+	// Log API response
+	if err != nil {
+		fmt.Println("Error calling GetMcpResource:", err)
+		return nil, err
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from GetMcpResource:", response.Body)
+	}
+
+	if response != nil && response.Body != nil && response.Body.Data != nil {
+		sessionInfo := &SessionInfo{
+			SessionId:            "",
+			ResourceUrl:          "",
+			AppId:                "",
+			AuthCode:             "",
+			ConnectionProperties: "",
+			ResourceId:           "",
+			ResourceType:         "",
+		}
+
+		if response.Body.Data.SessionId != nil {
+			sessionInfo.SessionId = *response.Body.Data.SessionId
+		}
+
+		if response.Body.Data.ResourceUrl != nil {
+			sessionInfo.ResourceUrl = *response.Body.Data.ResourceUrl
+			// Update the session's ResourceUrl with the latest value
+			s.ResourceUrl = *response.Body.Data.ResourceUrl
+		}
+
+		// Transfer DesktopInfo fields to SessionInfo
+		if response.Body.Data.DesktopInfo != nil {
+			if response.Body.Data.DesktopInfo.AppId != nil {
+				sessionInfo.AppId = *response.Body.Data.DesktopInfo.AppId
+			}
+			if response.Body.Data.DesktopInfo.AuthCode != nil {
+				sessionInfo.AuthCode = *response.Body.Data.DesktopInfo.AuthCode
+			}
+			if response.Body.Data.DesktopInfo.ConnectionProperties != nil {
+				sessionInfo.ConnectionProperties = *response.Body.Data.DesktopInfo.ConnectionProperties
+			}
+			if response.Body.Data.DesktopInfo.ResourceId != nil {
+				sessionInfo.ResourceId = *response.Body.Data.DesktopInfo.ResourceId
+			}
+			if response.Body.Data.DesktopInfo.ResourceType != nil {
+				sessionInfo.ResourceType = *response.Body.Data.DesktopInfo.ResourceType
+			}
+		}
+
+		return sessionInfo, nil
+	}
+
+	return nil, fmt.Errorf("failed to get session info: empty response data")
 }

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
+
+from darabonba.model import DaraModel
 
 
 class GetContextResponseBodyData(DaraModel):
@@ -30,44 +31,43 @@ class GetContextResponseBodyData(DaraModel):
         if _map is not None:
             result = _map
         if self.create_time is not None:
-            result['CreateTime'] = self.create_time
+            result["CreateTime"] = self.create_time
 
         if self.id is not None:
-            result['Id'] = self.id
+            result["Id"] = self.id
 
         if self.last_used_time is not None:
-            result['LastUsedTime'] = self.last_used_time
+            result["LastUsedTime"] = self.last_used_time
 
         if self.name is not None:
-            result['Name'] = self.name
+            result["Name"] = self.name
 
         if self.os_type is not None:
-            result['OsType'] = self.os_type
+            result["OsType"] = self.os_type
 
         if self.state is not None:
-            result['State'] = self.state
+            result["State"] = self.state
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('CreateTime') is not None:
-            self.create_time = m.get('CreateTime')
+        if m.get("CreateTime") is not None:
+            self.create_time = m.get("CreateTime")
 
-        if m.get('Id') is not None:
-            self.id = m.get('Id')
+        if m.get("Id") is not None:
+            self.id = m.get("Id")
 
-        if m.get('LastUsedTime') is not None:
-            self.last_used_time = m.get('LastUsedTime')
+        if m.get("LastUsedTime") is not None:
+            self.last_used_time = m.get("LastUsedTime")
 
-        if m.get('Name') is not None:
-            self.name = m.get('Name')
+        if m.get("Name") is not None:
+            self.name = m.get("Name")
 
-        if m.get('OsType') is not None:
-            self.os_type = m.get('OsType')
+        if m.get("OsType") is not None:
+            self.os_type = m.get("OsType")
 
-        if m.get('State') is not None:
-            self.state = m.get('State')
+        if m.get("State") is not None:
+            self.state = m.get("State")
 
         return self
-
