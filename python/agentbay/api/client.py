@@ -157,9 +157,13 @@ class Client(OpenApiClient):
             req_body_type="formData",
             body_type="json",
         )
-        return DaraCore.from_map(
-            main_models.CallMcpToolResponse(), self.call_api(params, req, runtime)
+        result = DaraCore.from_map(
+            main_models.CallMcpToolResponse(),
+            self.call_api(params, req, runtime),
         )
+        if not isinstance(result, main_models.CallMcpToolResponse):
+            raise TypeError("Result is not of type CallMcpToolResponse")
+        return result
 
     async def call_mcp_tool_with_options_async(
         self,
@@ -194,10 +198,13 @@ class Client(OpenApiClient):
             req_body_type="formData",
             body_type="json",
         )
-        return DaraCore.from_map(
+        result = DaraCore.from_map(
             main_models.CallMcpToolResponse(),
             await self.call_api_async(params, req, runtime),
         )
+        if not isinstance(result, main_models.CallMcpToolResponse):
+            raise TypeError("Result is not of type CallMcpToolResponse")
+        return result
 
     def call_mcp_tool(
         self,

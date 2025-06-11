@@ -31,11 +31,6 @@ def main():
         content = session.file_system.read_file("/etc/hosts")
         print(f"File content: {content}")
 
-        # Execute an ADB shell command (for mobile environments)
-        print("\nExecuting an ADB shell command...")
-        adb_result = session.adb.shell("ls /sdcard")
-        print(f"ADB shell result: {adb_result}")
-
         # List all sessions
         print("\nListing all sessions...")
         sessions = agent_bay.list()

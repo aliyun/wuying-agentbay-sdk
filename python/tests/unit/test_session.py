@@ -21,10 +21,8 @@ class TestSession(unittest.TestCase):
         self.assertEqual(self.session.agent_bay, self.agent_bay)
         self.assertIsNotNone(self.session.file_system)
         self.assertIsNotNone(self.session.command)
-        self.assertIsNotNone(self.session.adb)
         self.assertEqual(self.session.file_system.session, self.session)
         self.assertEqual(self.session.command.session, self.session)
-        self.assertEqual(self.session.adb.session, self.session)
 
     def test_get_api_key(self):
         self.assertEqual(self.session.get_api_key(), "test_api_key")

@@ -121,7 +121,7 @@ class TestSession(unittest.TestCase):
         # Test session properties
         self.assertIsNotNone(self.session.session_id)
         self.assertEqual(self.session.agent_bay, self.agent_bay)
-        
+
         # Test resource_url field
         self.assertIsNotNone(self.session.resource_url)
         self.assertNotEqual(self.session.resource_url, "")
@@ -208,65 +208,6 @@ class TestSession(unittest.TestCase):
                 # Don't fail the test if filesystem operations are not supported
         else:
             print("Note: FileSystem interface is nil, skipping file test")
-
-
-class TestAdb(unittest.TestCase):
-    """Test cases for the Adb class."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        api_key = get_test_api_key()
-        self.agent_bay = AgentBay(api_key=api_key)
-
-        # Create a session
-        print("Creating a new session for ADB testing...")
-        self.session = self.agent_bay.create()
-        print(f"Session created with ID: {self.session.session_id}")
-
-    def tearDown(self):
-        """Tear down test fixtures."""
-        print("Cleaning up: Deleting the session...")
-        try:
-            self.agent_bay.delete(self.session)
-        except Exception as e:
-            print(f"Warning: Error deleting session: {e}")
-
-    def test_adb_shell(self):
-        """Test ADB shell command execution."""
-        if self.session.adb:
-            print("Executing ADB shell command...")
-            try:
-                response = self.session.adb.shell("ls /sdcard")
-                print(f"ADB shell execution result: {response}")
-                self.assertIsNotNone(response)
-                # Check if response contains "tool not found"
-                self.assertNotIn(
-                    "tool not found",
-                    response.lower(),
-                    "Adb.Shell returned 'tool not found'",
-                )
-            except Exception as e:
-                print(f"Note: ADB shell execution failed: {e}")
-                # Don't fail the test if ADB is not supported
-
-            # Test another ADB command
-            try:
-                print("Executing ADB shell command to check device properties...")
-                prop_response = self.session.adb.shell("getprop")
-                print(
-                    f"ADB getprop execution result length: {len(prop_response)} bytes"
-                )
-                self.assertIsNotNone(prop_response)
-                # Check if response contains "tool not found"
-                self.assertNotIn(
-                    "tool not found",
-                    prop_response.lower(),
-                    "Adb.Shell returned 'tool not found'",
-                )
-            except Exception as e:
-                print(f"Note: ADB getprop execution failed: {e}")
-        else:
-            print("Note: Adb interface is nil, skipping ADB test")
 
 
 if __name__ == "__main__":

@@ -47,7 +47,7 @@ The basic usage example demonstrates the fundamental operations of the SDK, incl
 - Creating a session
 - Executing commands
 - Reading files
-- Using ADB shell commands
+- Using shell commands
 - Listing and deleting sessions
 
 ### Session Creation

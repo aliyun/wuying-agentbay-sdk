@@ -2,7 +2,6 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agentbay.agentbay import AgentBay
 from agentbay.context import Context, ContextService
 
 
