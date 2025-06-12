@@ -92,6 +92,11 @@ def main():
         )
         print("\nScreen clicked successfully")
 
+        # Screenshot
+        print("\nTaking screenshot...")
+        result = session.mobile.screenshot()
+        print(f"\nScreenshot taken successfully: {result}")
+
 
     except AgentBayError as e:
         print(f"Failed to test mobile api: {e}")

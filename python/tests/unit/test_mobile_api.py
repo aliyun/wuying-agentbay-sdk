@@ -285,5 +285,43 @@ class TestMobileApi(unittest.TestCase):
 
         self.assertEqual(str(context.exception), "Failed to get all UI elements")
 
+    def test_screenshot_success(self):
+        """Test screenshot success case."""
+        # Mock _call_mcp_tool to return successfully
+        OSS_URL = "https://wuying-intelligence-service-cn-hangzhou.oss-cn-hangzhou.aliyuncs.com/mcp/ak-e147ix6m7mpayx09e/ak-e147ix6m7mpayx09e/638d5cca-b745-445e-a9fb-4a9abc82d48e/screenshot_1749700117009.png?Expires=1749703719&OSSAccessKeyId=STS.NWPqtJ17wU3eWGsBL6qGBtPqF&Signature=09gg%2FPFwCtH8egwC%2FUxEXpV7KhE%3D&x-oss-process=image%2Fresize%2Cw_3000%2Ch_3000&security-token=CAIS1wJ1q6Ft5B2yfSjIr5TlOs7%2B3OhW4vGOVWHCpkxjfchum5XapDz2IHhMeXNuCOgYtvs%2Fnm5Z7f4Slrp6SJtIXleCZtF94oxN9h2gb4fb4xAzZEua0s%2FLI3OaLjKm9u2wCryLYbGwU%2FOpbE%2B%2B5U0X6LDmdDKkckW4OJmS8%2FBOZcgWWQ%2FKBlgvRq0hRG1YpdQdKGHaONu0LxfumRCwNkdzvRdmgm4NgsbWgO%2Fks0eD1Aeikb5J%2FN%2BrfMP5N%2FMBZskvD42Hu8VtbbfE3SJq7BxHybx7lqQs%2B02c5onAWQcAu0vebLqOrIw0dF9jFLcnCq9Co735nuU9oeHJiYX8xlNWIehaUiLQVGZtVHlDzGvD3L8ZAlWbUxylurjnXhJFCb1%2B4IHiTBxQjdwPIEliNDI6i82qRWRfEJkLo%2B5aonFIMXjvKGusDryCFqDpWLP3qN7CubtoG7RgBytAGoABRWLbIqkgI1rCZGWpg2EgBfY9rKg8qTkaFB5ln3usNfv7YignkKdgxb861569TAMcQr2%2B4WLjv724oI0qRh3Y%2BBJI%2BYvBqSbh%2BadiKVGUwMBJ31jUHQ5f%2FalAtDuR3863%2FSyf0ZAmleRB0CEA%2FrILJh3YKRl4uPKc%2BKpS0DqasKMgAA%3D%3D"
+        self.mobile_system._call_mcp_tool = MagicMock(return_value=OSS_URL)
+
+        # Call screenshot method
+        try:
+            result = self.mobile_system.screenshot()
+            self.assertEqual(result, OSS_URL)
+        except AgentBayError:
+            self.fail("screenshot raised AgentBayError unexpectedly!")
+
+    def test_screenshot_failure(self):
+        """Test screenshot failure with business logic error."""
+        # Mock _call_mcp_tool to raise an AgentBayError
+        self.mobile_system._call_mcp_tool = MagicMock(
+            side_effect=AgentBayError("Error in response: Failed to take screenshot")
+        )
+
+        # Call screenshot and validate exception
+        with self.assertRaises(AgentBayError) as context:
+            self.mobile_system.screenshot()
+
+        self.assertEqual(str(context.exception), "Error in response: Failed to take screenshot")
+
+    def test_screenshot_exception_handling(self):
+        """Test screenshot exception handling for unexpected errors."""
+        # Mock _call_mcp_tool to raise a generic exception
+        self.mobile_system._call_mcp_tool = MagicMock(side_effect=Exception("Network error"))
+
+        # Call screenshot and validate exception is wrapped in AgentBayError
+        with self.assertRaises(AgentBayError) as context:
+            self.mobile_system.screenshot()
+
+        self.assertIn("Failed to take screenshot", str(context.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

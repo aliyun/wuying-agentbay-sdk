@@ -122,5 +122,15 @@ class TestMobileSystemIntegration(unittest.TestCase):
             self.fail(f"get_all_ui_elements failed with error: {e}")
 
 
+    def test_screenshot(self):
+        """
+        Test taking a screenshot.
+        """
+        try:
+            screenshot = self.mobile_system.screenshot()
+            self.assertIsInstance(screenshot, str)
+            print(f"\nScreenshot saved to: {screenshot}")
+        except AgentBayError as e:
+            self.fail(f"screenshot failed with error: {e}")
 if __name__ == "__main__":
     unittest.main()

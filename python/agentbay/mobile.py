@@ -135,7 +135,6 @@ class MobileSystem:
                 raise AgentBayError("Invalid response format")
 
             body = response_map.get("body", {})
-            print(f"Body: {body}")
             if not body:
                 raise AgentBayError("Invalid response body")
 
@@ -276,7 +275,7 @@ class MobileSystem:
         except Exception as e:
             raise AgentBayError(f"Failed to stop app: {e}")
 
-    def get_clickable_ui_elements(self, timeout_ms: int = 1000) -> List[Dict[str, Any]]:
+    def get_clickable_ui_elements(self, timeout_ms: int = 2000) -> List[Dict[str, Any]]:
         """
         Retrieves all clickable UI elements within the specified timeout.
 
@@ -301,7 +300,7 @@ class MobileSystem:
         except Exception as e:
             raise AgentBayError(f"Failed to get clickable UI elements: {e}")
 
-    def get_all_ui_elements(self, timeout_ms: int = 1000) -> List[Dict[str, Any]]:
+    def get_all_ui_elements(self, timeout_ms: int = 2000) -> List[Dict[str, Any]]:
         """
         Retrieves all UI elements within the specified timeout.
 
@@ -451,3 +450,21 @@ class MobileSystem:
             raise
         except Exception as e:
             raise AgentBayError(f"Failed to perform click: {e}")
+
+    def screenshot(self) -> str:
+        """
+        Takes a screenshot of the current screen using the system_screenshot tool.
+
+        Raises:
+            AgentBayError: If the operation fails.
+        """
+        args = {}  # No arguments needed for system_screenshot
+
+        try:
+            result = self._call_mcp_tool("system_screenshot", args)
+            print(f"Result from system_screenshot: {result}")
+            return result
+        except AgentBayError:
+            raise
+        except Exception as e:
+            raise AgentBayError(f"Failed to take screenshot: {e}")
