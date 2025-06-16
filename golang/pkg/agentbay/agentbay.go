@@ -74,6 +74,11 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
 		createSessionRequest.ContextId = tea.String(params.ContextID)
 	}
 
+	// Add image_id if provided
+	if params.ImageId != "" {
+		createSessionRequest.ImageId = tea.String(params.ImageId)
+	}
+
 	// Add labels if provided
 	if len(params.Labels) > 0 {
 		labelsJSON, err := params.GetLabelsJSON()
@@ -88,6 +93,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
 	fmt.Printf("Request: ")
 	if createSessionRequest.ContextId != nil {
 		fmt.Printf("ContextId=%s, ", *createSessionRequest.ContextId)
+	}
+	if createSessionRequest.ImageId != nil {
+		fmt.Printf("ImageId=%s, ", *createSessionRequest.ImageId)
 	}
 	if createSessionRequest.Labels != nil {
 		fmt.Printf("Labels=%s", *createSessionRequest.Labels)

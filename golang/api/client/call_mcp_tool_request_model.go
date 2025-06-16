@@ -15,6 +15,8 @@ type iCallMcpToolRequest interface {
 	GetAuthorization() *string
 	SetExternalUserId(v string) *CallMcpToolRequest
 	GetExternalUserId() *string
+	SetImageId(v string) *CallMcpToolRequest
+	GetImageId() *string
 	SetName(v string) *CallMcpToolRequest
 	GetName() *string
 	SetServer(v string) *CallMcpToolRequest
@@ -29,6 +31,7 @@ type CallMcpToolRequest struct {
 	Args           *string `json:"Args,omitempty" xml:"Args,omitempty"`
 	Authorization  *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
 	ExternalUserId *string `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
+	ImageId        *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Name           *string `json:"Name,omitempty" xml:"Name,omitempty"`
 	Server         *string `json:"Server,omitempty" xml:"Server,omitempty"`
 	SessionId      *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
@@ -53,6 +56,10 @@ func (s *CallMcpToolRequest) GetAuthorization() *string {
 
 func (s *CallMcpToolRequest) GetExternalUserId() *string {
 	return s.ExternalUserId
+}
+
+func (s *CallMcpToolRequest) GetImageId() *string {
+	return s.ImageId
 }
 
 func (s *CallMcpToolRequest) GetName() *string {
@@ -83,6 +90,11 @@ func (s *CallMcpToolRequest) SetAuthorization(v string) *CallMcpToolRequest {
 
 func (s *CallMcpToolRequest) SetExternalUserId(v string) *CallMcpToolRequest {
 	s.ExternalUserId = &v
+	return s
+}
+
+func (s *CallMcpToolRequest) SetImageId(v string) *CallMcpToolRequest {
+	s.ImageId = &v
 	return s
 }
 

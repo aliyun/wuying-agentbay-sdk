@@ -11,10 +11,13 @@ type iListMcpToolsRequest interface {
 	GoString() string
 	SetAuthorization(v string) *ListMcpToolsRequest
 	GetAuthorization() *string
+	SetImageId(v string) *ListMcpToolsRequest
+	GetImageId() *string
 }
 
 type ListMcpToolsRequest struct {
 	Authorization *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
+	ImageId       *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 }
 
 func (s ListMcpToolsRequest) String() string {
@@ -29,8 +32,17 @@ func (s *ListMcpToolsRequest) GetAuthorization() *string {
 	return s.Authorization
 }
 
+func (s *ListMcpToolsRequest) GetImageId() *string {
+	return s.ImageId
+}
+
 func (s *ListMcpToolsRequest) SetAuthorization(v string) *ListMcpToolsRequest {
 	s.Authorization = &v
+	return s
+}
+
+func (s *ListMcpToolsRequest) SetImageId(v string) *ListMcpToolsRequest {
+	s.ImageId = &v
 	return s
 }
 

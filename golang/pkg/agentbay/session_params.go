@@ -24,6 +24,9 @@ type CreateSessionParams struct {
 	//    For example, if a context is first used with a Linux session, it cannot later be used
 	//    with a Windows or Android session.
 	ContextID string
+
+	// ImageId specifies the image ID to use for the session.
+	ImageId string
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -42,6 +45,12 @@ func (p *CreateSessionParams) WithLabels(labels map[string]string) *CreateSessio
 // WithContextID sets the context ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithContextID(contextID string) *CreateSessionParams {
 	p.ContextID = contextID
+	return p
+}
+
+// WithImageId sets the image ID for the session parameters and returns the updated parameters.
+func (p *CreateSessionParams) WithImageId(imageId string) *CreateSessionParams {
+	p.ImageId = imageId
 	return p
 }
 

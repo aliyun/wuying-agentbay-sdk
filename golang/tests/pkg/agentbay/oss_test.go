@@ -53,7 +53,8 @@ func TestOss_EnvInit(t *testing.T) {
 
 	// Create a session
 	fmt.Println("Creating a new session for OSS testing...")
-	session, err := agentBay.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	session, err := agentBay.Create(sessionParams)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -103,7 +104,8 @@ func TestOss_Upload(t *testing.T) {
 
 	// Create a session
 	fmt.Println("Creating a new session for OSS testing...")
-	session, err := agentBay.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	session, err := agentBay.Create(sessionParams)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -174,7 +176,8 @@ func TestOss_UploadAnonymous(t *testing.T) {
 
 	// Create a session
 	fmt.Println("Creating a new session for OSS testing...")
-	session, err := agentBay.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	session, err := agentBay.Create(sessionParams)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -237,7 +240,8 @@ func TestOss_Download(t *testing.T) {
 
 	// Create a session
 	fmt.Println("Creating a new session for OSS testing...")
-	session, err := agentBay.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	session, err := agentBay.Create(sessionParams)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -307,7 +311,8 @@ func TestOss_DownloadAnonymous(t *testing.T) {
 
 	// Create a session
 	fmt.Println("Creating a new session for OSS testing...")
-	session, err := agentBay.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	session, err := agentBay.Create(sessionParams)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
