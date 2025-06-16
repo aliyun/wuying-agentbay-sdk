@@ -2,21 +2,10 @@ package agentbay_test
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
-
-// Helper function to extract resourceId from a URL
-func extractResourceId(url string) string {
-	re := regexp.MustCompile(`resourceId=([^&]+)`)
-	matches := re.FindStringSubmatch(url)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
-}
 
 func TestSession_Properties(t *testing.T) {
 	// Initialize AgentBay client
@@ -104,6 +93,46 @@ func TestSession_DeleteMethod(t *testing.T) {
 		if s.SessionID == session.SessionID {
 			t.Errorf("Session with ID %s still exists after deletion", session.SessionID)
 		}
+	}
+}
+
+func TestSession_GetLinkMethod(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := getTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create a session
+	fmt.Println("Creating a new session for GetLink testing...")
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("imgc-07if81c4ktj9shiru")
+	session, err := agentBay.Create(sessionParams)
+	if err != nil {
+		t.Fatalf("Error creating session: %v", err)
+	}
+	t.Logf("Session created with ID: %s", session.SessionID)
+	defer func() {
+		// Clean up the session after test
+		fmt.Println("Cleaning up: Deleting the session...")
+		err := agentBay.Delete(session)
+		if err != nil {
+			t.Logf("Warning: Error deleting session: %v", err)
+		}
+	}()
+
+	// Test GetLink method
+	fmt.Println("Testing session.GetLink method...")
+	link, err := session.GetLink()
+	if err != nil {
+		t.Fatalf("Error getting session link: %v", err)
+	}
+
+	// Verify the link
+	if link == "" {
+		t.Errorf("Expected non-empty link from GetLink")
+	} else {
+		t.Logf("Session link: %s", link)
 	}
 }
 

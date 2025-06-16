@@ -156,6 +156,35 @@ func (s *Session) GetLabels() (string, error) {
 	return "", nil
 }
 
+// GetLink gets the link for this session.
+func (s *Session) GetLink() (string, error) {
+	getLinkRequest := &mcp.GetLinkRequest{
+		Authorization: tea.String("Bearer " + s.GetAPIKey()),
+		SessionId:     tea.String(s.SessionID),
+	}
+
+	// Log API request
+	fmt.Println("API Call: GetLink")
+	fmt.Printf("Request: SessionId=%s\n", *getLinkRequest.SessionId)
+
+	response, err := s.GetClient().GetLink(getLinkRequest)
+
+	// Log API response
+	if err != nil {
+		fmt.Println("Error calling GetLink:", err)
+		return "", err
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from GetLink:", response.Body)
+	}
+
+	if response != nil && response.Body != nil && response.Body.Data != nil {
+		return *response.Body.Data, nil
+	}
+
+	return "", nil
+}
+
 // Info gets information about this session.
 func (s *Session) Info() (*SessionInfo, error) {
 	getMcpResourceRequest := &mcp.GetMcpResourceRequest{
