@@ -9,7 +9,7 @@ from agentbay.exceptions import SessionError
 from agentbay.filesystem import FileSystem
 from agentbay.oss import Oss
 from agentbay.window import WindowManager
-from agentbay.mobile import MobileSystem
+from agentbay.ui import UI
 
 
 class SessionInfo:
@@ -48,7 +48,7 @@ class Session:
         self.application = ApplicationManager(self)
         self.window = WindowManager(self)
 
-        self.mobile = MobileSystem(self)
+        self.ui = UI(self)
 
     def get_api_key(self) -> str:
         """Return the API key for this session."""

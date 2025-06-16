@@ -1,6 +1,6 @@
 import os
 from agentbay import AgentBay
-from agentbay.mobile import KeyCode
+from agentbay.ui import KeyCode
 from agentbay.session import Session
 from agentbay.exceptions import AgentBayError
 from typing import List, Dict, Any
@@ -19,7 +19,7 @@ def main():
 
         # Get installed applications
         print("\nGetting installed applications...")
-        installed_apps = session.mobile.get_installed_apps(
+        installed_apps = session.application.get_installed_apps(
             start_menu=True,
             desktop=False,
             ignore_system_apps=True
@@ -30,18 +30,18 @@ def main():
 
         # Start the application
         print(f"\nStarting the application...")
-        start_result = session.mobile.start_app("monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1")
+        start_result = session.application.start_app("monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1")
         print(f"\nStarted Application successfully: {start_result}")
 
 
         # Stop the application
         print("\nStopping the application...")
-        stop_result = session.mobile.stop_app_by_cmd("am force-stop com.sankuai.meituan")
+        stop_result = session.application.stop_app_by_cmd("am force-stop com.sankuai.meituan")
         print(f"Application stopped: {stop_result}")
 
         # Get clickable ui elements
         print("\nGetting clickable UI elements...")
-        clickable_elements = session.mobile.get_clickable_ui_elements()
+        clickable_elements = session.ui.get_clickable_ui_elements()
         print(f"Clickable UI Elements: {clickable_elements}")
 
         # Get all ui elements
@@ -58,23 +58,23 @@ def main():
             print("\nUI Element Tree:")
             for element in elements:
                 print_ui_element(element)
-        all_elements = session.mobile.get_all_ui_elements()
+        all_elements = session.ui.get_all_ui_elements()
         print_all_ui_elements(all_elements)
 
 
         # Send key event
         print("\nSending key event...")
-        session.mobile.send_key(KeyCode.HOME)
+        session.ui.send_key(KeyCode.HOME)
         print(f"Key event sent successfully")
 
         # Input text
         print("\nInput text...")
-        session.mobile.input_text("Hello, AgentBay!")
+        session.ui.input_text("Hello, AgentBay!")
         print("\nText input successfully")
 
         # Swipe screen
         print("\nSwiping screen...")
-        session.mobile.swipe(
+        session.ui.swipe(
             start_x=100,      # Starting X coordinate
             start_y=800,      # Starting Y coordinate
             end_x=900,        # Ending X coordinate
@@ -85,7 +85,7 @@ def main():
 
         # Click event
         print("\nClicking screen...")
-        session.mobile.click(
+        session.ui.click(
             x=500,         # X coordinate for click
             y=800,         # Y coordinate for click
             button="left"  # Mouse button type, default is "left"
@@ -94,12 +94,12 @@ def main():
 
         # Screenshot
         print("\nTaking screenshot...")
-        result = session.mobile.screenshot()
+        result = session.ui.screenshot()
         print(f"\nScreenshot taken successfully: {result}")
 
 
     except AgentBayError as e:
-        print(f"Failed to test mobile api: {e}")
+        print(f"Failed to test ui api: {e}")
 
 if __name__ == "__main__":
     main()

@@ -55,6 +55,14 @@ class InstalledApp:
             work_directory=data.get("work_directory"),
         )
 
+    def __repr__(self):
+        return (
+            f"InstalledApp(name='{self.name}', "
+            f"start_cmd='{self.start_cmd}', "
+            f"stop_cmd='{self.stop_cmd}', "
+            f"work_directory='{self.work_directory}')"
+        )
+
 
 class Process:
     """
@@ -96,6 +104,13 @@ class Process:
             cmdline=data.get("cmdline"),
         )
 
+    def __repr__(self):
+        return (
+            f"Process(pname='{self.pname}', "
+            f"pid={self.pid}, "
+            f"cmdline='{self.cmdline}')"
+        )
+
 
 class ApplicationManager:
     """
@@ -111,7 +126,7 @@ class ApplicationManager:
         """
         self.session = session
 
-    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
         """
         Call an MCP tool with the given name and arguments.
 
@@ -145,34 +160,51 @@ class ApplicationManager:
             if not body:
                 raise AgentBayError(f"Invalid response body")
 
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", "Unknown error")
+            return self._parse_response_body(body)
+        except (KeyError, TypeError, ValueError) as e:
+            raise AgentBayError(f"Failed to parse MCP tool response: {e}")
+        except Exception as e:
+            raise AgentBayError(f"Failed to call MCP tool {name}: {e}")
+
+    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
+        """
+        Parses the response body from the MCP tool.
+
+        Args:
+            body (Dict[str, Any]): The response body.
+
+        Returns:
+            Any: The parsed content.
+
+        Raises:
+            AgentBayError: If the response contains errors or is invalid.
+        """
+        try:
+            if body.get("Data", {}).get("isError", True):
+                error_content = body.get("Data", {}).get("content", [])
                 error_message = "; ".join(
-                    item.get("text", "")
+                    item.get("text", "Unknown error")
                     for item in error_content
                     if isinstance(item, dict)
                 )
-                raise AgentBayError(f"{error_message}")
+                raise AgentBayError(f"Error in response: {error_message}")
 
             response_data = body.get("Data", {})
             if not response_data:
-                raise AgentBayError(f"No data field in response")
+                raise AgentBayError("No data field in response")
 
-            # Extract content array
             content = response_data.get("content", [])
-            if not content or len(content) == 0:
-                raise AgentBayError(f"Invalid or empty content array in response")
+            if not content or not isinstance(content, list):
+                raise AgentBayError("No content found in response")
 
             # Extract text field from the first content item
             content_item = content[0]
             json_text = content_item.get("text")
-            if not json_text:
-                raise AgentBayError(f"Text field not found or not a string in response")
 
-            # Parse the JSON text
-            return json.loads(json_text)
+            # Return the JSON text
+            return json_text
         except Exception as e:
-            raise AgentBayError(f"Failed to call MCP tool {name}: {e}")
+            raise AgentBayError(f"{e}")
 
     def get_installed_apps(
         self,
@@ -202,7 +234,14 @@ class ApplicationManager:
 
         try:
             result = self._call_mcp_tool("get_installed_apps", args)
-            return [InstalledApp.from_dict(app) for app in result]
+            apps_data = json.loads(result)
+            if not isinstance(apps_data, list):
+                raise AgentBayError("Invalid apps data format")
+
+            # return installed_apps
+            return [InstalledApp.from_dict(app) for app in apps_data]
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to get installed apps: {e}")
 
@@ -227,7 +266,14 @@ class ApplicationManager:
 
         try:
             result = self._call_mcp_tool("start_app", args)
-            return [Process.from_dict(process) for process in result]
+            process_list = json.loads(result)
+
+            if not isinstance(process_list, list):
+                raise AgentBayError("Invalid response format from start_app")
+
+            return [Process.from_dict(process) for process in process_list]
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to start app: {e}")
 
@@ -245,6 +291,9 @@ class ApplicationManager:
 
         try:
             self._call_mcp_tool("stop_app_by_pname", args)
+
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to stop app by pname: {e}")
 
@@ -262,6 +311,8 @@ class ApplicationManager:
 
         try:
             self._call_mcp_tool("stop_app_by_pid", args)
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to stop app by pid: {e}")
 
@@ -279,6 +330,9 @@ class ApplicationManager:
 
         try:
             self._call_mcp_tool("stop_app_by_cmd", args)
+
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to stop app by command: {e}")
 
@@ -296,6 +350,13 @@ class ApplicationManager:
 
         try:
             result = self._call_mcp_tool("list_visible_apps", args)
-            return [Process.from_dict(process) for process in result]
+            process_list = json.loads(result)
+            if not isinstance(process_list, list):
+                raise AgentBayError("Invalid apps data format")
+
+            # return installed_apps
+            return [Process.from_dict(process) for process in process_list]
+        except AgentBayError:
+            raise
         except Exception as e:
             raise AgentBayError(f"Failed to list visible apps: {e}")
