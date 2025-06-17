@@ -78,7 +78,7 @@ class UI:
             AgentBayError: If the response contains errors or is invalid.
         """
         try:
-            if body.get("Data", {}).get("isError", True):
+            if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", [])
                 error_message = "; ".join(
                     item.get("text", "Unknown error")

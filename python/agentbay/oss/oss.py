@@ -69,9 +69,9 @@ class Oss:
             OssError: If the response contains errors or is invalid.
         """
         try:
-            if body.get("Data", {}).get("isError", True):
+            if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content) 
+                print("error_content =", error_content)
                 error_message = "; ".join(
                     item.get("text", "Unknown error")
                     for item in error_content
