@@ -1,12 +1,12 @@
 // This file is auto-generated, don't edit it
 import * as $dara from '@darabonba/typescript';
-import { ListMcpToolsResponseBody } from "./ListMcpToolsResponseBody";
+import { GetLinkResponseBody } from "./GetLinkResponseBody";
 
 
-export class ListMcpToolsResponse extends $dara.Model {
+export class GetLinkResponse extends $dara.Model {
   headers?: { [key: string]: string };
   statusCode?: number;
-  body?: ListMcpToolsResponseBody;
+  body?: GetLinkResponseBody;
   static names(): { [key: string]: string } {
     return {
       headers: 'headers',
@@ -19,7 +19,7 @@ export class ListMcpToolsResponse extends $dara.Model {
     return {
       headers: { 'type': 'map', 'keyType': 'string', 'valueType': 'string' },
       statusCode: 'number',
-      body: ListMcpToolsResponseBody,
+      body: GetLinkResponseBody,
     };
   }
 

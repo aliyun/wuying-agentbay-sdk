@@ -30,51 +30,6 @@ export default class Client extends OpenApi {
     return OpenApiUtil.getEndpointRules(productId, regionId, endpointRule, network, suffix);
   }
 
-  /**
-   * 获取STS Token
-   * 
-   * @param request - ApplyMqttTokenRequest
-   * @param runtime - runtime options for this request RuntimeOptions
-   * @returns ApplyMqttTokenResponse
-   */
-  async applyMqttTokenWithOptions(request: $_model.ApplyMqttTokenRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ApplyMqttTokenResponse> {
-    request.validate();
-    let query = { };
-    if (!$dara.isNull(request.desktopId)) {
-      query["DesktopId"] = request.desktopId;
-    }
-
-    if (!$dara.isNull(request.sessionToken)) {
-      query["SessionToken"] = request.sessionToken;
-    }
-
-    let req = new $OpenApiUtil.OpenApiRequest({
-      query: OpenApiUtil.query(query),
-    });
-    let params = new $OpenApiUtil.Params({
-      action: "ApplyMqttToken",
-      version: "2025-05-06",
-      protocol: "HTTPS",
-      pathname: "/",
-      method: "POST",
-      authType: "Anonymous",
-      style: "RPC",
-      reqBodyType: "formData",
-      bodyType: "json",
-    });
-    return $dara.cast<$_model.ApplyMqttTokenResponse>(await this.callApi(params, req, runtime), new $_model.ApplyMqttTokenResponse({}));
-  }
-
-  /**
-   * 获取STS Token
-   * 
-   * @param request - ApplyMqttTokenRequest
-   * @returns ApplyMqttTokenResponse
-   */
-  async applyMqttToken(request: $_model.ApplyMqttTokenRequest): Promise<$_model.ApplyMqttTokenResponse> {
-    let runtime = new $dara.RuntimeOptions({ });
-    return await this.applyMqttTokenWithOptions(request, runtime);
-  }
 
   /**
    * 调用mcp工具
@@ -96,6 +51,10 @@ export default class Client extends OpenApi {
 
     if (!$dara.isNull(request.externalUserId)) {
       body["ExternalUserId"] = request.externalUserId;
+    }
+
+    if (!$dara.isNull(request.imageId)) {
+      body["ImageId"] = request.imageId;
     }
 
     if (!$dara.isNull(request.name)) {
@@ -162,6 +121,10 @@ export default class Client extends OpenApi {
 
     if (!$dara.isNull(request.externalUserId)) {
       body["ExternalUserId"] = request.externalUserId;
+    }
+
+    if (!$dara.isNull(request.imageId)) {
+      body["ImageId"] = request.imageId;
     }
 
     if (!$dara.isNull(request.labels)) {
@@ -351,6 +314,52 @@ export default class Client extends OpenApi {
   }
 
   /**
+   * 获取特定端口的转发链接
+   * 
+   * @param request - GetLinkRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetLinkResponse
+   */
+  async getLinkWithOptions(request: $_model.GetLinkRequest, runtime: $dara.RuntimeOptions): Promise<$_model.GetLinkResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "GetLink",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetLinkResponse>(await this.callApi(params, req, runtime), new $_model.GetLinkResponse({}));
+  }
+
+  /**
+   * 获取特定端口的转发链接
+   * 
+   * @param request - GetLinkRequest
+   * @returns GetLinkResponse
+   */
+  async getLink(request: $_model.GetLinkRequest): Promise<$_model.GetLinkResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.getLinkWithOptions(request, runtime);
+  }
+
+  /**
    * 获取mcp资源信息
    * 
    * @param request - GetMcpResourceRequest
@@ -396,57 +405,6 @@ export default class Client extends OpenApi {
     return await this.getMcpResourceWithOptions(request, runtime);
   }
 
-  /**
-   * 处理来自AI Engine的消息
-   * 
-   * @param request - HandleAIEngineMessageRequest
-   * @param runtime - runtime options for this request RuntimeOptions
-   * @returns HandleAIEngineMessageResponse
-   */
-  async handleAIEngineMessageWithOptions(request: $_model.HandleAIEngineMessageRequest, runtime: $dara.RuntimeOptions): Promise<$_model.HandleAIEngineMessageResponse> {
-    request.validate();
-    let query = { };
-    if (!$dara.isNull(request.sessionToken)) {
-      query["SessionToken"] = request.sessionToken;
-    }
-
-    let body : {[key: string ]: any} = { };
-    if (!$dara.isNull(request.data)) {
-      body["Data"] = request.data;
-    }
-
-    if (!$dara.isNull(request.msgType)) {
-      body["MsgType"] = request.msgType;
-    }
-
-    let req = new $OpenApiUtil.OpenApiRequest({
-      query: OpenApiUtil.query(query),
-      body: OpenApiUtil.parseToMap(body),
-    });
-    let params = new $OpenApiUtil.Params({
-      action: "HandleAIEngineMessage",
-      version: "2025-05-06",
-      protocol: "HTTPS",
-      pathname: "/",
-      method: "POST",
-      authType: "Anonymous",
-      style: "RPC",
-      reqBodyType: "formData",
-      bodyType: "json",
-    });
-    return $dara.cast<$_model.HandleAIEngineMessageResponse>(await this.callApi(params, req, runtime), new $_model.HandleAIEngineMessageResponse({}));
-  }
-
-  /**
-   * 处理来自AI Engine的消息
-   * 
-   * @param request - HandleAIEngineMessageRequest
-   * @returns HandleAIEngineMessageResponse
-   */
-  async handleAIEngineMessage(request: $_model.HandleAIEngineMessageRequest): Promise<$_model.HandleAIEngineMessageResponse> {
-    let runtime = new $dara.RuntimeOptions({ });
-    return await this.handleAIEngineMessageWithOptions(request, runtime);
-  }
 
   /**
    * 获取上下文列表
@@ -498,47 +456,6 @@ export default class Client extends OpenApi {
     return await this.listContextsWithOptions(request, runtime);
   }
 
-  /**
-   * ListMcpTools
-   * 
-   * @param request - ListMcpToolsRequest
-   * @param runtime - runtime options for this request RuntimeOptions
-   * @returns ListMcpToolsResponse
-   */
-  async listMcpToolsWithOptions(request: $_model.ListMcpToolsRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ListMcpToolsResponse> {
-    request.validate();
-    let body : {[key: string ]: any} = { };
-    if (!$dara.isNull(request.authorization)) {
-      body["Authorization"] = request.authorization;
-    }
-
-    let req = new $OpenApiUtil.OpenApiRequest({
-      body: OpenApiUtil.parseToMap(body),
-    });
-    let params = new $OpenApiUtil.Params({
-      action: "ListMcpTools",
-      version: "2025-05-06",
-      protocol: "HTTPS",
-      pathname: "/",
-      method: "POST",
-      authType: "Anonymous",
-      style: "RPC",
-      reqBodyType: "formData",
-      bodyType: "json",
-    });
-    return $dara.cast<$_model.ListMcpToolsResponse>(await this.callApi(params, req, runtime), new $_model.ListMcpToolsResponse({}));
-  }
-
-  /**
-   * ListMcpTools
-   * 
-   * @param request - ListMcpToolsRequest
-   * @returns ListMcpToolsResponse
-   */
-  async listMcpTools(request: $_model.ListMcpToolsRequest): Promise<$_model.ListMcpToolsResponse> {
-    let runtime = new $dara.RuntimeOptions({ });
-    return await this.listMcpToolsWithOptions(request, runtime);
-  }
 
   /**
    * 根据Lable查询Session列表

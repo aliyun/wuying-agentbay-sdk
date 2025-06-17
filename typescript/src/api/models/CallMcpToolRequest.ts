@@ -6,6 +6,7 @@ export class CallMcpToolRequest extends $dara.Model {
   args?: string;
   authorization?: string;
   externalUserId?: string;
+  imageId?: string;
   name?: string;
   server?: string;
   sessionId?: string;
@@ -15,6 +16,7 @@ export class CallMcpToolRequest extends $dara.Model {
       args: 'Args',
       authorization: 'Authorization',
       externalUserId: 'ExternalUserId',
+      imageId: 'ImageId',
       name: 'Name',
       server: 'Server',
       sessionId: 'SessionId',
@@ -27,6 +29,7 @@ export class CallMcpToolRequest extends $dara.Model {
       args: 'string',
       authorization: 'string',
       externalUserId: 'string',
+      imageId: 'string',
       name: 'string',
       server: 'string',
       sessionId: 'string',
