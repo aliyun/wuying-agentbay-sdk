@@ -76,6 +76,7 @@ def main():
         try:
             if session:
                 agent_bay.delete(session)
+                session = None
             print("Session deleted successfully")
         except AgentBayError as e:
             print(f"Error deleting session: {e}")
@@ -90,6 +91,12 @@ def main():
 
     except Exception as e:
         print(f"Error initializing AgentBay: {e}")
+        if session:
+            try:
+                agent_bay.delete(session)
+                print("Session deleted successfully")
+            except AgentBayError as delete_error:
+                print(f"Error deleting session during cleanup: {delete_error}")
 
 if __name__ == "__main__":
     main()

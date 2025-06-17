@@ -4,6 +4,7 @@ import unittest
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.ui import KeyCode
+from agentbay.session_params import CreateSessionParams
 
 
 class TestMobileSystemIntegration(unittest.TestCase):
@@ -13,7 +14,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         api_key = os.getenv("AGENTBAY_API_KEY", "your_api_key")  # Replace with your actual API key
         self.agent_bay = AgentBay(api_key=api_key)
-        self.session = self.agent_bay.create()
+        params = CreateSessionParams(
+            image_id="mobile_latest",
+        )
+        self.session = self.agent_bay.create(params)
         self.ui = self.session.ui
         self.application = self.session.application
         time.sleep(3)

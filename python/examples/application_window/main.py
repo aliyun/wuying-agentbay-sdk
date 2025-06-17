@@ -148,10 +148,17 @@ def main():
         # Delete the session
         print("\nDeleting the session...")
         agent_bay.delete(session)
+        session = None
         print("Session deleted successfully")
 
     except AgentBayError as e:
         print(f"Error: {e}")
+        if session:
+            try:
+                agent_bay.delete(session)
+                print("Session deleted successfully after error")
+            except AgentBayError as delete_error:
+                print(f"Error deleting session after error: {delete_error}")
         sys.exit(1)
 
 
