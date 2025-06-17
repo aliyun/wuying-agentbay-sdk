@@ -30,10 +30,10 @@ export function loadConfig(): Config {
       let dirPath = process.cwd();
       let found = false;
       
-      // Start from current directory and traverse up to find config.json
+      // Start from current directory and traverse up to find .config.json
       // This will check current dir, parent, grandparent, etc. up to filesystem root
       for (let i = 0; i < 10; i++) { // Limit search depth to prevent infinite loop
-        const possibleConfigPath = path.join(dirPath, 'config.json');
+        const possibleConfigPath = path.join(dirPath, '.config.json');
         if (fs.existsSync(possibleConfigPath)) {
           configPath = possibleConfigPath;
           found = true;

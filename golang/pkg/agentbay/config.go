@@ -35,11 +35,11 @@ func LoadConfig() Config {
 			return DefaultConfig()
 		}
 
-		// Start from current directory and traverse up to find config.json
+		// Start from current directory and traverse up to find .config.json
 		// This will check current dir, parent, grandparent, etc. up to filesystem root
 		found := false
 		for i := 0; i < 10; i++ { // Limit search depth to prevent infinite loop
-			possibleConfigPath := filepath.Join(dir, "config.json")
+			possibleConfigPath := filepath.Join(dir, ".config.json")
 			if _, err := os.Stat(possibleConfigPath); err == nil {
 				configPath = possibleConfigPath
 				found = true

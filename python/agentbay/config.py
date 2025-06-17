@@ -22,10 +22,10 @@ def load_config() -> Dict[str, Any]:
             dir_path = os.getcwd()
             found = False
 
-            # Start from current directory and traverse up to find config.json
+            # Start from current directory and traverse up to find .config.json
             # This will check current dir, parent, grandparent, etc. up to filesystem root
             for _ in range(10):  # Limit search depth to prevent infinite loop
-                possible_config_path = os.path.join(dir_path, "config.json")
+                possible_config_path = os.path.join(dir_path, ".config.json")
                 if os.path.exists(possible_config_path):
                     config_path = possible_config_path
                     found = True
