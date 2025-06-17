@@ -112,7 +112,7 @@ describe('AgentBay', () => {
       
       // Delete the session
       console.log('Deleting the session...');
-      await agentBay.delete(session.sessionId);
+      await agentBay.delete(session);
       
       // List sessions again to ensure it's deleted
       const sessionsAfterDelete = agentBay.list();
@@ -142,7 +142,7 @@ describe('Session', () => {
     // Clean up the session
     console.log('Cleaning up: Deleting the session...');
     try {
-      await agentBay.delete(session.sessionId);
+      await agentBay.delete(session);
     } catch (error) {
       console.log(`Warning: Error deleting session: ${error}`);
     }
@@ -204,7 +204,7 @@ describe('Session', () => {
         console.log(`Note: Session deletion failed: ${error}`);
         // Clean up if the test failed
         try {
-          await agentBay.delete(testSession.sessionId);
+          await agentBay.delete(testSession);
         } catch {
           // Ignore cleanup errors
         }
@@ -363,7 +363,7 @@ describe('Adb', () => {
     // Clean up the session
     console.log('Cleaning up: Deleting the session...');
     try {
-      await agentBay.delete(session.sessionId);
+      await agentBay.delete(session);
     } catch (error) {
       console.log(`Warning: Error deleting session: ${error}`);
     }

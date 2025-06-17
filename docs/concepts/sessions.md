@@ -233,7 +233,7 @@ const result = await session.command.executeCommand('ls -la');
 console.log('Command result:', result);
 
 // Delete the session
-await agentBay.delete(session.sessionId);
+await agentBay.delete(session);
 console.log('Session deleted successfully');
 ```
 

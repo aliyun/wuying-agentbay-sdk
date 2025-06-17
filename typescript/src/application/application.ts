@@ -1,5 +1,5 @@
 import { CallMcpToolRequest } from '../api/models/CallMcpToolRequest';
-
+import Client from '../api/client';
 /**
  * Represents an installed application.
  */
@@ -17,6 +17,7 @@ export interface Process {
   pname: string;
   pid: number;
   cmdline?: string;
+  path?: string;
 }
 
 /**
@@ -25,7 +26,7 @@ export interface Process {
 export class ApplicationManager {
   private session: {
     getAPIKey(): string;
-    getClient(): any;
+    getClient(): Client;
     getSessionId(): string;
   };
 
@@ -35,10 +36,11 @@ export class ApplicationManager {
    */
   constructor(session: {
     getAPIKey(): string;
-    getClient(): any;
+    getClient(): Client;
     getSessionId(): string;
   }) {
     this.session = session;
+    
   }
 
   /**
@@ -61,8 +63,10 @@ export class ApplicationManager {
       // Log API request
       console.log(`API Call: CallMcpTool - ${name}`);
       console.log(`Request: SessionId=${request.sessionId}, Args=${request.args}`);
-
-      const response = await this.session.getClient().callMcpTool(request);
+      
+      const client = this.session.getClient();
+      const response = await client.callMcpTool(request);
+      console.log(`Response from CallMcpTool - ${name}:`, response);
 
       // Log API response
       if (response && response.body) {
@@ -83,13 +87,17 @@ export class ApplicationManager {
 
       // Extract text field from the first content item
       const contentItem = content[0];
+      console.log('Extracting text field from the first content item...',contentItem);
+      
       const jsonText = contentItem.text;
       if (!jsonText) {
-        throw new Error('Text field not found or not a string');
+        throw new Error('Text field not found or tool not found');
       }
 
       // Parse the JSON text
-      return JSON.parse(jsonText);
+      console.log('Parsing JSON text...',jsonText);
+      
+      return JSON.parse(jsonText) as InstalledApp[];
     } catch (error) {
       throw new Error(`Failed to call MCP tool ${name}: ${error}`);
     }
@@ -116,6 +124,8 @@ export class ApplicationManager {
 
     try {
       const result = await this.callMcpTool('get_installed_apps', args);
+      console.log('API Response:', result);
+      
       return result as InstalledApp[];
     } catch (error) {
       throw new Error(`Failed to get installed apps: ${error}`);
@@ -140,6 +150,8 @@ export class ApplicationManager {
 
     try {
       const result = await this.callMcpTool('start_app', args);
+      console.log('API Response start_app:', result);
+      
       return result as Process[];
     } catch (error) {
       throw new Error(`Failed to start app: ${error}`);
@@ -207,6 +219,8 @@ export class ApplicationManager {
 
     try {
       const result = await this.callMcpTool('list_visible_apps', args);
+      console.log('listVisibleApps Response:', result);
+      
       return result as Process[];
     } catch (error) {
       throw new Error(`Failed to list visible apps: ${error}`);

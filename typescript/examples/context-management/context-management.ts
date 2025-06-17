@@ -71,7 +71,7 @@ async function main() {
 
       // Delete the session
       try {
-        await agentBay.delete(session.sessionId);
+        await agentBay.delete(session);
         console.log('Session deleted successfully');
       } catch (error) {
         console.log(`Error deleting session: ${error}`);

@@ -8,7 +8,6 @@ import { ApplicationManager } from './application';
 import { WindowManager } from './window';
 import Client from './api/client';
 import { ReleaseMcpSessionRequest, SetLabelRequest, GetLabelRequest, GetMcpResourceRequest } from './api/models/model';
-import * as $_client from './api';
 
 /**
  * Contains information about a session.
@@ -28,7 +27,7 @@ export interface SessionInfo {
  */
 export class Session {
   private agentBay: AgentBay;
-  public client:  $_client.Client;
+  public client:  Client;
   public sessionId: string;
   public resourceUrl: string = "";
   
@@ -91,13 +90,18 @@ export class Session {
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId
       });
+      console.log("API Call delete: ReleaseMcpSession",this.sessionId);
       
       await this.client.releaseMcpSession(releaseSessionRequest);
-      return true;
+     
+      this.agentBay.removeSession(this.sessionId);
+    return true;
     } catch (error) {
       throw new APIError(`Failed to delete session: ${error}`);
     }
   }
+
+  
   
   /**
    * Sets the labels for this session.
@@ -116,7 +120,9 @@ export class Session {
         labels: labelsJSON
       });
       
-      await this.client.setLabel(request);
+      const result = await this.client.setLabel(request);
+      console.log( 'response from setLabels',result);
+      
     } catch (error) {
       throw new APIError(`Failed to set labels for session: ${error}`);
     }
@@ -136,6 +142,7 @@ export class Session {
       });
       
       const response = await this.client.getLabel(request);
+      console.log(`Response from GetLabel: ${JSON.stringify(response)}`);
       
       // Extract labels from response
       const labelsJSON = response.body?.data?.labels;
@@ -165,6 +172,7 @@ export class Session {
    * @returns The client.
    */
   getClient(): Client {
+    
     return this.client;
   }
   

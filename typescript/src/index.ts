@@ -8,3 +8,4 @@ export * from './command';
 export * from './adb';
 export * from './oss';
 export * from './api';
+export * from './application';

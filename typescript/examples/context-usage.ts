@@ -51,7 +51,7 @@ async function main() {
     console.log('\nCleaning up...');
 
     // Delete the session
-    await agentBay.delete(session.sessionId);
+    await agentBay.delete(session);
     console.log('Session deleted successfully');
 
     // Delete the context

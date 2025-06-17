@@ -83,7 +83,7 @@ async function main() {
     console.log(`File content: ${content}`);
 
     // Delete the session
-    await agentBay.delete(session.sessionId);
+    await agentBay.delete(session);
     console.log('Session deleted successfully');
   } catch (error) {
     console.error('Error:', error);

@@ -109,7 +109,7 @@ async function main() {
     console.log(`Found ${filteredSessions.length} matching sessions`);
     
     // Clean up
-    await agentBay.delete(session.sessionId);
+    await agentBay.delete(session);
     console.log('Session deleted successfully');
   } catch (error) {
     console.error('Error:', error);

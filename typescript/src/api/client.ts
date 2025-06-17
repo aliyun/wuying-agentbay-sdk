@@ -87,6 +87,8 @@ export default class Client extends OpenApi {
       reqBodyType: "formData",
       bodyType: "json",
     });
+    console.log("API Call: CallMcpTool", request,req);
+    
     return $dara.cast<$_model.CallMcpToolResponse>(await this.callApi(params, req, runtime), new $_model.CallMcpToolResponse({}));
   }
 
@@ -133,6 +135,9 @@ export default class Client extends OpenApi {
 
     if (!$dara.isNull(request.sessionId)) {
       body["SessionId"] = request.sessionId;
+    }
+    if(!$dara.isNull(request.imageId)){
+      body["ImageId"] = request.imageId;
     }
 
     let req = new $OpenApiUtil.OpenApiRequest({

@@ -88,9 +88,9 @@ async function main() {
     // Delete the sessions
     console.log('\nDeleting the sessions...');
     try {
-      await agentBay.delete(session1.sessionId);
+      await agentBay.delete(session1);
       console.log(`Session ${session1.sessionId} deleted successfully`);
-      await agentBay.delete(session2.sessionId);
+      await agentBay.delete(session2);
       console.log(`Session ${session2.sessionId} deleted successfully`);
     } catch (error) {
       console.log(`Error deleting sessions: ${error}`);

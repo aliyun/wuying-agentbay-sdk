@@ -59,6 +59,7 @@ export class WindowManager {
       console.log(`Request: SessionId=${request.sessionId}, Args=${request.args}`);
 
       const response = await this.session.getClient().callMcpTool(request);
+      console.log(`Response from CallMcpTool - ${name}:`, JSON.stringify(response));
 
       // Log API response
       if (response && response.body) {
@@ -139,6 +140,8 @@ export class WindowManager {
 
     try {
       const result = await this.callMcpTool('list_root_windows', args);
+      console.log(result);
+      
       return result as Window[];
     } catch (error) {
       throw new Error(`Failed to list root windows: ${error}`);

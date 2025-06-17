@@ -60,7 +60,7 @@ async function main() {
     console.log('\nCleaning up sessions...');
     // First delete the initial session
     try {
-      await agentBay.delete(session.sessionId);
+      await agentBay.delete(session);
       console.log(`Session ${session.sessionId} deleted successfully`);
     } catch (error) {
       console.log(`Error deleting session ${session.sessionId}: ${error}`);
@@ -69,7 +69,7 @@ async function main() {
     // Then delete the additional sessions
     for (const s of additionalSessions) {
       try {
-        await agentBay.delete(s.sessionId);
+        await agentBay.delete(s);
         console.log(`Session ${s.sessionId} deleted successfully`);
       } catch (error) {
         console.log(`Error deleting session ${s.sessionId}: ${error}`);
