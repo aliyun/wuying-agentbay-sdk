@@ -97,9 +97,21 @@ def main():
         result = session.ui.screenshot()
         print(f"\nScreenshot taken successfully: {result}")
 
+        # Delete session
+        print("\nDeleting session...")
+        session.delete()
+        session = None  # Clear session variable to avoid using it after deletion
+        print("\nSession deleted successfully")
+
 
     except AgentBayError as e:
         print(f"Failed to test ui api: {e}")
+        if session:
+            try:
+                session.delete()
+                print("Session deleted successfully after error")
+            except AgentBayError as delete_error:
+                print(f"Error deleting session after error: {delete_error}")
 
 if __name__ == "__main__":
     main()

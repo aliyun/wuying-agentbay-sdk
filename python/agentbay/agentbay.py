@@ -70,6 +70,9 @@ class AgentBay:
             if params.labels:
                 # Convert labels to JSON string
                 request.labels = json.dumps(params.labels)
+
+            if params.image_id:
+                request.image_id = params.image_id
             response = self.client.create_mcp_session(request)
             print("response =", response)
 

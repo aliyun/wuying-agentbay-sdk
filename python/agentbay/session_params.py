@@ -14,6 +14,7 @@ class CreateSessionParams:
         self,
         labels: Optional[Dict[str, str]] = None,
         context_id: Optional[str] = None,
+        image_id: Optional[str] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -21,6 +22,8 @@ class CreateSessionParams:
         Args:
             labels (Optional[Dict[str, str]], optional): Custom labels for the Session. Defaults to None.
             context_id (Optional[str], optional): ID of the context to bind to the session. Defaults to None.
+            image_id (Optional[str], optional): ID of the image to use for the session. Defaults to None.
         """
         self.labels = labels or {}
         self.context_id = context_id
+        self.image_id = image_id

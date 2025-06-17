@@ -1,8 +1,7 @@
 import json
 from typing import Dict, Optional
-
 from agentbay.api.models import (GetLabelRequest, GetMcpResourceRequest, ReleaseMcpSessionRequest,
-                                 SetLabelRequest)
+                                 SetLabelRequest, GetLinkRequest, GetLinkResponse)
 from agentbay.application import ApplicationManager
 from agentbay.command import Command
 from agentbay.exceptions import SessionError
@@ -188,3 +187,85 @@ class Session:
             raise SessionError(
                 f"Failed to get session info for session {self.session_id}: {e}"
             )
+
+    def get_link(self) -> str:
+        """
+        Get a link associated with the current session.
+
+        Returns:
+            str: The string data extracted from the GetLinkResponse.
+
+        Raises:
+            SessionError: If the request fails or the response is invalid.
+        """
+        try:
+            request = GetLinkRequest(
+                authorization=f"Bearer {self.get_api_key()}",
+                session_id=self.get_session_id(),
+            )
+            response: GetLinkResponse = self.agent_bay.client.get_link(request)
+            response_map = response.to_map()
+
+            if not isinstance(response_map, dict):
+                raise SessionError(
+                    "Invalid response format: expected a dictionary from response.to_map()"
+                )
+
+            body = response_map.get("body", {})
+            if not isinstance(body, dict):
+                raise SessionError(
+                    "Invalid response format: 'body' field is not a dictionary"
+                )
+
+            data = body.get("Data", {})
+            if not isinstance(data, str):
+                raise SessionError(
+                    "Invalid response format: 'Data' field is not a string"
+                )
+
+            return data
+        except SessionError:
+            raise
+        except Exception as e:
+            raise SessionError(f"Failed to get link: {e}")
+
+    async def get_link_async(self) -> str:
+        """
+        Asynchronously get a link associated with the current session.
+
+        Returns:
+            str: The string data extracted from the GetLinkResponse.
+
+        Raises:
+            SessionError: If the request fails or the response is invalid.
+        """
+        try:
+            request = GetLinkRequest(
+                authorization=f"Bearer {self.get_api_key()}",
+                session_id=self.get_session_id(),
+            )
+            response: GetLinkResponse = await self.agent_bay.client.get_link_async(request)
+            response_map = response.to_map()
+
+            if not isinstance(response_map, dict):
+                raise SessionError(
+                    "Invalid response format: expected a dictionary from response.to_map()"
+                )
+
+            body = response_map.get("body", {})
+            if not isinstance(body, dict):
+                raise SessionError(
+                    "Invalid response format: 'body' field is not a dictionary"
+                )
+
+            data = body.get("Data", {})
+            if not isinstance(data, str):
+                raise SessionError(
+                    "Invalid response format: 'Data' field is not a string"
+                )
+
+            return data
+        except SessionError:
+            raise
+        except Exception as e:
+            raise SessionError(f"Failed to get link asynchronously: {e}")
