@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import OssError
@@ -19,8 +19,79 @@ class Oss:
         """
         self.session = session
 
-    def create_client(self, access_key_id: str, access_key_secret: str, 
-                     endpoint: Optional[str] = None, region: Optional[str] = None) -> str:
+    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
+        """
+        Internal helper to call MCP tool and handle errors.
+
+        Args:
+            name (str): The name of the tool to call.
+            args (Dict[str, Any]): The arguments to pass to the tool.
+
+        Returns:
+            Any: The response from the tool.
+
+        Raises:
+            OssError: If the tool call fails.
+        """
+        try:
+            args_json = json.dumps(args, ensure_ascii=False)
+            request = CallMcpToolRequest(
+                authorization=f"Bearer {self.session.get_api_key()}",
+                session_id=self.session.get_session_id(),
+                name=name,
+                args=args_json,
+            )
+            response = self.session.get_client().call_mcp_tool(request)
+            response_map = response.to_map()
+            if not response_map:
+                raise OssError("Invalid response format")
+            body = response_map.get("body", {})
+            print("response_map =", response_map)
+            if not body:
+                raise OssError("Invalid response body")
+            return self._parse_response_body(body)
+        except (KeyError, TypeError, ValueError) as e:
+            raise OssError(f"Failed to parse MCP tool response: {e}")
+        except Exception as e:
+            raise OssError(f"Failed to call MCP tool {name}: {e}")
+
+    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
+        """
+        Parses the response body from the MCP tool.
+
+        Args:
+            body (Dict[str, Any]): The response body.
+
+        Returns:
+            Any: The parsed content.
+
+        Raises:
+            OssError: If the response contains errors or is invalid.
+        """
+        try:
+            if body.get("Data", {}).get("isError", True):
+                error_content = body.get("Data", {}).get("content", [])
+                print("error_content =", error_content) 
+                error_message = "; ".join(
+                    item.get("text", "Unknown error")
+                    for item in error_content
+                    if isinstance(item, dict)
+                )
+                raise OssError(f"Error in response: {error_message}")
+            response_data = body.get("Data", {})
+            if not response_data:
+                raise OssError("No data field in response")
+            content = response_data.get("content", [])
+            if not content or not isinstance(content, list):
+                raise OssError("No content found in response")
+            content_item = content[0]
+            json_text = content_item.get("text")
+            return json_text
+        except Exception as e:
+            raise OssError(f"{e}")
+
+    def env_init(self, access_key_id: str, access_key_secret: str, securityToken: Optional[str] =
+                        None, endpoint: Optional[str] = None, region: Optional[str] = None) -> str:
         """
         Create an OSS client with the provided credentials.
 
@@ -39,34 +110,25 @@ class Oss:
         try:
             args = {
                 "access_key_id": access_key_id,
-                "access_key_secret": access_key_secret
+                "access_key_secret": access_key_secret,
+                "security_token":    securityToken,
             }
-            
+
             # Add optional parameters if provided
             if endpoint:
                 args["endpoint"] = endpoint
             if region:
                 args["region"] = region
-                
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="oss_client_create",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self._call_mcp_tool("oss_env_init", args)
             print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            result = data.get("result")
-            
-            if not isinstance(result, str):
+
+            if not isinstance(response, str):
                 raise OssError("result field not found or not a string")
-                
-            return result
+
+            return response
+        except OssError:
+            raise
         except Exception as e:
             raise OssError(f"Failed to create OSS client: {e}")
 
@@ -91,25 +153,16 @@ class Oss:
                 "object": object,
                 "path": path
             }
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="oss_upload",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self._call_mcp_tool("oss_upload", args)
             print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            result = data.get("result")
-            
-            if not isinstance(result, str):
+
+            if not isinstance(response, str):
                 raise OssError("result field not found or not a string")
-                
-            return result
+
+            return response
+        except OssError:
+            raise
         except Exception as e:
             raise OssError(f"Failed to upload to OSS: {e}")
 
@@ -132,25 +185,16 @@ class Oss:
                 "url": url,
                 "path": path
             }
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="oss_upload_annon",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self._call_mcp_tool("oss_upload_annon", args)
             print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            result = data.get("result")
-            
-            if not isinstance(result, str):
+
+            if not isinstance(response, str):
                 raise OssError("result field not found or not a string")
-                
-            return result
+
+            return response
+        except OssError:
+            raise
         except Exception as e:
             raise OssError(f"Failed to upload anonymously: {e}")
 
@@ -175,25 +219,16 @@ class Oss:
                 "object": object,
                 "path": path
             }
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="oss_download",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self._call_mcp_tool("oss_download", args)
             print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            result = data.get("result")
-            
-            if not isinstance(result, str):
+
+            if not isinstance(response, str):
                 raise OssError("result field not found or not a string")
-                
-            return result
+
+            return response
+        except OssError:
+            raise
         except Exception as e:
             raise OssError(f"Failed to download from OSS: {e}")
 
@@ -216,24 +251,15 @@ class Oss:
                 "url": url,
                 "path": path
             }
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="oss_download_annon",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self._call_mcp_tool("oss_download_annon", args)
             print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            result = data.get("result")
-            
-            if not isinstance(result, str):
+
+            if not isinstance(response, str):
                 raise OssError("result field not found or not a string")
-                
-            return result
+
+            return response
+        except OssError:
+            raise
         except Exception as e:
             raise OssError(f"Failed to download anonymously: {e}")

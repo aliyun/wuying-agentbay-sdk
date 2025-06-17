@@ -93,7 +93,7 @@ Downloads a file from a URL anonymously to a local file.
 ### Creating an OSS Client
 
 ```python
-def create_client(self, access_key_id: str, access_key_secret: str, 
+def env_init(self, access_key_id: str, access_key_secret: str,
                  endpoint: Optional[str] = None, region: Optional[str] = None) -> str
 ```
 
@@ -191,9 +191,9 @@ Downloads a file from a URL anonymously to a local file.
 
 ```typescript
 async createClient(
-  accessKeyId: string, 
-  accessKeySecret: string, 
-  endpoint?: string, 
+  accessKeyId: string,
+  accessKeySecret: string,
+  endpoint?: string,
   region?: string
 ): Promise<string>
 ```
