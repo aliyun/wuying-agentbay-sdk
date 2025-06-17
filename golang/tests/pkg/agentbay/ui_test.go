@@ -16,9 +16,10 @@ func TestUI_Screenshot(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -61,9 +62,10 @@ func TestUI_GetClickableUIElements(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -102,9 +104,10 @@ func TestUI_GetAllUIElements(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -147,9 +150,10 @@ func TestUI_SendKey(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -188,9 +192,10 @@ func TestUI_InputText(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -230,9 +235,10 @@ func TestUI_Click(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
@@ -272,9 +278,10 @@ func TestUI_Swipe(t *testing.T) {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
 
-	// Create a session
+	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
+	session, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
