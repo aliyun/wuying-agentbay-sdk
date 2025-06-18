@@ -1,5 +1,5 @@
 import json
-from typing import Optional, Tuple
+from typing import Dict, Any
 
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import CommandError
@@ -19,6 +19,81 @@ class Command:
         """
         self.session = session
 
+    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
+        """
+        Internal helper to call MCP tool and handle errors.
+
+        Args:
+            name (str): The name of the tool to call.
+            args (Dict[str, Any]): The arguments to pass to the tool.
+
+        Returns:
+            Any: The response from the tool.
+
+        Raises:
+            CommandError: If the tool call fails.
+        """
+        try:
+            args_json = json.dumps(args, ensure_ascii=False)
+            request = CallMcpToolRequest(
+                authorization=f"Bearer {self.session.get_api_key()}",
+                session_id=self.session.get_session_id(),
+                name=name,
+                args=args_json,
+            )
+            response = self.session.get_client().call_mcp_tool(request)
+            response_map = response.to_map()
+            if not response_map:
+                raise CommandError("Invalid response format")
+            body = response_map.get("body", {})
+            print("response_map =", body)
+            if not body:
+                raise CommandError("Invalid response body")
+            return self._parse_response_body(body)
+        except (KeyError, TypeError, ValueError) as e:
+            raise CommandError(f"Failed to parse MCP tool response: {e}")
+        except Exception as e:
+            raise CommandError(f"Failed to call MCP tool {name}: {e}")
+
+    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
+        """
+        Parses the response body from the MCP tool.
+
+        Args:
+            body (Dict[str, Any]): The response body.
+
+        Returns:
+            Any: The parsed content.
+
+        Raises:
+            CommandError: If the response contains errors or is invalid.
+        """
+        try:
+            if body.get("Data", {}).get("isError", False):
+                error_content = body.get("Data", {}).get("content", [])
+                print("error_content =", error_content)
+                error_message = "; ".join(
+                    item.get("text", "Unknown error")
+                    for item in error_content
+                    if isinstance(item, dict)
+                )
+                raise CommandError(f"Error in response: {error_message}")
+
+            response_data = body.get("Data", {})
+            if not response_data:
+                raise CommandError("No data field in response")
+
+            # Handle 'content' field for other methods
+            content = response_data.get("content", [])
+            if not content or not isinstance(content, list):
+                raise CommandError("No content found in response")
+
+            content_item = content[0]
+            json_text = content_item.get("text")
+            return json_text
+        except Exception as e:
+            raise CommandError(f"{e}")
+
     def execute_command(self, command: str, timeout_ms: int = 1000) -> str:
         """
         Execute a command in the cloud environment with a specified timeout.
@@ -32,35 +107,13 @@ class Command:
         """
         try:
             args = {"command": command, "timeout_ms": timeout_ms}
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="shell",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
-            print("response =", response)
-            content_array = (
-                response.to_map().get("body", {}).get("Data", {}).get("content")
-            )
-
-            if not isinstance(content_array, list):
-                raise CommandError("content field not found or not an array")
-
-            full_text = ""
-            for item in content_array:
-                if not isinstance(item, dict):
-                    continue
-                text = item.get("text")
-                if isinstance(text, str):
-                    full_text += text + "\n"
-            return full_text
+            response = self._call_mcp_tool("shell", args)
+            print(f"Command executed response: {response}")
+            return response
         except Exception as e:
             raise CommandError(f"Failed to execute command: {e}")
-            
+
     def run_code(self, code: str, language: str, timeout_s: int = 300) -> str:
         """
         Execute code in the specified language with a timeout.
@@ -80,26 +133,10 @@ class Command:
             # Validate language
             if language not in ["python", "javascript"]:
                 raise CommandError(f"Unsupported language: {language}. Supported languages are 'python' and 'javascript'")
-                
-            args = {"code": code, "language": language, "timeout_s": timeout_s}
-            args_json = json.dumps(args, ensure_ascii=False)
 
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="run_code",
-                args=args_json,
-            )
-            print("request =", request)
-            response = self.session.get_client().call_mcp_tool(request)
-            print("response =", response)
-            
-            data = response.to_map().get("body", {}).get("Data", {})
-            output = data.get("output")
-            
-            if not isinstance(output, str):
-                raise CommandError("output field not found or not a string")
-                
-            return output
+            args = {"code": code, "language": language, "timeout_s": timeout_s}
+            response = self._call_mcp_tool("run_code", args)
+            print(f"Run code response: {response}")
+            return response
         except Exception as e:
             raise CommandError(f"Failed to execute code: {e}")
