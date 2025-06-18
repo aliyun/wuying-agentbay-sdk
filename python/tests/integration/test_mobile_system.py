@@ -22,6 +22,14 @@ class TestMobileSystemIntegration(unittest.TestCase):
         self.application = self.session.application
         time.sleep(3)
 
+    def tearDown(self):
+        """
+        Clean up the test environment by deleting the session.
+        """
+        try:
+            self.agent_bay.delete(self.session)
+        except AgentBayError as e:
+            print(f"Failed to delete session: {e}")
     def test_get_installed_apps(self):
         """
         Test retrieving installed applications.

@@ -110,7 +110,8 @@ class FileSystem:
         try:
             response = self._call_mcp_tool("create_directory", args)
             print("Response from CallMcpTool - create_directory:", response)
-            return response == "True"
+            # If "isError" in the response is False, it would raise an exception when _parse_response_body
+            return True
         except FileError:
             raise
         except Exception as e:
@@ -135,8 +136,8 @@ class FileSystem:
         try:
             response = self._call_mcp_tool("edit_file", args)
             print("Response from CallMcpTool - edit_file:", response)
-
-            return response == "True"
+            # If "isError" in the response is False, it would raise an exception when _parse_response_body
+            return True
         except FileError:
             raise
         except Exception as e:
@@ -212,44 +213,61 @@ class FileSystem:
         Raises:
             FileError: If the operation fails.
         """
+
+        def parse_directory_listing(text) -> List[Dict[str, Union[str, bool]]]:
+            '''Parse directory listing text into a list of dictionaries containing file/directory information.
+
+            Args:
+                text (str): Directory listing text in format:
+                    [DIR] directory_name
+                    [FILE] file_name
+                    Each entry should be on a new line with [DIR] or [FILE] prefix
+
+            Returns:
+                list: List of dictionaries, each containing:
+                    - name (str): Name of the file or directory
+                    - isDirectory (bool): True if entry is a directory, False if file
+
+            Example:
+                Input text:
+                    [DIR] folder1
+                    [FILE] test.txt
+
+                Returns:
+                    [
+                        {"name": "folder1", "isDirectory": True},
+                        {"name": "test.txt", "isDirectory": False}
+                    ]
+                '''
+            result = []
+            lines = text.split('\n')
+
+            for line in lines:
+                line = line.strip()
+                if line == "":
+                    continue
+
+                entry_map = {}
+                if line.startswith("[DIR]"):
+                    entry_map["isDirectory"] = True
+                    entry_map["name"] = line.replace("[DIR]", "").strip()
+                elif line.startswith("[FILE]"):
+                    entry_map["isDirectory"] = False
+                    entry_map["name"] = line.replace("[FILE]", "").strip()
+                else:
+                    # Skip lines that don't match the expected format
+                    continue
+
+                result.append(entry_map)
+
+            return result
+
+
         args = {"path": path}
         try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="list_directory",
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise FileError("Invalid response format")
-            body = response_map.get("body", {})
-            print("body =", body)
-
-            if not body:
-                raise FileError("Invalid response body")
-
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise FileError(f"Error in response: {error_message}")
-
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise FileError("No data field in response")
-
-            # Handle 'results' field for search_files
-            if "entries" in response_data:
-                files_list = response_data["entries"]
-                if isinstance(files_list, list):
-                    return files_list
+            response = self._call_mcp_tool("list_directory", args)
+            print("Response from CallMcpTool - list_directory:", response)
+            return parse_directory_listing(response)
         except FileError:
             raise
         except Exception as e:
@@ -273,7 +291,8 @@ class FileSystem:
         try:
             response = self._call_mcp_tool("move_file", args)
             print("Response from CallMcpTool - move_file:", response)
-            return response == "True"
+            # If "isError" in the response is False, it would raise an exception when _parse_response_body
+            return True
         except FileError:
             raise
         except Exception as e:
@@ -316,50 +335,60 @@ class FileSystem:
         Raises:
             FileError: If the operation fails.
         """
+        def parse_multiple_files_response(text: str) -> Dict[str, str]:
+            """
+            Parse the response from reading multiple files into a dictionary.
+
+            Args:
+                response (str): The response string containing file contents.
+
+            Returns:
+                Dict[str, str]: A dictionary mapping file paths to their contents.
+            """
+            result = {}
+            lines = text.split('\n')
+            current_path = ''
+            current_content = []
+            in_content = False
+
+            for line in lines:
+                if line.endswith(':'):
+                    # This is a file path line
+                    if current_path and current_content:
+                        # Save the previous file content
+                        result[current_path] = '\n'.join(current_content).strip()
+                        current_content = []
+                    current_path = line[:-1]  # Remove the trailing ':'
+                    in_content = True
+
+                elif line == '---':
+                    # This is a separator line
+                    if current_path and current_content:
+                        # Save the previous file content
+                        result[current_path] = '\n'.join(current_content).strip()
+                        current_content = []
+                    in_content = False
+
+                elif in_content:
+                    # This is a content line
+                    current_content.append(line)
+
+            # Save the last file content if exists
+            if current_path and current_content:
+                result[current_path] = '\n'.join(current_content).strip()
+
+            return result
+
+        # call the MCP tool to read multiple files
         args = {"paths": paths}
         try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="read_multiple_files",
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise FileError("Invalid response format")
-            body = response_map.get("body", {})
-            print("body =", body)
+            response = self._call_mcp_tool("read_multiple_files", args)
+            return parse_multiple_files_response(response)
 
-            if not body:
-                raise FileError("Invalid response body")
-
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise FileError(f"Error in response: {error_message}")
-
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise FileError("No data field in response")
-
-            # Handle 'results' field for search_files
-            if "files" in response_data:
-                files_list = response_data["files"]
-                if isinstance(files_list, dict):
-                    return files_list
-
-            raise FileError("Invalid response format for read_multiple_files")
         except Exception as e:
             raise FileError(f"Failed to read multiple files: {e}")
 
-    def search_files(self, path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+    def search_files(self, path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> List[str]:
         """
         Search for files matching a pattern in a directory.
 
@@ -378,44 +407,16 @@ class FileSystem:
         if exclude_patterns:
             args["excludePatterns"] = json.dumps(exclude_patterns)
         try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name="search_files",
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise FileError("Invalid response format")
-            body = response_map.get("body", {})
-            print("body =", body)
+            response = self._call_mcp_tool("search_files", args)
+            print("Response from CallMcpTool - search_files:", response)
 
-            if not body:
-                raise FileError("Invalid response body")
+            # parse the response to list
+            text_list = response.splitlines()
+            if not text_list:
+                raise FileError("No search results found")
 
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise FileError(f"Error in response: {error_message}")
+            return [item.strip() for item in text_list]
 
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise FileError("No data field in response")
-
-            # Handle 'results' field for search_files
-            if "results" in response_data:
-                files_list = response_data["results"]
-                if isinstance(files_list, list):
-                    return files_list
-
-            raise FileError("Invalid response format for search_files")
         except Exception as e:
             raise FileError(f"Failed to search files: {e}")
 
@@ -438,7 +439,8 @@ class FileSystem:
         try:
             response = self._call_mcp_tool("write_file", args)
             print("Response from CallMcpTool - write_file:", response)
-            return response == "True"
+            # If "isError" in the response is False, it would raise an exception when _parse_response_body
+            return True
         except FileError:
             raise
         except Exception as e:

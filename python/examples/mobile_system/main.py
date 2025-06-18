@@ -3,6 +3,7 @@ from agentbay import AgentBay
 from agentbay.ui import KeyCode
 from agentbay.session import Session
 from agentbay.exceptions import AgentBayError
+from agentbay.session_params import CreateSessionParams
 from typing import List, Dict, Any
 def main():
     # Get API key from environment variable or use a default value for testing
@@ -14,8 +15,11 @@ def main():
         agent_bay = AgentBay(api_key=api_key)
 
         # Create a new session with default parameters
-        print("\nCreating a new session...")
-        session = agent_bay.create()
+        print("\nCreating a new mobile session...")
+        params = CreateSessionParams(
+                image_id="mobile_latest",
+            )
+        session = agent_bay.create(params)
 
         # Get installed applications
         print("\nGetting installed applications...")
