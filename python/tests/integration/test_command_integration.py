@@ -18,7 +18,7 @@ class TestCommandIntegration(unittest.TestCase):
             print("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.")
         self.agent_bay = AgentBay(api_key=api_key)
         params = CreateSessionParams(
-            image_id="linux_latest",
+            image_id="code_latest",
         )
         self.session = self.agent_bay.create(params)
         self.command = Command(self.session)
