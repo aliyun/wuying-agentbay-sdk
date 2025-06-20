@@ -1,5 +1,6 @@
 import json
-from typing import List, Dict, Union, Any, Optional
+import re
+from typing import List, Dict, Union, Any, Optional, Tuple
 
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import FileError
@@ -9,6 +10,9 @@ class FileSystem:
     """
     Handles file operations in the AgentBay cloud environment.
     """
+
+    # Default chunk size is 60KB
+    DEFAULT_CHUNK_SIZE = 60 * 1024
 
     def __init__(self, session):
         """
@@ -314,6 +318,12 @@ class FileSystem:
             FileError: If the operation fails.
         """
         args = {"path": path}
+
+        if offset > 0:
+            args["offset"] = str(offset)
+        if length > 0:
+            args["length"] = str(length)
+
         try:
             response = self._call_mcp_tool("read_file", args)
             print("Response from CallMcpTool - read_file:", response)
@@ -340,41 +350,47 @@ class FileSystem:
             Parse the response from reading multiple files into a dictionary.
 
             Args:
-                response (str): The response string containing file contents.
+                text (str): The response string containing file contents.
+                Format: "/path/to/file1.txt: Content of file1\n\n---\n/path/to/file2.txt: \nContent of file2\n"
 
             Returns:
                 Dict[str, str]: A dictionary mapping file paths to their contents.
             """
             result = {}
             lines = text.split('\n')
-            current_path = ''
+            current_path = None
             current_content = []
-            in_content = False
 
-            for line in lines:
-                if line.endswith(':'):
-                    # This is a file path line
-                    if current_path and current_content:
-                        # Save the previous file content
+            for i, line in enumerate(lines):
+                # Check if this line contains a file path (ends with a colon)
+                if ':' in line and not current_path:
+                    # Extract path (everything before the first colon)
+                    path_end = line.find(':')
+                    path = line[:path_end].strip()
+
+                    # Start collecting content (everything after the colon)
+                    current_path = path
+
+                    # If there's content on the same line after the colon, add it
+                    if len(line) > path_end + 1:
+                        content_start = line[path_end + 1:].strip()
+                        if content_start:
+                            current_content.append(content_start)
+
+                # Check if this is a separator line
+                elif line.strip() == '---':
+                    # Save the current file content
+                    if current_path:
                         result[current_path] = '\n'.join(current_content).strip()
+                        current_path = None
                         current_content = []
-                    current_path = line[:-1]  # Remove the trailing ':'
-                    in_content = True
 
-                elif line == '---':
-                    # This is a separator line
-                    if current_path and current_content:
-                        # Save the previous file content
-                        result[current_path] = '\n'.join(current_content).strip()
-                        current_content = []
-                    in_content = False
-
-                elif in_content:
-                    # This is a content line
+                # If we're collecting content for a path, add this line
+                elif current_path is not None:
                     current_content.append(line)
 
             # Save the last file content if exists
-            if current_path and current_content:
+            if current_path:
                 result[current_path] = '\n'.join(current_content).strip()
 
             return result
@@ -445,3 +461,109 @@ class FileSystem:
             raise
         except Exception as e:
             raise FileError(f"Failed to write file: {e}")
+
+    def read_large_file(self, path: str, chunk_size: int = 0) -> str:
+        """
+        Read large files by chunking to handle API size limitations.
+        Automatically splits the read operation into multiple requests of chunk_size bytes each.
+        If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE (60KB) will be used.
+
+        Args:
+            path: The path of the file to read.
+            chunk_size: Size of each chunk in bytes. Default is 0, which uses DEFAULT_CHUNK_SIZE.
+
+        Returns:
+            str: The complete content of the file.
+
+        Raises:
+            FileError: If the operation fails.
+        """
+        if chunk_size <= 0:
+            chunk_size = self.DEFAULT_CHUNK_SIZE
+
+        # First get the file size
+        try:
+            file_info = self.get_file_info(path)
+            file_size = int(file_info.get("size", 0))
+
+            if file_size == 0:
+                raise FileError("Could not determine file size")
+
+            print(f"ReadLargeFile: Starting chunked read of {path} (total size: {file_size} bytes, chunk size: {chunk_size} bytes)")
+
+            # Prepare to read the file in chunks
+            result = []
+            offset = 0
+            chunk_count = 0
+
+            while offset < file_size:
+                # Calculate how much to read in this chunk
+                length = chunk_size
+                if offset + length > file_size:
+                    length = file_size - offset
+
+                print(f"ReadLargeFile: Reading chunk {chunk_count+1} ({length} bytes at offset {offset}/{file_size})")
+
+                # Read the chunk
+                chunk = self.read_file(path, offset, length)
+                result.append(chunk)
+
+                # Move to the next chunk
+                offset += length
+                chunk_count += 1
+
+            print(f"ReadLargeFile: Successfully read {path} in {chunk_count} chunks (total: {file_size} bytes)")
+
+            return "".join(result)
+
+        except FileError as e:
+            raise FileError(f"Failed to read large file: {e}")
+
+    def write_large_file(self, path: str, content: str, chunk_size: int = 0) -> bool:
+        """
+        Write large files by chunking to handle API size limitations.
+        Automatically splits the write operation into multiple requests of chunk_size bytes each.
+        If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE (60KB) will be used.
+
+        Args:
+            path: The path of the file to write.
+            content: The content to write to the file.
+            chunk_size: Size of each chunk in bytes. Default is 0, which uses DEFAULT_CHUNK_SIZE.
+
+        Returns:
+            bool: True if the file was written successfully.
+
+        Raises:
+            FileError: If the operation fails.
+        """
+        if chunk_size <= 0:
+            chunk_size = self.DEFAULT_CHUNK_SIZE
+
+        content_len = len(content)
+
+        print(f"WriteLargeFile: Starting chunked write to {path} (total size: {content_len} bytes, chunk size: {chunk_size} bytes)")
+
+        # If content is small enough, use the regular write_file method
+        if content_len <= chunk_size:
+            print(f"WriteLargeFile: Content size ({content_len} bytes) is smaller than chunk size, using normal WriteFile")
+            return self.write_file(path, content, "overwrite")
+
+        try:
+            # Write the first chunk with "overwrite" mode to create/clear the file
+            first_chunk_end = min(chunk_size, content_len)
+            print(f"WriteLargeFile: Writing first chunk (0-{first_chunk_end} bytes) with overwrite mode")
+            self.write_file(path, content[:first_chunk_end], "overwrite")
+
+            # Write the remaining chunks with "append" mode
+            chunk_count = 1  # Already wrote first chunk
+            for offset in range(first_chunk_end, content_len, chunk_size):
+                end = min(offset + chunk_size, content_len)
+                print(f"WriteLargeFile: Writing chunk {chunk_count+1} ({offset}-{end} bytes) with append mode")
+                self.write_file(path, content[offset:end], "append")
+                chunk_count += 1
+
+            print(f"WriteLargeFile: Successfully wrote {path} in {chunk_count} chunks (total: {content_len} bytes)")
+            return True
+
+        except FileError as e:
+            raise FileError(f"Failed to write large file: {e}")
