@@ -7,29 +7,37 @@ from agentbay.session_params import CreateSessionParams
 from agentbay.exceptions import FileError
 
 class TestFileSystemIntegration(unittest.TestCase):
-    def setUp(self):
-        """
-        Set up the test environment by creating a session and initializing FileSystem.
-        """
-        time.sleep(3)  # Ensure a delay to avoid session creation conflicts
-        api_key = os.getenv("AGENTBAY_API_KEY")
-        if not api_key:
-            api_key = "akm-xxx"  # Replace with your actual API key for testing
-            print("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.")
-        self.agent_bay = AgentBay(api_key=api_key) # Replace DummySession with actual session implementation
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up test environment before all tests."""
+        # Get API key from environment
+        cls.api_key = os.getenv("AGENTBAY_API_KEY")
+        if not cls.api_key:
+            raise unittest.SkipTest("AGENTBAY_API_KEY environment variable not set")
+
+        # Initialize AgentBay client
+        cls.agent_bay = AgentBay(cls.api_key)
+
+        # Create a session
+        print("Creating a new session for OSS testing...")
         params = CreateSessionParams(
             image_id="linux_latest",
-        )
-        self.session = self.agent_bay.create(params)
-        self.fs = FileSystem(self.session)
+            )
+        cls.session = cls.agent_bay.create(params)
+        cls.fs = FileSystem(cls.session)
+        print(f"Session created with ID: {cls.session.get_session_id()}")
 
-    def tearDown(self):
-        """Tear down test fixtures."""
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up test environment after all tests."""
         print("Cleaning up: Deleting the session...")
-        try:
-            self.agent_bay.delete(self.session)
-        except Exception as e:
-            print(f"Warning: Error deleting session: {e}")
+        if hasattr(cls, 'session'):
+            try:
+                cls.agent_bay.delete(cls.session)
+                print("Session successfully deleted")
+            except Exception as e:
+                print(f"Warning: Error deleting session: {e}")
 
     def test_read_file(self):
         """
@@ -108,7 +116,8 @@ class TestFileSystemIntegration(unittest.TestCase):
         # Get file info
         file_info = self.fs.get_file_info(test_file_path)
         self.assertEqual(file_info["isDirectory"], False)
-        self.assertGreater(file_info["size"], 0)
+        size = int(file_info["size"])
+        self.assertTrue(size > 0, f"File size should be positive, got {size}")
         self.assertFalse(file_info["isDirectory"])
 
     def test_list_directory(self):
@@ -185,8 +194,83 @@ class TestFileSystemIntegration(unittest.TestCase):
         exclude_patterns = ["ignored_pattern"]
         results = self.fs.search_files(test_subdir_path, search_pattern, exclude_patterns)
         self.assertEqual(len(results), 2)
-        self.assertIn(search_file1_path, results)
-        self.assertIn(search_file3_path, results)
+        self.assertTrue(any(search_file1_path in result for result in results))
+        self.assertTrue(any(search_file3_path in result for result in results))
+
+    def test_write_large_file_and_read_large_file(self):
+        """
+        Test writing and reading a large file using chunking.
+        """
+        # Generate approximately 150KB of test content
+        line_content = "This is a line of test content for large file testing. It contains enough characters to test the chunking functionality.\n"
+        large_content = line_content * 3000  # About 150KB
+        test_file_path = "/tmp/test_large_file.txt"
+
+        print(f"Generated test content size: {len(large_content)} bytes")
+
+        # Test 1: Write large file with default chunk size
+        print("Test 1: Writing large file with default chunk size...")
+        success = self.fs.write_large_file(test_file_path, large_content)
+        self.assertTrue(success)
+        print("Test 1: Large file write successful")
+
+        # Test 2: Read large file with default chunk size
+        print("Test 2: Reading large file with default chunk size...")
+        read_content = self.fs.read_large_file(test_file_path)
+
+        # Verify content
+        print(f"Test 2: File read successful, content length: {len(read_content)} bytes")
+        self.assertEqual(len(read_content), len(large_content))
+        self.assertEqual(read_content, large_content)
+        print("Test 2: File content verification successful")
+
+        # Test 3: Write large file with custom chunk size
+        custom_chunk_size = 30 * 1024  # 30KB
+        test_file_path2 = "/tmp/test_large_custom.txt"
+        print(f"Test 3: Writing large file with custom chunk size ({custom_chunk_size} bytes)...")
+
+        success = self.fs.write_large_file(test_file_path2, large_content, custom_chunk_size)
+        self.assertTrue(success)
+        print("Test 3: Large file write with custom chunk size successful")
+
+        # Test 4: Read large file with custom chunk size
+        print(f"Test 4: Reading large file with custom chunk size ({custom_chunk_size} bytes)...")
+        read_content2 = self.fs.read_large_file(test_file_path2, custom_chunk_size)
+
+        # Verify content
+        print(f"Test 4: File read successful, content length: {len(read_content2)} bytes")
+        self.assertEqual(len(read_content2), len(large_content))
+        self.assertEqual(read_content2, large_content)
+        print("Test 4: File content verification with custom chunk size successful")
+
+        # Test 5: Cross-test - Read with custom chunk size a file written with default chunk size
+        print("Test 5: Cross-test - Reading with custom chunk size a file written with default chunk size...")
+        cross_test_content = self.fs.read_large_file(test_file_path, custom_chunk_size)
+
+        # Verify content
+        print(f"Test 5: Cross-test read successful, content length: {len(cross_test_content)} bytes")
+        self.assertEqual(len(cross_test_content), len(large_content))
+        self.assertEqual(cross_test_content, large_content)
+        print("Test 5: Cross-test content verification successful")
+
+    def test_write_small_file_with_large_file_method(self):
+        """
+        Test writing a small file using the large file method.
+        """
+        # Generate a small file content (10KB)
+        small_content = "x" * (10 * 1024)
+        test_file_path = "/tmp/test_small_with_large_method.txt"
+
+        # Use a larger chunk size (50KB)
+        chunk_size = 50 * 1024
+
+        # Use write_large_file method to write small file
+        success = self.fs.write_large_file(test_file_path, small_content, chunk_size)
+        self.assertTrue(success)
+
+        # Read and verify content
+        content = self.fs.read_file(test_file_path)
+        self.assertEqual(content, small_content)
 
 
 if __name__ == "__main__":

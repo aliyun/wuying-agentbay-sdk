@@ -241,9 +241,10 @@ class TestFileSystem(unittest.TestCase):
         mock_response.to_map.return_value = {
             "body": {
                 "Data": {
-                    "entries": [
-                        {"name": "file1.txt", "isDirectory": False},
-                        {"name": "subdir", "isDirectory": True},
+                    "content": [
+                        {"text":
+                             "[DIR] subdir\n [FILE] file1.txt"
+                        }
                     ],
                     "isError": False,
                 }
@@ -253,10 +254,10 @@ class TestFileSystem(unittest.TestCase):
 
         result = self.fs.list_directory("/path/to/directory")
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["name"], "file1.txt")
-        self.assertFalse(result[0]["isDirectory"])
-        self.assertEqual(result[1]["name"], "subdir")
-        self.assertTrue(result[1]["isDirectory"])
+        self.assertEqual(result[0]["name"], "subdir")
+        self.assertTrue(result[0]["isDirectory"])
+        self.assertEqual(result[1]["name"], "file1.txt")
+        self.assertFalse(result[1]["isDirectory"])
 
     @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
     def test_list_directory_error(self, MockCallMcpToolRequest):
@@ -326,10 +327,9 @@ class TestFileSystem(unittest.TestCase):
         mock_response.to_map.return_value = {
             "body": {
                 "Data": {
-                    "files": {
-                        "/path/to/file1.txt": "Content of file1",
-                        "/path/to/file2.txt": "Content of file2",
-                    },
+                    "content": [{
+                        "text": "/path/to/file1.txt: Content of file1\n\n---\n/path/to/file2.txt: \nContent of file2\n"
+                    }],
                     "isError": False,
                 }
             }
@@ -349,10 +349,7 @@ class TestFileSystem(unittest.TestCase):
         mock_response.to_map.return_value = {
             "body": {
                 "Data": {
-                    "results": [
-                        {"path": "/path/to/file1.txt"},
-                        {"path": "/path/to/file2.txt"},
-                    ],
+                    "content": [{"text": "/path/to/file1.txt\n/path/to/file2.txt"}],
                     "isError": False,
                 }
             }
@@ -362,8 +359,119 @@ class TestFileSystem(unittest.TestCase):
         result = self.fs.search_files("/path/to/directory", "pattern", ["ignored_pattern"])
         print("Result:", result)
         self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["path"], "/path/to/file1.txt")
-        self.assertEqual(result[1]["path"], "/path/to/file2.txt")
+        self.assertEqual(result[0], "/path/to/file1.txt")
+        self.assertEqual(result[1], "/path/to/file2.txt")
+
+    @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
+    @patch("agentbay.filesystem.filesystem.FileSystem.read_file")
+    def test_read_large_file_success(self, mock_read_file, mock_get_file_info):
+        """
+        Test read_large_file method with successful response.
+        """
+        # Mock get_file_info to return a file size of 150KB
+        mock_get_file_info.return_value = {"size": 150 * 1024, "isDirectory": False}
+
+        # Mock read_file to return chunks of content
+        mock_read_file.side_effect = [
+            "chunk1_content",
+            "chunk2_content",
+            "chunk3_content"
+        ]
+
+        # Set a smaller chunk size for testing (50KB)
+        test_chunk_size = 50 * 1024
+
+        result = self.fs.read_large_file("/path/to/large_file.txt", test_chunk_size)
+
+        # Verify the result is the concatenation of all chunks
+        self.assertEqual(result, "chunk1_contentchunk2_contentchunk3_content")
+
+        # Verify get_file_info was called once
+        mock_get_file_info.assert_called_once_with("/path/to/large_file.txt")
+
+        # Verify read_file was called three times with correct offsets and lengths
+        self.assertEqual(mock_read_file.call_count, 3)
+        mock_read_file.assert_any_call("/path/to/large_file.txt", 0, test_chunk_size)
+        mock_read_file.assert_any_call("/path/to/large_file.txt", test_chunk_size, test_chunk_size)
+        mock_read_file.assert_any_call("/path/to/large_file.txt", test_chunk_size * 2, test_chunk_size)
+
+    @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
+    def test_read_large_file_error(self, mock_get_file_info):
+        """
+        Test read_large_file method with error response.
+        """
+        # Mock get_file_info to raise an error
+        mock_get_file_info.side_effect = FileError("File not found")
+
+        with self.assertRaises(FileError) as context:
+            self.fs.read_large_file("/path/to/nonexistent_file.txt")
+
+        self.assertIn("Failed to read large file", str(context.exception))
+        mock_get_file_info.assert_called_once_with("/path/to/nonexistent_file.txt")
+
+    @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
+    def test_write_large_file_success(self, mock_write_file):
+        """
+        Test write_large_file method with successful response.
+        """
+        # Mock write_file to return True
+        mock_write_file.return_value = True
+
+        # Create a large content string (150KB)
+        large_content = "x" * (150 * 1024)
+
+        # Set a smaller chunk size for testing (50KB)
+        test_chunk_size = 50 * 1024
+
+        result = self.fs.write_large_file("/path/to/large_file.txt", large_content, test_chunk_size)
+
+        # Verify the result is True
+        self.assertTrue(result)
+
+        # Verify write_file was called three times with correct chunks
+        self.assertEqual(mock_write_file.call_count, 3)
+        mock_write_file.assert_any_call("/path/to/large_file.txt", large_content[:test_chunk_size], "overwrite")
+        mock_write_file.assert_any_call("/path/to/large_file.txt", large_content[test_chunk_size:test_chunk_size*2], "append")
+        mock_write_file.assert_any_call("/path/to/large_file.txt", large_content[test_chunk_size*2:], "append")
+
+    @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
+    def test_write_large_file_small_content(self, mock_write_file):
+        """
+        Test write_large_file method with content smaller than chunk size.
+        """
+        # Mock write_file to return True
+        mock_write_file.return_value = True
+
+        # Create a small content string (10KB)
+        small_content = "x" * (10 * 1024)
+
+        # Set a larger chunk size for testing (50KB)
+        test_chunk_size = 50 * 1024
+
+        result = self.fs.write_large_file("/path/to/small_file.txt", small_content, test_chunk_size)
+
+        # Verify the result is True
+        self.assertTrue(result)
+
+        # Verify write_file was called once with the entire content
+        mock_write_file.assert_called_once_with("/path/to/small_file.txt", small_content, "overwrite")
+
+    @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
+    def test_write_large_file_error(self, mock_write_file):
+        """
+        Test write_large_file method with error response.
+        """
+        # Mock write_file to raise an error
+        mock_write_file.side_effect = FileError("Failed to write large file")
+
+        # Create a large content string (150KB)
+        large_content = "x" * (150 * 1024)
+
+        with self.assertRaises(FileError) as context:
+            self.fs.write_large_file("/path/to/large_file.txt", large_content)
+
+        self.assertIn("Failed to write large file", str(context.exception))
+        mock_write_file.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()
