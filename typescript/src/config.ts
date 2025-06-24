@@ -14,7 +14,7 @@ export function defaultConfig(): Config {
   return {
       region_id: 'cn-shanghai',
       endpoint: 'wuyingai.cn-shanghai.aliyuncs.com',
-    timeout_ms: 60000
+    timeout_ms: 300000
   };
 }
 
