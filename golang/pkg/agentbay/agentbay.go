@@ -10,6 +10,7 @@ import (
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
 // AgentBay represents the main client for interacting with the AgentBay cloud runtime environment.
@@ -60,7 +61,7 @@ func NewAgentBay(apiKey string) (*AgentBay, error) {
 
 // Create creates a new session in the AgentBay cloud environment.
 // If params is nil, default parameters will be used.
-func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
+func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if params == nil {
 		params = NewCreateSessionParams()
 	}
@@ -110,6 +111,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
 		return nil, err
 	}
 
+	// Extract RequestID
+	requestID := models.ExtractRequestID(response)
+
 	// Log only the response body
 	if response != nil && response.Body != nil {
 		// Convert response body to JSON for proper printing without escaped characters
@@ -150,11 +154,18 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*Session, error) {
 	}
 
 	a.Sessions.Store(session.SessionID, *session)
-	return session, nil
+
+	// Return result with RequestID
+	return &SessionResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: requestID,
+		},
+		Session: session,
+	}, nil
 }
 
 // List lists all available sessions.
-func (a *AgentBay) List() ([]Session, error) {
+func (a *AgentBay) List() (*SessionListResult, error) {
 	var sessions []Session
 	a.Sessions.Range(func(key, value interface{}) bool {
 		if session, ok := value.(Session); ok {
@@ -162,12 +173,19 @@ func (a *AgentBay) List() ([]Session, error) {
 		}
 		return true
 	})
-	return sessions, nil
+
+	// No actual API call here, so RequestID is empty
+	return &SessionListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: "",
+		},
+		Sessions: sessions,
+	}, nil
 }
 
 // ListByLabels lists sessions filtered by the provided labels.
 // It returns sessions that match all the specified labels.
-func (a *AgentBay) ListByLabels(labels map[string]string) ([]Session, error) {
+func (a *AgentBay) ListByLabels(labels map[string]string) (*SessionListResult, error) {
 	// Convert labels to JSON
 	labelsJSON, err := json.Marshal(labels)
 	if err != nil {
@@ -190,6 +208,10 @@ func (a *AgentBay) ListByLabels(labels map[string]string) ([]Session, error) {
 		fmt.Println("Error calling ListSession:", err)
 		return nil, err
 	}
+
+	// Extract RequestID
+	requestID := models.ExtractRequestID(response)
+
 	if response != nil && response.Body != nil {
 		fmt.Println("Response from ListSession:", response.Body)
 	}
@@ -206,14 +228,19 @@ func (a *AgentBay) ListByLabels(labels map[string]string) ([]Session, error) {
 		}
 	}
 
-	return sessions, nil
+	return &SessionListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: requestID,
+		},
+		Sessions: sessions,
+	}, nil
 }
 
 // Delete deletes a session by ID.
-func (a *AgentBay) Delete(session *Session) error {
-	err := session.Delete()
+func (a *AgentBay) Delete(session *Session) (*DeleteResult, error) {
+	result, err := session.Delete()
 	if err == nil {
 		a.Sessions.Delete(session.SessionID)
 	}
-	return err
+	return result, err
 }

@@ -28,20 +28,21 @@ func main() {
 
 	// Create a new session
 	fmt.Println("\nCreating a new session with code_latest image...")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
+	session := sessionResult.Session
 	fmt.Printf("\nSession created with ID: %s\n", session.SessionID)
 	defer func() {
 		// Clean up by deleting the session when we're done
 		fmt.Println("\nDeleting the session...")
-		err = agentBay.Delete(session)
+		deleteResult, err := session.Delete()
 		if err != nil {
 			fmt.Printf("Error deleting session: %v\n", err)
 		} else {
-			fmt.Println("Session deleted successfully")
+			fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
 		}
 	}()
 
@@ -52,7 +53,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error executing echo command: %v\n", err)
 	} else {
-		fmt.Printf("Echo command output:\n%s\n", result)
+		fmt.Printf("Echo command output:\n%s\n", result.Output)
+		fmt.Printf("Command executed successfully (RequestID: %s)\n", result.RequestID)
 	}
 
 	// 2. Execute command with longer timeout
@@ -63,7 +65,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error executing ls command: %v\n", err)
 	} else {
-		fmt.Printf("Directory listing (first few lines):\n%s\n", truncateOutput(result, 5))
+		fmt.Printf("Directory listing (first few lines):\n%s\n", truncateOutput(result.Output, 5))
+		fmt.Printf("Command executed successfully (RequestID: %s)\n", result.RequestID)
 	}
 
 	// 3. Execute Python code
@@ -82,7 +85,8 @@ for i in range(1, 6):
 	if err != nil {
 		fmt.Printf("Error running Python code: %v\n", err)
 	} else {
-		fmt.Printf("Python code output:\n%s\n", codeResult)
+		fmt.Printf("Python code output:\n%s\n", codeResult.Output)
+		fmt.Printf("Python code executed successfully (RequestID: %s)\n", codeResult.RequestID)
 	}
 
 	// 4. Execute JavaScript code with custom timeout
@@ -106,7 +110,8 @@ console.log("Sum of array:", sum);
 	if err != nil {
 		fmt.Printf("Error running JavaScript code: %v\n", err)
 	} else {
-		fmt.Printf("JavaScript code output:\n%s\n", codeResult)
+		fmt.Printf("JavaScript code output:\n%s\n", codeResult.Output)
+		fmt.Printf("JavaScript code executed successfully (RequestID: %s)\n", codeResult.RequestID)
 	}
 
 	// 5. Execute a more complex shell command sequence
@@ -125,7 +130,8 @@ df -h | head -5
 	if err != nil {
 		fmt.Printf("Error executing complex command: %v\n", err)
 	} else {
-		fmt.Printf("Complex command output:\n%s\n", truncateOutput(result, 15))
+		fmt.Printf("Complex command output:\n%s\n", truncateOutput(result.Output, 15))
+		fmt.Printf("Complex command executed successfully (RequestID: %s)\n", result.RequestID)
 	}
 
 	fmt.Println("\nCommand examples completed successfully!")

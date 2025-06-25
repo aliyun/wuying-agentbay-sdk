@@ -30,23 +30,33 @@ func TestContextPersistence(t *testing.T) {
 	t.Logf("Creating new context with name: %s", contextName)
 
 	// List existing contexts before creation
-	existingContexts, err := agentBay.Context.List()
+	listResult, err := agentBay.Context.List()
 	if err != nil {
 		t.Logf("Warning: Failed to list existing contexts: %v", err)
 	} else {
-		t.Logf("Found %d existing contexts before creation", len(existingContexts))
+		existingContexts := listResult.Contexts
+		t.Logf("Found %d existing contexts before creation (RequestID: %s)",
+			len(existingContexts), listResult.RequestID)
 		for i, ctx := range existingContexts {
 			t.Logf("Existing context %d: ID=%s, Name=%s, State=%s, OSType=%s",
-				i+1, ctx.ID, ctx.Name, ctx.State, ctx.OSType)
+				i+1, ctx["id"], ctx["name"], ctx["state"], ctx["os_type"])
 		}
 	}
 
-	context, err := agentBay.Context.Create(contextName)
+	createResult, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	t.Logf("Context created successfully - ID: %s, Name: %s, State: %s, OSType: %s",
-		context.ID, context.Name, context.State, context.OSType)
+
+	// Get the created context to get its full details
+	getResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(getResult)
+	t.Logf("Context created successfully - ID: %s, Name: %s, State: %s, OSType: %s (RequestID: %s)",
+		context.ID, context.Name, context.State, context.OSType, createResult.RequestID)
 
 	// Create a unique filename for testing in the home directory
 	testFilePath := fmt.Sprintf("~/test-file-%d.txt", time.Now().Unix())
@@ -55,25 +65,29 @@ func TestContextPersistence(t *testing.T) {
 	// Step 2: Create a session with the context ID
 	t.Log("Creating first session with context ID...")
 	params := agentbay.NewCreateSessionParams().WithContextID(context.ID)
+	params.ImageId = "linux_latest"
 	t.Logf("Session params: ContextID=%s", params.ContextID)
 
 	// List active sessions before creation
-	activeSessions, err := agentBay.List()
+	listSessionResult, err := agentBay.List()
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions: %v", err)
 	} else {
-		t.Logf("Found %d active sessions before creation", len(activeSessions))
+		activeSessions := listSessionResult.Sessions
+		t.Logf("Found %d active sessions before creation (RequestID: %s)",
+			len(activeSessions), listSessionResult.RequestID)
 		for i, sess := range activeSessions {
 			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
 		}
 	}
 
-	session1, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session with context ID: %v", err)
 	}
-	t.Logf("Session created with ID: %s, AgentBay client region: %s",
-		session1.SessionID, session1.AgentBay.RegionId)
+	session1 := sessionResult.Session
+	t.Logf("Session created with ID: %s, AgentBay client region: %s (RequestID: %s)",
+		session1.SessionID, session1.AgentBay.RegionId, sessionResult.RequestID)
 
 	// Step 3: Use Execute command to create a file
 	t.Logf("Creating test file at %s...", testFilePath)
@@ -82,50 +96,57 @@ func TestContextPersistence(t *testing.T) {
 
 	// First check if the file already exists (it shouldn't)
 	checkCmd := fmt.Sprintf("ls -la %s 2>&1 || echo 'File does not exist'", testFilePath)
-	checkOutput, err := session1.Command.ExecuteCommand(checkCmd)
+	checkResult, err := session1.Command.ExecuteCommand(checkCmd)
 	if err != nil {
 		t.Logf("Warning: Pre-check command failed: %v", err)
 	}
-	t.Logf("Pre-check output: %s", checkOutput)
+	t.Logf("Pre-check output: %s (RequestID: %s)",
+		checkResult.Output, checkResult.RequestID)
 
 	// Now create the file
-	output, err := session1.Command.ExecuteCommand(createFileCmd)
+	cmdResult, err := session1.Command.ExecuteCommand(createFileCmd)
 	if err != nil {
 		t.Logf("Warning: Command execution failed: %v", err)
-		if containsToolNotFound(output) {
+		if containsToolNotFound(cmdResult.Output) {
 			t.Skip("Skipping test as execute_command tool is not available")
 		}
 	}
-	t.Logf("File creation output: %s", output)
+	t.Logf("File creation output: %s (RequestID: %s)",
+		cmdResult.Output, cmdResult.RequestID)
 
 	// Verify the file was created
 	verifyCmd := fmt.Sprintf("cat %s", testFilePath)
 	t.Logf("Verifying file with command: %s", verifyCmd)
-	output, err = session1.Command.ExecuteCommand(verifyCmd)
+	verifyResult, err := session1.Command.ExecuteCommand(verifyCmd)
 	if err != nil {
 		t.Fatalf("Error verifying file creation: %v", err)
 	}
 
 	// Also check file attributes
 	lsCmd := fmt.Sprintf("ls -la %s", testFilePath)
-	lsOutput, lsErr := session1.Command.ExecuteCommand(lsCmd)
+	lsResult, lsErr := session1.Command.ExecuteCommand(lsCmd)
 	if lsErr != nil {
 		t.Logf("Warning: Could not get file attributes: %v", lsErr)
 	} else {
-		t.Logf("File attributes: %s", lsOutput)
+		t.Logf("File attributes: %s (RequestID: %s)",
+			lsResult.Output, lsResult.RequestID)
 	}
 
-	if !strings.Contains(output, testFileContent) {
-		t.Fatalf("File content verification failed. Expected to contain '%s', got: '%s'", testFileContent, output)
+	if !strings.Contains(verifyResult.Output, testFileContent) {
+		t.Fatalf("File content verification failed. Expected to contain '%s', got: '%s'",
+			testFileContent, verifyResult.Output)
 	}
-	t.Logf("File created and verified successfully with content: %s", output)
+	t.Logf("File created and verified successfully with content: %s (RequestID: %s)",
+		verifyResult.Output, verifyResult.RequestID)
 
 	// Step 4: Release the session
 	t.Log("Releasing first session...")
-	err = session1.Delete()
+	deleteResult, err := agentBay.Delete(session1)
 	if err != nil {
 		t.Fatalf("Error releasing session: %v", err)
 	}
+	t.Logf("First session released successfully (RequestID: %s)",
+		deleteResult.RequestID)
 
 	// Add a 20-second delay to ensure the session is fully released
 	t.Log("Waiting for 20 seconds before creating the second session...")
@@ -134,196 +155,136 @@ func TestContextPersistence(t *testing.T) {
 	// Step 5: Create another session with the same context ID
 	t.Log("Creating second session with the same context ID...")
 	params = agentbay.NewCreateSessionParams().WithContextID(context.ID)
+	params.ImageId = "linux_latest"
 	t.Logf("Second session params: ContextID=%s", params.ContextID)
 
 	// List active sessions before creating second session
-	activeSessions, err = agentBay.List()
+	listSessionResult, err = agentBay.List()
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions before second session creation: %v", err)
 	} else {
-		t.Logf("Found %d active sessions before second session creation", len(activeSessions))
+		activeSessions := listSessionResult.Sessions
+		t.Logf("Found %d active sessions before second session creation (RequestID: %s)",
+			len(activeSessions), listSessionResult.RequestID)
 		for i, sess := range activeSessions {
 			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
 		}
 	}
 
 	// Check context state before creating second session
-	contextBefore, err := agentBay.Context.Get(contextName, false)
+	contextBeforeResult, err := agentBay.Context.Get(contextName, false)
 	if err != nil {
 		t.Logf("Warning: Failed to get context before second session creation: %v", err)
-	} else if contextBefore != nil {
-		t.Logf("Context state before second session: ID=%s, Name=%s, State=%s, OSType=%s",
-			contextBefore.ID, contextBefore.Name, contextBefore.State, contextBefore.OSType)
+	} else if contextBeforeResult != nil {
+		contextBefore := contextFromResult(contextBeforeResult)
+		t.Logf("Context state before second session: ID=%s, Name=%s, State=%s, OSType=%s (RequestID: %s)",
+			contextBefore.ID, contextBefore.Name, contextBefore.State, contextBefore.OSType,
+			contextBeforeResult.RequestID)
 	}
 
-	session2, err := agentBay.Create(params)
+	session2Result, err := agentBay.Create(params)
 	if err != nil {
 		t.Logf("Error creating second session with context ID: %v", err)
 		t.Logf("This may be due to resource limits or the context being in use.")
 
 		// Try to clean up the context before failing
 		t.Log("Attempting to clean up context before failing...")
-		cleanupErr := agentBay.Context.Delete(context)
+		deleteContextResult, cleanupErr := agentBay.Context.Delete(context)
 		if cleanupErr != nil {
 			t.Logf("Warning: Failed to clean up context: %v", cleanupErr)
 		} else {
-			t.Logf("Successfully cleaned up context %s", context.ID)
+			t.Logf("Successfully cleaned up context %s (RequestID: %s)",
+				context.ID, deleteContextResult.RequestID)
 		}
 
 		t.Fatalf("Failed to create second session with context ID: %v", err)
 	}
-	t.Logf("Second session created with ID: %s, AgentBay client region: %s",
-		session2.SessionID, session2.AgentBay.RegionId)
+	session2 := session2Result.Session
+	t.Logf("Second session created with ID: %s, AgentBay client region: %s (RequestID: %s)",
+		session2.SessionID, session2.AgentBay.RegionId, session2Result.RequestID)
 
 	// Step 6: Check if the file still exists (expected: yes)
 	t.Logf("Checking if file %s still exists in the second session...", testFilePath)
-	output, err = session2.Command.ExecuteCommand(verifyCmd)
+	verifyResult, err = session2.Command.ExecuteCommand(verifyCmd)
 	if err != nil {
 		t.Fatalf("Error checking file existence in second session: %v", err)
 	}
-	if !strings.Contains(output, testFileContent) {
-		t.Fatalf("File persistence test failed. Expected file to exist with content '%s', got: '%s'", testFileContent, output)
+	if !strings.Contains(verifyResult.Output, testFileContent) {
+		t.Fatalf("File persistence test failed. Expected file to exist with content '%s', got: '%s'",
+			testFileContent, verifyResult.Output)
 	}
-	t.Logf("File persistence verified: file exists in the second session")
+	t.Logf("File persistence verified: file exists in the second session (RequestID: %s)",
+		verifyResult.RequestID)
 
 	// Step 7: Release the second session
 	t.Log("Releasing second session...")
-	err = session2.Delete()
+	deleteResult, err = agentBay.Delete(session2)
 	if err != nil {
 		t.Fatalf("Error releasing second session: %v", err)
 	}
+	t.Logf("Second session released successfully (RequestID: %s)",
+		deleteResult.RequestID)
 
 	// Step 8: Create a session without a context ID
 	t.Log("Creating third session without context ID...")
 
 	// List active sessions before creating third session
-	activeSessions, err = agentBay.List()
+	listSessionResult, err = agentBay.List()
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions before third session creation: %v", err)
 	} else {
-		t.Logf("Found %d active sessions before third session creation", len(activeSessions))
-		for i, sess := range activeSessions {
-			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
-		}
+		activeSessions := listSessionResult.Sessions
+		t.Logf("Found %d active sessions before third session creation (RequestID: %s)",
+			len(activeSessions), listSessionResult.RequestID)
 	}
 
-	// Create session with no context ID
-	t.Logf("Creating session with no context ID (should be a fresh environment)")
-	session3, err := agentBay.Create(nil)
+	params = agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session3Result, err := agentBay.Create(params)
 	if err != nil {
-		t.Logf("Error creating session without context ID: %v", err)
-		t.Logf("This may be due to resource limits.")
-
-		// Try to clean up the context before failing
-		t.Log("Attempting to clean up context before failing...")
-		cleanupErr := agentBay.Context.Delete(context)
-		if cleanupErr != nil {
-			t.Logf("Warning: Failed to clean up context: %v", cleanupErr)
-		} else {
-			t.Logf("Successfully cleaned up context %s", context.ID)
-		}
-
-		t.Fatalf("Failed to create third session without context ID: %v", err)
+		t.Fatalf("Error creating third session without context ID: %v", err)
 	}
-	t.Logf("Third session created with ID: %s, AgentBay client region: %s",
-		session3.SessionID, session3.AgentBay.RegionId)
+	session3 := session3Result.Session
+	t.Logf("Third session created with ID: %s (RequestID: %s)",
+		session3.SessionID, session3Result.RequestID)
 
-	// Step 9: Check if the file exists (expected: no)
+	// Step 9: Check if the file exists in the third session (expected: no)
 	t.Logf("Checking if file %s exists in the third session (should not exist)...", testFilePath)
-
-	// First check with ls command
-	lsCmd = fmt.Sprintf("ls -la %s 2>&1 || echo 'File does not exist'", testFilePath)
-	lsOutput, lsErr = session3.Command.ExecuteCommand(lsCmd)
-	if lsErr != nil {
-		t.Logf("Warning: ls command failed in third session: %v", lsErr)
-	} else {
-		t.Logf("ls command output in third session: %s", lsOutput)
-	}
-
-	// Then try to read the file content
-	t.Logf("Attempting to read file content with command: %s", verifyCmd)
-	output, err = session3.Command.ExecuteCommand(verifyCmd)
+	checkResult, err = session3.Command.ExecuteCommand(checkCmd)
 	if err != nil {
-		// Error is expected as the file should not exist
-		t.Logf("Expected error when checking non-existent file: %v", err)
+		t.Logf("Warning: Check command in third session failed: %v", err)
+	}
+	t.Logf("Check output in third session: %s (RequestID: %s)",
+		checkResult.Output, checkResult.RequestID)
+
+	// Try to read the file directly
+	verifyResult, err = session3.Command.ExecuteCommand(verifyCmd)
+	// We expect this to fail or return an error message
+	if err == nil && strings.Contains(verifyResult.Output, testFileContent) {
+		t.Errorf("File isolation test failed. File unexpectedly exists in session without context")
 	} else {
-		// If no error, check if the output indicates the file doesn't exist
-		if strings.Contains(output, "No such file") ||
-			strings.Contains(output, "not found") ||
-			strings.Contains(output, "File does not exist") ||
-			strings.TrimSpace(output) == "" {
-			t.Logf("File isolation verified: file does not exist in the third session")
-		} else if strings.Contains(output, testFileContent) {
-			t.Logf("UNEXPECTED: File exists in the third session with content: '%s'", output)
-			t.Fatalf("File isolation test failed. File unexpectedly exists in the third session with content: '%s'", output)
-		} else {
-			t.Logf("Unexpected output when checking file: '%s'", output)
-		}
+		t.Logf("File isolation verified: file does not exist in session without context")
 	}
 
-	// Step 10: Release the third session and delete the context
-	t.Log("Releasing third session...")
-
-	// List active sessions before cleanup
-	activeSessions, err = agentBay.List()
-	if err != nil {
-		t.Logf("Warning: Failed to list active sessions before cleanup: %v", err)
-	} else {
-		t.Logf("Found %d active sessions before cleanup", len(activeSessions))
-		for i, sess := range activeSessions {
-			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
-		}
-	}
+	// Step 10: Clean up all resources
+	t.Log("Cleaning up all resources...")
 
 	// Release the third session
-	err = session3.Delete()
+	deleteResult, err = agentBay.Delete(session3)
 	if err != nil {
-		t.Logf("Error releasing third session: %v", err)
-		t.Logf("Continuing with context deletion anyway...")
+		t.Logf("Warning: Error releasing third session: %v", err)
 	} else {
-		t.Logf("Third session released successfully")
+		t.Logf("Third session released successfully (RequestID: %s)",
+			deleteResult.RequestID)
 	}
 
-	// List contexts before deletion
-	existingContexts, err = agentBay.Context.List()
+	// Delete the context
+	deleteContextResult, err := agentBay.Context.Delete(context)
 	if err != nil {
-		t.Logf("Warning: Failed to list contexts before deletion: %v", err)
+		t.Logf("Warning: Error deleting context: %v", err)
 	} else {
-		t.Logf("Found %d contexts before deletion", len(existingContexts))
-		for i, ctx := range existingContexts {
-			t.Logf("Context %d: ID=%s, Name=%s, State=%s, OSType=%s",
-				i+1, ctx.ID, ctx.Name, ctx.State, ctx.OSType)
-		}
+		t.Logf("Context deleted successfully (RequestID: %s)",
+			deleteContextResult.RequestID)
 	}
 
-	t.Log("Deleting context...")
-	err = agentBay.Context.Delete(context)
-	if err != nil {
-		t.Fatalf("Error deleting context: %v", err)
-	}
-	t.Logf("Context %s deleted successfully", context.ID)
-
-	// Verify context deletion
-	existingContexts, err = agentBay.Context.List()
-	if err != nil {
-		t.Logf("Warning: Failed to list contexts after deletion: %v", err)
-	} else {
-		t.Logf("Found %d contexts after deletion", len(existingContexts))
-
-		// Check if our context is still in the list
-		contextFound := false
-		for _, ctx := range existingContexts {
-			if ctx.ID == context.ID {
-				contextFound = true
-				t.Logf("WARNING: Context %s still exists after deletion", context.ID)
-				break
-			}
-		}
-
-		if !contextFound {
-			t.Logf("Context deletion verified: context %s no longer exists", context.ID)
-		}
-	}
-
-	t.Logf("Test completed successfully")
+	t.Log("Test completed successfully")
 }

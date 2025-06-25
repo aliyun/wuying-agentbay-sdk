@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -30,63 +29,54 @@ func main() {
 
 	// Create a new session
 	fmt.Println("\nCreating a new session with mobile_latest image...")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("\nSession created with ID: %s\n", session.SessionID)
+	session := sessionResult.Session
+	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
 	defer func() {
 		// Clean up by deleting the session when we're done
 		fmt.Println("\nDeleting the session...")
-		err = agentBay.Delete(session)
+		deleteResult, err := session.Delete()
 		if err != nil {
 			fmt.Printf("Error deleting session: %v\n", err)
 		} else {
-			fmt.Println("Session deleted successfully")
+			fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
 		}
 	}()
 
 	// 1. Take a screenshot
 	fmt.Println("\n1. Taking a screenshot...")
-	screenshot, err := session.UI.Screenshot()
+	screenshotResult, err := session.UI.Screenshot()
 	if err != nil {
 		fmt.Printf("Error taking screenshot: %v\n", err)
 	} else {
-		// The screenshot is returned as a base64-encoded string
-		fmt.Printf("Screenshot taken successfully. Base64 data length: %d bytes\n", len(screenshot))
+		// The screenshot operation was successful
+		fmt.Printf("Screenshot taken successfully (RequestID: %s, Success: %v, ComponentID: %s)\n",
+			screenshotResult.RequestID, screenshotResult.Success, screenshotResult.ComponentID)
 
-		// Optional: Save the screenshot to a file
-		// Uncomment the following lines to save the screenshot
-		/*
-			imgData, err := base64.StdEncoding.DecodeString(screenshot)
-			if err == nil {
-				timestamp := time.Now().Format("20060102_150405")
-				filename := fmt.Sprintf("screenshot_%s.png", timestamp)
-				err = os.WriteFile(filename, imgData, 0644)
-				if err == nil {
-					fmt.Printf("Screenshot saved to %s\n", filename)
-				}
-			}
-		*/
+		// Note: The current implementation returns success status but not the actual image data
+		// The screenshot data would need to be retrieved separately if available
 	}
 
 	// 2. Get all UI elements
 	fmt.Println("\n2. Getting all UI elements...")
-	elements, err := session.UI.GetAllUIElements(2000) // 2 second timeout
+	elementsResult, err := session.UI.GetAllUIElements(2000) // 2 second timeout
 	if err != nil {
 		fmt.Printf("Error getting UI elements: %v\n", err)
 	} else {
-		fmt.Printf("Found %d UI elements\n", len(elements))
+		fmt.Printf("Found %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), elementsResult.RequestID)
 		// Print details of the first few elements if available
 		elementsToShow := 3
-		if len(elements) < elementsToShow {
-			elementsToShow = len(elements)
+		if len(elementsResult.Elements) < elementsToShow {
+			elementsToShow = len(elementsResult.Elements)
 		}
 
 		fmt.Println("\nSample of UI elements found:")
 		for i := 0; i < elementsToShow; i++ {
-			elem := elements[i]
+			elem := elementsResult.Elements[i]
 			fmt.Printf("Element #%d:\n", i+1)
 			fmt.Printf("  Type: %v\n", elem.Type)
 			fmt.Printf("  Text: %v\n", elem.Text)
@@ -98,20 +88,20 @@ func main() {
 
 	// 3. Get clickable UI elements
 	fmt.Println("\n3. Getting clickable UI elements...")
-	clickableElements, err := session.UI.GetClickableUIElements(2000) // 2 second timeout
+	clickableElementsResult, err := session.UI.GetClickableUIElements(2000) // 2 second timeout
 	if err != nil {
 		fmt.Printf("Error getting clickable UI elements: %v\n", err)
 	} else {
-		fmt.Printf("Found %d clickable UI elements\n", len(clickableElements))
+		fmt.Printf("Found %d clickable UI elements (RequestID: %s)\n", len(clickableElementsResult.Elements), clickableElementsResult.RequestID)
 		// Print details of the first few clickable elements if available
 		elementsToShow := 3
-		if len(clickableElements) < elementsToShow {
-			elementsToShow = len(clickableElements)
+		if len(clickableElementsResult.Elements) < elementsToShow {
+			elementsToShow = len(clickableElementsResult.Elements)
 		}
 
 		fmt.Println("\nSample of clickable UI elements found:")
 		for i := 0; i < elementsToShow; i++ {
-			elem := clickableElements[i]
+			elem := clickableElementsResult.Elements[i]
 			fmt.Printf("Element #%d:\n", i+1)
 			fmt.Printf("  Type: %v\n", elem.Type)
 			fmt.Printf("  Text: %v\n", elem.Text)
@@ -123,11 +113,11 @@ func main() {
 
 	// 4. Send key event (HOME key)
 	fmt.Println("\n4. Sending HOME key event...")
-	result, err := session.UI.SendKey(ui.KeyCode.HOME) // Use KeyCode.HOME constant
+	keyResult, err := session.UI.SendKey(ui.KeyCode.HOME) // Use KeyCode.HOME constant
 	if err != nil {
 		fmt.Printf("Error sending HOME key: %v\n", err)
 	} else {
-		fmt.Println("HOME key sent successfully, response:", result)
+		fmt.Printf("HOME key sent successfully (RequestID: %s)\n", keyResult.RequestID)
 	}
 
 	// Sleep briefly to allow UI to update after HOME key
@@ -135,11 +125,11 @@ func main() {
 
 	// 5. Input text
 	fmt.Println("\n5. Inputting text...")
-	response, err := session.UI.InputText("Hello from AgentBay SDK!")
+	inputResult, err := session.UI.InputText("Hello from AgentBay SDK!")
 	if err != nil {
 		fmt.Printf("Error inputting text: %v\n", err)
 	} else {
-		fmt.Println("Text input successful, response:", response)
+		fmt.Printf("Text input successful (RequestID: %s)\n", inputResult.RequestID)
 	}
 
 	// 6. Click a position on screen
@@ -147,11 +137,11 @@ func main() {
 	// Coordinates for center of screen (example values)
 	x := 540
 	y := 960
-	clickResponse, err := session.UI.Click(x, y, "left")
+	clickResult, err := session.UI.Click(x, y, "left")
 	if err != nil {
 		fmt.Printf("Error clicking on position (%d,%d): %v\n", x, y, err)
 	} else {
-		fmt.Printf("Successfully clicked at position (%d,%d), response: %s\n", x, y, clickResponse)
+		fmt.Printf("Successfully clicked at position (%d,%d) (RequestID: %s)\n", x, y, clickResult.RequestID)
 	}
 
 	// Sleep briefly to allow UI to update after click
@@ -164,43 +154,26 @@ func main() {
 	endX := 540
 	endY := 500
 	swipeDuration := 500 // milliseconds
-	swipeResponse, err := session.UI.Swipe(startX, startY, endX, endY, swipeDuration)
+	swipeResult, err := session.UI.Swipe(startX, startY, endX, endY, swipeDuration)
 	if err != nil {
 		fmt.Printf("Error performing swipe from (%d,%d) to (%d,%d): %v\n",
 			startX, startY, endX, endY, err)
 	} else {
-		fmt.Printf("Successfully swiped from (%d,%d) to (%d,%d), response: %s\n",
-			startX, startY, endX, endY, swipeResponse)
+		fmt.Printf("Successfully swiped from (%d,%d) to (%d,%d) (RequestID: %s)\n",
+			startX, startY, endX, endY, swipeResult.RequestID)
 	}
 
 	// 8. Take another screenshot after interactions
 	fmt.Println("\n8. Taking another screenshot after interactions...")
-	screenshot2, err := session.UI.Screenshot()
+	screenshot2Result, err := session.UI.Screenshot()
 	if err != nil {
 		fmt.Printf("Error taking second screenshot: %v\n", err)
 	} else {
-		fmt.Printf("Second screenshot taken successfully. Base64 data length: %d bytes\n", len(screenshot2))
+		fmt.Printf("Second screenshot taken successfully (RequestID: %s, Success: %v, ComponentID: %s)\n",
+			screenshot2Result.RequestID, screenshot2Result.Success, screenshot2Result.ComponentID)
 
-		imgData, err := base64.StdEncoding.DecodeString(screenshot2)
-		if err != nil {
-			fmt.Printf("Error decoding screenshot: %v\n", err)
-		} else {
-			// Just inform about the image size
-			fmt.Printf("Screenshot image size: %d bytes\n", len(imgData))
-
-			// Uncomment the following lines to save the screenshot
-			/*
-				// Generate timestamp for unique filename
-				timestamp := time.Now().Format("20060102_150405")
-				filename := "screenshot_after_" + timestamp + ".png"
-				err = os.WriteFile(filename, imgData, 0644)
-				if err != nil {
-					fmt.Printf("Error saving screenshot: %v\n", err)
-				} else {
-					fmt.Printf("Screenshot saved to %s\n", filename)
-				}
-			*/
-		}
+		// Note: The current implementation returns success status but not the actual image data
+		// The screenshot data would need to be retrieved separately if available
 	}
 
 	fmt.Println("\nUI examples completed successfully!")

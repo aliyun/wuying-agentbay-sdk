@@ -2,6 +2,40 @@
 
 The `AgentBay` class is the main entry point for interacting with the AgentBay cloud environment. It provides methods for creating, retrieving, listing, and deleting sessions.
 
+## RequestID Standardization
+
+All API calls in the SDK return a unique request identifier (RequestID) as part of their response. This RequestID can be used for debugging, tracking, and correlating API requests with server-side logs.
+
+### Golang
+
+In Golang, all API responses inherit from the base `ApiResponse` type which contains the RequestID:
+
+```go
+type ApiResponse struct {
+    RequestID string
+}
+```
+
+API methods return structured results that embed this base type, for example:
+
+```go
+type SessionResult struct {
+    ApiResponse
+    Session *Session
+}
+```
+
+You can access the RequestID directly from the result:
+
+```go
+result, err := agentBay.Create(nil)
+if err != nil {
+    // Handle error
+}
+fmt.Printf("Session created with ID: %s, RequestID: %s\n", 
+    result.Session.SessionID, result.RequestID)
+```
+
 ## Constructor
 
 ### Python
@@ -70,14 +104,14 @@ create(): Promise<Session>
 #### Golang
 
 ```go
-Create(params *CreateSessionParams) (*Session, error)
+Create(params *CreateSessionParams) (*SessionResult, error)
 ```
 
 **Parameters:**
 - `params` (*CreateSessionParams, optional): Parameters for session creation. If nil, default parameters will be used.
 
 **Returns:**
-- `*Session`: A pointer to the new Session instance.
+- `*SessionResult`: A result object containing the new Session instance and RequestID.
 - `error`: An error if the session creation fails.
 
 ### list / List
@@ -111,11 +145,11 @@ list(): Promise<Session[]>
 #### Golang
 
 ```go
-List() ([]Session, error)
+List() (*SessionListResult, error)
 ```
 
 **Returns:**
-- `[]Session`: An array of Session instances.
+- `*SessionListResult`: A result object containing an array of Session instances and RequestID.
 - `error`: An error if the session listing fails.
 
 ### list_by_labels / listByLabels / ListByLabels
@@ -155,14 +189,14 @@ listByLabels(labels: Record<string, string>): Promise<Session[]>
 #### Golang
 
 ```go
-ListByLabels(labels map[string]string) ([]Session, error)
+ListByLabels(labels map[string]string) (*SessionListResult, error)
 ```
 
 **Parameters:**
 - `labels` (map[string]string): A map of labels to filter sessions by.
 
 **Returns:**
-- `[]Session`: An array of Session instances that match the specified labels.
+- `*SessionListResult`: A result object containing an array of Session instances and RequestID.
 - `error`: An error if the session listing fails.
 
 ### delete / Delete
@@ -202,13 +236,14 @@ delete(sessionId: string): Promise<boolean>
 #### Golang
 
 ```go
-Delete(session *Session) error
+Delete(session *Session) (*DeleteResult, error)
 ```
 
 **Parameters:**
 - `session` (*Session): The session to delete.
 
 **Returns:**
+- `*DeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the session deletion fails.
 
 ## Context Service
@@ -360,7 +395,8 @@ func main() {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Session created with ID: %s\n", session.SessionID)
+	fmt.Printf("Session created with ID: %s, RequestID: %s\n", 
+		session.SessionID, session.RequestID)
 	
 	// List all sessions
 	sessions, err := client.List()
@@ -368,7 +404,7 @@ func main() {
 		fmt.Printf("Error listing sessions: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Found %d sessions\n", len(sessions))
+	fmt.Printf("Found %d sessions, RequestID: %s\n", len(sessions), sessions.RequestID)
 	
 	// List sessions by labels
 	filteredSessions, err := client.ListByLabels(map[string]string{
@@ -378,14 +414,14 @@ func main() {
 		fmt.Printf("Error listing sessions by labels: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Found %d matching sessions\n", len(filteredSessions))
+	fmt.Printf("Found %d matching sessions, RequestID: %s\n", len(filteredSessions), filteredSessions.RequestID)
 	
 	// Delete the session
-	err = client.Delete(session)
+	result, err := client.Delete(session)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("Session deleted successfully")
+	fmt.Printf("Session deleted successfully, RequestID: %s\n", result.RequestID)
 }
 ```

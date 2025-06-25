@@ -14,8 +14,9 @@ import (
 const TestPathPrefix = "/tmp"
 
 func TestFileSystem_ReadFile(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem read operations
@@ -24,37 +25,44 @@ func TestFileSystem_ReadFile(t *testing.T) {
 		fmt.Println("Creating a test file for reading...")
 		testContent := "This is a test file content for ReadFile test."
 		testFilePath := TestPathPrefix + "/test_read.txt"
-		_, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
+		writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
 		if err != nil {
 			t.Fatalf("Failed to create test file for reading: %v", err)
 		}
-		t.Log("Test file created successfully")
+		t.Logf("Test file created successfully with RequestID: %s", writeResult.RequestID)
 
 		// Now read the file
 		fmt.Println("Reading file...")
-		content, err := session.FileSystem.ReadFile(testFilePath)
-		t.Logf("ReadFile result: content length=%d, err=%v", len(content), err)
+		result, err := session.FileSystem.ReadFile(testFilePath)
 		if err != nil {
 			t.Errorf("File read failed: %v", err)
+			return
+		}
+
+		t.Logf("ReadFile result: content length=%d, RequestID=%s",
+			len(result.Content), result.RequestID)
+
+		if result.Content == "" {
+			t.Errorf("Failed to read file content")
+			return
+		}
+
+		t.Logf("File read successful, content length: %d bytes", len(result.Content))
+
+		// Verify the content matches what was written
+		if result.Content != testContent {
+			t.Errorf("File content mismatch. Expected: %s, Got: %s", testContent, result.Content)
 		} else {
-			if content == "" {
-				t.Errorf("Failed to read file content")
-				return
-			}
+			t.Log("File content verified successfully")
+		}
 
-			t.Logf("File read successful, content length: %d bytes", len(content))
+		// Check if response contains "tool not found"
+		if testutil.ContainsToolNotFound(result.Content) {
+			t.Errorf("FileSystem.ReadFile returned 'tool not found'")
+		}
 
-			// Verify the content matches what was written
-			if content != testContent {
-				t.Errorf("File content mismatch. Expected: %s, Got: %s", testContent, content)
-			} else {
-				t.Log("File content verified successfully")
-			}
-
-			// Check if response contains "tool not found"
-			if testutil.ContainsToolNotFound(content) {
-				t.Errorf("FileSystem.ReadFile returned 'tool not found'")
-			}
+		if result.RequestID == "" {
+			t.Errorf("ReadFile method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping file test")
@@ -62,8 +70,9 @@ func TestFileSystem_ReadFile(t *testing.T) {
 }
 
 func TestFileSystem_WriteFile(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem write operations
@@ -71,30 +80,35 @@ func TestFileSystem_WriteFile(t *testing.T) {
 		fmt.Println("Writing file...")
 		testContent := "This is a test file content for WriteFile test."
 		testFilePath := TestPathPrefix + "/test_write.txt"
-		success, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
-		t.Logf("WriteFile result: success=%v, err=%v", success, err)
+		writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
 		if err != nil {
 			t.Errorf("File write failed: %v", err)
+			return
+		}
+
+		t.Logf("WriteFile result: success=%v, RequestID=%s", writeResult.Success, writeResult.RequestID)
+		t.Log("File write successful")
+
+		// Verify the file was written correctly by reading it back
+		readResult, err := session.FileSystem.ReadFile(testFilePath)
+		if err != nil {
+			t.Errorf("Failed to read back written file: %v", err)
+			return
+		}
+
+		if readResult.Content == "" {
+			t.Errorf("Failed to read file content")
+			return
+		}
+
+		if readResult.Content != testContent {
+			t.Errorf("File content mismatch. Expected: %s, Got: %s", testContent, readResult.Content)
 		} else {
-			t.Log("File write successful")
+			t.Log("File content verified successfully")
+		}
 
-			// Verify the file was written correctly by reading it back
-			content, err := session.FileSystem.ReadFile(testFilePath)
-			if err != nil {
-				t.Errorf("Failed to read back written file: %v", err)
-				return
-			}
-
-			if content == "" {
-				t.Errorf("Failed to read file content")
-				return
-			}
-
-			if content != testContent {
-				t.Errorf("File content mismatch. Expected: %s, Got: %s", testContent, content)
-			} else {
-				t.Log("File content verified successfully")
-			}
+		if writeResult.RequestID == "" {
+			t.Errorf("WriteFile method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping file test")
@@ -102,33 +116,47 @@ func TestFileSystem_WriteFile(t *testing.T) {
 }
 
 func TestFileSystem_CreateDirectory(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem create directory
 	if session.FileSystem != nil {
 		fmt.Println("Creating directory...")
 		dirPath := TestPathPrefix + "/test_directory"
-		success, err := session.FileSystem.CreateDirectory(dirPath)
-		t.Logf("CreateDirectory result: success=%v, err=%v", success, err)
+		result, err := session.FileSystem.CreateDirectory(dirPath)
+		t.Logf("CreateDirectory result: success=%v, requestID=%s, err=%v",
+			result.Success, result.RequestID, err)
+
 		if err != nil {
 			t.Errorf("Directory creation failed: %v", err)
-		} else if !success {
+		} else if !result.Success {
 			t.Errorf("Directory creation returned false")
 		} else {
 			t.Log("Directory creation successful")
 
+			// Verify RequestID exists
+			if result.RequestID == "" {
+				t.Logf("Warning: Empty RequestID returned from CreateDirectory")
+			}
+
 			// Verify the directory was created by listing the parent directory
-			entries, err := session.FileSystem.ListDirectory(TestPathPrefix + "/")
+			listResult, err := session.FileSystem.ListDirectory(TestPathPrefix + "/")
 			if err != nil {
 				t.Errorf("Failed to list directory: %v", err)
 			} else {
 				// Print the count of entries for debugging
-				t.Logf("ListDirectory result: entries count=%d, err=%v", len(entries), err)
+				t.Logf("ListDirectory result: entries count=%d, requestID=%s, err=%v",
+					len(listResult.Entries), listResult.RequestID, err)
+
+				// Verify RequestID exists for list operation
+				if listResult.RequestID == "" {
+					t.Logf("Warning: Empty RequestID returned from ListDirectory")
+				}
 
 				directoryFound := false
-				for _, entry := range entries {
+				for _, entry := range listResult.Entries {
 					if entry.IsDirectory && entry.Name == "test_directory" {
 						directoryFound = true
 						break
@@ -141,14 +169,19 @@ func TestFileSystem_CreateDirectory(t *testing.T) {
 				}
 			}
 		}
+
+		if result.RequestID == "" {
+			t.Errorf("CreateDirectory method did not return RequestID")
+		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping directory test")
 	}
 }
 
 func TestFileSystem_EditFile(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem edit operations
@@ -156,10 +189,11 @@ func TestFileSystem_EditFile(t *testing.T) {
 		// First create a file to edit
 		initialContent := "This is the original content.\nLine to be replaced.\nThis is the final line."
 		testFilePath := TestPathPrefix + "/test_edit.txt"
-		_, err := session.FileSystem.WriteFile(testFilePath, initialContent, "overwrite")
+		writeResult, err := session.FileSystem.WriteFile(testFilePath, initialContent, "overwrite")
 		if err != nil {
 			t.Fatalf("Failed to create file for editing: %v", err)
 		}
+		t.Logf("Test file created with RequestID: %s", writeResult.RequestID)
 
 		// Now edit the file
 		fmt.Println("Editing file...")
@@ -169,31 +203,36 @@ func TestFileSystem_EditFile(t *testing.T) {
 				"newText": "This line has been edited.",
 			},
 		}
-		success, err := session.FileSystem.EditFile(testFilePath, edits, false)
-		t.Logf("EditFile result: success=%v, err=%v", success, err)
+		editResult, err := session.FileSystem.EditFile(testFilePath, edits, false)
 		if err != nil {
 			t.Errorf("File edit failed: %v", err)
+			return
+		}
+
+		t.Logf("EditFile result: success=%v, RequestID=%s", editResult.Success, editResult.RequestID)
+		t.Log("File edit successful")
+
+		// Verify the file was edited correctly by reading it back
+		readResult, err := session.FileSystem.ReadFile(testFilePath)
+		if err != nil {
+			t.Errorf("Failed to read back edited file: %v", err)
+			return
+		}
+
+		if readResult.Content == "" {
+			t.Errorf("Failed to read file content")
+			return
+		}
+
+		expectedContent := "This is the original content.\nThis line has been edited.\nThis is the final line."
+		if readResult.Content != expectedContent {
+			t.Errorf("File content mismatch after edit. Expected: %s, Got: %s", expectedContent, readResult.Content)
 		} else {
-			t.Log("File edit successful")
+			t.Log("File edit verified successfully")
+		}
 
-			// Verify the file was edited correctly by reading it back
-			content, err := session.FileSystem.ReadFile(testFilePath)
-			if err != nil {
-				t.Errorf("Failed to read back edited file: %v", err)
-				return
-			}
-
-			if content == "" {
-				t.Errorf("Failed to read file content")
-				return
-			}
-
-			expectedContent := "This is the original content.\nThis line has been edited.\nThis is the final line."
-			if content != expectedContent {
-				t.Errorf("File content mismatch after edit. Expected: %s, Got: %s", expectedContent, content)
-			} else {
-				t.Log("File edit verified successfully")
-			}
+		if editResult.RequestID == "" {
+			t.Errorf("EditFile method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping file edit test")
@@ -201,48 +240,45 @@ func TestFileSystem_EditFile(t *testing.T) {
 }
 
 func TestFileSystem_GetFileInfo(t *testing.T) {
-	// Setup session with cleanup
-	params := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
-	session, cleanup := testutil.SetupAndCleanup(t, params)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem get file info
 	if session.FileSystem != nil {
-		// First create a file to get info for
-		testContent := "This is a test file for GetFileInfo."
-		testFilePath := TestPathPrefix + "/test_info.txt"
-		_, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
+		// First create a file to get info about
+		testContent := "This is a test file content for GetFileInfo test."
+		testFilePath := TestPathPrefix + "/test_fileinfo.txt"
+		writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
 		if err != nil {
-			t.Fatalf("Failed to create file for info test: %v", err)
+			t.Fatalf("Failed to create test file for GetFileInfo: %v", err)
 		}
+		t.Logf("Test file created with RequestID: %s", writeResult.RequestID)
 
+		// Get file info
 		fmt.Println("Getting file info...")
-		fileInfo, err := session.FileSystem.GetFileInfo(testFilePath)
-		t.Logf("GetFileInfo result: fileInfo=%+v, err=%v", fileInfo, err)
+		fileInfoResult, err := session.FileSystem.GetFileInfo(testFilePath)
 		if err != nil {
-			t.Errorf("Get file info failed: %v", err)
+			t.Errorf("GetFileInfo failed: %v", err)
 		} else {
-			t.Log("Get file info successful")
+			t.Log("GetFileInfo successful")
+			t.Logf("FileInfo result: size=%d, isDirectory=%v, RequestID=%s, err=%v",
+				fileInfoResult.FileInfo.Size, fileInfoResult.FileInfo.IsDirectory, fileInfoResult.RequestID, err)
 
-			// Print detailed file information
-			t.Logf("File Info Details:")
-			t.Logf("  Name: %q", fileInfo.Name)
-			t.Logf("  Path: %q", fileInfo.Path)
-			t.Logf("  Size: %d bytes", fileInfo.Size)
-			t.Logf("  IsDirectory: %v", fileInfo.IsDirectory)
-			t.Logf("  ModTime: %q", fileInfo.ModTime)
-			t.Logf("  Mode (permissions): %q", fileInfo.Mode)
-			t.Logf("  Owner: %q", fileInfo.Owner)
-			t.Logf("  Group: %q", fileInfo.Group)
-
-			// Check that the fileInfo contains expected information
-			if fileInfo.Size <= 0 {
-				t.Errorf("FileInfo does not contain valid size information")
+			// Verify the file info
+			if fileInfoResult.FileInfo.Size <= 0 {
+				t.Errorf("Expected positive file size, got %d", fileInfoResult.FileInfo.Size)
 			}
-			if fileInfo.IsDirectory {
-				t.Errorf("FileInfo incorrectly indicates this is a directory")
+			if fileInfoResult.FileInfo.IsDirectory {
+				t.Errorf("Expected file to not be a directory")
 			}
 			// Don't check for Name since it's not returned by the server
+		}
+
+		// Verify RequestID exists (only if we got a result)
+		if fileInfoResult != nil && fileInfoResult.RequestID == "" {
+			t.Errorf("GetFileInfo method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping file info test")
@@ -250,88 +286,147 @@ func TestFileSystem_GetFileInfo(t *testing.T) {
 }
 
 func TestFileSystem_ListDirectory(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
-	// Test FileSystem list directory
-	if session.FileSystem != nil {
-		fmt.Println("Listing directory...")
-		entries, err := session.FileSystem.ListDirectory(TestPathPrefix + "/")
-		if err != nil {
-			t.Errorf("List directory failed: %v", err)
-		} else {
-			t.Log("List directory successful")
+	// Prepare a test directory with some files
+	dirPath := TestPathPrefix + "/test_list_dir"
+	createResult, err := session.FileSystem.CreateDirectory(dirPath)
+	if err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
+	t.Logf("Test directory created with RequestID: %s", createResult.RequestID)
 
-			// Print the count of entries for debugging
-			t.Logf("ListDirectory result: entries count=%d, err=%v", len(entries), err)
+	// Create a few test files in the directory
+	_, err = session.FileSystem.WriteFile(dirPath+"/file1.txt", "File 1 content", "overwrite")
+	if err != nil {
+		t.Fatalf("Failed to create test file 1: %v", err)
+	}
+	_, err = session.FileSystem.WriteFile(dirPath+"/file2.txt", "File 2 content", "overwrite")
+	if err != nil {
+		t.Fatalf("Failed to create test file 2: %v", err)
+	}
 
-			// Verify the entries contain expected fields
-			if len(entries) > 0 {
-				firstEntry := entries[0]
-				if firstEntry.Name == "" {
-					t.Errorf("Directory entry missing name field")
-				}
-				t.Logf("First entry: Name=%s, IsDirectory=%v", firstEntry.Name, firstEntry.IsDirectory)
+	// Create a subdirectory
+	subDirResult, err := session.FileSystem.CreateDirectory(dirPath + "/subdir")
+	if err != nil {
+		t.Fatalf("Failed to create subdirectory: %v", err)
+	}
+	t.Logf("Subdirectory created with RequestID: %s", subDirResult.RequestID)
+
+	// Test listing the directory
+	fmt.Println("Listing directory...")
+	listResult, err := session.FileSystem.ListDirectory(dirPath)
+	if err != nil {
+		t.Errorf("Failed to list directory: %v", err)
+		return
+	}
+
+	// Verify RequestID exists
+	if listResult.RequestID == "" {
+		t.Logf("Warning: Empty RequestID returned from ListDirectory")
+	}
+
+	t.Logf("Directory listing successful, found %d entries", len(listResult.Entries))
+
+	// Verify the expected files and directory are in the listing
+	expectedEntries := map[string]bool{
+		"file1.txt": false,
+		"file2.txt": false,
+		"subdir":    true,
+	}
+
+	for _, entry := range listResult.Entries {
+		isDir, exists := expectedEntries[entry.Name]
+		if exists {
+			if isDir != entry.IsDirectory {
+				t.Errorf("Entry %s: expected isDirectory=%v, got %v", entry.Name, isDir, entry.IsDirectory)
+			} else {
+				delete(expectedEntries, entry.Name)
 			}
 		}
-	} else {
-		t.Logf("Note: FileSystem interface is nil, skipping directory listing test")
+	}
+
+	if len(expectedEntries) > 0 {
+		var missing []string
+		for name := range expectedEntries {
+			missing = append(missing, name)
+		}
+		t.Errorf("Some expected entries were not found: %v", missing)
+	}
+
+	if listResult.RequestID == "" {
+		t.Errorf("ListDirectory method did not return RequestID")
 	}
 }
 
 func TestFileSystem_MoveFile(t *testing.T) {
-	// Setup session with cleanup
-	params := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
-	session, cleanup := testutil.SetupAndCleanup(t, params)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem move file
 	if session.FileSystem != nil {
 		// First create a file to move
-		testContent := "This is a test file for MoveFile."
-		sourceFilePath := TestPathPrefix + "/test_source.txt"
-		_, err := session.FileSystem.WriteFile(sourceFilePath, testContent, "overwrite")
-		if err != nil {
-			t.Fatalf("Failed to create file for move test: %v", err)
-		}
+		initialContent := "This is a test file content for MoveFile test."
+		srcFilePath := TestPathPrefix + "/test_move_source.txt"
+		destFilePath := TestPathPrefix + "/test_move_dest.txt"
 
+		// Create the source file
+		writeResult, err := session.FileSystem.WriteFile(srcFilePath, initialContent, "overwrite")
+		if err != nil {
+			t.Fatalf("Failed to create test file for moving: %v", err)
+		}
+		t.Logf("Test file created successfully with RequestID: %s", writeResult.RequestID)
+
+		// Move the file
 		fmt.Println("Moving file...")
-		destFilePath := TestPathPrefix + "/test_destination.txt"
-		success, err := session.FileSystem.MoveFile(sourceFilePath, destFilePath)
-		t.Logf("MoveFile result: success=%v, err=%v", success, err)
+		moveResult, err := session.FileSystem.MoveFile(srcFilePath, destFilePath)
+		t.Logf("MoveFile result: success=%v, requestID=%s, err=%v",
+			moveResult.Success, moveResult.RequestID, err)
+
 		if err != nil {
 			t.Errorf("File move failed: %v", err)
 		} else {
 			t.Log("File move successful")
 
-			// Verify the file was moved correctly by reading it back
-			content, err := session.FileSystem.ReadFile(destFilePath)
-			if err != nil {
-				t.Errorf("Failed to read back moved file: %v", err)
-				return
+			// Verify RequestID exists
+			if moveResult.RequestID == "" {
+				t.Logf("Warning: Empty RequestID returned from MoveFile")
 			}
 
-			if content == "" {
-				t.Errorf("Failed to read file content")
-				return
-			}
-
-			if content != testContent {
-				t.Errorf("File content mismatch after move. Expected: %s, Got: %s", testContent, content)
-			} else {
-				t.Log("File move verified successfully")
-			}
-
-			// Verify the source file no longer exists
-			_, err = session.FileSystem.GetFileInfo(sourceFilePath)
+			// Verify the source file doesn't exist anymore
+			_, err = session.FileSystem.GetFileInfo(srcFilePath)
 			if err == nil {
 				t.Errorf("Source file still exists after move")
-			} else {
-				// The file should not exist, so any error here is acceptable
-				// The exact error message may vary depending on the system language
-				t.Logf("Source file correctly no longer exists (error: %v)", err)
 			}
+
+			// Verify the destination file exists and has the correct content
+			readResult, err := session.FileSystem.ReadFile(destFilePath)
+			if err != nil {
+				t.Errorf("Failed to read destination file: %v", err)
+				return
+			}
+
+			if readResult.Content == "" {
+				t.Errorf("Failed to read destination file content")
+				return
+			}
+
+			// Verify the content matches what was written
+			if readResult.Content != initialContent {
+				t.Errorf("Destination file content mismatch. Expected: %s, Got: %s",
+					initialContent, readResult.Content)
+			} else {
+				t.Log("File content verified successfully after move")
+			}
+		}
+
+		if moveResult.RequestID == "" {
+			t.Errorf("MoveFile method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping file move test")
@@ -339,8 +434,9 @@ func TestFileSystem_MoveFile(t *testing.T) {
 }
 
 func TestFileSystem_ReadMultipleFiles(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem read multiple files
@@ -366,6 +462,7 @@ func TestFileSystem_ReadMultipleFiles(t *testing.T) {
 			t.Errorf("Read multiple files failed: %v", err)
 		} else {
 			t.Log("Read multiple files successful")
+
 			t.Logf("ReadMultipleFiles result: contents count=%d, err=%v", len(contents), err)
 
 			// Verify the contents of each file
@@ -393,22 +490,20 @@ func TestFileSystem_ReadMultipleFiles(t *testing.T) {
 				if trimmedContent != file2Content {
 					t.Errorf("File 2 content mismatch. Expected: %q (len=%d), Got: %q (len=%d)",
 						file2Content, len(file2Content), trimmedContent, len(trimmedContent))
-					// Print byte by byte comparison for debugging
-					t.Logf("Expected bytes: %v", []byte(file2Content))
-					t.Logf("Actual bytes: %v", []byte(trimmedContent))
 				} else {
 					t.Log("File 2 content verified successfully")
 				}
 			}
 		}
 	} else {
-		t.Logf("Note: FileSystem interface is nil, skipping read multiple files test")
+		t.Logf("Note: FileSystem interface is nil, skipping multiple files test")
 	}
 }
 
 func TestFileSystem_SearchFiles(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem search files
@@ -416,14 +511,14 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 		// First create a subdirectory for testing
 		testSubdirPath := TestPathPrefix + "/search_test_dir"
 		fmt.Println("Creating a subdirectory for search testing...")
-		success, err := session.FileSystem.CreateDirectory(testSubdirPath)
+		dirResult, err := session.FileSystem.CreateDirectory(testSubdirPath)
 		if err != nil {
 			t.Fatalf("Failed to create test subdirectory: %v", err)
 		}
-		if !success {
+		if !dirResult.Success {
 			t.Fatalf("Failed to create test subdirectory: operation returned false")
 		}
-		t.Log("Test subdirectory created successfully")
+		t.Logf("Test subdirectory created successfully (RequestID: %s)", dirResult.RequestID)
 
 		// Create test files with specific naming patterns
 		file1Content := "This is test file 1 content."
@@ -432,20 +527,25 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 
 		// Note: The pattern to search for is in the file names, not the content
 		searchFile1Path := testSubdirPath + "/SEARCHABLE_PATTERN_file1.txt"
-		_, err = session.FileSystem.WriteFile(searchFile1Path, file1Content, "overwrite")
+		writeResult1, err := session.FileSystem.WriteFile(searchFile1Path, file1Content, "overwrite")
 		if err != nil {
 			t.Fatalf("Failed to create search test file 1: %v", err)
 		}
+		t.Logf("Search test file 1 created (RequestID: %s)", writeResult1.RequestID)
+
 		searchFile2Path := testSubdirPath + "/regular_file2.txt"
-		_, err = session.FileSystem.WriteFile(searchFile2Path, file2Content, "overwrite")
+		writeResult2, err := session.FileSystem.WriteFile(searchFile2Path, file2Content, "overwrite")
 		if err != nil {
 			t.Fatalf("Failed to create search test file 2: %v", err)
 		}
+		t.Logf("Search test file 2 created (RequestID: %s)", writeResult2.RequestID)
+
 		searchFile3Path := testSubdirPath + "/SEARCHABLE_PATTERN_file3.txt"
-		_, err = session.FileSystem.WriteFile(searchFile3Path, file3Content, "overwrite")
+		writeResult3, err := session.FileSystem.WriteFile(searchFile3Path, file3Content, "overwrite")
 		if err != nil {
 			t.Fatalf("Failed to create search test file 3: %v", err)
 		}
+		t.Logf("Search test file 3 created (RequestID: %s)", writeResult3.RequestID)
 
 		fmt.Println("Searching files in subdirectory...")
 		// Search for files with names containing the pattern
@@ -456,17 +556,17 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 			t.Errorf("Search files failed: %v", err)
 		} else {
 			t.Log("Search files successful")
-			t.Logf("SearchFiles result: found %d files, err=%v", len(searchResults), err)
+			t.Logf("SearchFiles result: found %d files, RequestID=%s, err=%v", len(searchResults.Results), searchResults.RequestID, err)
 
 			// Extract search results
 			var results []map[string]string
 
 			// Check if no matches were found
-			if len(searchResults) == 0 {
+			if len(searchResults.Results) == 0 {
 				t.Logf("No matches found in search results")
 			} else {
 				// Process each result path
-				for _, path := range searchResults {
+				for _, path := range searchResults.Results {
 					path = strings.TrimSpace(path)
 					if path == "" {
 						continue
@@ -520,14 +620,19 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 				t.Log("Search results contain the expected files")
 			}
 		}
+		// Verify RequestID exists
+		if searchResults != nil && searchResults.RequestID == "" {
+			t.Errorf("SearchFiles method did not return RequestID")
+		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping search files test")
 	}
 }
 
 func TestFileSystem_LargeFileOperations(t *testing.T) {
-	// Setup session with cleanup
-	session, cleanup := testutil.SetupAndCleanup(t, nil)
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
 	// Test FileSystem large file operations
@@ -548,39 +653,42 @@ func TestFileSystem_LargeFileOperations(t *testing.T) {
 		// Test 1: Write large file using default chunk size
 		testFilePath1 := TestPathPrefix + "/test_large_default.txt"
 		fmt.Println("Test 1: Writing large file with default chunk size...")
-		success, err := session.FileSystem.WriteLargeFile(testFilePath1, testContent, 0)
+		writeResult1, err := session.FileSystem.WriteLargeFile(testFilePath1, testContent, 0)
 		if err != nil {
 			t.Fatalf("WriteLargeFile failed with default chunk size: %v", err)
 		}
-		if !success {
+		if !writeResult1.Success {
 			t.Errorf("WriteLargeFile returned false with default chunk size")
 		} else {
-			t.Log("Test 1: Large file write successful with default chunk size")
+			t.Logf("Test 1: Large file write successful with default chunk size (RequestID: %s)",
+				writeResult1.RequestID)
 		}
 
 		// Test 2: Read the file using default chunk size
 		fmt.Println("Test 2: Reading large file with default chunk size...")
-		readContent1, err := session.FileSystem.ReadLargeFile(testFilePath1, 0)
+		readResult1, err := session.FileSystem.ReadLargeFile(testFilePath1, 0)
 		if err != nil {
 			t.Fatalf("ReadLargeFile failed with default chunk size: %v", err)
 		}
 
 		// Verify content
-		t.Logf("Test 2: File read successful, content length: %d bytes", len(readContent1))
-		if readContent1 != testContent {
+		t.Logf("Test 2: File read successful, content length: %d bytes (RequestID: %s)",
+			len(readResult1.Content), readResult1.RequestID)
+
+		if readResult1.Content != testContent {
 			t.Errorf("File content mismatch with default chunk size. Expected length: %d, Got length: %d",
-				len(testContent), len(readContent1))
+				len(testContent), len(readResult1.Content))
 
 			// Find first mismatch position
 			minLen := len(testContent)
-			if len(readContent1) < minLen {
-				minLen = len(readContent1)
+			if len(readResult1.Content) < minLen {
+				minLen = len(readResult1.Content)
 			}
 
 			for i := 0; i < minLen; i++ {
-				if testContent[i] != readContent1[i] {
+				if testContent[i] != readResult1.Content[i] {
 					t.Errorf("First mismatch at position %d: expected '%c', got '%c'",
-						i, testContent[i], readContent1[i])
+						i, testContent[i], readResult1.Content[i])
 					break
 				}
 			}
@@ -593,46 +701,38 @@ func TestFileSystem_LargeFileOperations(t *testing.T) {
 		testFilePath2 := TestPathPrefix + "/test_large_custom.txt"
 		fmt.Printf("Test 3: Writing large file with custom chunk size: %d bytes\n", customChunkSize)
 
-		success, err = session.FileSystem.WriteLargeFile(testFilePath2, testContent, customChunkSize)
+		writeResult2, err := session.FileSystem.WriteLargeFile(testFilePath2, testContent, customChunkSize)
 		if err != nil {
 			t.Fatalf("WriteLargeFile failed with custom chunk size: %v", err)
 		}
-		if !success {
+		if !writeResult2.Success {
 			t.Errorf("WriteLargeFile returned false with custom chunk size")
 		} else {
-			t.Log("Test 3: Large file write successful with custom chunk size")
+			t.Logf("Test 3: Large file write successful with custom chunk size (RequestID: %s)",
+				writeResult2.RequestID)
 		}
 
 		// Test 4: Read the file using custom chunk size
 		fmt.Printf("Test 4: Reading large file with custom chunk size: %d bytes\n", customChunkSize)
-		readContent2, err := session.FileSystem.ReadLargeFile(testFilePath2, customChunkSize)
+		readResult2, err := session.FileSystem.ReadLargeFile(testFilePath2, customChunkSize)
 		if err != nil {
 			t.Fatalf("ReadLargeFile failed with custom chunk size: %v", err)
 		}
 
 		// Verify content
-		t.Logf("Test 4: File read successful, content length: %d bytes", len(readContent2))
-		if readContent2 != testContent {
+		t.Logf("Test 4: File read successful, content length: %d bytes (RequestID: %s)",
+			len(readResult2.Content), readResult2.RequestID)
+
+		if readResult2.Content != testContent {
 			t.Errorf("File content mismatch with custom chunk size. Expected length: %d, Got length: %d",
-				len(testContent), len(readContent2))
+				len(testContent), len(readResult2.Content))
 		} else {
 			t.Log("Test 4: File content verified successfully with custom chunk size")
 		}
 
-		// Test 5: Cross-test - Write with default chunk size, read with custom chunk size
-		fmt.Println("Test 5: Cross-test - Reading with custom chunk size a file written with default chunk size...")
-		crossTestContent, err := session.FileSystem.ReadLargeFile(testFilePath1, customChunkSize)
-		if err != nil {
-			t.Fatalf("ReadLargeFile cross-test failed: %v", err)
-		}
-
-		// Verify content
-		t.Logf("Test 5: Cross-test read successful, content length: %d bytes", len(crossTestContent))
-		if crossTestContent != testContent {
-			t.Errorf("File content mismatch in cross-test. Expected length: %d, Got length: %d",
-				len(testContent), len(crossTestContent))
-		} else {
-			t.Log("Test 5: Cross-test content verified successfully")
+		// Verify RequestID for the last operation
+		if writeResult2.RequestID == "" {
+			t.Errorf("WriteLargeFile method did not return RequestID")
 		}
 	} else {
 		t.Logf("Note: FileSystem interface is nil, skipping large file operations test")

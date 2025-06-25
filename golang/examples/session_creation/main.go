@@ -28,16 +28,17 @@ func main() {
 
 	// Create a new session with default parameters
 	fmt.Println("\nCreating a new session...")
-	session, err := agentBay.Create(nil)
+	sessionResult, err := agentBay.Create(nil)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("\nSession created with ID: %s\n", session.SessionID)
+	session := sessionResult.Session
+	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
 
 	// List all sessions
 	fmt.Println("\nListing all sessions...")
-	sessions, err := agentBay.List()
+	sessionsResult, err := agentBay.List()
 	if err != nil {
 		fmt.Printf("\nError listing sessions: %v\n", err)
 		os.Exit(1)
@@ -45,22 +46,23 @@ func main() {
 
 	// Extract SessionID list and join as string
 	var sessionIDs []string
-	for _, s := range sessions {
+	for _, s := range sessionsResult.Sessions {
 		sessionIDs = append(sessionIDs, s.SessionID)
 	}
 	sessionIDsStr := strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nAvailable sessions: %s\n", sessionIDsStr)
+	fmt.Printf("\nAvailable sessions: %s (RequestID: %s)\n", sessionIDsStr, sessionsResult.RequestID)
 
 	// Create multiple sessions to demonstrate listing
 	fmt.Println("\nCreating additional sessions...")
 	var additionalSessions []*agentbay.Session
 	for i := 0; i < 2; i++ {
-		additionalSession, err := agentBay.Create(nil)
+		additionalSessionResult, err := agentBay.Create(nil)
 		if err != nil {
 			fmt.Printf("\nError creating additional session: %v\n", err)
 			continue
 		}
-		fmt.Printf("Additional session created with ID: %s\n", additionalSession.SessionID)
+		additionalSession := additionalSessionResult.Session
+		fmt.Printf("Additional session created with ID: %s (RequestID: %s)\n", additionalSession.SessionID, additionalSessionResult.RequestID)
 
 		// Store the session for later cleanup
 		additionalSessions = append(additionalSessions, additionalSession)
@@ -68,53 +70,53 @@ func main() {
 
 	// List sessions again to show the new sessions
 	fmt.Println("\nListing all sessions after creating additional ones...")
-	updatedSessions, err := agentBay.List()
+	updatedSessionsResult, err := agentBay.List()
 	if err != nil {
 		fmt.Printf("\nError listing sessions: %v\n", err)
 	} else {
 		var updatedSessionIDs []string
-		for _, s := range updatedSessions {
+		for _, s := range updatedSessionsResult.Sessions {
 			updatedSessionIDs = append(updatedSessionIDs, s.SessionID)
 		}
 		updatedSessionIDsStr := strings.Join(updatedSessionIDs, ", ")
-		fmt.Printf("\nUpdated list of sessions: %s\n", updatedSessionIDsStr)
+		fmt.Printf("\nUpdated list of sessions: %s (RequestID: %s)\n", updatedSessionIDsStr, updatedSessionsResult.RequestID)
 	}
 
 	// Clean up all sessions
 	fmt.Println("\nCleaning up sessions...")
 	// First delete the initial session
-	err = agentBay.Delete(session)
+	deleteResult, err := session.Delete()
 	if err != nil {
 		fmt.Printf("Error deleting session %s: %v\n", session.SessionID, err)
 	} else {
-		fmt.Printf("Session %s deleted successfully\n", session.SessionID)
+		fmt.Printf("Session %s deleted successfully (RequestID: %s)\n", session.SessionID, deleteResult.RequestID)
 	}
 
 	// Then delete the additional sessions
 	for _, s := range additionalSessions {
-		err = agentBay.Delete(s)
+		deleteResult, err := s.Delete()
 		if err != nil {
 			fmt.Printf("Error deleting session %s: %v\n", s.SessionID, err)
 		} else {
-			fmt.Printf("Session %s deleted successfully\n", s.SessionID)
+			fmt.Printf("Session %s deleted successfully (RequestID: %s)\n", s.SessionID, deleteResult.RequestID)
 		}
 	}
 
 	// List sessions one more time to confirm deletion
 	fmt.Println("\nListing sessions after cleanup...")
-	finalSessions, err := agentBay.List()
+	finalSessionsResult, err := agentBay.List()
 	if err != nil {
 		fmt.Printf("\nError listing sessions: %v\n", err)
 	} else {
-		if len(finalSessions) == 0 {
-			fmt.Println("All sessions have been deleted successfully.")
+		if len(finalSessionsResult.Sessions) == 0 {
+			fmt.Printf("All sessions have been deleted successfully. (RequestID: %s)\n", finalSessionsResult.RequestID)
 		} else {
 			var finalSessionIDs []string
-			for _, s := range finalSessions {
+			for _, s := range finalSessionsResult.Sessions {
 				finalSessionIDs = append(finalSessionIDs, s.SessionID)
 			}
 			finalSessionIDsStr := strings.Join(finalSessionIDs, ", ")
-			fmt.Printf("\nRemaining sessions: %s\n", finalSessionIDsStr)
+			fmt.Printf("\nRemaining sessions: %s (RequestID: %s)\n", finalSessionIDsStr, finalSessionsResult.RequestID)
 		}
 	}
 }

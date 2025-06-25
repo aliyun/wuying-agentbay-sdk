@@ -8,7 +8,50 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
+
+// FileReadResult represents the result of a file read operation
+type FileReadResult struct {
+	models.ApiResponse // Embedded ApiResponse
+	Content            string
+}
+
+// FileWriteResult represents the result of a file write operation
+type FileWriteResult struct {
+	models.ApiResponse // Embedded ApiResponse
+	Success            bool
+}
+
+// FileExistsResult wraps file existence check result and RequestID
+type FileExistsResult struct {
+	models.ApiResponse
+	Exists bool
+}
+
+// FileDirectoryResult represents the result of directory operations
+type FileDirectoryResult struct {
+	models.ApiResponse // Embedded ApiResponse
+	Success            bool
+}
+
+// DirectoryListResult wraps directory listing result and RequestID
+type DirectoryListResult struct {
+	models.ApiResponse
+	Entries []*DirectoryEntry
+}
+
+// FileInfoResult represents the result of a file info operation
+type FileInfoResult struct {
+	models.ApiResponse
+	FileInfo *FileInfo
+}
+
+// SearchFilesResult represents the result of a search files operation
+type SearchFilesResult struct {
+	models.ApiResponse
+	Results []string
+}
 
 // FileSystem handles file operations in the AgentBay cloud environment.
 type FileSystem struct {
@@ -39,11 +82,12 @@ type DirectoryEntry struct {
 
 // callMcpToolResult represents the result of a CallMcpTool operation
 type callMcpToolResult struct {
-	TextContent string // 提取的text字段内容
+	TextContent string // Extracted text field content
 	Data        map[string]interface{}
 	IsError     bool
 	ErrorMsg    string
 	StatusCode  int32
+	RequestID   string // Added field to store request ID
 }
 
 // callMcpTool calls the MCP tool and checks for errors in the response
@@ -84,6 +128,12 @@ func (fs *FileSystem) callMcpTool(toolName string, args interface{}, defaultErro
 		return nil, fmt.Errorf("failed to call %s: %w", toolName, err)
 	}
 
+	// Extract RequestID
+	var requestID string
+	if response != nil && response.Body != nil && response.Body.RequestId != nil {
+		requestID = *response.Body.RequestId
+	}
+
 	if response != nil && response.Body != nil {
 		if isFileOperation(toolName) {
 			// Log content size for file operations instead of full content
@@ -115,6 +165,7 @@ func (fs *FileSystem) callMcpTool(toolName string, args interface{}, defaultErro
 	result := &callMcpToolResult{
 		Data:       data,
 		StatusCode: *response.StatusCode,
+		RequestID:  requestID, // Add RequestID
 	}
 
 	// Check if there's an error in the response
@@ -287,24 +338,30 @@ func NewFileSystem(session interface {
 	}
 }
 
-// CreateDirectory creates a new directory at the specified path.
+// CreateDirectory creates a directory.
 // API Parameters:
 //
 //	{
 //	  "path": "directory/path/to/create"
 //	}
-func (fs *FileSystem) CreateDirectory(path string) (bool, error) {
+func (fs *FileSystem) CreateDirectory(path string) (*FileDirectoryResult, error) {
 	args := map[string]string{
 		"path": path,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := fs.callMcpTool("create_directory", args, "error creating directory")
+	mcpResult, err := fs.callMcpTool("create_directory", args, "error creating directory")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	// Return result with RequestID
+	return &FileDirectoryResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
 // EditFile edits a file by replacing occurrences of oldText with newText.
@@ -324,7 +381,7 @@ func (fs *FileSystem) CreateDirectory(path string) (bool, error) {
 //	  ],
 //	  "dryRun": false  // Optional: Preview changes without applying them
 //	}
-func (fs *FileSystem) EditFile(path string, edits []map[string]string, dryRun bool) (bool, error) {
+func (fs *FileSystem) EditFile(path string, edits []map[string]string, dryRun bool) (*FileWriteResult, error) {
 	args := map[string]interface{}{
 		"path":   path,
 		"edits":  edits,
@@ -332,12 +389,18 @@ func (fs *FileSystem) EditFile(path string, edits []map[string]string, dryRun bo
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := fs.callMcpTool("edit_file", args, "error editing file")
+	mcpResult, err := fs.callMcpTool("edit_file", args, "error editing file")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	// Return result with RequestID
+	return &FileWriteResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
 // GetFileInfo gets information about a file or directory.
@@ -346,7 +409,7 @@ func (fs *FileSystem) EditFile(path string, edits []map[string]string, dryRun bo
 //	{
 //	  "path": "file/or/directory/path/to/inspect"
 //	}
-func (fs *FileSystem) GetFileInfo(path string) (*FileInfo, error) {
+func (fs *FileSystem) GetFileInfo(path string) (*FileInfoResult, error) {
 	args := map[string]string{
 		"path": path,
 	}
@@ -366,7 +429,13 @@ func (fs *FileSystem) GetFileInfo(path string) (*FileInfo, error) {
 		return nil, fmt.Errorf("error parsing file info: %w", err)
 	}
 
-	return fileInfo, nil
+	// Return result with RequestID
+	return &FileInfoResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		FileInfo: fileInfo,
+	}, nil
 }
 
 // ListDirectory lists the contents of a directory.
@@ -375,7 +444,7 @@ func (fs *FileSystem) GetFileInfo(path string) (*FileInfo, error) {
 //	{
 //	  "path": "directory/path/to/list"
 //	}
-func (fs *FileSystem) ListDirectory(path string) ([]*DirectoryEntry, error) {
+func (fs *FileSystem) ListDirectory(path string) (*DirectoryListResult, error) {
 	args := map[string]string{
 		"path": path,
 	}
@@ -391,7 +460,13 @@ func (fs *FileSystem) ListDirectory(path string) ([]*DirectoryEntry, error) {
 		return nil, fmt.Errorf("error parsing directory listing: %w", err)
 	}
 
-	return entries, nil
+	// Return result with RequestID
+	return &DirectoryListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Entries: entries,
+	}, nil
 }
 
 // MoveFile moves a file or directory from source to destination.
@@ -401,31 +476,36 @@ func (fs *FileSystem) ListDirectory(path string) ([]*DirectoryEntry, error) {
 //	  "source": "source/file/or/directory/path",
 //	  "destination": "destination/file/or/directory/path"
 //	}
-func (fs *FileSystem) MoveFile(source, destination string) (bool, error) {
+func (fs *FileSystem) MoveFile(source, destination string) (*FileWriteResult, error) {
 	args := map[string]string{
 		"source":      source,
 		"destination": destination,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := fs.callMcpTool("move_file", args, "error moving file")
+	mcpResult, err := fs.callMcpTool("move_file", args, "error moving file")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	// Return result with RequestID
+	return &FileWriteResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// ReadFile reads the contents of a file in the cloud environment.
-// For backward compatibility, this function can be called with just the path parameter.
+// ReadFile reads the contents of a file.
 // API Parameters:
 //
 //	{
 //	  "path": "file/path/to/read",
-//	  "offset": 0,  // Optional: Start reading from this byte offset
-//	  "length": 0   // Optional: Number of bytes to read. If 0, read to end of file
+//	  "offset": 0,  // Optional: Starting offset for reading
+//	  "length": 0   // Optional: Number of bytes to read (0 means read all)
 //	}
-func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (string, error) {
+func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (*FileReadResult, error) {
 	// Handle optional parameters for backward compatibility
 	offset, length := 0, 0
 	if len(optionalParams) > 0 {
@@ -447,13 +527,19 @@ func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (string, erro
 		args["length"] = length
 	}
 
-	// Use the helper method to call MCP tool and check for errors
+	// Use the enhanced helper method to call MCP tool and check for errors
 	mcpResult, err := fs.callMcpTool("read_file", args, "error reading file")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return mcpResult.TextContent, nil
+	// Return result with RequestID
+	return &FileReadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Content: mcpResult.TextContent,
+	}, nil
 }
 
 // ReadMultipleFiles reads the contents of multiple files.
@@ -525,7 +611,7 @@ func (fs *FileSystem) ReadMultipleFiles(paths []string) (map[string]string, erro
 //	  "pattern": "pattern to match",
 //	  "excludePatterns": ["pattern1", "pattern2"]  // Optional: Patterns to exclude
 //	}
-func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string) ([]string, error) {
+func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string) (*SearchFilesResult, error) {
 	args := map[string]interface{}{
 		"path":    path,
 		"pattern": pattern,
@@ -551,7 +637,12 @@ func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string
 		}
 	}
 
-	return results, nil
+	return &SearchFilesResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Results: results,
+	}, nil
 }
 
 // WriteFile writes content to a file.
@@ -562,7 +653,7 @@ func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string
 //	  "content": "Content to write to the file",
 //	  "mode": "overwrite"  // Optional: "overwrite" (default) or "append"
 //	}
-func (fs *FileSystem) WriteFile(path, content string, mode string) (bool, error) {
+func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteResult, error) {
 	if mode == "" {
 		mode = "overwrite"
 	}
@@ -573,13 +664,19 @@ func (fs *FileSystem) WriteFile(path, content string, mode string) (bool, error)
 		"mode":    mode,
 	}
 
-	// Use the helper method to call MCP tool and check for errors
-	_, err := fs.callMcpTool("write_file", args, "error writing file")
+	// Use the enhanced helper method to call MCP tool and check for errors
+	mcpResult, err := fs.callMcpTool("write_file", args, "error writing file")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return true, nil
+	// Return result with RequestID
+	return &FileWriteResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
 // ChunkSize is the default size of chunks for large file operations (60KB)
@@ -588,28 +685,29 @@ const ChunkSize = 60 * 1024
 // ReadLargeFile reads a large file in chunks to handle size limitations of the underlying API.
 // It automatically splits the read operation into multiple requests of chunkSize bytes each.
 // If chunkSize is <= 0, the default ChunkSize (60KB) will be used.
-func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (string, error) {
+func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult, error) {
 	if chunkSize <= 0 {
 		chunkSize = ChunkSize
 	}
 
 	// First get the file size
-	fileInfo, err := fs.GetFileInfo(path)
+	fileInfoResult, err := fs.GetFileInfo(path)
 	if err != nil {
-		return "", fmt.Errorf("failed to get file info: %w", err)
+		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
 
 	// Get size from the fileInfo struct
-	size := float64(fileInfo.Size)
+	size := float64(fileInfoResult.FileInfo.Size)
 
 	if size == 0 {
-		return "", fmt.Errorf("couldn't determine file size")
+		return nil, fmt.Errorf("couldn't determine file size")
 	}
 
 	// Prepare to read the file in chunks
 	var result strings.Builder
 	offset := 0
 	fileSize := int(size)
+	var lastRequestID string
 
 	fmt.Printf("ReadLargeFile: Starting chunked read of %s (total size: %d bytes, chunk size: %d bytes)\n",
 		path, fileSize, chunkSize)
@@ -626,13 +724,16 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (string, error) 
 			chunkCount+1, length, offset, fileSize)
 
 		// Read the chunk
-		chunkText, err := fs.ReadFile(path, offset, length)
+		chunkResult, err := fs.ReadFile(path, offset, length)
 		if err != nil {
-			return "", fmt.Errorf("error reading chunk at offset %d: %w", offset, err)
+			return nil, fmt.Errorf("error reading chunk at offset %d: %w", offset, err)
 		}
 
+		// 保存最后一个请求的RequestID
+		lastRequestID = chunkResult.RequestID
+
 		// Append the chunk text
-		result.WriteString(chunkText)
+		result.WriteString(chunkResult.Content)
 
 		// Move to the next chunk
 		offset += length
@@ -642,18 +743,24 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (string, error) 
 	fmt.Printf("ReadLargeFile: Successfully read %s in %d chunks (total: %d bytes)\n",
 		path, chunkCount, fileSize)
 
-	return result.String(), nil
+	return &FileReadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: lastRequestID, // Use the RequestID from the last chunk request
+		},
+		Content: result.String(),
+	}, nil
 }
 
 // WriteLargeFile writes a large file in chunks to handle size limitations of the underlying API.
 // It automatically splits the write operation into multiple requests of chunkSize bytes each.
 // If chunkSize is <= 0, the default ChunkSize (60KB) will be used.
-func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (bool, error) {
+func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (*FileWriteResult, error) {
 	if chunkSize <= 0 {
 		chunkSize = ChunkSize
 	}
 
 	contentLen := len(content)
+	var lastRequestID string
 
 	fmt.Printf("WriteLargeFile: Starting chunked write to %s (total size: %d bytes, chunk size: %d bytes)\n",
 		path, contentLen, chunkSize)
@@ -672,10 +779,13 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (bool,
 	}
 
 	fmt.Printf("WriteLargeFile: Writing first chunk (0-%d bytes) with overwrite mode\n", firstChunkEnd)
-	_, err := fs.WriteFile(path, content[:firstChunkEnd], "overwrite")
+	result, err := fs.WriteFile(path, content[:firstChunkEnd], "overwrite")
 	if err != nil {
-		return false, fmt.Errorf("error writing first chunk: %w", err)
+		return nil, fmt.Errorf("error writing first chunk: %w", err)
 	}
+
+	// 保存第一个请求的RequestID
+	lastRequestID = result.RequestID
 
 	// Write the remaining chunks with "append" mode
 	chunkCount := 1 // Already wrote first chunk
@@ -687,10 +797,13 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (bool,
 
 		fmt.Printf("WriteLargeFile: Writing chunk %d (%d-%d bytes) with append mode\n",
 			chunkCount+1, offset, end)
-		_, err := fs.WriteFile(path, content[offset:end], "append")
+		result, err := fs.WriteFile(path, content[offset:end], "append")
 		if err != nil {
-			return false, fmt.Errorf("error writing chunk at offset %d: %w", offset, err)
+			return nil, fmt.Errorf("error writing chunk at offset %d: %w", offset, err)
 		}
+
+		// 更新RequestID为最后一个请求的ID
+		lastRequestID = result.RequestID
 
 		offset = end
 		chunkCount++
@@ -699,5 +812,10 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (bool,
 	fmt.Printf("WriteLargeFile: Successfully wrote %s in %d chunks (total: %d bytes)\n",
 		path, chunkCount, contentLen)
 
-	return true, nil
+	return &FileWriteResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: lastRequestID, // Use the RequestID from the last chunk request
+		},
+		Success: true,
+	}, nil
 }

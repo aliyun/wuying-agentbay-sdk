@@ -20,34 +20,45 @@ func TestUI_Screenshot(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI screenshot functionality
 	if session.UI != nil {
 		fmt.Println("Taking a screenshot...")
-		screenshot, err := session.UI.Screenshot()
+		screenshotResult, err := session.UI.Screenshot()
 		if err != nil {
 			t.Logf("Note: Screenshot capture failed: %v", err)
 		} else {
-			t.Logf("Screenshot captured, data length: %d bytes", len(screenshot))
-			// Check if response contains "tool not found"
-			if testutil.ContainsToolNotFound(screenshot) {
-				t.Errorf("UI.Screenshot returned 'tool not found'")
+			t.Logf("Screenshot captured successfully (RequestID: %s)",
+				screenshotResult.RequestID)
+
+			// Check if the operation was successful
+			if !screenshotResult.Success {
+				t.Errorf("Screenshot operation returned unsuccessful status")
+			}
+
+			// Check component ID
+			if screenshotResult.ComponentID == "" {
+				t.Logf("Warning: Empty component ID from Screenshot operation")
 			}
 		}
 	} else {
@@ -66,34 +77,41 @@ func TestUI_GetClickableUIElements(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI get clickable elements functionality
 	if session.UI != nil {
 		fmt.Println("Getting clickable UI elements...")
-		elements, err := session.UI.GetClickableUIElements(2000)
+		elementsResult, err := session.UI.GetClickableUIElements(2000)
 		if err != nil {
 			t.Logf("Note: GetClickableUIElements failed: %v", err)
 		} else {
-			t.Logf("Found %d clickable UI elements", len(elements))
+			t.Logf("Found %d clickable UI elements (RequestID: %s)",
+				len(elementsResult.Elements), elementsResult.RequestID)
+
 			// Print the first element if available
-			if len(elements) > 0 {
-				t.Logf("First element: Type=%s, Text=%s", elements[0].Type, elements[0].Text)
+			if len(elementsResult.Elements) > 0 {
+				t.Logf("First element: Type=%s, Text=%s",
+					elementsResult.Elements[0].Type, elementsResult.Elements[0].Text)
 			}
 		}
 	} else {
@@ -112,35 +130,43 @@ func TestUI_GetAllUIElements(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI get all elements functionality
 	if session.UI != nil {
 		fmt.Println("Getting all UI elements...")
-		elements, err := session.UI.GetAllUIElements(2000)
+		elementsResult, err := session.UI.GetAllUIElements(2000)
 		if err != nil {
 			t.Logf("Note: GetAllUIElements failed: %v", err)
 		} else {
-			t.Logf("Found %d UI elements", len(elements))
+			t.Logf("Found %d UI elements (RequestID: %s)",
+				len(elementsResult.Elements), elementsResult.RequestID)
+
 			// Print the first element if available
-			if len(elements) > 0 {
+			if len(elementsResult.Elements) > 0 {
 				t.Logf("First element: Type=%s, Text=%s, ResourceId=%s",
-					elements[0].Type, elements[0].Text, elements[0].ResourceId)
+					elementsResult.Elements[0].Type,
+					elementsResult.Elements[0].Text,
+					elementsResult.Elements[0].ResourceId)
 			}
 		}
 	} else {
@@ -159,31 +185,36 @@ func TestUI_SendKey(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI send key functionality
 	if session.UI != nil {
 		fmt.Println("Sending HOME key...")
-		result, err := session.UI.SendKey(ui.KeyCode.HOME)
+		keyResult, err := session.UI.SendKey(ui.KeyCode.HOME)
 		if err != nil {
 			t.Logf("Note: SendKey failed: %v", err)
 		} else {
-			t.Logf("SendKey result: %v", result)
+			t.Logf("SendKey successful (RequestID: %s, Success: %v)",
+				keyResult.RequestID, keyResult.Success)
 		}
 	} else {
 		t.Logf("Note: UI interface is nil, skipping UI test")
@@ -201,32 +232,37 @@ func TestUI_InputText(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI input text functionality
 	if session.UI != nil {
-		text := "Hello, world!"
-		fmt.Printf("Inputting text: %s\n", text)
-		result, err := session.UI.InputText(text)
+		fmt.Println("Inputting text...")
+		testText := "Hello AgentBay!"
+		textResult, err := session.UI.InputText(testText)
 		if err != nil {
 			t.Logf("Note: InputText failed: %v", err)
 		} else {
-			t.Logf("InputText successful, result: %s", result)
+			t.Logf("InputText successful (RequestID: %s, Text: %s)",
+				textResult.RequestID, textResult.Text)
 		}
 	} else {
 		t.Logf("Note: UI interface is nil, skipping UI test")
@@ -244,32 +280,36 @@ func TestUI_Click(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI click functionality
 	if session.UI != nil {
-		x, y := 100, 200
-		fmt.Printf("Clicking at coordinates (%d, %d)...\n", x, y)
-		result, err := session.UI.Click(x, y, "left")
+		fmt.Println("Clicking at position (100, 100)...")
+		clickResult, err := session.UI.Click(100, 100, "left")
 		if err != nil {
 			t.Logf("Note: Click failed: %v", err)
 		} else {
-			t.Logf("Click successful, result: %s", result)
+			t.Logf("Click successful (RequestID: %s, Success: %v)",
+				clickResult.RequestID, clickResult.Success)
 		}
 	} else {
 		t.Logf("Note: UI interface is nil, skipping UI test")
@@ -287,32 +327,36 @@ func TestUI_Swipe(t *testing.T) {
 	// Create a session with mobile_latest image
 	fmt.Println("Creating a new session for UI testing...")
 	params := agentbay.NewCreateSessionParams().WithImageId("mobile_latest")
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
-	t.Logf("Session created with ID: %s", session.SessionID)
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s (RequestID: %s)",
+		session.SessionID, sessionResult.RequestID)
 
 	// IMPORTANT: Ensure cleanup of the session after test
 	defer func() {
 		fmt.Println("Cleaning up: Deleting the session...")
-		err := agentBay.Delete(session)
+		deleteResult, err := agentBay.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
 		} else {
-			t.Log("Session successfully deleted")
+			t.Logf("Session successfully deleted (RequestID: %s)",
+				deleteResult.RequestID)
 		}
 	}()
 
 	// Test UI swipe functionality
 	if session.UI != nil {
-		startX, startY, endX, endY, durationMs := 100, 200, 300, 400, 500
-		fmt.Printf("Swiping from (%d, %d) to (%d, %d) in %dms...\n", startX, startY, endX, endY, durationMs)
-		result, err := session.UI.Swipe(startX, startY, endX, endY, durationMs)
+		fmt.Println("Swiping from (100, 500) to (100, 100)...")
+		swipeResult, err := session.UI.Swipe(100, 500, 100, 100, 500)
 		if err != nil {
 			t.Logf("Note: Swipe failed: %v", err)
 		} else {
-			t.Logf("Swipe successful, result: %s", result)
+			t.Logf("Swipe successful (RequestID: %s, Success: %v)",
+				swipeResult.RequestID, swipeResult.Success)
 		}
 	} else {
 		t.Logf("Note: UI interface is nil, skipping UI test")

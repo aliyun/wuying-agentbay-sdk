@@ -7,10 +7,29 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
-// Oss handles Object Storage Service operations in the AgentBay cloud environment.
-type Oss struct {
+// UploadResult wraps upload result and RequestID
+type UploadResult struct {
+	models.ApiResponse
+	URL string
+}
+
+// DownloadResult wraps download result and RequestID
+type DownloadResult struct {
+	models.ApiResponse
+	LocalPath string
+}
+
+// EnvInitResult wraps OSS environment initialization result and RequestID
+type EnvInitResult struct {
+	models.ApiResponse
+	Result string
+}
+
+// OSSManager handles object storage operations in the AgentBay cloud environment.
+type OSSManager struct {
 	Session interface {
 		GetAPIKey() string
 		GetClient() *mcp.Client
@@ -22,14 +41,15 @@ type Oss struct {
 type callMcpToolResult struct {
 	Data        map[string]interface{}
 	Content     []map[string]interface{}
-	TextContent string // 提取的text字段内容
+	TextContent string // Extracted text field content
 	IsError     bool
 	ErrorMsg    string
 	StatusCode  int32
+	RequestID   string // Added field to store request ID
 }
 
 // callMcpTool calls the MCP tool and checks for errors in the response
-func (o *Oss) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
+func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -66,10 +86,17 @@ func (o *Oss) callMcpTool(toolName string, args interface{}, defaultErrorMsg str
 		return nil, fmt.Errorf("invalid response data format")
 	}
 
+	// Extract RequestID
+	var requestID string
+	if response != nil && response.Body != nil && response.Body.RequestId != nil {
+		requestID = *response.Body.RequestId
+	}
+
 	// Create result object
 	result := &callMcpToolResult{
 		Data:       data,
 		StatusCode: *response.StatusCode,
+		RequestID:  requestID, // Add RequestID
 	}
 
 	// Check if there's an error in the response
@@ -138,14 +165,14 @@ func NewOss(session interface {
 	GetAPIKey() string
 	GetClient() *mcp.Client
 	GetSessionId() string
-}) *Oss {
-	return &Oss{
+}) *OSSManager {
+	return &OSSManager{
 		Session: session,
 	}
 }
 
 // EnvInit creates and initializes OSS environment variables with the specified credentials.
-func (o *Oss) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (string, error) {
+func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (*EnvInitResult, error) {
 	// Prepare arguments for the oss_env_init tool
 	args := map[string]interface{}{
 		"access_key_id":     accessKeyId,
@@ -164,15 +191,20 @@ func (o *Oss) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, reg
 	// Use the helper method to call MCP tool and check for errors
 	mcpResult, err := o.callMcpTool("oss_env_init", args, "error initializing OSS environment")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Return the extracted text content
-	return mcpResult.TextContent, nil
+	// Return result with RequestID
+	return &EnvInitResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Result: mcpResult.TextContent,
+	}, nil
 }
 
 // Upload uploads a local file or directory to OSS.
-func (o *Oss) Upload(bucket, object, path string) (string, error) {
+func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) {
 	// Prepare arguments for the oss_upload tool
 	args := map[string]interface{}{
 		"bucket": bucket,
@@ -183,15 +215,20 @@ func (o *Oss) Upload(bucket, object, path string) (string, error) {
 	// Use the helper method to call MCP tool and check for errors
 	mcpResult, err := o.callMcpTool("oss_upload", args, "error uploading to OSS")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Return the extracted text content
-	return mcpResult.TextContent, nil
+	// Return the result with RequestID
+	return &UploadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		URL: mcpResult.TextContent,
+	}, nil
 }
 
 // UploadAnonymous uploads a local file or directory to a URL anonymously.
-func (o *Oss) UploadAnonymous(url, path string) (string, error) {
+func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 	// Prepare arguments for the oss_upload_annon tool
 	args := map[string]interface{}{
 		"url":  url,
@@ -201,15 +238,20 @@ func (o *Oss) UploadAnonymous(url, path string) (string, error) {
 	// Use the helper method to call MCP tool and check for errors
 	mcpResult, err := o.callMcpTool("oss_upload_annon", args, "error uploading anonymously")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Return the extracted text content
-	return mcpResult.TextContent, nil
+	// Return the result with RequestID
+	return &UploadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		URL: mcpResult.TextContent,
+	}, nil
 }
 
 // Download downloads an object from OSS to a local file.
-func (o *Oss) Download(bucket, object, path string) (string, error) {
+func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, error) {
 	// Prepare arguments for the oss_download tool
 	args := map[string]interface{}{
 		"bucket": bucket,
@@ -220,15 +262,20 @@ func (o *Oss) Download(bucket, object, path string) (string, error) {
 	// Use the helper method to call MCP tool and check for errors
 	mcpResult, err := o.callMcpTool("oss_download", args, "error downloading from OSS")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Return the extracted text content
-	return mcpResult.TextContent, nil
+	// Return the result with RequestID
+	return &DownloadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		LocalPath: mcpResult.TextContent,
+	}, nil
 }
 
 // DownloadAnonymous downloads a file from a URL anonymously to a local file.
-func (o *Oss) DownloadAnonymous(url, path string) (string, error) {
+func (o *OSSManager) DownloadAnonymous(url, path string) (*DownloadResult, error) {
 	// Prepare arguments for the oss_download_annon tool
 	args := map[string]interface{}{
 		"url":  url,
@@ -238,9 +285,14 @@ func (o *Oss) DownloadAnonymous(url, path string) (string, error) {
 	// Use the helper method to call MCP tool and check for errors
 	mcpResult, err := o.callMcpTool("oss_download_annon", args, "error downloading anonymously")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	// Return the extracted text content
-	return mcpResult.TextContent, nil
+	// Return the result with RequestID
+	return &DownloadResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		LocalPath: mcpResult.TextContent,
+	}, nil
 }

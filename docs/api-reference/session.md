@@ -67,11 +67,20 @@ delete(): Promise<boolean>
 #### Golang
 
 ```go
-Delete() error
+Delete() (*DeleteResult, error)
 ```
 
 **Returns:**
+- `*DeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the session deletion fails.
+
+**DeleteResult Structure:**
+```go
+type DeleteResult struct {
+    RequestID string // Unique request identifier for debugging
+    Success   bool   // Whether the deletion was successful
+}
+```
 
 ### set_labels / setLabels / SetLabels
 
@@ -357,59 +366,73 @@ params := agentbay.NewCreateSessionParams().
         "purpose":     "demo",
         "environment": "development",
     })
-session, err := client.Create(params)
+sessionResult, err := client.Create(params)
 if err != nil {
     // Handle error
 }
+session := sessionResult.Session
+fmt.Printf("Session created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
 
 // Use the session to execute a command
-result, err := session.Command.ExecuteCommand("ls -la")
+commandResult, err := session.Command.ExecuteCommand("ls -la")
 if err != nil {
     // Handle error
 }
+fmt.Printf("Command output: %s (RequestID: %s)\n", commandResult.Output, commandResult.RequestID)
 
 // Use the session to read a file
-content, err := session.FileSystem.ReadFile("/etc/hosts")
+readResult, err := session.FileSystem.ReadFile("/etc/hosts")
 if err != nil {
     // Handle error
 }
+fmt.Printf("File content: %s (RequestID: %s)\n", readResult.Content, readResult.RequestID)
 
 // Get installed applications
-apps, err := session.Application.GetInstalledApps(true, false, true)
+appsResult, err := session.Application.GetInstalledApps(true, false, true)
 if err != nil {
     // Handle error
 }
+fmt.Printf("Found %d installed apps (RequestID: %s)\n", len(appsResult.Apps), appsResult.RequestID)
 
 // List visible applications
-processes, err := session.Application.ListVisibleApps()
+processesResult, err := session.Application.ListVisibleApps()
 if err != nil {
     // Handle error
 }
+fmt.Printf("Found %d visible processes (RequestID: %s)\n", len(processesResult.Processes), processesResult.RequestID)
 
 // List root windows
-windows, err := session.Window.ListRootWindows()
+windowsResult, err := session.Window.ListRootWindows()
 if err != nil {
     // Handle error
 }
+fmt.Printf("Found %d root windows (RequestID: %s)\n", len(windowsResult.Windows), windowsResult.RequestID)
 
 // Get active window
-activeWindow, err := session.Window.GetActiveWindow()
+activeWindowResult, err := session.Window.GetActiveWindow()
 if err != nil {
     // Handle error
+}
+if activeWindowResult.Window != nil {
+    fmt.Printf("Active window: %s (ID: %d, PID: %d) (RequestID: %s)\n", 
+        activeWindowResult.Window.Title, activeWindowResult.Window.WindowID, 
+        activeWindowResult.Window.PID, activeWindowResult.RequestID)
 }
 
 // Get session labels
-labels, err := session.GetLabels()
+labelsResult, err := session.GetLabels()
 if err != nil {
     // Handle error
 }
+fmt.Printf("Session labels: %v (RequestID: %s)\n", labelsResult.Labels, labelsResult.RequestID)
 
 // Get session info
-sessionInfo, err := session.Info()
+infoResult, err := session.Info()
 if err != nil {
     // Handle error
 }
-fmt.Printf("Session ID: %s\n", sessionInfo.SessionId)
+sessionInfo := infoResult.Info
+fmt.Printf("Session ID: %s (RequestID: %s)\n", sessionInfo.SessionId, infoResult.RequestID)
 fmt.Printf("Resource URL: %s\n", sessionInfo.ResourceUrl)
 fmt.Printf("App ID: %s\n", sessionInfo.AppId)
 fmt.Printf("Auth Code: %s\n", sessionInfo.AuthCode)
@@ -418,10 +441,11 @@ fmt.Printf("Resource ID: %s\n", sessionInfo.ResourceId)
 fmt.Printf("Resource Type: %s\n", sessionInfo.ResourceType)
 
 // Delete the session
-err = session.Delete()
+deleteResult, err := session.Delete()
 if err != nil {
     // Handle error
 }
+fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
 ```
 
 ## Related Resources

@@ -38,10 +38,12 @@ func SetupTestSession(t *testing.T, params *agentbay.CreateSessionParams) *TestS
 
 	// Create a session
 	fmt.Println("Creating a new session for testing...")
-	session, err := client.Create(params)
+	result, err := client.Create(params)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
+
+	session := result.Session
 	t.Logf("Session created with ID: %s", session.SessionID)
 
 	return &TestSession{
@@ -54,7 +56,7 @@ func SetupTestSession(t *testing.T, params *agentbay.CreateSessionParams) *TestS
 // Cleanup deletes the session after test completion
 func (ts *TestSession) Cleanup() {
 	fmt.Println("Cleaning up: Deleting the session...")
-	err := ts.Client.Delete(ts.Session)
+	_, err := ts.Client.Delete(ts.Session)
 	if err != nil {
 		ts.T.Logf("Warning: Error deleting session: %v", err)
 	} else {

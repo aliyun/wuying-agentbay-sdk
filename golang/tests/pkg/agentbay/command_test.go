@@ -25,11 +25,12 @@ func TestCommand_ExecuteCommand(t *testing.T) {
 		echoCmd := fmt.Sprintf("echo '%s'", testString)
 
 		// Test with default timeout
-		result, err := session.Command.ExecuteCommand(echoCmd)
+		cmdResult, err := session.Command.ExecuteCommand(echoCmd)
 		if err != nil {
 			t.Logf("Note: Echo command failed: %v", err)
 		} else {
-			t.Logf("Echo command result: %s", result)
+			result := cmdResult.Output
+			t.Logf("Echo command result with RequestID %s: %s", cmdResult.RequestID, result)
 
 			// Check if response contains "tool not found"
 			if testutil.ContainsToolNotFound(result) {
@@ -42,16 +43,21 @@ func TestCommand_ExecuteCommand(t *testing.T) {
 			} else {
 				t.Logf("Echo command verified successfully")
 			}
+
+			if cmdResult.RequestID == "" {
+				t.Errorf("Command.ExecuteCommand did not return RequestID")
+			}
 		}
 
 		// Test with custom timeout
 		fmt.Println("Executing echo command with custom timeout...")
 		customTimeout := 2000 // 2 seconds
-		resultWithTimeout, err := session.Command.ExecuteCommand(echoCmd, customTimeout)
+		cmdResultWithTimeout, err := session.Command.ExecuteCommand(echoCmd, customTimeout)
 		if err != nil {
 			t.Logf("Note: Echo command with custom timeout failed: %v", err)
 		} else {
-			t.Logf("Echo command with custom timeout result: %s", resultWithTimeout)
+			resultWithTimeout := cmdResultWithTimeout.Output
+			t.Logf("Echo command with custom timeout result with RequestID %s: %s", cmdResultWithTimeout.RequestID, resultWithTimeout)
 
 			// Check if response contains "tool not found"
 			if testutil.ContainsToolNotFound(resultWithTimeout) {
@@ -63,6 +69,10 @@ func TestCommand_ExecuteCommand(t *testing.T) {
 				t.Errorf("Echo command with custom timeout verification failed: expected '%s' in response, got '%s'", testString, resultWithTimeout)
 			} else {
 				t.Logf("Echo command with custom timeout verified successfully")
+			}
+
+			if cmdResultWithTimeout.RequestID == "" {
+				t.Errorf("Command.ExecuteCommand with custom timeout did not return RequestID")
 			}
 		}
 	} else {
@@ -88,11 +98,12 @@ x = 1 + 1
 print(x)
 `
 		// Test with default timeout
-		result, err := session.Command.RunCode(pythonCode, "python")
+		cmdResult, err := session.Command.RunCode(pythonCode, "python")
 		if err != nil {
 			t.Logf("Note: Python code execution failed: %v", err)
 		} else {
-			t.Logf("Python code execution result: %s", result)
+			result := cmdResult.Output
+			t.Logf("Python code execution result with RequestID %s: %s", cmdResult.RequestID, result)
 
 			// Check if response contains "tool not found"
 			if testutil.ContainsToolNotFound(result) {
@@ -105,6 +116,10 @@ print(x)
 			} else {
 				t.Logf("Python code execution verified successfully")
 			}
+
+			if cmdResult.RequestID == "" {
+				t.Errorf("Command.RunCode did not return RequestID")
+			}
 		}
 
 		// Test with JavaScript code and custom timeout
@@ -115,11 +130,12 @@ const x = 1 + 1;
 console.log(x);
 `
 		customTimeout := 600 // 10 minutes
-		resultJs, err := session.Command.RunCode(jsCode, "javascript", customTimeout)
+		cmdResultJs, err := session.Command.RunCode(jsCode, "javascript", customTimeout)
 		if err != nil {
 			t.Logf("Note: JavaScript code execution with custom timeout failed: %v", err)
 		} else {
-			t.Logf("JavaScript code execution with custom timeout result: %s", resultJs)
+			resultJs := cmdResultJs.Output
+			t.Logf("JavaScript code execution result with RequestID %s: %s", cmdResultJs.RequestID, resultJs)
 
 			// Check if response contains "tool not found"
 			if testutil.ContainsToolNotFound(resultJs) {
@@ -131,6 +147,10 @@ console.log(x);
 				t.Errorf("JavaScript code verification failed: expected 'Hello, world!' and '2' in response, got '%s'", resultJs)
 			} else {
 				t.Logf("JavaScript code execution verified successfully")
+			}
+
+			if cmdResultJs.RequestID == "" {
+				t.Errorf("Command.RunCode with custom timeout did not return RequestID")
 			}
 		}
 

@@ -7,7 +7,15 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
+
+// Application represents an application
+type Application struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	CmdLine string `json:"cmdline,omitempty"`
+}
 
 // InstalledApp represents an installed application
 type InstalledApp struct {
@@ -22,6 +30,24 @@ type Process struct {
 	PName   string `json:"pname"`
 	PID     int    `json:"pid"`
 	CmdLine string `json:"cmdline,omitempty"`
+}
+
+// ApplicationListResult wraps application list and RequestID
+type ApplicationListResult struct {
+	models.ApiResponse
+	Applications []Application
+}
+
+// AppOperationResult wraps application operation result and RequestID
+type AppOperationResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// ProcessListResult wraps process list and RequestID
+type ProcessListResult struct {
+	models.ApiResponse
+	Processes []Process
 }
 
 // ApplicationManager handles application management operations in the AgentBay cloud environment.
@@ -41,6 +67,7 @@ type callMcpToolResult struct {
 	IsError     bool
 	ErrorMsg    string
 	StatusCode  int32
+	RequestID   string
 }
 
 // callMcpTool calls the MCP tool and checks for errors in the response
@@ -81,10 +108,17 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 		return nil, fmt.Errorf("invalid response data format")
 	}
 
+	// Extract RequestID
+	var requestID string
+	if response != nil && response.Body != nil && response.Body.RequestId != nil {
+		requestID = *response.Body.RequestId
+	}
+
 	// Create result object
 	result := &callMcpToolResult{
 		Data:       data,
 		StatusCode: *response.StatusCode,
+		RequestID:  requestID,
 	}
 
 	// Check if there's an error in the response
@@ -180,30 +214,45 @@ func NewApplicationManager(session interface {
 }
 
 // GetInstalledApps retrieves a list of installed applications.
-func (am *ApplicationManager) GetInstalledApps(startMenu bool, desktop bool, ignoreSystemApps bool) ([]InstalledApp, error) {
+func (am *ApplicationManager) GetInstalledApps(startMenu bool, desktop bool, ignoreSystemApps bool) (*ApplicationListResult, error) {
 	args := map[string]interface{}{
 		"start_menu":         startMenu,
 		"desktop":            desktop,
 		"ignore_system_apps": ignoreSystemApps,
 	}
 
-	// Use the helper method to call MCP tool and check for errors
+	// Use enhanced helper method to call MCP tool and check for errors
 	mcpResult, err := am.callMcpTool("get_installed_apps", args, "error getting installed apps")
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse the JSON data into InstalledApp objects
-	apps, err := parseInstalledAppsFromJSON(mcpResult.TextContent)
+	// Parse application list
+	installedApps, err := parseInstalledAppsFromJSON(mcpResult.TextContent)
 	if err != nil {
 		return nil, err
 	}
 
-	return apps, nil
+	// Convert to Application type
+	var applications []Application
+	for _, app := range installedApps {
+		applications = append(applications, Application{
+			ID:      app.Name, // Use Name as ID
+			Name:    app.Name,
+			CmdLine: app.StartCmd,
+		})
+	}
+
+	return &ApplicationListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Applications: applications,
+	}, nil
 }
 
 // StartApp starts an application with the given command and optional working directory.
-func (am *ApplicationManager) StartApp(startCmd string, workDirectory string) ([]Process, error) {
+func (am *ApplicationManager) StartApp(startCmd string, workDirectory string) (*ProcessListResult, error) {
 	args := map[string]string{
 		"start_cmd": startCmd,
 	}
@@ -211,81 +260,104 @@ func (am *ApplicationManager) StartApp(startCmd string, workDirectory string) ([
 		args["work_directory"] = workDirectory
 	}
 
-	// Use the helper method to call MCP tool and check for errors
+	// 使用增强的辅助方法调用MCP工具并检查错误
 	mcpResult, err := am.callMcpTool("start_app", args, "error starting app")
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse the JSON data into Process objects
+	// 解析进程列表
 	processes, err := parseProcessesFromJSON(mcpResult.TextContent)
 	if err != nil {
 		return nil, err
 	}
 
-	return processes, nil
+	return &ProcessListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Processes: processes,
+	}, nil
 }
 
 // StopAppByPName stops an application by process name.
-func (am *ApplicationManager) StopAppByPName(pname string) error {
+func (am *ApplicationManager) StopAppByPName(pname string) (*AppOperationResult, error) {
 	args := map[string]string{
 		"pname": pname,
 	}
 
-	// Use the helper method to call MCP tool and check for errors
-	_, err := am.callMcpTool("stop_app_by_pname", args, "error stopping app by process name")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// StopAppByPID stops an application by process ID.
-func (am *ApplicationManager) StopAppByPID(pid int) error {
-	args := map[string]int{
-		"pid": pid,
-	}
-
-	// Use the helper method to call MCP tool and check for errors
-	_, err := am.callMcpTool("stop_app_by_pid", args, "error stopping app by PID")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// StopAppByCmd stops an application using a specific command.
-func (am *ApplicationManager) StopAppByCmd(stopCmd string) error {
-	args := map[string]string{
-		"stop_cmd": stopCmd,
-	}
-
-	// Use the helper method to call MCP tool and check for errors
-	_, err := am.callMcpTool("stop_app_by_cmd", args, "error stopping app by command")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ListVisibleApps lists currently visible applications.
-func (am *ApplicationManager) ListVisibleApps() ([]Process, error) {
-	args := map[string]interface{}{}
-
-	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := am.callMcpTool("list_visible_apps", args, "error listing visible apps")
+	// 使用增强的辅助方法调用MCP工具并检查错误
+	mcpResult, err := am.callMcpTool("stop_app_by_pname", args, "error stopping app by process name")
 	if err != nil {
 		return nil, err
 	}
 
-	// Parse the JSON data into Process objects
+	return &AppOperationResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
+}
+
+// StopAppByPID stops an application by process ID.
+func (am *ApplicationManager) StopAppByPID(pid int) (*AppOperationResult, error) {
+	args := map[string]interface{}{
+		"pid": pid,
+	}
+
+	// 使用增强的辅助方法调用MCP工具并检查错误
+	mcpResult, err := am.callMcpTool("stop_app_by_pid", args, "error stopping app by PID")
+	if err != nil {
+		return nil, err
+	}
+
+	return &AppOperationResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
+}
+
+// StopAppByCmd stops an application by stop command.
+func (am *ApplicationManager) StopAppByCmd(stopCmd string) (*AppOperationResult, error) {
+	args := map[string]string{
+		"stop_cmd": stopCmd,
+	}
+
+	// 使用增强的辅助方法调用MCP工具并检查错误
+	mcpResult, err := am.callMcpTool("stop_app_by_cmd", args, "error stopping app by command")
+	if err != nil {
+		return nil, err
+	}
+
+	return &AppOperationResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
+}
+
+// ListVisibleApps returns a list of currently visible applications.
+func (am *ApplicationManager) ListVisibleApps() (*ProcessListResult, error) {
+	// 使用增强的辅助方法调用MCP工具并检查错误
+	mcpResult, err := am.callMcpTool("list_visible_apps", nil, "error listing visible apps")
+	if err != nil {
+		return nil, err
+	}
+
+	// 解析进程列表
 	processes, err := parseProcessesFromJSON(mcpResult.TextContent)
 	if err != nil {
 		return nil, err
 	}
 
-	return processes, nil
+	return &ProcessListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Processes: processes,
+	}, nil
 }

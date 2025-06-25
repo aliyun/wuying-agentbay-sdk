@@ -173,15 +173,28 @@ listDirectory(path: string): Promise<any>
 #### Golang
 
 ```go
-ListDirectory(path string) (string, error)
+ListDirectory(path string) (*DirectoryListResult, error)
 ```
 
 **Parameters:**
 - `path` (string): The path of the directory to list.
 
 **Returns:**
-- `string`: Text representation of directory entries.
+- `*DirectoryListResult`: A result object containing directory entries and RequestID.
 - `error`: An error if listing the directory fails.
+
+**DirectoryListResult Structure:**
+```go
+type DirectoryListResult struct {
+    RequestID string           // Unique request identifier for debugging
+    Entries   []*DirectoryEntry // Array of directory entries
+}
+
+type DirectoryEntry struct {
+    Name        string // Name of the file or directory
+    IsDirectory bool   // Whether this entry is a directory
+}
+```
 
 #### Python
 
@@ -221,7 +234,7 @@ moveFile(source: string, destination: string): Promise<string>
 #### Golang
 
 ```go
-MoveFile(source, destination string) (bool, error)
+MoveFile(source, destination string) (*FileDirectoryResult, error)
 ```
 
 **Parameters:**
@@ -229,8 +242,16 @@ MoveFile(source, destination string) (bool, error)
 - `destination` (string): The path of the destination file or directory.
 
 **Returns:**
-- `bool`: True if the file was moved successfully.
+- `*FileDirectoryResult`: A result object containing success status and RequestID.
 - `error`: An error if moving the file fails.
+
+**FileDirectoryResult Structure:**
+```go
+type FileDirectoryResult struct {
+    RequestID string // Unique request identifier for debugging
+    Success   bool   // Whether the operation was successful
+}
+```
 
 #### Python
 
@@ -289,7 +310,7 @@ readFile(path: string, offset?: number, length?: number): Promise<string>
 #### Golang
 
 ```go
-ReadFile(path string, optionalParams ...int) (string, error)
+ReadFile(path string, optionalParams ...int) (*FileReadResult, error)
 ```
 
 **Parameters:**
@@ -297,8 +318,16 @@ ReadFile(path string, optionalParams ...int) (string, error)
 - `optionalParams` (int, optional): Optional parameters for offset and length.
 
 **Returns:**
-- `string`: The contents of the file.
+- `*FileReadResult`: A result object containing the file content and RequestID.
 - `error`: An error if the file reading fails.
+
+**FileReadResult Structure:**
+```go
+type FileReadResult struct {
+    RequestID string // Unique request identifier for debugging
+    Content   string // The contents of the file
+}
+```
 
 ### read_multiple_files / readMultipleFiles / ReadMultipleFiles
 
@@ -371,7 +400,7 @@ searchFiles(path: string, pattern: string, excludePatterns?: string[]): Promise<
 #### Golang
 
 ```go
-SearchFiles(path, pattern string, excludePatterns []string) (string, error)
+SearchFiles(path, pattern string, excludePatterns []string) (*SearchFilesResult, error)
 ```
 
 **Parameters:**
@@ -380,8 +409,16 @@ SearchFiles(path, pattern string, excludePatterns []string) (string, error)
 - `excludePatterns` ([]string): Patterns to exclude.
 
 **Returns:**
-- `string`: Text representation of search results.
+- `*SearchFilesResult`: A result object containing search results and RequestID.
 - `error`: An error if the search fails.
+
+**SearchFilesResult Structure:**
+```go
+type SearchFilesResult struct {
+    RequestID string   // Unique request identifier for debugging
+    Results   []string // Array of search results
+}
+```
 
 #### Python
 
@@ -424,7 +461,7 @@ writeFile(path: string, content: string, mode?: string): Promise<string>
 #### Golang
 
 ```go
-WriteFile(path, content string, mode string) (bool, error)
+WriteFile(path, content string, mode string) (*FileWriteResult, error)
 ```
 
 **Parameters:**
@@ -433,8 +470,16 @@ WriteFile(path, content string, mode string) (bool, error)
 - `mode` (string): "overwrite" (default), "append", or "create_new".
 
 **Returns:**
-- `bool`: True if the file was written successfully.
+- `*FileWriteResult`: A result object containing success status and RequestID.
 - `error`: An error if writing the file fails.
+
+**FileWriteResult Structure:**
+```go
+type FileWriteResult struct {
+    RequestID string // Unique request identifier for debugging
+    Success   bool   // Whether the file was written successfully
+}
+```
 
 #### Python
 

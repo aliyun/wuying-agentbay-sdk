@@ -73,15 +73,34 @@ getClickableUIElements(timeoutMs?: number): Promise<string>
 #### Golang
 
 ```go
-GetClickableUIElements(timeoutMs int) (string, error)
+GetClickableUIElements(timeoutMs int) (*UIElementsResult, error)
 ```
 
 **Parameters:**
 - `timeoutMs` (int): The timeout in milliseconds. If <= 0, default is 2000ms.
 
 **Returns:**
-- `string`: String representation of clickable UI elements.
+- `*UIElementsResult`: A result object containing clickable UI elements and RequestID.
 - `error`: An error if the operation fails.
+
+**UIElementsResult Structure:**
+```go
+type UIElementsResult struct {
+    RequestID string      // Unique request identifier for debugging
+    Elements  []*UIElement // Array of UI elements
+}
+
+type UIElement struct {
+    Bounds     string       // Bounds of the element
+    ClassName  string       // CSS class name
+    Text       string       // Text content
+    Type       string       // Element type
+    ResourceId string       // Resource ID
+    Index      int          // Element index
+    IsParent   bool         // Whether this element is a parent
+    Children   []*UIElement // Child elements
+}
+```
 
 ### get_all_ui_elements / getAllUIElements / GetAllUIElements
 
@@ -120,14 +139,14 @@ getAllUIElements(timeoutMs?: number): Promise<string>
 #### Golang
 
 ```go
-GetAllUIElements(timeoutMs int) (string, error)
+GetAllUIElements(timeoutMs int) (*UIElementsResult, error)
 ```
 
 **Parameters:**
 - `timeoutMs` (int): The timeout in milliseconds. If <= 0, default is 2000ms.
 
 **Returns:**
-- `string`: String representation of all UI elements.
+- `*UIElementsResult`: A result object containing all UI elements and RequestID.
 - `error`: An error if the operation fails.
 
 ### send_key / sendKey / SendKey
@@ -167,15 +186,23 @@ sendKey(key: number): Promise<string>
 #### Golang
 
 ```go
-SendKey(key int) (string, error)
+SendKey(key int) (*KeyActionResult, error)
 ```
 
 **Parameters:**
 - `key` (int): The key code to send. Use the `KeyCode` constants.
 
 **Returns:**
-- `string`: The response text.
+- `*KeyActionResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
+
+**KeyActionResult Structure:**
+```go
+type KeyActionResult struct {
+    RequestID string // Unique request identifier for debugging
+    Success   bool   // Whether the key press was successful
+}
+```
 
 ### input_text / inputText / InputText
 
@@ -211,15 +238,23 @@ inputText(text: string): Promise<string>
 #### Golang
 
 ```go
-InputText(text string) (string, error)
+InputText(text string) (*TextInputResult, error)
 ```
 
 **Parameters:**
 - `text` (string): The text to input.
 
 **Returns:**
-- `string`: The response text.
+- `*TextInputResult`: A result object containing the input text and RequestID.
 - `error`: An error if the operation fails.
+
+**TextInputResult Structure:**
+```go
+type TextInputResult struct {
+    RequestID string // Unique request identifier for debugging
+    Text      string // The text that was input
+}
+```
 
 ### swipe / Swipe
 
@@ -263,7 +298,7 @@ swipe(startX: number, startY: number, endX: number, endY: number, durationMs?: n
 #### Golang
 
 ```go
-Swipe(startX, startY, endX, endY, durationMs int) (string, error)
+Swipe(startX, startY, endX, endY, durationMs int) (*SwipeResult, error)
 ```
 
 **Parameters:**
@@ -271,11 +306,19 @@ Swipe(startX, startY, endX, endY, durationMs int) (string, error)
 - `startY` (int): The starting Y coordinate.
 - `endX` (int): The ending X coordinate.
 - `endY` (int): The ending Y coordinate.
-- `durationMs` (int): The duration of the swipe in milliseconds. If <= 0, default is 300ms.
+- `durationMs` (int): The duration of the swipe in milliseconds.
 
 **Returns:**
-- `string`: The response text.
+- `*SwipeResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
+
+**SwipeResult Structure:**
+```go
+type SwipeResult struct {
+    RequestID string // Unique request identifier for debugging
+    Success   bool   // Whether the swipe was successful
+}
+```
 
 ### click / Click
 
@@ -315,7 +358,7 @@ click(x: number, y: number, button?: string): Promise<string>
 #### Golang
 
 ```go
-Click(x, y int, button string) (string, error)
+Click(x, y int, button string) (*UIResult, error)
 ```
 
 **Parameters:**
@@ -324,8 +367,17 @@ Click(x, y int, button string) (string, error)
 - `button` (string): The mouse button to use. If empty, default is 'left'.
 
 **Returns:**
-- `string`: The response text.
+- `*UIResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
+
+**UIResult Structure:**
+```go
+type UIResult struct {
+    RequestID  string // Unique request identifier for debugging
+    ComponentID string // Component ID (if applicable)
+    Success    bool   // Whether the operation was successful
+}
+```
 
 ### screenshot / Screenshot
 
@@ -358,11 +410,11 @@ screenshot(): Promise<string>
 #### Golang
 
 ```go
-Screenshot() (string, error)
+Screenshot() (*UIResult, error)
 ```
 
 **Returns:**
-- `string`: The screenshot data.
+- `*UIResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
 
 ## UI Element Structure
@@ -446,50 +498,53 @@ await session.ui.click(200, 300);
 
 ```go
 // Take a screenshot
-screenshot, err := session.UI.Screenshot()
+screenshotResult, err := session.UI.Screenshot()
 if err != nil {
     // Handle error
 }
-fmt.Printf("Screenshot data length: %d characters\n", len(screenshot))
+fmt.Printf("Screenshot taken successfully (RequestID: %s)\n", screenshotResult.RequestID)
 
 // Get all UI elements
-elements, err := session.UI.GetAllUIElements(2000)
+elementsResult, err := session.UI.GetAllUIElements(2000)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Retrieved UI elements: %s\n", elements)
+fmt.Printf("Retrieved %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), elementsResult.RequestID)
 
 // Get clickable UI elements
-clickableElements, err := session.UI.GetClickableUIElements(2000)
+clickableElementsResult, err := session.UI.GetClickableUIElements(2000)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Retrieved clickable UI elements: %s\n", clickableElements)
+fmt.Printf("Retrieved %d clickable UI elements (RequestID: %s)\n", len(clickableElementsResult.Elements), clickableElementsResult.RequestID)
 
 // Send a key press
-result, err := session.UI.SendKey(KeyCode.HOME)
+keyResult, err := session.UI.SendKey(KeyCode.HOME)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Send key result: %s\n", result)
+fmt.Printf("Send key successful (RequestID: %s)\n", keyResult.RequestID)
 
 // Input text
-response, err := session.UI.InputText("Hello, world!")
+inputResult, err := session.UI.InputText("Hello, world!")
 if err != nil {
     // Handle error
 }
+fmt.Printf("Text input successful (RequestID: %s)\n", inputResult.RequestID)
 
 // Perform a swipe gesture
-response, err = session.UI.Swipe(100, 500, 100, 100, 500)
+swipeResult, err := session.UI.Swipe(100, 500, 100, 100, 500)
 if err != nil {
     // Handle error
 }
+fmt.Printf("Swipe successful (RequestID: %s)\n", swipeResult.RequestID)
 
 // Click on the screen
-response, err = session.UI.Click(200, 300, "left")
+clickResult, err := session.UI.Click(200, 300, "left")
 if err != nil {
     // Handle error
 }
+fmt.Printf("Click successful (RequestID: %s)\n", clickResult.RequestID)
 ```
 
 ## Related Resources

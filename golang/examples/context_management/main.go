@@ -15,7 +15,7 @@ func main() {
 		apiKey = "akm-xxx" // Replace with your actual API key
 	}
 
-	agentBay, err := agentbay.NewAgentBay(apiKey)
+	ab, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay: %v\n", err)
 		return
@@ -23,29 +23,39 @@ func main() {
 
 	// Example 1: List all contexts
 	fmt.Println("\nExample 1: Listing all contexts...")
-	contexts, err := agentBay.Context.List()
+	listResult, err := ab.Context.List()
 	if err != nil {
 		fmt.Printf("Error listing contexts: %v\n", err)
 	} else {
-		fmt.Printf("Found %d contexts:\n", len(contexts))
-		for _, context := range contexts {
-			fmt.Printf("- %s (%s): state=%s, os=%s\n", context.Name, context.ID, context.State, context.OSType)
+		fmt.Printf("Found %d contexts (RequestID: %s):\n", len(listResult.Contexts), listResult.RequestID)
+		for _, ctx := range listResult.Contexts {
+			fmt.Printf("- %s (%s): state=%s, os=%s\n",
+				ctx["name"], ctx["id"], ctx["state"], ctx["os_type"])
 		}
 	}
 
 	// Example 2: Get a context (create if it doesn't exist)
 	fmt.Println("\nExample 2: Getting a context (creating if it doesn't exist)...")
 	contextName := "my-test-context"
-	context, err := agentBay.Context.Get(contextName, true)
+	getResult, err := ab.Context.Get(contextName, true)
 	if err != nil {
 		fmt.Printf("Error getting context: %v\n", err)
 		return
 	}
-	if context != nil {
-		fmt.Printf("Got context: %s (%s)\n", context.Name, context.ID)
-	} else {
+	if getResult.ContextID == "" {
 		fmt.Println("Context not found and could not be created")
 		return
+	}
+
+	fmt.Printf("Got context: %s (%s) with RequestID: %s\n",
+		getResult.Data["name"].(string),
+		getResult.ContextID,
+		getResult.RequestID)
+
+	// Create a Context object for easier use
+	context := &agentbay.Context{
+		ID:   getResult.ContextID,
+		Name: getResult.Data["name"].(string),
 	}
 
 	// Example 3: Create a session with the context
@@ -57,42 +67,46 @@ func main() {
 			"project":  "my-project",
 		})
 
-	session, err := agentBay.Create(params)
+	sessionResult, err := ab.Create(params)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)
 		return
 	}
-	fmt.Printf("Session created with ID: %s\n", session.SessionID)
+	fmt.Printf("Session created with ID: %s (RequestID: %s)\n",
+		sessionResult.Session.SessionID, sessionResult.RequestID)
+
+	session := sessionResult.Session
 
 	// Example 4: Update the context
 	fmt.Println("\nExample 4: Updating the context...")
 	context.Name = "renamed-test-context"
-	success, err := agentBay.Context.Update(context)
+	updateResult, err := ab.Context.Update(context)
 	if err != nil {
 		fmt.Printf("Error updating context: %v\n", err)
-	} else if !success {
+	} else if !updateResult.Success {
 		fmt.Println("Context update was not successful")
 	} else {
-		fmt.Printf("Context updated successfully to: %s\n", context.Name)
+		fmt.Printf("Context updated successfully to: %s (RequestID: %s)\n",
+			context.Name, updateResult.RequestID)
 	}
 
 	// Clean up
 	fmt.Println("\nCleaning up...")
 
 	// Delete the session
-	err = agentBay.Delete(session)
+	deleteSessionResult, err := ab.Delete(session)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 	} else {
-		fmt.Println("Session deleted successfully")
+		fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteSessionResult.RequestID)
 	}
 
 	// Delete the context
 	fmt.Println("Deleting the context...")
-	err = agentBay.Context.Delete(context)
+	deleteContextResult, err := ab.Context.Delete(context)
 	if err != nil {
 		fmt.Printf("Error deleting context: %v\n", err)
 	} else {
-		fmt.Println("Context deleted successfully")
+		fmt.Printf("Context deleted successfully (RequestID: %s)\n", deleteContextResult.RequestID)
 	}
 }

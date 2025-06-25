@@ -7,7 +7,39 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
+
+// UIResult wraps UI operation result and RequestID
+type UIResult struct {
+	models.ApiResponse
+	ComponentID string
+	Success     bool
+}
+
+// TextInputResult wraps text input result and RequestID
+type TextInputResult struct {
+	models.ApiResponse
+	Text string
+}
+
+// UIElementsResult wraps UI elements list and RequestID
+type UIElementsResult struct {
+	models.ApiResponse
+	Elements []*UIElement
+}
+
+// KeyActionResult wraps keyboard action result and RequestID
+type KeyActionResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// SwipeResult wraps swipe operation result and RequestID
+type SwipeResult struct {
+	models.ApiResponse
+	Success bool
+}
 
 // UIElement represents a UI element in the UI hierarchy
 type UIElement struct {
@@ -38,8 +70,8 @@ var KeyCode = struct {
 	MENU:        82,
 }
 
-// UI handles UI operations in the AgentBay cloud environment
-type UI struct {
+// UIManager handles UI operations in the AgentBay cloud environment.
+type UIManager struct {
 	Session interface {
 		GetAPIKey() string
 		GetClient() *mcp.Client
@@ -52,19 +84,30 @@ func NewUI(session interface {
 	GetAPIKey() string
 	GetClient() *mcp.Client
 	GetSessionId() string
-}) *UI {
-	return &UI{
+}) *UIManager {
+	return &UIManager{
 		Session: session,
 	}
 }
 
+// callMcpToolResult represents the result of a CallMcpTool operation
+type callMcpToolResult struct {
+	TextContent string
+	Data        map[string]interface{}
+	IsError     bool
+	ErrorMsg    string
+	StatusCode  int32
+	RequestID   string
+}
+
 // callMcpTool is an internal helper to call MCP tool and handle errors
-func (u *UI) callMcpTool(name string, args interface{}) (string, error) {
+func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal args: %w", err)
+		return nil, fmt.Errorf("failed to marshal args: %w", err)
 	}
 
+	// Create the request
 	callToolRequest := &mcp.CallMcpToolRequest{
 		Authorization: tea.String("Bearer " + u.Session.GetAPIKey()),
 		SessionId:     tea.String(u.Session.GetSessionId()),
@@ -76,68 +119,86 @@ func (u *UI) callMcpTool(name string, args interface{}) (string, error) {
 	fmt.Println("API Call: CallMcpTool -", name)
 	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
 
+	// Call the MCP tool
 	response, err := u.Session.GetClient().CallMcpTool(callToolRequest)
-
-	// Log API response
 	if err != nil {
 		fmt.Println("Error calling CallMcpTool -", name, ":", err)
-		return "", fmt.Errorf("failed to call MCP tool %s: %w", name, err)
+		return nil, fmt.Errorf("failed to call %s: %w", name, err)
 	}
 	if response != nil && response.Body != nil {
 		fmt.Println("Response from CallMcpTool -", name, ":", response.Body)
 	}
 
-	// Parse the response
+	// Extract data from response
 	data, ok := response.Body.Data.(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("invalid response data format")
+		return nil, fmt.Errorf("invalid response data format")
+	}
+
+	// Extract RequestID
+	var requestID string
+	if response != nil && response.Body != nil && response.Body.RequestId != nil {
+		requestID = *response.Body.RequestId
+	}
+
+	// Create result object
+	result := &callMcpToolResult{
+		Data:       data,
+		StatusCode: *response.StatusCode,
+		RequestID:  requestID,
 	}
 
 	// Check if there's an error in the response
 	isError, ok := data["isError"].(bool)
 	if ok && isError {
+		result.IsError = true
+
 		// Try to extract the error message from the content field
 		contentArray, ok := data["content"].([]interface{})
 		if ok && len(contentArray) > 0 {
-			var errorMessages []string
-			for _, item := range contentArray {
-				contentItem, ok := item.(map[string]interface{})
+			// Extract error message from the first content item
+			if len(contentArray) > 0 {
+				contentItem, ok := contentArray[0].(map[string]interface{})
 				if ok {
 					text, ok := contentItem["text"].(string)
 					if ok {
-						errorMessages = append(errorMessages, text)
+						result.ErrorMsg = text
+						return result, fmt.Errorf("%s", text)
 					}
 				}
 			}
-			if len(errorMessages) > 0 {
-				return "", fmt.Errorf("error in response: %s", strings.Join(errorMessages, "; "))
-			}
 		}
-		return "", fmt.Errorf("error in response")
+		return result, fmt.Errorf("%s", defaultErrorMsg)
 	}
 
-	// Extract content array
-	content, ok := data["content"].([]interface{})
-	if !ok || len(content) == 0 {
-		return "", fmt.Errorf("no content found in response")
+	// Extract text from content array if it exists
+	contentArray, ok := data["content"].([]interface{})
+	if ok && len(contentArray) > 0 {
+		var textBuilder strings.Builder
+		for i, item := range contentArray {
+			contentItem, ok := item.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			text, ok := contentItem["text"].(string)
+			if !ok {
+				continue
+			}
+
+			if i > 0 {
+				textBuilder.WriteString("\n")
+			}
+			textBuilder.WriteString(text)
+		}
+		result.TextContent = textBuilder.String()
 	}
 
-	// Extract text field from the first content item
-	contentItem, ok := content[0].(map[string]interface{})
-	if !ok {
-		return "", fmt.Errorf("invalid content item format")
-	}
-
-	jsonText, ok := contentItem["text"].(string)
-	if !ok {
-		return "", fmt.Errorf("text field not found or not a string")
-	}
-
-	return jsonText, nil
+	return result, nil
 }
 
 // GetClickableUIElements retrieves all clickable UI elements within the specified timeout
-func (u *UI) GetClickableUIElements(timeoutMs int) ([]*UIElement, error) {
+func (u *UIManager) GetClickableUIElements(timeoutMs int) (*UIElementsResult, error) {
 	if timeoutMs <= 0 {
 		timeoutMs = 2000 // Default timeout
 	}
@@ -146,22 +207,27 @@ func (u *UI) GetClickableUIElements(timeoutMs int) ([]*UIElement, error) {
 		"timeout_ms": timeoutMs,
 	}
 
-	result, err := u.callMcpTool("get_clickable_ui_elements", args)
+	result, err := u.callMcpTool("get_clickable_ui_elements", args, "failed to get clickable UI elements")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get clickable UI elements: %w", err)
+		return nil, err
 	}
 
 	// Parse the JSON string into a slice of UIElement structs
 	var elements []*UIElement
-	if err := json.Unmarshal([]byte(result), &elements); err != nil {
+	if err := json.Unmarshal([]byte(result.TextContent), &elements); err != nil {
 		return nil, fmt.Errorf("failed to parse UI elements: %w", err)
 	}
 
-	return elements, nil
+	return &UIElementsResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Elements: elements,
+	}, nil
 }
 
 // GetAllUIElements retrieves all UI elements within the specified timeout
-func (u *UI) GetAllUIElements(timeoutMs int) ([]*UIElement, error) {
+func (u *UIManager) GetAllUIElements(timeoutMs int) (*UIElementsResult, error) {
 	if timeoutMs <= 0 {
 		timeoutMs = 2000 // Default timeout
 	}
@@ -170,50 +236,65 @@ func (u *UI) GetAllUIElements(timeoutMs int) ([]*UIElement, error) {
 		"timeout_ms": timeoutMs,
 	}
 
-	result, err := u.callMcpTool("get_all_ui_elements", args)
+	result, err := u.callMcpTool("get_all_ui_elements", args, "failed to get all UI elements")
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all UI elements: %w", err)
+		return nil, err
 	}
 
 	// Parse the JSON string into a slice of UIElement structs
 	var elements []*UIElement
-	if err := json.Unmarshal([]byte(result), &elements); err != nil {
+	if err := json.Unmarshal([]byte(result.TextContent), &elements); err != nil {
 		return nil, fmt.Errorf("failed to parse UI elements: %w", err)
 	}
 
-	return elements, nil
+	return &UIElementsResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Elements: elements,
+	}, nil
 }
 
 // SendKey sends a key press event
-func (u *UI) SendKey(key int) (string, error) {
+func (u *UIManager) SendKey(key int) (*KeyActionResult, error) {
 	args := map[string]interface{}{
 		"key": key,
 	}
 
-	result, err := u.callMcpTool("send_key", args)
+	result, err := u.callMcpTool("send_key", args, "failed to send key")
 	if err != nil {
-		return "", fmt.Errorf("failed to send key: %w", err)
+		return nil, err
 	}
 
-	return result, nil
+	return &KeyActionResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// InputText inputs text into the active field
-func (u *UI) InputText(text string) (string, error) {
-	args := map[string]interface{}{
+// InputText inputs text at the current cursor position
+func (u *UIManager) InputText(text string) (*TextInputResult, error) {
+	args := map[string]string{
 		"text": text,
 	}
 
-	result, err := u.callMcpTool("input_text", args)
+	result, err := u.callMcpTool("input_text", args, "failed to input text")
 	if err != nil {
-		return "", fmt.Errorf("failed to input text: %w", err)
+		return nil, err
 	}
 
-	return result, nil
+	return &TextInputResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Text: text,
+	}, nil
 }
 
-// Swipe performs a swipe gesture from start to end coordinates
-func (u *UI) Swipe(startX, startY, endX, endY, durationMs int) (string, error) {
+// Swipe performs a swipe gesture from (startX,startY) to (endX,endY) over durationMs milliseconds
+func (u *UIManager) Swipe(startX, startY, endX, endY, durationMs int) (*SwipeResult, error) {
 	args := map[string]interface{}{
 		"start_x":     startX,
 		"start_y":     startY,
@@ -222,38 +303,59 @@ func (u *UI) Swipe(startX, startY, endX, endY, durationMs int) (string, error) {
 		"duration_ms": durationMs,
 	}
 
-	result, err := u.callMcpTool("swipe", args)
+	result, err := u.callMcpTool("swipe", args, "failed to swipe")
 	if err != nil {
-		return "", fmt.Errorf("failed to perform swipe: %w", err)
+		return nil, err
 	}
 
-	return result, nil
+	return &SwipeResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// Click performs a click at the specified coordinates
-func (u *UI) Click(x, y int, button string) (string, error) {
+// Click performs a mouse click at (x,y) with the specified button
+func (u *UIManager) Click(x, y int, button string) (*UIResult, error) {
+	if button == "" {
+		button = "left"
+	}
+
+	if button != "left" && button != "right" && button != "middle" {
+		return nil, fmt.Errorf("invalid button: %s. Must be 'left', 'right', or 'middle'", button)
+	}
+
 	args := map[string]interface{}{
 		"x":      x,
 		"y":      y,
 		"button": button,
 	}
 
-	result, err := u.callMcpTool("click", args)
+	result, err := u.callMcpTool("click", args, "failed to click")
 	if err != nil {
-		return "", fmt.Errorf("failed to perform click: %w", err)
+		return nil, err
 	}
 
-	return result, nil
+	return &UIResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// Screenshot takes a screenshot and returns the base64 encoded image
-func (u *UI) Screenshot() (string, error) {
-	args := map[string]interface{}{}
-
-	result, err := u.callMcpTool("system_screenshot", args)
+// Screenshot takes a screenshot of the current screen and returns the path to the image
+func (u *UIManager) Screenshot() (*UIResult, error) {
+	result, err := u.callMcpTool("system_screenshot", nil, "failed to take screenshot")
 	if err != nil {
-		return "", fmt.Errorf("failed to take screenshot: %w", err)
+		return nil, err
 	}
 
-	return result, nil
+	return &UIResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Success: true,
+	}, nil
 }

@@ -32,18 +32,22 @@ func TestSession_SetGetLabels(t *testing.T) {
 
 	// Create a new session
 	t.Log("Creating a new session for labels testing...")
-	session, err := agentBayClient.Create(nil)
+	sessionResult, err := agentBayClient.Create(nil)
 	if err != nil {
 		t.Fatalf("Error creating session: %v", err)
 	}
+
+	session := sessionResult.Session
 	t.Logf("Session created with ID: %s", session.SessionID)
 
 	// Ensure cleanup of session
 	defer func() {
 		t.Log("Cleaning up session...")
-		err := agentBayClient.Delete(session)
+		deleteResult, err := agentBayClient.Delete(session)
 		if err != nil {
 			t.Logf("Warning: Error deleting session: %v", err)
+		} else {
+			t.Logf("Session deleted (RequestID: %s)", deleteResult.RequestID)
 		}
 	}()
 
@@ -67,21 +71,23 @@ func TestSession_SetGetLabels(t *testing.T) {
 
 	// Test 1: Set labels using SetLabels
 	t.Log("Setting labels for the session...")
-	err = session.SetLabels(string(labelsJSON))
+	labelResult, err := session.SetLabels(string(labelsJSON))
 	if err != nil {
 		t.Fatalf("Error setting labels: %v", err)
 	}
+	t.Logf("Labels set successfully (RequestID: %s)", labelResult.RequestID)
 
 	// Test 2: Get labels using GetLabels
 	t.Log("Getting labels for the session...")
-	retrievedLabels, err := session.GetLabels()
+	getLabelResult, err := session.GetLabels()
 	if err != nil {
 		t.Fatalf("Error getting labels: %v", err)
 	}
+	t.Logf("Labels retrieved successfully (RequestID: %s)", getLabelResult.RequestID)
 
 	// Parse the retrieved labels JSON
 	var parsedLabels map[string]string
-	err = json.Unmarshal([]byte(retrievedLabels), &parsedLabels)
+	err = json.Unmarshal([]byte(getLabelResult.Labels), &parsedLabels)
 	if err != nil {
 		t.Fatalf("Error parsing retrieved labels JSON: %v", err)
 	}
@@ -103,14 +109,15 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": testLabels["environment"],
 	}
 
-	sessions, err := agentBayClient.ListByLabels(singleLabelFilter)
+	sessionsResult, err := agentBayClient.ListByLabels(singleLabelFilter)
 	if err != nil {
 		t.Fatalf("Error listing sessions by single label: %v", err)
 	}
+	t.Logf("Sessions listed by single label (RequestID: %s)", sessionsResult.RequestID)
 
 	// Check if our session is in the results
 	foundInSingleLabelResults := false
-	for _, s := range sessions {
+	for _, s := range sessionsResult.Sessions {
 		if s.SessionID == session.SessionID {
 			foundInSingleLabelResults = true
 			break
@@ -129,14 +136,15 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"project":     testLabels["project"],
 	}
 
-	sessions, err = agentBayClient.ListByLabels(multiLabelFilter)
+	sessionsResult, err = agentBayClient.ListByLabels(multiLabelFilter)
 	if err != nil {
 		t.Fatalf("Error listing sessions by multiple labels: %v", err)
 	}
+	t.Logf("Sessions listed by multiple labels (RequestID: %s)", sessionsResult.RequestID)
 
 	// Check if our session is in the results
 	foundInMultiLabelResults := false
-	for _, s := range sessions {
+	for _, s := range sessionsResult.Sessions {
 		if s.SessionID == session.SessionID {
 			foundInMultiLabelResults = true
 			break
@@ -154,14 +162,15 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": fmt.Sprintf("production-%s", uniqueID), // This doesn't match our session
 	}
 
-	sessions, err = agentBayClient.ListByLabels(nonMatchingFilter)
+	sessionsResult, err = agentBayClient.ListByLabels(nonMatchingFilter)
 	if err != nil {
 		t.Fatalf("Error listing sessions by non-matching label: %v", err)
 	}
+	t.Logf("Sessions listed by non-matching label (RequestID: %s)", sessionsResult.RequestID)
 
 	// Check that our session is NOT in the results
 	foundInNonMatchingResults := false
-	for _, s := range sessions {
+	for _, s := range sessionsResult.Sessions {
 		if s.SessionID == session.SessionID {
 			foundInNonMatchingResults = true
 			break
@@ -188,30 +197,34 @@ func TestSession_SetGetLabels(t *testing.T) {
 	}
 
 	t.Log("Updating labels for the session...")
-	err = session.SetLabels(string(updatedLabelsJSON))
+	updateResult, err := session.SetLabels(string(updatedLabelsJSON))
 	if err != nil {
 		t.Fatalf("Error updating labels: %v", err)
 	}
+	t.Logf("Labels updated successfully (RequestID: %s)", updateResult.RequestID)
 
 	// Verify updated labels using GetLabels
 	t.Log("Getting updated labels for the session...")
-	retrievedUpdatedLabels, err := session.GetLabels()
+	retrievedUpdatedLabelsResult, err := session.GetLabels()
 	if err != nil {
 		t.Fatalf("Error getting updated labels: %v", err)
 	}
+	t.Logf("Updated labels retrieved successfully (RequestID: %s)", retrievedUpdatedLabelsResult.RequestID)
 
+	// Parse the updated labels JSON
 	var parsedUpdatedLabels map[string]string
-	err = json.Unmarshal([]byte(retrievedUpdatedLabels), &parsedUpdatedLabels)
+	err = json.Unmarshal([]byte(retrievedUpdatedLabelsResult.Labels), &parsedUpdatedLabels)
 	if err != nil {
-		t.Fatalf("Error parsing retrieved updated labels JSON: %v", err)
+		t.Fatalf("Error parsing updated labels JSON: %v", err)
 	}
 
 	// Verify that all expected updated labels are present with correct values
 	for key, expectedValue := range updatedLabels {
 		if actualValue, ok := parsedUpdatedLabels[key]; !ok {
-			t.Errorf("Expected updated label '%s' not found in retrieved labels", key)
+			t.Errorf("Expected updated label '%s' not found", key)
 		} else if actualValue != expectedValue {
-			t.Errorf("Updated label '%s' value mismatch: expected '%s', got '%s'", key, expectedValue, actualValue)
+			t.Errorf("Updated label '%s' value mismatch: expected '%s', got '%s'",
+				key, expectedValue, actualValue)
 		}
 	}
 
@@ -225,13 +238,14 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": updatedLabels["environment"],
 	}
 
-	sessions, err = agentBayClient.ListByLabels(updatedEnvFilter)
+	updatedEnvResult, err := agentBayClient.ListByLabels(updatedEnvFilter)
 	if err != nil {
 		t.Fatalf("Error listing sessions by updated environment label: %v", err)
 	}
+	t.Logf("Sessions listed by updated environment (RequestID: %s)", updatedEnvResult.RequestID)
 
 	foundWithUpdatedEnv := false
-	for _, s := range sessions {
+	for _, s := range updatedEnvResult.Sessions {
 		if s.SessionID == session.SessionID {
 			foundWithUpdatedEnv = true
 			break
@@ -249,13 +263,14 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": testLabels["environment"],
 	}
 
-	sessions, err = agentBayClient.ListByLabels(oldEnvFilter)
+	oldEnvResult, err := agentBayClient.ListByLabels(oldEnvFilter)
 	if err != nil {
 		t.Fatalf("Error listing sessions by old environment label: %v", err)
 	}
+	t.Logf("Sessions listed by old environment (RequestID: %s)", oldEnvResult.RequestID)
 
 	foundWithOldEnv := false
-	for _, s := range sessions {
+	for _, s := range oldEnvResult.Sessions {
 		if s.SessionID == session.SessionID {
 			foundWithOldEnv = true
 			break

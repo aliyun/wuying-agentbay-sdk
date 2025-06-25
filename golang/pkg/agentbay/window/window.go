@@ -7,7 +7,36 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
+
+// ApiResponse is the base class for all API responses, containing RequestID
+type ApiResponse struct {
+	RequestID string
+}
+
+// GetRequestID returns the RequestID of the API call
+func (r *ApiResponse) GetRequestID() string {
+	return r.RequestID
+}
+
+// WindowResult wraps window operation result and RequestID
+type WindowResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// WindowListResult wraps window list and RequestID
+type WindowListResult struct {
+	models.ApiResponse
+	Windows []Window
+}
+
+// WindowDetailResult wraps single window information and RequestID
+type WindowDetailResult struct {
+	models.ApiResponse
+	Window *Window
+}
 
 // Window represents a window in the system
 type Window struct {
@@ -33,12 +62,12 @@ type WindowManager struct {
 
 // callMcpToolResult represents the result of a CallMcpTool operation
 type callMcpToolResult struct {
-	Data        map[string]interface{}
-	Content     []map[string]interface{}
 	TextContent string
+	Data        map[string]interface{}
 	IsError     bool
 	ErrorMsg    string
 	StatusCode  int32
+	RequestID   string
 }
 
 // callMcpTool calls the MCP tool and checks for errors in the response
@@ -63,8 +92,6 @@ func (wm *WindowManager) callMcpTool(toolName string, args interface{}, defaultE
 
 	// Call the MCP tool
 	response, err := wm.Session.GetClient().CallMcpTool(callToolRequest)
-
-	// Log API response
 	if err != nil {
 		fmt.Println("Error calling CallMcpTool -", toolName, ":", err)
 		return nil, fmt.Errorf("failed to call %s: %w", toolName, err)
@@ -79,10 +106,17 @@ func (wm *WindowManager) callMcpTool(toolName string, args interface{}, defaultE
 		return nil, fmt.Errorf("invalid response data format")
 	}
 
+	// Extract RequestID
+	var requestID string
+	if response != nil && response.Body != nil && response.Body.RequestId != nil {
+		requestID = *response.Body.RequestId
+	}
+
 	// Create result object
 	result := &callMcpToolResult{
 		Data:       data,
 		StatusCode: *response.StatusCode,
+		RequestID:  requestID,
 	}
 
 	// Check if there's an error in the response
@@ -93,49 +127,37 @@ func (wm *WindowManager) callMcpTool(toolName string, args interface{}, defaultE
 		// Try to extract the error message from the content field
 		contentArray, ok := data["content"].([]interface{})
 		if ok && len(contentArray) > 0 {
-			// Convert content array to a more usable format
-			result.Content = make([]map[string]interface{}, 0, len(contentArray))
-			for _, item := range contentArray {
-				contentItem, ok := item.(map[string]interface{})
-				if !ok {
-					continue
-				}
-				result.Content = append(result.Content, contentItem)
-			}
-
 			// Extract error message from the first content item
-			if len(result.Content) > 0 {
-				text, ok := result.Content[0]["text"].(string)
+			if len(contentArray) > 0 {
+				contentItem, ok := contentArray[0].(map[string]interface{})
 				if ok {
-					result.ErrorMsg = text
-					return result, fmt.Errorf("%s", text)
+					text, ok := contentItem["text"].(string)
+					if ok {
+						result.ErrorMsg = text
+						return result, fmt.Errorf("%s", text)
+					}
 				}
 			}
 		}
 		return result, fmt.Errorf("%s", defaultErrorMsg)
 	}
 
-	// Extract content array if it exists
+	// Extract text from content array if it exists
 	contentArray, ok := data["content"].([]interface{})
-	if ok {
-		result.Content = make([]map[string]interface{}, 0, len(contentArray))
-		for _, item := range contentArray {
+	if ok && len(contentArray) > 0 {
+		var textBuilder strings.Builder
+		for i, item := range contentArray {
 			contentItem, ok := item.(map[string]interface{})
 			if !ok {
 				continue
 			}
-			result.Content = append(result.Content, contentItem)
-		}
 
-		// Extract text content from the content items
-		var textBuilder strings.Builder
-		for _, item := range result.Content {
-			text, ok := item["text"].(string)
+			text, ok := contentItem["text"].(string)
 			if !ok {
 				continue
 			}
 
-			if textBuilder.Len() > 0 {
+			if i > 0 {
 				textBuilder.WriteString("\n")
 			}
 			textBuilder.WriteString(text)
@@ -158,7 +180,7 @@ func NewWindowManager(session interface {
 }
 
 // ListRootWindows lists all root windows in the system.
-func (wm *WindowManager) ListRootWindows() ([]Window, error) {
+func (wm *WindowManager) ListRootWindows() (*WindowListResult, error) {
 	args := map[string]interface{}{}
 
 	// Use the helper method to call MCP tool and check for errors
@@ -174,11 +196,16 @@ func (wm *WindowManager) ListRootWindows() ([]Window, error) {
 		return nil, fmt.Errorf("failed to parse window data: %w", err)
 	}
 
-	return windows, nil
+	return &WindowListResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Windows: windows,
+	}, nil
 }
 
 // GetActiveWindow gets the currently active window.
-func (wm *WindowManager) GetActiveWindow() (*Window, error) {
+func (wm *WindowManager) GetActiveWindow() (*WindowDetailResult, error) {
 	args := map[string]interface{}{}
 
 	// Use the helper method to call MCP tool and check for errors
@@ -187,134 +214,180 @@ func (wm *WindowManager) GetActiveWindow() (*Window, error) {
 		return nil, err
 	}
 
-	// Parse the JSON data into Window object
+	// Parse the JSON data into a Window object
 	var window Window
 	err = json.Unmarshal([]byte(mcpResult.TextContent), &window)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse window data: %w", err)
 	}
 
-	return &window, nil
+	return &WindowDetailResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Window: &window,
+	}, nil
 }
 
-// ActivateWindow activates a window by ID.
-func (wm *WindowManager) ActivateWindow(windowID int) error {
-	args := map[string]int{
+// ActivateWindow activates a window with the specified window ID.
+func (wm *WindowManager) ActivateWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("activate_window", args, "error activating window")
+	mcpResult, err := wm.callMcpTool("activate_window", args, "error activating window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// MaximizeWindow maximizes a window by ID.
-func (wm *WindowManager) MaximizeWindow(windowID int) error {
-	args := map[string]int{
+// MaximizeWindow maximizes a window with the specified window ID.
+func (wm *WindowManager) MaximizeWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("maximize_window", args, "error maximizing window")
+	mcpResult, err := wm.callMcpTool("maximize_window", args, "error maximizing window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// MinimizeWindow minimizes a window by ID.
-func (wm *WindowManager) MinimizeWindow(windowID int) error {
-	args := map[string]int{
+// MinimizeWindow minimizes a window with the specified window ID.
+func (wm *WindowManager) MinimizeWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("minimize_window", args, "error minimizing window")
+	mcpResult, err := wm.callMcpTool("minimize_window", args, "error minimizing window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// RestoreWindow restores a window by ID.
-func (wm *WindowManager) RestoreWindow(windowID int) error {
-	args := map[string]int{
+// RestoreWindow restores a window with the specified window ID.
+func (wm *WindowManager) RestoreWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("restore_window", args, "error restoring window")
+	mcpResult, err := wm.callMcpTool("restore_window", args, "error restoring window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// CloseWindow closes a window by ID.
-func (wm *WindowManager) CloseWindow(windowID int) error {
-	args := map[string]int{
+// CloseWindow closes a window with the specified window ID.
+func (wm *WindowManager) CloseWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("close_window", args, "error closing window")
+	mcpResult, err := wm.callMcpTool("close_window", args, "error closing window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
-// FullscreenWindow toggles fullscreen mode for a window by ID.
-func (wm *WindowManager) FullscreenWindow(windowID int) error {
-	args := map[string]int{
+// FullscreenWindow toggles fullscreen mode for a window with the specified window ID.
+func (wm *WindowManager) FullscreenWindow(windowID int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("fullscreen_window", args, "error toggling fullscreen mode")
+	mcpResult, err := wm.callMcpTool("fullscreen_window", args, "error toggling fullscreen mode")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
 // ResizeWindow resizes a window by ID.
-func (wm *WindowManager) ResizeWindow(windowID, width, height int) error {
-	args := map[string]int{
+func (wm *WindowManager) ResizeWindow(windowID int, width int, height int) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"window_id": windowID,
 		"width":     width,
 		"height":    height,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("resize_window", args, "error resizing window")
+	mcpResult, err := wm.callMcpTool("resize_window", args, "error resizing window")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	// Return result with RequestID
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }
 
 // FocusMode enables or disables focus mode.
-func (wm *WindowManager) FocusMode(on bool) error {
-	args := map[string]bool{
+func (wm *WindowManager) FocusMode(on bool) (*WindowResult, error) {
+	args := map[string]interface{}{
 		"on": on,
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	_, err := wm.callMcpTool("focus_mode", args, "error setting focus mode")
+	mcpResult, err := wm.callMcpTool("focus_mode", args, "error setting focus mode")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &WindowResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: mcpResult.RequestID,
+		},
+		Success: true,
+	}, nil
 }

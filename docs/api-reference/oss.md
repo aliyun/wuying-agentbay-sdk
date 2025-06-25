@@ -7,7 +7,7 @@ The OSS (Object Storage Service) module provides functionality for interacting w
 ### Initializing OSS Environment
 
 ```go
-func (o *Oss) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (string, error)
+func (o *Oss) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (*EnvInitResult, error)
 ```
 
 Creates and initializes OSS environment variables with the specified credentials.
@@ -20,8 +20,16 @@ Creates and initializes OSS environment variables with the specified credentials
 - `region`: The OSS region. If not specified, the default is used.
 
 **Returns:**
-- `string`: The result of the environment initialization operation.
+- `*EnvInitResult`: A result object containing the initialization result and RequestID.
 - `error`: An error if the operation fails.
+
+**EnvInitResult Structure:**
+```go
+type EnvInitResult struct {
+    RequestID string // Unique request identifier for debugging
+    Result    string // The result of the environment initialization operation
+}
+```
 
 ### Creating an OSS Client
 
@@ -44,7 +52,7 @@ Creates an OSS client with the provided credentials.
 ### Uploading Files
 
 ```go
-func (o *Oss) Upload(bucket, object, path string) (string, error)
+func (o *Oss) Upload(bucket, object, path string) (*UploadResult, error)
 ```
 
 Uploads a local file or directory to OSS.
@@ -55,13 +63,21 @@ Uploads a local file or directory to OSS.
 - `path`: Local file or directory path to upload.
 
 **Returns:**
-- `string`: The result of the upload operation.
+- `*UploadResult`: A result object containing the upload URL and RequestID.
 - `error`: An error if the operation fails.
+
+**UploadResult Structure:**
+```go
+type UploadResult struct {
+    RequestID string // Unique request identifier for debugging
+    URL       string // The URL of the uploaded file
+}
+```
 
 ### Anonymous Uploading
 
 ```go
-func (o *Oss) UploadAnonymous(url, path string) (string, error)
+func (o *Oss) UploadAnonymous(url, path string) (*UploadResult, error)
 ```
 
 Uploads a local file or directory to a URL anonymously.
@@ -71,13 +87,13 @@ Uploads a local file or directory to a URL anonymously.
 - `path`: Local file or directory path to upload.
 
 **Returns:**
-- `string`: The result of the upload operation.
+- `*UploadResult`: A result object containing the upload URL and RequestID.
 - `error`: An error if the operation fails.
 
 ### Downloading Files
 
 ```go
-func (o *Oss) Download(bucket, object, path string) (string, error)
+func (o *Oss) Download(bucket, object, path string) (*DownloadResult, error)
 ```
 
 Downloads an object from OSS to a local file.
@@ -88,13 +104,21 @@ Downloads an object from OSS to a local file.
 - `path`: Local path to save the downloaded file.
 
 **Returns:**
-- `string`: The result of the download operation.
+- `*DownloadResult`: A result object containing the local file path and RequestID.
 - `error`: An error if the operation fails.
+
+**DownloadResult Structure:**
+```go
+type DownloadResult struct {
+    RequestID string // Unique request identifier for debugging
+    LocalPath string // The local path where the file was downloaded
+}
+```
 
 ### Anonymous Downloading
 
 ```go
-func (o *Oss) DownloadAnonymous(url, path string) (string, error)
+func (o *Oss) DownloadAnonymous(url, path string) (*DownloadResult, error)
 ```
 
 Downloads a file from a URL anonymously to a local file.
@@ -104,7 +128,7 @@ Downloads a file from a URL anonymously to a local file.
 - `path`: The full local file path to save the downloaded file.
 
 **Returns:**
-- `string`: The result of the download operation.
+- `*DownloadResult`: A result object containing the local file path and RequestID.
 - `error`: An error if the operation fails.
 
 ## Python

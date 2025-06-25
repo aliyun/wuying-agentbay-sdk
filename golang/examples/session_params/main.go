@@ -32,18 +32,19 @@ func main() {
 			"project":  "my-project",
 		})
 
-	session, err := agentBay.Create(params)
+	sessionResult, err := agentBay.Create(params)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("\nSession created with ID: %s and labels: username=alice, project=my-project\n", session.SessionID)
+	session := sessionResult.Session
+	fmt.Printf("\nSession created with ID: %s and labels: username=alice, project=my-project (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
 
 	// Example 2: List sessions by labels
 	fmt.Println("\nExample 2: Listing sessions by labels...")
 
 	// Query sessions with the "project" label set to "my-project"
-	sessionsByLabel, err := agentBay.ListByLabels(map[string]string{
+	sessionsByLabelResult, err := agentBay.ListByLabels(map[string]string{
 		"project": "my-project",
 	})
 	if err != nil {
@@ -51,18 +52,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("\nFound %d sessions with project=my-project:\n", len(sessionsByLabel))
-	for i, s := range sessionsByLabel {
+	fmt.Printf("\nFound %d sessions with project=my-project (RequestID: %s):\n", len(sessionsByLabelResult.Sessions), sessionsByLabelResult.RequestID)
+	for i, s := range sessionsByLabelResult.Sessions {
 		fmt.Printf("  %d. Session ID: %s\n", i+1, s.SessionID)
 	}
 
 	// Clean up
 	fmt.Println("\nCleaning up sessions...")
 
-	err = agentBay.Delete(session)
+	deleteResult, err := session.Delete()
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
+	} else {
+		fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
 	}
-
-	fmt.Println("Session deleted successfully")
 }

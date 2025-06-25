@@ -9,6 +9,22 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
+// Create a context from the context result
+func contextFromResult(result *agentbay.ContextResult) *agentbay.Context {
+	if result == nil || result.Data == nil {
+		return nil
+	}
+
+	return &agentbay.Context{
+		ID:         result.ContextID,
+		Name:       result.Data["name"].(string),
+		State:      result.Data["state"].(string),
+		CreatedAt:  result.Data["created_at"].(string),
+		LastUsedAt: result.Data["last_used_at"].(string),
+		OSType:     result.Data["os_type"].(string),
+	}
+}
+
 // TestContext_GetNonExistentContext tests attempting to get a context that doesn't exist
 func TestContext_GetNonExistentContext(t *testing.T) {
 	// Initialize AgentBay client
@@ -22,22 +38,23 @@ func TestContext_GetNonExistentContext(t *testing.T) {
 	nonExistentName := fmt.Sprintf("non-existent-context-%d", time.Now().Unix())
 	t.Logf("Attempting to get non-existent context: %s with AllowCreate=false", nonExistentName)
 
-	context, err := agentBay.Context.Get(nonExistentName, false)
+	result, err := agentBay.Context.Get(nonExistentName, false)
 
 	// We expect either an error or a nil context since the context doesn't exist
 	// and we're not allowing creation
-	if err == nil && context != nil && context.ID != "" {
+	if err == nil && result != nil && result.ContextID != "" {
 		// If we somehow got a context, make sure to clean it up
-		t.Errorf("Unexpectedly got a context when requesting a non-existent one with AllowCreate=false: %+v", context)
+		t.Errorf("Unexpectedly got a context when requesting a non-existent one with AllowCreate=false: %+v", result.Data)
 
+		context := contextFromResult(result)
 		// Clean up the unexpected context
-		cleanupErr := agentBay.Context.Delete(context)
+		_, cleanupErr := agentBay.Context.Delete(context)
 		if cleanupErr != nil {
 			t.Logf("Warning: Error cleaning up unexpected context: %v", cleanupErr)
 		}
 	} else {
 		// This is the expected outcome - either an error or nil context
-		t.Logf("As expected, failed to get non-existent context or got nil: err=%v, context=%+v", err, context)
+		t.Logf("As expected, failed to get non-existent context or got nil: err=%v, result=%+v", err, result)
 	}
 }
 
@@ -52,14 +69,22 @@ func TestContext_Create(t *testing.T) {
 
 	// Create a new context
 	contextName := "test-context-" + fmt.Sprintf("%d", time.Now().Unix())
-	context, err := agentBay.Context.Create(contextName)
+	result, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	if context == nil {
+	if result == nil {
 		t.Fatalf("Context not created")
 	}
-	t.Logf("Created context: %s (%s)", context.Name, context.ID)
+
+	// Get the created context to get its full details
+	getResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(getResult)
+	t.Logf("Created context: %s (%s) with RequestID: %s", context.Name, context.ID, result.RequestID)
 
 	// Verify the created context has the expected name
 	if context.Name != contextName {
@@ -70,7 +95,7 @@ func TestContext_Create(t *testing.T) {
 	}
 
 	// Clean up
-	err = agentBay.Context.Delete(context)
+	_, err = agentBay.Context.Delete(context)
 	if err != nil {
 		t.Logf("Warning: Error deleting context: %v", err)
 	}
@@ -87,29 +112,39 @@ func TestContext_Get(t *testing.T) {
 
 	// First create a context
 	contextName := "test-context-" + fmt.Sprintf("%d", time.Now().Unix())
-	context, err := agentBay.Context.Create(contextName)
+	createResult, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	originalContextID := context.ID
+
+	originalContextID := createResult.ContextID
+
+	// Get the created context to get its full details
+	firstGetResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(firstGetResult)
 
 	// Ensure cleanup of the context after test
 	defer func() {
-		err := agentBay.Context.Delete(context)
+		_, err := agentBay.Context.Delete(context)
 		if err != nil {
 			t.Logf("Warning: Error deleting context: %v", err)
 		}
 	}()
 
-	// Get the context we just created
-	retrievedContext, err := agentBay.Context.Get(contextName, false)
+	// Get the context we just created (second time)
+	getResult, err := agentBay.Context.Get(contextName, false)
 	if err != nil {
 		t.Fatalf("Error getting context: %v", err)
 	}
-	if retrievedContext == nil {
+	if getResult == nil {
 		t.Fatalf("Context not found")
 	}
 
+	retrievedContext := contextFromResult(getResult)
 	// Verify the retrieved context matches what we created
 	if retrievedContext.Name != contextName {
 		t.Errorf("Expected retrieved context name to be '%s', got '%s'", contextName, retrievedContext.Name)
@@ -117,7 +152,8 @@ func TestContext_Get(t *testing.T) {
 	if retrievedContext.ID != originalContextID {
 		t.Errorf("Expected retrieved context ID to be '%s', got '%s'", originalContextID, retrievedContext.ID)
 	}
-	t.Logf("Successfully retrieved context: %s (%s)", retrievedContext.Name, retrievedContext.ID)
+	t.Logf("Successfully retrieved context: %s (%s) with RequestID: %s",
+		retrievedContext.Name, retrievedContext.ID, getResult.RequestID)
 }
 
 // TestContext_List tests listing all contexts
@@ -130,41 +166,55 @@ func TestContext_List(t *testing.T) {
 	}
 
 	// Get initial list of contexts
-	initialContexts, err := agentBay.Context.List()
+	initialListResult, err := agentBay.Context.List()
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
-	t.Logf("Found %d contexts initially", len(initialContexts))
+
+	initialContexts := initialListResult.Contexts
+	t.Logf("Found %d contexts initially with RequestID: %s",
+		len(initialContexts), initialListResult.RequestID)
 
 	// Create a new context
 	contextName := "test-context-" + fmt.Sprintf("%d", time.Now().Unix())
-	context, err := agentBay.Context.Create(contextName)
+	createResult, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	originalContextID := context.ID
+
+	originalContextID := createResult.ContextID
+
+	// Get the created context to get its full details
+	getResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(getResult)
 
 	// Ensure cleanup of the context after test
 	defer func() {
-		err := agentBay.Context.Delete(context)
+		_, err := agentBay.Context.Delete(context)
 		if err != nil {
 			t.Logf("Warning: Error deleting context: %v", err)
 		}
 	}()
 
 	// List contexts again and verify our new context is in the list
-	allContexts, err := agentBay.Context.List()
+	listResult, err := agentBay.Context.List()
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
 
+	allContexts := listResult.Contexts
+
 	// Verify the list contains our new context
 	var foundInList bool
 	for _, c := range allContexts {
-		if c.ID == originalContextID {
+		if c["id"].(string) == originalContextID {
 			foundInList = true
-			if c.Name != contextName {
-				t.Errorf("Expected context name in list to be '%s', got '%s'", contextName, c.Name)
+			if c["name"].(string) != contextName {
+				t.Errorf("Expected context name in list to be '%s', got '%s'", contextName, c["name"].(string))
 			}
 			break
 		}
@@ -178,7 +228,8 @@ func TestContext_List(t *testing.T) {
 		t.Errorf("Expected context list to grow, but it didn't: initial=%d, current=%d",
 			len(initialContexts), len(allContexts))
 	}
-	t.Logf("Successfully listed contexts, found our context in the list")
+	t.Logf("Successfully listed contexts with RequestID: %s, found our context in the list",
+		listResult.RequestID)
 }
 
 // TestContext_Update tests updating a context's name
@@ -192,15 +243,24 @@ func TestContext_Update(t *testing.T) {
 
 	// First create a context
 	contextName := "test-context-" + fmt.Sprintf("%d", time.Now().Unix())
-	context, err := agentBay.Context.Create(contextName)
+	createResult, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	originalContextID := context.ID
+
+	originalContextID := createResult.ContextID
+
+	// Get the created context to get its full details
+	getResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(getResult)
 
 	// Ensure cleanup of the context after test
 	defer func() {
-		err := agentBay.Context.Delete(context)
+		_, err := agentBay.Context.Delete(context)
 		if err != nil {
 			t.Logf("Warning: Error deleting context: %v", err)
 		}
@@ -209,24 +269,25 @@ func TestContext_Update(t *testing.T) {
 	// Update the context
 	updatedName := "updated-" + contextName
 	context.Name = updatedName
-	success, err := agentBay.Context.Update(context)
+	updateResult, err := agentBay.Context.Update(context)
 	if err != nil {
 		t.Fatalf("Error updating context: %v", err)
 	}
-	if !success {
+	if !updateResult.Success {
 		t.Fatalf("Context update reported as unsuccessful")
 	}
-	t.Logf("Context update reported as successful")
+	t.Logf("Context update reported as successful with RequestID: %s", updateResult.RequestID)
 
 	// Verify the update by getting the context again
-	retrievedUpdatedContext, err := agentBay.Context.Get(updatedName, false)
+	updatedGetResult, err := agentBay.Context.Get(updatedName, false)
 	if err != nil {
 		t.Fatalf("Error getting updated context: %v", err)
 	}
-	if retrievedUpdatedContext == nil {
+	if updatedGetResult == nil {
 		t.Fatalf("Updated context not found")
 	}
 
+	retrievedUpdatedContext := contextFromResult(updatedGetResult)
 	// Verify the retrieved context has the updated name
 	if retrievedUpdatedContext.Name != updatedName {
 		t.Errorf("Expected retrieved context name to be '%s', got '%s'", updatedName, retrievedUpdatedContext.Name)
@@ -247,26 +308,36 @@ func TestContext_Delete(t *testing.T) {
 
 	// First create a context
 	contextName := "test-context-" + fmt.Sprintf("%d", time.Now().Unix())
-	context, err := agentBay.Context.Create(contextName)
+	createResult, err := agentBay.Context.Create(contextName)
 	if err != nil {
 		t.Fatalf("Error creating context: %v", err)
 	}
-	originalContextID := context.ID
+
+	originalContextID := createResult.ContextID
+
+	// Get the created context to get its full details
+	getResult, err := agentBay.Context.Get(contextName, false)
+	if err != nil {
+		t.Fatalf("Error getting created context: %v", err)
+	}
+
+	context := contextFromResult(getResult)
 
 	// Delete the context
-	err = agentBay.Context.Delete(context)
+	deleteResult, err := agentBay.Context.Delete(context)
 	if err != nil {
 		t.Fatalf("Error deleting context: %v", err)
 	}
-	t.Log("Context successfully deleted")
+	t.Logf("Context successfully deleted with RequestID: %s", deleteResult.RequestID)
 
 	// Verify the context is actually deleted
-	deletedContext, err := agentBay.Context.Get(contextName, false)
-	if err == nil && deletedContext != nil && deletedContext.ID == originalContextID {
+	deletedGetResult, err := agentBay.Context.Get(contextName, false)
+	if err == nil && deletedGetResult != nil && deletedGetResult.ContextID == originalContextID {
 		t.Errorf("Context still exists after deletion")
 
+		deletedContext := contextFromResult(deletedGetResult)
 		// Clean up if it still exists
-		cleanupErr := agentBay.Context.Delete(deletedContext)
+		_, cleanupErr := agentBay.Context.Delete(deletedContext)
 		if cleanupErr != nil {
 			t.Logf("Warning: Error cleaning up context: %v", cleanupErr)
 		}

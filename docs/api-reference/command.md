@@ -43,7 +43,7 @@ executeCommand(command: string, timeoutMs: number = 1000): Promise<string>
 #### Golang
 
 ```go
-ExecuteCommand(command string, timeoutMs ...int) (string, error)
+ExecuteCommand(command string, timeoutMs ...int) (*CommandResult, error)
 ```
 
 **Parameters:**
@@ -51,8 +51,16 @@ ExecuteCommand(command string, timeoutMs ...int) (string, error)
 - `timeoutMs` (int, optional): The timeout for the command execution in milliseconds. Default is 1000ms.
 
 **Returns:**
-- `string`: The output of the command.
+- `*CommandResult`: A result object containing the command output and RequestID.
 - `error`: An error if the command execution fails.
+
+**CommandResult Structure:**
+```go
+type CommandResult struct {
+    RequestID string // Unique request identifier for debugging
+    Output    string // The output of the command
+}
+```
 
 ## Usage Examples
 
@@ -90,24 +98,26 @@ log(`Command result with custom timeout: ${resultWithTimeout}`);
 
 ```go
 // Create a session
-session, err := client.Create(nil)
+sessionResult, err := client.Create(nil)
 if err != nil {
     // Handle error
 }
+session := sessionResult.Session
 
 // Execute a command with default timeout (1000ms)
 result, err := session.Command.ExecuteCommand("ls -la")
 if err != nil {
     // Handle error
 }
-fmt.Printf("Command result: %s\n", result)
+fmt.Printf("Command result: %s (RequestID: %s)\n", result.Output, result.RequestID)
 
 // Execute a command with custom timeout (2000ms)
 resultWithTimeout, err := session.Command.ExecuteCommand("ls -la", 2000)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Command result with custom timeout: %s\n", resultWithTimeout)
+fmt.Printf("Command result with custom timeout: %s (RequestID: %s)\n", 
+    resultWithTimeout.Output, resultWithTimeout.RequestID)
 ```
 
 ### run_code / RunCode
@@ -151,7 +161,7 @@ runCode(code: string, language: string, timeoutS: number = 300): Promise<string>
 #### Golang
 
 ```go
-RunCode(code string, language string, timeoutS ...int) (string, error)
+RunCode(code string, language string, timeoutS ...int) (*CommandResult, error)
 ```
 
 **Parameters:**
@@ -160,7 +170,7 @@ RunCode(code string, language string, timeoutS ...int) (string, error)
 - `timeoutS` (int, optional): The timeout for the code execution in seconds. Default is 300s.
 
 **Returns:**
-- `string`: The output of the code execution.
+- `*CommandResult`: A result object containing the code execution output and RequestID.
 - `error`: An error if the code execution fails or if an unsupported language is specified.
 
 ## Usage Examples
@@ -219,10 +229,11 @@ log(`JavaScript code execution result: ${resultJs}`);
 
 ```go
 // Create a session
-session, err := client.Create(nil)
+sessionResult, err := client.Create(nil)
 if err != nil {
     // Handle error
 }
+session := sessionResult.Session
 
 // Execute Python code
 pythonCode := `
@@ -234,7 +245,7 @@ result, err := session.Command.RunCode(pythonCode, "python")
 if err != nil {
     // Handle error
 }
-fmt.Printf("Python code execution result: %s\n", result)
+fmt.Printf("Python code execution result: %s (RequestID: %s)\n", result.Output, result.RequestID)
 
 // Execute JavaScript code with custom timeout
 jsCode := `
@@ -246,7 +257,7 @@ resultJs, err := session.Command.RunCode(jsCode, "javascript", 600)
 if err != nil {
     // Handle error
 }
-fmt.Printf("JavaScript code execution result: %s\n", resultJs)
+fmt.Printf("JavaScript code execution result: %s (RequestID: %s)\n", resultJs.Output, resultJs.RequestID)
 ```
 
 ## Related Resources

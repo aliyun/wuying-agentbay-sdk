@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Initialize the AgentBay client
-	agentBay, err := agentbay.NewAgentBay(apiKey)
+	ab, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -25,76 +25,109 @@ func main() {
 
 	// Create a new session with default parameters
 	fmt.Println("\nCreating a new session...")
-	session, err := agentBay.Create(nil)
+	params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	result, err := ab.Create(params)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("\nSession created with ID: %s\n", session.SessionID)
+	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n",
+		result.Session.SessionID, result.RequestID)
+
+	// Store session for convenience
+	session := result.Session
 
 	// List Sessions
 	fmt.Println("\nList sessions...")
-	sessions, err := agentBay.List()
+	listResult, err := ab.List()
 	if err != nil {
 		fmt.Printf("\nError list sessions: %v\n", err)
 		os.Exit(1)
 	}
+
 	// Extract SessionID list and join as string
 	var sessionIDs []string
-	for _, session := range sessions {
-		sessionIDs = append(sessionIDs, session.SessionID)
+	for _, s := range listResult.Sessions {
+		sessionIDs = append(sessionIDs, s.SessionID)
 	}
 	sessionIDsStr := strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nList sessions: %s\n", sessionIDsStr)
+	fmt.Printf("\nList sessions: %s (RequestID: %s)\n",
+		sessionIDsStr, listResult.RequestID)
 
 	// Execute command
 	fmt.Println("\nExecute command...")
-	response, err := session.Command.ExecuteCommand("ls")
+	cmdResult, err := session.Command.ExecuteCommand("ls")
 	if err != nil {
 		fmt.Printf("Error execute command: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Execute command result: %s\n", response)
+	fmt.Printf("Execute command result: %s (RequestID: %s)\n",
+		cmdResult.Output, cmdResult.RequestID)
+
+	// Create a directory to demonstrate filesystem operations
+	fmt.Println("\nCreating a directory...")
+	dirResult, err := session.FileSystem.CreateDirectory("/tmp/test_dir")
+	if err != nil {
+		fmt.Printf("Error creating directory: %v\n", err)
+	} else {
+		fmt.Printf("Directory created successfully (RequestID: %s)\n",
+			dirResult.RequestID)
+	}
+
+	// Write a file
+	fmt.Println("\nWriting a file...")
+	writeResult, err := session.FileSystem.WriteFile("/tmp/test_file.txt", "Hello AgentBay SDK!", "overwrite")
+	if err != nil {
+		fmt.Printf("Error writing file: %v\n", err)
+	} else {
+		fmt.Printf("File written successfully (RequestID: %s)\n",
+			writeResult.RequestID)
+	}
 
 	// Read a file
 	fmt.Println("\nReading a file...")
-	content, err := session.FileSystem.ReadFile("/etc/hosts")
+	fileResult, err := session.FileSystem.ReadFile("/etc/hosts")
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
 	} else {
-		fmt.Printf("File content: %s\n", content)
+		fmt.Printf("File content: %s (RequestID: %s)\n",
+			fileResult.Content, fileResult.RequestID)
 	}
 
-	// Take a screenshot using the UI module
-	fmt.Println("\nTaking a screenshot...")
-	screenshot, err := session.UI.Screenshot()
+	// Get context information
+	fmt.Println("\nGetting context information...")
+	contextResult, err := ab.Context.List()
 	if err != nil {
-		fmt.Printf("Error taking screenshot: %v\n", err)
+		fmt.Printf("Error listing contexts: %v\n", err)
 	} else {
-		fmt.Printf("Screenshot data length: %d bytes\n", len(screenshot))
+		fmt.Printf("Found %d contexts (RequestID: %s)\n",
+			len(contextResult.Contexts), contextResult.RequestID)
 	}
 
 	// Delete the session
 	fmt.Println("\nDeleting the session...")
-	err = agentBay.Delete(session)
+	deleteResult, err := ab.Delete(session)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("Session deleted successfully")
+	fmt.Printf("Session deleted successfully (RequestID: %s)\n",
+		deleteResult.RequestID)
 
 	// List Sessions
 	fmt.Println("\nList sessions...")
-	sessions, err = agentBay.List()
+	listResult, err = ab.List()
 	if err != nil {
 		fmt.Printf("\nError list sessions: %v\n", err)
 		os.Exit(1)
 	}
+
 	// Extract SessionID list and join as string
 	sessionIDs = []string{}
-	for _, session := range sessions {
-		sessionIDs = append(sessionIDs, session.SessionID)
+	for _, s := range listResult.Sessions {
+		sessionIDs = append(sessionIDs, s.SessionID)
 	}
 	sessionIDsStr = strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nList sessions: %s\n", sessionIDsStr)
+	fmt.Printf("\nList sessions: %s (RequestID: %s)\n",
+		sessionIDsStr, listResult.RequestID)
 }

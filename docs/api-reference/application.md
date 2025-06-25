@@ -150,7 +150,7 @@ async getInstalledApps(includeSystemApps: boolean = true, includeStoreApps: bool
 #### Golang
 
 ```go
-func (am *ApplicationManager) GetInstalledApps(includeSystemApps bool, includeStoreApps bool, includeDesktopApps bool) (string, error)
+func (am *ApplicationManager) GetInstalledApps(includeSystemApps bool, includeStoreApps bool, includeDesktopApps bool) (*InstalledAppsResult, error)
 ```
 
 **Parameters:**
@@ -159,8 +159,23 @@ func (am *ApplicationManager) GetInstalledApps(includeSystemApps bool, includeSt
 - `includeDesktopApps` (bool): Whether to include desktop applications.
 
 **Returns:**
-- `string`: A JSON string containing the list of installed applications.
+- `*InstalledAppsResult`: A result object containing the list of installed applications and RequestID.
 - `error`: An error if the operation fails.
+
+**InstalledAppsResult Structure:**
+```go
+type InstalledAppsResult struct {
+    RequestID string         // Unique request identifier for debugging
+    Apps      []*InstalledApp // Array of installed applications
+}
+
+type InstalledApp struct {
+    Name        string // Application name
+    Path        string // Application path
+    Version     string // Application version
+    Description string // Application description
+}
+```
 
 ### start_app / startApp / StartApp
 
@@ -384,12 +399,25 @@ async listVisibleApps(): Promise<Process[]>
 #### Golang
 
 ```go
-func (am *ApplicationManager) ListVisibleApps() (string, error)
+func (am *ApplicationManager) ListVisibleApps() (*VisibleAppsResult, error)
 ```
 
 **Returns:**
-- `string`: A JSON string containing the list of visible processes.
+- `*VisibleAppsResult`: A result object containing the list of visible processes and RequestID.
 - `error`: An error if the operation fails.
+
+**VisibleAppsResult Structure:**
+```go
+type VisibleAppsResult struct {
+    RequestID string     // Unique request identifier for debugging
+    Processes []*Process // Array of visible processes
+}
+
+type Process struct {
+    PName string // Process name
+    PID   int    // Process ID
+}
+```
 
 ## Usage Examples
 
@@ -456,59 +484,48 @@ console.log(`Application stopped: ${success}`);
 
 ```go
 // Create a session
-session, err := client.Create(nil)
+sessionResult, err := client.Create(nil)
 if err != nil {
     // Handle error
 }
+session := sessionResult.Session
 
 // Get installed applications
-appsJSON, err := session.Application.GetInstalledApps(true, false, true)
+appsResult, err := session.Application.GetInstalledApps(true, false, true)
 if err != nil {
     // Handle error
 }
-
-var apps []InstalledApp
-if err := json.Unmarshal([]byte(appsJSON), &apps); err != nil {
-    // Handle error
-}
-for _, app := range apps {
+fmt.Printf("Found %d installed applications (RequestID: %s)\n", len(appsResult.Apps), appsResult.RequestID)
+for _, app := range appsResult.Apps {
     fmt.Printf("Application: %s\n", app.Name)
 }
 
 // Start an application
-processesJSON, err := session.Application.StartApp("/usr/bin/google-chrome-stable", "")
+processesResult, err := session.Application.StartApp("/usr/bin/google-chrome-stable", "")
 if err != nil {
     // Handle error
 }
-
-var processes []Process
-if err := json.Unmarshal([]byte(processesJSON), &processes); err != nil {
-    // Handle error
-}
-for _, process := range processes {
+fmt.Printf("Started %d processes (RequestID: %s)\n", len(processesResult.Processes), processesResult.RequestID)
+for _, process := range processesResult.Processes {
     fmt.Printf("Started process: %s (PID: %d)\n", process.PName, process.PID)
 }
 
 // List visible applications
-visibleAppsJSON, err := session.Application.ListVisibleApps()
+visibleAppsResult, err := session.Application.ListVisibleApps()
 if err != nil {
     // Handle error
 }
-
-var visibleApps []Process
-if err := json.Unmarshal([]byte(visibleAppsJSON), &visibleApps); err != nil {
-    // Handle error
-}
-for _, app := range visibleApps {
+fmt.Printf("Found %d visible applications (RequestID: %s)\n", len(visibleAppsResult.Processes), visibleAppsResult.RequestID)
+for _, app := range visibleAppsResult.Processes {
     fmt.Printf("Visible application: %s (PID: %d)\n", app.PName, app.PID)
 }
 
 // Stop an application by PID
-result, err := session.Application.StopAppByPID(processes[0].PID)
+stopResult, err := session.Application.StopAppByPID(processesResult.Processes[0].PID)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Application stopped: %s\n", result)
+fmt.Printf("Application stopped successfully (RequestID: %s)\n", stopResult.RequestID)
 ```
 
 ## Related Resources

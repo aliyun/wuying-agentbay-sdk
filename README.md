@@ -130,46 +130,43 @@ func main() {
     os.Exit(1)
   }
 
-  // Create a session with specific image
-  params := &agentbay.SessionParams{
-    ImageID: "linux_latest",
-  }
-  session, err := client.Create(params)
+  // Create a session with default parameters
+  result, err := client.Create(nil)
   if err != nil {
     fmt.Printf("Error creating session: %v\n", err)
     os.Exit(1)
   }
 
+  // Access the session and RequestID
+  session := result.Session
+  fmt.Printf("Session created with ID: %s (RequestID: %s)\n", 
+    session.SessionID, result.RequestID)
+
   // Execute a command
-  result, err := session.Command.ExecuteCommand("ls -la")
+  cmdResult, err := session.Command.ExecuteCommand("ls -la")
   if err != nil {
     fmt.Printf("Error executing command: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("Command result: %v\n", result)
+  fmt.Printf("Command result: %s (RequestID: %s)\n", 
+    cmdResult.Output, cmdResult.RequestID)
 
   // Read a file
-  content, err := session.FileSystem.ReadFile("/path/to/file.txt")
+  fileResult, err := session.FileSystem.ReadFile("/path/to/file.txt")
   if err != nil {
     fmt.Printf("Error reading file: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("File content: %s\n", content)
-
-  // Execute code
-  codeResult, err := session.Command.RunCode(`print("Hello, World!")`, "python")
-  if err != nil {
-    fmt.Printf("Error executing code: %v\n", err)
-    os.Exit(1)
-  }
-  fmt.Printf("Code execution result: %s\n", codeResult)
+  fmt.Printf("File content: %s (RequestID: %s)\n", 
+    fileResult.Content, fileResult.RequestID)
 
   // Delete the session when done
-  err = client.Delete(session)
+  deleteResult, err := client.Delete(session)
   if err != nil {
     fmt.Printf("Error deleting session: %v\n", err)
     os.Exit(1)
   }
+  fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
 }
 ```
 
@@ -179,6 +176,28 @@ Authentication is done using an API key, which can be provided in several ways:
 
 1. As a parameter when initializing the SDK
 2. Through environment variables (`AGENTBAY_API_KEY`)
+
+## RequestID Standardization
+
+The SDK provides standardized RequestID in all API responses, which can be used for:
+
+- Debugging API calls
+- Correlating client requests with server-side logs
+- Tracking request history
+- Providing better support through detailed logging
+
+### Golang
+
+All API responses include a RequestID field embedded from the base `ApiResponse` type. This makes it easy to trace and debug operations throughout the SDK.
+
+```go
+// Example showing RequestID usage
+result, err := client.Create(nil)
+if err != nil {
+  // Handle error
+}
+fmt.Printf("Operation completed with RequestID: %s\n", result.RequestID)
+```
 
 ## What's New
 
