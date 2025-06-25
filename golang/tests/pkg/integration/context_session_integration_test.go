@@ -225,18 +225,11 @@ func TestContextSessionManagement(t *testing.T) {
 
 // Create a context from the context result
 func contextFromResult(result *agentbay.ContextResult) *agentbay.Context {
-	if result == nil || result.Data == nil {
+	if result == nil || result.Context == nil {
 		return nil
 	}
 
-	return &agentbay.Context{
-		ID:         result.ContextID,
-		Name:       result.Data["name"].(string),
-		State:      result.Data["state"].(string),
-		CreatedAt:  result.Data["created_at"].(string),
-		LastUsedAt: result.Data["last_used_at"].(string),
-		OSType:     result.Data["os_type"].(string),
-	}
+	return result.Context
 }
 
 // TestContextLifecycle tests the complete lifecycle of a context:
@@ -269,7 +262,7 @@ func TestContextLifecycle(t *testing.T) {
 		len(initialContexts), initialContextsResult.RequestID)
 	for i, ctx := range initialContexts {
 		t.Logf("Context %d: ID=%s, Name=%s, State=%s",
-			i+1, ctx["id"], ctx["name"], ctx["state"])
+			i+1, ctx.ID, ctx.Name, ctx.State)
 	}
 
 	// Step 2: Create a new context
@@ -305,10 +298,10 @@ func TestContextLifecycle(t *testing.T) {
 	// Check if our context is in the list
 	contextFound := false
 	for _, ctx := range updatedContexts {
-		if ctx["name"] == contextName {
+		if ctx.Name == contextName {
 			contextFound = true
 			t.Logf("Found our context in the list: ID=%s, Name=%s, State=%s",
-				ctx["id"], ctx["name"], ctx["state"])
+				ctx.ID, ctx.Name, ctx.State)
 			break
 		}
 	}
@@ -354,10 +347,10 @@ func TestContextLifecycle(t *testing.T) {
 	// Check if our context is still in the list (it shouldn't be)
 	contextFound = false
 	for _, ctx := range finalContexts {
-		if ctx["name"] == contextName {
+		if ctx.Name == contextName {
 			contextFound = true
 			t.Logf("WARNING: Context still exists after deletion: ID=%s, Name=%s",
-				ctx["id"], ctx["name"])
+				ctx.ID, ctx.Name)
 			break
 		}
 	}
