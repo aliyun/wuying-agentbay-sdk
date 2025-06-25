@@ -11,18 +11,11 @@ import (
 
 // Create a context from the context result
 func contextFromResult(result *agentbay.ContextResult) *agentbay.Context {
-	if result == nil || result.Data == nil {
+	if result == nil || result.Context == nil {
 		return nil
 	}
 
-	return &agentbay.Context{
-		ID:         result.ContextID,
-		Name:       result.Data["name"].(string),
-		State:      result.Data["state"].(string),
-		CreatedAt:  result.Data["created_at"].(string),
-		LastUsedAt: result.Data["last_used_at"].(string),
-		OSType:     result.Data["os_type"].(string),
-	}
+	return result.Context
 }
 
 // TestContext_GetNonExistentContext tests attempting to get a context that doesn't exist
@@ -44,7 +37,7 @@ func TestContext_GetNonExistentContext(t *testing.T) {
 	// and we're not allowing creation
 	if err == nil && result != nil && result.ContextID != "" {
 		// If we somehow got a context, make sure to clean it up
-		t.Errorf("Unexpectedly got a context when requesting a non-existent one with AllowCreate=false: %+v", result.Data)
+		t.Errorf("Unexpectedly got a context when requesting a non-existent one with AllowCreate=false: %+v", result.Context)
 
 		context := contextFromResult(result)
 		// Clean up the unexpected context
@@ -211,10 +204,10 @@ func TestContext_List(t *testing.T) {
 	// Verify the list contains our new context
 	var foundInList bool
 	for _, c := range allContexts {
-		if c["id"].(string) == originalContextID {
+		if c.ID == originalContextID {
 			foundInList = true
-			if c["name"].(string) != contextName {
-				t.Errorf("Expected context name in list to be '%s', got '%s'", contextName, c["name"].(string))
+			if c.Name != contextName {
+				t.Errorf("Expected context name in list to be '%s', got '%s'", contextName, c.Name)
 			}
 			break
 		}

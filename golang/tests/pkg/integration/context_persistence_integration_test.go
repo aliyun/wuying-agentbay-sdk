@@ -39,7 +39,7 @@ func TestContextPersistence(t *testing.T) {
 			len(existingContexts), listResult.RequestID)
 		for i, ctx := range existingContexts {
 			t.Logf("Existing context %d: ID=%s, Name=%s, State=%s, OSType=%s",
-				i+1, ctx["id"], ctx["name"], ctx["state"], ctx["os_type"])
+				i+1, ctx.ID, ctx.Name, ctx.State, ctx.OSType)
 		}
 	}
 

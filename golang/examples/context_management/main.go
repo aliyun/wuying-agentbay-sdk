@@ -30,7 +30,7 @@ func main() {
 		fmt.Printf("Found %d contexts (RequestID: %s):\n", len(listResult.Contexts), listResult.RequestID)
 		for _, ctx := range listResult.Contexts {
 			fmt.Printf("- %s (%s): state=%s, os=%s\n",
-				ctx["name"], ctx["id"], ctx["state"], ctx["os_type"])
+				ctx.Name, ctx.ID, ctx.State, ctx.OSType)
 		}
 	}
 
@@ -48,15 +48,12 @@ func main() {
 	}
 
 	fmt.Printf("Got context: %s (%s) with RequestID: %s\n",
-		getResult.Data["name"].(string),
+		getResult.Context.Name,
 		getResult.ContextID,
 		getResult.RequestID)
 
-	// Create a Context object for easier use
-	context := &agentbay.Context{
-		ID:   getResult.ContextID,
-		Name: getResult.Data["name"].(string),
-	}
+	// Use the Context object directly
+	context := getResult.Context
 
 	// Example 3: Create a session with the context
 	fmt.Println("\nExample 3: Creating a session with the context...")

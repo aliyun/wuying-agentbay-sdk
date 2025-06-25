@@ -33,13 +33,13 @@ type Context struct {
 type ContextResult struct {
 	models.ApiResponse
 	ContextID string
-	Data      map[string]interface{}
+	Context   *Context
 }
 
 // ContextListResult wraps context list and RequestID
 type ContextListResult struct {
 	models.ApiResponse
-	Contexts []map[string]interface{}
+	Contexts []*Context
 }
 
 // ContextCreateResult wraps context creation result and RequestID
@@ -91,18 +91,18 @@ func (cs *ContextService) List() (*ContextListResult, error) {
 		fmt.Println("Response from ListContexts:", response.Body)
 	}
 
-	var contextMaps []map[string]interface{}
+	var contexts []*Context
 	if response.Body != nil && response.Body.Data != nil {
 		for _, contextData := range response.Body.Data {
-			contextMap := map[string]interface{}{
-				"id":           tea.StringValue(contextData.Id),
-				"name":         tea.StringValue(contextData.Name),
-				"state":        tea.StringValue(contextData.State),
-				"created_at":   tea.StringValue(contextData.CreateTime),
-				"last_used_at": tea.StringValue(contextData.LastUsedTime),
-				"os_type":      tea.StringValue(contextData.OsType),
+			context := &Context{
+				ID:         tea.StringValue(contextData.Id),
+				Name:       tea.StringValue(contextData.Name),
+				State:      tea.StringValue(contextData.State),
+				CreatedAt:  tea.StringValue(contextData.CreateTime),
+				LastUsedAt: tea.StringValue(contextData.LastUsedTime),
+				OSType:     tea.StringValue(contextData.OsType),
 			}
-			contextMaps = append(contextMaps, contextMap)
+			contexts = append(contexts, context)
 		}
 	}
 
@@ -110,7 +110,7 @@ func (cs *ContextService) List() (*ContextListResult, error) {
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Contexts: contextMaps,
+		Contexts: contexts,
 	}, nil
 }
 
@@ -147,18 +147,18 @@ func (cs *ContextService) Get(name string, create bool) (*ContextResult, error) 
 				RequestID: requestID,
 			},
 			ContextID: "",
-			Data:      nil,
+			Context:   nil,
 		}, nil
 	}
 
-	// Create context data map
-	contextData := map[string]interface{}{
-		"id":           tea.StringValue(response.Body.Data.Id),
-		"name":         tea.StringValue(response.Body.Data.Name),
-		"state":        tea.StringValue(response.Body.Data.State),
-		"created_at":   tea.StringValue(response.Body.Data.CreateTime),
-		"last_used_at": tea.StringValue(response.Body.Data.LastUsedTime),
-		"os_type":      tea.StringValue(response.Body.Data.OsType),
+	// Create context object
+	context := &Context{
+		ID:         tea.StringValue(response.Body.Data.Id),
+		Name:       tea.StringValue(response.Body.Data.Name),
+		State:      tea.StringValue(response.Body.Data.State),
+		CreatedAt:  tea.StringValue(response.Body.Data.CreateTime),
+		LastUsedAt: tea.StringValue(response.Body.Data.LastUsedTime),
+		OSType:     tea.StringValue(response.Body.Data.OsType),
 	}
 
 	return &ContextResult{
@@ -166,7 +166,7 @@ func (cs *ContextService) Get(name string, create bool) (*ContextResult, error) 
 			RequestID: requestID,
 		},
 		ContextID: tea.StringValue(response.Body.Data.Id),
-		Data:      contextData,
+		Context:   context,
 	}, nil
 }
 
