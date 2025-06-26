@@ -93,7 +93,6 @@ describe('Context Persistence Integration', () => {
       const verifyCmd = `cat ${testFilePath}`;
       const verifyOutput = await session1.command?.executeCommand(verifyCmd);
       log(`File content: ${verifyOutput}`);
-
       // Check file permissions
       const modeCmd = `stat -c "%a" ${testFilePath}`;
       const modeOutput = await session1.command?.executeCommand(modeCmd);
@@ -140,7 +139,6 @@ describe('Context Persistence Integration', () => {
       // Verify the file still exists
       const verifyCmd = `cat ${testFilePath}`;
       const verifyOutput = await session2.command?.executeCommand(verifyCmd);
-
       if (!verifyOutput || !verifyOutput.includes(testFileContent)) {
         throw new Error(`File persistence test failed. Expected file to exist with content '${testFileContent}', got: '${verifyOutput}'`);
       }
@@ -163,7 +161,6 @@ describe('Context Persistence Integration', () => {
     // Create a second test context
     const secondContextName = `test-context-2-${Date.now()}`;
     let secondContext: Context | null = null;
-
     try {
       secondContext = await agentBay.context.create(secondContextName);
       log(`Second context created - ID: ${secondContext.id}, Name: ${secondContext.name}, State: ${secondContext.state}, OSType: ${secondContext.osType}`);

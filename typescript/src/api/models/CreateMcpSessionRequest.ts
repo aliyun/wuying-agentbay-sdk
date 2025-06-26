@@ -27,7 +27,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
       externalUserId: 'string',
       imageId: 'string',
       labels: 'string',
-      sessionId: 'string',
+      sessionId: 'string'
     };
   }
 

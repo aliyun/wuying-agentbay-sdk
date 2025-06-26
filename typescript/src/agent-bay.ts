@@ -5,7 +5,7 @@ import { AuthenticationError, APIError } from './exceptions';
 import * as $_client from './api';
 import OpenApi from '@alicloud/openapi-core';
 import { OpenApiUtil, $OpenApiUtil }from '@alicloud/openapi-core';
-import Client from './api/client';
+import { Client } from './api/client';
 import { CreateMcpSessionRequest, CreateMcpSessionResponse, ListSessionRequest } from './api/models/model';
 import { loadConfig } from './config';
 import 'dotenv/config';

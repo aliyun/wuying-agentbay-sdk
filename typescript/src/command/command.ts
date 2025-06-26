@@ -1,6 +1,6 @@
 import { APIError } from '../exceptions';
 import { Session } from '../session';
-import Client from '../api/client';
+import { Client } from '../api/client';
 import { CallMcpToolRequest } from '../api/models/model';
 import { log, logError } from '../utils/logger';
 

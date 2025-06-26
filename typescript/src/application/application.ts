@@ -1,5 +1,5 @@
 import { CallMcpToolRequest } from '../api/models/CallMcpToolRequest';
-import Client from '../api/client';
+import {Client} from '../api/client';
 import { log, logError } from '../utils/logger';
 import { APIError } from '../exceptions';
 

@@ -1,15 +1,16 @@
 // This file is auto-generated, don't edit it
 import * as $dara from '@darabonba/typescript';
-import OpenApi from '@alicloud/openapi-core';
 import { OpenApiUtil, $OpenApiUtil }from '@alicloud/openapi-core';
+import * as OpenApiDefault from "@alicloud/openapi-core";
+const OpenApi = OpenApiDefault.default || OpenApiDefault;
 import { log } from '../utils/logger';
 
 
 import * as $_model from './models/model';
 export * from './models/model';
 
-export default class Client extends OpenApi {
 
+export class Client extends OpenApi {
   constructor(config: $OpenApiUtil.Config) {
     super(config);
     this._signatureAlgorithm = "v2";

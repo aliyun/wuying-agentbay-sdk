@@ -2,6 +2,17 @@
 
 This directory contains the Golang implementation of the Wuying AgentBay SDK.
 
+## Version
+
+**Current Version:** 0.3.0
+
+## Authors
+
+- **Organization:** Alibaba Group
+- **Team:** Wuying AI Team
+- **Email:** wuying-ai-team@aliyun.com
+- **Website:** https://github.com/aliyun/wuying-agentbay-sdk
+
 ## Prerequisites
 
 - Go 1.18 or later
@@ -39,7 +50,7 @@ package main
 import (
 	"fmt"
 	"os"
-	
+
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
@@ -49,13 +60,13 @@ func main() {
 	if apiKey == "" {
 		apiKey = "your_api_key" // Replace with your actual API key
 	}
-	
+
 	client, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	// Create a session
 	session, err := client.Create()
 	if err != nil {
@@ -63,7 +74,7 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("Session created with ID: %s\n", session.SessionID)
-	
+
 	// Execute a command
 	result, err := session.Command.ExecuteCommand("ls -la")
 	if err != nil {
@@ -71,7 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("Command result: %s\n", result)
-	
+
 	// Run code
 	pythonCode := `
 print("Hello, World!")
@@ -83,7 +94,7 @@ print(1 + 1)
 		os.Exit(1)
 	}
 	fmt.Printf("Code execution result: %s\n", codeResult)
-	
+
 	// Read a file
 	content, err := session.FileSystem.ReadFile("/path/to/file.txt")
 	if err != nil {
@@ -91,7 +102,7 @@ print(1 + 1)
 		os.Exit(1)
 	}
 	fmt.Printf("File content: %s\n", content)
-	
+
 	// Clean up
 	err = client.Delete(session)
 	if err != nil {
