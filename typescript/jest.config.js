@@ -2,7 +2,7 @@ module.exports = {
   preset: 'ts-jest/presets/default-esm',
   extensionsToTreatAsEsm: ['.ts'],
     testEnvironment: 'node',
-    testTimeout: 300000, // Set global timeout to 300 seconds for all tests
+    testTimeout: 60000, // Set global timeout to 60 seconds for all tests
     moduleFileExtensions: ['ts', 'js', 'json'],
     globals: {
       'ts-jest': {

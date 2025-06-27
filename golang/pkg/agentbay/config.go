@@ -19,7 +19,7 @@ func DefaultConfig() Config {
 	return Config{
 		RegionID:  "cn-shanghai",
 		Endpoint:  "wuyingai.cn-shanghai.aliyuncs.com",
-		TimeoutMs: 300000,
+		TimeoutMs: 60000,
 	}
 }
 
