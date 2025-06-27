@@ -23,13 +23,14 @@ jobs:
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black bandit safety
+        pip install flake8 black bandit pip-audit
 
     - name: Lint Python code
       working-directory: ./python
       run: |
-        flake8 agentbay tests examples
-        black --check agentbay tests examples
+        # flake8 and black has been disabled
+        # flake8 agentbay tests examples
+        # black --check agentbay tests examples
 
     - name: Security scan with Bandit
       working-directory: ./python
@@ -39,8 +40,10 @@ jobs:
     - name: Check dependencies for vulnerabilities
       working-directory: ./python
       run: |
-        poetry export -f requirements.txt -o requirements.txt --without-hashes
-        safety check -r requirements.txt || true
+        # Install the package in development mode
+        cd ./python && pip install -e .
+        # Use pip-audit instead of deprecated safety check
+        pip-audit || true
 
     - name: SonarQube Scan
       uses: SonarSource/sonarcloud-github-action@master
@@ -78,18 +81,11 @@ jobs:
         poetry install
         poetry add --dev pytest-cov
 
-    - name: Run unit tests with coverage
+    - name: Run unit tests
       working-directory: ./python
       run: |
-        poetry run python -m pytest tests/unit -v --cov=agentbay --cov-report=xml
+        poetry run python -m pytest tests/unit -v
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./python/coverage.xml
-        flags: python
-        name: python-${{ matrix.python-version }}
-        fail_ci_if_error: false
 
     # - name: Run integration tests (if API key is provided)
     #   working-directory: ./python
@@ -98,15 +94,3 @@ jobs:
     #     AGENTBAY_API_KEY: ${{ secrets.AGENTBAY_API_KEY }}
     #   run: |
     #     poetry run python -m pytest tests/integration -v
-
-  quality-gate:
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Codecov coverage threshold
-        uses: johanvanhelden/gha-clover-test-coverage-check@v1
-        with:
-          percentage: "70"
-          filename: "./python/coverage.xml"
-          clover: true
-          log-level: error

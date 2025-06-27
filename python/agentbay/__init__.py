@@ -7,6 +7,7 @@ from .filesystem import FileSystem
 from .window import Window
 from .command import Command
 from .application import ApplicationManager, InstalledApp, Process
+from .session_params import CreateSessionParams
 
 __all__ = [
     "AgentBay",
@@ -22,4 +23,5 @@ __all__ = [
     "ApplicationManager",
     "InstalledApp",
     "Process",
+    "CreateSessionParams",
 ]
