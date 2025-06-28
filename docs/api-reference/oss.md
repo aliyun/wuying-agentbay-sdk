@@ -137,7 +137,7 @@ Downloads a file from a URL anonymously to a local file.
 
 ```python
 def env_init(self, access_key_id: str, access_key_secret: str, securityToken: Optional[str] = None,
-                 endpoint: Optional[str] = None, region: Optional[str] = None) -> str
+                 endpoint: Optional[str] = None, region: Optional[str] = None) -> OSSClientResult
 ```
 
 Creates and initializes OSS environment variables with the specified credentials.
@@ -150,15 +150,19 @@ Creates and initializes OSS environment variables with the specified credentials
 - `region`: The OSS region. If not specified, the default is used.
 
 **Returns:**
-- `str`: The result of the environment initialization operation.
+- `OSSClientResult`: Result object containing client configuration, request ID, success status, and error message if any.
 
-**Raises:**
-- `OssError`: If the environment initialization fails.
+**OSSClientResult Structure:**
+```python
+class OSSClientResult(ApiResponse):
+    def __init__(self, request_id: str = "", success: bool = False,
+                 client_config: Optional[Dict[str, Any]] = None, error_message: str = "")
+```
 
 ### Uploading Files
 
 ```python
-def upload(self, bucket: str, object: str, path: str) -> str
+def upload(self, bucket: str, object: str, path: str) -> OSSUploadResult
 ```
 
 Uploads a local file or directory to OSS.
@@ -169,15 +173,19 @@ Uploads a local file or directory to OSS.
 - `path`: Local file or directory path to upload.
 
 **Returns:**
-- `str`: The result of the upload operation.
+- `OSSUploadResult`: Result object containing upload result, request ID, success status, and error message if any.
 
-**Raises:**
-- `OssError`: If the upload fails.
+**OSSUploadResult Structure:**
+```python
+class OSSUploadResult(ApiResponse):
+    def __init__(self, request_id: str = "", success: bool = False,
+                 content: str = "", error_message: str = "")
+```
 
 ### Anonymous Uploading
 
 ```python
-def upload_anonymous(self, url: str, path: str) -> str
+def upload_anonymous(self, url: str, path: str) -> OSSUploadResult
 ```
 
 Uploads a local file or directory to a URL anonymously.
@@ -187,18 +195,15 @@ Uploads a local file or directory to a URL anonymously.
 - `path`: Local file or directory path to upload.
 
 **Returns:**
-- `str`: The result of the upload operation.
-
-**Raises:**
-- `OssError`: If the upload fails.
+- `OSSUploadResult`: Result object containing upload result, request ID, success status, and error message if any.
 
 ### Downloading Files
 
 ```python
-def download(self, bucket: str, object: str, path: str) -> str
+def download(self, bucket: str, object: str, path: str) -> OSSDownloadResult
 ```
 
-Downloads an object from OSS to a local file.
+Downloads an object from OSS to a local file or directory.
 
 **Parameters:**
 - `bucket`: OSS bucket name.
@@ -206,28 +211,29 @@ Downloads an object from OSS to a local file.
 - `path`: Local path to save the downloaded file.
 
 **Returns:**
-- `str`: The result of the download operation.
+- `OSSDownloadResult`: Result object containing download result, request ID, success status, and error message if any.
 
-**Raises:**
-- `OssError`: If the download fails.
+**OSSDownloadResult Structure:**
+```python
+class OSSDownloadResult(ApiResponse):
+    def __init__(self, request_id: str = "", success: bool = False,
+                 content: str = "", error_message: str = "")
+```
 
 ### Anonymous Downloading
 
 ```python
-def download_anonymous(self, url: str, path: str) -> str
+def download_anonymous(self, url: str, path: str) -> OSSDownloadResult
 ```
 
-Downloads a file from a URL anonymously to a local file.
+Downloads a file from a URL anonymously to a local file path.
 
 **Parameters:**
 - `url`: The HTTP/HTTPS URL to download the file from.
-- `path`: The full local file path to save the downloaded file.
+- `path`: Local file or directory path to download to.
 
 **Returns:**
-- `str`: The result of the download operation.
-
-**Raises:**
-- `OssError`: If the download fails.
+- `OSSDownloadResult`: Result object containing download content, request ID, success status, and error message if any.
 
 ## TypeScript
 

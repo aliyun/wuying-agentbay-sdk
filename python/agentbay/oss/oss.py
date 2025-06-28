@@ -1,9 +1,69 @@
 import json
 from typing import Optional, Dict, Any
 
-from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import OssError, AgentBayError
+from agentbay.model import ApiResponse
 from agentbay.api.base_service import BaseService
+
+
+class OSSClientResult(ApiResponse):
+    """Result of OSS client creation operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 client_config: Optional[Dict[str, Any]] = None, error_message: str = ""):
+        """
+        Initialize an OSSClientResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            client_config (Dict[str, Any], optional): OSS client configuration. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.client_config = client_config or {}
+        self.error_message = error_message
+
+
+class OSSUploadResult(ApiResponse):
+    """Result of OSS upload operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 content: str = "", error_message: str = ""):
+        """
+        Initialize an OSSUploadResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            content (str, optional): Result of the upload operation. Defaults to "".
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.content = content
+        self.error_message = error_message
+
+
+class OSSDownloadResult(ApiResponse):
+    """Result of OSS download operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 content: str = "", error_message: str = ""):
+        """
+        Initialize an OSSDownloadResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            content (string, optional):  Defaults to "Download success"
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.content = content
+        self.error_message = error_message
 
 
 class Oss(BaseService):
@@ -36,77 +96,6 @@ class Oss(BaseService):
             return OssError(str(e))
         return e
 
-    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
-        """
-        Internal helper to call MCP tool and handle errors.
-
-        Args:
-            name (str): The name of the tool to call.
-            args (Dict[str, Any]): The arguments to pass to the tool.
-
-        Returns:
-            Any: The response from the tool.
-
-        Raises:
-            OssError: If the tool call fails.
-        """
-        try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name=name,
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise OssError("Invalid response format")
-            body = response_map.get("body", {})
-            print("response_map =", response_map)
-            if not body:
-                raise OssError("Invalid response body")
-            return self._parse_response_body(body)
-        except (KeyError, TypeError, ValueError) as e:
-            raise OssError(f"Failed to parse MCP tool response: {e}")
-        except Exception as e:
-            raise OssError(f"Failed to call MCP tool {name}: {e}")
-
-    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
-        """
-        Parses the response body from the MCP tool.
-
-        Args:
-            body (Dict[str, Any]): The response body.
-
-        Returns:
-            Any: The parsed content.
-
-        Raises:
-            OssError: If the response contains errors or is invalid.
-        """
-        try:
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise OssError(f"Error in response: {error_message}")
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise OssError("No data field in response")
-            content = response_data.get("content", [])
-            if not content or not isinstance(content, list):
-                raise OssError("No content found in response")
-            content_item = content[0]
-            json_text = content_item.get("text")
-            return json_text
-        except Exception as e:
-            raise OssError(f"{e}")
-
     def env_init(
         self,
         access_key_id: str,
@@ -114,21 +103,19 @@ class Oss(BaseService):
         securityToken: Optional[str] = None,
         endpoint: Optional[str] = None,
         region: Optional[str] = None,
-    ) -> str:
+    ) -> OSSClientResult:
         """
         Create an OSS client with the provided credentials.
 
         Args:
             access_key_id: The Access Key ID for OSS authentication.
             access_key_secret: The Access Key Secret for OSS authentication.
+            securityToken: Optional security token for temporary credentials.
             endpoint: The OSS service endpoint. If not specified, the default is used.
             region: The OSS region. If not specified, the default is used.
 
         Returns:
-            str: The result of the client creation operation.
-
-        Raises:
-            OssError: If the client creation fails.
+            OSSClientResult: Result object containing client configuration and error message if any.
         """
         try:
             args = {
@@ -143,19 +130,23 @@ class Oss(BaseService):
             if region:
                 args["region"] = region
 
-            response = self._call_mcp_tool("oss_env_init", args)
-            print("response =", response)
+            result = self._call_mcp_tool("oss_env_init", args)
+            print("response =", result)
 
-            if not isinstance(response, str):
-                raise OssError("result field not found or not a string")
-
-            return response
-        except OssError:
-            raise
+            if result.success:
+                try:
+                    client_config = result.data
+                    return OSSClientResult(request_id=result.request_id, success=True, client_config=client_config)
+                except json.JSONDecodeError:
+                    return OSSClientResult(request_id=result.request_id, success=False, error_message="Failed to parse client configuration JSON")
+            else:
+                return OSSClientResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to initialize OSS environment")
+        except AgentBayError as e:
+            return OSSClientResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise OssError(f"Failed to create OSS client: {e}")
+            return OSSClientResult(request_id="", success=False, error_message=f"Failed to initialize OSS environment: {e}")
 
-    def upload(self, bucket: str, object: str, path: str) -> str:
+    def upload(self, bucket: str, object: str, path: str) -> OSSUploadResult:
         """
         Upload a local file or directory to OSS.
 
@@ -165,27 +156,24 @@ class Oss(BaseService):
             path: Local file or directory path to upload.
 
         Returns:
-            str: The result of the upload operation.
-
-        Raises:
-            OssError: If the upload fails.
+            OSSUploadResult: Result object containing upload result and error message if any.
         """
         try:
             args = {"bucket": bucket, "object": object, "path": path}
 
-            response = self._call_mcp_tool("oss_upload", args)
-            print("response =", response)
+            result = self._call_mcp_tool("oss_upload", args)
+            print("response =", result)
 
-            if not isinstance(response, str):
-                raise OssError("result field not found or not a string")
-
-            return response
-        except OssError:
-            raise
+            if result.success:
+                return OSSUploadResult(request_id=result.request_id, success=True, content=result.data)
+            else:
+                return OSSUploadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to upload to OSS")
+        except AgentBayError as e:
+            return OSSUploadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise OssError(f"Failed to upload to OSS: {e}")
+            return OSSUploadResult(request_id="", success=False, error_message=f"Failed to upload to OSS: {e}")
 
-    def upload_anonymous(self, url: str, path: str) -> str:
+    def upload_anonymous(self, url: str, path: str) -> OSSUploadResult:
         """
         Upload a local file or directory to a URL anonymously.
 
@@ -194,81 +182,72 @@ class Oss(BaseService):
             path: Local file or directory path to upload.
 
         Returns:
-            str: The result of the upload operation.
-
-        Raises:
-            OssError: If the upload fails.
+            OSSUploadResult: Result object containing upload result and error message if any.
         """
         try:
             args = {"url": url, "path": path}
 
-            response = self._call_mcp_tool("oss_upload_annon", args)
-            print("response =", response)
+            result = self._call_mcp_tool("oss_upload_annon", args)
+            print("response =", result)
 
-            if not isinstance(response, str):
-                raise OssError("result field not found or not a string")
-
-            return response
-        except OssError:
-            raise
+            if result.success:
+                return OSSUploadResult(request_id=result.request_id, success=True, content=result.data)
+            else:
+                return OSSUploadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to upload anonymously")
+        except AgentBayError as e:
+            return OSSUploadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise OssError(f"Failed to upload anonymously: {e}")
+            return OSSUploadResult(request_id="", success=False, error_message=f"Failed to upload anonymously: {e}")
 
-    def download(self, bucket: str, object: str, path: str) -> str:
+    def download(self, bucket: str, object: str, path: str) -> OSSDownloadResult:
         """
-        Download an object from OSS to a local file.
+        Download an object from OSS to a local file or directory.
 
         Args:
             bucket: OSS bucket name.
             object: Object key in OSS.
-            path: Local path to save the downloaded file.
+            path: Local file or directory path to download to.
 
         Returns:
-            str: The result of the download operation.
-
-        Raises:
-            OssError: If the download fails.
+            OSSDownloadResult: Result object containing download status and error message if any.
         """
         try:
             args = {"bucket": bucket, "object": object, "path": path}
 
-            response = self._call_mcp_tool("oss_download", args)
-            print("response =", response)
+            result = self._call_mcp_tool("oss_download", args)
+            print("response =", result)
 
-            if not isinstance(response, str):
-                raise OssError("result field not found or not a string")
-
-            return response
-        except OssError:
-            raise
+            if result.success:
+                return OSSDownloadResult(request_id=result.request_id, success=True, content=result.data)
+            else:
+                return OSSDownloadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to download from OSS")
+        except AgentBayError as e:
+            return OSSDownloadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise OssError(f"Failed to download from OSS: {e}")
+            return OSSDownloadResult(request_id="", success=False, error_message=f"Failed to download from OSS: {e}")
 
-    def download_anonymous(self, url: str, path: str) -> str:
+    def download_anonymous(self, url: str, path: str) -> OSSDownloadResult:
         """
-        Download a file from a URL anonymously to a local file.
+        Download a file from a URL anonymously to a local file path.
 
         Args:
             url: The HTTP/HTTPS URL to download the file from.
-            path: The full local file path to save the downloaded file.
+            path: Local file or directory path to download to.
 
         Returns:
-            str: The result of the download operation.
-
-        Raises:
-            OssError: If the download fails.
+            OSSDownloadResult: Result object containing download status and error message if any.
         """
         try:
             args = {"url": url, "path": path}
 
-            response = self._call_mcp_tool("oss_download_annon", args)
-            print("response =", response)
+            result = self._call_mcp_tool("oss_download_annon", args)
+            print("response =", result)
 
-            if not isinstance(response, str):
-                raise OssError("result field not found or not a string")
-
-            return response
-        except OssError:
-            raise
+            if result.success:
+                return OSSDownloadResult(request_id=result.request_id, success=True, content=result.data)
+            else:
+                return OSSDownloadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to download anonymously")
+        except AgentBayError as e:
+            return OSSDownloadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise OssError(f"Failed to download anonymously: {e}")
+            return OSSDownloadResult(request_id="", success=False, error_message=f"Failed to download anonymously: {e}")

@@ -1,4 +1,5 @@
-from typing import List, Optional, Set
+from typing import List, Optional
+from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
 
 from agentbay.api.models import (
     DeleteContextRequest,
@@ -50,6 +51,42 @@ class Context:
         self.os_type = os_type
 
 
+class ContextResult(ApiResponse):
+    """Result of operations returning a Context."""
+
+    def __init__(self, request_id: str = "", success: bool = False, context_id: str = "", context: Optional[Context] = None):
+        """
+        Initialize a ContextResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            context_id (str, optional): The unique identifier of the context.
+            context (Optional[Context], optional): The Context object.
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.context_id = context_id
+        self.context = context
+
+
+class ContextListResult(ApiResponse):
+    """Result of operations returning a list of Contexts."""
+
+    def __init__(self, request_id: str = "", success: bool = False, contexts: Optional[List[Context]] = None):
+        """
+        Initialize a ContextListResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            contexts (Optional[List[Context]], optional): The list of context objects.
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.contexts = contexts if contexts is not None else []
+
+
 class ContextService:
     """
     Provides methods to manage persistent contexts in the AgentBay cloud environment.
@@ -64,12 +101,12 @@ class ContextService:
         """
         self.agent_bay = agent_bay
 
-    def list(self) -> List[Context]:
+    def list(self) -> ContextListResult:
         """
         Lists all available contexts.
 
         Returns:
-            List[Context]: A list of Context objects.
+            ContextListResult: A result object containing the list of Context objects and request ID.
         """
         try:
             # Log API request
@@ -84,27 +121,59 @@ class ContextService:
             # Log API response
             print(f"Response from ListContexts: {response}")
 
-            contexts = []
+            # Extract request ID
+            request_id = extract_request_id(response)
 
-            response_data = response.to_map().get("body", {}).get("Data", [])
-            if response_data:
-                for context_data in response_data:
-                    context = Context(
-                        id=context_data.get("Id"),
-                        name=context_data.get("Name"),
-                        state=context_data.get("State"),
-                        created_at=context_data.get("CreateTime"),
-                        last_used_at=context_data.get("LastUsedTime"),
-                        os_type=context_data.get("OsType"),
+            # Validate response
+            try:
+                response_map = response.to_map()
+                if not isinstance(response_map, dict):
+                    return ContextListResult(
+                        request_id=request_id,
+                        success=False,
+                        contexts=[]
                     )
-                    contexts.append(context)
 
-            return contexts
+                body = response_map.get("body", {})
+                if not isinstance(body, dict):
+                    return ContextListResult(
+                        request_id=request_id,
+                        success=False,
+                        contexts=[]
+                    )
+
+                contexts = []
+                response_data = body.get("Data", [])
+                if response_data and isinstance(response_data, list):
+                    for context_data in response_data:
+                        if isinstance(context_data, dict):
+                            context = Context(
+                                id=context_data.get("Id", ""),
+                                name=context_data.get("Name", ""),
+                                state=context_data.get("State", ""),
+                                created_at=context_data.get("CreateTime"),
+                                last_used_at=context_data.get("LastUsedTime"),
+                                os_type=context_data.get("OsType"),
+                            )
+                            contexts.append(context)
+
+                return ContextListResult(
+                    request_id=request_id,
+                    success=True,
+                    contexts=contexts
+                )
+            except Exception as e:
+                print(f"Error parsing ListContexts response: {e}")
+                return ContextListResult(
+                    request_id=request_id,
+                    success=False,
+                    contexts=[]
+                )
         except Exception as e:
             print(f"Error calling ListContexts: {e}")
             raise AgentBayError(f"Failed to list contexts: {e}")
 
-    def get(self, name: str, create: bool = False) -> Optional[Context]:
+    def get(self, name: str, create: bool = False) -> ContextResult:
         """
         Gets a context by name. Optionally creates it if it doesn't exist.
 
@@ -113,7 +182,7 @@ class ContextService:
             create (bool, optional): Whether to create the context if it doesn't exist. Defaults to False.
 
         Returns:
-            Optional[Context]: The Context object if found or created, None if not found and create is False.
+            ContextResult: The ContextResult object containing the Context and request ID.
         """
         try:
             # Log API request
@@ -130,23 +199,54 @@ class ContextService:
             # Log API response
             print(f"Response from GetContext: {response}")
 
-            context_id = response.to_map().get("body", {}).get("Data", {}).get("Id")
-            if not context_id:
-                return None
+            # Extract request ID
+            request_id = extract_request_id(response)
 
-            # Get the full context details
-            contexts = self.list()
-            for context in contexts:
-                if context.id == context_id:
-                    return context
+            try:
+                response_map = response.to_map()
 
-            # If we couldn't find the context in the list, create a basic one
-            return Context(id=context_id, name=name)
+                if not isinstance(response_map, dict) or \
+                   not isinstance(response_map.get("body", {}), dict) or \
+                   not isinstance(response_map.get("body", {}).get("Data", {}), dict):
+                    return ContextResult(
+                        request_id=request_id,
+                        success=False,
+                        context_id="",
+                        context=None
+                    )
+
+                data = response_map.get("body", {}).get("Data", {})
+                context_id = data.get("Id", "")
+
+                # Create Context object
+                context = Context(
+                    id=context_id,
+                    name=data.get("Name", "") or name,
+                    state=data.get("State", "") or "available",
+                    created_at=data.get("CreateTime"),
+                    last_used_at=data.get("LastUsedTime"),
+                    os_type=data.get("OsType")
+                )
+
+                return ContextResult(
+                    request_id=request_id,
+                    success=True,
+                    context_id=context_id,
+                    context=context
+                )
+            except Exception as e:
+                print(f"Error parsing GetContext response: {e}")
+                return ContextResult(
+                    request_id=request_id,
+                    success=False,
+                    context_id="",
+                    context=None
+                )
         except Exception as e:
             print(f"Error calling GetContext: {e}")
             raise AgentBayError(f"Failed to get context {name}: {e}")
 
-    def create(self, name: str) -> Context:
+    def create(self, name: str) -> ContextResult:
         """
         Creates a new context with the given name.
 
@@ -154,11 +254,11 @@ class ContextService:
             name (str): The name for the new context.
 
         Returns:
-            Context: The created Context object.
+            ContextResult: The created ContextResult object with request ID.
         """
         return self.get(name, create=True)
 
-    def update(self, context: Context) -> bool:
+    def update(self, context: Context) -> OperationResult:
         """
         Updates the specified context.
 
@@ -166,7 +266,7 @@ class ContextService:
             context (Context): The Context object to update.
 
         Returns:
-            bool: True if the update was successful, False otherwise.
+            OperationResult: Result object containing success status and request ID.
         """
         try:
             # Log API request
@@ -183,30 +283,51 @@ class ContextService:
             # Log API response
             print(f"Response from ModifyContext: {response}")
 
-            # Validate response
-            response_map = response.to_map()
-            if not response_map:
-                raise AgentBayError("Invalid response format")
+            # Extract request ID
+            request_id = extract_request_id(response)
 
-            body = response_map.get("body", {})
-            if not body:
-                raise AgentBayError("Invalid response body")
+            try:
+                response_map = response.to_map() if hasattr(response, 'to_map') else {}
 
-            # Check for success
-            if not body.get("Success"):
-                raise AgentBayError(f"Update failed: {body.get('Code')}")
+                if not isinstance(response_map, dict) or not isinstance(response_map.get("body", {}), dict):
+                    return OperationResult(
+                        request_id=request_id,
+                        success=False,
+                        error_message="Invalid response format"
+                    )
 
-            return body.get("Success", False)
+                body = response_map.get("body", {})
+
+                # Check for success
+                success = body.get("Success", False)
+                error_message = "" if success else f"Update failed: {body.get('Code')}"
+
+                return OperationResult(
+                    request_id=request_id,
+                    success=success,
+                    data=True if success else False,
+                    error_message=error_message
+                )
+            except Exception as e:
+                print(f"Error parsing ModifyContext response: {e}")
+                return OperationResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message=f"Failed to parse response: {str(e)}"
+                )
         except Exception as e:
             print(f"Error calling ModifyContext: {e}")
             raise AgentBayError(f"Failed to update context {context.id}: {e}")
 
-    def delete(self, context: Context) -> None:
+    def delete(self, context: Context) -> OperationResult:
         """
         Deletes the specified context.
 
         Args:
             context (Context): The Context object to delete.
+
+        Returns:
+            OperationResult: Result object containing success status and request ID.
         """
         try:
             # Log API request
@@ -220,6 +341,40 @@ class ContextService:
 
             # Log API response
             print(f"Response from DeleteContext: {response}")
+
+            # Extract request ID
+            request_id = extract_request_id(response)
+
+            try:
+                response_map = response.to_map() if hasattr(response, 'to_map') else {}
+
+                # Check response format
+                if not isinstance(response_map, dict) or not isinstance(response_map.get("body", {}), dict):
+                    return OperationResult(
+                        request_id=request_id,
+                        success=False,
+                        error_message="Invalid response format"
+                    )
+
+                body = response_map.get("body", {})
+
+                # Check for success
+                success = body.get("Success", False)
+                error_message = "" if success else f"Delete failed: {body.get('Code')}"
+
+                return OperationResult(
+                    request_id=request_id,
+                    success=success,
+                    data=True if success else False,
+                    error_message=error_message
+                )
+            except Exception as e:
+                print(f"Error parsing DeleteContext response: {e}")
+                return OperationResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message=f"Failed to parse response: {str(e)}"
+                )
         except Exception as e:
             print(f"Error calling DeleteContext: {e}")
             raise AgentBayError(f"Failed to delete context {context.id}: {e}")
