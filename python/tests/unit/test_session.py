@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from agentbay.session import Session
+from agentbay.model import DeleteResult, extract_request_id
 
 
 class DummyAgentBay:
@@ -33,28 +34,40 @@ class TestSession(unittest.TestCase):
     def test_get_session_id(self):
         self.assertEqual(self.session.get_session_id(), "test_session_id")
 
+    @patch("agentbay.session.extract_request_id")
     @patch("agentbay.session.ReleaseMcpSessionRequest")
-    def test_delete_success(self, MockReleaseMcpSessionRequest):
+    def test_delete_success(self, MockReleaseMcpSessionRequest, mock_extract_request_id):
         mock_request = MagicMock()
+        mock_response = MagicMock()
         MockReleaseMcpSessionRequest.return_value = mock_request
-        self.agent_bay.client.release_mcp_session.return_value = "deleted"
-        self.session.delete()
+        mock_extract_request_id.return_value = "request-123"
+        self.agent_bay.client.release_mcp_session.return_value = mock_response
+
+        result = self.session.delete()
+        self.assertIsInstance(result, DeleteResult)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.success)
+
         MockReleaseMcpSessionRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
 
+    @patch("agentbay.session.extract_request_id")
     @patch("agentbay.session.ReleaseMcpSessionRequest")
-    def test_delete_failure(self, MockReleaseMcpSessionRequest):
+    def test_delete_failure(self, MockReleaseMcpSessionRequest, mock_extract_request_id):
         mock_request = MagicMock()
         MockReleaseMcpSessionRequest.return_value = mock_request
         self.agent_bay.client.release_mcp_session.side_effect = Exception("Test error")
-        with self.assertRaises(Exception) as context:
-            self.session.delete()
+
+        result = self.session.delete()
+        self.assertIsInstance(result, DeleteResult)
+        self.assertFalse(result.success)
         self.assertEqual(
-            str(context.exception),
+            result.error_message,
             f"Failed to delete session {self.session_id}: Test error",
         )
+
         MockReleaseMcpSessionRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )

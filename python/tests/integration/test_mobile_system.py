@@ -4,32 +4,42 @@ import unittest
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.ui import KeyCode
+from agentbay.model import InstalledAppListResult, ProcessListResult, UIElementListResult
 from agentbay.session_params import CreateSessionParams
 
 
 class TestMobileSystemIntegration(unittest.TestCase):
-    def setUp(self):
+    agent_bay = None
+    session = None
+    ui = None
+    application = None
+
+    @classmethod
+    def setUpClass(cls):
         """
         Set up the test environment by creating a session and initializing ui model.
         """
         api_key = os.getenv(
             "AGENTBAY_API_KEY", "your_api_key"
         )  # Replace with your actual API key
-        self.agent_bay = AgentBay(api_key=api_key)
+        cls.agent_bay = AgentBay(api_key=api_key)
         params = CreateSessionParams(
             image_id="mobile_latest",
         )
-        self.session = self.agent_bay.create(params)
-        self.ui = self.session.ui
-        self.application = self.session.application
-        time.sleep(3)
+        result = cls.agent_bay.create(params)
+        cls.session = result.session
+        cls.ui = cls.session.ui
+        cls.application = cls.session.application
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         """
         Clean up the test environment by deleting the session.
         """
         try:
-            self.agent_bay.delete(self.session)
+            if cls.session:
+                cls.agent_bay.delete(cls.session)
+                print("Session deleted successfully")
         except AgentBayError as e:
             print(f"Failed to delete session: {e}")
 
@@ -38,10 +48,13 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving installed applications.
         """
         try:
-            installed_apps = self.application.get_installed_apps(
+            result = self.__class__.application.get_installed_apps(
                 start_menu=True, desktop=False, ignore_system_apps=True
             )
-            self.assertIsInstance(installed_apps, list)
+            self.assertIsInstance(result, InstalledAppListResult)
+            self.assertTrue(result.success, f"Failed to get installed apps: {result.error_message}")
+
+            installed_apps = result.data
             print("\nInstalled Applications:")
             for app in installed_apps:
                 print(f"Name: {app.name}, Start Command: {app.start_cmd}")
@@ -57,13 +70,17 @@ class TestMobileSystemIntegration(unittest.TestCase):
             start_cmd = (
                 "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
             )
-            start_result = self.application.start_app(start_cmd)
-            self.assertIsInstance(start_result, list)
-            print("\nStart App Result:", start_result)
+            start_result = self.__class__.application.start_app(start_cmd)
+            self.assertIsInstance(start_result, ProcessListResult)
+            self.assertTrue(start_result.success, f"Failed to start app: {start_result.error_message}")
+
+            processes = start_result.data
+            print("\nStart App Result:", processes)
 
             # Stop the application
             stop_cmd = "am force-stop com.autonavi.minimap"
-            self.application.stop_app_by_cmd(stop_cmd)
+            stop_result = self.__class__.application.stop_app_by_cmd(stop_cmd)
+            self.assertTrue(stop_result.success, f"Failed to stop app: {stop_result.error_message}")
             print("\nApplication stopped successfully.")
         except AgentBayError as e:
             self.fail(f"start_and_stop_app failed with error: {e}")
@@ -73,8 +90,11 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving clickable UI elements.
         """
         try:
-            clickable_elements = self.ui.get_clickable_ui_elements(timeout_ms=1000)
-            self.assertIsInstance(clickable_elements, list)
+            result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=1000)
+            self.assertIsInstance(result, UIElementListResult)
+            self.assertTrue(result.success, f"Failed to get clickable UI elements: {result.error_message}")
+
+            clickable_elements = result.elements
             print("\nClickable UI Elements:")
             for element in clickable_elements:
                 print(element)
@@ -87,7 +107,8 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             x, y = 100, 200
-            self.ui.click(x, y, button="left")
+            result = self.__class__.ui.click(x, y, button="left")
+            self.assertTrue(result.success, f"Failed to click: {result.error_message}")
             print(f"\nClicked on coordinates ({x}, {y}) successfully.")
         except AgentBayError as e:
             self.fail(f"click failed with error: {e}")
@@ -97,7 +118,8 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test sending a key press event.
         """
         try:
-            self.ui.send_key(KeyCode.HOME)
+            result = self.__class__.ui.send_key(KeyCode.HOME)
+            self.assertTrue(result.success, f"Failed to send key: {result.error_message}")
             print("\nSent HOME key successfully.")
         except AgentBayError as e:
             self.fail(f"send_key failed with error: {e}")
@@ -108,7 +130,8 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             start_x, start_y, end_x, end_y, duration_ms = 100, 200, 300, 400, 500
-            self.ui.swipe(start_x, start_y, end_x, end_y, duration_ms)
+            result = self.__class__.ui.swipe(start_x, start_y, end_x, end_y, duration_ms)
+            self.assertTrue(result.success, f"Failed to swipe: {result.error_message}")
             print(
                 f"\nSwipe performed successfully from ({start_x}, {start_y}) to ({end_x}, {end_y}) in {duration_ms}ms."
             )
@@ -121,7 +144,8 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             text = "Hello, world!"
-            self.ui.input_text(text)
+            result = self.__class__.ui.input_text(text)
+            self.assertTrue(result.success, f"Failed to input text: {result.error_message}")
             print(f"\nInput text '{text}' successfully.")
         except AgentBayError as e:
             self.fail(f"input_text failed with error: {e}")
@@ -131,8 +155,11 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving all UI elements.
         """
         try:
-            ui_elements = self.ui.get_all_ui_elements(timeout_ms=1000)
-            self.assertIsInstance(ui_elements, list)
+            result = self.__class__.ui.get_all_ui_elements(timeout_ms=1000)
+            self.assertIsInstance(result, UIElementListResult)
+            self.assertTrue(result.success, f"Failed to get all UI elements: {result.error_message}")
+
+            ui_elements = result.elements
             print("\nAll UI Elements:")
             for element in ui_elements:
                 print(element)
@@ -144,9 +171,11 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test taking a screenshot.
         """
         try:
-            screenshot = self.ui.screenshot()
-            self.assertIsInstance(screenshot, str)
-            print(f"\nScreenshot saved to: {screenshot}")
+            result = self.__class__.ui.screenshot()
+            self.assertTrue(result.success, f"Failed to take screenshot: {result.error_message}")
+            screenshot_path = result.data
+            self.assertIsInstance(screenshot_path, str)
+            print(f"\nScreenshot saved to: {screenshot_path}")
         except AgentBayError as e:
             self.fail(f"screenshot failed with error: {e}")
 

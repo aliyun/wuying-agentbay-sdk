@@ -8,6 +8,11 @@ from agentbay.api.models import (
     GetLinkRequest,
     GetLinkResponse,
 )
+from agentbay.model import (
+    DeleteResult,
+    OperationResult,
+    extract_request_id
+)
 from agentbay.application import ApplicationManager
 from agentbay.command import Command
 from agentbay.exceptions import SessionError
@@ -74,24 +79,42 @@ class Session:
         """Return the session_id for this session."""
         return self.session_id
 
-    def delete(self):
-        """Delete this session."""
+    def delete(self) -> DeleteResult:
+        """
+        Delete this session.
+
+        Returns:
+            DeleteResult: Result indicating success or failure and request ID.
+
+        Raises:
+            SessionError: If the operation fails.
+        """
         try:
             request = ReleaseMcpSessionRequest(
                 authorization=f"Bearer {self.get_api_key()}", session_id=self.session_id
             )
             response = self.get_client().release_mcp_session(request)
-            print(response)
+
+            # Extract request ID
+            request_id = extract_request_id(response)
+
+            # Return success result with request ID
+            return DeleteResult(request_id=request_id, success=True)
+
         except Exception as e:
             print("Error calling release_mcp_session:", e)
+            # In case of error, return failure result with error message
             raise SessionError(f"Failed to delete session {self.session_id}: {e}")
 
-    def set_labels(self, labels: Dict[str, str]) -> None:
+    def set_labels(self, labels: Dict[str, str]) -> OperationResult:
         """
         Sets the labels for this session.
 
         Args:
             labels (Dict[str, str]): The labels to set for the session.
+
+        Returns:
+            OperationResult: Result indicating success or failure with request ID.
 
         Raises:
             SessionError: If the operation fails.
@@ -107,19 +130,24 @@ class Session:
             )
 
             response = self.get_client().set_label(request)
-            print(response)
+
+            # Extract request ID
+            request_id = extract_request_id(response)
+
+            return OperationResult(request_id=request_id, success=True)
+
         except Exception as e:
             print("Error calling set_label:", e)
             raise SessionError(
                 f"Failed to set labels for session {self.session_id}: {e}"
             )
 
-    def get_labels(self) -> Dict[str, str]:
+    def get_labels(self) -> OperationResult:
         """
         Gets the labels for this session.
 
         Returns:
-            Dict[str, str]: The labels for the session.
+            OperationResult: Result containing the labels as data and request ID.
 
         Raises:
             SessionError: If the operation fails.
@@ -131,27 +159,32 @@ class Session:
 
             response = self.get_client().get_label(request)
 
+            # Extract request ID
+            request_id = extract_request_id(response)
+
             # Extract labels from response
             labels_json = (
                 response.to_map().get("body", {}).get("Data", {}).get("Labels")
             )
 
+            labels = {}
             if labels_json:
-                return json.loads(labels_json)
+                labels = json.loads(labels_json)
 
-            return {}
+            return OperationResult(request_id=request_id, success=True, data=labels)
+
         except Exception as e:
             print("Error calling get_label:", e)
             raise SessionError(
                 f"Failed to get labels for session {self.session_id}: {e}"
             )
 
-    def info(self) -> SessionInfo:
+    def info(self) -> OperationResult:
         """
         Gets information about this session.
 
         Returns:
-            SessionInfo: Information about the session.
+            OperationResult: Result containing the session information as data and request ID.
 
         Raises:
             SessionError: If the operation fails.
@@ -166,6 +199,9 @@ class Session:
 
             response = self.get_client().get_mcp_resource(request)
             print(f"Response from GetMcpResource: {response}")
+
+            # Extract request ID
+            request_id = extract_request_id(response)
 
             # Extract session info from response
             response_map = response.to_map()
@@ -195,7 +231,8 @@ class Session:
                     session_info.resource_id = desktop_info["ResourceId"]
                 if "ResourceType" in desktop_info:
                     session_info.resource_type = desktop_info["ResourceType"]
-            return session_info
+
+            return OperationResult(request_id=request_id, success=True, data=session_info)
 
         except Exception as e:
             print("Error calling GetMcpResource:", e)
@@ -205,7 +242,7 @@ class Session:
 
     def get_link(
         self, protocol_type: Optional[str] = None, port: Optional[int] = None
-    ) -> str:
+    ) -> OperationResult:
         """
         Get a link associated with the current session.
 
@@ -214,7 +251,7 @@ class Session:
             port (Optional[int], optional): The port to use for the link. Defaults to None.
 
         Returns:
-            str: The string data extracted from the GetLinkResponse.
+            OperationResult: Result containing the link as data and request ID.
 
         Raises:
             SessionError: If the request fails or the response is invalid.
@@ -227,6 +264,10 @@ class Session:
                 port=port,
             )
             response: GetLinkResponse = self.agent_bay.client.get_link(request)
+
+            # Extract request ID
+            request_id = extract_request_id(response)
+
             response_map = response.to_map()
 
             if not isinstance(response_map, dict):
@@ -246,7 +287,8 @@ class Session:
                     "Invalid response format: 'Data' field is not a string"
                 )
 
-            return data
+            return OperationResult(request_id=request_id, success=True, data=data)
+
         except SessionError:
             raise
         except Exception as e:
@@ -254,7 +296,7 @@ class Session:
 
     async def get_link_async(
         self, protocol_type: Optional[str] = None, port: Optional[int] = None
-    ) -> str:
+    ) -> OperationResult:
         """
         Asynchronously get a link associated with the current session.
 
@@ -263,7 +305,7 @@ class Session:
             port (Optional[int], optional): The port to use for the link. Defaults to None.
 
         Returns:
-            str: The string data extracted from the GetLinkResponse.
+            OperationResult: Result containing the link as data and request ID.
 
         Raises:
             SessionError: If the request fails or the response is invalid.
@@ -278,6 +320,10 @@ class Session:
             response: GetLinkResponse = await self.agent_bay.client.get_link_async(
                 request
             )
+
+            # Extract request ID
+            request_id = extract_request_id(response)
+
             response_map = response.to_map()
 
             if not isinstance(response_map, dict):
@@ -297,7 +343,8 @@ class Session:
                     "Invalid response format: 'Data' field is not a string"
                 )
 
-            return data
+            return OperationResult(request_id=request_id, success=True, data=data)
+
         except SessionError:
             raise
         except Exception as e:

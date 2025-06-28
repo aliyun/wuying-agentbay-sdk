@@ -17,7 +17,6 @@ import os
 import time
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
-from agentbay.filesystem.filesystem import FileSystem
 
 
 def main():
@@ -36,12 +35,14 @@ def main():
     params = CreateSessionParams(
         image_id="linux_latest",  # Specify the image ID
     )
-    session = agent_bay.create(params)
+    session_result = agent_bay.create(params)
+    session = session_result.session
     print(f"Session created with ID: {session.get_session_id()}")
+    print(f"Request ID: {session_result.request_id}")
 
     try:
         # Get the FileSystem interface
-        fs = FileSystem(session)
+        fs = session.file_system
 
         # ===== BASIC FILE OPERATIONS =====
         print("\n===== BASIC FILE OPERATIONS =====")
@@ -51,29 +52,39 @@ def main():
         test_content = "This is a test file content.\nIt has multiple lines.\nThis is the third line."
         test_file_path = "/tmp/test_file.txt"
 
-        success = fs.write_file(test_file_path, test_content, "overwrite")
+        success, result = fs.write_file(test_file_path, test_content, "overwrite")
         print(f"File write successful: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Example 2: Read the file
         print("\nExample 2: Reading the file...")
-        content = fs.read_file(test_file_path)
-        print(f"File content ({len(content)} bytes):")
-        print(content)
-        print(f"Content matches original: {content == test_content}")
+        success, content = fs.read_file(test_file_path)
+        if success:
+            print(f"File content ({len(content)} bytes):")
+            print(content)
+            print(f"Content matches original: {content == test_content}")
+        else:
+            print(f"Error reading file: {content}")
 
         # Example 3: Append to the file
         print("\nExample 3: Appending to the file...")
         append_content = "\nThis is an appended line."
-        success = fs.write_file(test_file_path, append_content, "append")
+        success, result = fs.write_file(test_file_path, append_content, "append")
         print(f"File append successful: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Read the file again to verify append
-        updated_content = fs.read_file(test_file_path)
-        print(f"Updated file content ({len(updated_content)} bytes):")
-        print(updated_content)
-        print(
-            f"Content matches expected: {updated_content == test_content + append_content}"
-        )
+        success, updated_content = fs.read_file(test_file_path)
+        if success:
+            print(f"Updated file content ({len(updated_content)} bytes):")
+            print(updated_content)
+            print(
+                f"Content matches expected: {updated_content == test_content + append_content}"
+            )
+        else:
+            print(f"Error reading updated file: {updated_content}")
 
         # ===== DIRECTORY OPERATIONS =====
         print("\n===== DIRECTORY OPERATIONS =====")
@@ -81,26 +92,34 @@ def main():
         # Example 4: Create a directory
         print("\nExample 4: Creating a directory...")
         test_dir_path = "/tmp/test_directory"
-        success = fs.create_directory(test_dir_path)
+        success, result = fs.create_directory(test_dir_path)
         print(f"Directory creation successful: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Example 5: List directory contents
         print("\nExample 5: Listing directory contents...")
-        entries = fs.list_directory("/tmp")
-        print(f"Found {len(entries)} entries in /tmp:")
-        for entry in entries:
-            entry_type = "Directory" if entry["isDirectory"] else "File"
-            print(f"  - {entry['name']} ({entry_type})")
+        success, entries = fs.list_directory("/tmp")
+        if success:
+            print(f"Found {len(entries)} entries in /tmp:")
+            for entry in entries:
+                entry_type = "Directory" if entry["is_directory"] else "File"
+                print(f"  - {entry['name']} ({entry_type})")
+        else:
+            print(f"Error listing directory: {entries}")
 
         # ===== FILE INFORMATION =====
         print("\n===== FILE INFORMATION =====")
 
         # Example 6: Get file information
         print("\nExample 6: Getting file information...")
-        file_info = fs.get_file_info(test_file_path)
-        print(f"File information for {test_file_path}:")
-        for key, value in file_info.items():
-            print(f"  - {key}: {value}")
+        success, file_info = fs.get_file_info(test_file_path)
+        if success:
+            print(f"File information for {test_file_path}:")
+            for key, value in file_info.items():
+                print(f"  - {key}: {value}")
+        else:
+            print(f"Error getting file info: {file_info}")
 
         # ===== FILE EDITING =====
         print("\n===== FILE EDITING =====")
@@ -113,13 +132,18 @@ def main():
                 "newText": "This line has been edited.",
             }
         ]
-        success = fs.edit_file(test_file_path, edits)
+        success, result = fs.edit_file(test_file_path, edits)
         print(f"File edit successful: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Read the file again to verify edit
-        edited_content = fs.read_file(test_file_path)
-        print(f"Edited file content ({len(edited_content)} bytes):")
-        print(edited_content)
+        success, edited_content = fs.read_file(test_file_path)
+        if success:
+            print(f"Edited file content ({len(edited_content)} bytes):")
+            print(edited_content)
+        else:
+            print(f"Error reading edited file: {edited_content}")
 
         # ===== FILE MOVING =====
         print("\n===== FILE MOVING =====")
@@ -128,13 +152,18 @@ def main():
         print("\nExample 8: Moving a file...")
         source_path = "/tmp/test_file.txt"
         dest_path = "/tmp/test_directory/moved_file.txt"
-        success = fs.move_file(source_path, dest_path)
+        success, result = fs.move_file(source_path, dest_path)
         print(f"File move successful: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Verify the file was moved
-        moved_content = fs.read_file(dest_path)
-        print(f"Moved file content length: {len(moved_content)} bytes")
-        print(f"Content preserved after move: {moved_content == edited_content}")
+        success, moved_content = fs.read_file(dest_path)
+        if success:
+            print(f"Moved file content length: {len(moved_content)} bytes")
+            print(f"Content preserved after move: {moved_content == edited_content}")
+        else:
+            print(f"Error reading moved file: {moved_content}")
 
         # ===== FILE SEARCHING =====
         print("\n===== FILE SEARCHING =====")
@@ -158,10 +187,13 @@ def main():
 
         # Example 9: Search for files
         print("\nExample 9: Searching for files...")
-        search_results = fs.search_files("/tmp/test_directory", "SEARCHABLE")
-        print(f"Found {len(search_results)} files matching the search pattern:")
-        for result in search_results:
-            print(f"  - {result}")
+        success, search_results = fs.search_files("/tmp/test_directory", "SEARCHABLE")
+        if success:
+            print(f"Found {len(search_results)} files matching the search pattern:")
+            for result in search_results:
+                print(f"  - {result}")
+        else:
+            print(f"Error searching files: {search_results}")
 
         # ===== MULTIPLE FILE READING =====
         print("\n===== MULTIPLE FILE READING =====")
@@ -173,11 +205,14 @@ def main():
             "/tmp/test_directory/file2.txt",
             "/tmp/test_directory/file3.txt",
         ]
-        multi_file_contents = fs.read_multiple_files(file_paths)
-        print(f"Read {len(multi_file_contents)} files:")
-        for path, content in multi_file_contents.items():
-            print(f"  - {path}: {len(content)} bytes")
-            print(f"    Content: {content}")
+        success, multi_file_contents = fs.read_multiple_files(file_paths)
+        if success:
+            print(f"Read {len(multi_file_contents)} files:")
+            for path, content in multi_file_contents.items():
+                print(f"  - {path}: {len(content)} bytes")
+                print(f"    Content: {content}")
+        else:
+            print(f"Error reading multiple files: {multi_file_contents}")
 
         # ===== LARGE FILE OPERATIONS =====
         print("\n===== LARGE FILE OPERATIONS =====")
@@ -194,22 +229,27 @@ def main():
 
         # Write the large file
         start_time = time.time()
-        success = fs.write_large_file(test_file_path, large_content)
+        success, result = fs.write_large_file(test_file_path, large_content)
         write_time = time.time() - start_time
 
         print(f"Write operation completed in {write_time:.2f} seconds")
         print(f"Success: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Example 12: Read the large file with default chunk size
         print("\nExample 12: Reading the large file with default chunk size...")
 
         start_time = time.time()
-        read_content = fs.read_large_file(test_file_path)
+        success, read_content = fs.read_large_file(test_file_path)
         read_time = time.time() - start_time
 
-        print(f"Read operation completed in {read_time:.2f} seconds")
-        print(f"Content length: {len(read_content)} bytes")
-        print(f"Content matches original: {read_content == large_content}")
+        if success:
+            print(f"Read operation completed in {read_time:.2f} seconds")
+            print(f"Content length: {len(read_content)} bytes")
+            print(f"Content matches original: {read_content == large_content}")
+        else:
+            print(f"Error reading large file: {read_content}")
 
         # Example 13: Write a large file with custom chunk size
         print("\nExample 13: Writing a large file with custom chunk size (100KB)...")
@@ -218,33 +258,38 @@ def main():
         test_file_path2 = "/tmp/large_file_custom.txt"
 
         start_time = time.time()
-        success = fs.write_large_file(test_file_path2, large_content, custom_chunk_size)
+        success, result = fs.write_large_file(test_file_path2, large_content, custom_chunk_size)
         write_time = time.time() - start_time
 
         print(
             f"Write operation with custom chunk size completed in {write_time:.2f} seconds"
         )
         print(f"Success: {success}")
+        if not success:
+            print(f"Error: {result}")
 
         # Example 14: Read the large file with custom chunk size
         print("\nExample 14: Reading the large file with custom chunk size (80KB)...")
 
         read_chunk_size = 80 * 1024  # 80KB
         start_time = time.time()
-        read_content2 = fs.read_large_file(test_file_path2, read_chunk_size)
+        success, read_content2 = fs.read_large_file(test_file_path2, read_chunk_size)
         read_time = time.time() - start_time
 
-        print(
-            f"Read operation with custom chunk size completed in {read_time:.2f} seconds"
-        )
-        print(f"Content length: {len(read_content2)} bytes")
-        print(f"Content matches original: {read_content2 == large_content}")
+        if success:
+            print(
+                f"Read operation with custom chunk size completed in {read_time:.2f} seconds"
+            )
+            print(f"Content length: {len(read_content2)} bytes")
+            print(f"Content matches original: {read_content2 == large_content}")
+        else:
+            print(f"Error reading large file with custom chunk size: {read_content2}")
 
     finally:
         # Clean up: Delete the session
         print("\nCleaning up: Deleting the session...")
-        agent_bay.delete(session)
-        print("Session deleted successfully")
+        delete_result = agent_bay.delete(session)
+        print(f"Session deleted successfully. Request ID: {delete_result.request_id}")
 
 
 if __name__ == "__main__":

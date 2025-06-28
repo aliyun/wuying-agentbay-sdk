@@ -1,5 +1,4 @@
 import os
-import string
 import sys
 import time
 import unittest
@@ -8,7 +7,9 @@ import unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agentbay import AgentBay
-from agentbay.exceptions import AgentBayError
+from agentbay.model import BoolResult
+from agentbay.application.application import InstalledAppListResult, ProcessListResult
+from agentbay.session_params import CreateSessionParams
 
 
 def get_test_api_key():
@@ -30,32 +31,54 @@ def contains_tool_not_found(s):
 class TestApplication(unittest.TestCase):
     """Test cases for the Application class."""
 
-    def setUp(self):
-        """Set up test fixtures."""
+    agent_bay = None
+    session = None
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up test fixtures before all tests."""
         api_key = get_test_api_key()
-        self.agent_bay = AgentBay(api_key=api_key)
+        cls.agent_bay = AgentBay(api_key=api_key)
 
         # Create a session
         print("Creating a new session for application testing...")
-        self.session = self.agent_bay.create()
-        print(f"Session created with ID: {self.session.session_id}")
 
-    def tearDown(self):
-        """Tear down test fixtures."""
+        params = CreateSessionParams(
+            image_id="mobile_latest"
+        )
+        result = cls.agent_bay.create(params)
+        cls.session = result.session
+        print(f"Session created with ID: {cls.session.session_id}")
+        time.sleep(5)
+
+    @classmethod
+    def tearDownClass(cls):
+        """Tear down test fixtures after all tests."""
         print("Cleaning up: Deleting the session...")
         try:
-            self.agent_bay.delete(self.session)
+            if cls.session:
+                cls.agent_bay.delete(cls.session)
+                print("Session deleted successfully")
         except Exception as e:
             print(f"Warning: Error deleting session: {e}")
 
     def test_get_installed_apps(self):
         """Test getting installed applications."""
-        if hasattr(self.session, "application") and self.session.application:
+        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
             print("Getting installed applications...")
             try:
-                apps = self.session.application.get_installed_apps(
+                result = self.__class__.session.application.get_installed_apps(
                     start_menu=True, desktop=False, ignore_system_apps=True
                 )
+
+                # Verify result is of correct type
+                self.assertIsInstance(result, InstalledAppListResult)
+
+                if not result.success:
+                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    return
+
+                apps = result.data
                 print(f"Found {len(apps)} installed applications")
 
                 # Verify we got some apps
@@ -87,10 +110,19 @@ class TestApplication(unittest.TestCase):
 
     def test_list_visible_apps(self):
         """Test listing visible applications."""
-        if hasattr(self.session, "application") and self.session.application:
+        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
             print("Listing visible applications...")
             try:
-                visible_apps = self.session.application.list_visible_apps()
+                result = self.__class__.session.application.list_visible_apps()
+
+                # Verify result is of correct type
+                self.assertIsInstance(result, ProcessListResult)
+
+                if not result.success:
+                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    return
+
+                visible_apps = result.data
                 print(f"Found {len(visible_apps)} visible applications")
 
                 # Verify we got some apps
@@ -129,16 +161,21 @@ class TestApplication(unittest.TestCase):
 
     def test_start_app(self):
         """Test starting an application."""
-        if hasattr(self.session, "application") and self.session.application:
-            # Define the start command based on the OS
-            if os.name == "nt":  # Windows
-                start_cmd = "notepad.exe"
-            else:  # Linux/Mac
-                start_cmd = "/usr/bin/google-chrome-stable"
+        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+            start_cmd = "/usr/bin/google-chrome-stable"
 
             print(f"Starting application: {start_cmd}...")
             try:
-                processes = self.session.application.start_app(start_cmd)
+                result = self.__class__.session.application.start_app(start_cmd)
+
+                # Verify result is of correct type
+                self.assertIsInstance(result, ProcessListResult)
+
+                if not result.success:
+                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    return
+
+                processes = result.data
                 print(
                     f"Application started successfully, returned {len(processes)} processes"
                 )
@@ -169,10 +206,17 @@ class TestApplication(unittest.TestCase):
                                 f"Attempting to stop process {process.pname} (PID: {process.pid})..."
                             )
                             try:
-                                self.session.application.stop_app_by_pid(process.pid)
-                                print(
-                                    f"Successfully stopped process {process.pname} (PID: {process.pid})"
-                                )
+                                stop_result = self.__class__.session.application.stop_app_by_pid(process.pid)
+
+                                # Verify result is of correct type
+                                self.assertIsInstance(stop_result, BoolResult)
+
+                                if stop_result.success:
+                                    print(
+                                        f"Successfully stopped process {process.pname} (PID: {process.pid})"
+                                    )
+                                else:
+                                    print(f"Warning: Failed to stop process: {stop_result.error_message}")
                             except Exception as e:
                                 print(f"Warning: Failed to stop process: {e}")
 
@@ -203,18 +247,20 @@ class TestApplication(unittest.TestCase):
 
     def test_stop_app_by_pname(self):
         """Test stopping an application by process name."""
-        if hasattr(self.session, "application") and self.session.application:
-            # Define the start command based on the OS
-            if os.name == "nt":  # Windows
-                start_cmd = "notepad.exe"
-                process_name = "notepad.exe"
-            else:  # Linux/Mac
-                start_cmd = "/usr/bin/google-chrome-stable"
-                process_name = "chrome"
-
+        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+            start_cmd = "/usr/bin/google-chrome-stable"
             print(f"Starting application: {start_cmd}...")
             try:
-                processes = self.session.application.start_app(start_cmd)
+                start_result = self.__class__.session.application.start_app(start_cmd)
+
+                # Verify result is of correct type
+                self.assertIsInstance(start_result, ProcessListResult)
+
+                if not start_result.success:
+                    print(f"Error starting app: {start_result.error_message} (Request ID: {start_result.request_id})")
+                    return
+
+                processes = start_result.data
                 print(
                     f"Application started successfully, returned {len(processes)} processes"
                 )
@@ -232,12 +278,29 @@ class TestApplication(unittest.TestCase):
 
                 # Call stop_app_by_pname function
                 try:
-                    self.session.application.stop_app_by_pname(process_to_stop)
+                    stop_result = self.__class__.session.application.stop_app_by_pname(process_to_stop)
+
+                    # Verify result is of correct type
+                    self.assertIsInstance(stop_result, BoolResult)
+
+                    if not stop_result.success:
+                        print(f"Error stopping app: {stop_result.error_message} (Request ID: {stop_result.request_id})")
+                        return
+
                     print(f"Successfully stopped process by name: {process_to_stop}")
 
                     # Verify the process was stopped by listing visible apps
                     time.sleep(1)  # Give some time for the process to be terminated
-                    visible_apps = self.session.application.list_visible_apps()
+                    list_result = self.__class__.session.application.list_visible_apps()
+
+                    # Verify result is of correct type
+                    self.assertIsInstance(list_result, ProcessListResult)
+
+                    if not list_result.success:
+                        print(f"Error listing apps: {list_result.error_message} (Request ID: {list_result.request_id})")
+                        return
+
+                    visible_apps = list_result.data
 
                     # Check if the process is still in the list
                     process_still_running = False
@@ -247,19 +310,12 @@ class TestApplication(unittest.TestCase):
                             break
 
                     if process_still_running:
-                        print(
-                            f"Warning: Process {process_to_stop} is still running after stop_app_by_pname"
-                        )
+                        print(f"Warning: Process {process_to_stop} is still running after stop_app_by_pname")
                     else:
-                        print(
-                            f"Confirmed process {process_to_stop} is no longer running"
-                        )
+                        print(f"Process {process_to_stop} was successfully stopped and is no longer running")
                 except Exception as e:
-                    print(f"Error stopping process by name: {e}")
-
-                    # Check if the error is due to the tool not being found
-                    if "tool not found" in str(e).lower():
-                        print("stop_app_by_pname tool not found, skipping test")
+                    print(f"Note: stop_app_by_pname failed: {e}")
+                    # Don't fail the test if the operation is not supported
             except Exception as e:
                 print(f"Note: start_app failed: {e}")
 

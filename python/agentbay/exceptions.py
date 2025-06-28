@@ -1,5 +1,5 @@
 class AgentBayError(Exception):
-    """Base exception for all AgentBay errors."""
+    """Base exception for all AgentBay SDK errors."""
 
     def __init__(self, message=None, *args, **kwargs):
         if message is None:
@@ -24,28 +24,42 @@ class APIError(AgentBayError):
 
 
 class FileError(AgentBayError):
-    """Raised when there is an error with file operations."""
+    """Raised for errors related to file operations."""
 
     def __init__(self, message="File operation error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
 
 
 class CommandError(AgentBayError):
-    """Raised when there is an error with command execution."""
+    """Raised for errors related to command execution."""
 
     def __init__(self, message="Command execution error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
 
 
 class SessionError(AgentBayError):
-    """Raised when there is an error with the session."""
+    """Raised for errors related to session operations."""
 
     def __init__(self, message="Session error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
 
 
 class OssError(AgentBayError):
-    """Raised when there is an error with OSS operations."""
+    """Raised for errors related to OSS operations."""
 
     def __init__(self, message="OSS operation error", *args, **kwargs):
+        super().__init__(message, *args, **kwargs)
+
+
+class ApplicationError(AgentBayError):
+    """Raised for errors related to application operations."""
+
+    def __init__(self, message="Application operation error", *args, **kwargs):
+        super().__init__(message, *args, **kwargs)
+
+
+class UIError(AgentBayError):
+    """Raised for errors related to UI operations."""
+
+    def __init__(self, message="UI operation error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)

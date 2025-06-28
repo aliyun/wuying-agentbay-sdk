@@ -8,6 +8,12 @@ from alibabacloud_tea_openapi.exceptions._client import ClientException
 
 from agentbay.api.client import Client as mcp_client
 from agentbay.api.models import CreateMcpSessionRequest, ListSessionRequest
+from agentbay.model import (
+    SessionResult,
+    SessionListResult,
+    DeleteResult,
+    extract_request_id
+)
 from agentbay.config import load_config
 from agentbay.context import ContextService
 from agentbay.exceptions import AgentBayError
@@ -54,7 +60,7 @@ class AgentBay:
         # Initialize context service
         self.context = ContextService(self)
 
-    def create(self, params: Optional[CreateSessionParams] = None) -> Session:
+    def create(self, params: Optional[CreateSessionParams] = None) -> SessionResult:
         """
         Create a new session in the AgentBay cloud environment.
 
@@ -62,7 +68,7 @@ class AgentBay:
             params (Optional[CreateSessionParams], optional): Parameters for creating the session. Defaults to None.
 
         Returns:
-            Session: The created session.
+            SessionResult: Result containing the created session and request ID.
         """
         try:
             if params is None:
@@ -83,6 +89,9 @@ class AgentBay:
                 request.image_id = params.image_id
             response = self.client.create_mcp_session(request)
             print("response =", response)
+
+            # Extract request ID
+            request_id = extract_request_id(response)
 
             session_data = response.to_map()
 
@@ -121,7 +130,10 @@ class AgentBay:
 
             with self._lock:
                 self._sessions[session_id] = session
-            return session
+
+            # Return SessionResult with request ID
+            return SessionResult(request_id=request_id, session=session)
+
         except ClientException as e:
             print("Aliyun OpenAPI ClientException:", e)
             raise AgentBayError(f"Failed to create session: {e}")
@@ -139,7 +151,7 @@ class AgentBay:
         with self._lock:
             return list(self._sessions.values())
 
-    def list_by_labels(self, labels: Dict[str, str]) -> List[Session]:
+    def list_by_labels(self, labels: Dict[str, str]) -> SessionListResult:
         """
         Lists sessions filtered by the provided labels.
         It returns sessions that match all the specified labels.
@@ -148,7 +160,7 @@ class AgentBay:
             labels (Dict[str, str]): A map of labels to filter sessions by.
 
         Returns:
-            List[Session]: A list of sessions that match the specified labels.
+            SessionListResult: Result containing a list of sessions that match the specified labels and request ID.
 
         Raises:
             AgentBayError: If the operation fails.
@@ -162,6 +174,9 @@ class AgentBay:
             )
 
             response = self.client.list_session(request)
+
+            # Extract request ID
+            request_id = extract_request_id(response)
 
             sessions = []
             response_data = response.to_map().get("body", {}).get("Data", [])
@@ -181,25 +196,36 @@ class AgentBay:
 
                             sessions.append(session)
 
-            return sessions
+            # Return SessionListResult with request ID
+            return SessionListResult(request_id=request_id, sessions=sessions)
+
         except Exception as e:
             print("Error calling list_session:", e)
             raise AgentBayError(f"Failed to list sessions by labels: {e}")
 
-    def delete(self, session: Session) -> None:
+    def delete(self, session: Session) -> DeleteResult:
         """
         Delete a session by session object.
 
         Args:
             session (Session): The session to delete.
 
+        Returns:
+            DeleteResult: Result indicating success or failure and request ID.
+
         Raises:
             AgentBayError: If the operation fails.
         """
         try:
-            session.delete()
+            # Delete the session and get the result
+            delete_result = session.delete()
+
             with self._lock:
                 self._sessions.pop(session.session_id, None)
+
+            # Return the DeleteResult obtained from session.delete()
+            return delete_result
+
         except Exception as e:
             print("Error deleting session:", e)
             raise AgentBayError(f"Failed to delete session {session.session_id}: {e}")

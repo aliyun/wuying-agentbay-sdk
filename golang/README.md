@@ -10,7 +10,7 @@ This directory contains the Golang implementation of the Wuying AgentBay SDK.
 
 - **Organization:** Alibaba Group
 - **Team:** Wuying AI Team
-- **Email:** wuying-ai-team@aliyun.com
+- **Email:** wuying-ai-team@alibabacloud.com
 - **Website:** https://github.com/aliyun/wuying-agentbay-sdk
 
 ## Prerequisites

@@ -36,28 +36,40 @@ def main():
         # Get installed applications
         print("\nGetting installed applications...")
         try:
-            apps = session.application.get_installed_apps(
+            result = session.application.get_installed_apps(
                 start_menu=True, desktop=False, ignore_system_apps=True
             )
-            print(f"Found {len(apps)} installed applications")
-            # Print the first 3 apps or fewer if less than 3 are available
-            count = min(len(apps), 3)
-            for i in range(count):
-                print(f"App {i+1}: {apps[i].name}")
+            if result.success:
+                apps = result.data
+                print(f"Found {len(apps)} installed applications")
+                # Print the first 3 apps or fewer if less than 3 are available
+                count = min(len(apps), 3)
+                for i in range(count):
+                    print(f"App {i+1}: {apps[i].name}")
+                print(f"Request ID: {result.request_id}")
+            else:
+                print(f"Error getting installed apps: {result.error_message}")
+                print(f"Request ID: {result.request_id}")
         except AgentBayError as e:
             print(f"Error getting installed apps: {e}")
 
         # List visible applications
         print("\nListing visible applications...")
         try:
-            visible_apps = session.application.list_visible_apps()
-            print(f"Found {len(visible_apps)} visible applications")
-            # Print the first 3 apps or fewer if less than 3 are available
-            count = min(len(visible_apps), 3)
-            for i in range(count):
-                print(
-                    f"Process {i+1}: {visible_apps[i].pname} (PID: {visible_apps[i].pid})"
-                )
+            result = session.application.list_visible_apps()
+            if result.success:
+                visible_apps = result.data
+                print(f"Found {len(visible_apps)} visible applications")
+                # Print the first 3 apps or fewer if less than 3 are available
+                count = min(len(visible_apps), 3)
+                for i in range(count):
+                    print(
+                        f"Process {i+1}: {visible_apps[i].pname} (PID: {visible_apps[i].pid})"
+                    )
+                print(f"Request ID: {result.request_id}")
+            else:
+                print(f"Error listing visible apps: {result.error_message}")
+                print(f"Request ID: {result.request_id}")
         except AgentBayError as e:
             print(f"Error listing visible apps: {e}")
 

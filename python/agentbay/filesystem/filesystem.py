@@ -1,12 +1,113 @@
-import json
-import re
-from typing import List, Dict, Union, Any, Optional, Tuple
+from typing import List, Dict, Union, Any, Optional
 
-from agentbay.api.models import CallMcpToolRequest
-from agentbay.exceptions import FileError
+from agentbay.exceptions import FileError, AgentBayError
+from agentbay.model import (
+    BoolResult, ApiResponse
+)
+from agentbay.api.base_service import BaseService
 
 
-class FileSystem:
+class FileInfoResult(ApiResponse):
+    """Result of file info operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 file_info: Optional[Dict[str, Any]] = None, error_message: str = ""):
+        """
+        Initialize a FileInfoResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            file_info (Dict[str, Any], optional): File information. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.file_info = file_info or {}
+        self.error_message = error_message
+
+
+class DirectoryListResult(ApiResponse):
+    """Result of directory listing operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 entries: Optional[List[Dict[str, Any]]] = None, error_message: str = ""):
+        """
+        Initialize a DirectoryListResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            entries (List[Dict[str, Any]], optional): Directory entries. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.entries = entries or []
+        self.error_message = error_message
+
+
+class FileContentResult(ApiResponse):
+    """Result of file read operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 content: str = "", error_message: str = ""):
+        """
+        Initialize a FileContentResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            content (str, optional): File content. Defaults to "".
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.content = content
+        self.error_message = error_message
+
+
+class MultipleFileContentResult(ApiResponse):
+    """Result of multiple file read operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 contents: Optional[Dict[str, str]] = None, error_message: str = ""):
+        """
+        Initialize a MultipleFileContentResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            contents (Dict[str, str], optional): Dictionary of file paths to file contents. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.contents = contents or {}
+        self.error_message = error_message
+
+
+class FileSearchResult(ApiResponse):
+    """Result of file search operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False,
+                 matches: Optional[List[str]] = None, error_message: str = ""):
+        """
+        Initialize a FileSearchResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            matches (List[str], optional): Matching file paths. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.matches = matches or []
+        self.error_message = error_message
+
+
+class FileSystem(BaseService):
     """
     Handles file operations in the AgentBay cloud environment.
     """
@@ -14,91 +115,23 @@ class FileSystem:
     # Default chunk size is 50KB
     DEFAULT_CHUNK_SIZE = 50 * 1024
 
-    def __init__(self, session):
+    def _handle_error(self, e):
         """
-        Initialize a FileSystem object.
+        Convert AgentBayError to FileError for compatibility.
 
         Args:
-            session: The Session instance that this FileSystem belongs to.
-        """
-        self.session = session
-
-    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
-        """
-        Internal helper to call MCP tool and handle errors.
-
-        Args:
-            name (str): The name of the tool to call.
-            args (Dict[str, Any]): The arguments to pass to the tool.
+            e (Exception): The exception to convert.
 
         Returns:
-            Any: The response from the tool.
-
-        Raises:
-            FileError: If the tool call fails.
+            FileError: The converted exception.
         """
-        try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name=name,
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise FileError("Invalid response format")
-            body = response_map.get("body", {})
-            print("response_map =", body)
-            if not body:
-                raise FileError("Invalid response body")
-            return self._parse_response_body(body)
-        except (KeyError, TypeError, ValueError) as e:
-            raise FileError(f"Failed to parse MCP tool response: {e}")
-        except Exception as e:
-            raise FileError(f"Failed to call MCP tool {name}: {e}")
+        if isinstance(e, FileError):
+            return e
+        if isinstance(e, AgentBayError):
+            return FileError(str(e))
+        return e
 
-    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
-        """
-        Parses the response body from the MCP tool.
-
-        Args:
-            body (Dict[str, Any]): The response body.
-
-        Returns:
-            Any: The parsed content.
-
-        Raises:
-            FileError: If the response contains errors or is invalid.
-        """
-        try:
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise FileError(f"Error in response: {error_message}")
-
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise FileError("No data field in response")
-
-            # Handle 'content' field for other methods
-            content = response_data.get("content", [])
-            if not content or not isinstance(content, list):
-                raise FileError("No content found in response")
-
-            content_item = content[0]
-            json_text = content_item.get("text")
-            return json_text
-        except Exception as e:
-            raise FileError(f"{e}")
-
-    def create_directory(self, path: str) -> bool:
+    def create_directory(self, path: str) -> BoolResult:
         """
         Create a new directory at the specified path.
 
@@ -106,25 +139,24 @@ class FileSystem:
             path: The path of the directory to create.
 
         Returns:
-            bool: True if the directory was created successfully.
-
-        Raises:
-            FileError: If the operation fails.
+            BoolResult: Result object containing success status and error message if any.
         """
         args = {"path": path}
         try:
-            response = self._call_mcp_tool("create_directory", args)
-            print("Response from CallMcpTool - create_directory:", response)
-            # If "isError" in the response is False, it would raise an exception when _parse_response_body
-            return True
-        except FileError:
-            raise
+            result = self._call_mcp_tool("create_directory", args)
+            print("Response from CallMcpTool - create_directory:", result)
+            if result.success:
+                return BoolResult(request_id=result.request_id, success=True, data=True)
+            else:
+                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+        except FileError as e:
+            return BoolResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to create directory: {e}")
+            return BoolResult(request_id="", success=False, error_message=f"Failed to create directory: {e}")
 
     def edit_file(
         self, path: str, edits: List[Dict[str, str]], dry_run: bool = False
-    ) -> bool:
+    ) -> BoolResult:
         """
         Edit a file by replacing occurrences of oldText with newText.
 
@@ -134,23 +166,23 @@ class FileSystem:
             dry_run: If True, preview changes without applying them.
 
         Returns:
-            bool: True if the file was edited successfully.
-
-        Raises:
-            FileError: If the operation fails.
+            BoolResult: Result object containing success status and error message if any.
         """
         args = {"path": path, "edits": edits, "dryRun": dry_run}
         try:
-            response = self._call_mcp_tool("edit_file", args)
-            print("Response from CallMcpTool - edit_file:", response)
-            # If "isError" in the response is False, it would raise an exception when _parse_response_body
-            return True
-        except FileError:
-            raise
+            result = self._call_mcp_tool("edit_file", args)
+            print("Response from CallMcpTool - edit_file:", result)
+            if result.success:
+                return BoolResult(request_id=result.request_id, success=True, data=True)
+            else:
+                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+        except FileError as e:
+            return BoolResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to edit file: {e}")
+            return BoolResult(request_id="", success=False, error_message=f"Failed to edit file: {e}")
 
-    def get_file_info(self, path: str) -> Dict[str, Union[str, float, bool]]:
+
+    def get_file_info(self, path: str) -> FileInfoResult:
         """
         Get information about a file or directory.
 
@@ -158,10 +190,7 @@ class FileSystem:
             path: The path of the file or directory to inspect.
 
         Returns:
-            Dict[str, Union[str, float, bool]]: A dictionary containing file information.
-
-        Raises:
-            FileError: If the operation fails.
+            FileInfoResult: Result object containing file info and error message if any.
         """
 
         def parse_file_info(file_info_str: str) -> dict:
@@ -200,15 +229,19 @@ class FileSystem:
 
         args = {"path": path}
         try:
-            response = self._call_mcp_tool("get_file_info", args)
-            print("Response from CallMcpTool - get_file_info:", response)
-            return parse_file_info(response)
-        except FileError:
-            raise
+            result = self._call_mcp_tool("get_file_info", args)
+            print("Response from CallMcpTool - get_file_info:", result)
+            if result.success:
+                file_info = parse_file_info(result.data)
+                return FileInfoResult(request_id=result.request_id, success=True, file_info=file_info)
+            else:
+                return FileInfoResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to get file info")
+        except FileError as e:
+            return FileInfoResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to get file info: {e}")
+            return FileInfoResult(request_id="", success=False, error_message=f"Failed to get file info: {e}")
 
-    def list_directory(self, path: str) -> List[Dict[str, Union[str, bool]]]:
+    def list_directory(self, path: str) -> DirectoryListResult:
         """
         List the contents of a directory.
 
@@ -216,14 +249,12 @@ class FileSystem:
             path: The path of the directory to list.
 
         Returns:
-            List[Dict[str, Union[str, bool]]]: A list of dictionaries representing directory entries.
-
-        Raises:
-            FileError: If the operation fails.
+            DirectoryListResult: Result object containing directory entries and error message if any.
         """
 
         def parse_directory_listing(text) -> List[Dict[str, Union[str, bool]]]:
-            """Parse directory listing text into a list of dictionaries containing file/directory information.
+            """
+            Parse a directory listing text into a list of file/directory entries.
 
             Args:
                 text (str): Directory listing text in format:
@@ -272,95 +303,99 @@ class FileSystem:
 
         args = {"path": path}
         try:
-            response = self._call_mcp_tool("list_directory", args)
-            print("Response from CallMcpTool - list_directory:", response)
-            return parse_directory_listing(response)
-        except FileError:
-            raise
+            result = self._call_mcp_tool("list_directory", args)
+            print("Response from CallMcpTool - list_directory:", result)
+            if result.success:
+                entries = parse_directory_listing(result.data)
+                return DirectoryListResult(request_id=result.request_id, success=True, entries=entries)
+            else:
+                return DirectoryListResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to list directory")
+        except FileError as e:
+            return DirectoryListResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to list directory: {e}")
+            return DirectoryListResult(request_id="", success=False, error_message=f"Failed to list directory: {e}")
 
-    def move_file(self, source: str, destination: str) -> bool:
+    def move_file(self, source: str, destination: str) -> BoolResult:
         """
-        Move a file or directory from source to destination.
+        Move a file or directory from source path to destination path.
 
         Args:
-            source: The source path.
+            source: The source path of the file or directory.
             destination: The destination path.
 
         Returns:
-            bool: True if the file was moved successfully.
-
-        Raises:
-            FileError: If the operation fails.
+            BoolResult: Result object containing success status and error message if any.
         """
         args = {"source": source, "destination": destination}
         try:
-            response = self._call_mcp_tool("move_file", args)
-            print("Response from CallMcpTool - move_file:", response)
-            # If "isError" in the response is False, it would raise an exception when _parse_response_body
-            return True
-        except FileError:
-            raise
+            result = self._call_mcp_tool("move_file", args)
+            print("Response from CallMcpTool - move_file:", result)
+            if result.success:
+                return BoolResult(request_id=result.request_id, success=True, data=True)
+            else:
+                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to move file")
+        except AgentBayError as e:
+            return BoolResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to move file: {e}")
+            return BoolResult(request_id="", success=False, error_message=f"Failed to move file: {e}")
 
-    def read_file(self, path: str, offset: int = 0, length: int = 0) -> str:
+    def read_file(self, path: str, offset: int = 0, length: int = 0) -> FileContentResult:
         """
         Read the contents of a file.
 
         Args:
             path: The path of the file to read.
-            offset: Start reading from this byte offset.
-            length: Number of bytes to read. If 0, read to the end of the file.
+            offset: The offset from which to start reading.
+            length: The number of characters to read. If 0, read the entire file.
 
         Returns:
-            str: The contents of the file.
-
-        Raises:
-            FileError: If the operation fails.
+            FileContentResult: Result object containing file content and error message if any.
         """
         args = {"path": path}
-
         if offset >= 0:
             args["offset"] = offset
         if length >= 0:
             args["length"] = length
 
         try:
-            response = self._call_mcp_tool("read_file", args)
-            print("Response from CallMcpTool - read_file:", response)
-            return response
-
+            result = self._call_mcp_tool("read_file", args)
+            print(f"Response from CallMcpTool - read_file: {result}")
+            if result.success:
+                return FileContentResult(request_id=result.request_id, success=True, content=result.data)
+            else:
+                return FileContentResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to read file")
+        except FileError as e:
+            return FileContentResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to read file: {e}")
+            return FileContentResult(request_id="", success=False, error_message=f"Failed to read file: {e}")
 
-    def read_multiple_files(self, paths: List[str]) -> Dict[str, str]:
+    def read_multiple_files(self, paths: List[str]) -> MultipleFileContentResult:
         """
-        Read the contents of multiple files.
+        Read the contents of multiple files at once.
 
         Args:
             paths: A list of file paths to read.
 
         Returns:
-            Dict[str, str]: A dictionary mapping file paths to their contents.
-
-        Raises:
-            FileError: If the operation fails.
+            MultipleFileContentResult: Result object containing a dictionary mapping file paths to contents,
+            and error message if any.
         """
 
         def parse_multiple_files_response(text: str) -> Dict[str, str]:
             """
-            Parse the response from reading multiple files into a dictionary.
+            Parse the response from reading multiple files.
 
             Args:
                 text (str): The response string containing file contents.
                 Format: "/path/to/file1.txt: Content of file1\n\n---\n/path/to/file2.txt: \nContent of file2\n"
 
             Returns:
-                Dict[str, str]: A dictionary mapping file paths to their contents.
+                Dict[str, str]: A dictionary mapping file paths to their content.
             """
             result = {}
+            if not text:
+                return result
+
             lines = text.split("\n")
             current_path = None
             current_content = []
@@ -397,52 +432,57 @@ class FileSystem:
             if current_path:
                 result[current_path] = "\n".join(current_content).strip()
 
+
             return result
 
-        # call the MCP tool to read multiple files
         args = {"paths": paths}
         try:
-            response = self._call_mcp_tool("read_multiple_files", args)
-            return parse_multiple_files_response(response)
+            result = self._call_mcp_tool("read_multiple_files", args)
+            print(f"Response from CallMcpTool - read_multiple_files: {result}")
 
+            if result.success:
+                files_content = parse_multiple_files_response(result.data)
+                return MultipleFileContentResult(request_id=result.request_id, success=True, contents=files_content)
+            else:
+                return MultipleFileContentResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to read multiple files")
+        except FileError as e:
+            return MultipleFileContentResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to read multiple files: {e}")
+            return MultipleFileContentResult(request_id="", success=False, error_message=f"Failed to read multiple files: {e}")
 
     def search_files(
         self, path: str, pattern: str, exclude_patterns: Optional[List[str]] = None
-    ) -> List[str]:
+    ) -> FileSearchResult:
         """
-        Search for files matching a pattern in a directory.
+        Search for files in the specified path using a pattern.
 
         Args:
-            path: The directory path to search.
-            pattern: The pattern to match.
-            exclude_patterns: Optional list of patterns to exclude.
+            path: The base directory path to search in.
+            pattern: The glob pattern to search for.
+            exclude_patterns: Optional list of patterns to exclude from the search.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries representing search results.
-
-        Raises:
-            FileError: If the operation fails.
+            FileSearchResult: Result object containing matching file paths and error message if any.
         """
         args = {"path": path, "pattern": pattern}
         if exclude_patterns:
-            args["excludePatterns"] = json.dumps(exclude_patterns)
+            args["exclude_patterns"] = exclude_patterns
+
         try:
-            response = self._call_mcp_tool("search_files", args)
-            print("Response from CallMcpTool - search_files:", response)
+            result = self._call_mcp_tool("search_files", args)
+            print(f"Response from CallMcpTool - search_files: {result}")
 
-            # parse the response to list
-            text_list = response.splitlines()
-            if not text_list:
-                raise FileError("No search results found")
-
-            return [item.strip() for item in text_list]
-
+            if result.success:
+                matching_files = result.data.strip().split("\n") if result.data else []
+                return FileSearchResult(request_id=result.request_id, success=True, matches=matching_files)
+            else:
+                return FileSearchResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to search files")
+        except FileError as e:
+            return FileSearchResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to search files: {e}")
+            return FileSearchResult(request_id="", success=False, error_message=f"Failed to search files: {e}")
 
-    def write_file(self, path: str, content: str, mode: str = "overwrite") -> bool:
+    def write_file(self, path: str, content: str, mode: str = "overwrite") -> BoolResult:
         """
         Write content to a file.
 
@@ -452,23 +492,25 @@ class FileSystem:
             mode: The write mode ("overwrite" or "append").
 
         Returns:
-            bool: True if the file was written successfully.
-
-        Raises:
-            FileError: If the operation fails.
+            BoolResult: Result object containing success status and error message if any.
         """
+        if mode not in ["overwrite", "append"]:
+            return BoolResult(request_id="", success=False, error_message=f"Invalid write mode: {mode}. Must be 'overwrite' or 'append'.")
+
         args = {"path": path, "content": content, "mode": mode}
         try:
-            response = self._call_mcp_tool("write_file", args)
-            print("Response from CallMcpTool - write_file:", response)
-            # If "isError" in the response is False, it would raise an exception when _parse_response_body
-            return True
-        except FileError:
-            raise
+            result = self._call_mcp_tool("write_file", args)
+            print(f"Response from CallMcpTool - write_file: {result}")
+            if result.success:
+                return BoolResult(request_id=result.request_id, success=True, data=True)
+            else:
+                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to write file")
+        except FileError as e:
+            return BoolResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            raise FileError(f"Failed to write file: {e}")
+            return BoolResult(request_id="", success=False, error_message=f"Failed to write file: {e}")
 
-    def read_large_file(self, path: str, chunk_size: int = 0) -> str:
+    def read_large_file(self, path: str, chunk_size: int = 0) -> FileContentResult:
         """
         Read large files by chunking to handle API size limitations.
         Automatically splits the read operation into multiple requests of chunk_size bytes each.
@@ -476,116 +518,100 @@ class FileSystem:
 
         Args:
             path: The path of the file to read.
-            chunk_size: Size of each chunk in bytes. Default is 0, which uses DEFAULT_CHUNK_SIZE.
+            chunk_size: The size of each chunk to read. Default is 0, which uses DEFAULT_CHUNK_SIZE.
 
         Returns:
-            str: The complete content of the file.
-
-        Raises:
-            FileError: If the operation fails.
+            Tuple[bool, Union[str, str]]: A tuple where the first element indicates success (True/False),
+            and the second element contains either the file content (on success) or an error message (on failure).
         """
-        if chunk_size <= 0:
-            chunk_size = self.DEFAULT_CHUNK_SIZE
+        # Use default chunk size if not specified
+        chunk_size = chunk_size if chunk_size > 0 else self.DEFAULT_CHUNK_SIZE
 
-        # First get the file size
         try:
-            file_info = self.get_file_info(path)
-            file_size = int(file_info.get("size", 0))
+            # Get file info to check size
+            file_info_result = self.get_file_info(path)
+            if not file_info_result.success:
+                return FileContentResult(request_id=file_info_result.request_id, success=False, error_message=file_info_result.error_message)
 
+            # Check if file exists and is a file (not a directory)
+            if not file_info_result.file_info or file_info_result.file_info.get("is_directory", False):
+                return FileContentResult(request_id=file_info_result.request_id, success=False, error_message=f"Path does not exist or is a directory: {path}")
+
+            # If the file is empty, return empty string
+            file_size = file_info_result.file_info.get("size", 0)
             if file_size == 0:
-                raise FileError("Could not determine file size")
+                return FileContentResult(request_id=file_info_result.request_id, success=True, content="")
 
-            print(
-                f"ReadLargeFile: Starting chunked read of {path} (total size: {file_size} bytes, chunk size: {chunk_size} bytes)"
-            )
-
-            # Prepare to read the file in chunks
-            result = []
+            # Read the file in chunks
+            content = []
             offset = 0
             chunk_count = 0
-
             while offset < file_size:
-                # Calculate how much to read in this chunk
-                length = chunk_size
-                if offset + length > file_size:
-                    length = file_size - offset
-
+                length = min(chunk_size, file_size - offset)
+                chunk_result = self.read_file(path, offset, length)
                 print(
                     f"ReadLargeFile: Reading chunk {chunk_count+1} ({length} bytes at offset {offset}/{file_size})"
                 )
 
-                # Read the chunk
-                chunk = self.read_file(path, offset, length)
-                result.append(chunk)
+                if not chunk_result.success:
+                    return chunk_result  # Return the error
 
-                # Move to the next chunk
+                content.append(chunk_result.content)
                 offset += length
                 chunk_count += 1
 
-            print(
-                f"ReadLargeFile: Successfully read {path} in {chunk_count} chunks (total: {file_size} bytes)"
-            )
-
-            return "".join(result)
+            return FileContentResult(request_id=file_info_result.request_id, success=True, content="".join(content))
 
         except FileError as e:
-            raise FileError(f"Failed to read large file: {e}")
+            return FileSearchResult(request_id="", success=False, error_message=str(e))
+        except Exception as e:
+            return FileContentResult(request_id="", success=False, error_message=f"Failed to read large file: {e}")
 
-    def write_large_file(self, path: str, content: str, chunk_size: int = 0) -> bool:
+    def write_large_file(self, path: str, content: str, chunk_size: int = 0) -> BoolResult:
         """
         Write large files by chunking to handle API size limitations.
         Automatically splits the write operation into multiple requests of chunk_size bytes each.
-        If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE (60KB) will be used.
+        If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE will be used.
 
         Args:
             path: The path of the file to write.
             content: The content to write to the file.
-            chunk_size: Size of each chunk in bytes. Default is 0, which uses DEFAULT_CHUNK_SIZE.
+            chunk_size: The size of each chunk to write. Default is 0, which uses DEFAULT_CHUNK_SIZE.
 
         Returns:
-            bool: True if the file was written successfully.
-
-        Raises:
-            FileError: If the operation fails.
+            BoolResult: Result object containing success status and error message if any.
         """
-        if chunk_size <= 0:
-            chunk_size = self.DEFAULT_CHUNK_SIZE
-
+        # Use default chunk size if not specified
+        chunk_size = chunk_size if chunk_size > 0 else self.DEFAULT_CHUNK_SIZE
         content_len = len(content)
-
         print(
             f"WriteLargeFile: Starting chunked write to {path} (total size: {content_len} bytes, chunk size: {chunk_size} bytes)"
         )
 
-        # If content is small enough, use the regular write_file method
+        # If the content length is less than the chunk size, write it directly
         if content_len <= chunk_size:
-            print(
-                f"WriteLargeFile: Content size ({content_len} bytes) is smaller than chunk size, using normal WriteFile"
-            )
-            return self.write_file(path, content, "overwrite")
+            return self.write_file(path, content)
 
         try:
-            # Write the first chunk with "overwrite" mode to create/clear the file
-            first_chunk_end = min(chunk_size, content_len)
-            print(
-                f"WriteLargeFile: Writing first chunk (0-{first_chunk_end} bytes) with overwrite mode"
-            )
-            self.write_file(path, content[:first_chunk_end], "overwrite")
+            # Write the first chunk (creates or overwrites the file)
+            first_chunk = content[:chunk_size]
+            result = self.write_file(path, first_chunk, "overwrite")
+            if not result.success:
+                return result
 
-            # Write the remaining chunks with "append" mode
-            chunk_count = 1  # Already wrote first chunk
-            for offset in range(first_chunk_end, content_len, chunk_size):
+            # Write the rest in chunks (appending)
+            offset = chunk_size
+            while offset < content_len:
                 end = min(offset + chunk_size, content_len)
-                print(
-                    f"WriteLargeFile: Writing chunk {chunk_count+1} ({offset}-{end} bytes) with append mode"
-                )
-                self.write_file(path, content[offset:end], "append")
-                chunk_count += 1
+                current_chunk = content[offset:end]
+                result = self.write_file(path, current_chunk, "append")
+                if not result.success:
+                    return result
+                offset = end
 
-            print(
-                f"WriteLargeFile: Successfully wrote {path} in {chunk_count} chunks (total: {content_len} bytes)"
-            )
-            return True
+            return BoolResult(request_id=result.request_id, success=True, data=True)
 
         except FileError as e:
-            raise FileError(f"Failed to write large file: {e}")
+            return FileSearchResult(request_id="", success=False, error_message=str(e))
+        except Exception as e:
+            return BoolResult(request_id="", success=False, error_message=f"Failed to write large file: {e}")

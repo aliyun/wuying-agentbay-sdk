@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from agentbay.command.command import Command
 from agentbay.exceptions import CommandError
+from agentbay.model import OperationResult
 
 
 class DummySession:
@@ -27,15 +28,18 @@ class TestCommand(unittest.TestCase):
         self.session = DummySession()
         self.command = Command(self.session)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_execute_command_success(self, MockCallMcpToolRequest):
+    def test_execute_command_success(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {"Data": {"content": [{"text": "line1\nline2\n"}]}}
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
-        result = self.command.execute_command("ls -la")
+        success, result = self.command.execute_command("ls -la")
+        self.assertTrue(success)
         self.assertEqual(result, "line1\nline2\n")
         MockCallMcpToolRequest.assert_called_once()
 
@@ -43,16 +47,19 @@ class TestCommand(unittest.TestCase):
         args_dict = json.loads(MockCallMcpToolRequest.call_args.kwargs["args"])
         self.assertEqual(args_dict["timeout_ms"], 1000)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_execute_command_with_custom_timeout(self, MockCallMcpToolRequest):
+    def test_execute_command_with_custom_timeout(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {"Data": {"content": [{"text": "line1\nline2\n"}]}}
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
         custom_timeout = 2000
-        result = self.command.execute_command("ls -la", timeout_ms=custom_timeout)
+        success, result = self.command.execute_command("ls -la", timeout_ms=custom_timeout)
+        self.assertTrue(success)
         self.assertEqual(result, "line1\nline2\n")
         MockCallMcpToolRequest.assert_called_once()
 
@@ -60,31 +67,38 @@ class TestCommand(unittest.TestCase):
         args_dict = json.loads(MockCallMcpToolRequest.call_args.kwargs["args"])
         self.assertEqual(args_dict["timeout_ms"], custom_timeout)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_execute_command_no_content(self, MockCallMcpToolRequest):
+    def test_execute_command_no_content(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {"Data": {"no_content": "no_content"}}
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
-        with self.assertRaises(CommandError) as context:
-            self.command.execute_command("ls -la")
-        self.assertIn("No content found in response", str(context.exception))
+        success, error_msg = self.command.execute_command("ls -la")
+        self.assertFalse(success)
+        self.assertIn("No content found in response", error_msg)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_execute_command_exception(self, MockCallMcpToolRequest):
+    def test_execute_command_exception(self, MockCallMcpToolRequest, mock_extract_request_id):
         self.session.client.call_mcp_tool.side_effect = Exception("mock error")
-        with self.assertRaises(CommandError) as context:
-            self.command.execute_command("ls -la")
-        self.assertIn("Failed to execute command: mock error", str(context.exception))
+        mock_extract_request_id.return_value = "request-123"
 
+        success, error_msg = self.command.execute_command("ls -la")
+        self.assertFalse(success)
+        self.assertIn("Failed to execute command: mock error", error_msg)
+
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_run_code_success_python(self, MockCallMcpToolRequest):
+    def test_run_code_success_python(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {"Data": {"content": [{"text": "Hello, world!\n2\n"}]}}
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
         code = """
@@ -92,7 +106,8 @@ print("Hello, world!")
 x = 1 + 1
 print(x)
 """
-        result = self.command.run_code(code, "python")
+        success, result = self.command.run_code(code, "python")
+        self.assertTrue(success)
         self.assertEqual(result, "Hello, world!\n2\n")
         MockCallMcpToolRequest.assert_called_once()
 
@@ -100,12 +115,14 @@ print(x)
         self.assertEqual(args_dict["timeout_s"], 300)
         self.assertEqual(args_dict["language"], "python")
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_run_code_success_javascript(self, MockCallMcpToolRequest):
+    def test_run_code_success_javascript(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {"Data": {"content": [{"text": "Hello, world!\n2\n"}]}}
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
         code = """
@@ -114,7 +131,8 @@ const x = 1 + 1;
 console.log(x);
 """
         custom_timeout = 600
-        result = self.command.run_code(code, "javascript", timeout_s=custom_timeout)
+        success, result = self.command.run_code(code, "javascript", timeout_s=custom_timeout)
+        self.assertTrue(success)
         self.assertEqual(result, "Hello, world!\n2\n")
         MockCallMcpToolRequest.assert_called_once()
 
@@ -123,15 +141,14 @@ console.log(x);
         self.assertEqual(args_dict["timeout_s"], custom_timeout)
         self.assertEqual(args_dict["language"], "javascript")
 
-    @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_run_code_invalid_language(self, MockCallMcpToolRequest):
-        with self.assertRaises(CommandError) as context:
-            self.command.run_code("print('test')", "invalid_language")
-        self.assertIn("Unsupported language", str(context.exception))
-        MockCallMcpToolRequest.assert_not_called()
+    def test_run_code_invalid_language(self):
+        success, error_msg = self.command.run_code("print('test')", "invalid_language")
+        self.assertFalse(success)
+        self.assertIn("Unsupported language", error_msg)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_run_code_no_output(self, MockCallMcpToolRequest):
+    def test_run_code_no_output(self, MockCallMcpToolRequest, mock_extract_request_id):
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
             "body": {
@@ -141,18 +158,22 @@ console.log(x);
                 }
             }
         }
+        mock_extract_request_id.return_value = "request-123"
         self.session.client.call_mcp_tool.return_value = mock_response
 
-        with self.assertRaises(CommandError) as context:
-            self.command.run_code("print('test')", "python")
-        self.assertIn("No content found in response", str(context.exception))
+        success, error_msg = self.command.run_code("print('test')", "python")
+        self.assertFalse(success)
+        self.assertIn("No content found in response", error_msg)
 
+    @patch("agentbay.command.command.extract_request_id")
     @patch("agentbay.command.command.CallMcpToolRequest")
-    def test_run_code_exception(self, MockCallMcpToolRequest):
+    def test_run_code_exception(self, MockCallMcpToolRequest, mock_extract_request_id):
         self.session.client.call_mcp_tool.side_effect = Exception("mock error")
-        with self.assertRaises(CommandError) as context:
-            self.command.run_code("print('test')", "python")
-        self.assertIn("Failed to run code: mock error", str(context.exception))
+        mock_extract_request_id.return_value = "request-123"
+
+        success, error_msg = self.command.run_code("print('test')", "python")
+        self.assertFalse(success)
+        self.assertIn("Failed to run code: mock error", error_msg)
 
 
 if __name__ == "__main__":

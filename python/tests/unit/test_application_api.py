@@ -1,7 +1,14 @@
 import unittest
 from unittest.mock import MagicMock
-from agentbay.application.application import ApplicationManager, InstalledApp, Process
-from agentbay.exceptions import AgentBayError
+from agentbay.application.application import (
+    ApplicationManager,
+    InstalledApp,
+    Process,
+    InstalledAppListResult,
+    ProcessListResult,
+    BoolResult
+)
+from agentbay.model import OperationResult
 
 
 class TestApplicationApi(unittest.TestCase):
@@ -11,7 +18,10 @@ class TestApplicationApi(unittest.TestCase):
 
     def test_get_installed_apps_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            return_value="""[
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data="""[
     {
         "name" : "美团",
         "start_cmd" : "monkey -p com.sankuai.meituan -c android.intent.category.LAUNCHER 1",
@@ -31,118 +41,193 @@ class TestApplicationApi(unittest.TestCase):
         "work_directory" : ""
     }
 ]"""
+            )
         )
-        apps = self.app_manager.get_installed_apps()
-        self.assertEqual(len(apps), 3)
-        self.assertIsInstance(apps[0], InstalledApp)
-        self.assertEqual(apps[0].name, "美团")
-        self.assertEqual(apps[1].name, "小红书")
-        self.assertEqual(apps[2].name, "高德地图")
+        result = self.app_manager.get_installed_apps()
+        self.assertIsInstance(result, InstalledAppListResult)
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.data), 3)
+        self.assertIsInstance(result.data[0], InstalledApp)
+        self.assertEqual(result.data[0].name, "美团")
+        self.assertEqual(result.data[1].name, "小红书")
+        self.assertEqual(result.data[2].name, "高德地图")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_get_installed_apps_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to get installed apps")
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to get installed apps"
+            )
         )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.get_installed_apps()
-        self.assertEqual(str(context.exception), "Failed to get installed apps")
+        result = self.app_manager.get_installed_apps()
+        self.assertIsInstance(result, InstalledAppListResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to get installed apps")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_start_app_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            return_value="""[
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data="""[
             {
                 "pname": "com.autonavi.minimap",
                 "pid": 12345,
                 "cmdline": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
             }
         ]"""
+            )
         )
-        processes = self.app_manager.start_app(
+        result = self.app_manager.start_app(
             "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
         )
-        self.assertEqual(len(processes), 1)
-        self.assertEqual(processes[0].pname, "com.autonavi.minimap")
-        self.assertEqual(processes[0].pid, 12345)
+        self.assertIsInstance(result, ProcessListResult)
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.data), 1)
+        self.assertEqual(result.data[0].pname, "com.autonavi.minimap")
+        self.assertEqual(result.data[0].pid, 12345)
         self.assertEqual(
-            processes[0].cmdline,
+            result.data[0].cmdline,
             "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
         )
+        self.assertEqual(result.request_id, "request-123")
 
     def test_start_app_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to start app")
-        )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.start_app(
-                "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to start app"
             )
-        self.assertEqual(str(context.exception), "Failed to start app")
+        )
+        result = self.app_manager.start_app(
+            "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+        )
+        self.assertIsInstance(result, ProcessListResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to start app")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_cmd_success(self):
-        self.app_manager._call_mcp_tool = MagicMock(return_value=None)
-        try:
-            self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
-        except AgentBayError:
-            self.fail("stop_app_by_cmd raised AgentBayError unexpectedly!")
+        self.app_manager._call_mcp_tool = MagicMock(
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data=None
+            )
+        )
+        result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_cmd_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to stop app")
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to stop app"
+            )
         )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
-        self.assertEqual(str(context.exception), "Failed to stop app")
+        result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to stop app")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pname_success(self):
-        self.app_manager._call_mcp_tool = MagicMock(return_value=None)
-        try:
-            self.app_manager.stop_app_by_pname("com.autonavi.minimap")
-        except AgentBayError:
-            self.fail("stop_app_by_pname raised AgentBayError unexpectedly!")
+        self.app_manager._call_mcp_tool = MagicMock(
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data=None
+            )
+        )
+        result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pname_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to stop app by pname")
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to stop app by pname"
+            )
         )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.stop_app_by_pname("com.autonavi.minimap")
-        self.assertEqual(str(context.exception), "Failed to stop app by pname")
+        result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to stop app by pname")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pid_success(self):
-        self.app_manager._call_mcp_tool = MagicMock(return_value=None)
-        try:
-            self.app_manager.stop_app_by_pid(12345)
-        except AgentBayError:
-            self.fail("stop_app_by_pid raised AgentBayError unexpectedly!")
+        self.app_manager._call_mcp_tool = MagicMock(
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data=None
+            )
+        )
+        result = self.app_manager.stop_app_by_pid(12345)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
+        self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pid_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to stop app by pid")
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to stop app by pid"
+            )
         )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.stop_app_by_pid(12345)
-        self.assertEqual(str(context.exception), "Failed to stop app by pid")
+        result = self.app_manager.stop_app_by_pid(12345)
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to stop app by pid")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_list_visible_apps_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            return_value="""[
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data="""[
             {"pname": "com.autonavi.minimap", "pid": 12345, "cmdline": "cmd1"},
             {"pname": "com.xingin.xhs", "pid": 23456, "cmdline": "cmd2"}
         ]"""
+            )
         )
-        processes = self.app_manager.list_visible_apps()
-        self.assertEqual(len(processes), 2)
-        self.assertIsInstance(processes[0], Process)
-        self.assertEqual(processes[0].pname, "com.autonavi.minimap")
-        self.assertEqual(processes[1].pname, "com.xingin.xhs")
+        result = self.app_manager.list_visible_apps()
+        self.assertIsInstance(result, ProcessListResult)
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.data), 2)
+        self.assertIsInstance(result.data[0], Process)
+        self.assertEqual(result.data[0].pname, "com.autonavi.minimap")
+        self.assertEqual(result.data[1].pname, "com.xingin.xhs")
+        self.assertEqual(result.request_id, "request-123")
 
     def test_list_visible_apps_failure(self):
         self.app_manager._call_mcp_tool = MagicMock(
-            side_effect=AgentBayError("Failed to list visible apps")
+            return_value=OperationResult(
+                request_id="request-123",
+                success=False,
+                error_message="Failed to list visible apps"
+            )
         )
-        with self.assertRaises(AgentBayError) as context:
-            self.app_manager.list_visible_apps()
-        self.assertEqual(str(context.exception), "Failed to list visible apps")
+        result = self.app_manager.list_visible_apps()
+        self.assertIsInstance(result, ProcessListResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to list visible apps")
+        self.assertEqual(result.request_id, "request-123")
 
 
 if __name__ == "__main__":

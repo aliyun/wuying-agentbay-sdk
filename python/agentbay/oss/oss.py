@@ -2,10 +2,11 @@ import json
 from typing import Optional, Dict, Any
 
 from agentbay.api.models import CallMcpToolRequest
-from agentbay.exceptions import OssError
+from agentbay.exceptions import OssError, AgentBayError
+from agentbay.api.base_service import BaseService
 
 
-class Oss:
+class Oss(BaseService):
     """
     Handles Object Storage Service operations in the AgentBay cloud environment.
     """
@@ -17,7 +18,23 @@ class Oss:
         Args:
             session: The Session instance that this Oss belongs to.
         """
-        self.session = session
+        super().__init__(session)
+
+    def _handle_error(self, e):
+        """
+        Convert AgentBayError to OssError for compatibility.
+
+        Args:
+            e (Exception): The exception to convert.
+
+        Returns:
+            OssError: The converted exception.
+        """
+        if isinstance(e, OssError):
+            return e
+        if isinstance(e, AgentBayError):
+            return OssError(str(e))
+        return e
 
     def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> Any:
         """
