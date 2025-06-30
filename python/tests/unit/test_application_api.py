@@ -6,7 +6,7 @@ from agentbay.application.application import (
     Process,
     InstalledAppListResult,
     ProcessListResult,
-    BoolResult
+    AppOperationResult
 )
 from agentbay.model import OperationResult
 
@@ -43,7 +43,7 @@ class TestApplicationApi(unittest.TestCase):
 ]"""
             )
         )
-        result = self.app_manager.get_installed_apps()
+        result = self.app_manager.get_installed_apps(True, True, True)
         self.assertIsInstance(result, InstalledAppListResult)
         self.assertTrue(result.success)
         self.assertEqual(len(result.data), 3)
@@ -61,7 +61,7 @@ class TestApplicationApi(unittest.TestCase):
                 error_message="Failed to get installed apps"
             )
         )
-        result = self.app_manager.get_installed_apps()
+        result = self.app_manager.get_installed_apps(True, False, True)
         self.assertIsInstance(result, InstalledAppListResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Failed to get installed apps")
@@ -120,9 +120,8 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertTrue(result.success)
-        self.assertTrue(result.data)
         self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_cmd_failure(self):
@@ -134,7 +133,7 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Failed to stop app")
         self.assertEqual(result.request_id, "request-123")
@@ -148,9 +147,8 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertTrue(result.success)
-        self.assertTrue(result.data)
         self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pname_failure(self):
@@ -162,7 +160,7 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Failed to stop app by pname")
         self.assertEqual(result.request_id, "request-123")
@@ -176,9 +174,8 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_pid(12345)
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertTrue(result.success)
-        self.assertTrue(result.data)
         self.assertEqual(result.request_id, "request-123")
 
     def test_stop_app_by_pid_failure(self):
@@ -190,7 +187,7 @@ class TestApplicationApi(unittest.TestCase):
             )
         )
         result = self.app_manager.stop_app_by_pid(12345)
-        self.assertIsInstance(result, BoolResult)
+        self.assertIsInstance(result, AppOperationResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Failed to stop app by pid")
         self.assertEqual(result.request_id, "request-123")

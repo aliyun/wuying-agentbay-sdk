@@ -282,12 +282,17 @@ class Session:
                 )
 
             data = body.get("Data", {})
-            if not isinstance(data, str):
-                raise SessionError(
-                    "Invalid response format: 'Data' field is not a string"
-                )
+            print(f"Data: {data}")
 
-            return OperationResult(request_id=request_id, success=True, data=data)
+            if not isinstance(data, dict):
+                try:
+                    data = json.loads(data) if isinstance(data, str) else {}
+                except json.JSONDecodeError:
+                    data = {}
+
+            url = data.get("Url", "")
+
+            return OperationResult(request_id=request_id, success=True, data=url)
 
         except SessionError:
             raise
@@ -338,12 +343,17 @@ class Session:
                 )
 
             data = body.get("Data", {})
-            if not isinstance(data, str):
-                raise SessionError(
-                    "Invalid response format: 'Data' field is not a string"
-                )
+            print(f"Data: {data}")
 
-            return OperationResult(request_id=request_id, success=True, data=data)
+            if not isinstance(data, dict):
+                try:
+                    data = json.loads(data) if isinstance(data, str) else {}
+                except json.JSONDecodeError:
+                    data = {}
+
+            url = data.get("Url", "")
+
+            return OperationResult(request_id=request_id, success=True, data=url)
 
         except SessionError:
             raise

@@ -2,7 +2,7 @@ import os
 import unittest
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
-from agentbay.exceptions import OssError
+
 
 
 def get_oss_credentials():
@@ -62,7 +62,9 @@ class TestOssIntegration(unittest.TestCase):
             credentials["region"],
         )
         print(f"EnvInit result: {result}")
-        self.assertNotIn("tool not found", result.lower())
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.request_id)
+        self.assertIsNotNone(result.client_config)
 
     def test_upload(self):
         """Test OSS file upload."""
@@ -71,13 +73,14 @@ class TestOssIntegration(unittest.TestCase):
 
         # Initialize OSS environment first
         credentials = get_oss_credentials()
-        self.session.oss.env_init(
+        init_result = self.session.oss.env_init(
             credentials["access_key_id"],
             credentials["access_key_secret"],
             credentials["security_token"],
             credentials["endpoint"],
             credentials["region"],
         )
+        self.assertTrue(init_result.success)
 
         # Create a test file to upload
         test_content = "This is a test file for OSS upload."
@@ -90,7 +93,9 @@ class TestOssIntegration(unittest.TestCase):
         object_key = "test-object.txt"
         result = self.session.oss.upload(bucket, object_key, test_file_path)
         print(f"Upload result: {result}")
-        self.assertIn("Upload success", result)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.request_id)
+        self.assertIn("Upload success", result.content)
 
     def test_upload_anonymous(self):
         """Test OSS anonymous file upload."""
@@ -109,7 +114,9 @@ class TestOssIntegration(unittest.TestCase):
         )
         result = self.session.oss.upload_anonymous(upload_url, test_file_path)
         print(f"UploadAnonymous result: {result}")
-        self.assertIn("Upload success", result)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.request_id)
+        self.assertIn("Upload success", result.content)
 
     def test_download(self):
         """Test OSS file download."""
@@ -118,13 +125,14 @@ class TestOssIntegration(unittest.TestCase):
 
         # Initialize OSS environment first
         credentials = get_oss_credentials()
-        self.session.oss.env_init(
+        init_result = self.session.oss.env_init(
             credentials["access_key_id"],
             credentials["access_key_secret"],
             credentials["security_token"],
             credentials["endpoint"],
             credentials["region"],
         )
+        self.assertTrue(init_result.success)
 
         # Download the file
         print("Downloading file from OSS...")
@@ -133,7 +141,9 @@ class TestOssIntegration(unittest.TestCase):
         download_path = "/tmp/test_oss_download.txt"
         result = self.session.oss.download(bucket, object_key, download_path)
         print(f"Download result: {result}")
-        self.assertIn("Download success", result)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.request_id)
+        self.assertIn("Download success", result.content)
 
         # Verify the downloaded file exists
         file_info = self.session.file_system.get_file_info(download_path)
@@ -152,7 +162,9 @@ class TestOssIntegration(unittest.TestCase):
         download_path = "/tmp/test_oss_download_anon.txt"
         result = self.session.oss.download_anonymous(download_url, download_path)
         print(f"DownloadAnonymous result: {result}")
-        self.assertIn("Download success", result)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.request_id)
+        self.assertIn("Download success", result.content)
 
         # Verify the downloaded file exists
         file_info = self.session.file_system.get_file_info(download_path)

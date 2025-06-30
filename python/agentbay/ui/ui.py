@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from agentbay.exceptions import AgentBayError, UIError
 from agentbay.model import (
-    OperationResult, UIElementListResult, BoolResult, ApiResponse
+    OperationResult, BoolResult, ApiResponse
 )
 from agentbay.api.base_service import BaseService
 
@@ -253,7 +253,7 @@ class UI(BaseService):
             OperationResult: Result object containing the path to the screenshot and error message if any.
         """
         args = {}
-        result = self._call_mcp_tool("screenshot", args)
+        result = self._call_mcp_tool("system_screenshot", args)
 
         return OperationResult(
             request_id=result.request_id,

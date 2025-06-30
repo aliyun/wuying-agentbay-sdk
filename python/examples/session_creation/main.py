@@ -39,10 +39,9 @@ def main():
         sessions_result = agent_bay.list()
 
         # Extract session_id list and join as string
-        session_ids = [s.session_id for s in sessions_result.sessions]
+        session_ids = [s.session_id for s in sessions_result]
         session_ids_str = ", ".join(session_ids)
         print(f"\nAvailable sessions: {session_ids_str}")
-        print(f"Request ID: {sessions_result.request_id}")
 
         # Create multiple sessions to demonstrate listing
         print("\nCreating additional sessions...")
@@ -66,10 +65,9 @@ def main():
         print("\nListing all sessions after creating additional ones...")
         try:
             updated_sessions_result = agent_bay.list()
-            updated_session_ids = [s.session_id for s in updated_sessions_result.sessions]
+            updated_session_ids = [s.session_id for s in updated_sessions_result]
             updated_session_ids_str = ", ".join(updated_session_ids)
             print(f"\nUpdated list of sessions: {updated_session_ids_str}")
-            print(f"Request ID: {updated_sessions_result.request_id}")
         except AgentBayError as e:
             print(f"\nError listing sessions: {e}")
 
@@ -96,13 +94,12 @@ def main():
         print("\nListing sessions after cleanup...")
         try:
             final_sessions_result = agent_bay.list()
-            if len(final_sessions_result.sessions) == 0:
+            if len(final_sessions_result) == 0:
                 print("All sessions have been deleted successfully.")
             else:
-                final_session_ids = [s.session_id for s in final_sessions_result.sessions]
+                final_session_ids = [s.session_id for s in final_sessions_result]
                 final_session_ids_str = ", ".join(final_session_ids)
                 print(f"\nRemaining sessions: {final_session_ids_str}")
-            print(f"Request ID: {final_sessions_result.request_id}")
         except AgentBayError as e:
             print(f"\nError listing sessions: {e}")
 

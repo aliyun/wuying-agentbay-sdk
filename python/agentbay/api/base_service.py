@@ -115,25 +115,19 @@ class BaseService:
                 raise AgentBayError("No content found in response")
 
             content_item = content[0]
-            json_text = content_item.get("text")
-            if not json_text:
-                raise AgentBayError("Text field not found or not a string in response")
+            text_string = content_item.get("text")
 
-            # Parse JSON if requested
-            if parse_json:
-                try:
-                    return json.loads(json_text)
-                except json.JSONDecodeError as e:
-                    # 使用 _handle_error 处理异常
-                    handled_error = self._handle_error(AgentBayError(f"Failed to parse JSON response: {e}"))
-                    raise handled_error
+            # Allow text field to be empty string
+            if text_string is None:
+                raise AgentBayError("Text field not found in response")
 
-            return json_text
+            return text_string
+
         except AgentBayError as e:
-            # 使用 _handle_error 处理异常
+            # Transform AgentBayError to the expected type
             handled_error = self._handle_error(e)
             raise handled_error
         except Exception as e:
-            # 使用 _handle_error 处理异常
+            # Transform AgentBayError to the expected type
             handled_error = self._handle_error(AgentBayError(f"Error parsing response body: {e}"))
             raise handled_error

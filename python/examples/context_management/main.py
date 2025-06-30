@@ -4,7 +4,6 @@ import os
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
-import time
 
 
 def main():

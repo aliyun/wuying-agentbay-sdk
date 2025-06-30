@@ -49,10 +49,10 @@ def main():
             print(f"File reading error: {result.error_message}")
 
         # Get session link
-        # print("\nGetting session link...")
-        # link_result = session.get_link()
-        # print(f"Link request ID: {link_result.request_id}")
-        # print(f"Link: {link_result.data}")
+        print("\nGetting session link...")
+        link_result = session.get_link()
+        print(f"Link request ID: {link_result.request_id}")
+        print(f"Link: {link_result.data}")
 
         # List all sessions
         print("\nListing all sessions...")

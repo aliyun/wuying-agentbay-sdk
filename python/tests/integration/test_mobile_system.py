@@ -3,8 +3,10 @@ import time
 import unittest
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
+from agentbay.model import BoolResult, OperationResult
+from agentbay.application.application import InstalledAppListResult, ProcessListResult
 from agentbay.ui import KeyCode
-from agentbay.model import InstalledAppListResult, ProcessListResult, UIElementListResult
+from agentbay.ui.ui import UIElementListResult
 from agentbay.session_params import CreateSessionParams
 
 
@@ -38,8 +40,11 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             if cls.session:
-                cls.agent_bay.delete(cls.session)
-                print("Session deleted successfully")
+                delete_result = cls.agent_bay.delete(cls.session)
+                if delete_result.success:
+                    print("Session deleted successfully")
+                else:
+                    print(f"Failed to delete session: {delete_result.error_message}")
         except AgentBayError as e:
             print(f"Failed to delete session: {e}")
 
@@ -108,6 +113,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             x, y = 100, 200
             result = self.__class__.ui.click(x, y, button="left")
+            self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to click: {result.error_message}")
             print(f"\nClicked on coordinates ({x}, {y}) successfully.")
         except AgentBayError as e:
@@ -119,6 +125,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             result = self.__class__.ui.send_key(KeyCode.HOME)
+            self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to send key: {result.error_message}")
             print("\nSent HOME key successfully.")
         except AgentBayError as e:
@@ -131,6 +138,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             start_x, start_y, end_x, end_y, duration_ms = 100, 200, 300, 400, 500
             result = self.__class__.ui.swipe(start_x, start_y, end_x, end_y, duration_ms)
+            self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to swipe: {result.error_message}")
             print(
                 f"\nSwipe performed successfully from ({start_x}, {start_y}) to ({end_x}, {end_y}) in {duration_ms}ms."
@@ -145,6 +153,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             text = "Hello, world!"
             result = self.__class__.ui.input_text(text)
+            self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to input text: {result.error_message}")
             print(f"\nInput text '{text}' successfully.")
         except AgentBayError as e:
@@ -155,7 +164,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving all UI elements.
         """
         try:
-            result = self.__class__.ui.get_all_ui_elements(timeout_ms=1000)
+            result = self.__class__.ui.get_all_ui_elements(timeout_ms=3000)
             self.assertIsInstance(result, UIElementListResult)
             self.assertTrue(result.success, f"Failed to get all UI elements: {result.error_message}")
 
@@ -172,6 +181,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         """
         try:
             result = self.__class__.ui.screenshot()
+            self.assertIsInstance(result, OperationResult)
             self.assertTrue(result.success, f"Failed to take screenshot: {result.error_message}")
             screenshot_path = result.data
             self.assertIsInstance(screenshot_path, str)

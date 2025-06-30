@@ -132,33 +132,34 @@ class WindowManager(BaseService):
     Handles window management operations in the AgentBay cloud environment.
     """
 
-    def list_root_windows(self) -> WindowListResult:
+    def list_root_windows(self, timeout_ms: int = 3000) -> WindowListResult:
         """
         Lists all root windows in the system.
 
         Returns:
             WindowListResult: Result object containing list of windows and error message if any.
         """
-        args = {}
+        args = {"timeout_ms": timeout_ms}
 
         try:
             result = self._call_mcp_tool("list_root_windows", args)
             if not result.success:
                 return WindowListResult(request_id=result.request_id, success=False, error_message=result.error_message)
 
-            windows = [Window.from_dict(window) for window in result.data]
+            data = json.loads(result.data)
+            windows = [Window.from_dict(window) for window in data]
             return WindowListResult(request_id=result.request_id, success=True, windows=windows)
         except Exception as e:
             return WindowListResult(request_id="", success=False, error_message=f"Failed to list root windows: {e}")
 
-    def get_active_window(self) -> WindowInfoResult:
+    def get_active_window(self, timeout_ms: int = 3000) -> WindowInfoResult:
         """
         Gets the currently active window.
 
         Returns:
             WindowInfoResult: Result object containing window information and error message if any.
         """
-        args = {}
+        args = {"timeout_ms": timeout_ms}
 
         try:
             result = self._call_mcp_tool("get_active_window", args)

@@ -1,14 +1,9 @@
 import os
-import sys
 import time
 import unittest
 
-# Add the parent directory to the path so we can import the agentbay package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from agentbay import AgentBay
-from agentbay.model import BoolResult
-from agentbay.application.application import InstalledAppListResult, ProcessListResult
+from agentbay.application.application import InstalledAppListResult, ProcessListResult, AppOperationResult
 from agentbay.session_params import CreateSessionParams
 
 
@@ -209,7 +204,7 @@ class TestApplication(unittest.TestCase):
                                 stop_result = self.__class__.session.application.stop_app_by_pid(process.pid)
 
                                 # Verify result is of correct type
-                                self.assertIsInstance(stop_result, BoolResult)
+                                self.assertIsInstance(stop_result, AppOperationResult)
 
                                 if stop_result.success:
                                     print(
@@ -281,7 +276,7 @@ class TestApplication(unittest.TestCase):
                     stop_result = self.__class__.session.application.stop_app_by_pname(process_to_stop)
 
                     # Verify result is of correct type
-                    self.assertIsInstance(stop_result, BoolResult)
+                    self.assertIsInstance(stop_result, AppOperationResult)
 
                     if not stop_result.success:
                         print(f"Error stopping app: {stop_result.error_message} (Request ID: {stop_result.request_id})")

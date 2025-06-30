@@ -196,7 +196,24 @@ class AppListResult(ApiResponse):
         self.error_message = error_message
 
 
-class Application(BaseService):
+class AppOperationResult(ApiResponse):
+    """Result of application operations like start/stop."""
+
+    def __init__(self, request_id: str = "", success: bool = False, error_message: str = ""):
+        """
+        Initialize an AppOperationResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.error_message = error_message
+
+
+class ApplicationManager(BaseService):
     """
     Handles application operations in the AgentBay cloud environment.
     """
@@ -217,168 +234,230 @@ class Application(BaseService):
             return ApplicationError(str(e))
         return e
 
-    def get_app_info(self, package_name: str) -> AppInfoResult:
+    def get_installed_apps(self, start_menu: bool, desktop: bool,
+                          ignore_system_apps: bool) -> InstalledAppListResult:
         """
-        Get information about an application.
+        Retrieves a list of installed applications.
 
         Args:
-            package_name: The package name of the application.
+            start_menu (bool): Whether to include start menu applications.
+            desktop (bool): Whether to include desktop applications.
+            ignore_system_apps (bool): Whether to ignore system applications.
 
         Returns:
-            AppInfoResult: Result object containing application info and error message if any.
+            InstalledAppListResult: The result containing the list of installed applications.
         """
-        args = {"package_name": package_name}
-
         try:
-            result = self._call_mcp_tool("get_app_info", args)
-            if result.success:
-                try:
-                    app_info = json.loads(result.data)
-                    return AppInfoResult(request_id=result.request_id, success=True, app_info=app_info)
-                except json.JSONDecodeError:
-                    return AppInfoResult(request_id=result.request_id, success=False, error_message="Failed to parse app info JSON")
-            else:
-                return AppInfoResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to get app info")
-        except ApplicationError as e:
-            return AppInfoResult(request_id="", success=False, error_message=str(e))
+            args = {
+                "start_menu": start_menu,
+                "desktop": desktop,
+                "ignore_system_apps": ignore_system_apps
+            }
+
+            result = self._call_mcp_tool("get_installed_apps", args)
+
+            if not result.success:
+                return InstalledAppListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                )
+
+            try:
+                apps_json = json.loads(result.data)
+                installed_apps = []
+
+                for app_data in apps_json:
+                    app = InstalledApp.from_dict(app_data)
+                    installed_apps.append(app)
+
+                return InstalledAppListResult(
+                    request_id=result.request_id,
+                    success=True,
+                    data=installed_apps
+                )
+            except json.JSONDecodeError as e:
+                return InstalledAppListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=f"Failed to parse applications JSON: {e}"
+                )
         except Exception as e:
-            return AppInfoResult(request_id="", success=False, error_message=f"Failed to get app info: {e}")
+            handled_error = self._handle_error(e)
+            return InstalledAppListResult(
+                success=False,
+                error_message=str(handled_error)
+            )
 
-    def list_installed_apps(self) -> AppListResult:
+    def start_app(self, start_cmd: str, work_directory: str = "") -> ProcessListResult:
         """
-        List all installed applications.
-
-        Returns:
-            AppListResult: Result object containing list of applications and error message if any.
-        """
-        args = {}
-
-        try:
-            result = self._call_mcp_tool("list_installed_apps", args)
-            if result.success:
-                try:
-                    apps = json.loads(result.data)
-                    return AppListResult(request_id=result.request_id, success=True, apps=apps)
-                except json.JSONDecodeError:
-                    return AppListResult(request_id=result.request_id, success=False, error_message="Failed to parse app list JSON")
-            else:
-                return AppListResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to list installed apps")
-        except ApplicationError as e:
-            return AppListResult(request_id="", success=False, error_message=str(e))
-        except Exception as e:
-            return AppListResult(request_id="", success=False, error_message=f"Failed to list installed apps: {e}")
-
-    def launch_app(self, package_name: str) -> BoolResult:
-        """
-        Launch an application.
+        Starts an application with the given command and optional working directory.
 
         Args:
-            package_name: The package name of the application to launch.
+            start_cmd (str): The command to start the application.
+            work_directory (str, optional): The working directory for the application. Defaults to "".
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            ProcessListResult: The result containing the list of processes started.
         """
-        args = {"package_name": package_name}
-
         try:
-            result = self._call_mcp_tool("launch_app", args)
-            if result.success:
-                return BoolResult(request_id=result.request_id, success=True, data=True)
-            else:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to launch app")
-        except ApplicationError as e:
-            return BoolResult(request_id="", success=False, error_message=str(e))
-        except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to launch app: {e}")
+            args = {"start_cmd": start_cmd}
+            if work_directory:
+                args["work_directory"] = work_directory
 
-    def stop_app(self, package_name: str) -> BoolResult:
+            result = self._call_mcp_tool("start_app", args)
+
+            if not result.success:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                )
+
+            try:
+                processes_json = json.loads(result.data)
+                processes = []
+
+                for process_data in processes_json:
+                    process = Process.from_dict(process_data)
+                    processes.append(process)
+
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=True,
+                    data=processes
+                )
+            except json.JSONDecodeError as e:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=f"Failed to parse processes JSON: {e}"
+                )
+        except Exception as e:
+            handled_error = self._handle_error(e)
+            return ProcessListResult(
+                success=False,
+                error_message=str(handled_error)
+            )
+
+    def stop_app_by_pname(self, pname: str) -> AppOperationResult:
         """
-        Stop a running application.
+        Stops an application by process name.
 
         Args:
-            package_name: The package name of the application to stop.
+            pname (str): The name of the process to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: The result of the operation.
         """
-        args = {"package_name": package_name}
-
         try:
-            result = self._call_mcp_tool("stop_app", args)
-            if result.success:
-                return BoolResult(request_id=result.request_id, success=True, data=True)
-            else:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to stop app")
-        except ApplicationError as e:
-            return BoolResult(request_id="", success=False, error_message=str(e))
-        except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to stop app: {e}")
+            args = {"pname": pname}
+            result = self._call_mcp_tool("stop_app_by_pname", args)
 
-    def install_app(self, apk_path: str) -> BoolResult:
+            return AppOperationResult(
+                request_id=result.request_id,
+                success=result.success,
+                error_message=result.error_message
+            )
+        except Exception as e:
+            handled_error = self._handle_error(e)
+            return AppOperationResult(
+                success=False,
+                error_message=str(handled_error)
+            )
+
+    def stop_app_by_pid(self, pid: int) -> AppOperationResult:
         """
-        Install an application from an APK file.
+        Stops an application by process ID.
 
         Args:
-            apk_path: The path to the APK file.
+            pid (int): The process ID to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: The result of the operation.
         """
-        args = {"apk_path": apk_path}
-
         try:
-            result = self._call_mcp_tool("install_app", args)
-            if result.success:
-                return BoolResult(request_id=result.request_id, success=True, data=True)
-            else:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to install app")
-        except ApplicationError as e:
-            return BoolResult(request_id="", success=False, error_message=str(e))
-        except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to install app: {e}")
+            args = {"pid": pid}
+            result = self._call_mcp_tool("stop_app_by_pid", args)
 
-    def uninstall_app(self, package_name: str) -> BoolResult:
+            return AppOperationResult(
+                request_id=result.request_id,
+                success=result.success,
+                error_message=result.error_message
+            )
+        except Exception as e:
+            handled_error = self._handle_error(e)
+            return AppOperationResult(
+                success=False,
+                error_message=str(handled_error)
+            )
+
+    def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
         """
-        Uninstall an application.
+        Stops an application by stop command.
 
         Args:
-            package_name: The package name of the application to uninstall.
+            stop_cmd (str): The command to stop the application.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: The result of the operation.
         """
-        args = {"package_name": package_name}
-
         try:
-            result = self._call_mcp_tool("uninstall_app", args)
-            if result.success:
-                return BoolResult(request_id=result.request_id, success=True, data=True)
-            else:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to uninstall app")
-        except ApplicationError as e:
-            return BoolResult(request_id="", success=False, error_message=str(e))
+            args = {"stop_cmd": stop_cmd}
+            result = self._call_mcp_tool("stop_app_by_cmd", args)
+
+            return AppOperationResult(
+                request_id=result.request_id,
+                success=result.success,
+                error_message=result.error_message
+            )
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to uninstall app: {e}")
+            handled_error = self._handle_error(e)
+            return AppOperationResult(
+                success=False,
+                error_message=str(handled_error)
+            )
 
-    def clear_app_data(self, package_name: str) -> BoolResult:
+    def list_visible_apps(self) -> ProcessListResult:
         """
-        Clear an application's data.
-
-        Args:
-            package_name: The package name of the application to clear data for.
+        Returns a list of currently visible applications.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            ProcessListResult: The result containing the list of visible applications/processes.
         """
-        args = {"package_name": package_name}
-
         try:
-            result = self._call_mcp_tool("clear_app_data", args)
-            if result.success:
-                return BoolResult(request_id=result.request_id, success=True, data=True)
-            else:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to clear app data")
-        except ApplicationError as e:
-            return BoolResult(request_id="", success=False, error_message=str(e))
+            result = self._call_mcp_tool("list_visible_apps", {})
+
+            if not result.success:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                )
+
+            try:
+                processes_json = json.loads(result.data)
+                processes = []
+
+                for process_data in processes_json:
+                    process = Process.from_dict(process_data)
+                    processes.append(process)
+
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=True,
+                    data=processes
+                )
+            except json.JSONDecodeError as e:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=f"Failed to parse processes JSON: {e}"
+                )
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to clear app data: {e}")
+            handled_error = self._handle_error(e)
+            return ProcessListResult(
+                success=False,
+                error_message=str(handled_error)
+            )
+

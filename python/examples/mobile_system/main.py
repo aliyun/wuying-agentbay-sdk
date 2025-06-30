@@ -69,7 +69,7 @@ def main():
             for element in elements:
                 print_ui_element(element)
 
-        all_elements = session.ui.get_all_ui_elements()
+        all_elements = session.ui.get_all_ui_elements(timeout_ms=3000)
         print_all_ui_elements(all_elements)
 
         # Send key event
