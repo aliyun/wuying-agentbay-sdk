@@ -13,6 +13,7 @@ def main():
     if not api_key:
         api_key = "akm-xxx"  # Replace with your actual API key
 
+    session = None
     try:
         agent_bay = AgentBay(api_key=api_key)
 
@@ -21,35 +22,47 @@ def main():
         params = CreateSessionParams(
             image_id="mobile_latest",
         )
-        session = agent_bay.create(params)
+        session_result = agent_bay.create(params)
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
+        print(f"Request ID: {session_result.request_id}")
 
         # Get installed applications
         print("\nGetting installed applications...")
-        installed_apps = session.application.get_installed_apps(
+        apps_result = session.application.get_installed_apps(
             start_menu=True, desktop=False, ignore_system_apps=True
         )
 
-        print(f"\nInstalled Applications: {installed_apps}")
-        print(f"\nGetting installed appplications successfully")
+        if apps_result.success:
+            print(f"\nInstalled Applications: {apps_result.data}")
+            print(f"Request ID: {apps_result.request_id}")
+        else:
+            print(f"Error getting applications: {apps_result.error_message}")
 
         # Start the application
         print(f"\nStarting the application...")
         start_result = session.application.start_app(
             "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
         )
-        print(f"\nStarted Application successfully: {start_result}")
+        print(f"Started Application successfully: {start_result.success}")
+        print(f"Request ID: {start_result.request_id}")
 
         # Stop the application
         print("\nStopping the application...")
         stop_result = session.application.stop_app_by_cmd(
             "am force-stop com.sankuai.meituan"
         )
-        print(f"Application stopped: {stop_result}")
+        print(f"Application stopped: {stop_result.success}")
+        print(f"Request ID: {stop_result.request_id}")
 
         # Get clickable ui elements
         print("\nGetting clickable UI elements...")
-        clickable_elements = session.ui.get_clickable_ui_elements()
-        print(f"Clickable UI Elements: {clickable_elements}")
+        elements_result = session.ui.get_clickable_ui_elements()
+        if elements_result.success:
+            print(f"Clickable UI Elements: {elements_result.elements}")
+            print(f"Request ID: {elements_result.request_id}")
+        else:
+            print(f"Error getting clickable elements: {elements_result.error_message}")
 
         # Get all ui elements
         print("\nGetting all UI elements...")
@@ -69,56 +82,68 @@ def main():
             for element in elements:
                 print_ui_element(element)
 
-        all_elements = session.ui.get_all_ui_elements(timeout_ms=3000)
-        print_all_ui_elements(all_elements)
+        all_elements_result = session.ui.get_all_ui_elements(timeout_ms=3000)
+        if all_elements_result.success:
+            print_all_ui_elements(all_elements_result.elements)
+            print(f"Request ID: {all_elements_result.request_id}")
+        else:
+            print(f"Error getting all UI elements: {all_elements_result.error_message}")
 
         # Send key event
         print("\nSending key event...")
-        session.ui.send_key(KeyCode.HOME)
-        print(f"Key event sent successfully")
+        key_result = session.ui.send_key(KeyCode.HOME)
+        print(f"Key event sent successfully: {key_result.success}")
+        print(f"Request ID: {key_result.request_id}")
 
         # Input text
         print("\nInput text...")
-        session.ui.input_text("Hello, AgentBay!")
-        print("\nText input successfully")
+        input_result = session.ui.input_text("Hello, AgentBay!")
+        print(f"Text input successfully: {input_result.success}")
+        print(f"Request ID: {input_result.request_id}")
 
         # Swipe screen
         print("\nSwiping screen...")
-        session.ui.swipe(
+        swipe_result = session.ui.swipe(
             start_x=100,  # Starting X coordinate
             start_y=800,  # Starting Y coordinate
             end_x=900,  # Ending X coordinate
             end_y=200,  # Ending Y coordinate
             duration_ms=500,  # Swipe duration in milliseconds
         )
-        print("\nScreen swiped successfully")
+        print(f"Screen swiped successfully: {swipe_result.success}")
+        print(f"Request ID: {swipe_result.request_id}")
 
         # Click event
         print("\nClicking screen...")
-        session.ui.click(
+        click_result = session.ui.click(
             x=500,  # X coordinate for click
             y=800,  # Y coordinate for click
             button="left",  # Mouse button type, default is "left"
         )
-        print("\nScreen clicked successfully")
+        print(f"Screen clicked successfully: {click_result.success}")
+        print(f"Request ID: {click_result.request_id}")
 
         # Screenshot
         print("\nTaking screenshot...")
-        result = session.ui.screenshot()
-        print(f"\nScreenshot taken successfully: {result}")
+        screenshot_result = session.ui.screenshot()
+        print(f"Screenshot taken successfully: {screenshot_result.success}")
+        if screenshot_result.success and screenshot_result.data:
+            print(f"Screenshot data length: {len(screenshot_result.data)} bytes")
+        print(f"Request ID: {screenshot_result.request_id}")
 
         # Delete session
         print("\nDeleting session...")
-        session.delete()
+        delete_result = agent_bay.delete(session)
         session = None  # Clear session variable to avoid using it after deletion
-        print("\nSession deleted successfully")
+        print(f"Session deleted successfully: {delete_result.success}")
+        print(f"Request ID: {delete_result.request_id}")
 
-    except AgentBayError as e:
+    except Exception as e:
         print(f"Failed to test ui api: {e}")
         if session:
             try:
-                session.delete()
-                print("Session deleted successfully after error")
+                delete_result = agent_bay.delete(session)
+                print(f"Session deleted after error: {delete_result.success}")
             except AgentBayError as delete_error:
                 print(f"Error deleting session after error: {delete_error}")
 

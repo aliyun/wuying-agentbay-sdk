@@ -4,7 +4,7 @@ This directory contains the Python implementation of the Wuying AgentBay SDK.
 
 ## Prerequisites
 
-- Python 3.12 or later
+- Python 3.10 or later
 - Poetry (for development)
 
 ## Installation
@@ -40,9 +40,9 @@ python examples/basic_usage.py
 ## Python-Specific Usage
 
 ```python
-from wuying_agentbay import AgentBay
-from wuying_agentbay.exceptions import AgentBayError
-from wuying_agentbay.session_params import CreateSessionParams
+from agentbay import AgentBay
+from agentbay.exceptions import AgentBayError
+from agentbay.session_params import CreateSessionParams
 
 def main():
     # Initialize with API key
@@ -57,16 +57,24 @@ def main():
             "purpose": "demo",
             "environment": "development"
         }
-        session = agent_bay.create(params)
+        session_result = agent_bay.create(params)
+        session = session_result.session
         print(f"Session created with ID: {session.session_id}")
+        print(f"Request ID: {session_result.request_id}")
 
         # Execute a command
-        result = session.command.execute_command("ls -la")
-        print(f"Command result: {result}")
+        cmd_result = session.command.execute_command("ls -la")
+        print(f"Command success: {cmd_result.success}")
+        print(f"Command output: {cmd_result.output}")
+        print(f"Request ID: {cmd_result.request_id}")
 
         # Read a file
-        content = session.filesystem.read_file("/path/to/file.txt")
-        print(f"File content: {content}")
+        file_result = session.file_system.read_file("/path/to/file.txt")
+        if file_result.success:
+            print(f"File content: {file_result.content}")
+        else:
+            print(f"Error reading file: {file_result.error_message}")
+        print(f"Request ID: {file_result.request_id}")
 
         # Run code
         python_code = """
@@ -77,39 +85,58 @@ print(f"Current working directory: {os.getcwd()}")
 print(f"Python version: {platform.python_version()}")
 """
         code_result = session.command.run_code(python_code, "python")
-        print(f"Code execution result: {code_result}")
+        if code_result.success:
+            print(f"Code execution result: {code_result.result}")
+        else:
+            print(f"Error executing code: {code_result.error_message}")
+        print(f"Request ID: {code_result.request_id}")
 
         # Get installed applications
-        apps = session.application.get_installed_apps(include_system_apps=True,
-                                                     include_store_apps=False,
-                                                     include_desktop_apps=True)
-        print(f"Found {len(apps)} installed applications")
+        apps_result = session.application.get_installed_apps(
+            include_system_apps=True,
+            include_store_apps=False,
+            include_desktop_apps=True
+        )
+        if apps_result.success:
+            print(f"Found {len(apps_result.data)} installed applications")
+        print(f"Request ID: {apps_result.request_id}")
 
         # List visible applications
-        processes = session.application.list_visible_apps()
-        print(f"Found {len(processes)} visible applications")
+        processes_result = session.application.list_visible_apps()
+        if processes_result.success:
+            print(f"Found {len(processes_result.processes)} visible applications")
+        print(f"Request ID: {processes_result.request_id}")
 
         # List root windows
-        windows = session.window.list_root_windows()
-        print(f"Found {len(windows)} root windows")
+        windows_result = session.window.list_root_windows()
+        if windows_result.success:
+            print(f"Found {len(windows_result.windows)} root windows")
+        print(f"Request ID: {windows_result.request_id}")
 
         # Get active window
-        active_window = session.window.get_active_window()
-        print(f"Active window: {active_window.title}")
+        window_result = session.window.get_active_window()
+        if window_result.success:
+            print(f"Active window: {window_result.window.title}")
+        print(f"Request ID: {window_result.request_id}")
 
         # Get session labels
-        labels = session.get_labels()
-        print(f"Session labels: {labels}")
+        labels_result = session.get_labels()
+        if labels_result.success:
+            print(f"Session labels: {labels_result.data}")
+        print(f"Request ID: {labels_result.request_id}")
 
         # List sessions by labels
-        filtered_sessions = agent_bay.list_by_labels({
+        filtered_result = agent_bay.list_by_labels({
             "purpose": "demo"
         })
-        print(f"Found {len(filtered_sessions)} matching sessions")
+        if filtered_result.sessions:
+            print(f"Found {len(filtered_result.sessions)} matching sessions")
+        print(f"Request ID: {filtered_result.request_id}")
 
         # Clean up
-        agent_bay.delete(session)
-        print("Session deleted successfully")
+        delete_result = agent_bay.delete(session)
+        print(f"Session deleted successfully: {delete_result.success}")
+        print(f"Request ID: {delete_result.request_id}")
 
     except AgentBayError as e:
         print(f"Error: {e}")
