@@ -1,6 +1,7 @@
 import { AgentBay } from '../../src/agent-bay';
 import { Session } from '../../src/session';
-import { log } from '../../src/utils/logger';
+import { log, logError } from '../../src/utils/logger';
+import { getTestApiKey } from '../../tests/utils/test-helpers';
 
 // This example demonstrates how to create, list, and delete sessions
 // using the Wuying AgentBay SDK.
@@ -8,18 +9,17 @@ import { log } from '../../src/utils/logger';
 async function main() {
   try {
     // Get API key from environment variable or use a default value for testing
-    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key for testing
-    if (!process.env.AGENTBAY_API_KEY) {
-      log('Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.');
-    }
+    const apiKey = getTestApiKey();
 
     // Initialize the AgentBay client
     const agentBay = new AgentBay({ apiKey });
 
     // Create a new session with default parameters
     log('\nCreating a new session...');
-    const session = await agentBay.create();
+    const createResponse = await agentBay.create();
+    const session = createResponse.data;
     log(`\nSession created with ID: ${session.sessionId}`);
+    log(`Create Session RequestId: ${createResponse.requestId}`);
 
     // List all sessions
     log('\nListing all sessions...');
@@ -35,8 +35,10 @@ async function main() {
     const additionalSessions: Session[] = [];
     for (let i = 0; i < 2; i++) {
       try {
-        const additionalSession = await agentBay.create();
+        const additionalCreateResponse = await agentBay.create();
+        const additionalSession = additionalCreateResponse.data;
         log(`Additional session created with ID: ${additionalSession.sessionId}`);
+        log(`Additional Create Session RequestId: ${additionalCreateResponse.requestId}`);
 
         // Store the session for later cleanup
         additionalSessions.push(additionalSession);
@@ -61,8 +63,9 @@ async function main() {
     log('\nCleaning up sessions...');
     // First delete the initial session
     try {
-      await agentBay.delete(session);
+      const deleteResponse = await agentBay.delete(session);
       log(`Session ${session.sessionId} deleted successfully`);
+      log(`Delete Session RequestId: ${deleteResponse.requestId}`);
     } catch (error) {
       log(`Error deleting session ${session.sessionId}: ${error}`);
     }
@@ -70,8 +73,9 @@ async function main() {
     // Then delete the additional sessions
     for (const s of additionalSessions) {
       try {
-        await agentBay.delete(s);
+        const deleteResponse = await agentBay.delete(s);
         log(`Session ${s.sessionId} deleted successfully`);
+        log(`Delete Session RequestId: ${deleteResponse.requestId}`);
       } catch (error) {
         log(`Error deleting session ${s.sessionId}: ${error}`);
       }
@@ -92,7 +96,7 @@ async function main() {
       log(`\nError listing sessions: ${error}`);
     }
   } catch (error) {
-    log(`Error initializing AgentBay client: ${error}`);
+    logError(`Error initializing AgentBay client: ${error}`);
     process.exit(1);
   }
 }

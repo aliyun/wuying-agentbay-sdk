@@ -10,7 +10,7 @@
 export function log(message: string, ...args: any[]): void {
   // Use process.stdout.write instead of log to avoid the prefix and newline
   process.stdout.write(message + '\n');
-  
+
   // If there are additional arguments, print them on new lines with proper formatting
   if (args.length > 0) {
     for (const arg of args) {

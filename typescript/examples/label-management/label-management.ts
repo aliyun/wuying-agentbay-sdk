@@ -1,6 +1,7 @@
 import { AgentBay } from '../../src/agent-bay';
 import { Session } from '../../src/session';
-import { log } from '../../src/utils/logger';
+import { log, logError } from '../../src/utils/logger';
+import { getTestApiKey } from '../../tests/utils/test-helpers';
 
 /**
  * Label Management Example
@@ -12,55 +13,59 @@ import { log } from '../../src/utils/logger';
 async function main() {
   try {
     // Get API key from environment variable or use a default value for testing
-    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key for testing
-    if (!process.env.AGENTBAY_API_KEY) {
-      log('Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.');
-    }
+    const apiKey = getTestApiKey();
 
     // Initialize the AgentBay client
     const agentBay = new AgentBay({ apiKey });
 
     // Create a new session with labels
     log('\nCreating a new session with labels...');
-    const session1 = await agentBay.create({
+    const createResponse1 = await agentBay.create({
       labels: {
         purpose: 'demo',
         feature: 'label-management',
         version: '1.0'
       }
     });
+    const session1 = createResponse1.data;
     log(`Session created with ID: ${session1.sessionId}`);
-    
+    log(`Create Session 1 RequestId: ${createResponse1.requestId}`);
+
     // Get labels for the session
     log('\nGetting labels for the session...');
-    const labels = await session1.getLabels();
-    log(`Session labels: ${JSON.stringify(labels)}`);
-    
+    const labelsResponse = await session1.getLabels();
+    log(`Session labels: ${JSON.stringify(labelsResponse.data)}`);
+    log(`Get Labels RequestId: ${labelsResponse.requestId}`);
+
     // Create another session with different labels
     log('\nCreating another session with different labels...');
-    const session2 = await agentBay.create({
+    const createResponse2 = await agentBay.create({
       labels: {
         purpose: 'demo',
         feature: 'other-feature',
         version: '2.0'
       }
     });
+    const session2 = createResponse2.data;
     log(`Session created with ID: ${session2.sessionId}`);
-    
+    log(`Create Session 2 RequestId: ${createResponse2.requestId}`);
+
     // Update labels for the second session
     log('\nUpdating labels for the second session...');
-    await session2.setLabels({
+    const setLabelsResponse = await session2.setLabels({
       purpose: 'demo',
       feature: 'label-management',
       version: '2.0',
       status: 'active'
     });
-    
+    log(`Set Labels RequestId: ${setLabelsResponse.requestId}`);
+
     // Get updated labels for the second session
     log('\nGetting updated labels for the second session...');
-    const updatedLabels = await session2.getLabels();
-    log(`Updated session labels: ${JSON.stringify(updatedLabels)}`);
-    
+    const updatedLabelsResponse = await session2.getLabels();
+    log(`Updated session labels: ${JSON.stringify(updatedLabelsResponse.data)}`);
+    log(`Get Updated Labels RequestId: ${updatedLabelsResponse.requestId}`);
+
     // List all sessions
     log('\nListing all sessions...');
     const allSessions = agentBay.list();
@@ -68,36 +73,41 @@ async function main() {
     for (let i = 0; i < allSessions.length; i++) {
       log(`Session ${i + 1} ID: ${allSessions[i].sessionId}`);
     }
-    
+
     // List sessions by label
     log('\nListing sessions with purpose=demo and feature=label-management...');
     try {
-      const filteredSessions = await agentBay.listByLabels({
+      const filteredSessionsResponse = await agentBay.listByLabels({
         purpose: 'demo',
         feature: 'label-management'
       });
-      log(`Found ${filteredSessions.length} matching sessions`);
-      for (let i = 0; i < filteredSessions.length; i++) {
-        log(`Matching session ${i + 1} ID: ${filteredSessions[i].sessionId}`);
-        const sessionLabels = await filteredSessions[i].getLabels();
-        log(`Labels: ${JSON.stringify(sessionLabels)}`);
+      log(`Found ${filteredSessionsResponse.data.length} matching sessions`);
+      log(`List Sessions By Labels RequestId: ${filteredSessionsResponse.requestId}`);
+      for (let i = 0; i < filteredSessionsResponse.data.length; i++) {
+        log(`Matching session ${i + 1} ID: ${filteredSessionsResponse.data[i].sessionId}`);
+        const sessionLabelsResponse = await filteredSessionsResponse.data[i].getLabels();
+        log(`Labels: ${JSON.stringify(sessionLabelsResponse.data)}`);
+        log(`Get Session Labels RequestId: ${sessionLabelsResponse.requestId}`);
       }
     } catch (error) {
       log(`Error listing sessions by labels: ${error}`);
     }
-    
+
     // Delete the sessions
     log('\nDeleting the sessions...');
     try {
-      await agentBay.delete(session1);
+      const deleteResponse1 = await agentBay.delete(session1);
       log(`Session ${session1.sessionId} deleted successfully`);
-      await agentBay.delete(session2);
+      log(`Delete Session 1 RequestId: ${deleteResponse1.requestId}`);
+
+      const deleteResponse2 = await agentBay.delete(session2);
       log(`Session ${session2.sessionId} deleted successfully`);
+      log(`Delete Session 2 RequestId: ${deleteResponse2.requestId}`);
     } catch (error) {
       log(`Error deleting sessions: ${error}`);
     }
   } catch (error) {
-    log(`Error: ${error}`);
+    logError(`Error: ${error}`);
     process.exit(1);
   }
 }

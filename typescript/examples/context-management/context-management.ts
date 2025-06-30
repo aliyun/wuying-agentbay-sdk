@@ -1,23 +1,22 @@
 import { AgentBay } from '../../src/agent-bay';
-import { log } from '../../src/utils/logger';
+import { log, logError } from '../../src/utils/logger';
+import { getTestApiKey } from '../../tests/utils/test-helpers';
 
 async function main() {
   try {
     // Initialize the AgentBay client
     // You can provide the API key as a parameter or set the AGENTBAY_API_KEY environment variable
-    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
-    if (!process.env.AGENTBAY_API_KEY) {
-      log('Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.');
-    }
+    const apiKey = getTestApiKey();
 
     const agentBay = new AgentBay({ apiKey });
 
     // Example 1: List all contexts
     log('\nExample 1: Listing all contexts...');
     try {
-      const contexts = await agentBay.context.list();
-      log(`Found ${contexts.length} contexts:`);
-      for (const context of contexts) {
+      const contextsResponse = await agentBay.context.list();
+      log(`Found ${contextsResponse.data.length} contexts:`);
+      log(`List Contexts RequestId: ${contextsResponse.requestId}`);
+      for (const context of contextsResponse.data) {
         log(`- ${context.name} (${context.id}): state=${context.state}, os=${context.osType}`);
       }
     } catch (error) {
@@ -29,8 +28,10 @@ async function main() {
     const contextName = 'my-test-context';
     let context;
     try {
-      context = await agentBay.context.get(contextName, true);
-      if (context) {
+      const contextResponse = await agentBay.context.get(contextName, true);
+      log(`Get Context RequestId: ${contextResponse.requestId}`);
+      if (contextResponse.data) {
+        context = contextResponse.data;
         log(`Got context: ${context.name} (${context.id})`);
       } else {
         log('Context not found and could not be created');
@@ -44,25 +45,24 @@ async function main() {
     // Example 3: Create a session with the context
     log('\nExample 3: Creating a session with the context...');
     try {
-      const session = await agentBay.create({
+      const createResponse = await agentBay.create({
         contextId: context.id,
         labels: {
           username: 'alice',
           project: 'my-project'
         }
       });
+      const session = createResponse.data;
       log(`Session created with ID: ${session.sessionId}`);
+      log(`Create Session RequestId: ${createResponse.requestId}`);
 
       // Example 4: Update the context
       log('\nExample 4: Updating the context...');
       context.name = 'renamed-test-context';
       try {
-        const success = await agentBay.context.update(context);
-        if (!success) {
-          log('Context update was not successful');
-        } else {
-          log(`Context updated successfully to: ${context.name}`);
-        }
+        const updateResponse = await agentBay.context.update(context);
+        log(`Context updated successfully to: ${updateResponse.data.name}`);
+        log(`Update Context RequestId: ${updateResponse.requestId}`);
       } catch (error) {
         log(`Error updating context: ${error}`);
       }
@@ -72,8 +72,9 @@ async function main() {
 
       // Delete the session
       try {
-        await agentBay.delete(session);
+        const deleteSessionResponse = await agentBay.delete(session);
         log('Session deleted successfully');
+        log(`Delete Session RequestId: ${deleteSessionResponse.requestId}`);
       } catch (error) {
         log(`Error deleting session: ${error}`);
       }
@@ -81,8 +82,9 @@ async function main() {
       // Delete the context
       log('Deleting the context...');
       try {
-        await agentBay.context.delete(context);
+        const deleteContextResponse = await agentBay.context.delete(context);
         log('Context deleted successfully');
+        log(`Delete Context RequestId: ${deleteContextResponse.requestId}`);
       } catch (error) {
         log(`Error deleting context: ${error}`);
       }
@@ -90,7 +92,7 @@ async function main() {
       log(`Error creating session: ${error}`);
     }
   } catch (error) {
-    log(`Error initializing AgentBay: ${error}`);
+    logError(`Error initializing AgentBay: ${error}`);
   }
 }
 

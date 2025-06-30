@@ -32,11 +32,12 @@ describe('Context Persistence Integration', () => {
     const apiKey = getTestApiKey();
     agentBay = new AgentBay({ apiKey });
     testContextName = `test-context-${randomString()}`;
-    
+
     // List existing contexts before creation
     try {
-      const existingContexts = await agentBay.context.list();
-      log(`Found ${existingContexts.length} existing contexts before creation`);
+      const existingContextsResponse = await agentBay.context.list();
+      log(`Found ${existingContextsResponse.data.length} existing contexts before creation`);
+      log(`List Contexts RequestId: ${existingContextsResponse.requestId || 'undefined'}`);
     } catch (error) {
       log(`Warning: Failed to list existing contexts: ${error}`);
       testContext = null;
@@ -44,9 +45,11 @@ describe('Context Persistence Integration', () => {
 
     // Create test context
     try {
-      testContext = await agentBay.context.create(testContextName);
+      const createContextResponse = await agentBay.context.create(testContextName);
+      testContext = createContextResponse.data;
       testContextId = testContext.id;
       log(`Context created successfully - ID: ${testContextId}, Name: ${testContext.name}, State: ${testContext.state}, OSType: ${testContext.osType}`);
+      log(`Create Context RequestId: ${createContextResponse.requestId || 'undefined'}`);
     } catch (error) {
       throw new Error(`Error creating context: ${error}`);
     }
@@ -57,8 +60,9 @@ describe('Context Persistence Integration', () => {
       // Delete the test context
       log(`Cleaning up: Deleting test context: ${testContextName}`);
       try {
-        await agentBay.context.delete(testContext);
+        const deleteContextResponse = await agentBay.context.delete(testContext);
         log(`Context ${testContextId} deleted successfully`);
+        log(`Delete Context RequestId: ${deleteContextResponse.requestId || 'undefined'}`);
       } catch (error) {
         log(`Warning: Error deleting context: ${error}`);
       }
@@ -76,44 +80,54 @@ describe('Context Persistence Integration', () => {
     // Create first session with the test context
     let session1: Session | null = null;
     try {
-      session1 = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+      const createSession1Response = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+      session1 = createSession1Response.data;
       log(`First session created with ID: ${session1.sessionId}`);
+      log(`Create Session 1 RequestId: ${createSession1Response.requestId || 'undefined'}`);
 
       // Check if file exists before creating it
       const checkCmd = `ls -la ${testFilePath} 2>&1 || echo 'File does not exist'`;
-      const checkOutput = await session1.command?.executeCommand(checkCmd);
-      log(`Pre-check output: ${checkOutput}`);
+      const checkResponse = await session1.command?.executeCommand(checkCmd);
+      log(`Pre-check output: ${checkResponse?.data}`);
+      log(`Check Command RequestId: ${checkResponse?.requestId || 'undefined'}`);
 
       // Create test file
       const createFileCmd = `echo '${testFileContent}' > ${testFilePath}`;
-      const createOutput = await session1.command?.executeCommand(createFileCmd);
-      log(`File creation output: ${createOutput}`);
+      const createResponse = await session1.command?.executeCommand(createFileCmd);
+      log(`File creation output: ${createResponse?.data}`);
+      log(`Create File RequestId: ${createResponse?.requestId || 'undefined'}`);
 
       // Verify the file was created
       const verifyCmd = `cat ${testFilePath}`;
-      const verifyOutput = await session1.command?.executeCommand(verifyCmd);
-      log(`File content: ${verifyOutput}`);
+      const verifyResponse = await session1.command?.executeCommand(verifyCmd);
+      log(`File content: ${verifyResponse?.data}`);
+      log(`Verify File RequestId: ${verifyResponse?.requestId || 'undefined'}`);
+
       // Check file permissions
       const modeCmd = `stat -c "%a" ${testFilePath}`;
-      const modeOutput = await session1.command?.executeCommand(modeCmd);
-      log(`File mode: ${modeOutput}`);
+      const modeResponse = await session1.command?.executeCommand(modeCmd);
+      log(`File mode: ${modeResponse?.data}`);
+      log(`Mode Command RequestId: ${modeResponse?.requestId || 'undefined'}`);
 
       // Also check file attributes
       const lsCmd = `ls -la ${testFilePath}`;
-      const lsOutput = await session1.command?.executeCommand(lsCmd);
-      if (lsOutput) {
-        log(`File attributes: ${lsOutput}`);
+      const lsResponse = await session1.command?.executeCommand(lsCmd);
+      if (lsResponse?.data) {
+        log(`File attributes: ${lsResponse.data}`);
+        log(`ls Command RequestId: ${lsResponse.requestId || 'undefined'}`);
       }
 
-      if (!verifyOutput || !verifyOutput.includes(testFileContent)) {
-        throw new Error(`File content verification failed. Expected to contain '${testFileContent}', got: '${verifyOutput}'`);
+      if (!verifyResponse?.data || !verifyResponse.data.includes(testFileContent)) {
+        throw new Error(`File content verification failed. Expected to contain '${testFileContent}', got: '${verifyResponse?.data}'`);
       }
 
       // Release the first session
-      await session1.delete();
+      const deleteSession1Response = await session1.delete();
+      log(`Delete Session 1 RequestId: ${deleteSession1Response.requestId || 'undefined'}`);
     } catch (error) {
       if (session1) {
-        await session1.delete();
+        const deleteSession1Response = await session1.delete();
+        log(`Delete Session 1 (Error) RequestId: ${deleteSession1Response.requestId || 'undefined'}`);
       }
       throw error;
     }
@@ -124,7 +138,7 @@ describe('Context Persistence Integration', () => {
 
     // List active sessions before creating second session
     try {
-      const activeSessions = await agentBay.list();
+      const activeSessions = agentBay.list();
       log(`Found ${activeSessions.length} active sessions before second session creation`);
     } catch (error) {
       log(`Warning: Failed to list active sessions: ${error}`);
@@ -133,20 +147,25 @@ describe('Context Persistence Integration', () => {
     // Create second session with the same context ID
     let session2: Session | null = null;
     try {
-      session2 = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+      const createSession2Response = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+      session2 = createSession2Response.data;
       log(`Second session created with ID: ${session2.sessionId}`);
+      log(`Create Session 2 RequestId: ${createSession2Response.requestId || 'undefined'}`);
 
       // Verify the file still exists
       const verifyCmd = `cat ${testFilePath}`;
-      const verifyOutput = await session2.command?.executeCommand(verifyCmd);
-      if (!verifyOutput || !verifyOutput.includes(testFileContent)) {
-        throw new Error(`File persistence test failed. Expected file to exist with content '${testFileContent}', got: '${verifyOutput}'`);
+      const verifyResponse = await session2.command?.executeCommand(verifyCmd);
+      log(`Verify File (Session 2) RequestId: ${verifyResponse?.requestId || 'undefined'}`);
+
+      if (!verifyResponse?.data || !verifyResponse.data.includes(testFileContent)) {
+        throw new Error(`File persistence test failed. Expected file to exist with content '${testFileContent}', got: '${verifyResponse?.data}'`);
       }
-      
+
       log(`File persistence verified: file exists in the second session`);
     } finally {
       if (session2) {
-        await session2.delete();
+        const deleteSession2Response = await session2.delete();
+        log(`Delete Session 2 RequestId: ${deleteSession2Response.requestId || 'undefined'}`);
       }
     }
   });
@@ -162,67 +181,80 @@ describe('Context Persistence Integration', () => {
     const secondContextName = `test-context-2-${Date.now()}`;
     let secondContext: Context | null = null;
     try {
-      secondContext = await agentBay.context.create(secondContextName);
+      const createSecondContextResponse = await agentBay.context.create(secondContextName);
+      secondContext = createSecondContextResponse.data;
       log(`Second context created - ID: ${secondContext.id}, Name: ${secondContext.name}, State: ${secondContext.state}, OSType: ${secondContext.osType}`);
+      log(`Create Second Context RequestId: ${createSecondContextResponse.requestId || 'undefined'}`);
 
       // Create first session with the first test context
       let session1: Session | null = null;
       try {
-        session1 = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+        const createSession1Response = await agentBay.create({imageId:'linux_latest', contextId: testContextId });
+        session1 = createSession1Response.data;
         log(`First session created with ID: ${session1.sessionId}`);
+        log(`Create Session 1 RequestId: ${createSession1Response.requestId || 'undefined'}`);
 
         // Create test file
         const createFileCmd = `echo '${testFileContent}' > ${testFilePath}`;
-        const createOutput = await session1.command?.executeCommand(createFileCmd);
-        log(`File creation output: ${createOutput}`);
+        const createResponse = await session1.command?.executeCommand(createFileCmd);
+        log(`File creation output: ${createResponse?.data}`);
+        log(`Create File RequestId: ${createResponse?.requestId || 'undefined'}`);
 
         // Verify the file was created
         const verifyCmd = `cat ${testFilePath}`;
-        const verifyOutput = await session1.command?.executeCommand(verifyCmd);
-        log(`File content: ${verifyOutput}`);
+        const verifyResponse = await session1.command?.executeCommand(verifyCmd);
+        log(`File content: ${verifyResponse?.data}`);
+        log(`Verify File RequestId: ${verifyResponse?.requestId || 'undefined'}`);
 
-        if (!verifyOutput || !verifyOutput.includes(testFileContent)) {
-          throw new Error(`File content verification failed. Expected to contain '${testFileContent}', got: '${verifyOutput}'`);
+        if (!verifyResponse?.data || !verifyResponse.data.includes(testFileContent)) {
+          throw new Error(`File content verification failed. Expected to contain '${testFileContent}', got: '${verifyResponse?.data}'`);
         }
       } finally {
         if (session1) {
-          await session1.delete();
+          const deleteSession1Response = await session1.delete();
+          log(`Delete Session 1 RequestId: ${deleteSession1Response.requestId || 'undefined'}`);
         }
       }
 
       // Create third session with the second context ID
       let session3: Session | null = null;
       try {
-        session3 = await agentBay.create({imageId:'linux_latest', contextId: secondContext.id });
+        const createSession3Response = await agentBay.create({imageId:'linux_latest', contextId: secondContext.id });
+        session3 = createSession3Response.data;
         log(`Third session created with ID: ${session3.sessionId}`);
+        log(`Create Session 3 RequestId: ${createSession3Response.requestId || 'undefined'}`);
 
         // Try to read the file
         const verifyCmd = `cat ${testFilePath}`;
         const checkCmd = `ls -la ${testFilePath} 2>&1 || echo 'File does not exist'`;
-        
+
         // First check with ls command
-        const checkOutput = await session3.command?.executeCommand(checkCmd);
-        log(`ls command output in third session: ${checkOutput}`);
+        const checkResponse = await session3.command?.executeCommand(checkCmd);
+        log(`ls command output in third session: ${checkResponse?.data}`);
+        log(`Check Command (Session 3) RequestId: ${checkResponse?.requestId || 'undefined'}`);
 
         // Then try to read the file content
-        const verifyOutput = await session3.command?.executeCommand(verifyCmd);
+        const verifyResponse = await session3.command?.executeCommand(verifyCmd);
+        log(`Verify Command (Session 3) RequestId: ${verifyResponse?.requestId || 'undefined'}`);
 
-        if (verifyOutput && verifyOutput.includes(testFileContent)) {
-          throw new Error(`File isolation test failed. File unexpectedly exists in the third session with content: '${verifyOutput}'`);
+        if (verifyResponse?.data && verifyResponse.data.includes(testFileContent)) {
+          throw new Error(`File isolation test failed. File unexpectedly exists in the third session with content: '${verifyResponse.data}'`);
         } else {
           log(`File isolation verified: file does not exist in the third session`);
         }
       } finally {
         if (session3) {
-          await session3.delete();
+          const deleteSession3Response = await session3.delete();
+          log(`Delete Session 3 RequestId: ${deleteSession3Response.requestId || 'undefined'}`);
         }
       }
     } finally {
       // Delete the second context if it was created
       if (secondContext) {
         try {
-          await agentBay.context.delete(secondContext);
+          const deleteSecondContextResponse = await agentBay.context.delete(secondContext);
           log(`Second context ${secondContext.id} deleted successfully`);
+          log(`Delete Second Context RequestId: ${deleteSecondContextResponse.requestId || 'undefined'}`);
         } catch (error) {
           log(`Warning: Error deleting second context: ${error}`);
         }

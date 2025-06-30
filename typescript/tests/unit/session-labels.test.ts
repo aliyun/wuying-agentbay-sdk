@@ -7,15 +7,18 @@ describe('Session Labels', () => {
   let session: Session;
   let self: any;
   let labels: Record<string, string>;
-  
+
   beforeEach(async () => {
     // Create a real AgentBay instance with test API key
     const apiKey = getTestApiKey();
     agentBay = new AgentBay({ apiKey });
-    
+
     // Create a real session
     log('Creating a new session for session labels testing...');
-    session = await agentBay.create();
+    const createResponse = await agentBay.create();
+    session = createResponse.data;
+    log(`Session created with ID: ${session.sessionId}`);
+    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
 
     self = { unique_id: generateUniqueId() };
     labels = {
@@ -24,32 +27,39 @@ describe('Session Labels', () => {
       project:`labels-test-${self.unique_id}`,
       onwer:`test-team-${self.unique_id}`
     };
-  
+
   });
-  
+
   afterEach(async () => {
     log('Cleaning up: Deleting the session...');
     try {
-      await agentBay.delete(session);
+      const deleteResponse = await agentBay.delete(session);
       self = null;
       log('Session successfully deleted');
+      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
     } catch (error) {
       log(`Warning: Error deleting session: ${error}`);
     }
-    
+
   });
-  
+
   describe('setLabels()', () => {
     it.only('should set labels for a session', async () => {
       log('Testing setLabels...');
       try {
         // Call the method
-        await session.setLabels(labels);
+        const setLabelsResponse = await session.setLabels(labels);
         log('Labels set successfully', JSON.stringify(labels));
-        
+        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(setLabelsResponse.requestId).toBeDefined();
+        expect(typeof setLabelsResponse.requestId).toBe('string');
+
         // Verify by getting the labels
-        const retrievedLabels = await session.getLabels();
-        expect(retrievedLabels).toEqual(labels);
+        const retrievedLabelsResponse = await session.getLabels();
+        log(`Get Labels RequestId: ${retrievedLabelsResponse.requestId || 'undefined'}`);
+        expect(retrievedLabelsResponse.data).toEqual(labels);
       } catch (error: any) {
         log(`Error setting labels: ${error.message}`);
         // Skip test if we can't set labels
@@ -57,39 +67,51 @@ describe('Session Labels', () => {
       }
     });
   });
-  
+
   describe('getLabels()', () => {
     it.only('should get labels for a session', async () => {
       log('Testing getLabels...');
       try {
         // First set some labels
-        await session.setLabels(labels);
-        
+        const setLabelsResponse = await session.setLabels(labels);
+        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+
         // Then get the labels
-        const result = await session.getLabels();
-        log(`Retrieved labels: ${JSON.stringify(result)}`);
-        
+        const getLabelsResponse = await session.getLabels();
+        log(`Retrieved labels: ${JSON.stringify(getLabelsResponse.data)}`);
+        log(`Get Labels RequestId: ${getLabelsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(getLabelsResponse.requestId).toBeDefined();
+        expect(typeof getLabelsResponse.requestId).toBe('string');
+
         // Verify the results
-        expect(result).toEqual(labels);
+        expect(getLabelsResponse.data).toEqual(labels);
       } catch (error: any) {
         log(`Error getting labels: ${error.message}`);
         // Skip test if we can't get labels
         expect(true).toBe(true);
       }
     });
-    
+
     it.only('should return empty object if no labels', async () => {
       log('Testing getLabels with no labels...');
       try {
         // First clear any existing labels
-        await session.setLabels({});
-        
+        const setLabelsResponse = await session.setLabels({});
+        log(`Set Empty Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+
         // Then get the labels
-        const result = await session.getLabels();
+        const getLabelsResponse = await session.getLabels();
         log('Retrieved labels after clearing');
-        
+        log(`Get Empty Labels RequestId: ${getLabelsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(getLabelsResponse.requestId).toBeDefined();
+        expect(typeof getLabelsResponse.requestId).toBe('string');
+
         // Verify the results - should be empty or close to empty
-        expect(Object.keys(result).length).toBeLessThanOrEqual(0);
+        expect(Object.keys(getLabelsResponse.data).length).toBeLessThanOrEqual(0);
       } catch (error: any) {
         log(`Error getting empty labels: ${error.message}`);
         // Skip test if we can't get labels
@@ -97,26 +119,32 @@ describe('Session Labels', () => {
       }
     });
   });
-  
+
   describe('listByLabels()', () => {
     it.only('should list sessions filtered by labels', async () => {
       log('Testing listByLabels...');
       try {
         // First set some unique labels on our session
-        await session.setLabels(labels);
-        
+        const setLabelsResponse = await session.setLabels(labels);
+        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+
         // Then list sessions with those labels
-        const sessions = await agentBay.listByLabels(labels);
-        log(`Found ${sessions.length} sessions with matching labels`);
-        
+        const listByLabelsResponse = await agentBay.listByLabels(labels);
+        log(`Found ${listByLabelsResponse.data.length} sessions with matching labels`);
+        log(`List By Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(listByLabelsResponse.requestId).toBeDefined();
+        expect(typeof listByLabelsResponse.requestId).toBe('string');
+
         // We should find at least our session
-        expect(sessions.length).toBeGreaterThan(0);
-        
+        expect(listByLabelsResponse.data.length).toBeGreaterThan(0);
+
         // Check if our session is in the results
-        const foundSession = sessions.some(s => s.sessionId === session.sessionId);
+        const foundSession = listByLabelsResponse.data.some(s => s.sessionId === session.sessionId);
         expect(foundSession).toBe(true);
-        
-        sessions.forEach(sessionItem => {
+
+        listByLabelsResponse.data.forEach(sessionItem => {
           expect(sessionItem).toHaveProperty('sessionId');
           expect(sessionItem.sessionId).toBeTruthy();
         });
@@ -126,7 +154,7 @@ describe('Session Labels', () => {
         expect(true).toBe(true);
       }
     });
-    
+
     it.only('should handle non-matching labels', async () => {
       log('Testing listByLabels with non-matching labels...');
       try {
@@ -134,13 +162,18 @@ describe('Session Labels', () => {
         const nonMatchingLabels = {
           nonexistent: `label-${generateUniqueId()}`
         };
-        
-        const sessions = await agentBay.listByLabels(nonMatchingLabels);
-        log(`Found ${sessions.length} sessions with non-matching labels`);
-        
+
+        const listByLabelsResponse = await agentBay.listByLabels(nonMatchingLabels);
+        log(`Found ${listByLabelsResponse.data.length} sessions with non-matching labels`);
+        log(`List Non-matching Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(listByLabelsResponse.requestId).toBeDefined();
+        expect(typeof listByLabelsResponse.requestId).toBe('string');
+
         // There might be some sessions with these labels, but our session shouldn't be among them
-        if (sessions.length > 0) {
-          const foundOurSession = sessions.some(s => s.sessionId === session.sessionId);
+        if (listByLabelsResponse.data.length > 0) {
+          const foundOurSession = listByLabelsResponse.data.some(s => s.sessionId === session.sessionId);
           expect(foundOurSession).toBe(false);
         }
       } catch (error: any) {

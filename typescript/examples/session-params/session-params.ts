@@ -1,17 +1,16 @@
 import { AgentBay } from '../../src';
+import { log, logError } from '../../src/utils/logger';
+import { getTestApiKey } from '../../tests/utils/test-helpers';
 
 async function main() {
   // Get API key from environment variable or use default value for testing
-  const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key for testing
-  if (!process.env.AGENTBAY_API_KEY) {
-    console.log('Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.');
-  }
+  const apiKey = getTestApiKey();
 
   // Initialize the AgentBay client
   const agentBay = new AgentBay({ apiKey });
 
   // Example 1: Create a session with custom labels
-  console.log('\nExample 1: Creating a session with custom labels...');
+  log('\nExample 1: Creating a session with custom labels...');
 
   // Create parameters with labels
   const params = {
@@ -21,38 +20,42 @@ async function main() {
     }
   };
 
-  const session = await agentBay.create(params);
-  console.log(`\nSession created with ID: ${session.sessionId} and labels: username=alice, project=my-project`);
+  const createResponse = await agentBay.create(params);
+  const session = createResponse.data;
+  log(`\nSession created with ID: ${session.sessionId} and labels: username=alice, project=my-project`);
+  log(`Create Session RequestId: ${createResponse.requestId}`);
 
   // Example 2: List sessions by labels
-  console.log('\nExample 2: Listing sessions by labels...');
+  log('\nExample 2: Listing sessions by labels...');
 
   // Query sessions with the "project" label set to "my-project"
   try {
-    const sessionsByLabel = await agentBay.listByLabels({
+    const listResponse = await agentBay.listByLabels({
       project: 'my-project'
     });
 
-    console.log(`\nFound ${sessionsByLabel.length} sessions with project=my-project:`);
-    sessionsByLabel.forEach((s, i) => {
-      console.log(`  ${i + 1}. Session ID: ${s.sessionId}`);
+    log(`\nFound ${listResponse.data.length} sessions with project=my-project:`);
+    log(`List Sessions RequestId: ${listResponse.requestId}`);
+    listResponse.data.forEach((s, i) => {
+      log(`  ${i + 1}. Session ID: ${s.sessionId}`);
     });
   } catch (error) {
-    console.log(`\nError listing sessions by labels: ${error}`);
+    log(`\nError listing sessions by labels: ${error}`);
   }
 
   // Clean up
-  console.log('\nCleaning up sessions...');
+  log('\nCleaning up sessions...');
 
   try {
-    await agentBay.delete(session);
-    console.log('Session deleted successfully');
+    const deleteResponse = await agentBay.delete(session);
+    log('Session deleted successfully');
+    log(`Delete Session RequestId: ${deleteResponse.requestId}`);
   } catch (error) {
-    console.log(`Error deleting session: ${error}`);
+    log(`Error deleting session: ${error}`);
   }
 }
 
 main().catch(error => {
-  console.error('Error in main execution:', error);
+  logError('Error in main execution:', error);
   process.exit(1);
-}); 
+});

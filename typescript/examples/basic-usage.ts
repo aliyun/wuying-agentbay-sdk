@@ -12,48 +12,59 @@ async function main() {
 
     // Create a new session
     log('Creating a new session...');
-    const session = await agentBay.create();
+    const createResponse = await agentBay.create();
+    const session = createResponse.data;
     log(`Session created with ID: ${session.sessionId}`);
+    log(`Create Session RequestId: ${createResponse.requestId}`);
 
     // Execute a command
     log('\nExecuting a command...');
-    const result = await session.command.executeCommand('ls -la');
-    log('Command result:', result);
+    const commandResponse = await session.command.executeCommand('ls -la');
+    log('Command result:', commandResponse.data);
+    log(`Execute Command RequestId: ${commandResponse.requestId}`);
 
     // Read a file
     log('\nReading a file...');
-    const content = await session.filesystem.readFile('/etc/hosts');
-    log(`File content: ${content}`);
-
+    const fileResponse = await session.filesystem.readFile('/etc/hosts');
+    log(`File content: ${fileResponse.data}`);
+    log(`Read File RequestId: ${fileResponse.requestId}`);
 
     // Get the session link
     log('\nGetting session link...');
     try {
-      const link = await session.getLink();
-      log(`Session link: ${link}`);
+      const linkResponse = await session.getLink();
+      log(`Session link: ${linkResponse.data}`);
+      log(`Get Link RequestId: ${linkResponse.requestId}`);
     } catch (error) {
       log(`Note: Failed to get session link: ${error}`);
     }
-    
+
     // Use the UI module to take a screenshot
     log('\nTaking a screenshot...');
     try {
-      const screenshot = await session.ui.screenshot();
-      log(`Screenshot data length: ${screenshot.length} characters`);
+      const screenshotResponse = await session.ui.screenshot();
+      log(`Screenshot data length: ${screenshotResponse.data.length} characters`);
+      log(`Screenshot RequestId: ${screenshotResponse.requestId}`);
     } catch (error) {
       log(`Note: Failed to take screenshot: ${error}`);
     }
-    
-    // List all sessions
-    log('\nListing all sessions...');
-    const sessions = await agentBay.list();
-    log('Available sessions count:', sessions.length);
-    log('Session IDs:', sessions.map(s => s.sessionId));
+
+    // List all sessions by labels
+    log('\nListing sessions by labels...');
+    try {
+      const listResponse = await agentBay.listByLabels({ test: 'basic-usage' });
+      log('Available sessions count:', listResponse.data.length);
+      log('Session IDs:', listResponse.data.map(s => s.sessionId));
+      log(`List Sessions RequestId: ${listResponse.requestId}`);
+    } catch (error) {
+      log(`Note: Failed to list sessions by labels: ${error}`);
+    }
 
     // Delete the session
     log('\nDeleting the session...');
-    await agentBay.delete(session);
+    const deleteResponse = await agentBay.delete(session);
     log('Session deleted successfully');
+    log(`Delete Session RequestId: ${deleteResponse.requestId}`);
 
   } catch (error) {
     logError('Error:', error);
