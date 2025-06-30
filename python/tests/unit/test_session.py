@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from agentbay.session import Session
-from agentbay.model import DeleteResult, extract_request_id
+from agentbay.model import DeleteResult
 
 
 class DummyAgentBay:
@@ -43,6 +43,16 @@ class TestSession(unittest.TestCase):
         mock_extract_request_id.return_value = "request-123"
         self.agent_bay.client.release_mcp_session.return_value = mock_response
 
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {
+                    "IsError": False
+                },
+                "Success": True
+            }
+        }
+
         result = self.session.delete()
         self.assertIsInstance(result, DeleteResult)
         self.assertEqual(result.request_id, "request-123")
@@ -58,6 +68,7 @@ class TestSession(unittest.TestCase):
     def test_delete_failure(self, MockReleaseMcpSessionRequest, mock_extract_request_id):
         mock_request = MagicMock()
         MockReleaseMcpSessionRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-123"
         self.agent_bay.client.release_mcp_session.side_effect = Exception("Test error")
 
         result = self.session.delete()

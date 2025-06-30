@@ -62,16 +62,16 @@ class TestContextService(unittest.TestCase):
         self.agent_bay.client.list_contexts.return_value = mock_response
 
         # Call the method
-        contexts = self.context_service.list()
+        result = self.context_service.list()
 
         # Verify the results
-        self.assertEqual(len(contexts), 2)
-        self.assertEqual(contexts[0].id, "context-1")
-        self.assertEqual(contexts[0].name, "context-1-name")
-        self.assertEqual(contexts[0].state, "available")
-        self.assertEqual(contexts[1].id, "context-2")
-        self.assertEqual(contexts[1].name, "context-2-name")
-        self.assertEqual(contexts[1].state, "in-use")
+        self.assertEqual(len(result.contexts), 2)
+        self.assertEqual(result.contexts[0].id, "context-1")
+        self.assertEqual(result.contexts[0].name, "context-1-name")
+        self.assertEqual(result.contexts[0].state, "available")
+        self.assertEqual(result.contexts[1].id, "context-2")
+        self.assertEqual(result.contexts[1].name, "context-2-name")
+        self.assertEqual(result.contexts[1].state, "in-use")
 
     def test_get_context(self):
         """Test getting a context."""
@@ -99,12 +99,14 @@ class TestContextService(unittest.TestCase):
         self.agent_bay.client.list_contexts.return_value = mock_list_response
 
         # Call the method
-        context = self.context_service.get("test-context")
+        result = self.context_service.get("test-context")
 
         # Verify the results
-        self.assertEqual(context.id, "context-1")
-        self.assertEqual(context.name, "test-context")
-        self.assertEqual(context.state, "available")
+        self.assertTrue(result.success)
+        self.assertEqual(result.context_id, "context-1")
+        self.assertEqual(result.context.id, "context-1")
+        self.assertEqual(result.context.name, "test-context")
+        self.assertEqual(result.context.state, "available")
 
     def test_create_context(self):
         """Test creating a context."""
@@ -134,12 +136,14 @@ class TestContextService(unittest.TestCase):
         self.agent_bay.client.list_contexts.return_value = mock_list_response
 
         # Call the method
-        context = self.context_service.create("new-context")
+        result = self.context_service.create("new-context")
 
         # Verify the results
-        self.assertEqual(context.id, "new-context-id")
-        self.assertEqual(context.name, "new-context")
-        self.assertEqual(context.state, "available")
+        self.assertTrue(result.success)
+        self.assertEqual(result.context_id, "new-context-id")
+        self.assertEqual(result.context.id, "new-context-id")
+        self.assertEqual(result.context.name, "new-context")
+        self.assertEqual(result.context.state, "available")
 
     def test_update_context(self):
         """Test updating a context."""
@@ -167,7 +171,7 @@ class TestContextService(unittest.TestCase):
         self.agent_bay.client.modify_context.assert_called_once()
 
         # Verify the results - should return the original context if update successful
-        self.assertTrue(result)
+        self.assertTrue(result.success)
 
     def test_delete_context(self):
         """Test deleting a context."""
@@ -176,11 +180,26 @@ class TestContextService(unittest.TestCase):
             id="context-to-delete", name="context-name", state="available"
         )
 
+        # Mock the API response
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Code": "ok",
+                "HttpStatusCode": 200,
+                "RequestId": "557DCB66-03AA-1907-AFBC-4B62939AC4A9",
+                "Success": True,
+            }
+        }
+        self.agent_bay.client.delete_context.return_value = mock_response
+
         # Call the method
-        self.context_service.delete(context)
+        result = self.context_service.delete(context)
 
         # Verify the API was called correctly
         self.agent_bay.client.delete_context.assert_called_once()
+
+        # Verify the results
+        self.assertTrue(result.success)
 
 
 if __name__ == "__main__":

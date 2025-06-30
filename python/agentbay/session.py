@@ -85,9 +85,6 @@ class Session:
 
         Returns:
             DeleteResult: Result indicating success or failure and request ID.
-
-        Raises:
-            SessionError: If the operation fails.
         """
         try:
             request = ReleaseMcpSessionRequest(
@@ -107,7 +104,7 @@ class Session:
         except Exception as e:
             print("Error calling release_mcp_session:", e)
             # In case of error, return failure result with error message
-            raise SessionError(f"Failed to delete session {self.session_id}: {e}")
+            return DeleteResult(success=False, error_message=f"Failed to delete session {self.session_id}: {e}")
 
     def set_labels(self, labels: Dict[str, str]) -> OperationResult:
         """

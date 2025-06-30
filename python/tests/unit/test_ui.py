@@ -1,14 +1,31 @@
 import unittest
-from unittest.mock import MagicMock
-from agentbay.ui.ui import UI, KeyCode
-from agentbay.exceptions import AgentBayError
-from agentbay.model import OperationResult
+from unittest.mock import MagicMock, patch
+import json
+
+from agentbay.ui.ui import UI, KeyCode, UIElementListResult
+from agentbay.model import OperationResult, BoolResult
+
+
+class DummySession:
+    def __init__(self):
+        self.api_key = "dummy_key"
+        self.session_id = "dummy_session"
+        self.client = MagicMock()
+
+    def get_api_key(self):
+        return self.api_key
+
+    def get_session_id(self):
+        return self.session_id
+
+    def get_client(self):
+        return self.client
 
 
 class TestUIApi(unittest.TestCase):
     def setUp(self):
-        self.mock_session = MagicMock()
-        self.ui = UI(self.mock_session)
+        self.session = DummySession()
+        self.ui = UI(self.session)
 
     def test_get_clickable_ui_elements_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -28,8 +45,10 @@ class TestUIApi(unittest.TestCase):
         ]"""
             )
         )
-        success, elements = self.ui.get_clickable_ui_elements()
-        self.assertTrue(success)
+        result = self.ui.get_clickable_ui_elements()
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        elements = result.elements
         self.assertEqual(len(elements), 1)
         self.assertEqual(elements[0]["bounds"], "48,90,1032,630")
         self.assertEqual(elements[0]["className"], "LinearLayout")
@@ -47,9 +66,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to get clickable UI elements"
             )
         )
-        success, error_msg = self.ui.get_clickable_ui_elements()
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to get clickable UI elements")
+        result = self.ui.get_clickable_ui_elements()
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to get clickable UI elements")
 
     def test_send_key_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -59,9 +78,9 @@ class TestUIApi(unittest.TestCase):
                 data=True
             )
         )
-        success, result = self.ui.send_key(KeyCode.HOME)
-        self.assertTrue(success)
-        self.assertTrue(result)
+        result = self.ui.send_key(KeyCode.HOME)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
 
     def test_send_key_failure(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -71,9 +90,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to send key"
             )
         )
-        success, error_msg = self.ui.send_key(KeyCode.HOME)
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to send key")
+        result = self.ui.send_key(KeyCode.HOME)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to send key")
 
     def test_swipe_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -83,8 +102,8 @@ class TestUIApi(unittest.TestCase):
                 data=None
             )
         )
-        success, result = self.ui.swipe(100, 200, 300, 400, duration_ms=500)
-        self.assertTrue(success)
+        result = self.ui.swipe(100, 200, 300, 400, duration_ms=500)
+        self.assertTrue(result.success)
 
     def test_swipe_failure(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -94,9 +113,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to perform swipe"
             )
         )
-        success, error_msg = self.ui.swipe(100, 200, 300, 400, duration_ms=500)
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to perform swipe")
+        result = self.ui.swipe(100, 200, 300, 400, duration_ms=500)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to perform swipe")
 
     def test_click_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -106,8 +125,8 @@ class TestUIApi(unittest.TestCase):
                 data=None
             )
         )
-        success, result = self.ui.click(150, 250, button="left")
-        self.assertTrue(success)
+        result = self.ui.click(150, 250, button="left")
+        self.assertTrue(result.success)
 
     def test_click_failure(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -117,9 +136,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to perform click"
             )
         )
-        success, error_msg = self.ui.click(150, 250, button="left")
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to perform click")
+        result = self.ui.click(150, 250, button="left")
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to perform click")
 
     def test_input_text_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -129,8 +148,8 @@ class TestUIApi(unittest.TestCase):
                 data=None
             )
         )
-        success, result = self.ui.input_text("Hello, world!")
-        self.assertTrue(success)
+        result = self.ui.input_text("Hello, world!")
+        self.assertTrue(result.success)
 
     def test_input_text_failure(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -140,9 +159,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to input text"
             )
         )
-        success, error_msg = self.ui.input_text("Hello, world!")
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to input text")
+        result = self.ui.input_text("Hello, world!")
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to input text")
 
     def test_get_all_ui_elements_success(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -174,8 +193,9 @@ class TestUIApi(unittest.TestCase):
         ]"""
             )
         )
-        success, elements = self.ui.get_all_ui_elements()
-        self.assertTrue(success)
+        result = self.ui.get_all_ui_elements()
+        self.assertTrue(result.success)
+        elements = result.elements
         self.assertEqual(len(elements), 1)
         self.assertEqual(elements[0]["bounds"], "48,90,1032,630")
         self.assertEqual(elements[0]["className"], "LinearLayout")
@@ -193,9 +213,9 @@ class TestUIApi(unittest.TestCase):
                 error_message="Failed to get all UI elements"
             )
         )
-        success, error_msg = self.ui.get_all_ui_elements()
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Failed to get all UI elements")
+        result = self.ui.get_all_ui_elements()
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Failed to get all UI elements")
 
     def test_screenshot_success(self):
         OSS_URL = "https://oss-url/screenshot.png"
@@ -206,9 +226,9 @@ class TestUIApi(unittest.TestCase):
                 data=OSS_URL
             )
         )
-        success, result = self.ui.screenshot()
-        self.assertTrue(success)
-        self.assertEqual(result, OSS_URL)
+        result = self.ui.screenshot()
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, OSS_URL)
 
     def test_screenshot_failure(self):
         self.ui._call_mcp_tool = MagicMock(
@@ -218,15 +238,15 @@ class TestUIApi(unittest.TestCase):
                 error_message="Error in response: Failed to take screenshot"
             )
         )
-        success, error_msg = self.ui.screenshot()
-        self.assertFalse(success)
-        self.assertEqual(error_msg, "Error in response: Failed to take screenshot")
+        result = self.ui.screenshot()
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Error in response: Failed to take screenshot")
 
     def test_screenshot_exception(self):
         self.ui._call_mcp_tool = MagicMock(side_effect=Exception("Network error"))
-        success, error_msg = self.ui.screenshot()
-        self.assertFalse(success)
-        self.assertIn("Failed to take screenshot", error_msg)
+        result = self.ui.screenshot()
+        self.assertFalse(result.success)
+        self.assertIn("Network error", result.error_message)
 
 
 if __name__ == "__main__":

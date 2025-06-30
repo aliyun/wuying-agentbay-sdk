@@ -82,17 +82,40 @@ class UI(BaseService):
             UIElementListResult: Result object containing clickable UI elements and error message if any.
         """
         args = {"timeout_ms": timeout_ms}
-        result = self._call_mcp_tool("get_clickable_ui_elements", args)
-        request_id = result.request_id
-
-        if not result.success:
-            return UIElementListResult(request_id=request_id, success=False, error_message=result.error_message)
-
         try:
-            elements = json.loads(result.data)
-            return UIElementListResult(request_id=request_id, success=True, elements=elements)
+            result = self._call_mcp_tool("get_clickable_ui_elements", args)
+            request_id = result.request_id
+
+            if not result.success:
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=False,
+                    elements=None,
+                    error_message=result.error_message
+                )
+
+            try:
+                elements = json.loads(result.data)
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=True,
+                    elements=elements,
+                    error_message=""
+                )
+            except Exception as e:
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=False,
+                    elements=None,
+                    error_message=f"Failed to parse clickable UI elements data: {e}"
+                )
         except Exception as e:
-            return UIElementListResult(request_id=request_id, success=False, error_message=f"Failed to parse clickable UI elements data: {e}")
+            return UIElementListResult(
+                request_id="",
+                success=False,
+                elements=None,
+                error_message=f"Failed to get clickable UI elements: {str(e)}"
+            )
 
     def get_all_ui_elements(self, timeout_ms: int = 2000) -> UIElementListResult:
         """
@@ -132,18 +155,41 @@ class UI(BaseService):
                 parsed["children"] = []
             return parsed
 
-        result = self._call_mcp_tool("get_all_ui_elements", args)
-        request_id = result.request_id
-
-        if not result.success:
-            return UIElementListResult(request_id=request_id, success=False, error_message=result.error_message)
-
         try:
-            elements = json.loads(result.data)
-            parsed_elements = [parse_element(element) for element in elements]
-            return UIElementListResult(request_id=request_id, success=True, elements=parsed_elements)
+            result = self._call_mcp_tool("get_all_ui_elements", args)
+            request_id = result.request_id
+
+            if not result.success:
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=False,
+                    elements=None,
+                    error_message=result.error_message
+                )
+
+            try:
+                elements = json.loads(result.data)
+                parsed_elements = [parse_element(element) for element in elements]
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=True,
+                    elements=parsed_elements,
+                    error_message=""
+                )
+            except Exception as e:
+                return UIElementListResult(
+                    request_id=request_id,
+                    success=False,
+                    elements=None,
+                    error_message=f"Failed to parse UI elements data: {e}"
+                )
         except Exception as e:
-            return UIElementListResult(request_id=request_id, success=False, error_message=f"Failed to parse UI elements data: {e}")
+            return UIElementListResult(
+                request_id="",
+                success=False,
+                elements=None,
+                error_message=f"Failed to get all UI elements: {str(e)}"
+            )
 
     def send_key(self, key: int) -> BoolResult:
         """
@@ -162,14 +208,30 @@ class UI(BaseService):
             BoolResult: Result object containing success status and error message if any.
         """
         args = {"key": key}
-        result = self._call_mcp_tool("send_key", args)
+        try:
+            result = self._call_mcp_tool("send_key", args)
 
-        return BoolResult(
-            request_id=result.request_id,
-            success=result.success,
-            data=True if result.success else None,
-            error_message="" if result.success else result.error_message
-        )
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message=""
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to send key: {str(e)}"
+            )
 
     def input_text(self, text: str) -> BoolResult:
         """
@@ -182,14 +244,30 @@ class UI(BaseService):
             BoolResult: Result object containing success status and error message if any.
         """
         args = {"text": text}
-        result = self._call_mcp_tool("input_text", args)
+        try:
+            result = self._call_mcp_tool("input_text", args)
 
-        return BoolResult(
-            request_id=result.request_id,
-            success=result.success,
-            data=True if result.success else None,
-            error_message="" if result.success else result.error_message
-        )
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message=""
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to input text: {str(e)}"
+            )
 
     def swipe(
         self, start_x: int, start_y: int, end_x: int, end_y: int, duration_ms: int = 300
@@ -214,14 +292,30 @@ class UI(BaseService):
             "end_y": end_y,
             "duration_ms": duration_ms,
         }
-        result = self._call_mcp_tool("swipe", args)
+        try:
+            result = self._call_mcp_tool("swipe", args)
 
-        return BoolResult(
-            request_id=result.request_id,
-            success=result.success,
-            data=True if result.success else None,
-            error_message="" if result.success else result.error_message
-        )
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message=""
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to perform swipe: {str(e)}"
+            )
 
     def click(self, x: int, y: int, button: str = "left") -> BoolResult:
         """
@@ -236,14 +330,30 @@ class UI(BaseService):
             BoolResult: Result object containing success status and error message if any.
         """
         args = {"x": x, "y": y, "button": button}
-        result = self._call_mcp_tool("click", args)
+        try:
+            result = self._call_mcp_tool("click", args)
 
-        return BoolResult(
-            request_id=result.request_id,
-            success=result.success,
-            data=True if result.success else None,
-            error_message="" if result.success else result.error_message
-        )
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message=""
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to perform click: {str(e)}"
+            )
 
     def screenshot(self) -> OperationResult:
         """
@@ -253,11 +363,28 @@ class UI(BaseService):
             OperationResult: Result object containing the path to the screenshot and error message if any.
         """
         args = {}
-        result = self._call_mcp_tool("system_screenshot", args)
+        try:
+            result = self._call_mcp_tool("system_screenshot", args)
 
-        return OperationResult(
-            request_id=result.request_id,
-            success=result.success,
-            data=result.data if result.success else None,
-            error_message="" if result.success else result.error_message
-        )
+            if not result.success:
+                return OperationResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message
+                )
+
+            return OperationResult(
+                request_id=result.request_id,
+                success=True,
+                data=result.data,
+                error_message=""
+            )
+        except Exception as e:
+            # Handle any exceptions during the tool call
+            return OperationResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Network error: {str(e)}"
+            )
