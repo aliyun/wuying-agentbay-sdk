@@ -1,0 +1,234 @@
+import json
+import os
+import unittest
+from unittest.mock import MagicMock, patch
+
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.exceptions import AgentBayError
+
+
+class TestAgentBay(unittest.TestCase):
+    """Test the functionality of the main AgentBay class"""
+
+    @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_initialization_with_env_var(self, mock_mcp_client, mock_load_config):
+        """Test initializing AgentBay with an API key from environment variable"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay()
+
+        # Verify results
+        self.assertEqual(agent_bay.api_key, "test-api-key")
+        self.assertEqual(agent_bay.region_id, "cn-shanghai")
+        self.assertEqual(agent_bay.client, mock_client)
+        self.assertDictEqual(agent_bay._sessions, {})
+        self.assertIsNotNone(agent_bay._lock)
+        self.assertIsNotNone(agent_bay.context)
+
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_initialization_with_provided_key(self, mock_mcp_client, mock_load_config):
+        """Test initializing AgentBay with a provided API key"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-beijing",
+            "endpoint": "another.endpoint.com",
+            "timeout_ms": 60000
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay(api_key="provided-api-key")
+
+        # Verify results
+        self.assertEqual(agent_bay.api_key, "provided-api-key")
+        self.assertEqual(agent_bay.region_id, "cn-beijing")
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("agentbay.agentbay.load_config")
+    def test_initialization_without_api_key(self, mock_load_config):
+        """Test initialization failure when no API key is available"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+
+        # Test initialization failure
+        with self.assertRaises(ValueError) as context:
+            AgentBay()
+
+        self.assertIn("API key is required", str(context.exception))
+
+    @patch("agentbay.agentbay.extract_request_id")
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_create_session_success(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
+        """Test successfully creating a session"""
+        # Mock configuration and request ID
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+        mock_extract_request_id.return_value = "create-request-id"
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {
+                    "SessionId": "new-session-id",
+                    "ResourceUrl": "http://resource.url"
+                }
+            }
+        }
+        mock_client.create_mcp_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance and session parameters
+        agent_bay = AgentBay(api_key="test-key")
+        params = CreateSessionParams(context_id="test-context", labels={"env": "test"})
+
+        # Test creating a session
+        result = agent_bay.create(params)
+
+        # Verify results
+        self.assertEqual(result.request_id, "create-request-id")
+        self.assertIsNotNone(result.session)
+        self.assertEqual(result.session.session_id, "new-session-id")
+        self.assertEqual(result.session.resource_url, "http://resource.url")
+
+        # Verify session was added to the internal dictionary
+        self.assertIn("new-session-id", agent_bay._sessions)
+        self.assertEqual(agent_bay._sessions["new-session-id"], result.session)
+
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_create_session_invalid_response(self, mock_mcp_client, mock_load_config):
+        """Test handling invalid response when creating a session"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+
+        # Mock client and invalid response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": None  # Invalid Data field
+            }
+        }
+        mock_client.create_mcp_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay(api_key="test-key")
+
+        # Test session creation failure
+        with self.assertRaises(AgentBayError) as context:
+            agent_bay.create()
+
+        self.assertIn("Invalid response format", str(context.exception))
+
+    @patch("agentbay.agentbay.extract_request_id")
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_list_by_labels(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
+        """Test listing sessions by labels"""
+        # Mock configuration and request ID
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+        mock_extract_request_id.return_value = "list-request-id"
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": [
+                    {"SessionId": "session-1"},
+                    {"SessionId": "session-2"}
+                ]
+            }
+        }
+        mock_client.list_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay(api_key="test-key")
+
+        # Test listing sessions by labels
+        result = agent_bay.list_by_labels({"env": "prod", "app": "test"})
+
+        # Verify results
+        self.assertEqual(result.request_id, "list-request-id")
+        self.assertEqual(len(result.sessions), 2)
+        self.assertEqual(result.sessions[0].session_id, "session-1")
+        self.assertEqual(result.sessions[1].session_id, "session-2")
+
+        # Verify cached sessions
+        self.assertEqual(len(agent_bay._sessions), 2)
+        self.assertIn("session-1", agent_bay._sessions)
+        self.assertIn("session-2", agent_bay._sessions)
+
+    @patch("agentbay.agentbay.extract_request_id")
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_list(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
+        """Test listing all sessions"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance and cached sessions
+        agent_bay = AgentBay(api_key="test-key")
+        session1 = MagicMock()
+        session2 = MagicMock()
+        agent_bay._sessions = {
+            "session-1": session1,
+            "session-2": session2
+        }
+
+        # Test listing all sessions
+        sessions = agent_bay.list()
+
+        # Verify results
+        self.assertEqual(len(sessions), 2)
+        self.assertIn(session1, sessions)
+        self.assertIn(session2, sessions)
+
+
+if __name__ == "__main__":
+    unittest.main()
