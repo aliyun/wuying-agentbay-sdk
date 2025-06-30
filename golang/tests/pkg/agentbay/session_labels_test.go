@@ -21,113 +21,6 @@ func generateUniqueID() string {
 	return fmt.Sprintf("%d-%d", timestamp, randomPart)
 }
 
-// TestSession_SetGetLabels tests the functionality of setting and getting labels for a session
-// TestSession_MultipleSessionsWithSameLabel tests creating multiple sessions with the same label
-// and verifying they can all be retrieved using ListByLabels
-func TestSession_MultipleSessionsWithSameLabel(t *testing.T) {
-	// Initialize AgentBay client
-	apiKey := testutil.GetTestAPIKey(t)
-	agentBayClient, err := agentbay.NewAgentBay(apiKey)
-	if err != nil {
-		t.Fatalf("Error initializing AgentBay client: %v", err)
-	}
-
-	// Generate a unique identifier for this test run
-	uniqueID := generateUniqueID()
-	t.Logf("Using unique ID for test labels: %s", uniqueID)
-
-	// Define a single label to be used for all sessions
-	testLabel := map[string]string{
-		"test_group": fmt.Sprintf("multi-session-test-%s", uniqueID),
-	}
-
-	// Convert label to JSON string
-	labelJSON, err := json.Marshal(testLabel)
-	if err != nil {
-		t.Fatalf("Error marshaling label to JSON: %v", err)
-	}
-
-	// Number of sessions to create
-	const sessionCount = 10
-
-	// Create multiple sessions with the same label
-	var sessions []*agentbay.Session
-	t.Logf("Creating %d sessions with the same label...", sessionCount)
-
-	for i := 0; i < sessionCount; i++ {
-		sessionResult, err := agentBayClient.Create(nil)
-		if err != nil {
-			t.Fatalf("Error creating session %d: %v", i+1, err)
-		}
-
-		session := sessionResult.Session
-		t.Logf("Session %d created with ID: %s", i+1, session.SessionID)
-
-		// Set the same label for each session
-		labelResult, err := session.SetLabels(string(labelJSON))
-		if err != nil {
-			t.Fatalf("Error setting label for session %d: %v", i+1, err)
-		}
-		t.Logf("Label set successfully for session %d (RequestID: %s)", i+1, labelResult.RequestID)
-
-		sessions = append(sessions, session)
-
-		// Add a 2-minute delay after each session creation as requested
-		if i < sessionCount-1 { // No need to wait after the last session
-			t.Logf("Waiting for 2 minutes before creating the next session...")
-			time.Sleep(15 * time.Second)
-		}
-	}
-
-	// Ensure cleanup of all sessions
-	defer func() {
-		t.Log("Cleaning up all sessions...")
-		for i, session := range sessions {
-			deleteResult, err := agentBayClient.Delete(session)
-			if err != nil {
-				t.Logf("Warning: Error deleting session %d: %v", i+1, err)
-			} else {
-				t.Logf("Session %d deleted (RequestID: %s)", i+1, deleteResult.RequestID)
-			}
-		}
-	}()
-
-	// Verify all sessions can be found using ListByLabels
-	t.Log("Verifying all sessions can be found using ListByLabels...")
-	params := agentbay.NewListSessionParams()
-	params.Labels = testLabel
-	sessionsResult, err := agentBayClient.ListByLabels(params)
-	if err != nil {
-		t.Fatalf("Error listing sessions by label: %v", err)
-	}
-	t.Logf("Sessions listed by label (RequestID: %s)", sessionsResult.RequestID)
-
-	// Check if all our sessions are in the results
-	foundSessions := 0
-	sessionIDs := make(map[string]bool)
-
-	// Create a map of our session IDs for easy lookup
-	for _, session := range sessions {
-		sessionIDs[session.SessionID] = true
-	}
-
-	// Count how many of our sessions were found in the results
-	for _, s := range sessionsResult.Sessions {
-		if sessionIDs[s.SessionID] {
-			foundSessions++
-		}
-	}
-
-	// Verify that all sessions were found
-	if foundSessions != sessionCount {
-		t.Errorf("Expected to find %d sessions, but found %d", sessionCount, foundSessions)
-	} else {
-		t.Logf("Successfully found all %d sessions when filtering by label", sessionCount)
-	}
-
-	fmt.Println("Multiple sessions with same label test completed successfully")
-}
-
 func TestSession_SetGetLabels(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
@@ -414,7 +307,7 @@ func TestListByUIDLabel(t *testing.T) {
 
 	// Define UID filter
 	uidFilter := map[string]string{
-		"test_group": "multi-session-test-1751034212790846000-4842",
+		"test_group": "multi-session-test-1751262241385739000-4623",
 	}
 
 	// Test pagination by setting page size to 3 (expecting 6 total sessions)
@@ -503,4 +396,158 @@ func TestListByUIDLabel(t *testing.T) {
 			t.Logf("TotalCount matches actual sessions found: %d", totalSessionsFound)
 		}
 	}
+}
+
+// TestListByLabels_OnlyUnreleasedSessions tests that ListByLabels only returns unreleased sessions
+func TestListByLabels_OnlyUnreleasedSessions(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBayClient, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Generate a unique identifier for this test run
+	uniqueID := generateUniqueID()
+	t.Logf("Using unique ID for test labels: %s", uniqueID)
+
+	// Define a label to be used for all sessions in this test
+	testLabel := map[string]string{
+		"test_group": fmt.Sprintf("unreleased-session-test-%s", uniqueID),
+	}
+
+	// Convert label to JSON string
+	labelJSON, err := json.Marshal(testLabel)
+	if err != nil {
+		t.Fatalf("Error marshaling label to JSON: %v", err)
+	}
+
+	// Number of sessions to create
+	const totalSessionCount = 3
+	const sessionsToReleaseCount = 1
+
+	// Create multiple sessions with the same label
+	var sessions []*agentbay.Session
+	t.Logf("Creating %d sessions with the same label...", totalSessionCount)
+
+	for i := 0; i < totalSessionCount; i++ {
+		sessionResult, err := agentBayClient.Create(nil)
+		if err != nil {
+			t.Fatalf("Error creating session %d: %v", i+1, err)
+		}
+
+		session := sessionResult.Session
+		t.Logf("Session %d created with ID: %s", i+1, session.SessionID)
+
+		// Set the same label for each session
+		labelResult, err := session.SetLabels(string(labelJSON))
+		if err != nil {
+			t.Fatalf("Error setting label for session %d: %v", i+1, err)
+		}
+		t.Logf("Label set successfully for session %d (RequestID: %s)", i+1, labelResult.RequestID)
+
+		sessions = append(sessions, session)
+
+		// Add a short delay between session creations to avoid rate limiting
+		if i < totalSessionCount-1 {
+			time.Sleep(2 * time.Second)
+		}
+	}
+
+	// Store the IDs of all sessions for verification
+	allSessionIDs := make(map[string]bool)
+	for _, session := range sessions {
+		allSessionIDs[session.SessionID] = true
+	}
+
+	// Release (delete) some of the sessions
+	releasedSessionIDs := make(map[string]bool)
+	t.Logf("Releasing %d out of %d sessions...", sessionsToReleaseCount, totalSessionCount)
+
+	for i := 0; i < sessionsToReleaseCount; i++ {
+		session := sessions[i]
+		deleteResult, err := agentBayClient.Delete(session)
+		if err != nil {
+			t.Fatalf("Error releasing session %d: %v", i+1, err)
+		}
+		t.Logf("Session %d with ID %s released (RequestID: %s)", i+1, session.SessionID, deleteResult.RequestID)
+		releasedSessionIDs[session.SessionID] = true
+	}
+
+	// Ensure cleanup of remaining sessions at the end of the test
+	defer func() {
+		t.Log("Cleaning up remaining sessions...")
+		for i := sessionsToReleaseCount; i < totalSessionCount; i++ {
+			session := sessions[i]
+			deleteResult, err := agentBayClient.Delete(session)
+			if err != nil {
+				t.Logf("Warning: Error deleting session %d: %v", i+1, err)
+			} else {
+				t.Logf("Session %d deleted (RequestID: %s)", i+1, deleteResult.RequestID)
+			}
+		}
+	}()
+
+	// Use ListByLabels to get sessions with the test label
+	t.Log("Listing sessions by label to verify only unreleased sessions are returned...")
+	params := agentbay.NewListSessionParams()
+	params.Labels = testLabel
+	sessionsResult, err := agentBayClient.ListByLabels(params)
+	if err != nil {
+		t.Fatalf("Error listing sessions by label: %v", err)
+	}
+	t.Logf("Sessions listed by label (RequestID: %s)", sessionsResult.RequestID)
+
+	// Verify that only unreleased sessions are returned
+	t.Logf("Found %d sessions in the results", len(sessionsResult.Sessions))
+
+	// Check each returned session
+	for i, s := range sessionsResult.Sessions {
+		t.Logf("Result session %d: ID=%s", i+1, s.SessionID)
+
+		// Verify this session is one of our test sessions
+		if !allSessionIDs[s.SessionID] {
+			t.Logf("Note: Found a session not created in this test: %s", s.SessionID)
+			continue
+		}
+
+		// Verify this session was not released
+		if releasedSessionIDs[s.SessionID] {
+			t.Errorf("Error: Released session with ID %s was returned by ListByLabels", s.SessionID)
+		}
+	}
+
+	// Count how many of our unreleased sessions were found
+	expectedUnreleasedCount := totalSessionCount - sessionsToReleaseCount
+	foundUnreleasedCount := 0
+
+	for _, s := range sessionsResult.Sessions {
+		if allSessionIDs[s.SessionID] && !releasedSessionIDs[s.SessionID] {
+			foundUnreleasedCount++
+		}
+	}
+
+	// Verify that all unreleased sessions were found
+	if foundUnreleasedCount != expectedUnreleasedCount {
+		t.Errorf("Expected to find %d unreleased sessions, but found %d",
+			expectedUnreleasedCount, foundUnreleasedCount)
+	} else {
+		t.Logf("Successfully found all %d unreleased sessions", expectedUnreleasedCount)
+	}
+
+	// Verify that no released sessions were found
+	releasedSessionsFound := 0
+	for _, s := range sessionsResult.Sessions {
+		if releasedSessionIDs[s.SessionID] {
+			releasedSessionsFound++
+		}
+	}
+
+	if releasedSessionsFound > 0 {
+		t.Errorf("Found %d released sessions in the results, expected 0", releasedSessionsFound)
+	} else {
+		t.Log("Verified that no released sessions were returned by ListByLabels")
+	}
+
+	fmt.Println("ListByLabels only returns unreleased sessions test completed successfully")
 }
