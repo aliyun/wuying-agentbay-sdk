@@ -32,7 +32,7 @@ result, err := agentBay.Create(nil)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Session created with ID: %s, RequestID: %s\n", 
+fmt.Printf("Session created with ID: %s, RequestID: %s\n",
     result.Session.SessionID, result.RequestID)
 ```
 
@@ -46,6 +46,9 @@ AgentBay(api_key=None)
 
 **Parameters:**
 - `api_key` (str, optional): The API key for authentication. If not provided, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
+
+**Raises:**
+- `ValueError`: If no API key is provided and `AGENTBAY_API_KEY` environment variable is not set.
 
 ### TypeScript
 
@@ -80,14 +83,17 @@ Creates a new session in the AgentBay cloud environment.
 #### Python
 
 ```python
-create() -> Session
+create(params: Optional[CreateSessionParams] = None) -> SessionResult
 ```
 
+**Parameters:**
+- `params` (CreateSessionParams, optional): Parameters for session creation. If None, default parameters will be used.
+
 **Returns:**
-- `Session`: A new Session instance.
+- `SessionResult`: A result object containing the new Session instance, success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If the session creation fails.
+- `AgentBayError`: If the session creation fails due to API errors or other issues.
 
 #### TypeScript
 
@@ -116,16 +122,16 @@ Create(params *CreateSessionParams) (*SessionResult, error)
 
 ### list / List
 
-Lists all available sessions.
+Lists all available sessions cached in the current client instance.
 
 #### Python
 
 ```python
-list() -> List[Dict[str, Any]]
+list() -> List[Session]
 ```
 
 **Returns:**
-- `List[Dict[str, Any]]`: A list of dictionaries containing session information.
+- `List[Session]`: A list of Session instances currently cached in the client.
 
 **Raises:**
 - `AgentBayError`: If the session listing fails.
@@ -174,7 +180,7 @@ list_by_labels(labels: Dict[str, str], max_results: int = 10, next_token: str = 
   - `total_count` (int): Total number of sessions matching the criteria.
 
 **Raises:**
-- `AgentBayError`: If the session listing fails.
+- `AgentBayError`: If the session listing fails due to API errors or other issues.
 
 #### TypeScript
 
@@ -298,7 +304,12 @@ The AgentBay class also provides access to the Context service, which allows you
 
 ```python
 # Access the Context service
-context = agent_bay.context.get("my-context", create_if_not_exists=True)
+context_result = agent_bay.context.get("my-context", create=True)
+if context_result.success:
+    context = context_result.context
+    print(f"Context ID: {context.id}")
+else:
+    print(f"Failed to get context: {context_result.error_message}")
 ```
 
 ### TypeScript
@@ -322,40 +333,51 @@ For more information on the Context service, see the [Contexts](../concepts/cont
 ### Python
 
 ```python
-from wuying_agentbay import AgentBay
-from wuying_agentbay.exceptions import AgentBayError
-from wuying_agentbay.session_params import CreateSessionParams
+from agentbay import AgentBay
+from agentbay.exceptions import AgentBayError
+from agentbay.session_params import CreateSessionParams
 
 def main():
     # Initialize with API key
     api_key = "your_api_key"  # Or use os.environ.get("AGENTBAY_API_KEY")
-    
+
     try:
         agent_bay = AgentBay(api_key=api_key)
-        
+
         # Create a session with labels
         params = CreateSessionParams()
         params.labels = {
             "purpose": "demo",
             "environment": "development"
         }
-        session = agent_bay.create(params)
-        print(f"Session created with ID: {session.session_id}")
-        
+        session_result = agent_bay.create(params)
+        if not session_result.success:
+            print(f"Failed to create session: {session_result.error_message}")
+            return
+
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id}, RequestID: {session_result.request_id}")
+
         # List all sessions
         all_sessions = agent_bay.list()
         print(f"Found {len(all_sessions)} sessions")
-        
+
         # List sessions by labels
-        filtered_sessions = agent_bay.list_by_labels({
+        filtered_result = agent_bay.list_by_labels({
             "purpose": "demo"
         })
-        print(f"Found {len(filtered_sessions)} matching sessions")
-        
+        if not filtered_result.success:
+            print(f"Failed to list sessions by labels: {filtered_result.error_message}")
+        else:
+            print(f"Found {len(filtered_result.sessions)} matching sessions, RequestID: {filtered_result.request_id}")
+
         # Delete the session
-        agent_bay.delete(session)
-        print("Session deleted successfully")
-        
+        delete_result = session.delete()
+        if delete_result.success:
+            print(f"Session deleted successfully, RequestID: {delete_result.request_id}")
+        else:
+            print(f"Failed to delete session: {delete_result.error_message}")
+
     except AgentBayError as e:
         print(f"Error: {e}")
 
@@ -372,7 +394,7 @@ async function main() {
   try {
     // Initialize with API key
     const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-    
+
     // Create a session with labels
     const session = await agentBay.create({
       labels: {
@@ -381,17 +403,17 @@ async function main() {
       }
     });
     log(`Session created with ID: ${session.sessionId}`);
-    
+
     // List all sessions
     const allSessions = agentBay.list();
     log(`Found ${allSessions.length} sessions`);
-    
+
     // List sessions by labels
     const filteredSessions = await agentBay.listByLabels({
       purpose: 'demo'
     });
     log(`Found ${filteredSessions.length} matching sessions`);
-    
+
     // Delete the session
     await agentBay.delete(session);
     log('Session deleted successfully');
@@ -411,7 +433,7 @@ package main
 import (
 	"fmt"
 	"os"
-	
+
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
@@ -421,13 +443,13 @@ func main() {
 	if apiKey == "" {
 		apiKey = "your_api_key" // Replace with your actual API key
 	}
-	
+
 	client, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	// Create a session with labels
 	params := agentbay.NewCreateSessionParams().
 		WithLabels(map[string]string{
@@ -439,9 +461,9 @@ func main() {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Session created with ID: %s, RequestID: %s\n", 
+	fmt.Printf("Session created with ID: %s, RequestID: %s\n",
 		session.SessionID, session.RequestID)
-	
+
 	// List all sessions
 	sessions, err := client.List()
 	if err != nil {

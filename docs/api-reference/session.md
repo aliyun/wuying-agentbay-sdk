@@ -43,14 +43,14 @@ Deletes the session.
 #### Python
 
 ```python
-delete() -> bool
+delete() -> DeleteResult
 ```
 
 **Returns:**
-- `bool`: True if the session was deleted successfully, False otherwise.
+- `DeleteResult`: A result object containing success status, request ID, and error message if the deletion failed.
 
-**Raises:**
-- `AgentBayError`: If the session deletion fails.
+**Note:**
+The return type has been updated to return a structured `DeleteResult` object instead of a boolean value. This provides more detailed information about the operation result.
 
 #### TypeScript
 
@@ -89,14 +89,17 @@ Sets labels for the session. Labels are key-value pairs that can be used to cate
 #### Python
 
 ```python
-set_labels(labels: Dict[str, str]) -> None
+set_labels(labels: Dict[str, str]) -> OperationResult
 ```
 
 **Parameters:**
 - `labels` (Dict[str, str]): A dictionary of labels to set for the session.
 
+**Returns:**
+- `OperationResult`: A result object containing success status, request ID, and error message if any.
+
 **Raises:**
-- `AgentBayError`: If setting the labels fails.
+- `AgentBayError`: If setting the labels fails due to API errors or other issues.
 
 #### TypeScript
 
@@ -129,14 +132,14 @@ Gets the labels for the session.
 #### Python
 
 ```python
-get_labels() -> Dict[str, str]
+get_labels() -> OperationResult
 ```
 
 **Returns:**
-- `Dict[str, str]`: A dictionary of labels for the session.
+- `OperationResult`: A result object containing the labels as data, success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If getting the labels fails.
+- `AgentBayError`: If getting the labels fails due to API errors or other issues.
 
 #### TypeScript
 
@@ -167,14 +170,18 @@ Gets the public link for the session which can be used to access the session fro
 #### Python
 
 ```python
-get_link() -> str
+get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> OperationResult
 ```
 
+**Parameters:**
+- `protocol_type` (str, optional): The protocol type for the link (e.g., "http", "https").
+- `port` (int, optional): The port number for the link.
+
 **Returns:**
-- `str`: The link for the session.
+- `OperationResult`: A result object containing the link as data, success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If getting the link fails.
+- `AgentBayError`: If getting the link fails due to API errors or other issues.
 
 #### TypeScript
 
@@ -281,8 +288,8 @@ result = session.command.execute_command("ls -la")
 content = session.filesystem.read_file("/etc/hosts")
 
 # Get installed applications
-apps = session.application.get_installed_apps(include_system_apps=True, 
-                                             include_store_apps=False, 
+apps = session.application.get_installed_apps(include_system_apps=True,
+                                             include_store_apps=False,
                                              include_desktop_apps=True)
 
 # List visible applications
@@ -414,8 +421,8 @@ if err != nil {
     // Handle error
 }
 if activeWindowResult.Window != nil {
-    fmt.Printf("Active window: %s (ID: %d, PID: %d) (RequestID: %s)\n", 
-        activeWindowResult.Window.Title, activeWindowResult.Window.WindowID, 
+    fmt.Printf("Active window: %s (ID: %d, PID: %d) (RequestID: %s)\n",
+        activeWindowResult.Window.Title, activeWindowResult.Window.WindowID,
         activeWindowResult.Window.PID, activeWindowResult.RequestID)
 }
 

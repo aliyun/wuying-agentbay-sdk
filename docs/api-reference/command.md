@@ -11,7 +11,7 @@ Executes a command in the cloud environment.
 #### Python
 
 ```python
-execute_command(command: str, timeout_ms: int = 1000) -> str
+execute_command(command: str, timeout_ms: int = 1000) -> OperationResult
 ```
 
 **Parameters:**
@@ -19,10 +19,7 @@ execute_command(command: str, timeout_ms: int = 1000) -> str
 - `timeout_ms` (int, optional): The timeout for the command execution in milliseconds. Default is 1000ms.
 
 **Returns:**
-- `str`: The output of the command.
-
-**Raises:**
-- `AgentBayError`: If the command execution fails.
+- `OperationResult`: A result object containing the command output as data, success status, request ID, and error message if any.
 
 #### TypeScript
 
@@ -68,15 +65,23 @@ type CommandResult struct {
 
 ```python
 # Create a session
-session = agent_bay.create()
+session_result = agent_bay.create()
+if session_result.success:
+    session = session_result.session
 
-# Execute a command with default timeout (1000ms)
-result = session.command.execute_command("ls -la")
-print(f"Command result: {result}")
+    # Execute a command with default timeout (1000ms)
+    result = session.command.execute_command("ls -la")
+    if result.success:
+        print(f"Command result: {result.data}")
+    else:
+        print(f"Command failed: {result.error_message}")
 
-# Execute a command with custom timeout (2000ms)
-result_with_timeout = session.command.execute_command("ls -la", timeout_ms=2000)
-print(f"Command result with custom timeout: {result_with_timeout}")
+    # Execute a command with custom timeout (2000ms)
+    result_with_timeout = session.command.execute_command("ls -la", timeout_ms=2000)
+    if result_with_timeout.success:
+        print(f"Command result with custom timeout: {result_with_timeout.data}")
+    else:
+        print(f"Command failed: {result_with_timeout.error_message}")
 ```
 
 ### TypeScript
@@ -116,7 +121,7 @@ resultWithTimeout, err := session.Command.ExecuteCommand("ls -la", 2000)
 if err != nil {
     // Handle error
 }
-fmt.Printf("Command result with custom timeout: %s (RequestID: %s)\n", 
+fmt.Printf("Command result with custom timeout: %s (RequestID: %s)\n",
     resultWithTimeout.Output, resultWithTimeout.RequestID)
 ```
 
@@ -127,7 +132,7 @@ Executes code in the specified programming language with a timeout.
 #### Python
 
 ```python
-run_code(code: str, language: str, timeout_s: int = 300) -> str
+run_code(code: str, language: str, timeout_s: int = 300) -> OperationResult
 ```
 
 **Parameters:**
@@ -136,10 +141,7 @@ run_code(code: str, language: str, timeout_s: int = 300) -> str
 - `timeout_s` (int, optional): The timeout for the code execution in seconds. Default is 300s.
 
 **Returns:**
-- `str`: The output of the code execution.
-
-**Raises:**
-- `CommandError`: If the code execution fails or if an unsupported language is specified.
+- `OperationResult`: A result object containing the code execution output as data, success status, request ID, and error message if any.
 
 #### TypeScript
 
@@ -179,25 +181,33 @@ RunCode(code string, language string, timeoutS ...int) (*CommandResult, error)
 
 ```python
 # Create a session
-session = agent_bay.create()
+session_result = agent_bay.create()
+if session_result.success:
+    session = session_result.session
 
-# Execute Python code
-python_code = """
-print("Hello, world!")
-x = 1 + 1
-print(x)
-"""
-result = session.command.run_code(python_code, "python")
-print(f"Python code execution result: {result}")
+    # Execute Python code
+    python_code = """
+    print("Hello, world!")
+    x = 1 + 1
+    print(x)
+    """
+    result = session.command.run_code(python_code, "python")
+    if result.success:
+        print(f"Python code execution result: {result.data}")
+    else:
+        print(f"Code execution failed: {result.error_message}")
 
-# Execute JavaScript code
-js_code = """
-log("Hello, world!");
-const x = 1 + 1;
-log(x);
-"""
-result_js = session.command.run_code(js_code, "javascript", timeout_s=600)
-print(f"JavaScript code execution result: {result_js}")
+    # Execute JavaScript code
+    js_code = """
+    log("Hello, world!");
+    const x = 1 + 1;
+    log(x);
+    """
+    result_js = session.command.run_code(js_code, "javascript", timeout_s=600)
+    if result_js.success:
+        print(f"JavaScript code execution result: {result_js.data}")
+    else:
+        print(f"Code execution failed: {result_js.error_message}")
 ```
 
 ### TypeScript

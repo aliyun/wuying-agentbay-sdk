@@ -36,31 +36,50 @@ For more details on authentication, see the [Authentication Guide](guides/authen
 ### Python
 
 ```python
-from wuying_agentbay import AgentBay
+from agentbay import AgentBay
 
 # Initialize the AgentBay client
 api_key = "your_api_key_here"
 agent_bay = AgentBay(api_key=api_key)
 
-# Create a new session
-session = agent_bay.create()
-print(f"Session created with ID: {session.session_id}")
+try:
+    # Create a new session
+    session_result = agent_bay.create()
+    if session_result.success:
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
 
-# Execute a command
-result = session.command.execute_command("ls -la")
-print(f"Command result: {result}")
+        # Execute a command
+        result = session.command.execute_command("ls -la")
+        if result.success:
+            print(f"Command result: {result.data}")
+        else:
+            print(f"Command failed: {result.error_message}")
 
-# Read a file
-content = session.filesystem.read_file("/etc/hosts")
-print(f"File content: {content}")
+        # Read a file
+        file_result = session.filesystem.read_file("/etc/hosts")
+        if file_result.success:
+            print(f"File content: {file_result.data}")
+        else:
+            print(f"File read failed: {file_result.error_message}")
 
-# Execute code
-code_result = session.command.run_code('print("Hello, World!")', "python")
-print(f"Code execution result: {code_result}")
+        # Execute code
+        code_result = session.command.run_code('print("Hello, World!")', "python")
+        if code_result.success:
+            print(f"Code execution result: {code_result.data}")
+        else:
+            print(f"Code execution failed: {code_result.error_message}")
 
-# Delete the session
-agent_bay.delete(session)
-print("Session deleted successfully")
+        # Delete the session
+        delete_result = session.delete()
+        if delete_result.success:
+            print("Session deleted successfully")
+        else:
+            print(f"Session deletion failed: {delete_result.error_message}")
+    else:
+        print(f"Failed to create session: {session_result.error_message}")
+except Exception as e:
+    print(f"An error occurred: {e}")
 ```
 
 ### TypeScript

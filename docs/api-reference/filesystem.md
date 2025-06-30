@@ -39,17 +39,17 @@ CreateDirectory(path string) (bool, error)
 #### Python
 
 ```python
-create_directory(path: str) -> bool
+create_directory(path: str) -> BoolResult
 ```
 
 **Parameters:**
 - `path` (str): The path of the directory to create.
 
 **Returns:**
-- `bool`: True if the directory was created successfully.
+- `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
-**Raises:**
-- `FileError`: If the directory creation fails.
+**Note:**
+The return type has been updated from boolean to a structured `BoolResult` object, which provides more detailed information about the operation result.
 
 ### edit_file / editFile / EditFile
 
@@ -90,7 +90,7 @@ EditFile(path string, edits []map[string]string, dryRun bool) (bool, error)
 #### Python
 
 ```python
-edit_file(path: str, edits: List[Dict[str, str]], dry_run: bool = False) -> bool
+edit_file(path: str, edits: List[Dict[str, str]], dry_run: bool = False) -> BoolResult
 ```
 
 **Parameters:**
@@ -99,10 +99,7 @@ edit_file(path: str, edits: List[Dict[str, str]], dry_run: bool = False) -> bool
 - `dry_run` (bool, optional): If true, preview changes without applying them. Default is False.
 
 **Returns:**
-- `bool`: True if the file was edited successfully.
-
-**Raises:**
-- `FileError`: If the file editing fails.
+- `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
 ### get_file_info / getFileInfo / GetFileInfo
 
@@ -139,17 +136,14 @@ GetFileInfo(path string) (string, error)
 #### Python
 
 ```python
-get_file_info(path: str) -> Dict[str, Union[str, float, bool]]
+get_file_info(path: str) -> OperationResult
 ```
 
 **Parameters:**
 - `path` (str): The path of the file or directory to inspect.
 
 **Returns:**
-- `Dict[str, Union[str, float, bool]]`: A dictionary containing file information.
-
-**Raises:**
-- `FileError`: If getting the file information fails.
+- `OperationResult`: A result object containing file information as data, success status, request ID, and error message if any.
 
 ### list_directory / listDirectory / ListDirectory
 
@@ -199,17 +193,14 @@ type DirectoryEntry struct {
 #### Python
 
 ```python
-list_directory(path: str) -> List[Dict[str, Union[str, bool]]]
+list_directory(path: str) -> OperationResult
 ```
 
 **Parameters:**
 - `path` (str): The path of the directory to list.
 
 **Returns:**
-- `List[Dict[str, Union[str, bool]]]`: A list of dictionaries representing directory entries.
-
-**Raises:**
-- `FileError`: If listing the directory fails.
+- `OperationResult`: A result object containing a list of directory entries as data, success status, request ID, and error message if any.
 
 ### move_file / moveFile / MoveFile
 
@@ -256,7 +247,7 @@ type FileDirectoryResult struct {
 #### Python
 
 ```python
-move_file(source: str, destination: str) -> bool
+move_file(source: str, destination: str) -> BoolResult
 ```
 
 **Parameters:**
@@ -264,10 +255,7 @@ move_file(source: str, destination: str) -> bool
 - `destination` (str): The path of the destination file or directory.
 
 **Returns:**
-- `bool`: True if the file was moved successfully.
-
-**Raises:**
-- `FileError`: If moving the file fails.
+- `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
 ### read_file / readFile / ReadFile
 
@@ -276,7 +264,7 @@ Reads the contents of a file in the cloud environment.
 #### Python
 
 ```python
-read_file(path: str, offset: int = 0, length: int = 0) -> str
+read_file(path: str, offset: int = 0, length: int = 0) -> OperationResult
 ```
 
 **Parameters:**
@@ -285,10 +273,7 @@ read_file(path: str, offset: int = 0, length: int = 0) -> str
 - `length` (int, optional): Number of bytes to read. If 0, read to end of file. Default is 0.
 
 **Returns:**
-- `str`: The contents of the file.
-
-**Raises:**
-- `FileError`: If the file reading fails.
+- `OperationResult`: A result object containing file content as data, success status, request ID, and error message if any.
 
 #### TypeScript
 
@@ -364,17 +349,14 @@ ReadMultipleFiles(paths []string) (string, error)
 #### Python
 
 ```python
-read_multiple_files(paths: List[str]) -> Dict[str, str]
+read_multiple_files(paths: List[str]) -> OperationResult
 ```
 
 **Parameters:**
 - `paths` (List[str]): List of file paths to read.
 
 **Returns:**
-- `Dict[str, str]`: A dictionary mapping file paths to their contents.
-
-**Raises:**
-- `FileError`: If reading the files fails.
+- `OperationResult`: A result object containing a dictionary mapping file paths to their contents as data, success status, request ID, and error message if any.
 
 ### search_files / searchFiles / SearchFiles
 
@@ -423,19 +405,16 @@ type SearchFilesResult struct {
 #### Python
 
 ```python
-search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> List[str]
+search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> OperationResult
 ```
 
 **Parameters:**
-- `path` (str): The directory path to search.
+- `path` (str): The path of the directory to start the search.
 - `pattern` (str): The pattern to match.
-- `exclude_patterns` (Optional[List[str]]): Optional list of patterns to exclude.
+- `exclude_patterns` (List[str], optional): Patterns to exclude. Default is None.
 
 **Returns:**
-- `List[str]`: A list of strings representing search results.
-
-**Raises:**
-- `FileError`: If the search fails.
+- `OperationResult`: A result object containing search results as data, success status, request ID, and error message if any.
 
 ### write_file / writeFile / WriteFile
 
