@@ -1,8 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from agentbay.exceptions import FileError
-from agentbay.filesystem.filesystem import FileSystem
+from agentbay.filesystem.filesystem import (
+    FileSystem, FileInfoResult, DirectoryListResult, BoolResult,
+    FileContentResult, MultipleFileContentResult, FileSearchResult
+)
 from agentbay.model import OperationResult
 
 
@@ -27,428 +29,356 @@ class TestFileSystem(unittest.TestCase):
         self.session = DummySession()
         self.fs = FileSystem(self.session)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_read_file_success(self, MockCallMcpToolRequest, mock_extract_request_id):
-        print("test_read_file_success")
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {"Data": {"content": [{"text": "file content"}]}}
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.client.call_mcp_tool.return_value = mock_response
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_read_file_success(self, mock_call_mcp_tool):
+        """
+        Test read_file method with successful response.
+        """
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="file content"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.read_file("/path/to/file.txt")
-        self.assertTrue(success)
-        self.assertEqual(result, "file content")
-        MockCallMcpToolRequest.assert_called_once()
+        result = self.fs.read_file("/path/to/file.txt")
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "file content")
+        self.assertEqual(result.request_id, "request-123")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_read_file_error(self, MockCallMcpToolRequest, mock_extract_request_id):
-        print("test_read_file_error")
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "isError": True,
-                    "content": [{"text": "some error message"}],
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.client.call_mcp_tool.return_value = mock_response
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_read_file_error(self, mock_call_mcp_tool):
+        """
+        Test read_file method with error response.
+        """
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Error in response: some error message"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.read_file("/path/to/file.txt")
-        self.assertFalse(success)
-        self.assertIn("Error in response: some error message", error_msg)
+        result = self.fs.read_file("/path/to/file.txt")
+        self.assertIsInstance(result, FileContentResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Error in response: some error message")
+        self.assertEqual(result.content, "")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_read_file_error_format(self, MockCallMcpToolRequest, mock_extract_request_id):
-        print("test_read_file_error_format")
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {"some_unknown_key": {""}}
-        mock_extract_request_id.return_value = "request-123"
-        self.session.client.call_mcp_tool.return_value = mock_response
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_read_file_error_format(self, mock_call_mcp_tool):
+        """
+        Test read_file method with invalid format response.
+        """
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Invalid response body"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.read_file("/path/to/file.txt")
-        self.assertFalse(success)
-        self.assertIn("Invalid response body", error_msg)
+        result = self.fs.read_file("/path/to/file.txt")
+        self.assertIsInstance(result, FileContentResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Invalid response body")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_create_directory_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_create_directory_success(self, mock_call_mcp_tool):
         """
         Test create_directory method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "True"}],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="True"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.create_directory("/path/to/directory")
-        self.assertTrue(success)
-        self.assertTrue(result)
+        result = self.fs.create_directory("/path/to/directory")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.data)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_create_directory_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_create_directory_error(self, mock_call_mcp_tool):
         """
         Test create_directory method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "Directory creation failed"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        # 创建一个包含error_message和request_id的OperationResult对象
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Directory creation failed"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.create_directory("/path/to/directory")
-        self.assertFalse(success)
-        self.assertIn("Error in response: Directory creation failed", error_msg)
+        result = self.fs.create_directory("/path/to/directory")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Directory creation failed")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_edit_file_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_edit_file_success(self, mock_call_mcp_tool):
         """
         Test edit_file method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "True"}],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="True"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.edit_file(
+        result = self.fs.edit_file(
             "/path/to/file.txt", [{"oldText": "foo", "newText": "bar"}]
         )
-        print(f"type(result)= {type(result)}")
-        self.assertTrue(success)
-        self.assertTrue(result)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.data)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_edit_file_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_edit_file_error(self, mock_call_mcp_tool):
         """
         Test edit_file method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "Edit failed"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Edit failed"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.edit_file(
+        result = self.fs.edit_file(
             "/path/to/file.txt", [{"oldText": "foo", "newText": "bar"}]
         )
-        self.assertFalse(success)
-        self.assertIn("Error in response: Edit failed", error_msg)
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Edit failed")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_write_file_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_write_file_success(self, mock_call_mcp_tool):
         """
         Test write_file method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "True"}],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="True"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.write_file(
+        result = self.fs.write_file(
             "/path/to/file.txt", "content to write", "overwrite"
         )
-        self.assertTrue(success)
-        self.assertTrue(result)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.data)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_write_file_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_write_file_error(self, mock_call_mcp_tool):
         """
         Test write_file method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "Write failed"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Write failed"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.write_file(
+        result = self.fs.write_file(
             "/path/to/file.txt", "content to write", "overwrite"
         )
-        self.assertFalse(success)
-        self.assertIn("Error in response: Write failed", error_msg)
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Write failed")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_get_file_info_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_get_file_info_success(self, mock_call_mcp_tool):
         """
         Test get_file_info method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {
-                            "text": "name: test.txt\nsize: 100\nmodified: 2023-01-01T12:00:00Z\nisDirectory: false"
-                        }
-                    ],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="name: test.txt\nsize: 100\nmodified: 2023-01-01T12:00:00Z\nisDirectory: false"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.get_file_info("/path/to/file.txt")
-        self.assertTrue(success)
-        self.assertEqual(result["name"], "test.txt")
-        self.assertEqual(result["size"], 100)
-        self.assertEqual(result["modified"], "2023-01-01T12:00:00Z")
-        self.assertEqual(result["isDirectory"], False)
+        result = self.fs.get_file_info("/path/to/file.txt")
+        self.assertIsInstance(result, FileInfoResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.file_info["name"], "test.txt")
+        self.assertEqual(result.file_info["size"], 100)
+        self.assertEqual(result.file_info["modified"], "2023-01-01T12:00:00Z")
+        self.assertEqual(result.file_info["isDirectory"], False)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_get_file_info_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_get_file_info_error(self, mock_call_mcp_tool):
         """
         Test get_file_info method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "File not found"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="File not found"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.get_file_info("/path/to/file.txt")
-        self.assertFalse(success)
-        self.assertIn("Error in response: File not found", error_msg)
+        result = self.fs.get_file_info("/path/to/file.txt")
+        self.assertIsInstance(result, FileInfoResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "File not found")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_list_directory_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_list_directory_success(self, mock_call_mcp_tool):
         """
         Test list_directory method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {
-                            "text": "file:/path/to/file1.txt\ndirectory:/path/to/dir1\nfile:/path/to/file2.txt"
-                        }
-                    ],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="[FILE] file1.txt\n[DIR] dir1\n[FILE] file2.txt"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.list_directory("/path/to")
-        self.assertTrue(success)
-        self.assertEqual(len(result), 3)
-        self.assertEqual(result[0]["path"], "/path/to/file1.txt")
-        self.assertEqual(result[0]["type"], "file")
-        self.assertTrue(result[0]["is_file"])
-        self.assertEqual(result[1]["path"], "/path/to/dir1")
-        self.assertEqual(result[1]["type"], "directory")
-        self.assertTrue(result[1]["is_directory"])
+        result = self.fs.list_directory("/path/to/directory")
+        self.assertIsInstance(result, DirectoryListResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(len(result.entries), 3)
+        self.assertEqual(result.entries[0]["name"], "file1.txt")
+        self.assertEqual(result.entries[0]["isDirectory"], False)
+        self.assertEqual(result.entries[1]["name"], "dir1")
+        self.assertEqual(result.entries[1]["isDirectory"], True)
+        self.assertEqual(result.entries[2]["name"], "file2.txt")
+        self.assertEqual(result.entries[2]["isDirectory"], False)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_list_directory_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_list_directory_error(self, mock_call_mcp_tool):
         """
         Test list_directory method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "Directory not found"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Directory not found"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.list_directory("/path/to")
-        self.assertFalse(success)
-        self.assertIn("Error in response: Directory not found", error_msg)
+        result = self.fs.list_directory("/path/to/directory")
+        self.assertIsInstance(result, DirectoryListResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Directory not found")
+        self.assertEqual(result.entries, [])
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_move_file_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_move_file_success(self, mock_call_mcp_tool):
         """
         Test move_file method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "True"}],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="True"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.move_file("/path/source.txt", "/path/destination.txt")
-        self.assertTrue(success)
-        self.assertTrue(result)
+        result = self.fs.move_file("/path/to/source.txt", "/path/to/dest.txt")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.data)
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_move_file_error(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_move_file_error(self, mock_call_mcp_tool):
         """
         Test move_file method with error response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [{"text": "Move failed"}],
-                    "isError": True,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=False,
+            error_message="Move operation failed"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, error_msg = self.fs.move_file("/path/source.txt", "/path/destination.txt")
-        self.assertFalse(success)
-        self.assertIn("Error in response: Move failed", error_msg)
+        result = self.fs.move_file("/path/to/source.txt", "/path/to/dest.txt")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Move operation failed")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_read_multiple_files_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_read_multiple_files_success(self, mock_call_mcp_tool):
         """
         Test read_multiple_files method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {
-                            "text": '--- FILE: /path/to/file1.txt ---\ncontent of file1\n--- FILE: /path/to/file2.txt ---\ncontent of file2'
-                        }
-                    ],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="file1.txt:\nFile 1 content\n---\nfile2.txt:\nFile 2 content\n---"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.read_multiple_files(["/path/to/file1.txt", "/path/to/file2.txt"])
-        self.assertTrue(success)
-        self.assertEqual(result["/path/to/file1.txt"], "content of file1")
-        self.assertEqual(result["/path/to/file2.txt"], "content of file2")
+        result = self.fs.read_multiple_files(["/path/to/file1.txt", "/path/to/file2.txt"])
+        self.assertIsInstance(result, MultipleFileContentResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(len(result.contents), 2)
+        self.assertEqual(result.contents["file1.txt"], "File 1 content")
+        self.assertEqual(result.contents["file2.txt"], "File 2 content")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_search_files_success(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_search_files_success(self, mock_call_mcp_tool):
         """
         Test search_files method with successful response.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {
-                            "text": "/path/to/file1.txt\n/path/to/file2.txt\n/path/to/subdir/file3.txt"
-                        }
-                    ],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="/path/to/file1.txt\n/path/to/file2.txt"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.search_files("/path/to", "*.txt")
-        self.assertTrue(success)
-        self.assertEqual(len(result), 3)
-        self.assertEqual(result[0], "/path/to/file1.txt")
-        self.assertEqual(result[1], "/path/to/file2.txt")
-        self.assertEqual(result[2], "/path/to/subdir/file3.txt")
+        result = self.fs.search_files("/path/to", "pattern")
+        self.assertIsInstance(result, FileSearchResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(len(result.matches), 2)
+        self.assertEqual(result.matches[0], "/path/to/file1.txt")
+        self.assertEqual(result.matches[1], "/path/to/file2.txt")
 
-    @patch("agentbay.filesystem.filesystem.extract_request_id")
-    @patch("agentbay.filesystem.filesystem.CallMcpToolRequest")
-    def test_search_files_with_exclude(self, MockCallMcpToolRequest, mock_extract_request_id):
+    @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
+    def test_search_files_with_exclude(self, mock_call_mcp_tool):
         """
-        Test search_files method with exclude patterns and successful response.
+        Test search_files method with exclude patterns.
         """
-        mock_response = MagicMock()
-        mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "content": [
-                        {
-                            "text": "/path/to/file1.txt\n/path/to/file2.txt"
-                        }
-                    ],
-                    "isError": False,
-                }
-            }
-        }
-        mock_extract_request_id.return_value = "request-123"
-        self.session.get_client().call_mcp_tool.return_value = mock_response
+        mock_result = OperationResult(
+            request_id="request-123",
+            success=True,
+            data="/path/to/file1.txt"
+        )
+        mock_call_mcp_tool.return_value = mock_result
 
-        success, result = self.fs.search_files("/path/to", "*.txt", exclude_patterns=["**/subdir/**"])
-        self.assertTrue(success)
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0], "/path/to/file1.txt")
-        self.assertEqual(result[1], "/path/to/file2.txt")
+        result = self.fs.search_files(
+            "/path/to", "pattern", exclude_patterns=["*.py", "node_modules"]
+        )
+        self.assertIsInstance(result, FileSearchResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(len(result.matches), 1)
+        self.assertEqual(result.matches[0], "/path/to/file1.txt")
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     @patch("agentbay.filesystem.filesystem.FileSystem.read_file")
@@ -457,18 +387,21 @@ class TestFileSystem(unittest.TestCase):
         Test read_large_file method with successful response.
         """
         # Mock file info
-        mock_get_file_info.return_value = (True, {"size": 600})
+        file_info_result = FileInfoResult(request_id="request-123", success=True,
+                                          file_info={"size": 600, "isDirectory": False})
+        mock_get_file_info.return_value = file_info_result
 
         # Mock chunked reads
         mock_read_file.side_effect = [
-            (True, "chunk1"),
-            (True, "chunk2"),
-            (True, "chunk3"),
+            FileContentResult(request_id="request-123-1", success=True, content="chunk1"),
+            FileContentResult(request_id="request-123-2", success=True, content="chunk2"),
+            FileContentResult(request_id="request-123-3", success=True, content="chunk3"),
         ]
 
-        success, result = self.fs.read_large_file("/path/to/large_file.txt", chunk_size=200)
-        self.assertTrue(success)
-        self.assertEqual(result, "chunk1chunk2chunk3")
+        result = self.fs.read_large_file("/path/to/large_file.txt", chunk_size=200)
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "chunk1chunk2chunk3")
         mock_get_file_info.assert_called_once()
         self.assertEqual(mock_read_file.call_count, 3)
 
@@ -477,11 +410,14 @@ class TestFileSystem(unittest.TestCase):
         """
         Test read_large_file method with error in get_file_info.
         """
-        mock_get_file_info.return_value = (False, "File not found")
+        error_result = FileInfoResult(request_id="request-123", success=False,
+                                     error_message="File not found")
+        mock_get_file_info.return_value = error_result
 
-        success, error = self.fs.read_large_file("/path/to/large_file.txt")
-        self.assertFalse(success)
-        self.assertEqual(error, "File not found")
+        result = self.fs.read_large_file("/path/to/large_file.txt")
+        self.assertIsInstance(result, FileContentResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "File not found")
         mock_get_file_info.assert_called_once()
 
     @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
@@ -490,15 +426,16 @@ class TestFileSystem(unittest.TestCase):
         Test write_large_file method with successful response.
         """
         mock_write_file.side_effect = [
-            (True, True),  # First chunk (overwrite)
-            (True, True),  # Second chunk (append)
-            (True, True),  # Third chunk (append)
+            BoolResult(request_id="request-123-1", success=True, data=True),
+            BoolResult(request_id="request-123-2", success=True, data=True),
+            BoolResult(request_id="request-123-3", success=True, data=True),
         ]
 
         content = "a" * 300  # 300 bytes content
-        success, result = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
-        self.assertTrue(success)
-        self.assertTrue(result)
+        result = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
         self.assertEqual(mock_write_file.call_count, 3)
 
         # Verify the calls
@@ -510,12 +447,13 @@ class TestFileSystem(unittest.TestCase):
         """
         Test write_large_file method with content smaller than chunk size.
         """
-        mock_write_file.return_value = (True, True)
+        mock_write_file.return_value = BoolResult(request_id="request-123", success=True, data=True)
 
         content = "small content"
-        success, result = self.fs.write_large_file("/path/to/file.txt", content, chunk_size=100)
-        self.assertTrue(success)
-        self.assertTrue(result)
+        result = self.fs.write_large_file("/path/to/file.txt", content, chunk_size=100)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertTrue(result.data)
         mock_write_file.assert_called_once_with("/path/to/file.txt", content)
 
     @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
@@ -523,21 +461,24 @@ class TestFileSystem(unittest.TestCase):
         """
         Test write_large_file method with error in first write.
         """
-        mock_write_file.return_value = (False, "Write error")
+        mock_write_file.return_value = BoolResult(request_id="request-123", success=False,
+                                                 error_message="Write error")
 
         content = "a" * 300  # 300 bytes content
-        success, error = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
-        self.assertFalse(success)
-        self.assertEqual(error, "Write error")
+        result = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.error_message, "Write error")
         mock_write_file.assert_called_once()
 
     def test_write_file_invalid_mode(self):
         """
         Test write_file method with invalid mode.
         """
-        success, error = self.fs.write_file("/path/to/file.txt", "content", "invalid_mode")
-        self.assertFalse(success)
-        self.assertIn("Invalid write mode", error)
+        result = self.fs.write_file("/path/to/file.txt", "content", "invalid_mode")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertIn("Invalid write mode", result.error_message)
 
 
 if __name__ == "__main__":

@@ -37,13 +37,16 @@ def main():
             "feature": "label-management",
             "version": "1.0",
         }
-        session1 = agent_bay.create(params)
+        session_result = agent_bay.create(params)
+        session1 = session_result.session
         print(f"Session created with ID: {session1.session_id}")
+        print(f"Request ID: {session_result.request_id}")
 
         # Get labels for the session
         print("\nGetting labels for the session...")
-        labels = session1.get_labels()
-        print(f"Session labels: {labels}")
+        labels_result = session1.get_labels()
+        print(f"Session labels: {labels_result.data}")
+        print(f"Request ID: {labels_result.request_id}")
 
         # Create another session with different labels
         print("\nCreating another session with different labels...")
@@ -53,12 +56,14 @@ def main():
             "feature": "other-feature",
             "version": "2.0",
         }
-        session2 = agent_bay.create(params)
+        session_result = agent_bay.create(params)
+        session2 = session_result.session
         print(f"Session created with ID: {session2.session_id}")
+        print(f"Request ID: {session_result.request_id}")
 
         # Update labels for the second session
         print("\nUpdating labels for the second session...")
-        session2.set_labels(
+        set_labels_result = session2.set_labels(
             {
                 "purpose": "demo",
                 "feature": "label-management",
@@ -66,11 +71,14 @@ def main():
                 "status": "active",
             }
         )
+        print(f"Labels updated successfully: {set_labels_result.success}")
+        print(f"Request ID: {set_labels_result.request_id}")
 
         # Get updated labels for the second session
         print("\nGetting updated labels for the second session...")
-        updated_labels = session2.get_labels()
-        print(f"Updated session labels: {updated_labels}")
+        labels_result = session2.get_labels()
+        print(f"Updated session labels: {labels_result.data}")
+        print(f"Request ID: {labels_result.request_id}")
 
         # List all sessions
         print("\nListing all sessions...")
@@ -81,31 +89,40 @@ def main():
 
         # List sessions by label
         print("\nListing sessions with purpose=demo and feature=label-management...")
-        filtered_sessions = agent_bay.list_by_labels(
+        filtered_result = agent_bay.list_by_labels(
             {"purpose": "demo", "feature": "label-management"}
         )
+        filtered_sessions = filtered_result.sessions
         print(f"Found {len(filtered_sessions)} matching sessions")
+        print(f"Request ID: {filtered_result.request_id}")
         for i, session in enumerate(filtered_sessions):
             print(f"Matching session {i+1} ID: {session.session_id}")
-            session_labels = session.get_labels()
-            print(f"Labels: {session_labels}")
+            labels_result = session.get_labels()
+            print(f"Labels: {labels_result.data}")
 
         # Delete the sessions
         print("\nDeleting the sessions...")
-        agent_bay.delete(session1)
-        print(f"Session {session1.session_id} deleted successfully")
+        delete_result1 = agent_bay.delete(session1)
+        print(f"Session {session1.session_id} deleted successfully: {delete_result1.success}")
+        print(f"Request ID: {delete_result1.request_id}")
         session1 = None  # Clear reference to avoid deletion error
-        agent_bay.delete(session2)
-        print(f"Session {session2.session_id} deleted successfully")
+
+        delete_result2 = agent_bay.delete(session2)
+        print(f"Session {session2.session_id} deleted successfully: {delete_result2.success}")
+        print(f"Request ID: {delete_result2.request_id}")
         session2 = None  # Clear reference to avoid deletion error
 
     except AgentBayError as e:
         print(f"Error: {e}")
 
-        if session1:
-            agent_bay.delete(session1)
-        if session2:
-            agent_bay.delete(session2)
+        try:
+            if session1:
+                agent_bay.delete(session1)
+            if session2:
+                agent_bay.delete(session2)
+        except Exception as cleanup_error:
+            print(f"Error during cleanup: {cleanup_error}")
+
         sys.exit(1)
 
 

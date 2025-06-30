@@ -1,10 +1,11 @@
 import unittest
 import os
-import time
 from agentbay import AgentBay
-from agentbay.filesystem.filesystem import FileSystem
+from agentbay.filesystem.filesystem import (
+    FileSystem, FileContentResult, FileInfoResult, DirectoryListResult,
+    FileSearchResult, BoolResult, MultipleFileContentResult
+)
 from agentbay.session_params import CreateSessionParams
-from agentbay.exceptions import FileError
 
 
 class TestFileSystemIntegration(unittest.TestCase):
@@ -21,12 +22,13 @@ class TestFileSystemIntegration(unittest.TestCase):
         cls.agent_bay = AgentBay(cls.api_key)
 
         # Create a session
-        print("Creating a new session for OSS testing...")
+        print("Creating a new session for FileSystem testing...")
         params = CreateSessionParams(
             image_id="linux_latest",
         )
-        cls.session = cls.agent_bay.create(params)
-        cls.fs = FileSystem(cls.session)
+        result = cls.agent_bay.create(params)
+        cls.session = result.session
+        cls.fs = cls.session.file_system
         print(f"Session created with ID: {cls.session.get_session_id()}")
 
     @classmethod
@@ -35,8 +37,11 @@ class TestFileSystemIntegration(unittest.TestCase):
         print("Cleaning up: Deleting the session...")
         if hasattr(cls, "session"):
             try:
-                cls.agent_bay.delete(cls.session)
-                print("Session successfully deleted")
+                result = cls.agent_bay.delete(cls.session)
+                if result.success:
+                    print("Session successfully deleted")
+                else:
+                    print(f"Warning: Error deleting session: {result.error_message}")
             except Exception as e:
                 print(f"Warning: Error deleting session: {e}")
 
@@ -48,11 +53,14 @@ class TestFileSystemIntegration(unittest.TestCase):
         test_file_path = "/tmp/test_read.txt"
 
         # Write the test file
-        self.fs.write_file(test_file_path, test_content, "overwrite")
+        write_result = self.fs.write_file(test_file_path, test_content, "overwrite")
+        self.assertTrue(write_result.success)
 
         # Read the file
-        content = self.fs.read_file(test_file_path)
-        self.assertEqual(content, test_content)
+        result = self.fs.read_file(test_file_path)
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, test_content)
 
     def test_write_file(self):
         """
@@ -62,12 +70,14 @@ class TestFileSystemIntegration(unittest.TestCase):
         test_file_path = "/tmp/test_write.txt"
 
         # Write the file
-        success = self.fs.write_file(test_file_path, test_content, "overwrite")
-        self.assertTrue(success)
+        result = self.fs.write_file(test_file_path, test_content, "overwrite")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
 
         # Verify the file content
-        content = self.fs.read_file(test_file_path)
-        self.assertEqual(content, test_content)
+        read_result = self.fs.read_file(test_file_path)
+        self.assertTrue(read_result.success)
+        self.assertEqual(read_result.content, test_content)
 
     def test_create_directory(self):
         """
@@ -76,13 +86,15 @@ class TestFileSystemIntegration(unittest.TestCase):
         test_dir_path = "/tmp/test_directory"
 
         # Create the directory
-        success = self.fs.create_directory(test_dir_path)
-        self.assertTrue(success)
+        result = self.fs.create_directory(test_dir_path)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
 
         # Verify the directory exists
-        entries = self.fs.list_directory("/tmp/")
-        directory_names = [entry["name"] for entry in entries]
-        self.assertIn("test_directory", directory_names)
+        list_result = self.fs.list_directory("/tmp/")
+        self.assertTrue(list_result.success)
+        entry_names = [entry["name"] for entry in list_result.entries]
+        self.assertIn("test_directory", entry_names)
 
     def test_edit_file(self):
         """
@@ -92,19 +104,22 @@ class TestFileSystemIntegration(unittest.TestCase):
         test_file_path = "/tmp/test_edit.txt"
 
         # Write the initial file
-        self.fs.write_file(test_file_path, initial_content, "overwrite")
+        write_result = self.fs.write_file(test_file_path, initial_content, "overwrite")
+        self.assertTrue(write_result.success)
 
         # Edit the file
         edits = [
             {"oldText": "Line to be replaced.", "newText": "This line has been edited."}
         ]
         result = self.fs.edit_file(test_file_path, edits, False)
-        self.assertTrue(result)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
 
         # Verify the file content
         expected_content = "This is the original content.\nThis line has been edited.\nThis is the final line."
-        content = self.fs.read_file(test_file_path)
-        self.assertEqual(content, expected_content)
+        read_result = self.fs.read_file(test_file_path)
+        self.assertTrue(read_result.success)
+        self.assertEqual(read_result.content, expected_content)
 
     def test_get_file_info(self):
         """
@@ -114,20 +129,28 @@ class TestFileSystemIntegration(unittest.TestCase):
         test_file_path = "/tmp/test_info.txt"
 
         # Write the test file
-        self.fs.write_file(test_file_path, test_content, "overwrite")
+        write_result = self.fs.write_file(test_file_path, test_content, "overwrite")
+        self.assertTrue(write_result.success)
 
         # Get file info
-        file_info = self.fs.get_file_info(test_file_path)
-        self.assertEqual(file_info["isDirectory"], False)
+        result = self.fs.get_file_info(test_file_path)
+        self.assertIsInstance(result, FileInfoResult)
+        self.assertTrue(result.success)
+
+        file_info = result.file_info
+        self.assertFalse(file_info["isDirectory"])
         size = int(file_info["size"])
         self.assertTrue(size > 0, f"File size should be positive, got {size}")
-        self.assertFalse(file_info["isDirectory"])
 
     def test_list_directory(self):
         """
         Test listing a directory.
         """
-        entries = self.fs.list_directory("/tmp/")
+        result = self.fs.list_directory("/tmp/")
+        self.assertIsInstance(result, DirectoryListResult)
+        self.assertTrue(result.success)
+
+        entries = result.entries
         self.assertGreater(len(entries), 0)
         self.assertIn("name", entries[0])
         self.assertIn("isDirectory", entries[0])
@@ -141,19 +164,22 @@ class TestFileSystemIntegration(unittest.TestCase):
         dest_file_path = "/tmp/test_destination.txt"
 
         # Write the source file
-        self.fs.write_file(source_file_path, test_content, "overwrite")
+        write_result = self.fs.write_file(source_file_path, test_content, "overwrite")
+        self.assertTrue(write_result.success)
 
         # Move the file
-        success = self.fs.move_file(source_file_path, dest_file_path)
-        self.assertTrue(success)
+        result = self.fs.move_file(source_file_path, dest_file_path)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
 
         # Verify the destination file content
-        content = self.fs.read_file(dest_file_path)
-        self.assertEqual(content, test_content)
+        read_result = self.fs.read_file(dest_file_path)
+        self.assertTrue(read_result.success)
+        self.assertEqual(read_result.content, test_content)
 
         # Verify the source file no longer exists
-        with self.assertRaises(FileError):
-            self.fs.get_file_info(source_file_path)
+        get_file_info_result = self.fs.get_file_info(source_file_path)
+        self.assertFalse(get_file_info_result.success)
 
     def test_read_multiple_files(self):
         """
@@ -169,7 +195,11 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.fs.write_file(test_file2_path, file2_content, "overwrite")
 
         # Read multiple files
-        contents = self.fs.read_multiple_files([test_file1_path, test_file2_path])
+        result = self.fs.read_multiple_files([test_file1_path, test_file2_path])
+        self.assertIsInstance(result, MultipleFileContentResult)
+        self.assertTrue(result.success)
+
+        contents = result.contents
         self.assertEqual(contents[test_file1_path], file1_content)
         self.assertEqual(contents[test_file2_path], file2_content)
 
@@ -178,7 +208,8 @@ class TestFileSystemIntegration(unittest.TestCase):
         Test searching for files.
         """
         test_subdir_path = "/tmp/search_test_dir"
-        self.fs.create_directory(test_subdir_path)
+        create_dir_result = self.fs.create_directory(test_subdir_path)
+        self.assertTrue(create_dir_result.success)
 
         file1_content = "This is test file 1 content."
         file2_content = "This is test file 2 content."
@@ -195,12 +226,16 @@ class TestFileSystemIntegration(unittest.TestCase):
         # Search for files
         search_pattern = "SEARCHABLE_PATTERN"
         exclude_patterns = ["ignored_pattern"]
-        results = self.fs.search_files(
+        result = self.fs.search_files(
             test_subdir_path, search_pattern, exclude_patterns
         )
-        self.assertEqual(len(results), 2)
-        self.assertTrue(any(search_file1_path in result for result in results))
-        self.assertTrue(any(search_file3_path in result for result in results))
+        self.assertIsInstance(result, FileSearchResult)
+        self.assertTrue(result.success)
+
+        matches = result.matches
+        self.assertEqual(len(matches), 2)
+        self.assertTrue(any(search_file1_path in match for match in matches))
+        self.assertTrue(any(search_file3_path in match for match in matches))
 
     def test_write_large_file_and_read_large_file(self):
         """
@@ -215,15 +250,19 @@ class TestFileSystemIntegration(unittest.TestCase):
 
         # Test 1: Write large file with default chunk size
         print("Test 1: Writing large file with default chunk size...")
-        success = self.fs.write_large_file(test_file_path, large_content)
-        self.assertTrue(success)
+        result = self.fs.write_large_file(test_file_path, large_content)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
         print("Test 1: Large file write successful")
 
         # Test 2: Read large file with default chunk size
         print("Test 2: Reading large file with default chunk size...")
-        read_content = self.fs.read_large_file(test_file_path)
+        result = self.fs.read_large_file(test_file_path)
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
 
         # Verify content
+        read_content = result.content
         print(
             f"Test 2: File read successful, content length: {len(read_content)} bytes"
         )
@@ -238,19 +277,23 @@ class TestFileSystemIntegration(unittest.TestCase):
             f"Test 3: Writing large file with custom chunk size ({custom_chunk_size} bytes)..."
         )
 
-        success = self.fs.write_large_file(
+        result = self.fs.write_large_file(
             test_file_path2, large_content, custom_chunk_size
         )
-        self.assertTrue(success)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
         print("Test 3: Large file write with custom chunk size successful")
 
         # Test 4: Read large file with custom chunk size
         print(
             f"Test 4: Reading large file with custom chunk size ({custom_chunk_size} bytes)..."
         )
-        read_content2 = self.fs.read_large_file(test_file_path2, custom_chunk_size)
+        result = self.fs.read_large_file(test_file_path2, custom_chunk_size)
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
 
         # Verify content
+        read_content2 = result.content
         print(
             f"Test 4: File read successful, content length: {len(read_content2)} bytes"
         )
@@ -262,9 +305,12 @@ class TestFileSystemIntegration(unittest.TestCase):
         print(
             "Test 5: Cross-test - Reading with custom chunk size a file written with default chunk size..."
         )
-        cross_test_content = self.fs.read_large_file(test_file_path, custom_chunk_size)
+        result = self.fs.read_large_file(test_file_path, custom_chunk_size)
+        self.assertIsInstance(result, FileContentResult)
+        self.assertTrue(result.success)
 
         # Verify content
+        cross_test_content = result.content
         print(
             f"Test 5: Cross-test read successful, content length: {len(cross_test_content)} bytes"
         )
@@ -284,12 +330,14 @@ class TestFileSystemIntegration(unittest.TestCase):
         chunk_size = 50 * 1024
 
         # Use write_large_file method to write small file
-        success = self.fs.write_large_file(test_file_path, small_content, chunk_size)
-        self.assertTrue(success)
+        result = self.fs.write_large_file(test_file_path, small_content, chunk_size)
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
 
         # Read and verify content
-        content = self.fs.read_large_file(test_file_path)
-        self.assertEqual(content, small_content)
+        result = self.fs.read_large_file(test_file_path)
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, small_content)
 
 
 if __name__ == "__main__":

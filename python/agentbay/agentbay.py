@@ -178,23 +178,45 @@ class AgentBay:
             # Extract request ID
             request_id = extract_request_id(response)
 
+            response_map = response.to_map()
+            body = response_map.get("body", {})
+
+            # Check for errors in the response
+            if isinstance(body, dict) and isinstance(body.get("Data"), dict) and body.get("Data", {}).get("IsError", False):
+                return SessionListResult(request_id=request_id, sessions=[], error_message="Failed to list sessions by labels")
+
             sessions = []
-            response_data = response.to_map().get("body", {}).get("Data", [])
+            response_data = body.get("Data")
 
-            if response_data:
+            # Handle both list and dict responses
+            if isinstance(response_data, list):
+                # Data is a list of session objects
                 for session_data in response_data:
-                    session_id = session_data.get("SessionId")
-                    if session_id:
-                        # Check if we already have this session in our cache
-                        with self._lock:
-                            if session_id in self._sessions:
-                                session = self._sessions[session_id]
-                            else:
-                                # Create a new session object
-                                session = Session(self, session_id)
-                                self._sessions[session_id] = session
+                    if isinstance(session_data, dict):
+                        session_id = session_data.get("SessionId")
+                        if session_id:
+                            # Check if we already have this session in our cache
+                            with self._lock:
+                                if session_id in self._sessions:
+                                    session = self._sessions[session_id]
+                                else:
+                                    # Create a new session object
+                                    session = Session(self, session_id)
+                                    self._sessions[session_id] = session
 
-                            sessions.append(session)
+                                sessions.append(session)
+            elif isinstance(response_data, dict):
+                # Data is a dictionary with session info
+                session_id = response_data.get("SessionId")
+                if session_id:
+                    with self._lock:
+                        if session_id in self._sessions:
+                            session = self._sessions[session_id]
+                        else:
+                            session = Session(self, session_id)
+                            self._sessions[session_id] = session
+
+                        sessions.append(session)
 
             # Return SessionListResult with request ID
             return SessionListResult(request_id=request_id, sessions=sessions)

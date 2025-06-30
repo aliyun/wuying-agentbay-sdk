@@ -534,7 +534,7 @@ class FileSystem(BaseService):
                 return FileContentResult(request_id=file_info_result.request_id, success=False, error_message=file_info_result.error_message)
 
             # Check if file exists and is a file (not a directory)
-            if not file_info_result.file_info or file_info_result.file_info.get("is_directory", False):
+            if not file_info_result.file_info or file_info_result.file_info.get("isDirectory", False):
                 return FileContentResult(request_id=file_info_result.request_id, success=False, error_message=f"Path does not exist or is a directory: {path}")
 
             # If the file is empty, return empty string

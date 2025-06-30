@@ -98,6 +98,9 @@ class Session:
             # Extract request ID
             request_id = extract_request_id(response)
 
+            if response.to_map().get("body", {}).get("Data", {}).get("IsError", False):
+                return DeleteResult(request_id=request_id, success=False, error_message="Failed to delete session")
+
             # Return success result with request ID
             return DeleteResult(request_id=request_id, success=True)
 

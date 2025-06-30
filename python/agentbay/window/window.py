@@ -1,8 +1,6 @@
 import json
 from typing import Dict, List, Any, Optional
 
-from agentbay.api.models import CallMcpToolRequest
-from agentbay.exceptions import AgentBayError
 from agentbay.model import BoolResult, ApiResponse
 from agentbay.api.base_service import BaseService
 

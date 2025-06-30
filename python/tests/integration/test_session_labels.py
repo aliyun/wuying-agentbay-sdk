@@ -33,25 +33,30 @@ def generate_unique_id():
 class TestSessionLabels(unittest.TestCase):
     """Test cases for session labels functionality."""
 
-    def setUp(self):
-        """Set up test fixtures."""
+    @classmethod
+    def setUpClass(cls):
+        """Set up test fixtures once for the entire test class."""
         api_key = get_test_api_key()
-        self.agent_bay = AgentBay(api_key=api_key)
+        cls.agent_bay = AgentBay(api_key=api_key)
 
         # Create a session
         print("Creating a new session for labels testing...")
-        self.session = self.agent_bay.create()
-        print(f"Session created with ID: {self.session.session_id}")
+        result = cls.agent_bay.create()
+        cls.session = result.session
+        print(f"Session created with ID: {cls.session.session_id}")
+        print(f"Request ID: {result.request_id}")
 
         # Generate a unique identifier for this test run
-        self.unique_id = generate_unique_id()
-        print(f"Using unique ID for test labels: {self.unique_id}")
+        cls.unique_id = generate_unique_id()
+        print(f"Using unique ID for test labels: {cls.unique_id}")
 
-    def tearDown(self):
-        """Tear down test fixtures."""
+    @classmethod
+    def tearDownClass(cls):
+        """Tear down test fixtures after all tests in the class have been run."""
         print("Cleaning up: Deleting the session...")
         try:
-            self.agent_bay.delete(self.session)
+            result = cls.agent_bay.delete(cls.session)
+            print(f"Session deleted. Success: {result.success}, Request ID: {result.request_id}")
         except Exception as e:
             print(f"Warning: Error deleting session: {e}")
 
@@ -68,15 +73,21 @@ class TestSessionLabels(unittest.TestCase):
         # Test 1: Set labels using set_labels
         print("Setting labels for the session...")
         try:
-            self.session.set_labels(test_labels)
+            set_result = self.session.set_labels(test_labels)
+            self.assertTrue(set_result.success, "Failed to set labels")
+            print(f"Labels set successfully. Request ID: {set_result.request_id}")
         except Exception as e:
             self.fail(f"Error setting labels: {e}")
 
         # Test 2: Get labels using get_labels
         print("Getting labels for the session...")
         try:
-            retrieved_labels = self.session.get_labels()
-            print(f"Retrieved labels: {retrieved_labels}")
+            get_result = self.session.get_labels()
+            print(f"Retrieved labels: {get_result.data}")
+            print(f"Request ID: {get_result.request_id}")
+
+            # Get the actual labels data from the result object
+            retrieved_labels = get_result.data
 
             # Verify that all expected labels are present with correct values
             for key, expected_value in test_labels.items():
@@ -100,7 +111,9 @@ class TestSessionLabels(unittest.TestCase):
         single_label_filter = {"environment": test_labels["environment"]}
 
         try:
-            sessions = self.agent_bay.list_by_labels(single_label_filter)
+            list_result = self.agent_bay.list_by_labels(single_label_filter)
+            sessions = list_result.sessions
+            print(f"Found {len(sessions)} sessions with single label filter. Request ID: {list_result.request_id}")
 
             # Check if our session is in the results
             found_in_single_label_results = False
@@ -124,7 +137,9 @@ class TestSessionLabels(unittest.TestCase):
         }
 
         try:
-            sessions = self.agent_bay.list_by_labels(multi_label_filter)
+            list_result = self.agent_bay.list_by_labels(multi_label_filter)
+            sessions = list_result.sessions
+            print(f"Found {len(sessions)} sessions with multiple labels filter. Request ID: {list_result.request_id}")
 
             # Check if our session is in the results
             found_in_multi_label_results = False
@@ -147,7 +162,9 @@ class TestSessionLabels(unittest.TestCase):
         }
 
         try:
-            sessions = self.agent_bay.list_by_labels(non_matching_filter)
+            list_result = self.agent_bay.list_by_labels(non_matching_filter)
+            sessions = list_result.sessions
+            print(f"Found {len(sessions)} sessions with non-matching filter. Request ID: {list_result.request_id}")
 
             # Check that our session is NOT in the results
             found_in_non_matching_results = False
@@ -174,15 +191,19 @@ class TestSessionLabels(unittest.TestCase):
 
         print("Updating labels for the session...")
         try:
-            self.session.set_labels(updated_labels)
+            set_result = self.session.set_labels(updated_labels)
+            self.assertTrue(set_result.success, "Failed to update labels")
+            print(f"Labels updated successfully. Request ID: {set_result.request_id}")
         except Exception as e:
             self.fail(f"Error updating labels: {e}")
 
         # Verify updated labels using get_labels
         print("Getting updated labels for the session...")
         try:
-            retrieved_updated_labels = self.session.get_labels()
+            get_result = self.session.get_labels()
+            retrieved_updated_labels = get_result.data
             print(f"Retrieved updated labels: {retrieved_updated_labels}")
+            print(f"Request ID: {get_result.request_id}")
 
             # Verify that all expected updated labels are present with correct values
             for key, expected_value in updated_labels.items():
@@ -210,7 +231,9 @@ class TestSessionLabels(unittest.TestCase):
         updated_env_filter = {"environment": updated_labels["environment"]}
 
         try:
-            sessions = self.agent_bay.list_by_labels(updated_env_filter)
+            list_result = self.agent_bay.list_by_labels(updated_env_filter)
+            sessions = list_result.sessions
+            print(f"Found {len(sessions)} sessions with updated environment filter. Request ID: {list_result.request_id}")
 
             found_with_updated_env = False
             for s in sessions:
@@ -232,7 +255,9 @@ class TestSessionLabels(unittest.TestCase):
         old_env_filter = {"environment": test_labels["environment"]}
 
         try:
-            sessions = self.agent_bay.list_by_labels(old_env_filter)
+            list_result = self.agent_bay.list_by_labels(old_env_filter)
+            sessions = list_result.sessions
+            print(f"Found {len(sessions)} sessions with old environment filter. Request ID: {list_result.request_id}")
 
             found_with_old_env = False
             for s in sessions:
