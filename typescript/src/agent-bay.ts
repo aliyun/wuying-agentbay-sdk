@@ -10,6 +10,8 @@ import { CreateMcpSessionRequest, CreateMcpSessionResponse, ListSessionRequest }
 import { loadConfig } from './config';
 import 'dotenv/config';
 import { log, logError } from './utils/logger';
+import { ApiResponse, ApiResponseWithData, extractRequestId } from './types/api-response';
+
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
  */
@@ -19,7 +21,7 @@ export class AgentBay {
   private regionId: string;
   private endpoint:string;
   private sessions: Map<string, Session> = new Map();
-  
+
   /**
    * Context service for managing persistent contexts.
    */
@@ -28,7 +30,7 @@ export class AgentBay {
 
   /**
    * Initialize the AgentBay client.
-   * 
+   *
    * @param options - Configuration options
    * @param options.apiKey - API key for authentication. If not provided, will look for AGENTBAY_API_KEY environment variable.
    */
@@ -36,91 +38,95 @@ export class AgentBay {
     apiKey?: string;
   } = {}) {
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || '';
-    
+
     if (!this.apiKey) {
       throw new AuthenticationError(
         'API key is required. Provide it as a parameter or set the AGENTBAY_API_KEY environment variable.'
       );
     }
-    
+
     // Load configuration
     const configData = loadConfig();
     this.regionId = configData.region_id;
     this.endpoint = configData.endpoint;
-    
+
     const config = new $OpenApiUtil.Config({
       regionId: this.regionId,
       endpoint: this.endpoint
     })
-    
+
     config.readTimeout = configData.timeout_ms;
     config.connectTimeout = configData.timeout_ms;
     try{
       this.client = new Client(config)
-      
+
       // Initialize context service
       this.context = new ContextService(this);
     }catch(error){
       logError(`Failed to constructor:`, error);
       throw new AuthenticationError(`Failed to constructor: ${error}`);
     }
-    
+
   }
 
   /**
    * Create a new session in the AgentBay cloud environment.
-   * 
+   *
    * @param options - Optional parameters for creating the session
    * @param options.contextId - ID of the context to bind to the session
    * @param options.labels - Custom labels for the session
-   * @returns A new Session object.
+   * @returns API response with session data and requestId
    */
   async create(options: {
     contextId?: string;
     labels?: Record<string, string>;
     imageId?: string;
-  } = {}): Promise<Session> {
+  } = {}): Promise<ApiResponseWithData<Session>> {
     try {
       const createSessionRequest = new $_client.CreateMcpSessionRequest({
         authorization: "Bearer "+this.apiKey,
         imageId: options.imageId
       });
-      
+
       // Add context_id if provided
       if (options.contextId) {
         createSessionRequest.contextId = options.contextId;
       }
-      
+
       // Add labels if provided
       if (options.labels) {
         createSessionRequest.labels = JSON.stringify(options.labels);
       }
-      
+
       // Log API request
       log("API Call: CreateMcpSession");
       log(`Request: ${options.contextId ? `ContextId=${options.contextId}, ` : ''}${options.labels ? `Labels=${JSON.stringify(options.labels)}, ` : ''}${options.imageId ? `ImageId=${options.imageId}` : ''}`);
-      
+
       const response = await this.client.createMcpSession(createSessionRequest);
-      
+
       // Log API response
       log(`Response from CreateMcpSession:`, response.body);
-      
+
       const sessionId = response.body?.data?.sessionId;
       if (!sessionId) {
         throw new APIError('Invalid session ID in response');
       }
-      
+
       // ResourceUrl is optional in CreateMcpSession response
       const resourceUrl = response.body?.data?.resourceUrl;
-      
+
       const session = new Session(this, sessionId);
       if (resourceUrl) {
         session.resourceUrl = resourceUrl;
       }
-      
+
       this.sessions.set(session.sessionId, session);
-      return session;
-       
+
+      return {
+        requestId: extractRequestId(response),
+        data: session
+      };
+
     } catch (error) {
       logError("Error calling CreateMcpSession:", error);
       throw new APIError(`Failed to create session: ${error}`);
@@ -129,39 +135,39 @@ export class AgentBay {
 
   /**
    * List all available sessions.
-   * 
+   *
    * @returns A list of session objects.
    */
   list(): Session[] {
     return Array.from(this.sessions.values());
   }
-  
+
   /**
    * List sessions filtered by the provided labels.
    * It returns sessions that match all the specified labels.
-   * 
+   *
    * @param labels - The labels to filter by.
-   * @returns A list of session objects that match the labels.
+   * @returns API response with sessions list and requestId
    */
-  async listByLabels(labels: Record<string, string>): Promise<Session[]> {
+  async listByLabels(labels: Record<string, string>): Promise<ApiResponseWithData<Session[]>> {
     try {
       // Convert labels to JSON
       const labelsJSON = JSON.stringify(labels);
-      
+
       const listSessionRequest = new ListSessionRequest({
         authorization: `Bearer ${this.apiKey}`,
         labels: labelsJSON
       });
-      
+
       // Log API request
       log("API Call: ListSession");
       log(`Request: Labels=${labelsJSON}`);
-      
+
       const response = await this.client.listSession(listSessionRequest);
-      
+
       // Log API response
       log(`Response from ListSession:`, response.body);
-      
+
       const sessions: Session[] = [];
       if (response.body?.data) {
         for (const sessionData of response.body.data) {
@@ -173,8 +179,11 @@ export class AgentBay {
           }
         }
       }
-      
-      return sessions;
+
+      return {
+        requestId: extractRequestId(response),
+        data: sessions
+      };
     } catch (error) {
       logError("Error calling ListSession:", error);
       throw new APIError(`Failed to list sessions by labels: ${error}`);
@@ -183,25 +192,25 @@ export class AgentBay {
 
   /**
    * Delete a session by ID.
-   * 
-   * @param sessionId - The ID of the session to delete.
-   * @returns True if the session was successfully deleted.
+   *
+   * @param session - The session to delete.
+   * @returns API response with requestId
    */
-  async delete(session: Session): Promise<boolean> {
+  async delete(session: Session): Promise<ApiResponse> {
     const getSession = this.sessions.get(session.sessionId);
     if (!getSession) {
       throw new Error(`Session with ID ${session.sessionId} not found`);
     }
-    
+
     try {
-      await session.delete();
-      return true;
+      const deleteResponse = await session.delete();
+      return deleteResponse;
     } catch (error) {
       throw new APIError(`Failed to delete session: ${error}`);
     }
   }
 /**
- * 
+ *
  * @param sessionId - The ID of the session to remove.
  */
   public removeSession(sessionId: string): void {
@@ -211,7 +220,7 @@ export class AgentBay {
   getClient(): Client {
     return this.client;
   }
-  
+
   getAPIKey(): string {
     return this.apiKey;
   }

@@ -9,6 +9,7 @@ import { UI } from './ui';
 import {Client} from './api/client';
 import { ReleaseMcpSessionRequest, SetLabelRequest, GetLabelRequest, GetMcpResourceRequest, GetLinkRequest } from './api/models/model';
 import { log, logError } from './utils/logger';
+import { ApiResponse, ApiResponseWithData, extractRequestId } from './types/api-response';
 
 /**
  * Contains information about a session.
@@ -83,15 +84,14 @@ export class Session {
   /**
    * Delete this session.
    *
-   * @returns True if the session was successfully deleted.
+   * @returns API response with requestId
    */
-  async delete(): Promise<boolean> {
+  async delete(): Promise<ApiResponse> {
     try {
       const releaseSessionRequest = new ReleaseMcpSessionRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId
       });
-      console.log("API Call delete: ReleaseMcpSession", this.sessionId);
 
       // Log API request
       log("API Call: ReleaseMcpSession");
@@ -103,22 +103,24 @@ export class Session {
       log(`Response from ReleaseMcpSession:`, response.body);
 
       this.agentBay.removeSession(this.sessionId);
-      return true;
+
+      return {
+        requestId: extractRequestId(response)
+      };
     } catch (error) {
       logError("Error calling ReleaseMcpSession:", error);
       throw new APIError(`Failed to delete session: ${error}`);
     }
   }
 
-
-
   /**
    * Sets the labels for this session.
    *
    * @param labels - The labels to set for the session.
+   * @returns API response with requestId
    * @throws APIError if the operation fails.
    */
-  async setLabels(labels: Record<string, string>): Promise<void> {
+  async setLabels(labels: Record<string, string>): Promise<ApiResponse> {
     try {
       // Convert labels to JSON string
       const labelsJSON = JSON.stringify(labels);
@@ -138,6 +140,9 @@ export class Session {
       // Log API response
       log(`Response from SetLabel:`, response.body);
 
+      return {
+        requestId: extractRequestId(response)
+      };
     } catch (error) {
       logError("Error calling SetLabel:", error);
       throw new APIError(`Failed to set labels for session: ${error}`);
@@ -147,10 +152,10 @@ export class Session {
   /**
    * Gets the labels for this session.
    *
-   * @returns The labels for the session.
+   * @returns API response with labels data and requestId
    * @throws APIError if the operation fails.
    */
-  async getLabels(): Promise<Record<string, string>> {
+  async getLabels(): Promise<ApiResponseWithData<Record<string, string>>> {
     try {
       const request = new GetLabelRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
@@ -162,19 +167,21 @@ export class Session {
       log(`Request: SessionId=${this.sessionId}`);
 
       const response = await this.client.getLabel(request);
-      console.log(`Response from GetLabel: ${JSON.stringify(response)}`);
-
       // Log API response
       log(`Response from GetLabel:`, response.body);
 
       // Extract labels from response
       const labelsJSON = response.body?.data?.labels;
+      let labels: Record<string, string> = {};
 
       if (labelsJSON) {
-        return JSON.parse(labelsJSON);
+        labels = JSON.parse(labelsJSON);
       }
 
-      return {};
+      return {
+        requestId: extractRequestId(response),
+        data: labels
+      };
     } catch (error) {
       logError("Error calling GetLabel:", error);
       throw new APIError(`Failed to get labels for session: ${error}`);
@@ -212,10 +219,10 @@ export class Session {
   /**
    * Gets information about this session.
    *
-   * @returns Information about the session.
+   * @returns API response with session information and requestId
    * @throws APIError if the operation fails.
    */
-  async info(): Promise<SessionInfo> {
+  async info(): Promise<ApiResponseWithData<SessionInfo>> {
     try {
       const request = new GetMcpResourceRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
@@ -249,7 +256,10 @@ export class Session {
         sessionInfo.resourceType = desktopInfo.resourceType;
       }
 
-      return sessionInfo;
+      return {
+        requestId: extractRequestId(response),
+        data: sessionInfo
+      };
     } catch (error) {
       logError("Error calling GetMcpResource:", error);
       throw new APIError(`Failed to get session info for session ${this.sessionId}: ${error}`);
@@ -259,10 +269,10 @@ export class Session {
   /**
    * Gets the link for this session.
    *
-   * @returns The link for the session.
+   * @returns API response with link data and requestId
    * @throws APIError if the operation fails.
    */
-  async getLink(): Promise<string> {
+  async getLink(): Promise<ApiResponseWithData<string>> {
     try {
       const request = new GetLinkRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
@@ -275,11 +285,12 @@ export class Session {
       const response = await this.client.getLink(request);
       log(`Response from GetLink:`, response.body);
 
-      if (response.body?.data) {
-        return response.body.data;
-      }
+      const linkData = response.body?.data || "";
 
-      return "";
+      return {
+        requestId: extractRequestId(response),
+        data: linkData
+      };
     } catch (error) {
       logError("Error calling GetLink:", error);
       throw new APIError(`Failed to get link for session ${this.sessionId}: ${error}`);

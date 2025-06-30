@@ -30,7 +30,7 @@ export function loadConfig(): Config {
       // Try to find the config file by traversing up from the current directory
       let dirPath = process.cwd();
       let found = false;
-      
+
       // Start from current directory and traverse up to find .config.json
       // This will check current dir, parent, grandparent, etc. up to filesystem root
       for (let i = 0; i < 10; i++) { // Limit search depth to prevent infinite loop
@@ -41,7 +41,7 @@ export function loadConfig(): Config {
           log(`Found config file at: ${possibleConfigPath}`);
           break;
         }
-        
+
         // Move up one directory
         const parentDir = path.dirname(dirPath);
         if (parentDir === dirPath) {
@@ -50,7 +50,7 @@ export function loadConfig(): Config {
         }
         dirPath = parentDir;
       }
-      
+
       if (!found) {
         // Config file not found, return default config
         log('Warning: Configuration file not found, using default values');
@@ -68,7 +68,7 @@ export function loadConfig(): Config {
       log('Warning: Configuration file path is undefined, using default values');
       return defaultConfig();
     }
-    
+
     // Read the config file
     const data = fs.readFileSync(configPath, 'utf8');
     const config = JSON.parse(data) as Config;

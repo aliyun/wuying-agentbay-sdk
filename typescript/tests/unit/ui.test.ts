@@ -7,7 +7,7 @@ function parseUIContent(content: any[]): any[] {
   if (!Array.isArray(content) || content.length === 0) {
     return [];
   }
-  
+
   // Try to extract and parse text from the first content item
   const item = content[0];
   if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
@@ -18,7 +18,7 @@ function parseUIContent(content: any[]): any[] {
       return [];
     }
   }
-  
+
   return [];
 }
 
@@ -27,11 +27,11 @@ function containsBase64Image(content: any[]): boolean {
   if (!Array.isArray(content) || content.length === 0) {
     return false;
   }
-  
+
   // Look for base64 image data in the text fields
-  return content.some(item => 
-    item && typeof item === 'object' && 
-    typeof item.text === 'string' && 
+  return content.some(item =>
+    item && typeof item === 'object' &&
+    typeof item.text === 'string' &&
     (item.text.startsWith('data:image') || item.text.includes('base64'))
   );
 }
@@ -41,42 +41,50 @@ function containsBase64Image(content: any[]): boolean {
 describe('UI', () => {
   let agentBay: AgentBay;
   let session: Session;
-  
+
   beforeEach(async () => {
     const apiKey = getTestApiKey();
     agentBay = new AgentBay({ apiKey });
-    
+
     // Create a session with mobile_latest image (consistent with Go implementation)
     log('Creating a new session for UI testing...');
-    session = await agentBay.create({ imageId: 'mobile_latest' });
+    const createResponse = await agentBay.create({ imageId: 'mobile_latest' });
+    session = createResponse.data;
     log(`Session created with ID: ${session.sessionId}`);
+    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
   });
-  
+
   afterEach(async () => {
     // Clean up the session
     try {
-      await agentBay.delete(session);
+      const deleteResponse = await agentBay.delete(session);
       log(`Session deleted successfully: ${session.sessionId}`);
+      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
     } catch (error) {
       log(`Warning: Error deleting session: ${error}`);
     }
   });
-  
+
   describe('getClickableUIElements', () => {
     it.only('should retrieve clickable UI elements if implemented', async () => {
       if (session.ui && typeof session.ui.getClickableUIElements === 'function') {
         log('Testing UI.getClickableUIElements method...');
         try {
-          const content = await session.ui.getClickableUIElements();
-          log(`Retrieved content:`, content);
-          
+          const elementsResponse = await session.ui.getClickableUIElements();
+          log(`Retrieved content:`, elementsResponse.data);
+          log(`Get Clickable UI Elements RequestId: ${elementsResponse.requestId || 'undefined'}`);
+
+          // Verify the response contains requestId
+          expect(elementsResponse.requestId).toBeDefined();
+          expect(typeof elementsResponse.requestId).toBe('string');
+
           // Verify the content
-          expect(content).toBeDefined();
-          expect(Array.isArray(content)).toBe(true);
-          
+          expect(elementsResponse.data).toBeDefined();
+          expect(Array.isArray(elementsResponse.data)).toBe(true);
+
           // Log the first element if available
-          if (content.length > 0) {
-            log('First UI element:', content[0]);
+          if (elementsResponse.data.length > 0) {
+            log('First UI element:', elementsResponse.data[0]);
           }
         } catch (error) {
           log(`Note: UI.getClickableUIElements execution failed: ${error}`);
@@ -87,22 +95,27 @@ describe('UI', () => {
       }
     });
   });
-  
+
   describe('getAllUIElements', () => {
     it.only('should retrieve all UI elements if implemented', async () => {
       if (session.ui && typeof session.ui.getAllUIElements === 'function') {
         log('Testing UI.getAllUIElements method...');
         try {
-          const content = await session.ui.getAllUIElements();
-          log(`Retrieved content:`, content);
-          
+          const elementsResponse = await session.ui.getAllUIElements();
+          log(`Retrieved content:`, elementsResponse.data);
+          log(`Get All UI Elements RequestId: ${elementsResponse.requestId || 'undefined'}`);
+
+          // Verify the response contains requestId
+          expect(elementsResponse.requestId).toBeDefined();
+          expect(typeof elementsResponse.requestId).toBe('string');
+
           // Verify the content
-          expect(content).toBeDefined();
-          expect(Array.isArray(content)).toBe(true);
-          
+          expect(elementsResponse.data).toBeDefined();
+          expect(Array.isArray(elementsResponse.data)).toBe(true);
+
           // Log the first element if available
-          if (content.length > 0) {
-            log('First UI element:', content[0]);
+          if (elementsResponse.data.length > 0) {
+            log('First UI element:', elementsResponse.data[0]);
           }
         } catch (error) {
           log(`Note: UI.getAllUIElements execution failed: ${error}`);
@@ -113,19 +126,24 @@ describe('UI', () => {
       }
     });
   });
-  
+
   describe('sendKey', () => {
     it.only('should send key events if implemented', async () => {
       if (session.ui && typeof session.ui.sendKey === 'function') {
         log('Testing UI.sendKey method...');
         try {
           // Try to send HOME key
-          const content = await session.ui.sendKey(3); // HOME key
-          log(`Send key content:`, content);
-          
+          const sendKeyResponse = await session.ui.sendKey(3); // HOME key
+          log(`Send key content:`, sendKeyResponse.data);
+          log(`Send Key RequestId: ${sendKeyResponse.requestId || 'undefined'}`);
+
+          // Verify the response contains requestId
+          expect(sendKeyResponse.requestId).toBeDefined();
+          expect(typeof sendKeyResponse.requestId).toBe('string');
+
           // Verify the content
-          expect(content).toBeDefined();
-          expect(typeof content).toBe('string');
+          expect(sendKeyResponse.data).toBeDefined();
+          expect(typeof sendKeyResponse.data).toBe('string');
         } catch (error) {
           log(`Note: UI.sendKey execution failed: ${error}`);
           // Don't fail the test if the method is not fully implemented
@@ -135,25 +153,30 @@ describe('UI', () => {
       }
     });
   });
-  
+
   describe('screenshot', () => {
     it.only('should take screenshots if implemented', async () => {
       if (session.ui && typeof session.ui.screenshot === 'function') {
         log('Testing UI.screenshot method...');
         try {
-          const content = await session.ui.screenshot();
-          log(`Screenshot content:`, content);
-          
+          const screenshotResponse = await session.ui.screenshot();
+          log(`Screenshot content:`, screenshotResponse.data);
+          log(`Screenshot RequestId: ${screenshotResponse.requestId || 'undefined'}`);
+
+          // Verify the response contains requestId
+          expect(screenshotResponse.requestId).toBeDefined();
+          expect(typeof screenshotResponse.requestId).toBe('string');
+
           // Verify the screenshot content
-          expect(content).toBeDefined();
-          expect(typeof content).toBe('string');
-          
+          expect(screenshotResponse.data).toBeDefined();
+          expect(typeof screenshotResponse.data).toBe('string');
+
           // Check if the content contains image URL or base64 data
-          const hasImageData = content.includes('https://') || 
-                              content.includes('data:image') || 
-                              content.includes('base64');
+          const hasImageData = screenshotResponse.data.includes('https://') ||
+                              screenshotResponse.data.includes('data:image') ||
+                              screenshotResponse.data.includes('base64');
           expect(hasImageData).toBe(true);
-          
+
         } catch (error) {
           log(`Note: UI.screenshot execution failed: ${error}`);
           // Don't fail the test if the method is not fully implemented

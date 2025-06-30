@@ -19,45 +19,56 @@ describe('WindowManager', () => {
   let agentBay: AgentBay;
   let session: Session;
   let windowManager: WindowManager;
-  
+
   beforeEach(async () => {
     // Create a real AgentBay instance with test API key
     const apiKey = getTestApiKey();
     agentBay = new AgentBay({ apiKey });
     // Create a real session
     log('Creating a new session for window testing...');
-    session = await agentBay.create();
-    
+    const createResponse = await agentBay.create({imageId:'linux_latest'});
+    session = createResponse.data;
+    debugger
+    log(`Session created with ID: ${session.sessionId}`);
+    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+
     windowManager = new WindowManager(session);
   });
-  
+
   afterEach(async () => {
     log('Cleaning up: Deleting the session...');
     try {
-      if(session)
-        await agentBay.delete(session);
-      log('Session successfully deleted');
+      if(session) {
+        const deleteResponse = await agentBay.delete(session);
+        log('Session successfully deleted');
+        log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
+      }
     } catch (error) {
       log(`Warning: Error deleting session: ${error}`);
     }
-    
+
   });
-  
+
   describe('listRootWindows()', () => {
-    it.only('should return a list of root windows', async () => {
+    it.only('should return a list of root windows with requestId', async () => {
       log('Testing listRootWindows...');
       try {
         // Call the method
-        const windows = await windowManager.listRootWindows();
-        log(`Retrieved ${windows.length} root windows`);
-        
+        const windowsResponse = await windowManager.listRootWindows();
+        log(`Retrieved ${windowsResponse.data.length} root windows`);
+        log(`List Root Windows RequestId: ${windowsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(windowsResponse.requestId).toBeDefined();
+        expect(typeof windowsResponse.requestId).toBe('string');
+
         // Verify windows array
-        expect(windows).toBeDefined();
-        expect(Array.isArray(windows)).toBe(true);
-        
+        expect(windowsResponse.data).toBeDefined();
+        expect(Array.isArray(windowsResponse.data)).toBe(true);
+
         // Verify the results
-        if (windows.length > 0) {
-          windows.forEach((window) => {
+        if (windowsResponse.data.length > 0) {
+          windowsResponse.data.forEach((window) => {
             expect(isValidWindow(window)).toBe(true);
           });
         } else {
@@ -70,18 +81,23 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('getActiveWindow()', () => {
-    it.only('should return the active window', async () => {
+    it.only('should return the active window with requestId', async () => {
       log('Testing getActiveWindow...');
       try {
-        const window = await windowManager.getActiveWindow();
-        
-        if (window) {
-          log(`Active window: ${window.title} (ID: ${window.window_id})`);
-          
+        const windowResponse = await windowManager.getActiveWindow();
+        log(`Get Active Window RequestId: ${windowResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(windowResponse.requestId).toBeDefined();
+        expect(typeof windowResponse.requestId).toBe('string');
+
+        if (windowResponse.data) {
+          log(`Active window: ${windowResponse.data.title} (ID: ${windowResponse.data.window_id})`);
+
           // Verify the results
-          expect(isValidWindow(window)).toBe(true);
+          expect(isValidWindow(windowResponse.data)).toBe(true);
         } else {
           log('No active window found, this might be normal in some environments');
         }
@@ -92,27 +108,31 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('activateWindow()', () => {
-    it.only('should activate a window', async () => {
+    it.only('should activate a window with requestId', async () => {
       log('Testing activateWindow...');
       try {
         // First get a list of windows
-        const windows = await windowManager.listRootWindows();
-        
-        if (windows.length === 0) {
+        const windowsResponse = await windowManager.listRootWindows();
+
+        if (windowsResponse.data.length === 0) {
           log('No windows available for testing activateWindow');
           return;
         }
-        
+
         // Use the first window for testing
-        const windowId = windows[0].window_id;
+        const windowId = windowsResponse.data[0].window_id;
         log(`Activating window with ID: ${windowId}`);
-        
+
         // Call the method
-        await windowManager.activateWindow(windowId);
-        
+        const activateResponse = await windowManager.activateWindow(windowId);
         log('Window activated successfully');
+        log(`Activate Window RequestId: ${activateResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(activateResponse.requestId).toBeDefined();
+        expect(typeof activateResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in activateWindow test: ${error}`);
         // Skip test if we can't activate window
@@ -120,27 +140,31 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('maximizeWindow()', () => {
-    it.only('should maximize a window', async () => {
+    it.only('should maximize a window with requestId', async () => {
       log('Testing maximizeWindow...');
       try {
         // First get a list of windows
-        const windows = await windowManager.listRootWindows();
-        
-        if (windows.length === 0) {
+        const windowsResponse = await windowManager.listRootWindows();
+
+        if (windowsResponse.data.length === 0) {
           log('No windows available for testing maximizeWindow');
           return;
         }
-        
+
         // Use the first window for testing
-        const windowId = windows[0].window_id;
+        const windowId = windowsResponse.data[0].window_id;
         log(`Maximizing window with ID: ${windowId}`);
-        
+
         // Call the method
-        await windowManager.maximizeWindow(windowId);
-        
+        const maximizeResponse = await windowManager.maximizeWindow(windowId);
         log('Window maximized successfully');
+        log(`Maximize Window RequestId: ${maximizeResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(maximizeResponse.requestId).toBeDefined();
+        expect(typeof maximizeResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in maximizeWindow test: ${error}`);
         // Skip test if we can't maximize window
@@ -148,27 +172,31 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('minimizeWindow()', () => {
-    it.only('should minimize a window', async () => {
+    it.only('should minimize a window with requestId', async () => {
       log('Testing minimizeWindow...');
       try {
         // First get a list of windows
-        const windows = await windowManager.listRootWindows();
-        
-        if (windows.length === 0) {
+        const windowsResponse = await windowManager.listRootWindows();
+
+        if (windowsResponse.data.length === 0) {
           log('No windows available for testing minimizeWindow');
           return;
         }
-        
+
         // Use the first window for testing
-        const windowId = windows[0].window_id;
+        const windowId = windowsResponse.data[0].window_id;
         log(`Minimizing window with ID: ${windowId}`);
-        
+
         // Call the method
-        await windowManager.minimizeWindow(windowId);
-        
+        const minimizeResponse = await windowManager.minimizeWindow(windowId);
         log('Window minimized successfully');
+        log(`Minimize Window RequestId: ${minimizeResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(minimizeResponse.requestId).toBeDefined();
+        expect(typeof minimizeResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in minimizeWindow test: ${error}`);
         // Skip test if we can't minimize window
@@ -176,27 +204,31 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('restoreWindow()', () => {
-    it.only('should restore a window', async () => {
+    it.only('should restore a window with requestId', async () => {
       log('Testing restoreWindow...');
       try {
         // First get a list of windows
-        const windows = await windowManager.listRootWindows();
-        
-        if (windows.length === 0) {
+        const windowsResponse = await windowManager.listRootWindows();
+
+        if (windowsResponse.data.length === 0) {
           log('No windows available for testing restoreWindow');
           return;
         }
-        
+
         // Use the first window for testing
-        const windowId = windows[0].window_id;
+        const windowId = windowsResponse.data[0].window_id;
         log(`Restoring window with ID: ${windowId}`);
-        
+
         // Call the method
-        await windowManager.restoreWindow(windowId);
-        
+        const restoreResponse = await windowManager.restoreWindow(windowId);
         log('Window restored successfully');
+        log(`Restore Window RequestId: ${restoreResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(restoreResponse.requestId).toBeDefined();
+        expect(typeof restoreResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in restoreWindow test: ${error}`);
         // Skip test if we can't restore window
@@ -204,27 +236,31 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('resizeWindow()', () => {
-    it.only('should resize a window', async () => {
+    it.only('should resize a window with requestId', async () => {
       log('Testing resizeWindow...');
       try {
         // First get a list of windows
-        const windows = await windowManager.listRootWindows();
-        
-        if (windows.length === 0) {
+        const windowsResponse = await windowManager.listRootWindows();
+
+        if (windowsResponse.data.length === 0) {
           log('No windows available for testing resizeWindow');
           return;
         }
-        
+
         // Use the first window for testing
-        const windowId = windows[0].window_id;
+        const windowId = windowsResponse.data[0].window_id;
         log(`Resizing window with ID: ${windowId} to 800x600`);
-        
+
         // Call the method
-        await windowManager.resizeWindow(windowId, 800, 600);
-        
+        const resizeResponse = await windowManager.resizeWindow(windowId, 800, 600);
         log('Window resized successfully to 800x600');
+        log(`Resize Window RequestId: ${resizeResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(resizeResponse.requestId).toBeDefined();
+        expect(typeof resizeResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in resizeWindow test: ${error}`);
         // Skip test if we can't resize window
@@ -232,29 +268,37 @@ describe('WindowManager', () => {
       }
     });
   });
-  
+
   describe('focusMode()', () => {
-    it.only('should enable focus mode', async () => {
+    it.only('should enable focus mode with requestId', async () => {
       log('Testing focusMode enable...');
       try {
         // Call the method
-        await windowManager.focusMode(true);
-        
+        const focusEnableResponse = await windowManager.focusMode(true);
         log('Focus mode enabled successfully');
+        log(`Focus Mode Enable RequestId: ${focusEnableResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(focusEnableResponse.requestId).toBeDefined();
+        expect(typeof focusEnableResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in focusMode enable test: ${error}`);
         // Skip test if we can't enable focus mode
         expect(true).toBe(true);
       }
     });
-    
-    it.only('should disable focus mode', async () => {
+
+    it.only('should disable focus mode with requestId', async () => {
       log('Testing focusMode disable...');
       try {
         // Call the method
-        await windowManager.focusMode(false);
-        
+        const focusDisableResponse = await windowManager.focusMode(false);
         log('Focus mode disabled successfully');
+        log(`Focus Mode Disable RequestId: ${focusDisableResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(focusDisableResponse.requestId).toBeDefined();
+        expect(typeof focusDisableResponse.requestId).toBe('string');
       } catch (error: any) {
         log(`Error in focusMode disable test: ${error}`);
         // Skip test if we can't disable focus mode

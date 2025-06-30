@@ -12,7 +12,7 @@ describe('Context', () => {
       '2025-05-29T12:30:00Z',
       'linux'
     );
-    
+
     expect(context.id).toBe('test-id');
     expect(context.name).toBe('test-context');
     expect(context.state).toBe('available');
@@ -25,24 +25,26 @@ describe('Context', () => {
 describe('ContextService', () => {
   let agentBay: AgentBay;
   let contextService: ContextService;
-  
+
   beforeEach(() => {
     // Create a real AgentBay instance
     const apiKey = getTestApiKey();
     agentBay = new AgentBay({ apiKey });
-    
+
     contextService = new ContextService(agentBay);
   });
-  
+
   afterEach(async () => {
     // Clean up any contexts created during tests
     try {
-      const contexts = await contextService.list();
-      for (const context of contexts) {
+      const contextsResponse = await contextService.list();
+      log(`List Contexts for Cleanup RequestId: ${contextsResponse.requestId || 'undefined'}`);
+      for (const context of contextsResponse.data) {
         if (context.name.startsWith('test-') || context.name.startsWith('new-')) {
           try {
-            await contextService.delete(context);
+            const deleteResponse = await contextService.delete(context);
             log(`Deleted test context: ${context.name}`);
+            log(`Delete Context RequestId: ${deleteResponse.requestId || 'undefined'}`);
           } catch (error) {
             log(`Warning: Failed to delete test context ${context.name}: ${error}`);
           }
@@ -52,17 +54,22 @@ describe('ContextService', () => {
       log(`Warning: Error during cleanup: ${error}`);
     }
   });
-  
+
   describe('list()', () => {
     it.only('should return a list of contexts', async () => {
       try {
         // Call the method
-        const contexts = await contextService.list();
-        log(`Found ${contexts.length} contexts`);
-        
+        const contextsResponse = await contextService.list();
+        log(`Found ${contextsResponse.data.length} contexts`);
+        log(`List Contexts RequestId: ${contextsResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(contextsResponse.requestId).toBeDefined();
+        expect(typeof contextsResponse.requestId).toBe('string');
+
         // Verify the results
-        if (contexts.length > 0) {
-          contexts.forEach(context => {
+        if (contextsResponse.data.length > 0) {
+          contextsResponse.data.forEach(context => {
             expect(context.id).toBeDefined();
             expect(context.name).toBeDefined();
             expect(context.state).toBeDefined();
@@ -77,19 +84,27 @@ describe('ContextService', () => {
       }
     });
   });
-  
+
   describe('get()', () => {
     it.only('should get a context by name after creating it', async () => {
       try {
         // First create a context
         const contextName = `test-get-context-${Date.now()}`;
-        const createdContext = await contextService.create(contextName);
+        const createResponse = await contextService.create(contextName);
+        const createdContext = createResponse.data;
         log(`Created context: ${createdContext.name} (${createdContext.id})`);
-        
+        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+
         // Then get the context
-        const retrievedContext = await contextService.get(contextName);
+        const getResponse = await contextService.get(contextName);
+        const retrievedContext = getResponse.data;
         log(`Retrieved context: ${retrievedContext?.name} (${retrievedContext?.id})`);
-        
+        log(`Get Context RequestId: ${getResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(getResponse.requestId).toBeDefined();
+        expect(typeof getResponse.requestId).toBe('string');
+
         // Verify the results
         expect(retrievedContext).not.toBeNull();
         if (retrievedContext) {
@@ -103,29 +118,40 @@ describe('ContextService', () => {
         expect(true).toBe(true);
       }
     });
-    
+
     it.only('should return null if context not found', async () => {
       try {
         const nonExistentName = `non-existent-context-${Date.now()}`;
-        const context = await contextService.get(nonExistentName);
-        
+        const getResponse = await contextService.get(nonExistentName);
+        log(`Get Non-existent Context RequestId: ${getResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(getResponse.requestId).toBeDefined();
+        expect(typeof getResponse.requestId).toBe('string');
+
         // Verify the results
-        expect(context).toBeNull();
+        expect(getResponse.data).toBeNull();
       } catch (error: any) {
         log(`Error getting non-existent context: ${error}`);
         // Skip test if we can't get context
         expect(true).toBe(true);
       }
     });
-    
+
     it.only('should create a context if requested', async () => {
       try {
         const contextName = `test-create-if-missing-${Date.now()}`;
-        
+
         // Call the method with createIfMissing=true
-        const context = await contextService.get(contextName, true);
+        const getResponse = await contextService.get(contextName, true);
+        const context = getResponse.data;
         log(`Created context: ${context?.name} (${context?.id})`);
-        
+        log(`Get Context with Create RequestId: ${getResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(getResponse.requestId).toBeDefined();
+        expect(typeof getResponse.requestId).toBe('string');
+
         // Verify the results
         expect(context).not.toBeNull();
         if (context) {
@@ -140,16 +166,22 @@ describe('ContextService', () => {
       }
     });
   });
-  
+
   describe('create()', () => {
     it.only('should create a new context', async () => {
       try {
         const contextName = `test-create-context-${Date.now()}`;
-        
+
         // Call the method
-        const context = await contextService.create(contextName);
+        const createResponse = await contextService.create(contextName);
+        const context = createResponse.data;
         log(`Created context: ${context.name} (${context.id})`);
-        
+        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(createResponse.requestId).toBeDefined();
+        expect(typeof createResponse.requestId).toBe('string');
+
         // Verify the results
         expect(context.id).toBeDefined();
         expect(context.name).toBe(contextName);
@@ -161,26 +193,34 @@ describe('ContextService', () => {
       }
     });
   });
-  
+
   describe('update()', () => {
     it.only('should update a context', async () => {
       try {
         // First create a context
         const originalName = `test-update-context-${Date.now()}`;
-        const context = await contextService.create(originalName);
+        const createResponse = await contextService.create(originalName);
+        const context = createResponse.data;
         log(`Created context for update test: ${context.name} (${context.id})`);
-        
+        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+
         // Update the context name
         const updatedName = `updated-${originalName}`;
         context.name = updatedName;
-        
+
         // Call the update method
-        await contextService.update(context);
+        const updateResponse = await contextService.update(context);
         log(`Updated context name to: ${updatedName}`);
-        
+        log(`Update Context RequestId: ${updateResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(updateResponse.requestId).toBeDefined();
+        expect(typeof updateResponse.requestId).toBe('string');
+
         // Verify the update by getting the context again
-        const retrievedContext = await contextService.get(updatedName);
-        
+        const getResponse = await contextService.get(updatedName);
+        const retrievedContext = getResponse.data;
+
         // Verify the results
         expect(retrievedContext).not.toBeNull();
         if (retrievedContext) {
@@ -194,24 +234,31 @@ describe('ContextService', () => {
       }
     });
   });
-  
+
   describe('delete()', () => {
     it.only('should delete a context', async () => {
       try {
         // First create a context
         const contextName = `test-delete-context-${Date.now()}`;
-        const context = await contextService.create(contextName);
+        const createResponse = await contextService.create(contextName);
+        const context = createResponse.data;
         log(`Created context for delete test: ${context.name} (${context.id})`);
-        
+        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+
         // Call the delete method
-        await contextService.delete(context);
+        const deleteResponse = await contextService.delete(context);
         log(`Deleted context: ${context.name}`);
-        
+        log(`Delete Context RequestId: ${deleteResponse.requestId || 'undefined'}`);
+
+        // Verify that the response contains requestId
+        expect(deleteResponse.requestId).toBeDefined();
+        expect(typeof deleteResponse.requestId).toBe('string');
+
         // Verify the deletion by trying to get the context again
-        const retrievedContext = await contextService.get(contextName);
-        
+        const getResponse = await contextService.get(contextName);
+
         // The context should no longer exist
-        expect(retrievedContext).toBeNull();
+        expect(getResponse.data).toBeNull();
       } catch (error: any) {
         log(`Error deleting context: ${error}`);
         // Skip test if we can't delete context

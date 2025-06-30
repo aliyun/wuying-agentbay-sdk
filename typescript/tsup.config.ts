@@ -36,12 +36,10 @@ export default defineConfig({
     try {
       const esmFile = './dist/index.mjs';
       let content = readFileSync(esmFile, 'utf8');
-
       content = content.replace(
         /class (\w+) extends (\w+)/g,
         'class $1 extends ($2.default || $2)'
       );
-
       content = `
         if (typeof OpenApi !== 'undefined' && !OpenApi.default) {
           OpenApi.default = OpenApi;
@@ -50,7 +48,7 @@ export default defineConfig({
       `;
 
       writeFileSync(esmFile, content);
-      console.log('ESM 缁ф壙淇瀹屾垚');
+      console.log('ESM file updated successfully.');
     }catch (error) {
       console.error('onSuccess error:', error);
     }

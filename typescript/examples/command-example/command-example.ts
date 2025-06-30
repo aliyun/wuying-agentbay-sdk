@@ -1,4 +1,5 @@
 import { AgentBay } from '../../src';
+import { getTestApiKey } from '../../tests/utils/test-helpers';
 
 /**
  * Helper function to truncate long output text
@@ -15,10 +16,7 @@ function truncateOutput(output: string, maxLines: number): string {
 
 async function main() {
   // Get API key from environment variable or use default value for testing
-  const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key for testing
-  if (!process.env.AGENTBAY_API_KEY) {
-    console.log('Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.');
-  }
+  const apiKey = getTestApiKey();
 
   // Initialize the AgentBay client
   const agentBay = new AgentBay({ apiKey });
@@ -30,16 +28,19 @@ async function main() {
 
   // Create a new session
   console.log('\nCreating a new session with code_latest image...');
-  const session = await agentBay.create(params);
+  const createResponse = await agentBay.create(params);
+  const session = createResponse.data;
   console.log(`\nSession created with ID: ${session.sessionId}`);
+  console.log(`Create Session RequestId: ${createResponse.requestId}`);
 
   try {
     // 1. Execute simple shell command
     console.log('\n1. Executing simple shell command (echo)...');
     try {
       const echoCommand = "echo 'Hello from AgentBay SDK!'";
-      const response = await session.command.executeCommand(echoCommand);
-      console.log(`Echo command output:\n${response}`);
+      const echoResponse = await session.command.executeCommand(echoCommand);
+      console.log(`Echo command output:\n${echoResponse.data}`);
+      console.log(`Execute Command RequestId: ${echoResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing echo command: ${error}`);
     }
@@ -49,8 +50,9 @@ async function main() {
     try {
       const lsCommand = "ls -la /etc";
       const timeoutMs = 5000; // 5 seconds timeout
-      const response = await session.command.executeCommand(lsCommand, timeoutMs);
-      console.log(`Directory listing (first few lines):\n${truncateOutput(response, 5)}`);
+      const lsResponse = await session.command.executeCommand(lsCommand, timeoutMs);
+      console.log(`Directory listing (first few lines):\n${truncateOutput(lsResponse.data, 5)}`);
+      console.log(`Execute Command with Timeout RequestId: ${lsResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing ls command: ${error}`);
     }
@@ -68,8 +70,9 @@ print("Working with numbers in Python:")
 for i in range(1, 6):
     print(f"{i} squared is {i*i}")
 `;
-      const response = await session.command.runCode(pythonCode, "python");
-      console.log(`Python code output:\n${response}`);
+      const pythonResponse = await session.command.runCode(pythonCode, "python");
+      console.log(`Python code output:\n${pythonResponse.data}`);
+      console.log(`Run Python Code RequestId: ${pythonResponse.requestId}`);
     } catch (error) {
       console.log(`Error running Python code: ${error}`);
     }
@@ -92,8 +95,9 @@ const sum = numbers.reduce((total, n) => total + n, 0);
 console.log("Sum of array:", sum);
 `;
       const timeoutS = 10; // 10 seconds timeout
-      const response = await session.command.runCode(jsCode, "javascript", timeoutS);
-      console.log(`JavaScript code output:\n${response}`);
+      const jsResponse = await session.command.runCode(jsCode, "javascript", timeoutS);
+      console.log(`JavaScript code output:\n${jsResponse.data}`);
+      console.log(`Run JavaScript Code RequestId: ${jsResponse.requestId}`);
     } catch (error) {
       console.log(`Error running JavaScript code: ${error}`);
     }
@@ -111,8 +115,9 @@ free -h 2>/dev/null || vm_stat 2>/dev/null || echo "Memory info not available"
 echo "\nDisk usage:"
 df -h | head -5
 `;
-      const response = await session.command.executeCommand(complexCommand);
-      console.log(`Complex command output:\n${truncateOutput(response, 15)}`);
+      const complexResponse = await session.command.executeCommand(complexCommand);
+      console.log(`Complex command output:\n${truncateOutput(complexResponse.data, 15)}`);
+      console.log(`Execute Complex Command RequestId: ${complexResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing complex command: ${error}`);
     }
@@ -123,8 +128,9 @@ df -h | head -5
     // Clean up by deleting the session when we're done
     console.log('\nDeleting the session...');
     try {
-      await agentBay.delete(session);
+      const deleteResponse = await agentBay.delete(session);
       console.log('Session deleted successfully');
+      console.log(`Delete Session RequestId: ${deleteResponse.requestId}`);
     } catch (error) {
       console.log(`Error deleting session: ${error}`);
     }
@@ -134,4 +140,4 @@ df -h | head -5
 main().catch(error => {
   console.error('Error in main execution:', error);
   process.exit(1);
-}); 
+});
