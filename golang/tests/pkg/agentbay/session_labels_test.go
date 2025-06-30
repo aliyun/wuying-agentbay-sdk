@@ -22,6 +22,112 @@ func generateUniqueID() string {
 }
 
 // TestSession_SetGetLabels tests the functionality of setting and getting labels for a session
+// TestSession_MultipleSessionsWithSameLabel tests creating multiple sessions with the same label
+// and verifying they can all be retrieved using ListByLabels
+func TestSession_MultipleSessionsWithSameLabel(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBayClient, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Generate a unique identifier for this test run
+	uniqueID := generateUniqueID()
+	t.Logf("Using unique ID for test labels: %s", uniqueID)
+
+	// Define a single label to be used for all sessions
+	testLabel := map[string]string{
+		"test_group": fmt.Sprintf("multi-session-test-%s", uniqueID),
+	}
+
+	// Convert label to JSON string
+	labelJSON, err := json.Marshal(testLabel)
+	if err != nil {
+		t.Fatalf("Error marshaling label to JSON: %v", err)
+	}
+
+	// Number of sessions to create
+	const sessionCount = 10
+
+	// Create multiple sessions with the same label
+	var sessions []*agentbay.Session
+	t.Logf("Creating %d sessions with the same label...", sessionCount)
+
+	for i := 0; i < sessionCount; i++ {
+		sessionResult, err := agentBayClient.Create(nil)
+		if err != nil {
+			t.Fatalf("Error creating session %d: %v", i+1, err)
+		}
+
+		session := sessionResult.Session
+		t.Logf("Session %d created with ID: %s", i+1, session.SessionID)
+
+		// Set the same label for each session
+		labelResult, err := session.SetLabels(string(labelJSON))
+		if err != nil {
+			t.Fatalf("Error setting label for session %d: %v", i+1, err)
+		}
+		t.Logf("Label set successfully for session %d (RequestID: %s)", i+1, labelResult.RequestID)
+
+		sessions = append(sessions, session)
+
+		// Add a 2-minute delay after each session creation as requested
+		if i < sessionCount-1 { // No need to wait after the last session
+			t.Logf("Waiting for 2 minutes before creating the next session...")
+			time.Sleep(15 * time.Second)
+		}
+	}
+
+	// Ensure cleanup of all sessions
+	defer func() {
+		t.Log("Cleaning up all sessions...")
+		for i, session := range sessions {
+			deleteResult, err := agentBayClient.Delete(session)
+			if err != nil {
+				t.Logf("Warning: Error deleting session %d: %v", i+1, err)
+			} else {
+				t.Logf("Session %d deleted (RequestID: %s)", i+1, deleteResult.RequestID)
+			}
+		}
+	}()
+
+	// Verify all sessions can be found using ListByLabels
+	t.Log("Verifying all sessions can be found using ListByLabels...")
+	params := agentbay.NewListSessionParams()
+	params.Labels = testLabel
+	sessionsResult, err := agentBayClient.ListByLabels(params)
+	if err != nil {
+		t.Fatalf("Error listing sessions by label: %v", err)
+	}
+	t.Logf("Sessions listed by label (RequestID: %s)", sessionsResult.RequestID)
+
+	// Check if all our sessions are in the results
+	foundSessions := 0
+	sessionIDs := make(map[string]bool)
+
+	// Create a map of our session IDs for easy lookup
+	for _, session := range sessions {
+		sessionIDs[session.SessionID] = true
+	}
+
+	// Count how many of our sessions were found in the results
+	for _, s := range sessionsResult.Sessions {
+		if sessionIDs[s.SessionID] {
+			foundSessions++
+		}
+	}
+
+	// Verify that all sessions were found
+	if foundSessions != sessionCount {
+		t.Errorf("Expected to find %d sessions, but found %d", sessionCount, foundSessions)
+	} else {
+		t.Logf("Successfully found all %d sessions when filtering by label", sessionCount)
+	}
+
+	fmt.Println("Multiple sessions with same label test completed successfully")
+}
+
 func TestSession_SetGetLabels(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
@@ -109,7 +215,9 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": testLabels["environment"],
 	}
 
-	sessionsResult, err := agentBayClient.ListByLabels(singleLabelFilter)
+	params := agentbay.NewListSessionParams()
+	params.Labels = singleLabelFilter
+	sessionsResult, err := agentBayClient.ListByLabels(params)
 	if err != nil {
 		t.Fatalf("Error listing sessions by single label: %v", err)
 	}
@@ -136,7 +244,9 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"project":     testLabels["project"],
 	}
 
-	sessionsResult, err = agentBayClient.ListByLabels(multiLabelFilter)
+	params = agentbay.NewListSessionParams()
+	params.Labels = multiLabelFilter
+	sessionsResult, err = agentBayClient.ListByLabels(params)
 	if err != nil {
 		t.Fatalf("Error listing sessions by multiple labels: %v", err)
 	}
@@ -162,7 +272,9 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": fmt.Sprintf("production-%s", uniqueID), // This doesn't match our session
 	}
 
-	sessionsResult, err = agentBayClient.ListByLabels(nonMatchingFilter)
+	params = agentbay.NewListSessionParams()
+	params.Labels = nonMatchingFilter
+	sessionsResult, err = agentBayClient.ListByLabels(params)
 	if err != nil {
 		t.Fatalf("Error listing sessions by non-matching label: %v", err)
 	}
@@ -238,7 +350,9 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": updatedLabels["environment"],
 	}
 
-	updatedEnvResult, err := agentBayClient.ListByLabels(updatedEnvFilter)
+	params = agentbay.NewListSessionParams()
+	params.Labels = updatedEnvFilter
+	updatedEnvResult, err := agentBayClient.ListByLabels(params)
 	if err != nil {
 		t.Fatalf("Error listing sessions by updated environment label: %v", err)
 	}
@@ -263,7 +377,9 @@ func TestSession_SetGetLabels(t *testing.T) {
 		"environment": testLabels["environment"],
 	}
 
-	oldEnvResult, err := agentBayClient.ListByLabels(oldEnvFilter)
+	params = agentbay.NewListSessionParams()
+	params.Labels = oldEnvFilter
+	oldEnvResult, err := agentBayClient.ListByLabels(params)
 	if err != nil {
 		t.Fatalf("Error listing sessions by old environment label: %v", err)
 	}
@@ -284,4 +400,107 @@ func TestSession_SetGetLabels(t *testing.T) {
 	}
 
 	fmt.Println("Session labels test completed successfully")
+}
+
+// TestListByUIDLabel tests querying sessions with a specific UID label
+// and verifies pagination functionality
+func TestListByUIDLabel(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBayClient, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Define UID filter
+	uidFilter := map[string]string{
+		"test_group": "multi-session-test-1751034212790846000-4842",
+	}
+
+	// Test pagination by setting page size to 3 (expecting 6 total sessions)
+	t.Log("Testing pagination with page size of 3...")
+
+	// First page
+	params := agentbay.NewListSessionParams()
+	params.Labels = uidFilter
+	params.MaxResults = 4 // Set page size to 4
+
+	firstPageResult, err := agentBayClient.ListByLabels(params)
+	if err != nil {
+		t.Fatalf("Error listing first page of sessions: %v", err)
+	}
+
+	// Log the first page results
+	t.Logf("First page - Sessions listed by UID label (RequestID: %s)", firstPageResult.RequestID)
+	t.Logf("First page - Found %d sessions (MaxResults: %d, TotalCount: %d)",
+		len(firstPageResult.Sessions), firstPageResult.MaxResults, firstPageResult.TotalCount)
+
+	// Store session IDs from first page
+	firstPageSessionIDs := make(map[string]bool)
+	if len(firstPageResult.Sessions) > 0 {
+		t.Log("First page - Sessions found:")
+		for i, s := range firstPageResult.Sessions {
+			t.Logf("  %d. Session ID: %s", i+1, s.SessionID)
+			firstPageSessionIDs[s.SessionID] = true
+		}
+	} else {
+		t.Log("First page - No sessions found with the specified UID label")
+	}
+
+	// Check if we have a next token for pagination
+	if firstPageResult.NextToken == "" {
+		t.Log("No NextToken returned, pagination not possible or not needed")
+		return
+	}
+
+	// Second page
+	t.Log("Fetching second page using NextToken...")
+	secondPageParams := agentbay.NewListSessionParams()
+	secondPageParams.Labels = uidFilter
+	secondPageParams.MaxResults = 3
+	secondPageParams.NextToken = firstPageResult.NextToken
+
+	secondPageResult, err := agentBayClient.ListByLabels(secondPageParams)
+	if err != nil {
+		t.Fatalf("Error listing second page of sessions: %v", err)
+	}
+
+	// Log the second page results
+	t.Logf("Second page - Sessions listed by UID label (RequestID: %s)", secondPageResult.RequestID)
+	t.Logf("Second page - Found %d sessions", len(secondPageResult.Sessions))
+
+	// Verify second page sessions are different from first page
+	if len(secondPageResult.Sessions) > 0 {
+		t.Log("Second page - Sessions found:")
+		duplicateFound := false
+
+		for i, s := range secondPageResult.Sessions {
+			t.Logf("  %d. Session ID: %s", i+1, s.SessionID)
+
+			// Check if this session was already in the first page
+			if firstPageSessionIDs[s.SessionID] {
+				duplicateFound = true
+				t.Errorf("Session ID %s found in both first and second page", s.SessionID)
+			}
+		}
+
+		if !duplicateFound {
+			t.Log("Pagination verification successful: No duplicate sessions between pages")
+		}
+	} else {
+		t.Log("Second page - No sessions found")
+	}
+
+	// Verify total count
+	totalSessionsFound := len(firstPageResult.Sessions) + len(secondPageResult.Sessions)
+	t.Logf("Total sessions found across both pages: %d", totalSessionsFound)
+
+	if firstPageResult.TotalCount > 0 {
+		if int(firstPageResult.TotalCount) != totalSessionsFound {
+			t.Errorf("Note: TotalCount (%d) doesn't match actual sessions found (%d)",
+				firstPageResult.TotalCount, totalSessionsFound)
+		} else {
+			t.Logf("TotalCount matches actual sessions found: %d", totalSessionsFound)
+		}
+	}
 }

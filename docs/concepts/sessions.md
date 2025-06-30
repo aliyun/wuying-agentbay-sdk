@@ -126,23 +126,54 @@ You can filter sessions by labels to find sessions that match specific criteria:
 
 ```go
 // Find sessions with environment=development
-sessions, err := client.ListByLabels(map[string]string{"environment": "development"})
+params := agentbay.NewListSessionParams()
+params.Labels = map[string]string{"environment": "development"}
+result, err := client.ListByLabels(params)
 if err != nil {
     fmt.Printf("Error listing sessions by labels: %v\n", err)
     return
 }
-fmt.Printf("Found %d sessions with environment=development\n", len(sessions))
+fmt.Printf("Found %d sessions with environment=development (total: %d)\n", 
+    len(result.Sessions), result.TotalCount)
 
 // Find sessions with multiple labels
-sessions, err = client.ListByLabels(map[string]string{
+params = agentbay.NewListSessionParams()
+params.Labels = map[string]string{
     "environment": "development",
     "owner": "team-a",
-})
+}
+result, err = client.ListByLabels(params)
 if err != nil {
     fmt.Printf("Error listing sessions by labels: %v\n", err)
     return
 }
-fmt.Printf("Found %d sessions with environment=development AND owner=team-a\n", len(sessions))
+fmt.Printf("Found %d sessions with environment=development AND owner=team-a\n", 
+    len(result.Sessions))
+
+// Using pagination to handle large result sets
+params = agentbay.NewListSessionParams()
+params.Labels = map[string]string{"environment": "development"}
+params.MaxResults = 5 // Limit to 5 results per page
+
+// Get first page
+firstPage, err := client.ListByLabels(params)
+if err != nil {
+    fmt.Printf("Error listing sessions by labels: %v\n", err)
+    return
+}
+fmt.Printf("First page: Found %d sessions (total: %d)\n", 
+    len(firstPage.Sessions), firstPage.TotalCount)
+
+// If there are more pages, get the next page
+if firstPage.NextToken != "" {
+    params.NextToken = firstPage.NextToken
+    secondPage, err := client.ListByLabels(params)
+    if err != nil {
+        fmt.Printf("Error listing second page: %v\n", err)
+        return
+    }
+    fmt.Printf("Second page: Found %d more sessions\n", len(secondPage.Sessions))
+}
 ```
 
 #### Python

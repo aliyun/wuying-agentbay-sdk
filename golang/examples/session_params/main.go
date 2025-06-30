@@ -44,17 +44,57 @@ func main() {
 	fmt.Println("\nExample 2: Listing sessions by labels...")
 
 	// Query sessions with the "project" label set to "my-project"
-	sessionsByLabelResult, err := agentBay.ListByLabels(map[string]string{
+	listParams := agentbay.NewListSessionParams()
+	listParams.Labels = map[string]string{
 		"project": "my-project",
-	})
+	}
+	// Set page size to 5 sessions per page
+	listParams.MaxResults = 5
+
+	sessionsByLabelResult, err := agentBay.ListByLabels(listParams)
 	if err != nil {
 		fmt.Printf("\nError listing sessions by labels: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("\nFound %d sessions with project=my-project (RequestID: %s):\n", len(sessionsByLabelResult.Sessions), sessionsByLabelResult.RequestID)
+	fmt.Printf("\nFound %d sessions with project=my-project (total: %d, page size: %d, RequestID: %s):\n",
+		len(sessionsByLabelResult.Sessions),
+		sessionsByLabelResult.TotalCount,
+		sessionsByLabelResult.MaxResults,
+		sessionsByLabelResult.RequestID)
+
 	for i, s := range sessionsByLabelResult.Sessions {
 		fmt.Printf("  %d. Session ID: %s\n", i+1, s.SessionID)
+	}
+
+	// Example 3: Pagination with NextToken
+	fmt.Println("\nExample 3: Demonstrating pagination...")
+
+	// If there are more pages available
+	if sessionsByLabelResult.NextToken != "" {
+		fmt.Printf("\nMore sessions available. Fetching next page using NextToken: %s\n", sessionsByLabelResult.NextToken)
+
+		// Create new params for the next page
+		nextPageParams := agentbay.NewListSessionParams()
+		nextPageParams.Labels = map[string]string{
+			"project": "my-project",
+		}
+		nextPageParams.MaxResults = 5
+		nextPageParams.NextToken = sessionsByLabelResult.NextToken
+
+		nextPageResult, err := agentBay.ListByLabels(nextPageParams)
+		if err != nil {
+			fmt.Printf("\nError listing next page of sessions: %v\n", err)
+		} else {
+			fmt.Printf("\nNext page found %d more sessions (RequestID: %s):\n",
+				len(nextPageResult.Sessions), nextPageResult.RequestID)
+
+			for i, s := range nextPageResult.Sessions {
+				fmt.Printf("  %d. Session ID: %s\n", i+1, s.SessionID)
+			}
+		}
+	} else {
+		fmt.Println("\nNo more pages available.")
 	}
 
 	// Clean up
