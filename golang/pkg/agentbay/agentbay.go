@@ -183,11 +183,31 @@ func (a *AgentBay) List() (*SessionListResult, error) {
 	}, nil
 }
 
-// ListByLabels lists sessions filtered by the provided labels.
+// ListSessionParams contains parameters for listing sessions
+type ListSessionParams struct {
+	MaxResults int32             // Number of results per page
+	NextToken  string            // Token for the next page
+	Labels     map[string]string // Labels to filter by
+}
+
+// NewListSessionParams creates a new ListSessionParams with default values
+func NewListSessionParams() *ListSessionParams {
+	return &ListSessionParams{
+		MaxResults: 10, // Default page size
+		NextToken:  "",
+		Labels:     make(map[string]string),
+	}
+}
+
+// ListByLabels lists sessions filtered by the provided labels with pagination support.
 // It returns sessions that match all the specified labels.
-func (a *AgentBay) ListByLabels(labels map[string]string) (*SessionListResult, error) {
+func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, error) {
+	if params == nil {
+		params = NewListSessionParams()
+	}
+
 	// Convert labels to JSON
-	labelsJSON, err := json.Marshal(labels)
+	labelsJSON, err := json.Marshal(params.Labels)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal labels to JSON: %v", err)
 	}
@@ -195,11 +215,21 @@ func (a *AgentBay) ListByLabels(labels map[string]string) (*SessionListResult, e
 	listSessionRequest := &mcp.ListSessionRequest{
 		Authorization: tea.String("Bearer " + a.APIKey),
 		Labels:        tea.String(string(labelsJSON)),
+		MaxResults:    tea.Int32(params.MaxResults),
+	}
+
+	// Add NextToken if provided
+	if params.NextToken != "" {
+		listSessionRequest.NextToken = tea.String(params.NextToken)
 	}
 
 	// Log API request
 	fmt.Println("API Call: ListSession")
-	fmt.Printf("Request: Labels=%s\n", *listSessionRequest.Labels)
+	fmt.Printf("Request: Labels=%s, MaxResults=%d", *listSessionRequest.Labels, *listSessionRequest.MaxResults)
+	if listSessionRequest.NextToken != nil {
+		fmt.Printf(", NextToken=%s", *listSessionRequest.NextToken)
+	}
+	fmt.Println()
 
 	response, err := a.Client.ListSession(listSessionRequest)
 
@@ -217,13 +247,31 @@ func (a *AgentBay) ListByLabels(labels map[string]string) (*SessionListResult, e
 	}
 
 	var sessions []Session
-	if response.Body != nil && response.Body.Data != nil {
-		for _, sessionData := range response.Body.Data {
-			if sessionData.SessionId != nil {
-				session := NewSession(a, *sessionData.SessionId)
-				sessions = append(sessions, *session)
-				// Also store in the local cache
-				a.Sessions.Store(*sessionData.SessionId, *session)
+	var nextToken string
+	var maxResults int32
+	var totalCount int32
+
+	if response.Body != nil {
+		// Extract pagination information
+		if response.Body.NextToken != nil {
+			nextToken = *response.Body.NextToken
+		}
+		if response.Body.MaxResults != nil {
+			maxResults = *response.Body.MaxResults
+		}
+		if response.Body.TotalCount != nil {
+			totalCount = *response.Body.TotalCount
+		}
+
+		// Extract session data
+		if response.Body.Data != nil {
+			for _, sessionData := range response.Body.Data {
+				if sessionData.SessionId != nil {
+					session := NewSession(a, *sessionData.SessionId)
+					sessions = append(sessions, *session)
+					// Also store in the local cache
+					a.Sessions.Store(*sessionData.SessionId, *session)
+				}
 			}
 		}
 	}
@@ -232,7 +280,10 @@ func (a *AgentBay) ListByLabels(labels map[string]string) (*SessionListResult, e
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Sessions: sessions,
+		Sessions:   sessions,
+		NextToken:  nextToken,
+		MaxResults: maxResults,
+		TotalCount: totalCount,
 	}, nil
 }
 
