@@ -203,9 +203,15 @@ class Session:
                 f"Failed to get session info for session {self.session_id}: {e}"
             )
 
-    def get_link(self) -> str:
+    def get_link(
+        self, protocol_type: Optional[str] = None, port: Optional[int] = None
+    ) -> str:
         """
         Get a link associated with the current session.
+
+        Args:
+            protocol_type (Optional[str], optional): The protocol type to use for the link. Defaults to None.
+            port (Optional[int], optional): The port to use for the link. Defaults to None.
 
         Returns:
             str: The string data extracted from the GetLinkResponse.
@@ -217,6 +223,8 @@ class Session:
             request = GetLinkRequest(
                 authorization=f"Bearer {self.get_api_key()}",
                 session_id=self.get_session_id(),
+                protocol_type=protocol_type,
+                port=port,
             )
             response: GetLinkResponse = self.agent_bay.client.get_link(request)
             response_map = response.to_map()
@@ -244,9 +252,15 @@ class Session:
         except Exception as e:
             raise SessionError(f"Failed to get link: {e}")
 
-    async def get_link_async(self) -> str:
+    async def get_link_async(
+        self, protocol_type: Optional[str] = None, port: Optional[int] = None
+    ) -> str:
         """
         Asynchronously get a link associated with the current session.
+
+        Args:
+            protocol_type (Optional[str], optional): The protocol type to use for the link. Defaults to None.
+            port (Optional[int], optional): The port to use for the link. Defaults to None.
 
         Returns:
             str: The string data extracted from the GetLinkResponse.
@@ -258,6 +272,8 @@ class Session:
             request = GetLinkRequest(
                 authorization=f"Bearer {self.get_api_key()}",
                 session_id=self.get_session_id(),
+                protocol_type=protocol_type,
+                port=port,
             )
             response: GetLinkResponse = await self.agent_bay.client.get_link_async(
                 request

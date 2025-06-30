@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from agentbay import AgentBay
+from agentbay import AgentBay, CreateSessionParams
 from agentbay.exceptions import AgentBayError
 
 # This example demonstrates how to create, list, and delete sessions
@@ -16,6 +16,10 @@ def main():
         print(
             "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
         )
+
+    session = None
+    additional_sessions = []
+    session_with_params = None
 
     try:
         # Initialize the AgentBay client
@@ -93,11 +97,9 @@ def main():
 
         # test get_link with special imageid
         try:
-            from agentbay.session_params import CreateSessionParams
-
             # Define session creation parameters
             params = CreateSessionParams(
-                image_id="imgc-07if81c4ktj9shiru",
+                image_id="code_latest",
             )
 
             # Create session with parameters
@@ -116,24 +118,60 @@ def main():
         except AgentBayError as e:
             print(f"Error retrieving link: {e}")
 
+        # Using new parameter - only specify protocol type
+        print("\nTesting get_link method with protocol_type parameter...")
+        try:
+            link_with_protocol = session_with_params.get_link(protocol_type="https")
+            print(f"Link with protocol https retrieved successfully: {link_with_protocol}")
+        except AgentBayError as e:
+            print(f"Error retrieving link with protocol type: {e}")
+
+        # Using new parameter - only specify port
+        print("\nTesting get_link method with port parameter...")
+        try:
+            link_with_port = session_with_params.get_link(port=8080)
+            print(f"Link with port 8080 retrieved successfully: {link_with_port}")
+        except AgentBayError as e:
+            print(f"Error retrieving link with port: {e}")
+
+        # Using new parameters - specify both protocol type and port
+        print("\nTesting get_link method with both protocol_type and port parameters...")
+        try:
+            link_with_both = session_with_params.get_link(protocol_type="https", port=443)
+            print(f"Link with protocol https and port 443 retrieved successfully: {link_with_both}")
+        except AgentBayError as e:
+            print(f"Error retrieving link with protocol and port: {e}")
+
         # Test get_link_async method
         print("\nTesting get_link_async method...")
         try:
             import asyncio
 
+            # Default parameters
             link_async = asyncio.run(session_with_params.get_link_async())
             print(f"Link retrieved successfully (async): {link_async}")
         except AgentBayError as e:
             print(f"Error retrieving link asynchronously: {e}")
 
+        # Using new parameters - protocol type and port
+        print("\nTesting get_link_async method with both protocol_type and port parameters...")
+        try:
+            import asyncio
+            link_async_with_params = asyncio.run(
+                session_with_params.get_link_async(protocol_type="https", port=8080)
+            )
+            print(f"Link with https and port 8080 retrieved successfully (async): {link_async_with_params}")
+        except AgentBayError as e:
+            print(f"Error retrieving link asynchronously with parameters: {e}")
+
         # Test creating a session with specific parameters
-        print("\nTesting session creation with parameters...")
+        print("\nTesting session creation with parameters success...")
 
         # delete session
         try:
             session_with_params.delete()
             print(f"Session(session_with_params) deleted successfully")
-            ssession_with_params = None
+            session_with_params = None
         except AgentBayError as e:
             print(f"Error deleting session session_with_params: {e}")
 
