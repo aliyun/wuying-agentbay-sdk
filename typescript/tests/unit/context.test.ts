@@ -1,269 +1,250 @@
-import { AgentBay, Context, ContextService } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { Context, ContextService } from '../../src/context';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
-describe('Context', () => {
-  it.only('should initialize with the correct attributes', () => {
-    const context = new Context(
-      'test-id',
-      'test-context',
-      'available',
-      '2025-05-29T12:00:00Z',
-      '2025-05-29T12:30:00Z',
-      'linux'
-    );
+describe('TestContext', () => {
+  describe('test_context_initialization', () => {
+    it('should initialize Context with the correct attributes', () => {
+      const context = new Context(
+        'test-id',
+        'test-context',
+        'available',
+        '2025-05-29T12:00:00Z',
+        '2025-05-29T12:30:00Z',
+        'linux'
+      );
 
-    expect(context.id).toBe('test-id');
-    expect(context.name).toBe('test-context');
-    expect(context.state).toBe('available');
-    expect(context.createdAt).toBe('2025-05-29T12:00:00Z');
-    expect(context.lastUsedAt).toBe('2025-05-29T12:30:00Z');
-    expect(context.osType).toBe('linux');
+      expect(context.id).toBe('test-id');
+      expect(context.name).toBe('test-context');
+      expect(context.state).toBe('available');
+      expect(context.createdAt).toBe('2025-05-29T12:00:00Z');
+      expect(context.lastUsedAt).toBe('2025-05-29T12:30:00Z');
+      expect(context.osType).toBe('linux');
+    });
   });
 });
 
-describe('ContextService', () => {
-  let agentBay: AgentBay;
-  let contextService: ContextService;
+describe('TestContextService', () => {
+  let mockContextService: ContextService;
+  let mockAgentBay: any;
+  let mockClient: any;
+  let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
-    // Create a real AgentBay instance
-    const apiKey = getTestApiKey();
-    agentBay = new AgentBay({ apiKey });
+    sandbox = sinon.createSandbox();
 
-    contextService = new ContextService(agentBay);
+    mockClient = {
+      listContexts: sandbox.stub(),
+      getContext: sandbox.stub(),
+      modifyContext: sandbox.stub(),
+      deleteContext: sandbox.stub()
+    };
+
+    mockAgentBay = {
+      getAPIKey: sandbox.stub().returns('test-api-key'),
+      getClient: sandbox.stub().returns(mockClient)
+    };
+
+    mockContextService = new ContextService(mockAgentBay);
   });
 
-  afterEach(async () => {
-    // Clean up any contexts created during tests
-    try {
-      const contextsResponse = await contextService.list();
-      log(`List Contexts for Cleanup RequestId: ${contextsResponse.requestId || 'undefined'}`);
-      for (const context of contextsResponse.data) {
-        if (context.name.startsWith('test-') || context.name.startsWith('new-')) {
-          try {
-            const deleteResponse = await contextService.delete(context);
-            log(`Deleted test context: ${context.name}`);
-            log(`Delete Context RequestId: ${deleteResponse.requestId || 'undefined'}`);
-          } catch (error) {
-            log(`Warning: Failed to delete test context ${context.name}: ${error}`);
-          }
-        }
-      }
-    } catch (error) {
-      log(`Warning: Error during cleanup: ${error}`);
-    }
+  afterEach(() => {
+    sandbox.restore();
   });
 
-  describe('list()', () => {
-    it.only('should return a list of contexts', async () => {
-      try {
-        // Call the method
-        const contextsResponse = await contextService.list();
-        log(`Found ${contextsResponse.data.length} contexts`);
-        log(`List Contexts RequestId: ${contextsResponse.requestId || 'undefined'}`);
+  describe('test_list_contexts', () => {
+    it('should list contexts', async () => {
+      // Mock the response from the API
+      const mockResponse = {
+        body: {
+          data: [
+            {
+              id: 'context-1',
+              name: 'context-1-name',
+              state: 'available',
+              createTime: '2025-05-29T12:00:00Z',
+              lastUsedTime: '2025-05-29T12:30:00Z',
+              osType: 'linux'
+            },
+            {
+              id: 'context-2',
+              name: 'context-2-name',
+              state: 'in-use',
+              createTime: '2025-05-29T13:00:00Z',
+              lastUsedTime: '2025-05-29T13:30:00Z',
+              osType: 'windows'
+            }
+          ],
+          requestId: 'test-list-request-id'
+        },
+        statusCode: 200
+      };
 
-        // Verify that the response contains requestId
-        expect(contextsResponse.requestId).toBeDefined();
-        expect(typeof contextsResponse.requestId).toBe('string');
+      mockClient.listContexts.resolves(mockResponse);
 
-        // Verify the results
-        if (contextsResponse.data.length > 0) {
-          contextsResponse.data.forEach(context => {
-            expect(context.id).toBeDefined();
-            expect(context.name).toBeDefined();
-            expect(context.state).toBeDefined();
-          });
-        } else {
-          log('No contexts found, this might be normal in a fresh environment');
-        }
-      } catch (error: any) {
-        log(`Error listing contexts: ${error}`);
-        // Skip test if we can't list contexts
-        expect(true).toBe(true);
-      }
+      // Call the method
+      const result = await mockContextService.list();
+
+      // Verify the results
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0].id).toBe('context-1');
+      expect(result.data[0].name).toBe('context-1-name');
+      expect(result.data[0].state).toBe('available');
+      expect(result.data[1].id).toBe('context-2');
+      expect(result.data[1].name).toBe('context-2-name');
+      expect(result.data[1].state).toBe('in-use');
+      expect(result.requestId).toBe('test-list-request-id');
+
+      expect(mockClient.listContexts.calledOnce).toBe(true);
     });
   });
 
-  describe('get()', () => {
-    it.only('should get a context by name after creating it', async () => {
-      try {
-        // First create a context
-        const contextName = `test-get-context-${Date.now()}`;
-        const createResponse = await contextService.create(contextName);
-        const createdContext = createResponse.data;
-        log(`Created context: ${createdContext.name} (${createdContext.id})`);
-        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+  describe('test_get_context', () => {
+    it('should get a context', async () => {
+      // Mock the get context response
+      const mockGetResponse = {
+        body: {
+          data: { id: 'context-1' },
+          requestId: 'test-get-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.getContext.resolves(mockGetResponse);
 
-        // Then get the context
-        const getResponse = await contextService.get(contextName);
-        const retrievedContext = getResponse.data;
-        log(`Retrieved context: ${retrievedContext?.name} (${retrievedContext?.id})`);
-        log(`Get Context RequestId: ${getResponse.requestId || 'undefined'}`);
+      // Mock the list response to get full context details
+      const mockListResponse = {
+        body: {
+          data: [
+            {
+              id: 'context-1',
+              name: 'test-context',
+              state: 'available',
+              createTime: '2025-05-29T12:00:00Z',
+              lastUsedTime: '2025-05-29T12:30:00Z',
+              osType: 'linux'
+            }
+          ],
+          requestId: 'test-list-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.listContexts.resolves(mockListResponse);
 
-        // Verify that the response contains requestId
-        expect(getResponse.requestId).toBeDefined();
-        expect(typeof getResponse.requestId).toBe('string');
+      // Call the method
+      const result = await mockContextService.get('test-context');
 
-        // Verify the results
-        expect(retrievedContext).not.toBeNull();
-        if (retrievedContext) {
-          expect(retrievedContext.id).toBe(createdContext.id);
-          expect(retrievedContext.name).toBe(contextName);
-          expect(retrievedContext.state).toBeDefined();
-        }
-      } catch (error: any) {
-        log(`Error getting context: ${error}`);
-        // Skip test if we can't get context
-        expect(true).toBe(true);
-      }
-    });
+      // Verify the results
+      expect(result.data).not.toBeNull();
+      expect(result.data!.id).toBe('context-1');
+      expect(result.data!.name).toBe('test-context');
+      expect(result.data!.state).toBe('available');
+      expect(result.requestId).toBe('test-get-request-id');
 
-    it.only('should return null if context not found', async () => {
-      try {
-        const nonExistentName = `non-existent-context-${Date.now()}`;
-        const getResponse = await contextService.get(nonExistentName);
-        log(`Get Non-existent Context RequestId: ${getResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(getResponse.requestId).toBeDefined();
-        expect(typeof getResponse.requestId).toBe('string');
-
-        // Verify the results
-        expect(getResponse.data).toBeNull();
-      } catch (error: any) {
-        log(`Error getting non-existent context: ${error}`);
-        // Skip test if we can't get context
-        expect(true).toBe(true);
-      }
-    });
-
-    it.only('should create a context if requested', async () => {
-      try {
-        const contextName = `test-create-if-missing-${Date.now()}`;
-
-        // Call the method with createIfMissing=true
-        const getResponse = await contextService.get(contextName, true);
-        const context = getResponse.data;
-        log(`Created context: ${context?.name} (${context?.id})`);
-        log(`Get Context with Create RequestId: ${getResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(getResponse.requestId).toBeDefined();
-        expect(typeof getResponse.requestId).toBe('string');
-
-        // Verify the results
-        expect(context).not.toBeNull();
-        if (context) {
-          expect(context.id).toBeDefined();
-          expect(context.name).toBe(contextName);
-          expect(context.state).toBeDefined();
-        }
-      } catch (error: any) {
-        log(`Error creating context if missing: ${error}`);
-        // Skip test if we can't create context
-        expect(true).toBe(true);
-      }
+      expect(mockClient.getContext.calledOnce).toBe(true);
+      expect(mockClient.listContexts.calledOnce).toBe(true);
     });
   });
 
-  describe('create()', () => {
-    it.only('should create a new context', async () => {
-      try {
-        const contextName = `test-create-context-${Date.now()}`;
+  describe('test_create_context', () => {
+    it('should create a context', async () => {
+      // Mock the get context response (create via get with allowCreate=true)
+      const mockGetResponse = {
+        body: {
+          data: { id: 'new-context-id' },
+          requestId: 'test-create-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.getContext.resolves(mockGetResponse);
 
-        // Call the method
-        const createResponse = await contextService.create(contextName);
-        const context = createResponse.data;
-        log(`Created context: ${context.name} (${context.id})`);
-        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+      // Mock the list response to get full context details
+      const mockListResponse = {
+        body: {
+          data: [
+            {
+              id: 'new-context-id',
+              name: 'new-context',
+              state: 'available',
+              createTime: '2025-05-29T12:00:00Z',
+              lastUsedTime: '2025-05-29T12:30:00Z',
+              osType: null
+            }
+          ],
+          requestId: 'test-list-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.listContexts.resolves(mockListResponse);
 
-        // Verify that the response contains requestId
-        expect(createResponse.requestId).toBeDefined();
-        expect(typeof createResponse.requestId).toBe('string');
+      // Call the method
+      const result = await mockContextService.create('new-context');
 
-        // Verify the results
-        expect(context.id).toBeDefined();
-        expect(context.name).toBe(contextName);
-        expect(context.state).toBeDefined();
-      } catch (error: any) {
-        log(`Error creating context: ${error}`);
-        // Skip test if we can't create context
-        expect(true).toBe(true);
-      }
+      // Verify the results
+      expect(result.data.id).toBe('new-context-id');
+      expect(result.data.name).toBe('new-context');
+      expect(result.data.state).toBe('available');
+      expect(result.requestId).toBe('test-create-request-id');
+
+      expect(mockClient.getContext.calledOnce).toBe(true);
+      expect(mockClient.listContexts.calledOnce).toBe(true);
     });
   });
 
-  describe('update()', () => {
-    it.only('should update a context', async () => {
-      try {
-        // First create a context
-        const originalName = `test-update-context-${Date.now()}`;
-        const createResponse = await contextService.create(originalName);
-        const context = createResponse.data;
-        log(`Created context for update test: ${context.name} (${context.id})`);
-        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+  describe('test_update_context', () => {
+    it('should update a context', async () => {
+      // Create a context to update
+      const context = new Context('context-to-update', 'updated-name', 'available');
 
-        // Update the context name
-        const updatedName = `updated-${originalName}`;
-        context.name = updatedName;
+      // Mock the API response
+      const mockResponse = {
+        body: {
+          code: 'ok',
+          httpStatusCode: 200,
+          success: true,
+          requestId: 'test-update-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.modifyContext.resolves(mockResponse);
 
-        // Call the update method
-        const updateResponse = await contextService.update(context);
-        log(`Updated context name to: ${updatedName}`);
-        log(`Update Context RequestId: ${updateResponse.requestId || 'undefined'}`);
+      // Call the method
+      const result = await mockContextService.update(context);
 
-        // Verify that the response contains requestId
-        expect(updateResponse.requestId).toBeDefined();
-        expect(typeof updateResponse.requestId).toBe('string');
+      // Verify the API was called correctly
+      expect(mockClient.modifyContext.calledOnce).toBe(true);
 
-        // Verify the update by getting the context again
-        const getResponse = await contextService.get(updatedName);
-        const retrievedContext = getResponse.data;
-
-        // Verify the results
-        expect(retrievedContext).not.toBeNull();
-        if (retrievedContext) {
-          expect(retrievedContext.id).toBe(context.id);
-          expect(retrievedContext.name).toBe(updatedName);
-        }
-      } catch (error: any) {
-        log(`Error updating context: ${error}`);
-        // Skip test if we can't update context
-        expect(true).toBe(true);
-      }
+      // Verify the results - should return the updated context
+      expect(result.data).toBe(context);
+      expect(result.data.name).toBe('updated-name');
+      expect(result.requestId).toBe('test-update-request-id');
     });
   });
 
-  describe('delete()', () => {
-    it.only('should delete a context', async () => {
-      try {
-        // First create a context
-        const contextName = `test-delete-context-${Date.now()}`;
-        const createResponse = await contextService.create(contextName);
-        const context = createResponse.data;
-        log(`Created context for delete test: ${context.name} (${context.id})`);
-        log(`Create Context RequestId: ${createResponse.requestId || 'undefined'}`);
+  describe('test_delete_context', () => {
+    it('should delete a context', async () => {
+      // Create a context to delete
+      const context = new Context('context-to-delete', 'context-name', 'available');
 
-        // Call the delete method
-        const deleteResponse = await contextService.delete(context);
-        log(`Deleted context: ${context.name}`);
-        log(`Delete Context RequestId: ${deleteResponse.requestId || 'undefined'}`);
+      // Mock the API response with requestId in body
+      const mockResponse = {
+        body: {
+          code: 'ok',
+          httpStatusCode: 200,
+          success: true,
+          requestId: 'test-delete-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.deleteContext.resolves(mockResponse);
 
-        // Verify that the response contains requestId
-        expect(deleteResponse.requestId).toBeDefined();
-        expect(typeof deleteResponse.requestId).toBe('string');
+      // Call the method
+      const result = await mockContextService.delete(context);
 
-        // Verify the deletion by trying to get the context again
-        const getResponse = await contextService.get(contextName);
+      // Verify the API was called correctly
+      expect(mockClient.deleteContext.calledOnce).toBe(true);
 
-        // The context should no longer exist
-        expect(getResponse.data).toBeNull();
-      } catch (error: any) {
-        log(`Error deleting context: ${error}`);
-        // Skip test if we can't delete context
-        expect(true).toBe(true);
-      }
+      // Verify the result has requestId
+      expect(result.requestId).toBe('test-delete-request-id');
     });
   });
 });

@@ -636,10 +636,10 @@ export class FileSystem {
 
       try {
         // Read the chunk
-        const chunk = await this.readFile(path, offset, length);
+        const chunkResponse = await this.readFile(path, offset, length);
 
-        // Since readFile returns a string, just append it to the result
-        result += chunk;
+        // Extract the actual content from the response
+        result += chunkResponse.data;
 
         // Move to the next chunk
         offset += length;

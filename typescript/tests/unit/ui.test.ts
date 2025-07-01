@@ -1,189 +1,435 @@
-import { AgentBay, Session } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { UI, KeyCode } from '../../src/ui/ui';
+import * as sinon from 'sinon';
 
-// Helper function to parse content array from API response for UI elements
-function parseUIContent(content: any[]): any[] {
-  if (!Array.isArray(content) || content.length === 0) {
-    return [];
-  }
+describe('TestUIApi', () => {
+  let mockUI: UI;
+  let mockSession: any;
+  let sandbox: sinon.SinonSandbox;
 
-  // Try to extract and parse text from the first content item
-  const item = content[0];
-  if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
-    try {
-      return JSON.parse(item.text);
-    } catch (e) {
-      log(`Warning: Failed to parse content text as JSON: ${e}`);
-      return [];
-    }
-  }
-
-  return [];
-}
-
-// Helper function to check if a content array contains base64 image data
-function containsBase64Image(content: any[]): boolean {
-  if (!Array.isArray(content) || content.length === 0) {
-    return false;
-  }
-
-  // Look for base64 image data in the text fields
-  return content.some(item =>
-    item && typeof item === 'object' &&
-    typeof item.text === 'string' &&
-    (item.text.startsWith('data:image') || item.text.includes('base64'))
-  );
-}
-
-// Type declarations are now in tests/jest.d.ts
-
-describe('UI', () => {
-  let agentBay: AgentBay;
-  let session: Session;
-
-  beforeEach(async () => {
-    const apiKey = getTestApiKey();
-    agentBay = new AgentBay({ apiKey });
-
-    // Create a session with mobile_latest image (consistent with Go implementation)
-    log('Creating a new session for UI testing...');
-    const createResponse = await agentBay.create({ imageId: 'mobile_latest' });
-    session = createResponse.data;
-    log(`Session created with ID: ${session.sessionId}`);
-    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+    mockSession = {
+      getAPIKey: sandbox.stub().returns('test-api-key'),
+      getSessionId: sandbox.stub().returns('test-session-id'),
+      getClient: sandbox.stub().returns({
+        callMcpTool: sandbox.stub()
+      })
+    };
+    mockUI = new UI(mockSession);
   });
 
-  afterEach(async () => {
-    // Clean up the session
-    try {
-      const deleteResponse = await agentBay.delete(session);
-      log(`Session deleted successfully: ${session.sessionId}`);
-      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-    } catch (error) {
-      log(`Warning: Error deleting session: ${error}`);
-    }
+  afterEach(() => {
+    sandbox.restore();
+  });
+  describe('test_get_clickable_ui_elements_success', () => {
+    it('should get clickable UI elements successfully', async () => {
+      const mockElements = [
+        {
+          "bounds": "48,90,1032,630",
+          "className": "LinearLayout",
+          "text": "digital_widget",
+          "type": "clickable",
+          "resourceId": "com.android.deskclock:id/digital_widget",
+          "index": 11,
+          "isParent": false
+        }
+      ];
+
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: JSON.stringify(mockElements)
+              }
+            ]
+          },
+          requestId: 'test-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.getClickableUIElements();
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].bounds).toBe("48,90,1032,630");
+      expect(result.data[0].className).toBe("LinearLayout");
+      expect(result.data[0].text).toBe("digital_widget");
+      expect(result.data[0].type).toBe("clickable");
+      expect(result.data[0].resourceId).toBe("com.android.deskclock:id/digital_widget");
+      expect(result.requestId).toBe('test-request-id');
+    });
   });
 
-  describe('getClickableUIElements', () => {
-    it.only('should retrieve clickable UI elements if implemented', async () => {
-      if (session.ui && typeof session.ui.getClickableUIElements === 'function') {
-        log('Testing UI.getClickableUIElements method...');
-        try {
-          const elementsResponse = await session.ui.getClickableUIElements();
-          log(`Retrieved content:`, elementsResponse.data);
-          log(`Get Clickable UI Elements RequestId: ${elementsResponse.requestId || 'undefined'}`);
 
-          // Verify the response contains requestId
-          expect(elementsResponse.requestId).toBeDefined();
-          expect(typeof elementsResponse.requestId).toBe('string');
-
-          // Verify the content
-          expect(elementsResponse.data).toBeDefined();
-          expect(Array.isArray(elementsResponse.data)).toBe(true);
-
-          // Log the first element if available
-          if (elementsResponse.data.length > 0) {
-            log('First UI element:', elementsResponse.data[0]);
+  describe('test_get_clickable_ui_elements_failure', () => {
+    it('should handle get clickable UI elements failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to get clickable UI elements"
+              }
+            ]
           }
-        } catch (error) {
-          log(`Note: UI.getClickableUIElements execution failed: ${error}`);
-          // Don't fail the test if the method is not fully implemented
-        }
-      } else {
-        log('Note: UI.getClickableUIElements method is not available, skipping test');
-      }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.getClickableUIElements())
+        .rejects.toThrow('Failed to get clickable UI elements');
     });
   });
 
-  describe('getAllUIElements', () => {
-    it.only('should retrieve all UI elements if implemented', async () => {
-      if (session.ui && typeof session.ui.getAllUIElements === 'function') {
-        log('Testing UI.getAllUIElements method...');
-        try {
-          const elementsResponse = await session.ui.getAllUIElements();
-          log(`Retrieved content:`, elementsResponse.data);
-          log(`Get All UI Elements RequestId: ${elementsResponse.requestId || 'undefined'}`);
 
-          // Verify the response contains requestId
-          expect(elementsResponse.requestId).toBeDefined();
-          expect(typeof elementsResponse.requestId).toBe('string');
+  describe('test_send_key_success', () => {
+    it('should send key successfully', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: "true"
+              }
+            ]
+          },
+          requestId: 'send-key-request-id'
+        },
+        statusCode: 200
+      };
 
-          // Verify the content
-          expect(elementsResponse.data).toBeDefined();
-          expect(Array.isArray(elementsResponse.data)).toBe(true);
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-          // Log the first element if available
-          if (elementsResponse.data.length > 0) {
-            log('First UI element:', elementsResponse.data[0]);
+      const result = await mockUI.sendKey(KeyCode.HOME);
+
+      expect(result.data).toBe("true");
+      expect(result.requestId).toBe('send-key-request-id');
+    });
+  });
+
+
+  describe('test_send_key_failure', () => {
+    it('should handle send key failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to send key"
+              }
+            ]
           }
-        } catch (error) {
-          log(`Note: UI.getAllUIElements execution failed: ${error}`);
-          // Don't fail the test if the method is not fully implemented
-        }
-      } else {
-        log('Note: UI.getAllUIElements method is not available, skipping test');
-      }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.sendKey(KeyCode.HOME))
+        .rejects.toThrow('Failed to send key');
     });
   });
 
-  describe('sendKey', () => {
-    it.only('should send key events if implemented', async () => {
-      if (session.ui && typeof session.ui.sendKey === 'function') {
-        log('Testing UI.sendKey method...');
-        try {
-          // Try to send HOME key
-          const sendKeyResponse = await session.ui.sendKey(3); // HOME key
-          log(`Send key content:`, sendKeyResponse.data);
-          log(`Send Key RequestId: ${sendKeyResponse.requestId || 'undefined'}`);
 
-          // Verify the response contains requestId
-          expect(sendKeyResponse.requestId).toBeDefined();
-          expect(typeof sendKeyResponse.requestId).toBe('string');
+  describe('test_swipe_success', () => {
+    it('should perform swipe successfully', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: "Swipe completed"
+              }
+            ]
+          },
+          requestId: 'swipe-request-id'
+        },
+        statusCode: 200
+      };
 
-          // Verify the content
-          expect(sendKeyResponse.data).toBeDefined();
-          expect(typeof sendKeyResponse.data).toBe('string');
-        } catch (error) {
-          log(`Note: UI.sendKey execution failed: ${error}`);
-          // Don't fail the test if the method is not fully implemented
-        }
-      } else {
-        log('Note: UI.sendKey method is not available, skipping test');
-      }
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.swipe(100, 200, 300, 400, 500);
+
+      expect(result.data).toBe("Swipe completed");
+      expect(result.requestId).toBe('swipe-request-id');
     });
   });
 
-  describe('screenshot', () => {
-    it.only('should take screenshots if implemented', async () => {
-      if (session.ui && typeof session.ui.screenshot === 'function') {
-        log('Testing UI.screenshot method...');
-        try {
-          const screenshotResponse = await session.ui.screenshot();
-          log(`Screenshot content:`, screenshotResponse.data);
-          log(`Screenshot RequestId: ${screenshotResponse.requestId || 'undefined'}`);
 
-          // Verify the response contains requestId
-          expect(screenshotResponse.requestId).toBeDefined();
-          expect(typeof screenshotResponse.requestId).toBe('string');
+  describe('test_swipe_failure', () => {
+    it('should handle swipe failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to perform swipe"
+              }
+            ]
+          }
+        },
+        statusCode: 500
+      };
 
-          // Verify the screenshot content
-          expect(screenshotResponse.data).toBeDefined();
-          expect(typeof screenshotResponse.data).toBe('string');
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-          // Check if the content contains image URL or base64 data
-          const hasImageData = screenshotResponse.data.includes('https://') ||
-                              screenshotResponse.data.includes('data:image') ||
-                              screenshotResponse.data.includes('base64');
-          expect(hasImageData).toBe(true);
+      await expect(mockUI.swipe(100, 200, 300, 400, 500))
+        .rejects.toThrow('Failed to perform swipe');
+    });
+  });
 
-        } catch (error) {
-          log(`Note: UI.screenshot execution failed: ${error}`);
-          // Don't fail the test if the method is not fully implemented
+
+  describe('test_click_success', () => {
+    it('should perform click successfully', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: "Click completed"
+              }
+            ]
+          },
+          requestId: 'click-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.click(150, 250, "left");
+
+      expect(result.data).toBe("Click completed");
+      expect(result.requestId).toBe('click-request-id');
+    });
+  });
+
+
+  describe('test_click_failure', () => {
+    it('should handle click failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to perform click"
+              }
+            ]
+          }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.click(150, 250, "left"))
+        .rejects.toThrow('Failed to perform click');
+    });
+  });
+
+
+  describe('test_input_text_success', () => {
+    it('should input text successfully', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: "Text input completed"
+              }
+            ]
+          },
+          requestId: 'input-text-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.inputText("Hello, world!");
+
+      expect(result.data).toBe("Text input completed");
+      expect(result.requestId).toBe('input-text-request-id');
+    });
+  });
+
+
+  describe('test_input_text_failure', () => {
+    it('should handle input text failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to input text"
+              }
+            ]
+          }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.inputText("Hello, world!"))
+        .rejects.toThrow('Failed to input text');
+    });
+  });
+
+
+  describe('test_get_all_ui_elements_success', () => {
+    it('should get all UI elements successfully', async () => {
+      const mockElements = [
+        {
+          "bounds": "48,90,1032,630",
+          "className": "LinearLayout",
+          "text": "Sample Text",
+          "type": "UIElement",
+          "resourceId": "com.example:id/sample",
+          "index": 0,
+          "isParent": true,
+          "children": [
+            {
+              "bounds": "50,100,200,300",
+              "className": "TextView",
+              "text": "Child Text",
+              "type": "UIElement",
+              "resourceId": "com.example:id/child",
+              "index": 1,
+              "isParent": false,
+              "children": []
+            }
+          ]
         }
-      } else {
-        log('Note: UI.screenshot method is not available, skipping test');
-      }
+      ];
+
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: JSON.stringify(mockElements)
+              }
+            ]
+          },
+          requestId: 'get-all-elements-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.getAllUIElements();
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].bounds).toBe("48,90,1032,630");
+      expect(result.data[0].className).toBe("LinearLayout");
+      expect(result.data[0].text).toBe("Sample Text");
+      expect(result.data[0].type).toBe("UIElement");
+      expect(result.data[0].resourceId).toBe("com.example:id/sample");
+      expect(result.data[0].children).toHaveLength(1);
+      expect(result.data[0].children![0].text).toBe("Child Text");
+      expect(result.requestId).toBe('get-all-elements-request-id');
+    });
+  });
+
+
+  describe('test_get_all_ui_elements_failure', () => {
+    it('should handle get all UI elements failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Failed to get all UI elements"
+              }
+            ]
+          }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.getAllUIElements())
+        .rejects.toThrow('Failed to get all UI elements');
+    });
+  });
+
+  describe('test_screenshot_success', () => {
+    it('should take screenshot successfully', async () => {
+      const OSS_URL = "https://oss-url/screenshot.png";
+      const mockResponse = {
+        body: {
+          data: {
+            isError: false,
+            content: [
+              {
+                text: OSS_URL
+              }
+            ]
+          },
+          requestId: 'screenshot-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      const result = await mockUI.screenshot();
+
+      expect(result.data).toBe(OSS_URL);
+      expect(result.requestId).toBe('screenshot-request-id');
+    });
+  });
+
+  describe('test_screenshot_failure', () => {
+    it('should handle screenshot failure', async () => {
+      const mockResponse = {
+        body: {
+          data: {
+            isError: true,
+            content: [
+              {
+                text: "Error in response: Failed to take screenshot"
+              }
+            ]
+          }
+        },
+        statusCode: 500
+      };
+
+      mockSession.getClient().callMcpTool.resolves(mockResponse);
+
+      await expect(mockUI.screenshot())
+        .rejects.toThrow('Error in response: Failed to take screenshot');
+    });
+  });
+
+  describe('test_screenshot_exception_handling', () => {
+    it('should handle screenshot exception', async () => {
+      mockSession.getClient().callMcpTool.rejects(new Error('Network error'));
+
+      await expect(mockUI.screenshot())
+        .rejects.toThrow('Failed to call system_screenshot: Error: Network error');
     });
   });
 });

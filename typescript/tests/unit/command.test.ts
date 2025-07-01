@@ -1,266 +1,216 @@
-import { AgentBay, Session } from '../../src';
-import { getTestApiKey, containsToolNotFound } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
 
-// Helper function to check if content has error
-function hasErrorInContent(content: string): boolean {
-  if (!content) {
-    return true;
-  }
+import { Command } from '../../src/command/command';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
-  // Check if content has error text
-  return content.includes('error') || content.includes('Error');
-}
+describe('TestCommand', () => {
+  let mockCommand: Command;
+  let mockSession: any;
+  let sandbox: sinon.SinonSandbox;
 
-describe('Command', () => {
-  describe('runCode', () => {
-    let agentBay: AgentBay;
-    let session: Session;
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
 
-    beforeEach(async () => {
-      const apiKey = getTestApiKey();
-      agentBay = new AgentBay({ apiKey });
+    mockSession = {
+      getAPIKey: sandbox.stub().returns('dummy_key'),
+      getClient: sandbox.stub(),
+      getSessionId: sandbox.stub().returns('dummy_session')
+    };
 
-      // Create a session with linux_latest image
-      log('Creating a new session for run_code testing...');
-      const createResponse = await agentBay.create({ imageId: 'code_latest' });
-      session = createResponse.data;
-      log(`Session created with ID: ${session.sessionId}`);
-      log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+    mockCommand = new Command(mockSession);
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  describe('test_execute_command_success', () => {
+    it('should execute command successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "line1\nline2\n",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const result = await mockCommand.executeCommand("ls -la");
+
+      expect(result.data).toBe("line1\nline2\n");
+      expect(result.requestId).toBe('test-request-id');
+
+      expect(callMcpToolStub.calledOnceWith(
+        'shell',
+        {
+          command: "ls -la",
+          timeout_ms: 1000
+        },
+        'Failed to execute command'
+      )).toBe(true);
     });
+  });
 
-    afterEach(async () => {
-      // Clean up the session
-      log('Cleaning up: Deleting the session...');
-      try {
-        if(session && session.sessionId) {
-          const deleteResponse = await agentBay.delete(session);
-          log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-        }
-      } catch (error) {
-        log(`Warning: Error deleting session: ${error}`);
-      }
+  describe('test_execute_command_with_custom_timeout', () => {
+    it('should execute command with custom timeout', async () => {
+      const callMcpToolStub = sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "line1\nline2\n",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const customTimeout = 2000;
+      const result = await mockCommand.executeCommand("ls -la", customTimeout);
+
+      expect(result.data).toBe("line1\nline2\n");
+      expect(result.requestId).toBe('test-request-id');
+
+      expect(callMcpToolStub.calledOnceWith(
+        'shell',
+        {
+          command: "ls -la",
+          timeout_ms: customTimeout
+        },
+        'Failed to execute command'
+      )).toBe(true);
     });
+  });
 
-    it.only('should execute Python code', async () => {
-      if (session.command) {
-        // Test with Python code
-        log('Executing Python code...');
-        const pythonCode = `
+  describe('test_execute_command_no_content', () => {
+    it('should handle no content in response', async () => {
+
+      sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: '',
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const result = await mockCommand.executeCommand("ls -la");
+
+      expect(result.data).toBe('');
+      expect(result.requestId).toBe('test-request-id');
+    });
+  });
+
+  describe('test_execute_command_exception', () => {
+    it('should handle command execution exception', async () => {
+
+      sandbox.stub(mockCommand as any, 'callMcpTool')
+        .rejects(new Error('mock error'));
+
+      await expect(mockCommand.executeCommand("ls -la"))
+        .rejects.toThrow('mock error');
+    });
+  });
+
+  describe('test_run_code_success_python', () => {
+    it('should run Python code successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "Hello, world!\n2\n",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const code = `
 print("Hello, world!")
 x = 1 + 1
 print(x)
 `;
+      const result = await mockCommand.runCode(code, "python");
 
-        try {
-          // Test with default timeout
-          const runCodeResponse = await session.command.runCode(pythonCode, 'python');
-          log(`Python code execution output:`, runCodeResponse.data);
-          log(`Run Code RequestId: ${runCodeResponse.requestId || 'undefined'}`);
+      expect(result.data).toBe("Hello, world!\n2\n");
+      expect(result.requestId).toBe('test-request-id');
 
-          // Verify that the response contains requestId
-          expect(runCodeResponse.requestId).toBeDefined();
-          expect(typeof runCodeResponse.requestId).toBe('string');
-
-          // Check if output has valid format
-          expect(runCodeResponse.data).toBeDefined();
-          expect(hasErrorInContent(runCodeResponse.data)).toBe(false);
-
-          // Verify the response contains expected output
-          expect(runCodeResponse.data.includes('Hello, world!')).toBe(true);
-          expect(runCodeResponse.data.includes('2')).toBe(true);
-          log('Python code execution verified successfully');
-        } catch (error) {
-          log(`Note: Python code execution failed: ${error}`);
-          // Don't fail the test if code execution is not supported
-        }
-      } else {
-        log('Note: Command interface is nil, skipping run_code test');
-      }
-    });
-
-    it.only('should execute JavaScript code with custom timeout', async () => {
-      if (session.command) {
-        // Test with JavaScript code
-        log('Executing JavaScript code with custom timeout...');
-        const jsCode = `
-          console.log("Hello, world!");
-          const x = 1 + 1;
-          console.log(x);
-          `;
-
-        try {
-          // Test with custom timeout (10 minutes)
-          const customTimeout = 600;
-          const runCodeResponse = await session.command.runCode(jsCode, 'javascript', customTimeout);
-          log(`JavaScript code execution output:`, runCodeResponse.data);
-          log(`Run Code RequestId: ${runCodeResponse.requestId || 'undefined'}`);
-
-          // Verify that the response contains requestId
-          expect(runCodeResponse.requestId).toBeDefined();
-          expect(typeof runCodeResponse.requestId).toBe('string');
-
-          // Check if output has valid format
-          expect(runCodeResponse.data).toBeDefined();
-          expect(hasErrorInContent(runCodeResponse.data)).toBe(false);
-
-          // Verify the response contains expected output
-          expect(runCodeResponse.data.includes('Hello, world!')).toBe(true);
-          expect(runCodeResponse.data.includes('2')).toBe(true);
-          log('JavaScript code execution verified successfully');
-        } catch (error) {
-          log(`Note: JavaScript code execution failed: ${error}`);
-          // Don't fail the test if code execution is not supported
-        }
-      } else {
-        log('Note: Command interface is nil, skipping run_code test');
-      }
-    });
-
-    it.only('should handle invalid language', async () => {
-      if (session.command) {
-        // Test with invalid language
-        log('Testing with invalid language...');
-
-        try {
-          await session.command.runCode('print("test")', 'invalid_language');
-          // If we get here, the test should fail
-          log('Error: Expected error for invalid language, but got success');
-          expect(false).toBe(true); // This should fail the test
-        } catch (error) {
-          // This is the expected behavior
-          log(`Correctly received error for invalid language: ${error}`);
-          expect(error).toBeDefined();
-        }
-      } else {
-        log('Note: Command interface is nil, skipping run_code test');
-      }
+      expect(callMcpToolStub.calledOnceWith(
+        'run_code',
+        {
+          code: code,
+          language: "python",
+          timeout_s: 300
+        },
+        'Failed to execute code'
+      )).toBe(true);
     });
   });
 
-  describe('executeCommand', () => {
-    let agentBay: AgentBay;
-    let session: Session;
+  describe('test_run_code_success_javascript', () => {
+    it('should run JavaScript code successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "Hello, world!\n2\n",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-    beforeEach(async () => {
-      const apiKey = getTestApiKey();
-      agentBay = new AgentBay({ apiKey });
+      const code = `
+console.log("Hello, world!");
+const x = 1 + 1;
+console.log(x);
+`;
+      const customTimeout = 600;
+      const result = await mockCommand.runCode(code, "javascript", customTimeout);
 
-      // Create a session with linux_latest image
-      log('Creating a new session for command testing...');
-      const createResponse = await agentBay.create({ imageId: 'linux_latest' });
-      session = createResponse.data;
-      log(`Session created with ID: ${session.sessionId}`);
-      log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+      expect(result.data).toBe("Hello, world!\n2\n");
+      expect(result.requestId).toBe('test-request-id');
+
+      expect(callMcpToolStub.calledOnceWith(
+        'run_code',
+        {
+          code: code,
+          language: "javascript",
+          timeout_s: customTimeout
+        },
+        'Failed to execute code'
+      )).toBe(true);
     });
+  });
 
-    afterEach(async () => {
-      // Clean up the session
-      log('Cleaning up: Deleting the session...');
-      try {
-        if(session && session.sessionId) {
-          const deleteResponse = await agentBay.delete(session);
-          log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-        }
-      } catch (error) {
-        log(`Warning: Error deleting session: ${error}`);
-      }
+  describe('test_run_code_invalid_language', () => {
+    it('should handle invalid language', async () => {
+
+      await expect(mockCommand.runCode("print('test')", "invalid_language"))
+        .rejects.toThrow('Unsupported language');
     });
-    it.only('should execute a command', async () => {
-      if (session.command) {
-        // Test with echo command (works on all platforms)
-        log('Executing echo command...');
-        const testString = 'AgentBay SDK Test';
-        const echoCmd = `echo '${testString}'`;
+  });
 
-        try {
-          // Increase the command execution timeout to 10 seconds (10000ms)
-          const executeResponse = await session.command.executeCommand(echoCmd, 10000);
-          log(`Echo command output:`, executeResponse.data);
-          log(`Execute Command RequestId: ${executeResponse.requestId || 'undefined'}`);
+  describe('test_run_code_no_output', () => {
+    it('should handle no output in response', async () => {
 
-          // Verify that the response contains requestId
-          expect(executeResponse.requestId).toBeDefined();
-          expect(typeof executeResponse.requestId).toBe('string');
+      sandbox.stub(mockCommand as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: '',
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-          // Check if output has valid format
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(false);
+      const result = await mockCommand.runCode("print('test')", "python");
 
-          // Verify the output contains the test string
-          expect(executeResponse.data.includes(testString)).toBe(true);
-          log('Echo command verified successfully');
-        } catch (error) {
-          log(`Note: Echo command failed: ${error}`);
-          // Don't fail the test if command execution is not supported
-        }
-      } else {
-        log('Note: Command interface is nil, skipping command test');
-      }
+      expect(result.data).toBe('');
+      expect(result.requestId).toBe('test-request-id');
     });
+  });
 
-    it.only('should handle command execution errors', async () => {
-      if (session.command) {
-        // Test with an invalid command
-        log('Executing invalid command...');
-        const invalidCmd = 'invalid_command_that_does_not_exist';
+  describe('test_run_code_exception', () => {
+    it('should handle code execution exception', async () => {
 
-        try {
-          const executeResponse = await session.command.executeCommand(invalidCmd);
-          log(`Invalid command output:`, executeResponse.data);
-          log(`Execute Invalid Command RequestId: ${executeResponse.requestId || 'undefined'}`);
+      sandbox.stub(mockCommand as any, 'callMcpTool')
+        .rejects(new Error('mock error'));
 
-          // Verify that the response contains requestId
-          expect(executeResponse.requestId).toBeDefined();
-
-          // Just check that we got a content array back
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(true);
-
-          // For invalid commands, the output may contain error information, which is fine
-        } catch (error) {
-          // If the API rejects the promise, that's also an acceptable behavior for an invalid command
-          log(`Invalid command failed as expected: ${error}`);
-          expect(error).toBeDefined();
-        }
-      } else {
-        log('Note: Command interface is nil, skipping command error test');
-      }
-    });
-
-    it.only('should execute a command with arguments', async () => {
-      if (session.command) {
-        // Test with a command that takes arguments
-        log('Executing command with arguments...');
-        const arg1 = 'hello';
-        const arg2 = 'world';
-        const cmd = `echo ${arg1} ${arg2}`;
-
-        try {
-          // Increase the command execution timeout to 10 seconds (10000ms)
-          const executeResponse = await session.command.executeCommand(cmd, 10000);
-          log(`Command with arguments output:`, executeResponse.data);
-          log(`Execute Command with Args RequestId: ${executeResponse.requestId || 'undefined'}`);
-
-          // Verify that the response contains requestId
-          expect(executeResponse.requestId).toBeDefined();
-          expect(typeof executeResponse.requestId).toBe('string');
-
-          // Check if output has valid format
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(false);
-
-          // Verify the output contains both arguments
-          expect(executeResponse.data.includes(arg1)).toBe(true);
-          expect(executeResponse.data.includes(arg2)).toBe(true);
-          log('Command with arguments verified successfully');
-        } catch (error) {
-          log(`Note: Command with arguments failed: ${error}`);
-          // Don't fail the test if command execution is not supported
-        }
-      } else {
-        log('Note: Command interface is nil, skipping command with arguments test');
-      }
+      await expect(mockCommand.runCode("print('test')", "python"))
+        .rejects.toThrow('mock error');
     });
   });
 });

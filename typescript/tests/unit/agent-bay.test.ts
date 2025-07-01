@@ -1,6 +1,6 @@
 import { AgentBay, Session, AuthenticationError, APIError } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
 import { log } from '../../src/utils/logger';
+import * as sinon from 'sinon';
 
 // Define Node.js process if it's not available
 declare namespace NodeJS {
@@ -15,14 +15,99 @@ declare var process: {
   }
 };
 
+// Mock data for tests
+const mockSessionData = {
+  sessionId: 'mock-session-123',
+  resourceUrl: 'mock-resource-url'
+};
+
+const mockSessionAData = {
+  sessionId: 'mock-session-a-456',
+  resourceUrl: 'mock-resource-url-a'
+};
+
+const mockSessionBData = {
+  sessionId: 'mock-session-b-789',
+  resourceUrl: 'mock-resource-url-b'
+};
+
+// Mock config data
+const mockConfigData = {
+  region_id: 'mock-region',
+  endpoint: 'mock-endpoint',
+  timeout_ms: 30000
+};
+
 describe('AgentBay', () => {
+  let mockClient: any;
+  let createMcpSessionStub: sinon.SinonStub;
+  let listSessionStub: sinon.SinonStub;
+  let releaseMcpSessionStub: sinon.SinonStub;
+  let loadConfigStub: sinon.SinonStub;
+  let clientConstructorStub: sinon.SinonStub;
+  let contextServiceConstructorStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    // Create mock client
+    mockClient = {
+      createMcpSession: sinon.stub(),
+      listSession: sinon.stub(),
+      releaseMcpSession: sinon.stub()
+    };
+
+    // Get references to stubs for easier access
+    createMcpSessionStub = mockClient.createMcpSession;
+    listSessionStub = mockClient.listSession;
+    releaseMcpSessionStub = mockClient.releaseMcpSession;
+
+    // Mock loadConfig function
+    loadConfigStub = sinon.stub(require('../../src/config'), 'loadConfig').returns(mockConfigData);
+
+    // Mock Client constructor
+    clientConstructorStub = sinon.stub().returns(mockClient);
+    sinon.stub(require('../../src/api/client'), 'Client').callsFake(clientConstructorStub);
+
+    // Mock ContextService constructor
+    const mockContextService = {
+      // Add any methods that might be called on ContextService
+    };
+    contextServiceConstructorStub = sinon.stub().returns(mockContextService);
+    sinon.stub(require('../../src/context'), 'ContextService').callsFake(contextServiceConstructorStub);
+
+    // Mock AgentBay's getClient method to return our mock client
+    sinon.stub(AgentBay.prototype, 'getClient').returns(mockClient);
+
+    // Mock Session's getAPIKey method to avoid real API key issues
+    sinon.stub(Session.prototype, 'getAPIKey').returns('mock-api-key');
+
+    log('Mock client setup complete');
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
   describe('constructor', () => {
     it.only('should initialize with API key from options', () => {
-      const apiKey = getTestApiKey();
+      const apiKey = 'test-api-key';
       const agentBay = new AgentBay({ apiKey });
       log(apiKey);
 
       expect(agentBay.getAPIKey()).toBe(apiKey);
+
+      // Verify that loadConfig was called
+      expect(loadConfigStub.calledOnce).toBe(true);
+
+      // Verify that Client was constructed with correct config
+      expect(clientConstructorStub.calledOnce).toBe(true);
+      const clientConfig = clientConstructorStub.getCall(0).args[0];
+      expect(clientConfig.regionId).toBe(mockConfigData.region_id);
+      expect(clientConfig.endpoint).toBe(mockConfigData.endpoint);
+      expect(clientConfig.readTimeout).toBe(mockConfigData.timeout_ms);
+      expect(clientConfig.connectTimeout).toBe(mockConfigData.timeout_ms);
+
+      // Verify that ContextService was constructed
+      expect(contextServiceConstructorStub.calledOnce).toBe(true);
     });
 
     it.only('should initialize with API key from environment variable', () => {
@@ -32,6 +117,11 @@ describe('AgentBay', () => {
       try {
         const agentBay = new AgentBay();
         expect(agentBay.getAPIKey()).toBe('env_api_key');
+
+        // Verify dependencies were called
+        expect(loadConfigStub.called).toBe(true);
+        expect(clientConstructorStub.called).toBe(true);
+        expect(contextServiceConstructorStub.called).toBe(true);
       } finally {
         // Restore original environment
         if (originalEnv) {
@@ -62,11 +152,37 @@ describe('AgentBay', () => {
     let session: Session;
 
     beforeEach(() => {
-      const apiKey = getTestApiKey();
+      const apiKey = 'test-api-key';
       agentBay = new AgentBay({ apiKey });
     });
 
     it.only('should create, list, and delete a session with requestId', async () => {
+      // Setup mock response for create session
+      const createMockResponse = {
+        statusCode: 200,
+        body: {
+          data: mockSessionData,
+          requestId: 'mock-request-id-create'
+        }
+      };
+
+      // Setup mock response for delete session
+      const deleteMockResponse = {
+        statusCode: 200,
+        body: {
+          requestId: 'mock-request-id-delete'
+        }
+      };
+
+      createMcpSessionStub.resolves(createMockResponse);
+      releaseMcpSessionStub.resolves(deleteMockResponse);
+
+      // Verify mock setup before test
+      log('Verifying mock setup...');
+      expect(createMcpSessionStub).toBeDefined();
+      expect(releaseMcpSessionStub).toBeDefined();
+      expect(typeof createMcpSessionStub.resolves).toBe('function');
+
       // Create a session
       log('Creating a new session...');
       const createResponse = await agentBay.create();
@@ -74,42 +190,65 @@ describe('AgentBay', () => {
       log(`Session created with ID: ${session.sessionId}`);
       log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
 
+      // Verify that the mock was called
+      expect(createMcpSessionStub.called).toBe(true);
+      log(`createMcpSessionStub called: ${createMcpSessionStub.called}`);
+      log(`createMcpSessionStub callCount: ${createMcpSessionStub.callCount}`);
+
       // Verify that the response contains requestId
       expect(createResponse.requestId).toBeDefined();
       expect(typeof createResponse.requestId).toBe('string');
-      expect(createResponse.requestId!.length).toBeGreaterThan(0);
+      expect(createResponse.requestId).toBe('mock-request-id-create');
 
-      // Ensure session ID is not empty
-      expect(session.sessionId).toBeDefined();
-      expect(session.sessionId.length).toBeGreaterThan(0);
+      // Ensure session ID matches mock data
+      expect(session.sessionId).toBe(mockSessionData.sessionId);
+      expect(session.resourceUrl).toBe(mockSessionData.resourceUrl);
+
+      // Verify session uses mock client
+      expect(session.client).toBe(mockClient);
+      log(`Session client is mockClient: ${session.client === mockClient}`);
 
       // List sessions
       log('Listing sessions...');
       const sessions = agentBay.list();
 
-      // Ensure at least one session (the one we just created)
-      expect(sessions.length).toBeGreaterThanOrEqual(1);
-
-      // Check if our created session is in the list
-      const found = sessions.some(s => s.sessionId === session.sessionId);
-      expect(found).toBe(true);
+      // Ensure the session we created is in the list
+      expect(sessions.length).toBe(1);
+      expect(sessions[0].sessionId).toBe(session.sessionId);
 
       // Delete the session
       log('Deleting the session...');
       const deleteResponse = await agentBay.delete(session);
       log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
 
+      // Verify that the delete mock was called
+      expect(releaseMcpSessionStub.called).toBe(true);
+      log(`releaseMcpSessionStub called: ${releaseMcpSessionStub.called}`);
+      log(`releaseMcpSessionStub callCount: ${releaseMcpSessionStub.callCount}`);
+
       // Verify that the delete response contains requestId
       expect(deleteResponse.requestId).toBeDefined();
       expect(typeof deleteResponse.requestId).toBe('string');
-      expect(deleteResponse.requestId!.length).toBeGreaterThan(0);
+      expect(deleteResponse.requestId).toBe('mock-request-id-delete');
 
       // List sessions again to ensure it's deleted
       const sessionsAfterDelete = agentBay.list();
 
       // Check if the deleted session is not in the list
-      const stillExists = sessionsAfterDelete.some(s => s.sessionId === session.sessionId);
-      expect(stillExists).toBe(false);
+      expect(sessionsAfterDelete.length).toBe(0);
+
+      // Verify API calls were made with correct parameters
+      expect(createMcpSessionStub.calledOnce).toBe(true);
+      expect(releaseMcpSessionStub.calledOnce).toBe(true);
+
+      const createCallArgs = createMcpSessionStub.getCall(0).args[0];
+      expect(createCallArgs.authorization).toBe('Bearer test-api-key');
+
+      const deleteCallArgs = releaseMcpSessionStub.getCall(0).args[0];
+      expect(deleteCallArgs.sessionId).toBe(mockSessionData.sessionId);
+      expect(deleteCallArgs.authorization).toBe('Bearer mock-api-key');
+
+      log('All mock verifications passed successfully');
     });
   });
 
@@ -119,42 +258,75 @@ describe('AgentBay', () => {
     let sessionB: Session;
 
     beforeEach(async () => {
-      try{
-        const apiKey = getTestApiKey();
-        agentBay = new AgentBay({ apiKey });
-        const labelsA = {
-          environment: 'development',
-          owner: 'team-a',
-          project: 'project-x'
-        };
+      const apiKey = 'test-api-key';
+      agentBay = new AgentBay({ apiKey });
 
-        const labelsB = {
-          environment: 'testing',
-          owner: 'team-b',
-          project: 'project-y'
-        };
+      // Setup mock responses for creating sessions
+      const createMockResponseA = {
+        statusCode: 200,
+        body: {
+          data: mockSessionAData,
+          requestId: 'mock-request-id-create-a'
+        }
+      };
 
-        // Create session with labels A
-        log('Creating session with labels A...');
-        const createResponseA = await agentBay.create({ labels: labelsA });
-        sessionA = createResponseA.data;
-        log(`Session created with ID: ${sessionA.sessionId}`);
-        log(`Create Session A RequestId: ${createResponseA.requestId || 'undefined'}`);
+      const createMockResponseB = {
+        statusCode: 200,
+        body: {
+          data: mockSessionBData,
+          requestId: 'mock-request-id-create-b'
+        }
+      };
 
-        // Create session with labels B
-        const createResponseB = await agentBay.create({ labels: labelsB });
-        sessionB = createResponseB.data;
-        log(`Session created with ID: ${sessionB.sessionId}`);
-        log(`Create Session B RequestId: ${createResponseB.requestId || 'undefined'}`);
+      createMcpSessionStub.onFirstCall().resolves(createMockResponseA);
+      createMcpSessionStub.onSecondCall().resolves(createMockResponseB);
 
-      }catch(error){
-        log(`Failed to constructor: ${error}`)
-      }
+      const labelsA = {
+        environment: 'development',
+        owner: 'team-a',
+        project: 'project-x'
+      };
+
+      const labelsB = {
+        environment: 'testing',
+        owner: 'team-b',
+        project: 'project-y'
+      };
+
+      // Create session with labels A
+      log('Creating session with labels A...');
+      const createResponseA = await agentBay.create({ labels: labelsA });
+      sessionA = createResponseA.data;
+      log(`Session created with ID: ${sessionA.sessionId}`);
+      log(`Create Session A RequestId: ${createResponseA.requestId || 'undefined'}`);
+
+      // Create session with labels B
+      const createResponseB = await agentBay.create({ labels: labelsB });
+      sessionB = createResponseB.data;
+      log(`Session created with ID: ${sessionB.sessionId}`);
+      log(`Create Session B RequestId: ${createResponseB.requestId || 'undefined'}`);
     });
 
     afterEach(async () => {
       // Clean up sessions
       log('Cleaning up sessions...');
+
+      // Setup mock responses for delete operations
+      const deleteMockResponseA = {
+        statusCode: 200,
+        body: { requestId: 'mock-request-id-delete-a' }
+      };
+
+      const deleteMockResponseB = {
+        statusCode: 200,
+        body: { requestId: 'mock-request-id-delete-b' }
+      };
+
+      // Reset the stub to handle multiple calls
+      releaseMcpSessionStub.reset();
+      releaseMcpSessionStub.onFirstCall().resolves(deleteMockResponseA);
+      releaseMcpSessionStub.onSecondCall().resolves(deleteMockResponseB);
+
       if (sessionA) {
         try {
           const deleteResponseA = await agentBay.delete(sessionA);
@@ -175,82 +347,117 @@ describe('AgentBay', () => {
     });
 
     it.only('should list sessions by labels with requestId', async () => {
-
       // Test 1: List all sessions
       const allSessions = agentBay.list();
       log(`Found ${allSessions.length} sessions in total`);
+      expect(allSessions.length).toBe(2);
 
       // Test 2: List sessions by environment=development label
-      try {
-        const devSessionsResponse = await agentBay.listByLabels({ environment: 'development' });
-        log(`List Sessions by environment=development RequestId: ${devSessionsResponse.requestId || 'undefined'}`);
+      const devSessionsResponse = {
+        statusCode: 200,
+        body: {
+          data: [mockSessionAData],
+          requestId: 'mock-request-id-list-dev'
+        }
+      };
 
-        // Verify that the response contains requestId
-        expect(devSessionsResponse.requestId).toBeDefined();
-        expect(typeof devSessionsResponse.requestId).toBe('string');
-        expect(devSessionsResponse.requestId!.length).toBeGreaterThan(0);
+      listSessionStub.resolves(devSessionsResponse);
 
-        // Verify that session A is in the results
-        const foundSessionA = devSessionsResponse.data.some(s => s.sessionId === sessionA.sessionId);
-        expect(foundSessionA).toBe(true);
-      } catch (error) {
-        log(`Error listing sessions by environment=development: ${error}`);
-      }
+      const devSessions = await agentBay.listByLabels({ environment: 'development' });
+      log(`List Sessions by environment=development RequestId: ${devSessions.requestId || 'undefined'}`);
+
+      // Verify that the response contains requestId
+      expect(devSessions.requestId).toBeDefined();
+      expect(typeof devSessions.requestId).toBe('string');
+      expect(devSessions.requestId).toBe('mock-request-id-list-dev');
+
+      // Verify that session A is in the results
+      expect(devSessions.data.length).toBe(1);
+      expect(devSessions.data[0].sessionId).toBe(mockSessionAData.sessionId);
+
+      // Verify API call parameters
+      expect(listSessionStub.calledOnce).toBe(true);
+      const listCallArgs = listSessionStub.getCall(0).args[0];
+      expect(listCallArgs.authorization).toBe('Bearer test-api-key');
+      expect(JSON.parse(listCallArgs.labels)).toEqual({ environment: 'development' });
 
       // Test 3: List sessions by owner=team-b label
-      try {
-        const teamBSessionsResponse = await agentBay.listByLabels({ owner: 'team-b' });
-        log(`List Sessions by owner=team-b RequestId: ${teamBSessionsResponse.requestId || 'undefined'}`);
+      const teamBSessionsResponse = {
+        statusCode: 200,
+        body: {
+          data: [mockSessionBData],
+          requestId: 'mock-request-id-list-team-b'
+        }
+      };
 
-        // Verify that the response contains requestId
-        expect(teamBSessionsResponse.requestId).toBeDefined();
+      listSessionStub.reset();
+      listSessionStub.resolves(teamBSessionsResponse);
 
-        // Verify that session B is in the results
-        const foundSessionB = teamBSessionsResponse.data.some(s => s.sessionId === sessionB.sessionId);
-        expect(foundSessionB).toBe(true);
-      } catch (error) {
-        log(`Error listing sessions by owner=team-b: ${error}`);
-      }
+      const teamBSessions = await agentBay.listByLabels({ owner: 'team-b' });
+      log(`List Sessions by owner=team-b RequestId: ${teamBSessions.requestId || 'undefined'}`);
 
-      // Test 4: List sessions with multiple labels (environment=testing AND project=project-y)
-      try {
-        const multiLabelSessionsResponse = await agentBay.listByLabels({
-          environment: 'testing',
-          project: 'project-y'
-        });
-        log(`Found ${multiLabelSessionsResponse.data.length} sessions with environment=testing AND project=project-y`);
-        log(`List Sessions by multiple labels RequestId: ${multiLabelSessionsResponse.requestId || 'undefined'}`);
+      // Verify that the response contains requestId
+      expect(teamBSessions.requestId).toBeDefined();
+      expect(teamBSessions.requestId).toBe('mock-request-id-list-team-b');
 
-        // Verify that the response contains requestId
-        expect(multiLabelSessionsResponse.requestId).toBeDefined();
+      // Verify that session B is in the results
+      expect(teamBSessions.data.length).toBe(1);
+      expect(teamBSessions.data[0].sessionId).toBe(mockSessionBData.sessionId);
 
-        // Verify that session B is in the results and session A is not
-        const foundSessionA = multiLabelSessionsResponse.data.some(s => s.sessionId === sessionA.sessionId);
-        const foundSessionB = multiLabelSessionsResponse.data.some(s => s.sessionId === sessionB.sessionId);
+      // Test 4: List sessions with multiple labels
+      const multiLabelSessionsResponse = {
+        statusCode: 200,
+        body: {
+          data: [mockSessionBData],
+          requestId: 'mock-request-id-list-multi'
+        }
+      };
 
-        expect(foundSessionA).toBe(false);
-        expect(foundSessionB).toBe(true);
-      } catch (error) {
-        log(`Error listing sessions by multiple labels: ${error}`);
-      }
+      listSessionStub.reset();
+      listSessionStub.resolves(multiLabelSessionsResponse);
+
+      const multiLabelSessions = await agentBay.listByLabels({
+        environment: 'testing',
+        project: 'project-y'
+      });
+      log(`Found ${multiLabelSessions.data.length} sessions with environment=testing AND project=project-y`);
+      log(`List Sessions by multiple labels RequestId: ${multiLabelSessions.requestId || 'undefined'}`);
+
+      // Verify that the response contains requestId
+      expect(multiLabelSessions.requestId).toBeDefined();
+      expect(multiLabelSessions.requestId).toBe('mock-request-id-list-multi');
+
+      // Verify that only session B is in the results
+      expect(multiLabelSessions.data.length).toBe(1);
+      expect(multiLabelSessions.data[0].sessionId).toBe(mockSessionBData.sessionId);
 
       // Test 5: List sessions with non-existent label
-      try {
-        const nonExistentSessionsResponse = await agentBay.listByLabels({ 'non-existent': 'value' });
-        log(`Found ${nonExistentSessionsResponse.data.length} sessions with non-existent label`);
-        log(`List Sessions by non-existent label RequestId: ${nonExistentSessionsResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId even for empty results
-        expect(nonExistentSessionsResponse.requestId).toBeDefined();
-
-        if (nonExistentSessionsResponse.data.length > 0) {
-          log('Warning: Found sessions with non-existent label, this might indicate an issue');
+      const nonExistentSessionsResponse = {
+        statusCode: 200,
+        body: {
+          data: [],
+          requestId: 'mock-request-id-list-empty'
         }
-      } catch (error) {
-        log(`Error listing sessions by non-existent label: ${error}`);
-      }
+      };
+
+      listSessionStub.reset();
+      listSessionStub.resolves(nonExistentSessionsResponse);
+
+      const nonExistentSessions = await agentBay.listByLabels({ 'non-existent': 'value' });
+      log(`Found ${nonExistentSessions.data.length} sessions with non-existent label`);
+      log(`List Sessions by non-existent label RequestId: ${nonExistentSessions.requestId || 'undefined'}`);
+
+      // Verify that the response contains requestId even for empty results
+      expect(nonExistentSessions.requestId).toBeDefined();
+      expect(nonExistentSessions.requestId).toBe('mock-request-id-list-empty');
+
+      // Verify empty results
+      expect(nonExistentSessions.data.length).toBe(0);
+
+      // Verify API calls were made with correct parameters
+      expect(listSessionStub.called).toBe(true);
 
       log('Test completed successfully');
-    },);
+    });
   });
 });

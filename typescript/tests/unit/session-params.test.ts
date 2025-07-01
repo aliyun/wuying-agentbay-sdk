@@ -1,97 +1,117 @@
 import { AgentBay, Session } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
 describe('Session Parameters', () => {
-  let agentBay: AgentBay;
-  let session: Session;
+  let mockAgentBay: any;
+  let mockSession: Session;
+  let mockClient: any;
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(async() => {
-    const apiKey = getTestApiKey();
-    agentBay = new AgentBay({ apiKey });
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+
+    mockClient = {
+      createMcpSession: sandbox.stub(),
+      releaseMcpSession: sandbox.stub()
+    };
+
+    mockAgentBay = {
+      getAPIKey: sandbox.stub().returns('test-api-key'),
+      getClient: sandbox.stub().returns(mockClient),
+      removeSession: sandbox.stub(),
+      create: sandbox.stub()
+    };
+
+    mockSession = new Session(mockAgentBay, 'test-session-id');
   });
-  afterEach(async () => {
-    try {
-      if(session){
-        const deleteResponse = await session.delete();
-        log('Session deleted sucessfully');
-        log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-      }
-    } catch (error) {
-      log(`Error deleting session: ${error}`);
-    }
+
+  afterEach(() => {
+    sandbox.restore();
   });
+
+
 
   describe('create method options', () => {
     it.only('should accept empty options', async () => {
-      try{
-        const createResponse = await agentBay.create();
-        session = createResponse.data;
-        log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+      // Mock create response
+      const mockCreateResponse = {
+        data: mockSession,
+        requestId: 'create-request-id'
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
 
-        // Verify that the response contains requestId
-        expect(createResponse.requestId).toBeDefined();
-        expect(typeof createResponse.requestId).toBe('string');
-      }catch(error){
-        log(`Error creating session: ${error}`);
-      }
+      const createResponse = await mockAgentBay.create();
 
+      // Verify that the response contains requestId
+      expect(createResponse.requestId).toBe('create-request-id');
+      expect(typeof createResponse.requestId).toBe('string');
     });
 
     it.only('should accept contextId option', async () => {
-      try{
-        const contextId = 'test-context-id';
-        const createResponse = await agentBay.create({ contextId });
-        session = createResponse.data;
-        log(`Create Session with ContextId RequestId: ${createResponse.requestId || 'undefined'}`);
-      }catch(error:any){
-        expect(error.message).toMatch(/Failed to create session/);
-      }
+      const contextId = 'test-context-id';
 
+      // Mock create response with contextId
+      const mockCreateResponse = {
+        data: mockSession,
+        requestId: 'create-with-context-request-id'
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create({ contextId });
+      expect(createResponse.requestId).toBe('create-with-context-request-id');
+      expect(mockAgentBay.create.calledOnceWith({ contextId })).toBe(true);
     });
 
     it.only('should accept labels option', async () => {
-      try{
+      const labels = { username: 'alice', project: 'my-project' };
 
-        const labels = { username: 'alice', project: 'my-project' };
-        const createResponse = await agentBay.create({ labels });
-        session = createResponse.data;
-        log(`Create Session with Labels RequestId: ${createResponse.requestId || 'undefined'}`);
-      }catch(error:any){
-        log(`Error creating session with labels: ${error}`);
-        expect(error.message).toMatch(/Failed to create session/);
-      }
+      // Mock create response with labels
+      const mockCreateResponse = {
+        data: mockSession,
+        requestId: 'create-with-labels-request-id'
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
 
+      const createResponse = await mockAgentBay.create({ labels });
+      expect(createResponse.requestId).toBe('create-with-labels-request-id');
+      expect(mockAgentBay.create.calledOnceWith({ labels })).toBe(true);
     });
 
     it.only('should accept both contextId and labels options', async () => {
-      try{
-        const contextId = 'test-context-id';
-        const labels = { username: 'alice', project: 'my-project' };
-        const createResponse = await agentBay.create({ contextId, labels });
-        session = createResponse.data;
-        log(`Create Session with ContextId and Labels RequestId: ${createResponse.requestId || 'undefined'}`);
-      }catch(error:any){
-        log(`Error creating session with contextId and labels: ${error}`);
-        expect(error.message).toMatch(/Failed to create session/);
-      }
+      const contextId = 'test-context-id';
+      const labels = { username: 'alice', project: 'my-project' };
+
+      // Mock create response with both options
+      const mockCreateResponse = {
+        data: mockSession,
+        requestId: 'create-with-both-request-id'
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create({ contextId, labels });
+      expect(createResponse.requestId).toBe('create-with-both-request-id');
+      expect(mockAgentBay.create.calledOnceWith({ contextId, labels })).toBe(true);
     });
   });
 
   describe('session creation with options', () => {
     it.only('should create a session with the specified options', async () => {
-      try{
-        const createResponse = await agentBay.create({
-          contextId: 'test-context-id',
-          labels: { username: 'alice' }
-        });
-        session = createResponse.data;
-        log(`Create Session with Options RequestId: ${createResponse.requestId || 'undefined'}`);
-      }catch(error:any){
-        log(`Error creating session with options: ${error}`);
-        expect(error.message).toMatch(/Failed to create session/);
-      }
+      const options = {
+        contextId: 'test-context-id',
+        labels: { username: 'alice' }
+      };
 
+      // Mock create response with options
+      const mockCreateResponse = {
+        data: mockSession,
+        requestId: 'create-with-options-request-id'
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create(options);
+      expect(createResponse.requestId).toBe('create-with-options-request-id');
+      expect(mockAgentBay.create.calledOnceWith(options)).toBe(true);
     });
   });
 });

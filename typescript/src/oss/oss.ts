@@ -120,7 +120,7 @@ export class Oss {
       return result;
     } catch (error) {
       logError(`Error calling CallMcpTool - ${toolName}:`, error);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
+      throw new APIError(`Failed to call MCP tool ${toolName}: ${error}`);
     }
   }
 

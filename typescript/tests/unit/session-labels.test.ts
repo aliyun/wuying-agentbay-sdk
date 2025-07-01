@@ -1,186 +1,223 @@
-import { AgentBay, Session } from '../../src';
-import { getTestApiKey, generateUniqueId } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { Session } from '../../src/session';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
 describe('Session Labels', () => {
-  let agentBay: AgentBay;
-  let session: Session;
-  let self: any;
+  let mockSession: Session;
+  let mockAgentBay: any;
+  let mockClient: any;
+  let sandbox: sinon.SinonSandbox;
   let labels: Record<string, string>;
 
-  beforeEach(async () => {
-    // Create a real AgentBay instance with test API key
-    const apiKey = getTestApiKey();
-    agentBay = new AgentBay({ apiKey });
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
 
-    // Create a real session
-    log('Creating a new session for session labels testing...');
-    const createResponse = await agentBay.create();
-    session = createResponse.data;
-    log(`Session created with ID: ${session.sessionId}`);
-    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
-
-    self = { unique_id: generateUniqueId() };
-    labels = {
-      environment: `testing-${self.unique_id}`,
-      version: '1.0.0',
-      project:`labels-test-${self.unique_id}`,
-      onwer:`test-team-${self.unique_id}`
+    mockClient = {
+      setLabel: sandbox.stub(),
+      getLabel: sandbox.stub(),
+      releaseMcpSession: sandbox.stub()
     };
 
+    mockAgentBay = {
+      getAPIKey: sandbox.stub().returns('test-api-key'),
+      getClient: sandbox.stub().returns(mockClient),
+      removeSession: sandbox.stub(),
+      create: sandbox.stub(),
+      delete: sandbox.stub(),
+      listByLabels: sandbox.stub()
+    };
+
+    mockSession = new Session(mockAgentBay, 'test-session-id');
+
+    labels = {
+      environment: 'testing-12345',
+      version: '1.0.0',
+      project: 'labels-test-12345',
+      onwer: 'test-team-12345'
+    };
   });
 
-  afterEach(async () => {
-    log('Cleaning up: Deleting the session...');
-    try {
-      const deleteResponse = await agentBay.delete(session);
-      self = null;
-      log('Session successfully deleted');
-      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-    } catch (error) {
-      log(`Warning: Error deleting session: ${error}`);
-    }
-
+  afterEach(() => {
+    sandbox.restore();
   });
 
   describe('setLabels()', () => {
     it.only('should set labels for a session', async () => {
-      log('Testing setLabels...');
-      try {
-        // Call the method
-        const setLabelsResponse = await session.setLabels(labels);
-        log('Labels set successfully', JSON.stringify(labels));
-        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+      // Mock setLabel response
+      const mockSetLabelsResponse = {
+        body: {
+          requestId: 'set-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.setLabel.resolves(mockSetLabelsResponse);
 
-        // Verify that the response contains requestId
-        expect(setLabelsResponse.requestId).toBeDefined();
-        expect(typeof setLabelsResponse.requestId).toBe('string');
+      // Mock getLabel response for verification
+      const mockGetLabelsResponse = {
+        body: {
+          data: {
+            labels: JSON.stringify(labels)
+          },
+          requestId: 'get-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.getLabel.resolves(mockGetLabelsResponse);
 
-        // Verify by getting the labels
-        const retrievedLabelsResponse = await session.getLabels();
-        log(`Get Labels RequestId: ${retrievedLabelsResponse.requestId || 'undefined'}`);
-        expect(retrievedLabelsResponse.data).toEqual(labels);
-      } catch (error: any) {
-        log(`Error setting labels: ${error.message}`);
-        // Skip test if we can't set labels
-        expect(true).toBe(true);
-      }
+      // Call the method
+      const setLabelsResponse = await mockSession.setLabels(labels);
+
+      // Verify that the response contains requestId
+      expect(setLabelsResponse.requestId).toBe('set-labels-request-id');
+      expect(typeof setLabelsResponse.requestId).toBe('string');
+
+      // Verify by getting the labels
+      const retrievedLabelsResponse = await mockSession.getLabels();
+      expect(retrievedLabelsResponse.data).toEqual(labels);
+      expect(retrievedLabelsResponse.requestId).toBe('get-labels-request-id');
     });
   });
 
   describe('getLabels()', () => {
     it.only('should get labels for a session', async () => {
-      log('Testing getLabels...');
-      try {
-        // First set some labels
-        const setLabelsResponse = await session.setLabels(labels);
-        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+      // Mock setLabel response
+      const mockSetLabelsResponse = {
+        body: {
+          requestId: 'set-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.setLabel.resolves(mockSetLabelsResponse);
 
-        // Then get the labels
-        const getLabelsResponse = await session.getLabels();
-        log(`Retrieved labels: ${JSON.stringify(getLabelsResponse.data)}`);
-        log(`Get Labels RequestId: ${getLabelsResponse.requestId || 'undefined'}`);
+      // Mock getLabel response
+      const mockGetLabelsResponse = {
+        body: {
+          data: {
+            labels: JSON.stringify(labels)
+          },
+          requestId: 'get-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.getLabel.resolves(mockGetLabelsResponse);
 
-        // Verify that the response contains requestId
-        expect(getLabelsResponse.requestId).toBeDefined();
-        expect(typeof getLabelsResponse.requestId).toBe('string');
+      // First set some labels
+      const setLabelsResponse = await mockSession.setLabels(labels);
+      expect(setLabelsResponse.requestId).toBe('set-labels-request-id');
 
-        // Verify the results
-        expect(getLabelsResponse.data).toEqual(labels);
-      } catch (error: any) {
-        log(`Error getting labels: ${error.message}`);
-        // Skip test if we can't get labels
-        expect(true).toBe(true);
-      }
+      // Then get the labels
+      const getLabelsResponse = await mockSession.getLabels();
+
+      // Verify that the response contains requestId
+      expect(getLabelsResponse.requestId).toBe('get-labels-request-id');
+      expect(typeof getLabelsResponse.requestId).toBe('string');
+
+      // Verify the results
+      expect(getLabelsResponse.data).toEqual(labels);
     });
 
     it.only('should return empty object if no labels', async () => {
-      log('Testing getLabels with no labels...');
-      try {
-        // First clear any existing labels
-        const setLabelsResponse = await session.setLabels({});
-        log(`Set Empty Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+      // Mock setLabel response for empty labels
+      const mockSetEmptyLabelsResponse = {
+        body: {
+          requestId: 'set-empty-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.setLabel.resolves(mockSetEmptyLabelsResponse);
 
-        // Then get the labels
-        const getLabelsResponse = await session.getLabels();
-        log('Retrieved labels after clearing');
-        log(`Get Empty Labels RequestId: ${getLabelsResponse.requestId || 'undefined'}`);
+      // Mock getLabel response for empty labels
+      const mockGetEmptyLabelsResponse = {
+        body: {
+          data: {},
+          requestId: 'get-empty-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.getLabel.resolves(mockGetEmptyLabelsResponse);
 
-        // Verify that the response contains requestId
-        expect(getLabelsResponse.requestId).toBeDefined();
-        expect(typeof getLabelsResponse.requestId).toBe('string');
+      // First clear any existing labels
+      const setLabelsResponse = await mockSession.setLabels({});
+      expect(setLabelsResponse.requestId).toBe('set-empty-labels-request-id');
 
-        // Verify the results - should be empty or close to empty
-        expect(Object.keys(getLabelsResponse.data).length).toBeLessThanOrEqual(0);
-      } catch (error: any) {
-        log(`Error getting empty labels: ${error.message}`);
-        // Skip test if we can't get labels
-        expect(true).toBe(true);
-      }
+      // Then get the labels
+      const getLabelsResponse = await mockSession.getLabels();
+
+      // Verify that the response contains requestId
+      expect(getLabelsResponse.requestId).toBe('get-empty-labels-request-id');
+      expect(typeof getLabelsResponse.requestId).toBe('string');
+
+      // Verify the results - should be empty or close to empty
+      expect(Object.keys(getLabelsResponse.data).length).toBeLessThanOrEqual(0);
     });
   });
 
   describe('listByLabels()', () => {
     it.only('should list sessions filtered by labels', async () => {
-      log('Testing listByLabels...');
-      try {
-        // First set some unique labels on our session
-        const setLabelsResponse = await session.setLabels(labels);
-        log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
+      // Mock setLabel response
+      const mockSetLabelsResponse = {
+        body: {
+          requestId: 'set-labels-request-id'
+        },
+        statusCode: 200
+      };
+      mockClient.setLabel.resolves(mockSetLabelsResponse);
 
-        // Then list sessions with those labels
-        const listByLabelsResponse = await agentBay.listByLabels(labels);
-        log(`Found ${listByLabelsResponse.data.length} sessions with matching labels`);
-        log(`List By Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
+      // Mock listByLabels response
+      const mockListByLabelsResponse = {
+        data: [
+          { sessionId: 'test-session-id', labels: labels },
+          { sessionId: 'other-session-id', labels: labels }
+        ],
+        requestId: 'list-by-labels-request-id'
+      };
+      mockAgentBay.listByLabels.resolves(mockListByLabelsResponse);
 
-        // Verify that the response contains requestId
-        expect(listByLabelsResponse.requestId).toBeDefined();
-        expect(typeof listByLabelsResponse.requestId).toBe('string');
+      // First set some unique labels on our session
+      const setLabelsResponse = await mockSession.setLabels(labels);
+      expect(setLabelsResponse.requestId).toBe('set-labels-request-id');
 
-        // We should find at least our session
-        expect(listByLabelsResponse.data.length).toBeGreaterThan(0);
+      // Then list sessions with those labels
+      const listByLabelsResponse = await mockAgentBay.listByLabels(labels);
 
-        // Check if our session is in the results
-        const foundSession = listByLabelsResponse.data.some(s => s.sessionId === session.sessionId);
-        expect(foundSession).toBe(true);
+      // Verify that the response contains requestId
+      expect(listByLabelsResponse.requestId).toBe('list-by-labels-request-id');
+      expect(typeof listByLabelsResponse.requestId).toBe('string');
 
-        listByLabelsResponse.data.forEach(sessionItem => {
-          expect(sessionItem).toHaveProperty('sessionId');
-          expect(sessionItem.sessionId).toBeTruthy();
-        });
-      } catch (error: any) {
-        log(`Error listing sessions by labels: ${error.message}`);
-        // Skip test if we can't list sessions
-        expect(true).toBe(true);
-      }
+      // We should find at least our session
+      expect(listByLabelsResponse.data.length).toBeGreaterThan(0);
+
+      // Check if our session is in the results
+      const foundSession = listByLabelsResponse.data.some((s: any) => s.sessionId === 'test-session-id');
+      expect(foundSession).toBe(true);
+
+      listByLabelsResponse.data.forEach((sessionItem:any) => {
+        expect(sessionItem).toHaveProperty('sessionId');
+        expect(sessionItem.sessionId).toBeTruthy();
+      });
     });
 
     it.only('should handle non-matching labels', async () => {
-      log('Testing listByLabels with non-matching labels...');
-      try {
-        // Use a label that shouldn't match any sessions
-        const nonMatchingLabels = {
-          nonexistent: `label-${generateUniqueId()}`
-        };
+      // Use a label that shouldn't match any sessions
+      const nonMatchingLabels = {
+        nonexistent: 'label-unique-12345'
+      };
 
-        const listByLabelsResponse = await agentBay.listByLabels(nonMatchingLabels);
-        log(`Found ${listByLabelsResponse.data.length} sessions with non-matching labels`);
-        log(`List Non-matching Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
+      // Mock listByLabels response for non-matching labels
+      const mockListByLabelsResponse = {
+        data: [],
+        requestId: 'list-non-matching-labels-request-id'
+      };
+      mockAgentBay.listByLabels.resolves(mockListByLabelsResponse);
 
-        // Verify that the response contains requestId
-        expect(listByLabelsResponse.requestId).toBeDefined();
-        expect(typeof listByLabelsResponse.requestId).toBe('string');
+      const listByLabelsResponse = await mockAgentBay.listByLabels(nonMatchingLabels);
 
-        // There might be some sessions with these labels, but our session shouldn't be among them
-        if (listByLabelsResponse.data.length > 0) {
-          const foundOurSession = listByLabelsResponse.data.some(s => s.sessionId === session.sessionId);
-          expect(foundOurSession).toBe(false);
-        }
-      } catch (error: any) {
-        log(`Error listing sessions by non-matching labels: ${error.message}`);
-        // Skip test if we can't list sessions
-        expect(true).toBe(true);
-      }
+      // Verify that the response contains requestId
+      expect(listByLabelsResponse.requestId).toBe('list-non-matching-labels-request-id');
+      expect(typeof listByLabelsResponse.requestId).toBe('string');
+
+      // There shouldn't be any matching sessions
+      expect(listByLabelsResponse.data.length).toBe(0);
     });
   });
 });

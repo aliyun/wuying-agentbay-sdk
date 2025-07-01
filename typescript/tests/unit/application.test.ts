@@ -1,341 +1,260 @@
-import { InstalledApp, Process } from '../../src/application/application';
-import { AgentBay, Session } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { InstalledApp, Process, Application } from '../../src/application/application';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
-describe('Application', () => {
-  let session: Session;
-  let agentBay: AgentBay;
+const mockInstalledAppsData: InstalledApp[] = [
+  {
+    name: "缇庡洟",
+    start_cmd: "monkey -p com.sankuai.meituan -c android.intent.category.LAUNCHER 1",
+    stop_cmd: "am force-stop com.sankuai.meituan",
+    work_directory: ""
+  },
+  {
+    name: "灏忕孩涔?,
+    start_cmd: "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
+    stop_cmd: "am force-stop com.xingin.xhs",
+    work_directory: ""
+  },
+  {
+    name: "楂樺痉鍦板浘",
+    start_cmd: "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+    stop_cmd: "am force-stop com.autonavi.minimap",
+    work_directory: ""
+  }
+];
 
-  beforeEach(async () => {
-    const apiKey = getTestApiKey();
-    agentBay = new AgentBay({apiKey});
+const mockProcessData: Process[] = [
+  {
+    pname: "com.autonavi.minimap",
+    pid: 12345,
+    cmdline: "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+  }
+];
 
-    // Create a session with linux_latest image
-    log('Creating a new session for application testing...');
-    const createResponse = await agentBay.create({ imageId: 'linux_latest' });
-    session = createResponse.data;
-    log(`Session created with ID: ${session.sessionId}`);
-    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+const mockVisibleAppsData: Process[] = [
+  {
+    pname: "com.autonavi.minimap",
+    pid: 12345,
+    cmdline: "cmd1"
+  },
+  {
+    pname: "com.xingin.xhs",
+    pid: 23456,
+    cmdline: "cmd2"
+  }
+];
+
+describe('ApplicationApi', () => {
+  let mockApplication: Application;
+  let mockSession: any;
+  let sandbox: sinon.SinonSandbox;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+
+    mockSession = {
+      getAPIKey: sandbox.stub().returns('test-api-key'),
+      getClient: sandbox.stub(),
+      getSessionId: sandbox.stub().returns('test-session-id')
+    };
+
+    mockApplication = new Application(mockSession);
   });
 
-  afterEach(async () => {
-    log('Cleaning up: Deleting the session...');
-    try {
-      const deleteResponse = await agentBay.delete(session);
-      log('Session successfully deleted');
-      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-    } catch (error) {
-      log(`Warning: Error deleting session: ${error}`);
-    }
+  afterEach(() => {
+    sandbox.restore();
   });
 
-  describe('getInstalledApps()', () => {
-    it.only('should return installed applications with valid properties', async () => {
-      log('Testing getInstalledApps...');
-      const appsResponse = await session.Application.getInstalledApps(true, false, true);
-      log(`Found ${appsResponse.data.length} installed applications`);
-      log(`Get Installed Apps RequestId: ${appsResponse.requestId || 'undefined'}`);
-
-      // Verify that the response contains requestId
-      expect(appsResponse.requestId).toBeDefined();
-      expect(typeof appsResponse.requestId).toBe('string');
-
-      // Verify results
-      expect(appsResponse.data).toBeDefined();
-      expect(Array.isArray(appsResponse.data)).toBe(true);
-
-      if (appsResponse.data.length > 0) {
-        appsResponse.data.forEach((app, index) => {
-          log(`Verifying app ${index + 1}: ${app.name}`);
-          expect(app.name).toBeTruthy();
-          expect(app.start_cmd).toBeTruthy();
+  describe('test_get_installed_apps_success', () => {
+    it('should get installed apps successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: JSON.stringify(mockInstalledAppsData),
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
         });
-      }
+
+      const result = await mockApplication.getInstalledApps();
+      expect(result.data).toHaveLength(3);
+
+      expect(result.data[0]).toBeInstanceOf(Object);
+      expect(result.data[0].name).toBe("缇庡洟");
+      expect(result.data[1].name).toBe("灏忕孩涔?);
+      expect(result.data[2].name).toBe("楂樺痉鍦板浘");
+
+      expect(result.requestId).toBe('test-request-id');
+
+      expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe('startApp()', () => {
-    it.only('should start an application and return processes', async () => {
-      // Get installed apps from the remote system
-      const appsResponse = await session.Application.getInstalledApps(true, false, true);
+  describe('test_get_installed_apps_failure', () => {
+    it('should handle get installed apps failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to get installed apps'));
 
-      expect(appsResponse.data).toBeDefined();
-      expect(Array.isArray(appsResponse.data)).toBe(true);
-      expect(appsResponse.data.length).toBeGreaterThan(0);
-
-      // Try to find Terminal in the installed apps
-      let startCmd = '';
-      const terminalApp = appsResponse.data.find((app) => app.name === 'Terminal');
-
-      if (terminalApp) {
-        startCmd = terminalApp.start_cmd;
-        log(`Using Terminal with start command: ${startCmd}`);
-      } else {
-        // Fallback to gnome-terminal if Terminal is not found
-        startCmd = 'gnome-terminal';
-        log(`Terminal not found in installed apps, using default command: ${startCmd}`);
-      }
-
-      try {
-        const processesResponse = await session.Application.startApp(startCmd, '');
-        log(`Started ${processesResponse.data.length} processes`);
-        log(`Start App RequestId: ${processesResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(processesResponse.requestId).toBeDefined();
-        expect(typeof processesResponse.requestId).toBe('string');
-
-        // Verify results
-        expect(processesResponse.data).toBeDefined();
-        expect(Array.isArray(processesResponse.data)).toBe(true);
-
-        if (processesResponse.data.length > 0) {
-          processesResponse.data.forEach((proc, index) => {
-            log(`Verifying process ${index + 1}: ${proc.pname} (PID: ${proc.pid})`);
-            expect(proc.pname).toBeTruthy();
-            expect(proc.pid).toBeGreaterThan(0);
-            expect(proc).toHaveProperty('cmdline');
-          });
-        }
-      } catch (error) {
-        log(`Note: Failed to start application: ${error}`);
-        // Skip test if we can't start the application
-        expect(true).toBe(true);
-      }
+      await expect(mockApplication.getInstalledApps())
+        .rejects.toThrow('Failed to get installed apps');
     });
   });
 
-  describe('stopAppByPName()', () => {
-    it.only('should stop an application by process name', async () => {
-      try {
-        // Get installed apps from the remote system
-        const appsResponse = await session.Application.getInstalledApps(true, false, true);
+  describe('test_start_app_success', () => {
+    it('should start app successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: JSON.stringify(mockProcessData),
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        expect(appsResponse.data).toBeDefined();
-        expect(Array.isArray(appsResponse.data)).toBe(true);
-        expect(appsResponse.data.length).toBeGreaterThan(0);
+      const result = await mockApplication.startApp(
+        "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+      );
 
-        // Try to find Terminal in the installed apps
-        let startCmd = '';
-        const terminalApp = appsResponse.data.find((app) => app.name === 'Terminal');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].pname).toBe("com.autonavi.minimap");
+      expect(result.data[0].pid).toBe(12345);
+      expect(result.data[0].cmdline).toBe(
+        "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+      );
+      expect(result.requestId).toBe('test-request-id');
 
-        if (terminalApp) {
-          startCmd = terminalApp.start_cmd;
-          log(`Using Terminal with start command: ${startCmd}`);
-        } else {
-          // Fallback to gnome-terminal if Terminal is not found
-          startCmd = 'gnome-terminal';
-          log(`Terminal not found in installed apps, using default command: ${startCmd}`);
-        }
-
-        const processesResponse = await session.Application.startApp(startCmd, '');
-
-        expect(processesResponse.data).toBeDefined();
-        expect(Array.isArray(processesResponse.data)).toBe(true);
-        expect(processesResponse.data.length).toBeGreaterThan(0);
-
-        const pname = processesResponse.data[0].pname;
-        log(`Stopping application with process name: ${pname}`);
-
-        const stopResponse = await session.Application.stopAppByPName(pname);
-        log('Application stopped by process name successfully');
-        log(`Stop App by PName RequestId: ${stopResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(stopResponse.requestId).toBeDefined();
-        expect(typeof stopResponse.requestId).toBe('string');
-
-      } catch (error: any) {
-        log(`Note: Failed to stop application by process name: ${error}`);
-        // Skip test if we can't stop the application
-        expect(true).toBe(true);
-      }
+      expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe('stopAppByPID()', () => {
-    it.only('should stop an application by process ID', async () => {
-      try {
-        // Get installed apps from the remote system
-        const appsResponse = await session.Application.getInstalledApps(true, false, true);
+  describe('test_start_app_failure', () => {
+    it('should handle start app failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to start app'));
 
-        expect(appsResponse.data).toBeDefined();
-        expect(Array.isArray(appsResponse.data)).toBe(true);
-        expect(appsResponse.data.length).toBeGreaterThan(0);
-
-        // Try to find Terminal in the installed apps
-        let startCmd = '';
-        const terminalApp = appsResponse.data.find((app) => app.name === 'Terminal');
-
-        if (terminalApp) {
-          startCmd = terminalApp.start_cmd;
-          log(`Using Terminal with start command: ${startCmd}`);
-        } else {
-          // Fallback to gnome-terminal if Terminal is not found
-          startCmd = 'gnome-terminal';
-          log(`Terminal not found in installed apps, using default command: ${startCmd}`);
-        }
-
-        const processesResponse = await session.Application.startApp(startCmd, '');
-
-        expect(processesResponse.data).toBeDefined();
-        expect(Array.isArray(processesResponse.data)).toBe(true);
-        expect(processesResponse.data.length).toBeGreaterThan(0);
-
-        // Wait 5 seconds to give the application time to open
-        log('Waiting 5 seconds to give applications time to open...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        const pid = processesResponse.data[0].pid;
-        const pname = processesResponse.data[0].pname;
-        log(`Stopping application with PID: ${pid} and name: ${pname}`);
-
-        const stopResponse = await session.Application.stopAppByPID(pid);
-        log('Application stopped by PID successfully');
-        log(`Stop App by PID RequestId: ${stopResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(stopResponse.requestId).toBeDefined();
-        expect(typeof stopResponse.requestId).toBe('string');
-
-        // Wait 5 seconds to ensure the application has time to close
-        log('Waiting 5 seconds to ensure the application has closed...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // Verify the app is no longer visible by using listVisibleApps
-        const visibleAppsResponse = await session.Application.listVisibleApps();
-
-        log(`Found ${visibleAppsResponse.data.length} visible applications after stopping`);
-
-        // Check that the app with the stopped PID is no longer in the list
-        const stoppedAppStillVisible = visibleAppsResponse.data.some(app => app.pid === pid);
-        log(`Is the stopped app still visible? ${stoppedAppStillVisible}`);
-        expect(stoppedAppStillVisible).toBe(false);
-      } catch (error: any) {
-        log(`Note: Failed to stop application by PID: ${error}`);
-        // Skip test if we can't stop the application
-        expect(true).toBe(true);
-      }
+      await expect(mockApplication.startApp(
+        "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+      )).rejects.toThrow('Failed to start app');
     });
   });
 
-  describe('listVisibleApps()', () => {
-    it.only('should list visible applications with valid properties', async () => {
-      try {
-        // First, start an application (Terminal) to ensure there's at least one visible app
-        // Get installed apps from the remote system
-        const appsResponse = await session.Application.getInstalledApps(true, false, true);
+  describe('test_stop_app_by_cmd_success', () => {
+    it('should stop app by command successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        expect(appsResponse.data).toBeDefined();
-        expect(Array.isArray(appsResponse.data)).toBe(true);
-        expect(appsResponse.data.length).toBeGreaterThan(0);
+      const result = await mockApplication.stopAppByCmd("am force-stop com.autonavi.minimap");
 
-        // Try to find Terminal in the installed apps
-        let startCmd = '';
-        const terminalApp = appsResponse.data.find((app) => app.name === 'Terminal');
+      expect(result.requestId).toBe('test-request-id');
+      expect(result.data).toBeUndefined(); // void response
 
-        if (terminalApp) {
-          startCmd = terminalApp.start_cmd;
-          log(`Using Terminal with start command: ${startCmd}`);
-        } else {
-          // Fallback to gnome-terminal if Terminal is not found
-          startCmd = 'gnome-terminal';
-          log(`Terminal not found in installed apps, using default command: ${startCmd}`);
-        }
-
-        // Start the terminal
-        await session.Application.startApp(startCmd, '');
-
-        // Wait for the terminal to open
-        log('Waiting 5 seconds to give the terminal time to open...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // Now list the visible applications
-        const visibleAppsResponse = await session.Application.listVisibleApps();
-        log(`Found ${visibleAppsResponse.data.length} visible applications`);
-        log(`List Visible Apps RequestId: ${visibleAppsResponse.requestId || 'undefined'}`);
-
-        // Verify that the response contains requestId
-        expect(visibleAppsResponse.requestId).toBeDefined();
-        expect(typeof visibleAppsResponse.requestId).toBe('string');
-
-        // Verify results
-        expect(visibleAppsResponse.data).toBeDefined();
-        expect(Array.isArray(visibleAppsResponse.data)).toBe(true);
-
-        if (visibleAppsResponse.data.length > 0) {
-          visibleAppsResponse.data.forEach((app, index) => {
-            log(`Verifying app ${index + 1}: ${app.pname} (PID: ${app.pid})`);
-            expect(app.pname).toBeTruthy();
-            expect(app.pid).toBeGreaterThan(0);
-          });
-        }
-      } catch (error) {
-        log(`Note: Failed in listVisibleApps test: ${error}`);
-        // Skip test if we encounter an error
-        expect(true).toBe(true);
-      }
+      expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe('stopAppByCmd()', () => {
-    it.only('should stop an application by command', async () => {
-      try {
-        // Get installed apps from the remote system
-        const appsResponse = await session.Application.getInstalledApps(true, false, true);
+  describe('test_stop_app_by_cmd_failure', () => {
+    it('should handle stop app by command failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to stop app'));
 
-        expect(appsResponse.data).toBeDefined();
-        expect(Array.isArray(appsResponse.data)).toBe(true);
-        expect(appsResponse.data.length).toBeGreaterThan(0);
+      await expect(mockApplication.stopAppByCmd("am force-stop com.autonavi.minimap"))
+        .rejects.toThrow('Failed to stop app');
+    });
+  });
 
-        // Try to find Terminal in the installed apps
-        let startCmd = '';
-        const terminalApp = appsResponse.data.find((app) => app.name === 'Terminal');
+  describe('test_stop_app_by_pname_success', () => {
+    it('should stop app by package name successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        if (terminalApp) {
-          startCmd = terminalApp.start_cmd;
-          log(`Using Terminal with start command: ${startCmd}`);
-        } else {
-          // Fallback to gnome-terminal if Terminal is not found
-          startCmd = 'gnome-terminal';
-          log(`Terminal not found in installed apps, using default command: ${startCmd}`);
-        }
+      const result = await mockApplication.stopAppByPName("com.autonavi.minimap");
 
-        // Start the terminal
-        const processesResponse = await session.Application.startApp(startCmd, '');
-        expect(processesResponse.data.length).toBeGreaterThan(0);
+      expect(result.requestId).toBe('test-request-id');
+      expect(result.data).toBeUndefined(); // void response
 
-        // Wait for the terminal to open
-        log('Waiting 5 seconds to give the terminal time to open...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
 
-        // Use a stop command based on the process name
-        const stopCmd = `pkill ${processesResponse.data[0].pname}`;
-        log(`Using stop command: ${stopCmd}`);
+  describe('test_stop_app_by_pname_failure', () => {
+    it('should handle stop app by package name failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to stop app by pname'));
 
-        // Stop the terminal with the command
-        const stopResponse = await session.Application.stopAppByCmd(stopCmd);
-        log('Application stopped by command successfully');
-        log(`Stop App by Cmd RequestId: ${stopResponse.requestId || 'undefined'}`);
+      await expect(mockApplication.stopAppByPName("com.autonavi.minimap"))
+        .rejects.toThrow('Failed to stop app by pname');
+    });
+  });
 
-        // Verify that the response contains requestId
-        expect(stopResponse.requestId).toBeDefined();
-        expect(typeof stopResponse.requestId).toBe('string');
+  describe('test_stop_app_by_pid_success', () => {
+    it('should stop app by PID successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        // Wait for the terminal to close
-        log('Waiting 5 seconds to give the terminal time to close...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+      const result = await mockApplication.stopAppByPID(12345);
 
-        // Verify the application is no longer visible
-        const visibleAppsResponse = await session.Application.listVisibleApps();
-        const stoppedAppStillVisible = visibleAppsResponse.data.some(app => app.pid === processesResponse.data[0].pid);
-        expect(stoppedAppStillVisible).toBe(false);
-      } catch (error) {
-        log(`Note: Failed in stopAppByCmd test: ${error}`);
-        // Skip test if we encounter an error
-        expect(true).toBe(true);
-      }
+      expect(result.requestId).toBe('test-request-id');
+      expect(result.data).toBeUndefined(); // void response
+
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe('test_stop_app_by_pid_failure', () => {
+    it('should handle stop app by PID failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to stop app by pid'));
+
+      await expect(mockApplication.stopAppByPID(12345))
+        .rejects.toThrow('Failed to stop app by pid');
+    });
+  });
+
+  describe('test_list_visible_apps_success', () => {
+    it('should list visible apps successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: JSON.stringify(mockVisibleAppsData),
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const result = await mockApplication.listVisibleApps();
+
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toBeInstanceOf(Object);
+      expect(result.data[0].pname).toBe("com.autonavi.minimap");
+      expect(result.data[1].pname).toBe("com.xingin.xhs");
+      expect(result.requestId).toBe('test-request-id');
+
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe('test_list_visible_apps_failure', () => {
+    it('should handle list visible apps failure', async () => {
+      sandbox.stub(mockApplication as any, 'callMcpTool')
+        .rejects(new APIError('Failed to list visible apps'));
+
+      await expect(mockApplication.listVisibleApps())
+        .rejects.toThrow('Failed to list visible apps');
     });
   });
 });

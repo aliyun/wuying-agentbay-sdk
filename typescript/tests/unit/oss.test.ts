@@ -1,292 +1,265 @@
-import { AgentBay, Session } from '../../src';
-import { getTestApiKey, containsToolNotFound } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import { Oss } from '../../src/oss/oss';
+import { APIError } from '../../src/exceptions';
+import * as sinon from 'sinon';
 
-// Helper function to get OSS credentials from environment variables or use defaults
-function getOssCredentials(): {
-  accessKeyId: string;
-  accessKeySecret: string;
-  securityToken: string;
-  endpoint: string;
-  region: string;
-} {
-  const accessKeyId = process.env.OSS_ACCESS_KEY_ID || 'your-access-key-id';
-  const accessKeySecret = process.env.OSS_ACCESS_KEY_SECRET || 'your-access-key-secret';
-  const securityToken = process.env.OSS_SECURITY_TOKEN || 'your-security-token';
-  const endpoint = process.env.OSS_ENDPOINT || 'https://oss-cn-hangzhou.aliyuncs.com';
-  const region = process.env.OSS_REGION || 'cn-hangzhou';
+describe('TestOss', () => {
+  let mockOss: Oss;
+  let mockSession: any;
+  let sandbox: sinon.SinonSandbox;
 
-  if (!process.env.OSS_ACCESS_KEY_ID) {
-    log('OSS_ACCESS_KEY_ID environment variable not set, using default value');
-  }
-  if (!process.env.OSS_ACCESS_KEY_SECRET) {
-    log('OSS_ACCESS_KEY_SECRET environment variable not set, using default value');
-  }
-  if (!process.env.OSS_SECURITY_TOKEN) {
-    log('OSS_SECURITY_TOKEN environment variable not set, using default value');
-  }
-  if (!process.env.OSS_ENDPOINT) {
-    log('OSS_ENDPOINT environment variable not set, using default value');
-  }
-  if (!process.env.OSS_REGION) {
-    log('OSS_REGION environment variable not set, using default value');
-  }
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
 
-  return {
-    accessKeyId,
-    accessKeySecret,
-    securityToken,
-    endpoint,
-    region
-  };
-}
+    mockSession = {
+      getAPIKey: sandbox.stub().returns('dummy_key'),
+      getClient: sandbox.stub(),
+      getSessionId: sandbox.stub().returns('dummy_session')
+    };
 
-// Helper function to check if content has error
-function hasErrorInContent(content: any[] | string): boolean {
-  // If content is a string, check if it contains error text
-  if (typeof content === 'string') {
-    return content.toLowerCase().includes('error');
-  }
-
-  // If content is not an array, consider it an error
-  if (!Array.isArray(content)) {
-    return true;
-  }
-
-  // If content is an empty array, consider it an error
-  if (content.length === 0) {
-    return true;
-  }
-
-  // Check if any content item has error text
-  return content.some(item =>
-    item && typeof item === 'object' &&
-    item.text && typeof item.text === 'string' &&
-    (item.text.toLowerCase().includes('error'))
-  );
-}
-
-describe('OSS', () => {
-  let agentBay: AgentBay;
-  let session: Session;
-
-  beforeEach(async () => {
-    const apiKey = getTestApiKey();
-    log(apiKey)
-    agentBay = new AgentBay({ apiKey });
-
-    // Create a session
-    log('Creating a new session for OSS testing...');
-    const createResponse = await agentBay.create({ imageId: 'code_latest' });
-    session = createResponse.data;
-    log(`Session created with ID: ${session.sessionId}`);
-    log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+    mockOss = new Oss(mockSession);
   });
 
-  afterEach(async () => {
-    // Clean up the session
-    log('Cleaning up: Deleting the session...');
-    try {
-      if(session) {
-        const deleteResponse = await agentBay.delete(session);
-        log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
-      }
-    } catch (error) {
-      log(`Warning: Error deleting session: ${error}`);
-    }
+  afterEach(() => {
+    sandbox.restore();
   });
 
-  describe('envInit', () => {
-    it.only('should initialize OSS environment', async () => {
-      if (session.oss) {
-        // Get OSS credentials from environment variables
-        const { accessKeyId, accessKeySecret, securityToken, endpoint, region } = getOssCredentials();
+  describe('test_env_init_success', () => {
+    it('should initialize OSS environment successfully', async () => {
 
-        log('Initializing OSS environment...');
-        try {
-          const envInitResponse = await session.oss.envInit(accessKeyId, accessKeySecret, securityToken, endpoint, region);
-          log(`EnvInit content:`, envInitResponse.data);
-          log(`EnvInit RequestId: ${envInitResponse.requestId || 'undefined'}`);
+      const callMcpToolStub = sandbox.stub(mockOss as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "success",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-          // Verify that the response contains requestId
-          expect(envInitResponse.requestId).toBeDefined();
-          expect(typeof envInitResponse.requestId).toBe('string');
+      const result = await mockOss.envInit("key_id", "key_secret", "security_token", "test_endpoint");
 
-          // Check if content has errors
-          expect(envInitResponse.data).toBeDefined();
-          expect(typeof envInitResponse.data).toBe('string');
-          expect(hasErrorInContent(envInitResponse.data)).toBe(false);
+      expect(result.data).toBe("success");
+      expect(result.requestId).toBe('test-request-id');
 
-          log('OSS environment initialization successful');
-        } catch (error) {
-          log(`OSS environment initialization failed: ${error}`);
-          throw error;
-        }
-      } else {
-        log('Note: OSS interface is nil, skipping OSS test');
-      }
+      expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe('upload', () => {
-    it.only('should upload a file to OSS', async () => {
-      if (session.oss && session.filesystem) {
-        // First initialize the OSS environment
-        const { accessKeyId, accessKeySecret, securityToken, endpoint, region } = getOssCredentials();
-        const envInitResponse = await session.oss.envInit(accessKeyId, accessKeySecret, securityToken, endpoint, region);
-        log(`EnvInit RequestId: ${envInitResponse.requestId || 'undefined'}`);
+  describe('test_env_init_failure', () => {
+    it('should handle env init failure', async () => {
 
-        // Create a test file to upload
-        const testContent = "This is a test file for OSS upload.";
-        const testFilePath = "/tmp/test_oss_upload.txt";
-        const writeResponse = await session.filesystem.writeFile(testFilePath, testContent);
-        log(`Write File RequestId: ${writeResponse.requestId || 'undefined'}`);
+      sandbox.stub(mockOss as any, 'callMcpTool')
+        .rejects(new Error('Failed to create OSS client'));
 
-        log('Uploading file to OSS...');
-        const bucket = process.env.OSS_TEST_BUCKET || 'your-bucket-name';
-        const objectKey = 'your-object-key';
-
-        try {
-          const uploadResponse = await session.oss.upload(bucket, objectKey, testFilePath);
-          log(`Upload content:`, uploadResponse.data);
-          log(`Upload RequestId: ${uploadResponse.requestId || 'undefined'}`);
-
-          // Verify that the response contains requestId
-          expect(uploadResponse.requestId).toBeDefined();
-          expect(typeof uploadResponse.requestId).toBe('string');
-
-          // Check if content has errors
-          expect(uploadResponse.data).toBeDefined();
-          expect(typeof uploadResponse.data).toBe('string');
-          expect(hasErrorInContent(uploadResponse.data)).toBe(false);
-
-          log('OSS upload successful');
-        } catch (error) {
-          log(`OSS upload failed: ${error}`);
-          throw error;
-        }
-      } else {
-        log('Note: OSS or FileSystem interface is nil, skipping OSS test');
-      }
+      await expect(mockOss.envInit("key_id", "key_secret", "security_token"))
+        .rejects.toThrow('Failed to create OSS client');
     });
   });
 
-  describe('uploadAnonymous', () => {
-    it.only('should upload a file anonymously', async () => {
-      if (session.oss && session.filesystem) {
-        // Create a test file to upload
-        const testContent = "This is a test file for OSS anonymous upload.";
-        const testFilePath = "/tmp/test_oss_upload_anon.txt";
-        const writeResponse = await session.filesystem.writeFile(testFilePath, testContent);
-        log(`Write File RequestId: ${writeResponse.requestId || 'undefined'}`);
+  describe('test_upload_success', () => {
+    it('should upload file successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockOss as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "Upload success",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        log('Uploading file anonymously...');
-        const uploadUrl = process.env.OSS_TEST_UPLOAD_URL || 'https://example.com/upload/test-file.txt';
+      const result = await mockOss.upload("test_bucket", "test_object", "test_path");
 
-        try {
-          const uploadAnonResponse = await session.oss.uploadAnonymous(uploadUrl, testFilePath);
-          log(`UploadAnonymous content:`, uploadAnonResponse.data);
-          log(`UploadAnonymous RequestId: ${uploadAnonResponse.requestId || 'undefined'}`);
-
-          // Verify that the response contains requestId
-          expect(uploadAnonResponse.requestId).toBeDefined();
-          expect(typeof uploadAnonResponse.requestId).toBe('string');
-
-          // Check if content has errors
-          expect(uploadAnonResponse.data).toBeDefined();
-          expect(typeof uploadAnonResponse.data).toBe('string');
-          expect(uploadAnonResponse.data.toLowerCase().includes('error')).toBe(false);
-
-          log('OSS anonymous upload successful');
-        } catch (error) {
-          log(`OSS anonymous upload failed: ${error}`);
-          throw error;
-        }
-      } else {
-        log('Note: OSS or FileSystem interface is nil, skipping OSS test');
-      }
+      expect(result.data).toBe("Upload success");
+      expect(result.requestId).toBe('test-request-id');
+      expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe('download', () => {
-    it.only('should download a file from OSS', async () => {
-      if (session.oss && session.filesystem) {
-        // First initialize the OSS environment
-        const { accessKeyId, accessKeySecret, securityToken, endpoint, region } = getOssCredentials();
-        const envInitResponse = await session.oss.envInit(accessKeyId, accessKeySecret, securityToken, endpoint, region);
-        log(`EnvInit RequestId: ${envInitResponse.requestId || 'undefined'}`);
+  describe('test_upload_failure', () => {
+    it('should handle upload failure', async () => {
+      sandbox.stub(mockOss as any, 'callMcpTool')
+        .rejects(new Error('Upload failed: The OSS Access Key Id you provided does not exist in our records.'));
 
-        log('Downloading file from OSS...');
-        const bucket = process.env.OSS_TEST_BUCKET || 'your-bucket-name';
-        const objectKey = 'your-object-key';
-        const downloadPath = "/tmp/test_oss_download.txt";
-
-        try {
-          const downloadResponse = await session.oss.download(bucket, objectKey, downloadPath);
-          log(`Download content:`, downloadResponse.data);
-          log(`Download RequestId: ${downloadResponse.requestId || 'undefined'}`);
-
-          // Verify that the response contains requestId
-          expect(downloadResponse.requestId).toBeDefined();
-          expect(typeof downloadResponse.requestId).toBe('string');
-
-          // Check if content has errors
-          expect(downloadResponse.data).toBeDefined();
-          expect(typeof downloadResponse.data).toBe('string');
-          expect(hasErrorInContent(downloadResponse.data)).toBe(false);
-
-          log('OSS download successful');
-
-          // Verify the downloaded file exists
-          const fileInfoResponse = await session.filesystem.getFileInfo(downloadPath);
-          log(`Downloaded file info:`, fileInfoResponse.data);
-          log(`Get File Info RequestId: ${fileInfoResponse.requestId || 'undefined'}`);
-          expect(fileInfoResponse.data).toBeDefined();
-        } catch (error) {
-          log(`OSS download failed: ${error}`);
-          throw error;
-        }
-      } else {
-        log('Note: OSS or FileSystem interface is nil, skipping OSS test');
-      }
+      await expect(mockOss.upload("test_bucket", "test_object", "test_path"))
+        .rejects.toThrow('Upload failed: The OSS Access Key Id you provided does not exist in our records.');
     });
   });
 
-  describe('downloadAnonymous', () => {
-    it.only('should download a file anonymously', async () => {
-      if (session.oss && session.filesystem) {
-        log('Downloading file anonymously...');
-        const downloadUrl = process.env.OSS_TEST_DOWNLOAD_URL || 'https://example.com/download/test-file.txt';
-        const downloadPath = "/tmp/test_oss_download_anon.txt";
+  describe('test_upload_anonymous_success', () => {
+    it('should upload anonymously successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockOss as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "upload_anon_success",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
 
-        try {
-          const downloadAnonResponse = await session.oss.downloadAnonymous(downloadUrl, downloadPath);
-          log(`DownloadAnonymous content:`, downloadAnonResponse.data);
-          log(`DownloadAnonymous RequestId: ${downloadAnonResponse.requestId || 'undefined'}`);
+      const result = await mockOss.uploadAnonymous("test_url", "test_path");
 
-          // Verify that the response contains requestId
-          expect(downloadAnonResponse.requestId).toBeDefined();
-          expect(typeof downloadAnonResponse.requestId).toBe('string');
+      expect(result.data).toBe("upload_anon_success");
+      expect(result.requestId).toBe('test-request-id');
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
 
-          // Check if content has errors
-          expect(downloadAnonResponse.data).toBeDefined();
-          expect(typeof downloadAnonResponse.data).toBe('string');
-          expect(hasErrorInContent(downloadAnonResponse.data)).toBe(false);
+  describe('test_upload_anonymous_failure', () => {
+    it('should handle upload anonymous failure', async () => {
+      sandbox.stub(mockOss as any, 'callMcpTool')
+        .rejects(new Error('Failed to upload anonymously'));
 
-          log('OSS anonymous download successful');
+      await expect(mockOss.uploadAnonymous("test_url", "test_path"))
+        .rejects.toThrow('Failed to upload anonymously');
+    });
+  });
 
-          // Verify the downloaded file exists
-          const fileInfoResponse = await session.filesystem.getFileInfo(downloadPath);
-          log(`Downloaded file info:`, fileInfoResponse.data);
-          log(`Get File Info RequestId: ${fileInfoResponse.requestId || 'undefined'}`);
-          expect(fileInfoResponse.data).toBeDefined();
-        } catch (error) {
-          log(`OSS anonymous download failed: ${error}`);
-          throw error;
+  describe('test_download_success', () => {
+    it('should download file successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockOss as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "download_success",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const result = await mockOss.download("test_bucket", "test_object", "test_path");
+
+      expect(result.data).toBe("download_success");
+      expect(result.requestId).toBe('test-request-id');
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe('test_download_failure', () => {
+    it('should handle download failure', async () => {
+      sandbox.stub(mockOss as any, 'callMcpTool')
+        .rejects(new Error('Failed to download from OSS'));
+
+      await expect(mockOss.download("test_bucket", "test_object", "test_path"))
+        .rejects.toThrow('Failed to download from OSS');
+    });
+  });
+
+  describe('test_download_anonymous_success', () => {
+    it('should download anonymously successfully', async () => {
+      const callMcpToolStub = sandbox.stub(mockOss as any, 'callMcpTool')
+        .resolves({
+          data: {},
+          textContent: "download_anon_success",
+          isError: false,
+          statusCode: 200,
+          requestId: 'test-request-id'
+        });
+
+      const result = await mockOss.downloadAnonymous("test_url", "test_path");
+
+      expect(result.data).toBe("download_anon_success");
+      expect(result.requestId).toBe('test-request-id');
+      expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe('test_download_anonymous_failure', () => {
+    it('should handle download anonymous failure', async () => {
+      sandbox.stub(mockOss as any, 'callMcpTool')
+        .rejects(new Error('Failed to download anonymously'));
+
+      await expect(mockOss.downloadAnonymous("test_url", "test_path"))
+        .rejects.toThrow('Failed to download anonymously');
+    });
+  });
+
+  describe('test_call_mcp_tool_success', () => {
+    it('should call MCP tool successfully', async () => {
+      // Mock the response from call_mcp_tool
+      const mockResponse = {
+        body: {
+          data: {
+            content: [{"text": "success", "type": "text"}],
+            isError: false,
+          },
+          requestId: 'test-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockSession.getClient.returns({
+        callMcpTool: sandbox.stub().resolves(mockResponse)
+      });
+
+      // Call the private method directly for testing
+      const result = await (mockOss as any).callMcpTool("test_tool", {"arg1": "value1"}, "Failed to call test_tool");
+
+      expect(result.textContent).toBe("success");
+      expect(result.requestId).toBe('test-request-id');
+      expect(mockSession.getClient().callMcpTool.calledOnce).toBe(true);
+
+      // Verify the call arguments
+      const callArgs = mockSession.getClient().callMcpTool.getCall(0).args[0];
+      expect(callArgs.name).toBe("test_tool");
+      expect(JSON.parse(callArgs.args)).toEqual({"arg1": "value1"});
+    });
+  });
+
+  describe('test_call_mcp_tool_failure', () => {
+    it('should handle MCP tool failure', async () => {
+      // Mock the response from call_mcp_tool
+      const mockResponse = {
+        body: {
+          data: {
+            content: [{"text": "Test error message", "type": "text"}],
+            isError: true,
+          }
+        },
+        statusCode: 200,
+        headers: {
+          'x-acs-request-id': 'test-request-id'
         }
-      } else {
-        log('Note: OSS or FileSystem interface is nil, skipping OSS test');
-      }
+      };
+
+      mockSession.getClient.returns({
+        callMcpTool: sandbox.stub().resolves(mockResponse)
+      });
+
+      // Call the private method and expect error
+      await expect((mockOss as any).callMcpTool("test_tool", {"arg1": "value1"}, "Failed to call test_tool"))
+        .rejects.toThrow('Test error message');
+    });
+  });
+
+  describe('test_call_mcp_tool_invalid_response', () => {
+    it('should handle invalid response format', async () => {
+      // Mock the response from call_mcp_tool with invalid format
+      const mockResponse = {
+        body: {},  // Empty response
+        statusCode: 200,
+        headers: {
+          'x-acs-request-id': 'test-request-id'
+        }
+      };
+
+      mockSession.getClient.returns({
+        callMcpTool: sandbox.stub().resolves(mockResponse)
+      });
+
+      // Call the private method and expect error
+      await expect((mockOss as any).callMcpTool("test_tool", {"arg1": "value1"}, "Failed to call test_tool"))
+        .rejects.toThrow('Invalid response data format');
+    });
+  });
+
+  describe('test_call_mcp_tool_api_error', () => {
+    it('should handle API error', async () => {
+      // Mock the API call to raise an exception
+      mockSession.getClient.returns({
+        callMcpTool: sandbox.stub().rejects(new Error('API error'))
+      });
+
+      // Call the private method and expect error
+      await expect((mockOss as any).callMcpTool("test_tool", {"arg1": "value1"}, "Failed to call test_tool"))
+        .rejects.toThrow('Failed to call MCP tool test_tool: Error: API error');
     });
   });
 });
