@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
+from agentbay.session_params import CreateSessionParams, ListSessionParams
 from agentbay.exceptions import AgentBayError
 
 
@@ -184,8 +184,11 @@ class TestAgentBay(unittest.TestCase):
         # Create AgentBay instance
         agent_bay = AgentBay(api_key="test-key")
 
+        # Create ListSessionParams object with labels
+        params = ListSessionParams(labels={"env": "prod", "app": "test"})
+
         # Test listing sessions by labels
-        result = agent_bay.list_by_labels({"env": "prod", "app": "test"})
+        result = agent_bay.list_by_labels(params)
 
         # Verify results
         self.assertEqual(result.request_id, "list-request-id")

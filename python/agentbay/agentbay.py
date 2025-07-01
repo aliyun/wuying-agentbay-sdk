@@ -1,7 +1,7 @@
 import json
 import os
 from threading import Lock
-from typing import List, Optional
+from typing import List, Optional, Union, Dict
 
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_openapi.exceptions._client import ClientException
@@ -165,13 +165,13 @@ class AgentBay:
         with self._lock:
             return list(self._sessions.values())
 
-    def list_by_labels(self, params: Optional[ListSessionParams] = None) -> SessionListResult:
+    def list_by_labels(self, params: Optional[Union[ListSessionParams, Dict[str, str]]] = None) -> SessionListResult:
         """
         Lists sessions filtered by the provided labels with pagination support.
         It returns sessions that match all the specified labels.
 
         Args:
-            params (Optional[ListSessionParams], optional): Parameters for listing sessions. Defaults to None.
+            params (Optional[Union[ListSessionParams, Dict[str, str]]], optional): Parameters for listing sessions or a dictionary of labels. Defaults to None.
 
         Returns:
             SessionListResult: Result containing a list of sessions and pagination information.
@@ -180,6 +180,9 @@ class AgentBay:
             # Use default params if none provided
             if params is None:
                 params = ListSessionParams()
+            # Convert dict to ListSessionParams if needed
+            elif isinstance(params, dict):
+                params = ListSessionParams(labels=params)
 
             # Convert labels to JSON
             labels_json = json.dumps(params.labels)
