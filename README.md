@@ -45,34 +45,45 @@ go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 ### Python
 
 ```python
-from wuying_agentbay import AgentBay
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
 
 # Initialize with API key
 agent_bay = AgentBay(api_key="your_api_key")
 
 # Create a session
-session = agent_bay.create()
+params = CreateSessionParams(image_id="linux_latest")
+session_result = agent_bay.create(params)
+session = session_result.session
 print(f"Session created with ID: {session.session_id}")
 
 # Execute a command
 result = session.command.execute_command("ls -la")
-print(f"Command result: {result}")
+if result.success:
+    print(f"Command output: {result.output}")
 
 # Read a file
-content = session.filesystem.read_file("/path/to/file.txt")
-print(f"File content: {content}")
+result = session.file_system.read_file("/path/to/file.txt")
+if result.success:
+    print(f"File content: {result.content}")
 
 # Read/write large files
 large_content = "x" * (100 * 1024)  # 100KB content
-session.filesystem.write_large_file("/path/to/large_file.txt", large_content)
-retrieved_content = session.filesystem.read_large_file("/path/to/large_file.txt")
+write_result = session.file_system.write_large_file("/path/to/large_file.txt", large_content)
+read_result = session.file_system.read_large_file("/path/to/large_file.txt")
+retrieved_content = read_result.content if read_result.success else None
 
 # Work with OSS
-session.oss.upload_file("/local/path/file.txt", "bucket-name", "remote/path/file.txt")
-session.oss.download_file("bucket-name", "remote/path/file.txt", "/local/path/downloaded.txt")
+upload_result = session.oss.upload_file("/local/path/file.txt", "bucket-name", "remote/path/file.txt")
+download_result = session.oss.download_file("bucket-name", "remote/path/file.txt", "/local/path/downloaded.txt")
+
+# Session labels
+session.set_labels({"project": "demo", "environment": "testing"})
+labels_result = session.get_labels()
+all_labels = labels_result.data
 
 # Delete the session when done
-agent_bay.delete(session)
+delete_result = agent_bay.delete(session)
 ```
 
 ### TypeScript
@@ -139,7 +150,7 @@ func main() {
 
   // Access the session and RequestID
   session := result.Session
-  fmt.Printf("Session created with ID: %s (RequestID: %s)\n", 
+  fmt.Printf("Session created with ID: %s (RequestID: %s)\n",
     session.SessionID, result.RequestID)
 
   // Execute a command
@@ -148,7 +159,7 @@ func main() {
     fmt.Printf("Error executing command: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("Command result: %s (RequestID: %s)\n", 
+  fmt.Printf("Command result: %s (RequestID: %s)\n",
     cmdResult.Output, cmdResult.RequestID)
 
   // Read a file
@@ -157,7 +168,7 @@ func main() {
     fmt.Printf("Error reading file: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("File content: %s (RequestID: %s)\n", 
+  fmt.Printf("File content: %s (RequestID: %s)\n",
     fileResult.Content, fileResult.RequestID)
 
   // Delete the session when done
