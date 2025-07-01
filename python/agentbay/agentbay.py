@@ -96,26 +96,34 @@ class AgentBay:
             session_data = response.to_map()
 
             if not isinstance(session_data, dict):
-                raise AgentBayError(
-                    "Invalid response format: expected a dictionary from response.to_map()"
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Invalid response format: expected a dictionary"
                 )
 
             body = session_data.get("body", {})
             if not isinstance(body, dict):
-                raise AgentBayError(
-                    "Invalid response format: 'body' field is not a dictionary"
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Invalid response format: 'body' field is not a dictionary"
                 )
 
             data = body.get("Data", {})
             if not isinstance(data, dict):
-                raise AgentBayError(
-                    "Invalid response format: 'Data' field is not a dictionary"
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Invalid response format: 'Data' field is not a dictionary"
                 )
 
             session_id = data.get("SessionId")
             if not session_id:
-                raise AgentBayError(
-                    f"Failed to get session_id from response: {response}"
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="SessionId not found in response"
                 )
 
             # ResourceUrl is optional in CreateMcpSession response
@@ -132,14 +140,22 @@ class AgentBay:
                 self._sessions[session_id] = session
 
             # Return SessionResult with request ID
-            return SessionResult(request_id=request_id, session=session)
+            return SessionResult(request_id=request_id, success=True, session=session)
 
         except ClientException as e:
             print("Aliyun OpenAPI ClientException:", e)
-            raise AgentBayError(f"Failed to create session: {e}")
+            return SessionResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to create session: {e}"
+            )
         except Exception as e:
             print("Error calling create_mcp_session:", e)
-            raise
+            return SessionResult(
+                request_id="",
+                success=False,
+                error_message=f"Unexpected error creating session: {e}"
+            )
 
     def list(self) -> List[Session]:
         """
@@ -161,9 +177,6 @@ class AgentBay:
 
         Returns:
             SessionListResult: Result containing a list of sessions that match the specified labels and request ID.
-
-        Raises:
-            AgentBayError: If the operation fails.
         """
         try:
             # Convert labels to JSON
@@ -183,7 +196,12 @@ class AgentBay:
 
             # Check for errors in the response
             if isinstance(body, dict) and isinstance(body.get("Data"), dict) and body.get("Data", {}).get("IsError", False):
-                return SessionListResult(request_id=request_id, sessions=[], error_message="Failed to list sessions by labels")
+                return SessionListResult(
+                    request_id=request_id,
+                    success=False,
+                    sessions=[],
+                    error_message="Failed to list sessions by labels"
+                )
 
             sessions = []
             response_data = body.get("Data")
@@ -219,11 +237,16 @@ class AgentBay:
                         sessions.append(session)
 
             # Return SessionListResult with request ID
-            return SessionListResult(request_id=request_id, sessions=sessions)
+            return SessionListResult(request_id=request_id, success=True, sessions=sessions)
 
         except Exception as e:
             print("Error calling list_session:", e)
-            raise AgentBayError(f"Failed to list sessions by labels: {e}")
+            return SessionListResult(
+                request_id="",
+                success=False,
+                sessions=[],
+                error_message=f"Failed to list sessions by labels: {e}"
+            )
 
     def delete(self, session: Session) -> DeleteResult:
         """
@@ -234,9 +257,6 @@ class AgentBay:
 
         Returns:
             DeleteResult: Result indicating success or failure and request ID.
-
-        Raises:
-            AgentBayError: If the operation fails.
         """
         try:
             # Delete the session and get the result
@@ -250,4 +270,8 @@ class AgentBay:
 
         except Exception as e:
             print("Error deleting session:", e)
-            raise AgentBayError(f"Failed to delete session {session.session_id}: {e}")
+            return DeleteResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to delete session {session.session_id}: {e}"
+            )

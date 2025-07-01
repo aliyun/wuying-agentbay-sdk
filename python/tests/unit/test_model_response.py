@@ -31,9 +31,10 @@ class TestSessionResult(unittest.TestCase):
         """Test initialization of SessionResult"""
         request_id = "session-request-id"
         session = MagicMock()
-        result = SessionResult(request_id, session)
+        result = SessionResult(request_id, success=True, error_message="", session=session)
 
         self.assertEqual(result.request_id, request_id)
+        self.assertTrue(result.success)
         self.assertEqual(result.session, session)
 
 
@@ -44,7 +45,7 @@ class TestSessionListResult(unittest.TestCase):
         """Test initialization of SessionListResult"""
         request_id = "session-list-request-id"
         sessions = [MagicMock(), MagicMock()]
-        result = SessionListResult(request_id, sessions)
+        result = SessionListResult(request_id=request_id, success=True, sessions=sessions)
 
         self.assertEqual(result.request_id, request_id)
         self.assertEqual(len(result.sessions), 2)
@@ -55,7 +56,9 @@ class TestSessionListResult(unittest.TestCase):
         result = SessionListResult()
 
         self.assertEqual(result.request_id, "")
+        self.assertFalse(result.success)
         self.assertEqual(result.sessions, [])
+        self.assertEqual(result.error_message, "")
 
 
 class TestDeleteResult(unittest.TestCase):

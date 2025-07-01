@@ -28,31 +28,39 @@ class ApiResponse:
 class SessionResult(ApiResponse):
     """Result of operations returning a single Session."""
 
-    def __init__(self, request_id: str = "", session: Optional["Session"] = None):
+    def __init__(self, request_id: str = "", success: bool = False, error_message: str = "", session: Optional["Session"] = None):
         """
         Initialize a SessionResult.
 
         Args:
             request_id (str, optional): Unique identifier for the API request. Defaults to "".
             session (Optional[Session], optional): The session object. Defaults to None.
+            success (bool, optional): Whether the operation was successful. Defaults to False.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
         """
         super().__init__(request_id)
+        self.success = success
+        self.error_message = error_message
         self.session = session
 
 
 class SessionListResult(ApiResponse):
     """Result of operations returning a list of Sessions."""
 
-    def __init__(self, request_id: str = "", sessions: Optional[List["Session"]] = None):
+    def __init__(self, request_id: str = "", success: bool = False, sessions: Optional[List["Session"]] = None, error_message: str = ""):
         """
         Initialize a SessionListResult.
 
         Args:
             request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the operation was successful. Defaults to False.
             sessions (Optional[List[Session]], optional): The list of session objects. Defaults to None.
+            error_message (str, optional): Error message if the operation failed. Defaults to "".
         """
         super().__init__(request_id)
+        self.success = success
         self.sessions = sessions if sessions is not None else []
+        self.error_message = error_message
 
 
 class DeleteResult(ApiResponse):

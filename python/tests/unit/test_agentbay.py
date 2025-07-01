@@ -146,11 +146,13 @@ class TestAgentBay(unittest.TestCase):
         # Create AgentBay instance
         agent_bay = AgentBay(api_key="test-key")
 
-        # Test session creation failure
-        with self.assertRaises(AgentBayError) as context:
-            agent_bay.create()
+        # Test session creation with invalid response
+        result = agent_bay.create()
 
-        self.assertIn("Invalid response format", str(context.exception))
+        # Verify the result indicates failure
+        self.assertFalse(result.success)
+        self.assertIsNone(result.session)
+        self.assertIn("Invalid response format", result.error_message)
 
     @patch("agentbay.agentbay.extract_request_id")
     @patch("agentbay.agentbay.load_config")
