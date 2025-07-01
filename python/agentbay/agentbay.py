@@ -1,7 +1,7 @@
 import json
 import os
 from threading import Lock
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_openapi.exceptions._client import ClientException
@@ -16,9 +16,8 @@ from agentbay.model import (
 )
 from agentbay.config import load_config
 from agentbay.context import ContextService
-from agentbay.exceptions import AgentBayError
 from agentbay.session import Session
-from agentbay.session_params import CreateSessionParams
+from agentbay.session_params import CreateSessionParams, ListSessionParams
 from typing import Optional
 
 class Config:
@@ -26,7 +25,6 @@ class Config:
         self.region_id = region_id
         self.endpoint = endpoint
         self.timeout_ms = timeout_ms
-
 
 
 class AgentBay:
@@ -167,24 +165,40 @@ class AgentBay:
         with self._lock:
             return list(self._sessions.values())
 
-    def list_by_labels(self, labels: Dict[str, str]) -> SessionListResult:
+    def list_by_labels(self, params: Optional[ListSessionParams] = None) -> SessionListResult:
         """
-        Lists sessions filtered by the provided labels.
+        Lists sessions filtered by the provided labels with pagination support.
         It returns sessions that match all the specified labels.
 
         Args:
-            labels (Dict[str, str]): A map of labels to filter sessions by.
+            params (Optional[ListSessionParams], optional): Parameters for listing sessions. Defaults to None.
 
         Returns:
-            SessionListResult: Result containing a list of sessions that match the specified labels and request ID.
+            SessionListResult: Result containing a list of sessions and pagination information.
         """
         try:
-            # Convert labels to JSON
-            labels_json = json.dumps(labels)
+            # Use default params if none provided
+            if params is None:
+                params = ListSessionParams()
 
+            # Convert labels to JSON
+            labels_json = json.dumps(params.labels)
+
+            # Create request with pagination parameters
             request = ListSessionRequest(
-                authorization=f"Bearer {self.api_key}", labels=labels_json
+                authorization=f"Bearer {self.api_key}",
+                labels=labels_json,
+                max_results=str(params.max_results)  # Convert to string as expected by the API
             )
+
+            # Add next_token if provided
+            if params.next_token:
+                request.next_token = params.next_token
+
+            print("API Call: list_session")
+            print(f"Request: Labels={labels_json}, MaxResults={params.max_results}")
+            if request.next_token:
+                print(f", NextToken={params.next_token}")
 
             response = self.client.list_session(request)
 
@@ -199,11 +213,27 @@ class AgentBay:
                 return SessionListResult(
                     request_id=request_id,
                     success=False,
+                    error_message="Failed to list sessions by labels",
                     sessions=[],
-                    error_message="Failed to list sessions by labels"
+                    next_token="",
+                    max_results=request.max_results,
+                    total_count=0
                 )
 
             sessions = []
+            next_token = ""
+            max_results = request.max_results
+            total_count = 0
+
+            print("body =", body)
+
+            # Extract pagination information
+            if isinstance(body, dict):
+                next_token = body.get("NextToken", "")
+                max_results = int(body.get("MaxResults", 0))
+                total_count = int(body.get("TotalCount", 0))
+
+            # Extract session data
             response_data = body.get("Data")
 
             # Handle both list and dict responses
@@ -223,21 +253,17 @@ class AgentBay:
                                     self._sessions[session_id] = session
 
                                 sessions.append(session)
-            elif isinstance(response_data, dict):
-                # Data is a dictionary with session info
-                session_id = response_data.get("SessionId")
-                if session_id:
-                    with self._lock:
-                        if session_id in self._sessions:
-                            session = self._sessions[session_id]
-                        else:
-                            session = Session(self, session_id)
-                            self._sessions[session_id] = session
 
-                        sessions.append(session)
 
-            # Return SessionListResult with request ID
-            return SessionListResult(request_id=request_id, success=True, sessions=sessions)
+            # Return SessionListResult with request ID and pagination info
+            return SessionListResult(
+                request_id=request_id,
+                success=True,
+                sessions=sessions,
+                next_token=next_token,
+                max_results=max_results,
+                total_count=total_count
+            )
 
         except Exception as e:
             print("Error calling list_session:", e)

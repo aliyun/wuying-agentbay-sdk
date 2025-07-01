@@ -182,69 +182,130 @@ list_by_labels(labels: Dict[str, str], max_results: int = 10, next_token: str = 
 **Raises:**
 - `AgentBayError`: If the session listing fails due to API errors or other issues.
 
+from agentbay import AgentBay
+from agentbay.session_params import ListSessionParams
+
+# 初始化AgentBay客户端
+agent_bay = AgentBay(api_key="your_api_key")
+
+# 创建分页参数
+params = ListSessionParams(
+    max_results=10,  # 每页返回的最大结果数
+    next_token="",   # 下一页的令牌，首次调用为空
+    labels={"environment": "production", "project": "demo"}  # 过滤标签
+)
+
+# 获取第一页结果
+result = agent_bay.list_by_labels(params)
+
+# 处理结果
+if result.success:
+    # 打印当前页会话
+    for session in result.sessions:
+        print(f"Session ID: {session.session_id}")
+
+    # 打印分页信息
+    print(f"Total count: {result.total_count}")
+    print(f"Max results per page: {result.max_results}")
+    print(f"Next token: {result.next_token}")
+
+    # 如果有下一页，继续获取
+    if result.next_token:
+        params.next_token = result.next_token
+        next_page_result = agent_bay.list_by_labels(params)
+        # 处理下一页...
+```
+
 #### TypeScript
 
 ```typescript
-listByLabels(params: {
-  labels: Record<string, string>;
-  maxResults?: number;
-  nextToken?: string;
-}): Promise<{
-  sessions: Session[];
-  nextToken?: string;
-  totalCount: number;
-}>
+import { AgentBay } from 'wuying-agentbay-sdk';
+import { ListSessionParams } from 'wuying-agentbay-sdk';
+
+// 初始化AgentBay客户端
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// 创建分页参数
+const params: ListSessionParams = {
+    maxResults: 10,
+    nextToken: '',
+    labels: { environment: 'production', project: 'demo' }
+};
+
+async function listSessionsWithPagination() {
+    // 获取第一页结果
+    const result = await agentBay.listByLabels(params);
+
+    if (result.success) {
+        // 打印当前页会话
+        result.sessions.forEach(session => {
+            console.log(`Session ID: ${session.sessionId}`);
+        });
+
+        // 打印分页信息
+        console.log(`Total count: ${result.totalCount}`);
+        console.log(`Max results per page: ${result.maxResults}`);
+        console.log(`Next token: ${result.nextToken}`);
+
+        // 如果有下一页，继续获取
+        if (result.nextToken) {
+            params.nextToken = result.nextToken;
+            const nextPageResult = await agentBay.listByLabels(params);
+            // 处理下一页...
+        }
+    }
+}
 ```
-
-**Parameters:**
-- `params.labels` (Record<string, string>): An object of labels to filter sessions by.
-- `params.maxResults` (number, optional): Maximum number of results to return per page. Default is 10.
-- `params.nextToken` (string, optional): Token for pagination to get the next page of results.
-
-**Returns:**
-- `Promise<Object>`: A promise that resolves to an object containing:
-  - `sessions` (Session[]): An array of Session instances that match the specified labels.
-  - `nextToken` (string, optional): Token to get the next page of results, if more results are available.
-  - `totalCount` (number): Total number of sessions matching the criteria.
-
-**Throws:**
-- `Error`: If the session listing fails.
 
 #### Golang
 
 ```go
-ListByLabels(params *ListSessionParams) (*SessionListResult, error)
-```
+import (
+    "fmt"
 
-**Parameters:**
-- `params` (*ListSessionParams): Parameters for listing sessions, including:
-  - `Labels` (map[string]string): A map of labels to filter sessions by.
-  - `MaxResults` (int32): Maximum number of results to return per page. Default is 10.
-  - `NextToken` (string): Token for pagination to get the next page of results.
+    "github.com/wuying/agentbay/golang/pkg/agentbay"
+)
 
-**Returns:**
-- `*SessionListResult`: A result object containing:
-  - `Sessions` ([]Session): An array of Session instances that match the specified labels.
-  - `NextToken` (string): Token to get the next page of results, if more results are available.
-  - `MaxResults` (int32): The maximum number of results requested per page.
-  - `TotalCount` (int32): Total number of sessions matching the criteria.
-  - `RequestID` (string): Unique request identifier for debugging.
-- `error`: An error if the session listing fails.
+func listSessionsWithPagination() {
+    // 初始化AgentBay客户端
+    client, err := agentbay.NewClient("your_api_key")
+    if err != nil {
+        fmt.Printf("Error initializing client: %v\n", err)
+        return
+    }
 
-**ListSessionParams Structure:**
-```go
-type ListSessionParams struct {
-    MaxResults int32             // Number of results per page
-    NextToken  string            // Token for the next page
-    Labels     map[string]string // Labels to filter by
-}
+    // 创建分页参数
+    params := agentbay.NewListSessionParams()
+    params.MaxResults = 10
+    params.Labels["environment"] = "production"
+    params.Labels["project"] = "demo"
 
-// NewListSessionParams creates a new ListSessionParams with default values
-func NewListSessionParams() *ListSessionParams {
-    return &ListSessionParams{
-        MaxResults: 10, // Default page size
-        NextToken:  "",
-        Labels:     make(map[string]string),
+    // 获取第一页结果
+    result, err := client.ListByLabels(params)
+    if err != nil {
+        fmt.Printf("Error listing sessions: %v\n", err)
+        return
+    }
+
+    // 打印当前页会话
+    for _, session := range result.Sessions {
+        fmt.Printf("Session ID: %s\n", session.GetSessionID())
+    }
+
+    // 打印分页信息
+    fmt.Printf("Total count: %d\n", result.TotalCount)
+    fmt.Printf("Max results per page: %d\n", result.MaxResults)
+    fmt.Printf("Next token: %s\n", result.NextToken)
+
+    // 如果有下一页，继续获取
+    if result.NextToken != "" {
+        params.NextToken = result.NextToken
+        nextPageResult, err := client.ListByLabels(params)
+        if err != nil {
+            fmt.Printf("Error listing sessions: %v\n", err)
+            return
+        }
+        // 处理下一页...
     }
 }
 ```
@@ -471,23 +532,24 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("Found %d sessions, RequestID: %s\n", len(sessions), sessions.RequestID)
-	
+
 	// List sessions by labels with pagination
 	listParams := agentbay.NewListSessionParams()
 	listParams.Labels = map[string]string{
 		"purpose": "demo",
 	}
 	listParams.MaxResults = 5 // Limit to 5 results per page
-	
+
 	// Get first page
 	firstPage, err := client.ListByLabels(listParams)
 	if err != nil {
 		fmt.Printf("Error listing sessions by labels: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("First page: Found %d matching sessions (total: %d), RequestID: %s\n", 
+
+	fmt.Printf("First page: Found %d matching sessions (total: %d), RequestID: %s\n",
 		len(firstPage.Sessions), firstPage.TotalCount, firstPage.RequestID)
-	
+
 	// If there are more pages, get the next page
 	if firstPage.NextToken != "" {
 		listParams.NextToken = firstPage.NextToken
@@ -496,10 +558,10 @@ func main() {
 			fmt.Printf("Error listing second page: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Second page: Found %d more sessions, RequestID: %s\n", 
+		fmt.Printf("Second page: Found %d more sessions, RequestID: %s\n",
 			len(secondPage.Sessions), secondPage.RequestID)
 	}
-	
+
 	// Delete the session
 	result, err := client.Delete(session)
 	if err != nil {
@@ -508,4 +570,45 @@ func main() {
 	}
 	fmt.Printf("Session deleted successfully, RequestID: %s\n", result.RequestID)
 }
+```
+
+## 按标签列出会话（分页支持）
+
+`list_by_labels` 方法允许按标签过滤会话，并支持分页功能。这对于处理大量会话时特别有用，可以分批获取结果，减少内存使用并提高响应速度。
+
+### Python
+
+```python
+from agentbay import AgentBay
+from agentbay.session_params import ListSessionParams
+
+# 初始化AgentBay客户端
+agent_bay = AgentBay(api_key="your_api_key")
+
+# 创建分页参数
+params = ListSessionParams(
+    max_results=10,  # 每页返回的最大结果数
+    next_token="",   # 下一页的令牌，首次调用为空
+    labels={"environment": "production", "project": "demo"}  # 过滤标签
+)
+
+# 获取第一页结果
+result = agent_bay.list_by_labels(params)
+
+# 处理结果
+if result.success:
+    # 打印当前页会话
+    for session in result.sessions:
+        print(f"Session ID: {session.session_id}")
+
+    # 打印分页信息
+    print(f"Total count: {result.total_count}")
+    print(f"Max results per page: {result.max_results}")
+    print(f"Next token: {result.next_token}")
+
+    # 如果有下一页，继续获取
+    if result.next_token:
+        params.next_token = result.next_token
+        next_page_result = agent_bay.list_by_labels(params)
+        # 处理下一页...
 ```

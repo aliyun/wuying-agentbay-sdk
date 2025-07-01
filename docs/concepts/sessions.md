@@ -51,17 +51,19 @@ err = session.SetLabels(labelsJSON)
 
 ```python
 # Set labels when creating a session
-params = {
-    "labels": {
+params = CreateSessionParams(
+    image_id="linux_latest",
+    labels={
         "environment": "development",
         "owner": "team-a",
         "project": "project-x"
     }
-}
-session = agent_bay.create(params)
+)
+session_result = agent_bay.create(params)
+session = session_result.session
 
 # Update labels for an existing session
-session.set_labels({
+result = session.set_labels({
     "environment": "staging",
     "owner": "team-a",
     "project": "project-x"
@@ -107,8 +109,9 @@ fmt.Printf("Session labels: %s\n", labelsJSON)
 #### Python
 
 ```python
-labels = session.get_labels()
-print(f"Session labels: {labels}")
+labels_result = session.get_labels()
+if labels_result.success:
+    print(f"Session labels: {labels_result.data}")
 ```
 
 #### TypeScript
@@ -133,7 +136,7 @@ if err != nil {
     fmt.Printf("Error listing sessions by labels: %v\n", err)
     return
 }
-fmt.Printf("Found %d sessions with environment=development (total: %d)\n", 
+fmt.Printf("Found %d sessions with environment=development (total: %d)\n",
     len(result.Sessions), result.TotalCount)
 
 // Find sessions with multiple labels
@@ -147,7 +150,7 @@ if err != nil {
     fmt.Printf("Error listing sessions by labels: %v\n", err)
     return
 }
-fmt.Printf("Found %d sessions with environment=development AND owner=team-a\n", 
+fmt.Printf("Found %d sessions with environment=development AND owner=team-a\n",
     len(result.Sessions))
 
 // Using pagination to handle large result sets
@@ -161,7 +164,7 @@ if err != nil {
     fmt.Printf("Error listing sessions by labels: %v\n", err)
     return
 }
-fmt.Printf("First page: Found %d sessions (total: %d)\n", 
+fmt.Printf("First page: Found %d sessions (total: %d)\n",
     len(firstPage.Sessions), firstPage.TotalCount)
 
 // If there are more pages, get the next page
@@ -180,15 +183,37 @@ if firstPage.NextToken != "" {
 
 ```python
 # Find sessions with environment=development
-sessions = agent_bay.list_by_labels({"environment": "development"})
-print(f"Found {len(sessions)} sessions with environment=development")
+params = ListSessionParams(
+    labels={"environment": "development"}
+)
+result = agent_bay.list_by_labels(params)
+print(f"Found {len(result.sessions)} sessions with environment=development (total: {result.total_count})")
 
 # Find sessions with multiple labels
-sessions = agent_bay.list_by_labels({
-    "environment": "development",
-    "owner": "team-a"
-})
-print(f"Found {len(sessions)} sessions with environment=development AND owner=team-a")
+params = ListSessionParams(
+    labels={
+        "environment": "development",
+        "owner": "team-a"
+    }
+)
+result = agent_bay.list_by_labels(params)
+print(f"Found {len(result.sessions)} sessions with environment=development AND owner=team-a")
+
+# Using pagination to handle large result sets
+params = ListSessionParams(
+    labels={"environment": "development"},
+    max_results=5
+)
+
+# Fetch first page
+first_page = agent_bay.list_by_labels(params)
+print(f"First page: Found {len(first_page.sessions)} sessions (total: {first_page.total_count})")
+
+# Fetch more if there has next page
+if first_page.next_token:
+    params.next_token = first_page.next_token
+    second_page = agent_bay.list_by_labels(params)
+    print(f"Second page: Found {len(second_page.sessions)} more sessions")
 ```
 
 #### TypeScript
@@ -240,16 +265,29 @@ fmt.Println("Session deleted successfully")
 
 ```python
 # Create a session
-session = agent_bay.create()
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+
+# Init client
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create session
+params = CreateSessionParams(image_id="linux_latest")
+session_result = agent_bay.create(params)
+session = session_result.session
 print(f"Session created with ID: {session.session_id}")
 
 # Use the session to execute a command
 result = session.command.execute_command("ls -la")
-print(f"Command result: {result}")
+if result.success:
+    print(f"Command output: {result.output}")
+else:
+    print(f"Command failed: {result.error_message}")
 
 # Delete the session
-agent_bay.delete(session)
-print("Session deleted successfully")
+delete_result = agent_bay.delete(session)
+if delete_result.success:
+    print("Session deleted successfully")
 ```
 
 ### TypeScript
@@ -266,9 +304,7 @@ log('Command result:', result);
 // Delete the session
 await agentBay.delete(session);
 log('Session deleted successfully');
-```
-
-## Related Resources
+```## Related Resources
 
 - [Contexts](contexts.md)
 - [Applications](applications.md)

@@ -1,12 +1,12 @@
 import os
 from setuptools import setup, find_packages
 
-# 读取 README.md 文件内容作为 long_description
+# Read README.md content as long_description
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-# 获取版本号，如果环境变量中没有设置，则使用默认值
-version = os.getenv("RELEASE_VERSION", "0.3.0")
+# Get version from environment variable or use default value
+version = os.getenv("RELEASE_VERSION", "0.3.2")
 
 setup(
     name="wuying_agentbay_sdk",

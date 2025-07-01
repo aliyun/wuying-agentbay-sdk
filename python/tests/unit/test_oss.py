@@ -10,7 +10,7 @@ class TestOss(unittest.TestCase):
         self.oss = Oss(self.mock_session)
 
     def test_env_init_success(self):
-        # 创建一个模拟的 OperationResult
+        # Create a mock OperationResult
         mock_result = OperationResult(
             request_id="test-request-id",
             success=True,
@@ -27,7 +27,7 @@ class TestOss(unittest.TestCase):
         self.assertEqual(result.error_message, "")
 
     def test_env_init_failure(self):
-        # 创建一个模拟的失败 OperationResult
+        # Create a mock failed OperationResult
         mock_result = OperationResult(
             request_id="test-request-id",
             success=False,

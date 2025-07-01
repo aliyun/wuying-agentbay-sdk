@@ -27,3 +27,27 @@ class CreateSessionParams:
         self.labels = labels or {}
         self.context_id = context_id
         self.image_id = image_id
+
+
+class ListSessionParams:
+    """
+    Parameters for listing sessions with pagination support.
+
+    Attributes:
+        max_results (int): Number of results per page.
+        next_token (str): Token for the next page.
+        labels (Dict[str, str]): Labels to filter by.
+    """
+
+    def __init__(self, max_results: int = 10, next_token: str = "", labels: Optional[Dict[str, str]] = None):
+        """
+        Initialize ListSessionParams with default values.
+
+        Args:
+            max_results (int, optional): Number of results per page. Defaults to 10.
+            next_token (str, optional): Token for the next page. Defaults to "".
+            labels (Optional[Dict[str, str]], optional): Labels to filter by. Defaults to None.
+        """
+        self.max_results = max_results
+        self.next_token = next_token
+        self.labels = labels if labels is not None else {}

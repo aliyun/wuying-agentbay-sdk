@@ -47,20 +47,35 @@ class SessionResult(ApiResponse):
 class SessionListResult(ApiResponse):
     """Result of operations returning a list of Sessions."""
 
-    def __init__(self, request_id: str = "", success: bool = False, sessions: Optional[List["Session"]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        error_message: str = "",
+        sessions: List["Session"] = None,
+        next_token: str = "",
+        max_results: int = 0,
+        total_count: int = 0
+    ):
         """
         Initialize a SessionListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            sessions (Optional[List[Session]], optional): The list of session objects. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str): The request ID.
+            success (bool): Whether the operation was successful.
+            error_message (str): Error message if the operation failed.
+            sessions (List["Session"]): List of sessions.
+            next_token (str): Token for the next page of results.
+            max_results (int): Number of results per page.
+            total_count (int): Total number of results available.
         """
         super().__init__(request_id)
         self.success = success
-        self.sessions = sessions if sessions is not None else []
         self.error_message = error_message
+        self.sessions = sessions if sessions is not None else []
+        self.next_token = next_token
+        self.max_results = max_results
+        self.total_count = total_count
 
 
 class DeleteResult(ApiResponse):

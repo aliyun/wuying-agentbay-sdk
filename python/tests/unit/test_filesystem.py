@@ -107,7 +107,7 @@ class TestFileSystem(unittest.TestCase):
         """
         Test create_directory method with error response.
         """
-        # 创建一个包含error_message和request_id的OperationResult对象
+        # Create an OperationResult object with error_message and request_id
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
