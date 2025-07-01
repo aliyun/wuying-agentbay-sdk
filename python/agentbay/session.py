@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 from agentbay.api.models import (
     GetLabelRequest,
     GetMcpResourceRequest,
@@ -20,6 +20,9 @@ from agentbay.filesystem import FileSystem
 from agentbay.oss import Oss
 from agentbay.window import WindowManager
 from agentbay.ui import UI
+
+if TYPE_CHECKING:
+    from agentbay.agentbay import AgentBay
 
 
 class SessionInfo:

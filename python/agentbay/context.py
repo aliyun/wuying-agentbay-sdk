@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
 
 from agentbay.api.models import (
@@ -8,6 +8,9 @@ from agentbay.api.models import (
     ModifyContextRequest,
 )
 from agentbay.exceptions import AgentBayError
+
+if TYPE_CHECKING:
+    from agentbay.agentbay import AgentBay
 
 
 class Context:
