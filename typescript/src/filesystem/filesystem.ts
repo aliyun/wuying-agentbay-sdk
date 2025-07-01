@@ -1,9 +1,13 @@
-import { APIError } from '../exceptions';
-import { Session } from '../session';
-import { CallMcpToolRequest } from '../api/models/model';
-import * as $_client from '../api';
-import { log, logError } from '../utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from '../types/api-response';
+import { APIError } from "../exceptions";
+import { Session } from "../session";
+import { CallMcpToolRequest } from "../api/models/model";
+import * as $_client from "../api";
+import { log, logError } from "../utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "../types/api-response";
 
 // Default chunk size for large file operations (60KB)
 const DEFAULT_CHUNK_SIZE = 60 * 1024;
@@ -32,9 +36,9 @@ export interface DirectoryEntry {
 
 // File operations that might contain large content
 const FILE_OPERATIONS: { [key: string]: boolean } = {
-  'read_file': true,
-  'write_file': true,
-  'read_multiple_files': true
+  read_file: true,
+  write_file: true,
+  read_multiple_files: true,
 };
 
 /**
@@ -53,11 +57,13 @@ function isFileOperation(toolName: string): boolean {
  * @param args - Arguments object to truncate
  * @returns Truncated arguments object for logging
  */
-function truncateContentForLogging(args: Record<string, any>): Record<string, any> {
+function truncateContentForLogging(
+  args: Record<string, any>
+): Record<string, any> {
   const truncatedArgs = { ...args };
 
   // Check for content field and replace with length info
-  if (typeof truncatedArgs.content === 'string') {
+  if (typeof truncatedArgs.content === "string") {
     const contentLength = truncatedArgs.content.length;
     truncatedArgs.content = `[Content length: ${contentLength} bytes]`;
   }
@@ -78,42 +84,42 @@ function truncateContentForLogging(args: Record<string, any>): Record<string, an
  */
 function parseFileInfo(fileInfoStr: string): FileInfo {
   const result: FileInfo = {
-    name: '',
-    path: '',
+    name: "",
+    path: "",
     size: 0,
     isDirectory: false,
-    modTime: '',
-    mode: ''
+    modTime: "",
+    mode: "",
   };
 
-  const lines = fileInfoStr.split('\n');
+  const lines = fileInfoStr.split("\n");
   for (const line of lines) {
-    if (line.includes(':')) {
-      const [key, value] = line.split(':', 2).map(part => part.trim());
+    if (line.includes(":")) {
+      const [key, value] = line.split(":", 2).map((part) => part.trim());
 
       switch (key) {
-        case 'name':
+        case "name":
           result.name = value;
           break;
-        case 'path':
+        case "path":
           result.path = value;
           break;
-        case 'size':
+        case "size":
           result.size = parseInt(value, 10);
           break;
-        case 'isDirectory':
-          result.isDirectory = value === 'true';
+        case "isDirectory":
+          result.isDirectory = value === "true";
           break;
-        case 'modTime':
+        case "modTime":
           result.modTime = value;
           break;
-        case 'mode':
+        case "mode":
           result.mode = value;
           break;
-        case 'owner':
+        case "owner":
           result.owner = value;
           break;
-        case 'group':
+        case "group":
           result.group = value;
           break;
       }
@@ -131,23 +137,23 @@ function parseFileInfo(fileInfoStr: string): FileInfo {
  */
 function parseDirectoryListing(text: string): DirectoryEntry[] {
   const result: DirectoryEntry[] = [];
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (trimmedLine === '') {
+    if (trimmedLine === "") {
       continue;
     }
 
-    if (trimmedLine.startsWith('[DIR]')) {
+    if (trimmedLine.startsWith("[DIR]")) {
       result.push({
         isDirectory: true,
-        name: trimmedLine.replace('[DIR]', '').trim()
+        name: trimmedLine.replace("[DIR]", "").trim(),
       });
-    } else if (trimmedLine.startsWith('[FILE]')) {
+    } else if (trimmedLine.startsWith("[FILE]")) {
       result.push({
         isDirectory: false,
-        name: trimmedLine.replace('[FILE]', '').trim()
+        name: trimmedLine.replace("[FILE]", "").trim(),
       });
     }
   }
@@ -214,19 +220,25 @@ export class FileSystem {
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
         name: toolName,
-        args: argsJSON
+        args: argsJSON,
       });
 
       // Log API request
       log(`API Call: CallMcpTool - ${toolName}`);
-      log(`Request: SessionId=${this.session.getSessionId()}, Args=${loggableArgsJSON}`);
+      log(
+        `Request: SessionId=${this.session.getSessionId()}, Args=${loggableArgsJSON}`
+      );
 
-      const response = await this.session.getClient().callMcpTool(callToolRequest);
+      const response = await this.session
+        .getClient()
+        .callMcpTool(callToolRequest);
 
       // Log API response differently based on operation type
       if (isFileOperation(toolName)) {
         // Log content size for file operations instead of full content
-        log(`Response from CallMcpTool - ${toolName} - status: ${response.statusCode}`);
+        log(
+          `Response from CallMcpTool - ${toolName} - status: ${response.statusCode}`
+        );
 
         // Log only relevant response information without content
         if (response.body?.data) {
@@ -235,13 +247,18 @@ export class FileSystem {
             log(`Response contains error: ${data.isError}`);
           } else {
             // For successful responses, don't log the content at all
-            log('Response successful, content length info provided separately');
+            log("Response successful, content length info provided separately");
 
             // If there's content, log its size instead of the actual content
             if (Array.isArray(data.content) && data.content.length > 0) {
               let totalSize = 0;
               for (const item of data.content) {
-                if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+                if (
+                  item &&
+                  typeof item === "object" &&
+                  item.text &&
+                  typeof item.text === "string"
+                ) {
                   totalSize += item.text.length;
                 }
               }
@@ -253,7 +270,7 @@ export class FileSystem {
         // For non-file operations, create a sanitized version of the response body
         // that doesn't include large content fields
         const sanitizedBody = { ...response.body };
-        if (sanitizedBody.data && typeof sanitizedBody.data === 'object') {
+        if (sanitizedBody.data && typeof sanitizedBody.data === "object") {
           const sanitizedData = { ...sanitizedBody.data };
           if (Array.isArray(sanitizedData.content)) {
             sanitizedData.content = `[Array with ${sanitizedData.content.length} items]`;
@@ -264,7 +281,7 @@ export class FileSystem {
       }
 
       if (!response.body?.data) {
-        throw new Error('Invalid response data format');
+        throw new Error("Invalid response data format");
       }
 
       // Extract data from response
@@ -275,7 +292,7 @@ export class FileSystem {
         data,
         statusCode: response.statusCode || 0,
         isError: false,
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
 
       // Check if there's an error in the response
@@ -304,11 +321,16 @@ export class FileSystem {
         if (result.content.length > 0) {
           const textParts: string[] = [];
           for (const item of result.content) {
-            if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
               textParts.push(item.text);
             }
           }
-          result.textContent = textParts.join('\n');
+          result.textContent = textParts.join("\n");
         }
       }
 
@@ -328,14 +350,18 @@ export class FileSystem {
    */
   async createDirectory(path: string): Promise<ApiResponseWithData<string>> {
     const args = {
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('create_directory', args, 'Failed to create directory');
+    const result = await this.callMcpTool(
+      "create_directory",
+      args,
+      "Failed to create directory"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -348,18 +374,26 @@ export class FileSystem {
    * @returns API response with edit result and requestId
    * @throws APIError if the operation fails.
    */
-  async editFile(path: string, edits: Array<{oldText: string, newText: string}>, dryRun: boolean = false): Promise<ApiResponseWithData<string>> {
+  async editFile(
+    path: string,
+    edits: Array<{ oldText: string; newText: string }>,
+    dryRun = false
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       path,
       edits,
-      dryRun
+      dryRun,
     };
 
-    const result = await this.callMcpTool('edit_file', args, 'Failed to edit file');
+    const result = await this.callMcpTool(
+      "edit_file",
+      args,
+      "Failed to edit file"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -372,21 +406,25 @@ export class FileSystem {
    */
   async getFileInfo(path: string): Promise<ApiResponseWithData<FileInfo>> {
     const args = {
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('get_file_info', args, 'Failed to get file info');
+    const result = await this.callMcpTool(
+      "get_file_info",
+      args,
+      "Failed to get file info"
+    );
 
     // Parse and return the file info
     if (!result.textContent) {
-      throw new APIError('Empty response from get_file_info');
+      throw new APIError("Empty response from get_file_info");
     }
 
     const fileInfo = parseFileInfo(result.textContent);
 
     return {
       requestId: result.requestId,
-      data: fileInfo
+      data: fileInfo,
     };
   }
 
@@ -397,19 +435,27 @@ export class FileSystem {
    * @returns API response with directory entries and requestId
    * @throws APIError if the operation fails.
    */
-  async listDirectory(path: string): Promise<ApiResponseWithData<DirectoryEntry[]>> {
+  async listDirectory(
+    path: string
+  ): Promise<ApiResponseWithData<DirectoryEntry[]>> {
     const args = {
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('list_directory', args, 'Failed to list directory');
+    const result = await this.callMcpTool(
+      "list_directory",
+      args,
+      "Failed to list directory"
+    );
 
     // Parse the text content into directory entries
-    const entries = result.textContent ? parseDirectoryListing(result.textContent) : [];
+    const entries = result.textContent
+      ? parseDirectoryListing(result.textContent)
+      : [];
 
     return {
       requestId: result.requestId,
-      data: entries
+      data: entries,
     };
   }
 
@@ -421,17 +467,24 @@ export class FileSystem {
    * @returns API response with move result and requestId
    * @throws APIError if the operation fails.
    */
-  async moveFile(source: string, destination: string): Promise<ApiResponseWithData<string>> {
+  async moveFile(
+    source: string,
+    destination: string
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       source,
-      destination
+      destination,
     };
 
-    const result = await this.callMcpTool('move_file', args, 'Failed to move file');
+    const result = await this.callMcpTool(
+      "move_file",
+      args,
+      "Failed to move file"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -444,9 +497,13 @@ export class FileSystem {
    * @returns API response with file content and requestId
    * @throws APIError if the operation fails.
    */
-  async readFile(path: string, offset: number = 0, length: number = 0): Promise<ApiResponseWithData<string>> {
+  async readFile(
+    path: string,
+    offset = 0,
+    length = 0
+  ): Promise<ApiResponseWithData<string>> {
     const args: Record<string, any> = {
-      path
+      path,
     };
 
     if (offset > 0) {
@@ -457,11 +514,15 @@ export class FileSystem {
       args.length = length;
     }
 
-    const result = await this.callMcpTool('read_file', args, 'Failed to read file');
+    const result = await this.callMcpTool(
+      "read_file",
+      args,
+      "Failed to read file"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -474,10 +535,14 @@ export class FileSystem {
    */
   async readMultipleFiles(paths: string[]): Promise<Record<string, string>> {
     const args = {
-      paths
+      paths,
     };
 
-    const result = await this.callMcpTool('read_multiple_files', args, 'Failed to read multiple files');
+    const result = await this.callMcpTool(
+      "read_multiple_files",
+      args,
+      "Failed to read multiple files"
+    );
 
     if (!result.textContent) {
       return {};
@@ -485,14 +550,18 @@ export class FileSystem {
 
     // Parse the response into a map of file paths to contents
     const fileContents: Record<string, string> = {};
-    const lines = result.textContent.split('\n');
-    let currentPath = '';
+    const lines = result.textContent.split("\n");
+    let currentPath = "";
     let currentContent: string[] = [];
 
     for (const line of lines) {
       // Check if this line contains a file path (ends with a colon)
-      const colonIndex = line.indexOf(':');
-      if (colonIndex > 0 && currentPath === '' && !line.substring(0, colonIndex).includes(' ')) {
+      const colonIndex = line.indexOf(":");
+      if (
+        colonIndex > 0 &&
+        currentPath === "" &&
+        !line.substring(0, colonIndex).includes(" ")
+      ) {
         // Extract path (everything before the first colon)
         const path = line.substring(0, colonIndex).trim();
 
@@ -506,11 +575,11 @@ export class FileSystem {
             currentContent.push(contentStart);
           }
         }
-      } else if (line === '---') {
+      } else if (line === "---") {
         // Save the current file content
         if (currentPath) {
-          fileContents[currentPath] = currentContent.join('\n');
-          currentPath = '';
+          fileContents[currentPath] = currentContent.join("\n");
+          currentPath = "";
           currentContent = [];
         }
       } else if (currentPath) {
@@ -521,12 +590,12 @@ export class FileSystem {
 
     // Save the last file content if exists
     if (currentPath) {
-      fileContents[currentPath] = currentContent.join('\n');
+      fileContents[currentPath] = currentContent.join("\n");
     }
 
     // Trim trailing newlines from file contents to match expected test values
     for (const path in fileContents) {
-      fileContents[path] = fileContents[path].replace(/\n+$/, '');
+      fileContents[path] = fileContents[path].replace(/\n+$/, "");
     }
 
     return fileContents;
@@ -541,30 +610,39 @@ export class FileSystem {
    * @returns API response with search results and requestId
    * @throws APIError if the operation fails.
    */
-  async searchFiles(path: string, pattern: string, excludePatterns: string[] = []): Promise<ApiResponseWithData<string[]>> {
+  async searchFiles(
+    path: string,
+    pattern: string,
+    excludePatterns: string[] = []
+  ): Promise<ApiResponseWithData<string[]>> {
     const args: Record<string, any> = {
       path,
-      pattern
+      pattern,
     };
 
     if (excludePatterns.length > 0) {
       args.exclude_patterns = excludePatterns;
     }
 
-    const result = await this.callMcpTool('search_files', args, 'Failed to search files');
+    const result = await this.callMcpTool(
+      "search_files",
+      args,
+      "Failed to search files"
+    );
 
     // Parse the text content into search results
     let searchResults: string[] = [];
     if (result.textContent) {
       // Split by newlines and filter out empty lines
-      searchResults = result.textContent.split('\n')
-        .map(line => line.trim())
-        .filter(line => line !== '');
+      searchResults = result.textContent
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "");
     }
 
     return {
       requestId: result.requestId,
-      data: searchResults
+      data: searchResults,
     };
   }
 
@@ -577,24 +655,34 @@ export class FileSystem {
    * @returns API response with write result and requestId
    * @throws APIError if the operation fails.
    */
-  async writeFile(path: string, content: string, mode: string = 'overwrite'): Promise<ApiResponseWithData<string>> {
+  async writeFile(
+    path: string,
+    content: string,
+    mode = "overwrite"
+  ): Promise<ApiResponseWithData<string>> {
     // Validate mode
-    const validModes = ['overwrite', 'append', 'create_new'];
+    const validModes = ["overwrite", "append", "create_new"];
     if (!validModes.includes(mode)) {
-      throw new APIError(`Invalid mode: ${mode}. Must be one of ${validModes.join(', ')}`);
+      throw new APIError(
+        `Invalid mode: ${mode}. Must be one of ${validModes.join(", ")}`
+      );
     }
 
     const args = {
       path,
       content,
-      mode
+      mode,
     };
 
-    const result = await this.callMcpTool('write_file', args, 'Failed to write file');
+    const result = await this.callMcpTool(
+      "write_file",
+      args,
+      "Failed to write file"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -607,7 +695,10 @@ export class FileSystem {
    * @returns The complete file content as a string
    * @throws APIError if the operation fails.
    */
-  async readLargeFile(path: string, chunkSize: number = DEFAULT_CHUNK_SIZE): Promise<string> {
+  async readLargeFile(
+    path: string,
+    chunkSize: number = DEFAULT_CHUNK_SIZE
+  ): Promise<string> {
     // First get the file info
     const fileInfoResponse = await this.getFileInfo(path);
 
@@ -615,14 +706,16 @@ export class FileSystem {
     const fileSize = fileInfoResponse.data.size;
 
     if (fileSize === 0) {
-      throw new APIError('Couldn\'t determine file size');
+      throw new APIError("Couldn't determine file size");
     }
 
     // Prepare to read the file in chunks
-    let result = '';
+    let result = "";
     let offset = 0;
 
-    log(`ReadLargeFile: Starting chunked read of ${path} (total size: ${fileSize} bytes, chunk size: ${chunkSize} bytes)`);
+    log(
+      `ReadLargeFile: Starting chunked read of ${path} (total size: ${fileSize} bytes, chunk size: ${chunkSize} bytes)`
+    );
 
     let chunkCount = 0;
     while (offset < fileSize) {
@@ -632,7 +725,11 @@ export class FileSystem {
         length = fileSize - offset;
       }
 
-      log(`ReadLargeFile: Reading chunk ${chunkCount + 1} (${length} bytes at offset ${offset}/${fileSize})`);
+      log(
+        `ReadLargeFile: Reading chunk ${
+          chunkCount + 1
+        } (${length} bytes at offset ${offset}/${fileSize})`
+      );
 
       try {
         // Read the chunk
@@ -650,7 +747,9 @@ export class FileSystem {
       }
     }
 
-    log(`ReadLargeFile: Successfully read ${path} in ${chunkCount} chunks (total: ${fileSize} bytes)`);
+    log(
+      `ReadLargeFile: Successfully read ${path} in ${chunkCount} chunks (total: ${fileSize} bytes)`
+    );
 
     return result;
   }
@@ -665,37 +764,57 @@ export class FileSystem {
    * @returns True if the operation was successful
    * @throws APIError if the operation fails.
    */
-  async writeLargeFile(path: string, content: string, chunkSize: number = DEFAULT_CHUNK_SIZE): Promise<boolean> {
+  async writeLargeFile(
+    path: string,
+    content: string,
+    chunkSize: number = DEFAULT_CHUNK_SIZE
+  ): Promise<boolean> {
     const contentLen = content.length;
 
-    log(`WriteLargeFile: Starting chunked write to ${path} (total size: ${contentLen} bytes, chunk size: ${chunkSize} bytes)`);
+    log(
+      `WriteLargeFile: Starting chunked write to ${path} (total size: ${contentLen} bytes, chunk size: ${chunkSize} bytes)`
+    );
 
     // If content is small enough, use the regular WriteFile method
     if (contentLen <= chunkSize) {
-      log(`WriteLargeFile: Content size (${contentLen} bytes) is smaller than chunk size, using normal WriteFile`);
-      await this.writeFile(path, content, 'overwrite');
+      log(
+        `WriteLargeFile: Content size (${contentLen} bytes) is smaller than chunk size, using normal WriteFile`
+      );
+      await this.writeFile(path, content, "overwrite");
       return true;
     }
 
     // Write the first chunk with "overwrite" mode to create/clear the file
     const firstChunkEnd = Math.min(chunkSize, contentLen);
 
-    log(`WriteLargeFile: Writing first chunk (0-${firstChunkEnd} bytes) with overwrite mode`);
-    await this.writeFile(path, content.substring(0, firstChunkEnd), 'overwrite');
+    log(
+      `WriteLargeFile: Writing first chunk (0-${firstChunkEnd} bytes) with overwrite mode`
+    );
+    await this.writeFile(
+      path,
+      content.substring(0, firstChunkEnd),
+      "overwrite"
+    );
 
     // Write the remaining chunks with "append" mode
     let chunkCount = 1; // Already wrote first chunk
-    for (let offset = firstChunkEnd; offset < contentLen;) {
+    for (let offset = firstChunkEnd; offset < contentLen; ) {
       const end = Math.min(offset + chunkSize, contentLen);
 
-      log(`WriteLargeFile: Writing chunk ${chunkCount + 1} (${offset}-${end} bytes) with append mode`);
-      await this.writeFile(path, content.substring(offset, end), 'append');
+      log(
+        `WriteLargeFile: Writing chunk ${
+          chunkCount + 1
+        } (${offset}-${end} bytes) with append mode`
+      );
+      await this.writeFile(path, content.substring(offset, end), "append");
 
       offset = end;
       chunkCount++;
     }
 
-    log(`WriteLargeFile: Successfully wrote ${path} in ${chunkCount} chunks (total: ${contentLen} bytes)`);
+    log(
+      `WriteLargeFile: Successfully wrote ${path} in ${chunkCount} chunks (total: ${contentLen} bytes)`
+    );
 
     return true;
   }

@@ -1,6 +1,5 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
-
+import * as $dara from "@darabonba/typescript";
 
 export class ModifyContextRequest extends $dara.Model {
   authorization?: string;
@@ -8,17 +7,17 @@ export class ModifyContextRequest extends $dara.Model {
   name?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: 'Authorization',
-      id: 'Id',
-      name: 'Name',
+      authorization: "Authorization",
+      id: "Id",
+      name: "Name",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: 'string',
-      id: 'string',
-      name: 'string',
+      authorization: "string",
+      id: "string",
+      name: "string",
     };
   }
 
@@ -30,4 +29,3 @@ export class ModifyContextRequest extends $dara.Model {
     super(map);
   }
 }
-

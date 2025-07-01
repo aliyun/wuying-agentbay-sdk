@@ -1,7 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
+import * as $dara from "@darabonba/typescript";
 import { GetContextResponseBodyData } from "./GetContextResponseBodyData";
-
 
 export class GetContextResponseBody extends $dara.Model {
   code?: string;
@@ -12,28 +11,28 @@ export class GetContextResponseBody extends $dara.Model {
   success?: boolean;
   static names(): { [key: string]: string } {
     return {
-      code: 'Code',
-      data: 'Data',
-      httpStatusCode: 'HttpStatusCode',
-      message: 'Message',
-      requestId: 'RequestId',
-      success: 'Success',
+      code: "Code",
+      data: "Data",
+      httpStatusCode: "HttpStatusCode",
+      message: "Message",
+      requestId: "RequestId",
+      success: "Success",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      code: 'string',
+      code: "string",
       data: GetContextResponseBodyData,
-      httpStatusCode: 'number',
-      message: 'string',
-      requestId: 'string',
-      success: 'boolean',
+      httpStatusCode: "number",
+      message: "string",
+      requestId: "string",
+      success: "boolean",
     };
   }
 
   validate() {
-    if(this.data && typeof (this.data as any).validate === 'function') {
+    if (this.data && typeof (this.data as any).validate === "function") {
       (this.data as any).validate();
     }
     super.validate();
@@ -43,4 +42,3 @@ export class GetContextResponseBody extends $dara.Model {
     super(map);
   }
 }
-

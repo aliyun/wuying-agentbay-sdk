@@ -1,8 +1,12 @@
-import { AgentBay } from './agent-bay';
-import { APIError } from './exceptions';
-import * as $_client from './api';
-import { log, logError } from './utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from './types/api-response';
+import { AgentBay } from "./agent-bay";
+import { APIError } from "./exceptions";
+import * as $_client from "./api";
+import { log, logError } from "./utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "./types/api-response";
 
 /**
  * Represents a persistent storage context in the AgentBay cloud environment.
@@ -51,7 +55,7 @@ export class Context {
   constructor(
     id: string,
     name: string,
-    state: string = 'available',
+    state: string = "available",
     createdAt?: string,
     lastUsedAt?: string,
     osType?: string
@@ -88,7 +92,7 @@ export class ContextService {
   async list(): Promise<ApiResponseWithData<Context[]>> {
     try {
       const request = new $_client.ListContextsRequest({
-        authorization: `Bearer ${this.agentBay.getAPIKey()}`
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
       });
 
       // Log API request
@@ -103,20 +107,22 @@ export class ContextService {
       const contexts: Context[] = [];
       if (response.body?.data) {
         for (const contextData of response.body.data) {
-          contexts.push(new Context(
-            contextData.id || '',
-            contextData.name || '',
-            contextData.state || 'available',
-            contextData.createTime,
-            contextData.lastUsedTime,
-            contextData.osType
-          ));
+          contexts.push(
+            new Context(
+              contextData.id || "",
+              contextData.name || "",
+              contextData.state || "available",
+              contextData.createTime,
+              contextData.lastUsedTime,
+              contextData.osType
+            )
+          );
         }
       }
 
       return {
         requestId: extractRequestId(response),
-        data: contexts
+        data: contexts,
       };
     } catch (error) {
       logError("Error calling ListContexts:", error);
@@ -131,12 +137,15 @@ export class ContextService {
    * @param create - Whether to create the context if it doesn't exist.
    * @returns API response with context data and requestId
    */
-  async get(name: string, create: boolean = false): Promise<ApiResponseWithData<Context | null>> {
+  async get(
+    name: string,
+    create: boolean = false
+  ): Promise<ApiResponseWithData<Context | null>> {
     try {
       const request = new $_client.GetContextRequest({
         name: name,
-        allowCreate: create ? 'true' : 'false',
-        authorization: `Bearer ${this.agentBay.getAPIKey()}`
+        allowCreate: create ? "true" : "false",
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
       });
 
       // Log API request
@@ -152,7 +161,7 @@ export class ContextService {
       if (!contextId) {
         return {
           requestId: extractRequestId(response),
-          data: null
+          data: null,
         };
       }
 
@@ -162,7 +171,7 @@ export class ContextService {
         if (context.id === contextId) {
           return {
             requestId: extractRequestId(response),
-            data: context
+            data: context,
           };
         }
       }
@@ -171,7 +180,7 @@ export class ContextService {
       const context = new Context(contextId, name);
       return {
         requestId: extractRequestId(response),
-        data: context
+        data: context,
       };
     } catch (error) {
       logError("Error calling GetContext:", error);
@@ -192,7 +201,7 @@ export class ContextService {
     }
     return {
       requestId: contextResponse.requestId,
-      data: contextResponse.data
+      data: contextResponse.data,
     };
   }
 
@@ -207,7 +216,7 @@ export class ContextService {
       const request = new $_client.ModifyContextRequest({
         id: context.id,
         name: context.name,
-        authorization: `Bearer ${this.agentBay.getAPIKey()}`
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
       });
 
       // Log API request
@@ -222,7 +231,7 @@ export class ContextService {
       // Return the updated context
       return {
         requestId: extractRequestId(response),
-        data: context
+        data: context,
       };
     } catch (error) {
       logError("Error calling ModifyContext:", error);
@@ -240,7 +249,7 @@ export class ContextService {
     try {
       const request = new $_client.DeleteContextRequest({
         id: context.id,
-        authorization: `Bearer ${this.agentBay.getAPIKey()}`
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
       });
 
       // Log API request
@@ -253,7 +262,7 @@ export class ContextService {
       log(`Response from DeleteContext:`, response.body);
 
       return {
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
     } catch (error) {
       logError("Error calling DeleteContext:", error);

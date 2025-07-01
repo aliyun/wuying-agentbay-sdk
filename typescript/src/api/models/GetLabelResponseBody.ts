@@ -1,7 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
+import * as $dara from "@darabonba/typescript";
 import { GetLabelResponseBodyData } from "./GetLabelResponseBodyData";
-
 
 export class GetLabelResponseBody extends $dara.Model {
   code?: string;
@@ -15,34 +14,34 @@ export class GetLabelResponseBody extends $dara.Model {
   totalCount?: number;
   static names(): { [key: string]: string } {
     return {
-      code: 'Code',
-      data: 'Data',
-      httpStatusCode: 'HttpStatusCode',
-      maxResults: 'MaxResults',
-      message: 'Message',
-      nextToken: 'NextToken',
-      requestId: 'RequestId',
-      success: 'Success',
-      totalCount: 'TotalCount',
+      code: "Code",
+      data: "Data",
+      httpStatusCode: "HttpStatusCode",
+      maxResults: "MaxResults",
+      message: "Message",
+      nextToken: "NextToken",
+      requestId: "RequestId",
+      success: "Success",
+      totalCount: "TotalCount",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      code: 'string',
+      code: "string",
       data: GetLabelResponseBodyData,
-      httpStatusCode: 'number',
-      maxResults: 'number',
-      message: 'string',
-      nextToken: 'string',
-      requestId: 'string',
-      success: 'boolean',
-      totalCount: 'number',
+      httpStatusCode: "number",
+      maxResults: "number",
+      message: "string",
+      nextToken: "string",
+      requestId: "string",
+      success: "boolean",
+      totalCount: "number",
     };
   }
 
   validate() {
-    if(this.data && typeof (this.data as any).validate === 'function') {
+    if (this.data && typeof (this.data as any).validate === "function") {
       (this.data as any).validate();
     }
     super.validate();
@@ -52,4 +51,3 @@ export class GetLabelResponseBody extends $dara.Model {
     super(map);
   }
 }
-

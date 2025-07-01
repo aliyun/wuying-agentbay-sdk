@@ -1,8 +1,8 @@
-import { CallMcpToolRequest } from '../api/models/CallMcpToolRequest';
-import {Client} from '../api/client';
-import { log, logError } from '../utils/logger';
-import { APIError } from '../exceptions';
-import { ApiResponseWithData, extractRequestId } from '../types/api-response';
+import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
+import { Client } from "../api/client";
+import { log, logError } from "../utils/logger";
+import { APIError } from "../exceptions";
+import { ApiResponseWithData, extractRequestId } from "../types/api-response";
 
 /**
  * Result object for a CallMcpTool operation
@@ -57,7 +57,6 @@ export class Application {
     getSessionId(): string;
   }) {
     this.session = session;
-
   }
 
   /**
@@ -80,7 +79,7 @@ export class Application {
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
         name: toolName,
-        args: argsJSON
+        args: argsJSON,
       });
 
       // Log API request
@@ -97,7 +96,7 @@ export class Application {
 
       // Extract data from response
       if (!response.body?.data) {
-        throw new Error('Invalid response data format');
+        throw new Error("Invalid response data format");
       }
 
       const data = response.body.data as Record<string, any>;
@@ -107,7 +106,7 @@ export class Application {
         data,
         statusCode: response.statusCode || 0,
         isError: false,
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
 
       // Check if there's an error in the response
@@ -136,11 +135,16 @@ export class Application {
         if (result.content.length > 0) {
           const textParts: string[] = [];
           for (const item of result.content) {
-            if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
               textParts.push(item.text);
             }
           }
-          result.textContent = textParts.join('\n');
+          result.textContent = textParts.join("\n");
         }
       }
 
@@ -171,17 +175,21 @@ export class Application {
    * @throws Error if the operation fails.
    */
   async getInstalledApps(
-    startMenu: boolean = true,
-    desktop: boolean = true,
-    ignoreSystemApps: boolean = true
+    startMenu = true,
+    desktop = true,
+    ignoreSystemApps = true
   ): Promise<ApiResponseWithData<InstalledApp[]>> {
     const args = {
       start_menu: startMenu,
       desktop,
-      ignore_system_apps: ignoreSystemApps
+      ignore_system_apps: ignoreSystemApps,
     };
 
-    const result = await this.callMcpTool('get_installed_apps', args, 'Failed to get installed apps');
+    const result = await this.callMcpTool(
+      "get_installed_apps",
+      args,
+      "Failed to get installed apps"
+    );
 
     let apps: InstalledApp[] = [];
     if (result.textContent) {
@@ -190,7 +198,7 @@ export class Application {
 
     return {
       requestId: result.requestId,
-      data: apps
+      data: apps,
     };
   }
 
@@ -201,16 +209,23 @@ export class Application {
    * @returns API response with started processes and requestId
    * @throws Error if the operation fails.
    */
-  async startApp(startCmd: string, workDirectory: string = ''): Promise<ApiResponseWithData<Process[]>> {
+  async startApp(
+    startCmd: string,
+    workDirectory = ""
+  ): Promise<ApiResponseWithData<Process[]>> {
     const args: any = {
-      start_cmd: startCmd
+      start_cmd: startCmd,
     };
 
     if (workDirectory) {
       args.work_directory = workDirectory;
     }
 
-    const result = await this.callMcpTool('start_app', args, 'Failed to start app');
+    const result = await this.callMcpTool(
+      "start_app",
+      args,
+      "Failed to start app"
+    );
 
     let processes: Process[] = [];
     if (result.textContent) {
@@ -219,7 +234,7 @@ export class Application {
 
     return {
       requestId: result.requestId,
-      data: processes
+      data: processes,
     };
   }
 
@@ -231,14 +246,18 @@ export class Application {
    */
   async stopAppByPName(pname: string): Promise<ApiResponseWithData<void>> {
     const args = {
-      pname
+      pname,
     };
 
-    const result = await this.callMcpTool('stop_app_by_pname', args, 'Failed to stop app by pname');
+    const result = await this.callMcpTool(
+      "stop_app_by_pname",
+      args,
+      "Failed to stop app by pname"
+    );
 
     return {
       requestId: result.requestId,
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -250,14 +269,18 @@ export class Application {
    */
   async stopAppByPID(pid: number): Promise<ApiResponseWithData<void>> {
     const args = {
-      pid
+      pid,
     };
 
-    const result = await this.callMcpTool('stop_app_by_pid', args, 'Failed to stop app by pid');
+    const result = await this.callMcpTool(
+      "stop_app_by_pid",
+      args,
+      "Failed to stop app by pid"
+    );
 
     return {
       requestId: result.requestId,
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -269,14 +292,18 @@ export class Application {
    */
   async stopAppByCmd(stopCmd: string): Promise<ApiResponseWithData<void>> {
     const args = {
-      stop_cmd: stopCmd
+      stop_cmd: stopCmd,
     };
 
-    const result = await this.callMcpTool('stop_app_by_cmd', args, 'Failed to stop app by command');
+    const result = await this.callMcpTool(
+      "stop_app_by_cmd",
+      args,
+      "Failed to stop app by command"
+    );
 
     return {
       requestId: result.requestId,
-      data: undefined
+      data: undefined,
     };
   }
 
@@ -288,7 +315,11 @@ export class Application {
   async listVisibleApps(): Promise<ApiResponseWithData<Process[]>> {
     const args = {};
 
-    const result = await this.callMcpTool('list_visible_apps', args, 'Failed to list visible apps');
+    const result = await this.callMcpTool(
+      "list_visible_apps",
+      args,
+      "Failed to list visible apps"
+    );
 
     let processes: Process[] = [];
     if (result.textContent) {
@@ -297,7 +328,7 @@ export class Application {
 
     return {
       requestId: result.requestId,
-      data: processes
+      data: processes,
     };
   }
 }

@@ -13,3 +13,8 @@ jobs:
     if: contains(github.event.pull_request.changed_files, 'python/') || contains(github.event.pull_request.changed_files, '.github/workflows/python-tests.yml')
     uses: ./.github/workflows/python-tests.yml
     secrets: inherit
+
+  typescript-tests:
+    if: contains(github.event.pull_request.changed_files, 'typescript/') || contains(github.event.pull_request.changed_files, '.github/workflows/typescript-tests.yml')
+    uses: ./.github/workflows/typescript-tests.yml
+    secrets: inherit

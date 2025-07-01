@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # 获取完整历史用于SonarQube分析
+        fetch-depth: 0  # Get full history for SonarQube analysis
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -28,9 +28,14 @@ jobs:
     - name: Lint Python code
       working-directory: ./python
       run: |
-        # flake8 and black has been disabled
-        # flake8 agentbay tests examples
-        # black --check agentbay tests examples
+        # Run flake8 to check for code issues
+        flake8 agentbay tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
+
+        # Use black to automatically format code
+        black agentbay tests examples
+
+        # Check if there are uncommitted changes (indicating formatting issues)
+        git diff --exit-code || (echo "Formatting issues have been automatically fixed, please review the changes and commit them" && exit 1)
 
     - name: Security scan with Bandit
       working-directory: ./python

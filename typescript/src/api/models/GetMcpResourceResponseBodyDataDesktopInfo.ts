@@ -1,6 +1,5 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
-
+import * as $dara from "@darabonba/typescript";
 
 export class GetMcpResourceResponseBodyDataDesktopInfo extends $dara.Model {
   appId?: string;
@@ -10,21 +9,21 @@ export class GetMcpResourceResponseBodyDataDesktopInfo extends $dara.Model {
   resourceType?: string;
   static names(): { [key: string]: string } {
     return {
-      appId: 'AppId',
-      authCode: 'AuthCode',
-      connectionProperties: 'ConnectionProperties',
-      resourceId: 'ResourceId',
-      resourceType: 'ResourceType',
+      appId: "AppId",
+      authCode: "AuthCode",
+      connectionProperties: "ConnectionProperties",
+      resourceId: "ResourceId",
+      resourceType: "ResourceType",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      appId: 'string',
-      authCode: 'string',
-      connectionProperties: 'string',
-      resourceId: 'string',
-      resourceType: 'string',
+      appId: "string",
+      authCode: "string",
+      connectionProperties: "string",
+      resourceId: "string",
+      resourceType: "string",
     };
   }
 
@@ -36,4 +35,3 @@ export class GetMcpResourceResponseBodyDataDesktopInfo extends $dara.Model {
     super(map);
   }
 }
-

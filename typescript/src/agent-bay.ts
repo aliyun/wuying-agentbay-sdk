@@ -1,16 +1,24 @@
-import axios, { AxiosInstance } from 'axios';
-import { Session } from './session';
-import { ContextService } from './context';
-import { AuthenticationError, APIError } from './exceptions';
-import * as $_client from './api';
-import OpenApi from '@alicloud/openapi-core';
-import { OpenApiUtil, $OpenApiUtil }from '@alicloud/openapi-core';
-import { Client } from './api/client';
-import { CreateMcpSessionRequest, CreateMcpSessionResponse, ListSessionRequest } from './api/models/model';
-import { loadConfig } from './config';
-import 'dotenv/config';
-import { log, logError } from './utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from './types/api-response';
+import axios, { AxiosInstance } from "axios";
+import { Session } from "./session";
+import { ContextService } from "./context";
+import { AuthenticationError, APIError } from "./exceptions";
+import * as $_client from "./api";
+import OpenApi from "@alicloud/openapi-core";
+import { OpenApiUtil, $OpenApiUtil } from "@alicloud/openapi-core";
+import { Client } from "./api/client";
+import {
+  CreateMcpSessionRequest,
+  CreateMcpSessionResponse,
+  ListSessionRequest,
+} from "./api/models/model";
+import { loadConfig } from "./config";
+import "dotenv/config";
+import { log, logError } from "./utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "./types/api-response";
 
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
@@ -19,7 +27,7 @@ export class AgentBay {
   private apiKey: string;
   private client: Client;
   private regionId: string;
-  private endpoint:string;
+  private endpoint: string;
   private sessions: Map<string, Session> = new Map();
 
   /**
@@ -27,21 +35,22 @@ export class AgentBay {
    */
   context: ContextService;
 
-
   /**
    * Initialize the AgentBay client.
    *
    * @param options - Configuration options
    * @param options.apiKey - API key for authentication. If not provided, will look for AGENTBAY_API_KEY environment variable.
    */
-  constructor(options: {
-    apiKey?: string;
-  } = {}) {
-    this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || '';
+  constructor(
+    options: {
+      apiKey?: string;
+    } = {}
+  ) {
+    this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
 
     if (!this.apiKey) {
       throw new AuthenticationError(
-        'API key is required. Provide it as a parameter or set the AGENTBAY_API_KEY environment variable.'
+        "API key is required. Provide it as a parameter or set the AGENTBAY_API_KEY environment variable."
       );
     }
 
@@ -52,21 +61,20 @@ export class AgentBay {
 
     const config = new $OpenApiUtil.Config({
       regionId: this.regionId,
-      endpoint: this.endpoint
-    })
+      endpoint: this.endpoint,
+    });
 
     config.readTimeout = configData.timeout_ms;
     config.connectTimeout = configData.timeout_ms;
-    try{
-      this.client = new Client(config)
+    try {
+      this.client = new Client(config);
 
       // Initialize context service
       this.context = new ContextService(this);
-    }catch(error){
+    } catch (error) {
       logError(`Failed to constructor:`, error);
       throw new AuthenticationError(`Failed to constructor: ${error}`);
     }
-
   }
 
   /**
@@ -77,15 +85,17 @@ export class AgentBay {
    * @param options.labels - Custom labels for the session
    * @returns API response with session data and requestId
    */
-  async create(options: {
-    contextId?: string;
-    labels?: Record<string, string>;
-    imageId?: string;
-  } = {}): Promise<ApiResponseWithData<Session>> {
+  async create(
+    options: {
+      contextId?: string;
+      labels?: Record<string, string>;
+      imageId?: string;
+    } = {}
+  ): Promise<ApiResponseWithData<Session>> {
     try {
       const createSessionRequest = new $_client.CreateMcpSessionRequest({
-        authorization: "Bearer "+this.apiKey,
-        imageId: options.imageId
+        authorization: "Bearer " + this.apiKey,
+        imageId: options.imageId,
       });
 
       // Add context_id if provided
@@ -100,7 +110,13 @@ export class AgentBay {
 
       // Log API request
       log("API Call: CreateMcpSession");
-      log(`Request: ${options.contextId ? `ContextId=${options.contextId}, ` : ''}${options.labels ? `Labels=${JSON.stringify(options.labels)}, ` : ''}${options.imageId ? `ImageId=${options.imageId}` : ''}`);
+      log(
+        `Request: ${
+          options.contextId ? `ContextId=${options.contextId}, ` : ""
+        }${options.labels ? `Labels=${JSON.stringify(options.labels)}, ` : ""}${
+          options.imageId ? `ImageId=${options.imageId}` : ""
+        }`
+      );
 
       const response = await this.client.createMcpSession(createSessionRequest);
 
@@ -109,7 +125,7 @@ export class AgentBay {
 
       const sessionId = response.body?.data?.sessionId;
       if (!sessionId) {
-        throw new APIError('Invalid session ID in response');
+        throw new APIError("Invalid session ID in response");
       }
 
       // ResourceUrl is optional in CreateMcpSession response
@@ -124,9 +140,8 @@ export class AgentBay {
 
       return {
         requestId: extractRequestId(response),
-        data: session
+        data: session,
       };
-
     } catch (error) {
       logError("Error calling CreateMcpSession:", error);
       throw new APIError(`Failed to create session: ${error}`);
@@ -149,14 +164,16 @@ export class AgentBay {
    * @param labels - The labels to filter by.
    * @returns API response with sessions list and requestId
    */
-  async listByLabels(labels: Record<string, string>): Promise<ApiResponseWithData<Session[]>> {
+  async listByLabels(
+    labels: Record<string, string>
+  ): Promise<ApiResponseWithData<Session[]>> {
     try {
       // Convert labels to JSON
       const labelsJSON = JSON.stringify(labels);
 
       const listSessionRequest = new ListSessionRequest({
         authorization: `Bearer ${this.apiKey}`,
-        labels: labelsJSON
+        labels: labelsJSON,
       });
 
       // Log API request
@@ -182,7 +199,7 @@ export class AgentBay {
 
       return {
         requestId: extractRequestId(response),
-        data: sessions
+        data: sessions,
       };
     } catch (error) {
       logError("Error calling ListSession:", error);
@@ -209,10 +226,10 @@ export class AgentBay {
       throw new APIError(`Failed to delete session: ${error}`);
     }
   }
-/**
- *
- * @param sessionId - The ID of the session to remove.
- */
+  /**
+   *
+   * @param sessionId - The ID of the session to remove.
+   */
   public removeSession(sessionId: string): void {
     this.sessions.delete(sessionId);
   }

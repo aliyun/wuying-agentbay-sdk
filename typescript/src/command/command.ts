@@ -1,11 +1,15 @@
-import { APIError } from '../exceptions';
-import { Session } from '../session';
-import { Client } from '../api/client';
-import { CallMcpToolRequest } from '../api/models/model';
-import { log, logError } from '../utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from '../types/api-response';
+import { APIError } from "../exceptions";
+import { Session } from "../session";
+import { Client } from "../api/client";
+import { CallMcpToolRequest } from "../api/models/model";
+import { log, logError } from "../utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "../types/api-response";
 
-import * as $_client from '../api';
+import * as $_client from "../api";
 
 /**
  * Result object for a CallMcpTool operation
@@ -75,20 +79,24 @@ export class Command {
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
         name: toolName,
-        args: argsJSON
+        args: argsJSON,
       });
 
       // Log API request
       log(`API Call: CallMcpTool - ${toolName}`);
-      log(`Request: SessionId=${this.session.getSessionId()}, Args=${argsJSON}`);
+      log(
+        `Request: SessionId=${this.session.getSessionId()}, Args=${argsJSON}`
+      );
 
-      const response = await this.session.getClient().callMcpTool(callToolRequest);
+      const response = await this.session
+        .getClient()
+        .callMcpTool(callToolRequest);
 
       // Log API response
       log(`Response from CallMcpTool - ${toolName}:`, response.body);
 
       if (!response.body?.data) {
-        throw new Error('Invalid response data format');
+        throw new Error("Invalid response data format");
       }
 
       // Extract data from response
@@ -99,7 +107,7 @@ export class Command {
         data,
         statusCode: response.statusCode || 0,
         isError: false,
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
 
       // Check if there's an error in the response
@@ -128,11 +136,16 @@ export class Command {
         if (result.content.length > 0) {
           const textParts: string[] = [];
           for (const item of result.content) {
-            if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
               textParts.push(item.text);
             }
           }
-          result.textContent = textParts.join('\n');
+          result.textContent = textParts.join("\n");
         }
       }
 
@@ -161,17 +174,24 @@ export class Command {
    * @param timeoutMs - The timeout for the command execution in milliseconds. Default is 1000ms.
    * @returns API response with command output and requestId
    */
-  async executeCommand(command: string, timeoutMs: number = 1000): Promise<ApiResponseWithData<string>> {
+  async executeCommand(
+    command: string,
+    timeoutMs = 1000
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       command,
-      timeout_ms: timeoutMs
+      timeout_ms: timeoutMs,
     };
 
-    const result = await this.callMcpTool('shell', args, 'Failed to execute command');
+    const result = await this.callMcpTool(
+      "shell",
+      args,
+      "Failed to execute command"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -195,23 +215,33 @@ export class Command {
    * @returns API response with code execution output and requestId
    * @throws APIError if the code execution fails or if an unsupported language is specified.
    */
-  async runCode(code: string, language: string, timeoutS: number = 300): Promise<ApiResponseWithData<string>> {
+  async runCode(
+    code: string,
+    language: string,
+    timeoutS = 300
+  ): Promise<ApiResponseWithData<string>> {
     // Validate language
-    if (language !== 'python' && language !== 'javascript') {
-      throw new Error(`Unsupported language: ${language}. Supported languages are 'python' and 'javascript'`);
+    if (language !== "python" && language !== "javascript") {
+      throw new Error(
+        `Unsupported language: ${language}. Supported languages are 'python' and 'javascript'`
+      );
     }
 
     const args = {
       code,
       language,
-      timeout_s: timeoutS
+      timeout_s: timeoutS,
     };
 
-    const result = await this.callMcpTool('run_code', args, 'Failed to execute code');
+    const result = await this.callMcpTool(
+      "run_code",
+      args,
+      "Failed to execute code"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 }

@@ -1,21 +1,20 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
-
+import * as $dara from "@darabonba/typescript";
 
 export class DeleteContextRequest extends $dara.Model {
   authorization?: string;
   id?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: 'Authorization',
-      id: 'Id',
+      authorization: "Authorization",
+      id: "Id",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: 'string',
-      id: 'string',
+      authorization: "string",
+      id: "string",
     };
   }
 
@@ -27,4 +26,3 @@ export class DeleteContextRequest extends $dara.Model {
     super(map);
   }
 }
-

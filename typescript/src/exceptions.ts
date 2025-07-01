@@ -4,7 +4,7 @@
 export class AgentBayError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'AgentBayError';
+    this.name = "AgentBayError";
     Object.setPrototypeOf(this, AgentBayError.prototype);
   }
 }
@@ -15,7 +15,7 @@ export class AgentBayError extends Error {
 export class AuthenticationError extends AgentBayError {
   constructor(message: string) {
     super(message);
-    this.name = 'AuthenticationError';
+    this.name = "AuthenticationError";
     Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
 }
@@ -26,7 +26,7 @@ export class AuthenticationError extends AgentBayError {
 export class APIError extends AgentBayError {
   constructor(message: string) {
     super(message);
-    this.name = 'APIError';
+    this.name = "APIError";
     Object.setPrototypeOf(this, APIError.prototype);
   }
 }
@@ -37,7 +37,7 @@ export class APIError extends AgentBayError {
 export class FileError extends AgentBayError {
   constructor(message: string) {
     super(message);
-    this.name = 'FileError';
+    this.name = "FileError";
     Object.setPrototypeOf(this, FileError.prototype);
   }
 }
@@ -48,7 +48,7 @@ export class FileError extends AgentBayError {
 export class CommandError extends AgentBayError {
   constructor(message: string) {
     super(message);
-    this.name = 'CommandError';
+    this.name = "CommandError";
     Object.setPrototypeOf(this, CommandError.prototype);
   }
 }

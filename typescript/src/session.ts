@@ -1,15 +1,25 @@
-import { AgentBay } from './agent-bay';
-import { APIError } from './exceptions';
-import { FileSystem } from './filesystem';
-import { Command } from './command';
-import { Oss } from './oss';
-import { Application } from './application';
-import { WindowManager } from './window';
-import { UI } from './ui';
-import {Client} from './api/client';
-import { ReleaseMcpSessionRequest, SetLabelRequest, GetLabelRequest, GetMcpResourceRequest, GetLinkRequest } from './api/models/model';
-import { log, logError } from './utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from './types/api-response';
+import { AgentBay } from "./agent-bay";
+import { APIError } from "./exceptions";
+import { FileSystem } from "./filesystem";
+import { Command } from "./command";
+import { Oss } from "./oss";
+import { Application } from "./application";
+import { WindowManager } from "./window";
+import { UI } from "./ui";
+import { Client } from "./api/client";
+import {
+  ReleaseMcpSessionRequest,
+  SetLabelRequest,
+  GetLabelRequest,
+  GetMcpResourceRequest,
+  GetLinkRequest,
+} from "./api/models/model";
+import { log, logError } from "./utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "./types/api-response";
 
 /**
  * Contains information about a session.
@@ -29,7 +39,7 @@ export interface SessionInfo {
  */
 export class Session {
   private agentBay: AgentBay;
-  public client:  Client;
+  public client: Client;
   public sessionId: string;
   public resourceUrl: string = "";
 
@@ -90,14 +100,16 @@ export class Session {
     try {
       const releaseSessionRequest = new ReleaseMcpSessionRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
 
       // Log API request
       log("API Call: ReleaseMcpSession");
       log(`Request: SessionId=${this.sessionId}`);
 
-      const response = await this.client.releaseMcpSession(releaseSessionRequest);
+      const response = await this.client.releaseMcpSession(
+        releaseSessionRequest
+      );
 
       // Log API response
       log(`Response from ReleaseMcpSession:`, response.body);
@@ -105,7 +117,7 @@ export class Session {
       this.agentBay.removeSession(this.sessionId);
 
       return {
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
     } catch (error) {
       logError("Error calling ReleaseMcpSession:", error);
@@ -128,7 +140,7 @@ export class Session {
       const request = new SetLabelRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId,
-        labels: labelsJSON
+        labels: labelsJSON,
       });
 
       // Log API request
@@ -141,7 +153,7 @@ export class Session {
       log(`Response from SetLabel:`, response.body);
 
       return {
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
     } catch (error) {
       logError("Error calling SetLabel:", error);
@@ -159,7 +171,7 @@ export class Session {
     try {
       const request = new GetLabelRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
 
       // Log API request
@@ -180,7 +192,7 @@ export class Session {
 
       return {
         requestId: extractRequestId(response),
-        data: labels
+        data: labels,
       };
     } catch (error) {
       logError("Error calling GetLabel:", error);
@@ -203,7 +215,6 @@ export class Session {
    * @returns The client.
    */
   getClient(): Client {
-
     return this.client;
   }
 
@@ -226,7 +237,7 @@ export class Session {
     try {
       const request = new GetMcpResourceRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
 
       log("API Call: GetMcpResource");
@@ -238,7 +249,7 @@ export class Session {
       // Extract session info from response
       const sessionInfo: SessionInfo = {
         sessionId: response.body?.data?.sessionId || "",
-        resourceUrl: response.body?.data?.resourceUrl || ""
+        resourceUrl: response.body?.data?.resourceUrl || "",
       };
 
       // Update the session's resourceUrl with the latest value
@@ -258,11 +269,13 @@ export class Session {
 
       return {
         requestId: extractRequestId(response),
-        data: sessionInfo
+        data: sessionInfo,
       };
     } catch (error) {
       logError("Error calling GetMcpResource:", error);
-      throw new APIError(`Failed to get session info for session ${this.sessionId}: ${error}`);
+      throw new APIError(
+        `Failed to get session info for session ${this.sessionId}: ${error}`
+      );
     }
   }
 
@@ -276,7 +289,7 @@ export class Session {
     try {
       const request = new GetLinkRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
 
       log("API Call: GetLink");
@@ -289,11 +302,13 @@ export class Session {
 
       return {
         requestId: extractRequestId(response),
-        data: linkData
+        data: linkData,
       };
     } catch (error) {
       logError("Error calling GetLink:", error);
-      throw new APIError(`Failed to get link for session ${this.sessionId}: ${error}`);
+      throw new APIError(
+        `Failed to get link for session ${this.sessionId}: ${error}`
+      );
     }
   }
 }

@@ -1,11 +1,15 @@
-import { APIError } from '../exceptions';
-import { Session } from '../session';
-import { Client } from '../api/client';
-import { CallMcpToolRequest } from '../api/models/model';
-import { log, logError } from '../utils/logger';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from '../types/api-response';
+import { APIError } from "../exceptions";
+import { Session } from "../session";
+import { Client } from "../api/client";
+import { CallMcpToolRequest } from "../api/models/model";
+import { log, logError } from "../utils/logger";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "../types/api-response";
 
-import * as $_client from '../api';
+import * as $_client from "../api";
 
 /**
  * Result object for a CallMcpTool operation
@@ -56,20 +60,26 @@ export class Oss {
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
         name: toolName,
-        args: JSON.stringify(args)
+        args: JSON.stringify(args),
       });
 
       // Log API request
       log(`API Call: CallMcpTool - ${toolName}`);
-      log(`Request: SessionId=${this.session.getSessionId()}, Args=${JSON.stringify(args)}`);
+      log(
+        `Request: SessionId=${this.session.getSessionId()}, Args=${JSON.stringify(
+          args
+        )}`
+      );
 
-      const response = await this.session.getClient().callMcpTool(callToolRequest);
+      const response = await this.session
+        .getClient()
+        .callMcpTool(callToolRequest);
 
       // Log API response
       log(`Response from CallMcpTool - ${toolName}:`, response.body);
 
       if (!response.body?.data) {
-        throw new Error('Invalid response data format');
+        throw new Error("Invalid response data format");
       }
 
       // Extract data from response
@@ -80,7 +90,7 @@ export class Oss {
         data,
         statusCode: response.statusCode || 0,
         isError: false,
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
 
       // Check if there's an error in the response
@@ -109,11 +119,16 @@ export class Oss {
         if (result.content.length > 0) {
           const textParts: string[] = [];
           for (const item of result.content) {
-            if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
               textParts.push(item.text);
             }
           }
-          result.textContent = textParts.join('\n');
+          result.textContent = textParts.join("\n");
         }
       }
 
@@ -144,7 +159,7 @@ export class Oss {
     const args: Record<string, any> = {
       access_key_id: accessKeyId,
       access_key_secret: accessKeySecret,
-      security_token: securityToken
+      security_token: securityToken,
     };
 
     // Add optional parameters if provided
@@ -155,11 +170,15 @@ export class Oss {
       args.region = region;
     }
 
-    const result = await this.callMcpTool('oss_env_init', args, 'error initializing OSS environment');
+    const result = await this.callMcpTool(
+      "oss_env_init",
+      args,
+      "error initializing OSS environment"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -180,7 +199,7 @@ export class Oss {
   ): Promise<ApiResponseWithData<string>> {
     const args: Record<string, any> = {
       access_key_id: accessKeyId,
-      access_key_secret: accessKeySecret
+      access_key_secret: accessKeySecret,
     };
 
     // Add optional parameters if provided
@@ -191,11 +210,15 @@ export class Oss {
       args.region = region;
     }
 
-    const result = await this.callMcpTool('oss_client_create', args, 'error creating OSS client');
+    const result = await this.callMcpTool(
+      "oss_client_create",
+      args,
+      "error creating OSS client"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -207,18 +230,26 @@ export class Oss {
    * @param path - Local file or directory path to upload.
    * @returns API response with upload result and requestId
    */
-  async upload(bucket: string, object: string, path: string): Promise<ApiResponseWithData<string>> {
+  async upload(
+    bucket: string,
+    object: string,
+    path: string
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       bucket,
       object,
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('oss_upload', args, 'error uploading to OSS');
+    const result = await this.callMcpTool(
+      "oss_upload",
+      args,
+      "error uploading to OSS"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -229,17 +260,24 @@ export class Oss {
    * @param path - Local file or directory path to upload.
    * @returns API response with upload result and requestId
    */
-  async uploadAnonymous(url: string, path: string): Promise<ApiResponseWithData<string>> {
+  async uploadAnonymous(
+    url: string,
+    path: string
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       url,
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('oss_upload_annon', args, 'error uploading anonymously');
+    const result = await this.callMcpTool(
+      "oss_upload_annon",
+      args,
+      "error uploading anonymously"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -251,18 +289,26 @@ export class Oss {
    * @param path - Local file or directory path to save the downloaded content.
    * @returns API response with download result and requestId
    */
-  async download(bucket: string, object: string, path: string): Promise<ApiResponseWithData<string>> {
+  async download(
+    bucket: string,
+    object: string,
+    path: string
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       bucket,
       object,
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('oss_download', args, 'error downloading from OSS');
+    const result = await this.callMcpTool(
+      "oss_download",
+      args,
+      "error downloading from OSS"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 
@@ -273,17 +319,24 @@ export class Oss {
    * @param path - Local file or directory path to save the downloaded content.
    * @returns API response with download result and requestId
    */
-  async downloadAnonymous(url: string, path: string): Promise<ApiResponseWithData<string>> {
+  async downloadAnonymous(
+    url: string,
+    path: string
+  ): Promise<ApiResponseWithData<string>> {
     const args = {
       url,
-      path
+      path,
     };
 
-    const result = await this.callMcpTool('oss_download_annon', args, 'error downloading anonymously');
+    const result = await this.callMcpTool(
+      "oss_download_annon",
+      args,
+      "error downloading anonymously"
+    );
 
     return {
       requestId: result.requestId,
-      data: result.textContent || ''
+      data: result.textContent || "",
     };
   }
 }

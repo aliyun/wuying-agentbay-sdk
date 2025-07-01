@@ -14,7 +14,19 @@ Main workflow that runs on all pull requests to main branches. It:
 
 Runs Python unit and integration tests:
 - Tests on multiple Python versions (3.10, 3.11, 3.12)
+- Runs linting checks with flake8
+- Automatically formats code with black
 - Runs unit tests for all PRs
+- Runs integration tests only if API key is available
+
+### TypeScript Tests (`typescript-tests.yml`)
+
+Runs TypeScript unit and integration tests:
+- Tests on multiple Node.js versions (16, 18, 20)
+- Lints code with ESLint and automatically fixes issues
+- Automatically formats code with Prettier
+- Runs unit tests for all PRs
+- Generates code coverage reports
 - Runs integration tests only if API key is available
 
 

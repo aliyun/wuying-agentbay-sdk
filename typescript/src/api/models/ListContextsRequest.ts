@@ -1,6 +1,5 @@
 // This file is auto-generated, don't edit it
-import * as $dara from '@darabonba/typescript';
-
+import * as $dara from "@darabonba/typescript";
 
 export class ListContextsRequest extends $dara.Model {
   authorization?: string;
@@ -8,17 +7,17 @@ export class ListContextsRequest extends $dara.Model {
   nextToken?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: 'Authorization',
-      maxResults: 'MaxResults',
-      nextToken: 'NextToken',
+      authorization: "Authorization",
+      maxResults: "MaxResults",
+      nextToken: "NextToken",
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: 'string',
-      maxResults: 'number',
-      nextToken: 'string',
+      authorization: "string",
+      maxResults: "number",
+      nextToken: "string",
     };
   }
 
@@ -30,4 +29,3 @@ export class ListContextsRequest extends $dara.Model {
     super(map);
   }
 }
-

@@ -1,7 +1,11 @@
-import { CallMcpToolRequest } from '../api/models/CallMcpToolRequest';
-import { log, logError } from '../utils/logger';
-import { APIError } from '../exceptions';
-import { ApiResponse, ApiResponseWithData, extractRequestId } from '../types/api-response';
+import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
+import { log, logError } from "../utils/logger";
+import { APIError } from "../exceptions";
+import {
+  ApiResponse,
+  ApiResponseWithData,
+  extractRequestId,
+} from "../types/api-response";
 
 /**
  * Result object for a CallMcpTool operation
@@ -73,7 +77,7 @@ export class WindowManager {
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
         name: toolName,
-        args: argsJSON
+        args: argsJSON,
       });
 
       // Log API request
@@ -89,7 +93,7 @@ export class WindowManager {
 
       // Extract data from response
       if (!response.body?.data) {
-        throw new Error('Invalid response data format');
+        throw new Error("Invalid response data format");
       }
 
       const data = response.body.data as Record<string, any>;
@@ -99,7 +103,7 @@ export class WindowManager {
         data,
         statusCode: response.statusCode || 0,
         isError: false,
-        requestId: extractRequestId(response)
+        requestId: extractRequestId(response),
       };
 
       // Check if there's an error in the response
@@ -128,11 +132,16 @@ export class WindowManager {
         if (result.content.length > 0) {
           const textParts: string[] = [];
           for (const item of result.content) {
-            if (item && typeof item === 'object' && item.text && typeof item.text === 'string') {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
               textParts.push(item.text);
             }
           }
-          result.textContent = textParts.join('\n');
+          result.textContent = textParts.join("\n");
         }
       }
 
@@ -165,13 +174,19 @@ export class WindowManager {
   async listRootWindows(): Promise<ApiResponseWithData<Window[]>> {
     const args = {};
 
-    const result = await this.callMcpTool('list_root_windows', args, 'Failed to list root windows');
+    const result = await this.callMcpTool(
+      "list_root_windows",
+      args,
+      "Failed to list root windows"
+    );
 
-    const windows = result.textContent ? this.parseWindowsFromJSON(result.textContent) : [];
+    const windows = result.textContent
+      ? this.parseWindowsFromJSON(result.textContent)
+      : [];
 
     return {
       requestId: result.requestId,
-      data: windows
+      data: windows,
     };
   }
 
@@ -183,7 +198,11 @@ export class WindowManager {
   async getActiveWindow(): Promise<ApiResponseWithData<Window | null>> {
     const args = {};
 
-    const result = await this.callMcpTool('get_active_window', args, 'Failed to get active window');
+    const result = await this.callMcpTool(
+      "get_active_window",
+      args,
+      "Failed to get active window"
+    );
 
     let activeWindow: Window | null = null;
     if (result.textContent) {
@@ -193,7 +212,7 @@ export class WindowManager {
 
     return {
       requestId: result.requestId,
-      data: activeWindow
+      data: activeWindow,
     };
   }
 
@@ -205,13 +224,17 @@ export class WindowManager {
    */
   async activateWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('activate_window', args, 'Failed to activate window');
+    const result = await this.callMcpTool(
+      "activate_window",
+      args,
+      "Failed to activate window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -223,13 +246,17 @@ export class WindowManager {
    */
   async maximizeWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('maximize_window', args, 'Failed to maximize window');
+    const result = await this.callMcpTool(
+      "maximize_window",
+      args,
+      "Failed to maximize window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -241,13 +268,17 @@ export class WindowManager {
    */
   async minimizeWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('minimize_window', args, 'Failed to minimize window');
+    const result = await this.callMcpTool(
+      "minimize_window",
+      args,
+      "Failed to minimize window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -259,13 +290,17 @@ export class WindowManager {
    */
   async restoreWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('restore_window', args, 'Failed to restore window');
+    const result = await this.callMcpTool(
+      "restore_window",
+      args,
+      "Failed to restore window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -277,13 +312,17 @@ export class WindowManager {
    */
   async closeWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('close_window', args, 'Failed to close window');
+    const result = await this.callMcpTool(
+      "close_window",
+      args,
+      "Failed to close window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -295,13 +334,17 @@ export class WindowManager {
    */
   async fullscreenWindow(windowId: number): Promise<ApiResponse> {
     const args = {
-      window_id: windowId
+      window_id: windowId,
     };
 
-    const result = await this.callMcpTool('fullscreen_window', args, 'Failed to set window to fullscreen');
+    const result = await this.callMcpTool(
+      "fullscreen_window",
+      args,
+      "Failed to set window to fullscreen"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -313,17 +356,25 @@ export class WindowManager {
    * @returns API response with requestId
    * @throws Error if the operation fails.
    */
-  async resizeWindow(windowId: number, width: number, height: number): Promise<ApiResponse> {
+  async resizeWindow(
+    windowId: number,
+    width: number,
+    height: number
+  ): Promise<ApiResponse> {
     const args = {
       window_id: windowId,
       width,
-      height
+      height,
     };
 
-    const result = await this.callMcpTool('resize_window', args, 'Failed to resize window');
+    const result = await this.callMcpTool(
+      "resize_window",
+      args,
+      "Failed to resize window"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 
@@ -335,13 +386,17 @@ export class WindowManager {
    */
   async focusMode(on: boolean): Promise<ApiResponse> {
     const args = {
-      on
+      on,
     };
 
-    const result = await this.callMcpTool('focus_mode', args, 'Failed to set focus mode');
+    const result = await this.callMcpTool(
+      "focus_mode",
+      args,
+      "Failed to set focus mode"
+    );
 
     return {
-      requestId: result.requestId
+      requestId: result.requestId,
     };
   }
 }
