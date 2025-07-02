@@ -1,4 +1,4 @@
-import { Session } from '../../src/session';
+import { Session, ListSessionParams } from '../../src';
 import { APIError } from '../../src/exceptions';
 import * as sinon from 'sinon';
 
@@ -163,13 +163,15 @@ describe('Session Labels', () => {
       };
       mockClient.setLabel.resolves(mockSetLabelsResponse);
 
-      // Mock listByLabels response
+      // Mock listByLabels response using new API format
       const mockListByLabelsResponse = {
         data: [
           { sessionId: 'test-session-id', labels: labels },
           { sessionId: 'other-session-id', labels: labels }
         ],
-        requestId: 'list-by-labels-request-id'
+        requestId: 'list-by-labels-request-id',
+        maxResults: 5,
+        totalCount: 2
       };
       mockAgentBay.listByLabels.resolves(mockListByLabelsResponse);
 
@@ -177,12 +179,20 @@ describe('Session Labels', () => {
       const setLabelsResponse = await mockSession.setLabels(labels);
       expect(setLabelsResponse.requestId).toBe('set-labels-request-id');
 
-      // Then list sessions with those labels
-      const listByLabelsResponse = await mockAgentBay.listByLabels(labels);
+      // Then list sessions with those labels using new API format
+      const listParams: ListSessionParams = {
+        labels: labels,
+        maxResults: 5
+      };
+      const listByLabelsResponse = await mockAgentBay.listByLabels(listParams);
 
       // Verify that the response contains requestId
       expect(listByLabelsResponse.requestId).toBe('list-by-labels-request-id');
       expect(typeof listByLabelsResponse.requestId).toBe('string');
+
+      // Verify pagination info
+      expect(listByLabelsResponse.maxResults).toBe(5);
+      expect(listByLabelsResponse.totalCount).toBe(2);
 
       // We should find at least our session
       expect(listByLabelsResponse.data.length).toBeGreaterThan(0);
@@ -203,18 +213,28 @@ describe('Session Labels', () => {
         nonexistent: 'label-unique-12345'
       };
 
-      // Mock listByLabels response for non-matching labels
+      // Mock listByLabels response for non-matching labels using new API format
       const mockListByLabelsResponse = {
         data: [],
-        requestId: 'list-non-matching-labels-request-id'
+        requestId: 'list-non-matching-labels-request-id',
+        maxResults: 5,
+        totalCount: 0
       };
       mockAgentBay.listByLabels.resolves(mockListByLabelsResponse);
 
-      const listByLabelsResponse = await mockAgentBay.listByLabels(nonMatchingLabels);
+      const listParams: ListSessionParams = {
+        labels: nonMatchingLabels,
+        maxResults: 5
+      };
+      const listByLabelsResponse = await mockAgentBay.listByLabels(listParams);
 
       // Verify that the response contains requestId
       expect(listByLabelsResponse.requestId).toBe('list-non-matching-labels-request-id');
       expect(typeof listByLabelsResponse.requestId).toBe('string');
+
+      // Verify pagination info
+      expect(listByLabelsResponse.maxResults).toBe(5);
+      expect(listByLabelsResponse.totalCount).toBe(0);
 
       // There shouldn't be any matching sessions
       expect(listByLabelsResponse.data.length).toBe(0);

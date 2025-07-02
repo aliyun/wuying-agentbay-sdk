@@ -1,4 +1,4 @@
-import { AgentBay, Session, AuthenticationError, APIError } from '../../src';
+import { AgentBay, Session, AuthenticationError, APIError, ListSessionParams } from '../../src';
 import { getTestApiKey } from '../utils/test-helpers';
 import { log } from '../../src/utils/logger';
 
@@ -180,10 +180,15 @@ describe('AgentBay', () => {
       const allSessions = agentBay.list();
       log(`Found ${allSessions.length} sessions in total`);
 
-      // Test 2: List sessions by environment=development label
+      // Test 2: List sessions by environment=development label using new API
       try {
-        const devSessionsResponse = await agentBay.listByLabels({ environment: 'development' });
+        const devSessionsParams: ListSessionParams = {
+          labels: { environment: 'development' },
+          maxResults: 5
+        };
+        const devSessionsResponse = await agentBay.listByLabels(devSessionsParams);
         log(`List Sessions by environment=development RequestId: ${devSessionsResponse.requestId || 'undefined'}`);
+        log(`Total count: ${devSessionsResponse.totalCount}, Max results: ${devSessionsResponse.maxResults}`);
 
         // Verify that the response contains requestId
         expect(devSessionsResponse.requestId).toBeDefined();
@@ -197,10 +202,15 @@ describe('AgentBay', () => {
         log(`Error listing sessions by environment=development: ${error}`);
       }
 
-      // Test 3: List sessions by owner=team-b label
+      // Test 3: List sessions by owner=team-b label using new API
       try {
-        const teamBSessionsResponse = await agentBay.listByLabels({ owner: 'team-b' });
+        const teamBSessionsParams: ListSessionParams = {
+          labels: { owner: 'team-b' },
+          maxResults: 5
+        };
+        const teamBSessionsResponse = await agentBay.listByLabels(teamBSessionsParams);
         log(`List Sessions by owner=team-b RequestId: ${teamBSessionsResponse.requestId || 'undefined'}`);
+        log(`Total count: ${teamBSessionsResponse.totalCount}, Max results: ${teamBSessionsResponse.maxResults}`);
 
         // Verify that the response contains requestId
         expect(teamBSessionsResponse.requestId).toBeDefined();
@@ -212,13 +222,18 @@ describe('AgentBay', () => {
         log(`Error listing sessions by owner=team-b: ${error}`);
       }
 
-      // Test 4: List sessions with multiple labels (environment=testing AND project=project-y)
+      // Test 4: List sessions with multiple labels (environment=testing AND project=project-y) using new API
       try {
-        const multiLabelSessionsResponse = await agentBay.listByLabels({
-          environment: 'testing',
-          project: 'project-y'
-        });
+        const multiLabelSessionsParams: ListSessionParams = {
+          labels: {
+            environment: 'testing',
+            project: 'project-y'
+          },
+          maxResults: 5
+        };
+        const multiLabelSessionsResponse = await agentBay.listByLabels(multiLabelSessionsParams);
         log(`Found ${multiLabelSessionsResponse.data.length} sessions with environment=testing AND project=project-y`);
+        log(`Total count: ${multiLabelSessionsResponse.totalCount}, Max results: ${multiLabelSessionsResponse.maxResults}`);
         log(`List Sessions by multiple labels RequestId: ${multiLabelSessionsResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -230,14 +245,31 @@ describe('AgentBay', () => {
 
         expect(foundSessionA).toBe(false);
         expect(foundSessionB).toBe(true);
+
+        // Demonstrate pagination if there's a next token
+        if (multiLabelSessionsResponse.nextToken) {
+          log('\nFetching next page...');
+          const nextPageParams: ListSessionParams = {
+            ...multiLabelSessionsParams,
+            nextToken: multiLabelSessionsResponse.nextToken
+          };
+          const nextPageResponse = await agentBay.listByLabels(nextPageParams);
+          log(`Next page sessions count: ${nextPageResponse.data.length}`);
+          log(`Next page RequestId: ${nextPageResponse.requestId}`);
+        }
       } catch (error) {
         log(`Error listing sessions by multiple labels: ${error}`);
       }
 
-      // Test 5: List sessions with non-existent label
+      // Test 5: List sessions with non-existent label using new API
       try {
-        const nonExistentSessionsResponse = await agentBay.listByLabels({ 'non-existent': 'value' });
+        const nonExistentSessionsParams: ListSessionParams = {
+          labels: { 'non-existent': 'value' },
+          maxResults: 5
+        };
+        const nonExistentSessionsResponse = await agentBay.listByLabels(nonExistentSessionsParams);
         log(`Found ${nonExistentSessionsResponse.data.length} sessions with non-existent label`);
+        log(`Total count: ${nonExistentSessionsResponse.totalCount}, Max results: ${nonExistentSessionsResponse.maxResults}`);
         log(`List Sessions by non-existent label RequestId: ${nonExistentSessionsResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId even for empty results

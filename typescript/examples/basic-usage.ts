@@ -1,4 +1,4 @@
-import { AgentBay } from '../src';
+import { AgentBay, ListSessionParams } from '../src';
 import { log, logError } from '../src/utils/logger';
 import { getTestApiKey } from '../tests/utils/test-helpers';
 async function main() {
@@ -10,9 +10,9 @@ async function main() {
     // Initialize the AgentBay client
     const agentBay = new AgentBay({ apiKey });
 
-    // Create a new session
-    log('Creating a new session...');
-    const createResponse = await agentBay.create();
+    // Create a new session with labels
+    log('Creating a new session with labels...');
+    const createResponse = await agentBay.create({imageId:'linux_latest'});
     const session = createResponse.data;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId}`);
@@ -49,13 +49,31 @@ async function main() {
       log(`Note: Failed to take screenshot: ${error}`);
     }
 
-    // List all sessions by labels
+    // List all sessions by labels using new API
     log('\nListing sessions by labels...');
     try {
-      const listResponse = await agentBay.listByLabels({ test: 'basic-usage' });
-      log('Available sessions count:', listResponse.data.length);
+      const listParams: ListSessionParams = {
+        labels: { test: 'basic-usage' },
+        maxResults: 5
+      };
+      const listResponse = await agentBay.listByLabels(listParams);
+      log(`Available sessions count: ${listResponse.data.length}`);
+      log(`Total count: ${listResponse.totalCount}`);
+      log(`Max results: ${listResponse.maxResults}`);
       log('Session IDs:', listResponse.data.map(s => s.sessionId));
       log(`List Sessions RequestId: ${listResponse.requestId}`);
+
+      // Demonstrate pagination if there's a next token
+      if (listResponse.nextToken) {
+        log('\nFetching next page...');
+        const nextPageParams: ListSessionParams = {
+          ...listParams,
+          nextToken: listResponse.nextToken
+        };
+        const nextPageResponse = await agentBay.listByLabels(nextPageParams);
+        log(`Next page sessions count: ${nextPageResponse.data.length}`);
+        log(`Next page RequestId: ${nextPageResponse.requestId}`);
+      }
     } catch (error) {
       log(`Note: Failed to list sessions by labels: ${error}`);
     }

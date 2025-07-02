@@ -1,4 +1,4 @@
-import { AgentBay } from '../../src';
+import { AgentBay, ListSessionParams } from '../../src';
 import { log, logError } from '../../src/utils/logger';
 import { getTestApiKey } from '../../tests/utils/test-helpers';
 
@@ -25,20 +25,37 @@ async function main() {
   log(`\nSession created with ID: ${session.sessionId} and labels: username=alice, project=my-project`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 
-  // Example 2: List sessions by labels
+  // Example 2: List sessions by labels using new API
   log('\nExample 2: Listing sessions by labels...');
 
-  // Query sessions with the "project" label set to "my-project"
+  // Query sessions with the "project" label set to "my-project" using new ListSessionParams format
   try {
-    const listResponse = await agentBay.listByLabels({
-      project: 'my-project'
-    });
+    const listParams: ListSessionParams = {
+      labels: { project: 'my-project' },
+      maxResults: 5
+    };
+
+    const listResponse = await agentBay.listByLabels(listParams);
 
     log(`\nFound ${listResponse.data.length} sessions with project=my-project:`);
+    log(`Total count: ${listResponse.totalCount}`);
+    log(`Max results: ${listResponse.maxResults}`);
     log(`List Sessions RequestId: ${listResponse.requestId}`);
     listResponse.data.forEach((s, i) => {
       log(`  ${i + 1}. Session ID: ${s.sessionId}`);
     });
+
+    // Demonstrate pagination if there's a next token
+    if (listResponse.nextToken) {
+      log('\nFetching next page...');
+      const nextPageParams: ListSessionParams = {
+        ...listParams,
+        nextToken: listResponse.nextToken
+      };
+      const nextPageResponse = await agentBay.listByLabels(nextPageParams);
+      log(`Next page sessions count: ${nextPageResponse.data.length}`);
+      log(`Next page RequestId: ${nextPageResponse.requestId}`);
+    }
   } catch (error) {
     log(`\nError listing sessions by labels: ${error}`);
   }

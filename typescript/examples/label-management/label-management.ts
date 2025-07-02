@@ -1,5 +1,4 @@
-import { AgentBay } from '../../src/agent-bay';
-import { Session } from '../../src/session';
+import { AgentBay, ListSessionParams } from '../../src';
 import { log, logError } from '../../src/utils/logger';
 import { getTestApiKey } from '../../tests/utils/test-helpers';
 
@@ -74,20 +73,40 @@ async function main() {
       log(`Session ${i + 1} ID: ${allSessions[i].sessionId}`);
     }
 
-    // List sessions by label
+    // List sessions by label using new API
     log('\nListing sessions with purpose=demo and feature=label-management...');
     try {
-      const filteredSessionsResponse = await agentBay.listByLabels({
-        purpose: 'demo',
-        feature: 'label-management'
-      });
+      const listParams: ListSessionParams = {
+        labels: {
+          purpose: 'demo',
+          feature: 'label-management'
+        },
+        maxResults: 1
+      };
+
+      const filteredSessionsResponse = await agentBay.listByLabels(listParams);
       log(`Found ${filteredSessionsResponse.data.length} matching sessions`);
+      log(`Total count: ${filteredSessionsResponse.totalCount}`);
+      log(`Max results: ${filteredSessionsResponse.maxResults}`);
       log(`List Sessions By Labels RequestId: ${filteredSessionsResponse.requestId}`);
+
       for (let i = 0; i < filteredSessionsResponse.data.length; i++) {
         log(`Matching session ${i + 1} ID: ${filteredSessionsResponse.data[i].sessionId}`);
         const sessionLabelsResponse = await filteredSessionsResponse.data[i].getLabels();
         log(`Labels: ${JSON.stringify(sessionLabelsResponse.data)}`);
         log(`Get Session Labels RequestId: ${sessionLabelsResponse.requestId}`);
+      }
+
+      // Demonstrate pagination if there's a next token
+      if (filteredSessionsResponse.nextToken) {
+        log('\nFetching next page...');
+        const nextPageParams: ListSessionParams = {
+          ...listParams,
+          nextToken: filteredSessionsResponse.nextToken
+        };
+        const nextPageResponse = await agentBay.listByLabels(nextPageParams);
+        log(`Next page sessions count: ${nextPageResponse.data.length}`);
+        log(`Next page RequestId: ${nextPageResponse.requestId}`);
       }
     } catch (error) {
       log(`Error listing sessions by labels: ${error}`);

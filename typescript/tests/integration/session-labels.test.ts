@@ -1,4 +1,4 @@
-import { AgentBay, Session } from '../../src';
+import { AgentBay, Session, ListSessionParams } from '../../src';
 import { getTestApiKey, generateUniqueId } from '../utils/test-helpers';
 import { log } from '../../src/utils/logger';
 
@@ -128,9 +128,14 @@ describe('Session Labels', () => {
         const setLabelsResponse = await session.setLabels(labels);
         log(`Set Labels RequestId: ${setLabelsResponse.requestId || 'undefined'}`);
 
-        // Then list sessions with those labels
-        const listByLabelsResponse = await agentBay.listByLabels(labels);
+        // Then list sessions with those labels using new API
+        const listParams: ListSessionParams = {
+          labels: labels,
+          maxResults: 5
+        };
+        const listByLabelsResponse = await agentBay.listByLabels(listParams);
         log(`Found ${listByLabelsResponse.data.length} sessions with matching labels`);
+        log(`Total count: ${listByLabelsResponse.totalCount}, Max results: ${listByLabelsResponse.maxResults}`);
         log(`List By Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -148,6 +153,18 @@ describe('Session Labels', () => {
           expect(sessionItem).toHaveProperty('sessionId');
           expect(sessionItem.sessionId).toBeTruthy();
         });
+
+        // Demonstrate pagination if there's a next token
+        if (listByLabelsResponse.nextToken) {
+          log('\nFetching next page...');
+          const nextPageParams: ListSessionParams = {
+            ...listParams,
+            nextToken: listByLabelsResponse.nextToken
+          };
+          const nextPageResponse = await agentBay.listByLabels(nextPageParams);
+          log(`Next page sessions count: ${nextPageResponse.data.length}`);
+          log(`Next page RequestId: ${nextPageResponse.requestId}`);
+        }
       } catch (error: any) {
         log(`Error listing sessions by labels: ${error.message}`);
         // Skip test if we can't list sessions
@@ -163,8 +180,13 @@ describe('Session Labels', () => {
           nonexistent: `label-${generateUniqueId()}`
         };
 
-        const listByLabelsResponse = await agentBay.listByLabels(nonMatchingLabels);
+        const listParams: ListSessionParams = {
+          labels: nonMatchingLabels,
+          maxResults: 5
+        };
+        const listByLabelsResponse = await agentBay.listByLabels(listParams);
         log(`Found ${listByLabelsResponse.data.length} sessions with non-matching labels`);
+        log(`Total count: ${listByLabelsResponse.totalCount}, Max results: ${listByLabelsResponse.maxResults}`);
         log(`List Non-matching Labels RequestId: ${listByLabelsResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
