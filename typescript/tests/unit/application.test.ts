@@ -138,6 +138,84 @@ describe('ApplicationApi', () => {
         });
     });
 
+    describe('test_start_app_with_activity_success', () => {
+        it('should start app with activity successfully', async () => {
+            const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+                .resolves({
+                    data: {},
+                    textContent: JSON.stringify(mockProcessData),
+                    isError: false,
+                    statusCode: 200,
+                    requestId: 'test-request-id'
+                });
+
+            const result = await mockApplication.startApp(
+                "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+                "",
+                ".SettingsActivity"
+            );
+
+            expect(result.data).toHaveLength(1);
+            expect(result.data[0].pname).toBe("com.autonavi.minimap");
+            expect(result.data[0].pid).toBe(12345);
+            expect(result.data[0].cmdline).toBe(
+                "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+            );
+            expect(result.requestId).toBe('test-request-id');
+
+            // Verify that activity was passed correctly
+            expect(callMcpToolStub.calledOnce).toBe(true);
+            const callArgs = callMcpToolStub.getCall(0).args;
+            expect(callArgs[0]).toBe('start_app');
+            expect(callArgs[1]).toEqual({
+                start_cmd: "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+                activity: ".SettingsActivity"
+            });
+        });
+    });
+
+    describe('test_start_app_with_activity_and_work_directory', () => {
+        it('should start app with activity and work directory successfully', async () => {
+            const mockXhsProcessData: Process[] = [
+                {
+                    pname: "com.xingin.xhs",
+                    pid: 23456,
+                    cmdline: "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1"
+                }
+            ];
+
+            const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')
+                .resolves({
+                    data: {},
+                    textContent: JSON.stringify(mockXhsProcessData),
+                    isError: false,
+                    statusCode: 200,
+                    requestId: 'test-request-456'
+                });
+
+            const result = await mockApplication.startApp(
+                "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
+                "/storage/emulated/0",
+                "com.xingin.xhs/.MainActivity"
+            );
+
+            expect(result.data).toHaveLength(1);
+            expect(result.data[0].pname).toBe("com.xingin.xhs");
+            expect(result.data[0].pid).toBe(23456);
+            expect(result.requestId).toBe('test-request-456');
+
+            // Verify all parameters were passed correctly
+            expect(callMcpToolStub.calledOnce).toBe(true);
+            const callArgs = callMcpToolStub.getCall(0).args;
+            expect(callArgs[0]).toBe('start_app');
+            expect(callArgs[1]).toEqual({
+                start_cmd: "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
+                work_directory: "/storage/emulated/0",
+                activity: "com.xingin.xhs/.MainActivity"
+            });
+        });
+    });
+
     describe('test_stop_app_by_cmd_success', () => {
         it('should stop app by command successfully', async () => {
             const callMcpToolStub = sandbox.stub(mockApplication as any, 'callMcpTool')

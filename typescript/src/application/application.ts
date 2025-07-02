@@ -206,12 +206,14 @@ export class Application {
    * Starts an application with the given command and optional working directory.
    * @param startCmd The command to start the application.
    * @param workDirectory The working directory for the application. Defaults to an empty string.
+   * @param activity Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to an empty string.
    * @returns API response with started processes and requestId
    * @throws Error if the operation fails.
    */
   async startApp(
     startCmd: string,
-    workDirectory = ""
+    workDirectory = "",
+    activity = ""
   ): Promise<ApiResponseWithData<Process[]>> {
     const args: any = {
       start_cmd: startCmd,
@@ -219,6 +221,10 @@ export class Application {
 
     if (workDirectory) {
       args.work_directory = workDirectory;
+    }
+
+    if (activity) {
+      args.activity = activity;
     }
 
     const result = await this.callMcpTool(

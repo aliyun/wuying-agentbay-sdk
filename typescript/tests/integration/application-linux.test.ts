@@ -3,7 +3,7 @@ import { AgentBay, Session } from '../../src';
 import { getTestApiKey } from '../utils/test-helpers';
 import { log } from '../../src/utils/logger';
 
-describe('Application', () => {
+describe('Application - Linux System Tests', () => {
   let session: Session;
   let agentBay: AgentBay;
 
@@ -12,29 +12,29 @@ describe('Application', () => {
     agentBay = new AgentBay({apiKey});
 
     // Create a session with linux_latest image
-    log('Creating a new session for application testing...');
+    log('Creating a new Linux session for application testing...');
     const createResponse = await agentBay.create({ imageId: 'linux_latest' });
     session = createResponse.data;
-    log(`Session created with ID: ${session.sessionId}`);
+    log(`Linux session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
   });
 
   afterEach(async () => {
-    log('Cleaning up: Deleting the session...');
+    log('Cleaning up: Deleting the Linux session...');
     try {
       const deleteResponse = await agentBay.delete(session);
-      log('Session successfully deleted');
+      log('Linux session successfully deleted');
       log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
     } catch (error) {
-      log(`Warning: Error deleting session: ${error}`);
+      log(`Warning: Error deleting Linux session: ${error}`);
     }
   });
 
-  describe('getInstalledApps()', () => {
-    it.only('should return installed applications with valid properties', async () => {
-      log('Testing getInstalledApps...');
+  describe('getInstalledApps() - Linux', () => {
+    it.only('should return Linux installed applications with valid properties', async () => {
+      log('Testing getInstalledApps for Linux...');
       const appsResponse = await session.Application.getInstalledApps(true, false, true);
-      log(`Found ${appsResponse.data.length} installed applications`);
+      log(`Found ${appsResponse.data.length} Linux installed applications`);
       log(`Get Installed Apps RequestId: ${appsResponse.requestId || 'undefined'}`);
 
       // Verify that the response contains requestId
@@ -47,7 +47,7 @@ describe('Application', () => {
 
       if (appsResponse.data.length > 0) {
         appsResponse.data.forEach((app, index) => {
-          log(`Verifying app ${index + 1}: ${app.name}`);
+          log(`Verifying Linux app ${index + 1}: ${app.name}`);
           expect(app.name).toBeTruthy();
           expect(app.start_cmd).toBeTruthy();
         });
@@ -55,8 +55,8 @@ describe('Application', () => {
     });
   });
 
-  describe('startApp()', () => {
-    it.only('should start an application and return processes', async () => {
+  describe('startApp() - Linux Applications', () => {
+    it.only('should start Linux application and return processes', async () => {
       // Get installed apps from the remote system
       const appsResponse = await session.Application.getInstalledApps(true, false, true);
 
@@ -79,7 +79,7 @@ describe('Application', () => {
 
       try {
         const processesResponse = await session.Application.startApp(startCmd, '');
-        log(`Started ${processesResponse.data.length} processes`);
+        log(`Started ${processesResponse.data.length} Linux processes`);
         log(`Start App RequestId: ${processesResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -92,22 +92,22 @@ describe('Application', () => {
 
         if (processesResponse.data.length > 0) {
           processesResponse.data.forEach((proc, index) => {
-            log(`Verifying process ${index + 1}: ${proc.pname} (PID: ${proc.pid})`);
+            log(`Verifying Linux process ${index + 1}: ${proc.pname} (PID: ${proc.pid})`);
             expect(proc.pname).toBeTruthy();
             expect(proc.pid).toBeGreaterThan(0);
             expect(proc).toHaveProperty('cmdline');
           });
         }
       } catch (error) {
-        log(`Note: Failed to start application: ${error}`);
+        log(`Note: Failed to start Linux application: ${error}`);
         // Skip test if we can't start the application
         expect(true).toBe(true);
       }
     });
   });
 
-  describe('stopAppByPName()', () => {
-    it.only('should stop an application by process name', async () => {
+  describe('stopAppByPName() - Linux', () => {
+    it.only('should stop Linux application by process name', async () => {
       try {
         // Get installed apps from the remote system
         const appsResponse = await session.Application.getInstalledApps(true, false, true);
@@ -136,10 +136,10 @@ describe('Application', () => {
         expect(processesResponse.data.length).toBeGreaterThan(0);
 
         const pname = processesResponse.data[0].pname;
-        log(`Stopping application with process name: ${pname}`);
+        log(`Stopping Linux application with process name: ${pname}`);
 
         const stopResponse = await session.Application.stopAppByPName(pname);
-        log('Application stopped by process name successfully');
+        log('Linux application stopped by process name successfully');
         log(`Stop App by PName RequestId: ${stopResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -147,15 +147,15 @@ describe('Application', () => {
         expect(typeof stopResponse.requestId).toBe('string');
 
       } catch (error: any) {
-        log(`Note: Failed to stop application by process name: ${error}`);
+        log(`Note: Failed to stop Linux application by process name: ${error}`);
         // Skip test if we can't stop the application
         expect(true).toBe(true);
       }
     });
   });
 
-  describe('stopAppByPID()', () => {
-    it.only('should stop an application by process ID', async () => {
+  describe('stopAppByPID() - Linux', () => {
+    it.only('should stop Linux application by process ID', async () => {
       try {
         // Get installed apps from the remote system
         const appsResponse = await session.Application.getInstalledApps(true, false, true);
@@ -184,15 +184,15 @@ describe('Application', () => {
         expect(processesResponse.data.length).toBeGreaterThan(0);
 
         // Wait 5 seconds to give the application time to open
-        log('Waiting 5 seconds to give applications time to open...');
+        log('Waiting 5 seconds to give Linux applications time to open...');
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         const pid = processesResponse.data[0].pid;
         const pname = processesResponse.data[0].pname;
-        log(`Stopping application with PID: ${pid} and name: ${pname}`);
+        log(`Stopping Linux application with PID: ${pid} and name: ${pname}`);
 
         const stopResponse = await session.Application.stopAppByPID(pid);
-        log('Application stopped by PID successfully');
+        log('Linux application stopped by PID successfully');
         log(`Stop App by PID RequestId: ${stopResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -200,28 +200,28 @@ describe('Application', () => {
         expect(typeof stopResponse.requestId).toBe('string');
 
         // Wait 5 seconds to ensure the application has time to close
-        log('Waiting 5 seconds to ensure the application has closed...');
+        log('Waiting 5 seconds to ensure the Linux application has closed...');
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Verify the app is no longer visible by using listVisibleApps
         const visibleAppsResponse = await session.Application.listVisibleApps();
 
-        log(`Found ${visibleAppsResponse.data.length} visible applications after stopping`);
+        log(`Found ${visibleAppsResponse.data.length} visible Linux applications after stopping`);
 
         // Check that the app with the stopped PID is no longer in the list
         const stoppedAppStillVisible = visibleAppsResponse.data.some(app => app.pid === pid);
-        log(`Is the stopped app still visible? ${stoppedAppStillVisible}`);
+        log(`Is the stopped Linux app still visible? ${stoppedAppStillVisible}`);
         expect(stoppedAppStillVisible).toBe(false);
       } catch (error: any) {
-        log(`Note: Failed to stop application by PID: ${error}`);
+        log(`Note: Failed to stop Linux application by PID: ${error}`);
         // Skip test if we can't stop the application
         expect(true).toBe(true);
       }
     });
   });
 
-  describe('listVisibleApps()', () => {
-    it.only('should list visible applications with valid properties', async () => {
+  describe('listVisibleApps() - Linux', () => {
+    it.only('should list visible Linux applications with valid properties', async () => {
       try {
         // First, start an application (Terminal) to ensure there's at least one visible app
         // Get installed apps from the remote system
@@ -248,12 +248,12 @@ describe('Application', () => {
         await session.Application.startApp(startCmd, '');
 
         // Wait for the terminal to open
-        log('Waiting 5 seconds to give the terminal time to open...');
+        log('Waiting 5 seconds to give the Linux terminal time to open...');
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Now list the visible applications
         const visibleAppsResponse = await session.Application.listVisibleApps();
-        log(`Found ${visibleAppsResponse.data.length} visible applications`);
+        log(`Found ${visibleAppsResponse.data.length} visible Linux applications`);
         log(`List Visible Apps RequestId: ${visibleAppsResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -266,21 +266,21 @@ describe('Application', () => {
 
         if (visibleAppsResponse.data.length > 0) {
           visibleAppsResponse.data.forEach((app, index) => {
-            log(`Verifying app ${index + 1}: ${app.pname} (PID: ${app.pid})`);
+            log(`Verifying Linux app ${index + 1}: ${app.pname} (PID: ${app.pid})`);
             expect(app.pname).toBeTruthy();
             expect(app.pid).toBeGreaterThan(0);
           });
         }
       } catch (error) {
-        log(`Note: Failed in listVisibleApps test: ${error}`);
+        log(`Note: Failed in listVisibleApps Linux test: ${error}`);
         // Skip test if we encounter an error
         expect(true).toBe(true);
       }
     });
   });
 
-  describe('stopAppByCmd()', () => {
-    it.only('should stop an application by command', async () => {
+  describe('stopAppByCmd() - Linux', () => {
+    it.only('should stop Linux application by command', async () => {
       try {
         // Get installed apps from the remote system
         const appsResponse = await session.Application.getInstalledApps(true, false, true);
@@ -307,16 +307,16 @@ describe('Application', () => {
         expect(processesResponse.data.length).toBeGreaterThan(0);
 
         // Wait for the terminal to open
-        log('Waiting 5 seconds to give the terminal time to open...');
+        log('Waiting 5 seconds to give the Linux terminal time to open...');
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Use a stop command based on the process name
         const stopCmd = `pkill ${processesResponse.data[0].pname}`;
-        log(`Using stop command: ${stopCmd}`);
+        log(`Using Linux stop command: ${stopCmd}`);
 
         // Stop the terminal with the command
         const stopResponse = await session.Application.stopAppByCmd(stopCmd);
-        log('Application stopped by command successfully');
+        log('Linux application stopped by command successfully');
         log(`Stop App by Cmd RequestId: ${stopResponse.requestId || 'undefined'}`);
 
         // Verify that the response contains requestId
@@ -324,7 +324,7 @@ describe('Application', () => {
         expect(typeof stopResponse.requestId).toBe('string');
 
         // Wait for the terminal to close
-        log('Waiting 5 seconds to give the terminal time to close...');
+        log('Waiting 5 seconds to give the Linux terminal time to close...');
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Verify the application is no longer visible
@@ -332,7 +332,7 @@ describe('Application', () => {
         const stoppedAppStillVisible = visibleAppsResponse.data.some(app => app.pid === processesResponse.data[0].pid);
         expect(stoppedAppStillVisible).toBe(false);
       } catch (error) {
-        log(`Note: Failed in stopAppByCmd test: ${error}`);
+        log(`Note: Failed in stopAppByCmd Linux test: ${error}`);
         // Skip test if we encounter an error
         expect(true).toBe(true);
       }
