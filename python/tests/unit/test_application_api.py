@@ -226,6 +226,76 @@ class TestApplicationApi(unittest.TestCase):
         self.assertEqual(result.error_message, "Failed to list visible apps")
         self.assertEqual(result.request_id, "request-123")
 
+    def test_start_app_with_activity_success(self):
+        self.app_manager._call_mcp_tool = MagicMock(
+            return_value=OperationResult(
+                request_id="request-123",
+                success=True,
+                data="""[
+            {
+                "pname": "com.autonavi.minimap",
+                "pid": 12345,
+                "cmdline": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+            }
+        ]"""
+            )
+        )
+        result = self.app_manager.start_app(
+            "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+            activity=".SettingsActivity"
+        )
+        self.assertIsInstance(result, ProcessListResult)
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.data), 1)
+        self.assertEqual(result.data[0].pname, "com.autonavi.minimap")
+        self.assertEqual(result.data[0].pid, 12345)
+        self.assertEqual(
+            result.data[0].cmdline,
+            "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+        )
+        self.assertEqual(result.request_id, "request-123")
+
+        # Verify that activity was passed correctly
+        self.app_manager._call_mcp_tool.assert_called_with(
+            "start_app",
+            {
+                "start_cmd": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
+                "activity": ".SettingsActivity"
+            }
+        )
+
+    def test_start_app_with_activity_and_work_directory(self):
+        self.app_manager._call_mcp_tool = MagicMock(
+            return_value=OperationResult(
+                request_id="request-456",
+                success=True,
+                data="""[
+            {
+                "pname": "com.xingin.xhs",
+                "pid": 23456,
+                "cmdline": "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1"
+            }
+        ]"""
+            )
+        )
+        result = self.app_manager.start_app(
+            "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
+            work_directory="/storage/emulated/0",
+            activity="com.xingin.xhs/.MainActivity"
+        )
+        self.assertTrue(result.success)
+        self.assertEqual(len(result.data), 1)
+        self.assertEqual(result.data[0].pname, "com.xingin.xhs")
+
+        # Verify all parameters were passed correctly
+        self.app_manager._call_mcp_tool.assert_called_with(
+            "start_app",
+            {
+                "start_cmd": "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
+                "work_directory": "/storage/emulated/0",
+                "activity": "com.xingin.xhs/.MainActivity"
+            }
+        )
 
 if __name__ == "__main__":
     unittest.main()
