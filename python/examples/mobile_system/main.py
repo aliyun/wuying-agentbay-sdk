@@ -134,7 +134,7 @@ def main():
         # Start application with specific activity
         print("\nStarting application with specific activity...")
         app_package = "com.xingin.xhs"
-        app_activity = "com.xingin.outside.activity.VivoOutsideFeedActivity"
+        app_activity = "com.xingin.outside.activity.OppoOutsideFeedActivity"
         start_cmd = f"monkey -p {app_package} -c android.intent.category.LAUNCHER 1"
 
         start_result = session.application.start_app(
