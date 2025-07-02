@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 from agentbay.exceptions import ApplicationError, AgentBayError
 from agentbay.model import (
     ApiResponse,
-    BoolResult,
 )
 from agentbay.api.base_service import BaseService
 
@@ -213,6 +212,23 @@ class AppOperationResult(ApiResponse):
         self.error_message = error_message
 
 
+class AppInstallResult(ApiResponse):
+    """Result of application installation operations."""
+
+    def __init__(self, request_id: str = "", success: bool = False, message: str = ""):
+        """
+        Initialize an AppInstallResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            success (bool, optional): Whether the installation was successful. Defaults to False.
+            message (str, optional): Result description or error message. Defaults to "".
+        """
+        super().__init__(request_id)
+        self.success = success
+        self.message = message
+
+
 class ApplicationManager(BaseService):
     """
     Handles application operations in the AgentBay cloud environment.
@@ -289,13 +305,14 @@ class ApplicationManager(BaseService):
                 error_message=str(handled_error)
             )
 
-    def start_app(self, start_cmd: str, work_directory: str = "") -> ProcessListResult:
+    def start_app(self, start_cmd: str, work_directory: str = "", activity: str = "") -> ProcessListResult:
         """
-        Starts an application with the given command and optional working directory.
+        Starts an application with the given command, optional working directory and optional activity.
 
         Args:
             start_cmd (str): The command to start the application.
             work_directory (str, optional): The working directory for the application. Defaults to "".
+            activity (str, optional): Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to "".
 
         Returns:
             ProcessListResult: The result containing the list of processes started.
@@ -304,6 +321,8 @@ class ApplicationManager(BaseService):
             args = {"start_cmd": start_cmd}
             if work_directory:
                 args["work_directory"] = work_directory
+            if activity:
+                args["activity"] = activity
 
             result = self._call_mcp_tool("start_app", args)
 

@@ -131,6 +131,23 @@ def main():
             print(f"Screenshot data length: {len(screenshot_result.data)} bytes")
         print(f"Request ID: {screenshot_result.request_id}")
 
+        # Start application with specific activity
+        print("\nStarting application with specific activity...")
+        app_package = "com.xingin.xhs"
+        app_activity = "com.xingin.outside.activity.VivoOutsideFeedActivity"
+        start_cmd = f"monkey -p {app_package} -c android.intent.category.LAUNCHER 1"
+
+        start_result = session.application.start_app(
+            start_cmd=start_cmd,
+            activity=app_activity
+        )
+        print(f"Start app with activity success: {start_result.success}")
+        if start_result.success and start_result.data:
+            print("Started processes:")
+            for process in start_result.data:
+                print(f"  - {process.pname} (PID: {process.pid})")
+        print(f"Request ID: {start_result.request_id}")
+
         # Delete session
         print("\nDeleting session...")
         delete_result = agent_bay.delete(session)
