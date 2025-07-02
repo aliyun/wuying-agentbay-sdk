@@ -19,6 +19,7 @@ import {
   ApiResponseWithData,
   extractRequestId,
 } from "./types/api-response";
+import { ListSessionParams, SessionListResult } from './types/list-session-params';
 
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
@@ -158,27 +159,36 @@ export class AgentBay {
   }
 
   /**
-   * List sessions filtered by the provided labels.
+   * List sessions filtered by the provided labels with pagination support.
    * It returns sessions that match all the specified labels.
    *
-   * @param labels - The labels to filter by.
-   * @returns API response with sessions list and requestId
+   * **Breaking Change**: This method currently only accepts ListSessionParams parameters，
+   *
+   * @param params - Parameters including labels and pagination options (required)
+   * @returns API response with sessions list and pagination info
    */
-  async listByLabels(
-    labels: Record<string, string>
-  ): Promise<ApiResponseWithData<Session[]>> {
+  async listByLabels(params?: ListSessionParams): Promise<SessionListResult> {
+    if (!params) {
+      params = {
+        maxResults: 10,
+        labels: {}
+      };
+    }
+
     try {
       // Convert labels to JSON
-      const labelsJSON = JSON.stringify(labels);
+      const labelsJSON = JSON.stringify(params.labels);
 
+      //Build request object with support for pagination parameters
       const listSessionRequest = new ListSessionRequest({
         authorization: `Bearer ${this.apiKey}`,
         labels: labelsJSON,
+        maxResults: params.maxResults || 10,
+        ...(params.nextToken && { nextToken: params.nextToken })
       });
 
-      // Log API request
       log("API Call: ListSession");
-      log(`Request: Labels=${labelsJSON}`);
+      log(`Request: Labels=${labelsJSON}, MaxResults=${params.maxResults || 10}${params.nextToken ? `, NextToken=${params.nextToken}` : ''}`);
 
       const response = await this.client.listSession(listSessionRequest);
 
@@ -200,6 +210,9 @@ export class AgentBay {
       return {
         requestId: extractRequestId(response),
         data: sessions,
+        nextToken: response.body?.nextToken,
+        maxResults: response.body?.maxResults || params.maxResults || 10,
+        totalCount: response.body?.totalCount || 0
       };
     } catch (error) {
       logError("Error calling ListSession:", error);

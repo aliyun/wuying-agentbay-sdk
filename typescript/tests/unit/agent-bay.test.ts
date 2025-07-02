@@ -1,4 +1,4 @@
-import { AgentBay, Session, AuthenticationError, APIError } from '../../src';
+import { AgentBay, Session, AuthenticationError, APIError, ListSessionParams } from '../../src';
 import { log } from '../../src/utils/logger';
 import * as sinon from 'sinon';
 
@@ -352,19 +352,26 @@ describe('AgentBay', () => {
       log(`Found ${allSessions.length} sessions in total`);
       expect(allSessions.length).toBe(2);
 
-      // Test 2: List sessions by environment=development label
+      // Test 2: List sessions by environment=development label using new API
       const devSessionsResponse = {
         statusCode: 200,
         body: {
           data: [mockSessionAData],
-          requestId: 'mock-request-id-list-dev'
+          requestId: 'mock-request-id-list-dev',
+          maxResults: 5,
+          totalCount: 1
         }
       };
 
       listSessionStub.resolves(devSessionsResponse);
 
-      const devSessions = await agentBay.listByLabels({ environment: 'development' });
+      const devSessionsParams: ListSessionParams = {
+        labels: { environment: 'development' },
+        maxResults: 5
+      };
+      const devSessions = await agentBay.listByLabels(devSessionsParams);
       log(`List Sessions by environment=development RequestId: ${devSessions.requestId || 'undefined'}`);
+      log(`Total count: ${devSessions.totalCount}, Max results: ${devSessions.maxResults}`);
 
       // Verify that the response contains requestId
       expect(devSessions.requestId).toBeDefined();
@@ -380,21 +387,29 @@ describe('AgentBay', () => {
       const listCallArgs = listSessionStub.getCall(0).args[0];
       expect(listCallArgs.authorization).toBe('Bearer test-api-key');
       expect(JSON.parse(listCallArgs.labels)).toEqual({ environment: 'development' });
+      expect(listCallArgs.maxResults).toBe(5);
 
       // Test 3: List sessions by owner=team-b label
       const teamBSessionsResponse = {
         statusCode: 200,
         body: {
           data: [mockSessionBData],
-          requestId: 'mock-request-id-list-team-b'
+          requestId: 'mock-request-id-list-team-b',
+          maxResults: 5,
+          totalCount: 1
         }
       };
 
       listSessionStub.reset();
       listSessionStub.resolves(teamBSessionsResponse);
 
-      const teamBSessions = await agentBay.listByLabels({ owner: 'team-b' });
+      const teamBSessionsParams: ListSessionParams = {
+        labels: { owner: 'team-b' },
+        maxResults: 5
+      };
+      const teamBSessions = await agentBay.listByLabels(teamBSessionsParams);
       log(`List Sessions by owner=team-b RequestId: ${teamBSessions.requestId || 'undefined'}`);
+      log(`Total count: ${teamBSessions.totalCount}, Max results: ${teamBSessions.maxResults}`);
 
       // Verify that the response contains requestId
       expect(teamBSessions.requestId).toBeDefined();
@@ -409,19 +424,27 @@ describe('AgentBay', () => {
         statusCode: 200,
         body: {
           data: [mockSessionBData],
-          requestId: 'mock-request-id-list-multi'
+          requestId: 'mock-request-id-list-multi',
+          maxResults: 5,
+          totalCount: 1,
+          nextToken: 'mock-next-token'
         }
       };
 
       listSessionStub.reset();
       listSessionStub.resolves(multiLabelSessionsResponse);
 
-      const multiLabelSessions = await agentBay.listByLabels({
-        environment: 'testing',
-        project: 'project-y'
-      });
+      const multiLabelSessionsParams: ListSessionParams = {
+        labels: {
+          environment: 'testing',
+          project: 'project-y'
+        },
+        maxResults: 5
+      };
+      const multiLabelSessions = await agentBay.listByLabels(multiLabelSessionsParams);
       log(`Found ${multiLabelSessions.data.length} sessions with environment=testing AND project=project-y`);
       log(`List Sessions by multiple labels RequestId: ${multiLabelSessions.requestId || 'undefined'}`);
+      log(`Total count: ${multiLabelSessions.totalCount}, Max results: ${multiLabelSessions.maxResults}`);
 
       // Verify that the response contains requestId
       expect(multiLabelSessions.requestId).toBeDefined();
@@ -431,21 +454,70 @@ describe('AgentBay', () => {
       expect(multiLabelSessions.data.length).toBe(1);
       expect(multiLabelSessions.data[0].sessionId).toBe(mockSessionBData.sessionId);
 
+      // Test pagination if there's a next token
+      if (multiLabelSessions.nextToken) {
+        log('\nTesting pagination with nextToken...');
+
+        const nextPageResponse = {
+          statusCode: 200,
+          body: {
+            data: [mockSessionAData],
+            requestId: 'mock-request-id-list-next-page',
+            maxResults: 5,
+            totalCount: 1
+          }
+        };
+
+        listSessionStub.reset();
+        listSessionStub.resolves(nextPageResponse);
+
+        const nextPageParams: ListSessionParams = {
+          ...multiLabelSessionsParams,
+          nextToken: multiLabelSessions.nextToken
+        };
+        const nextPageSessions = await agentBay.listByLabels(nextPageParams);
+        log(`Next page sessions count: ${nextPageSessions.data.length}`);
+        log(`Next page RequestId: ${nextPageSessions.requestId}`);
+
+        // Verify next page response
+        expect(nextPageSessions.requestId).toBeDefined();
+        expect(nextPageSessions.requestId).toBe('mock-request-id-list-next-page');
+        expect(nextPageSessions.data.length).toBe(1);
+        expect(nextPageSessions.data[0].sessionId).toBe(mockSessionAData.sessionId);
+
+        // Verify API call parameters for next page
+        const nextPageCallArgs = listSessionStub.getCall(0).args[0];
+        expect(nextPageCallArgs.authorization).toBe('Bearer test-api-key');
+        expect(JSON.parse(nextPageCallArgs.labels)).toEqual({
+          environment: 'testing',
+          project: 'project-y'
+        });
+        expect(nextPageCallArgs.maxResults).toBe(5);
+        expect(nextPageCallArgs.nextToken).toBe('mock-next-token');
+      }
+
       // Test 5: List sessions with non-existent label
       const nonExistentSessionsResponse = {
         statusCode: 200,
         body: {
           data: [],
-          requestId: 'mock-request-id-list-empty'
+          requestId: 'mock-request-id-list-empty',
+          maxResults: 5,
+          totalCount: 0
         }
       };
 
       listSessionStub.reset();
       listSessionStub.resolves(nonExistentSessionsResponse);
 
-      const nonExistentSessions = await agentBay.listByLabels({ 'non-existent': 'value' });
+      const nonExistentSessionsParams: ListSessionParams = {
+        labels: { 'non-existent': 'value' },
+        maxResults: 5
+      };
+      const nonExistentSessions = await agentBay.listByLabels(nonExistentSessionsParams);
       log(`Found ${nonExistentSessions.data.length} sessions with non-existent label`);
       log(`List Sessions by non-existent label RequestId: ${nonExistentSessions.requestId || 'undefined'}`);
+      log(`Total count: ${nonExistentSessions.totalCount}, Max results: ${nonExistentSessions.maxResults}`);
 
       // Verify that the response contains requestId even for empty results
       expect(nonExistentSessions.requestId).toBeDefined();
