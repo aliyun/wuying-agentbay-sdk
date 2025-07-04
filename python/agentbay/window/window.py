@@ -1,23 +1,31 @@
 import json
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from agentbay.model import BoolResult, ApiResponse
 from agentbay.api.base_service import BaseService
+from agentbay.model import ApiResponse, BoolResult
 
 
 class WindowListResult(ApiResponse):
     """Result of window listing operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 windows: Optional[List[Any]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        windows: Optional[List[Any]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize a WindowListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
             windows (List[Any], optional): List of Windows. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -28,16 +36,24 @@ class WindowListResult(ApiResponse):
 class WindowInfoResult(ApiResponse):
     """Result of window info operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 window: Any = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        window: Any = None,
+        error_message: str = "",
+    ):
         """
         Initialize a WindowInfoResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
             window (Any, optional): Window object. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -52,8 +68,10 @@ class Window:
     Attributes:
         window_id (int): The ID of the window.
         title (str): The title of the window.
-        absolute_upper_left_x (Optional[int]): The x-coordinate of the upper left corner of the window.
-        absolute_upper_left_y (Optional[int]): The y-coordinate of the upper left corner of the window.
+        absolute_upper_left_x (Optional[int]): The x-coordinate of the upper left corner
+            of the window.
+        absolute_upper_left_y (Optional[int]): The y-coordinate of the upper left corner
+            of the window.
         width (Optional[int]): The width of the window.
         height (Optional[int]): The height of the window.
         pid (Optional[int]): The process ID of the window.
@@ -79,13 +97,20 @@ class Window:
         Args:
             window_id (int): The ID of the window.
             title (str): The title of the window.
-            absolute_upper_left_x (Optional[int], optional): The x-coordinate of the upper left corner of the window. Defaults to None.
-            absolute_upper_left_y (Optional[int], optional): The y-coordinate of the upper left corner of the window. Defaults to None.
-            width (Optional[int], optional): The width of the window. Defaults to None.
-            height (Optional[int], optional): The height of the window. Defaults to None.
-            pid (Optional[int], optional): The process ID of the window. Defaults to None.
-            pname (Optional[str], optional): The process name of the window. Defaults to None.
-            child_windows (Optional[List['Window']], optional): The child windows of this window. Defaults to None.
+            absolute_upper_left_x (Optional[int], optional): The x-coordinate of the
+                upper left corner of the window. Defaults to None.
+            absolute_upper_left_y (Optional[int], optional): The y-coordinate of the
+                upper left corner of the window. Defaults to None.
+            width (Optional[int], optional): The width of the window.
+                Defaults to None.
+            height (Optional[int], optional): The height of the window.
+                Defaults to None.
+            pid (Optional[int], optional): The process ID of the window.
+                Defaults to None.
+            pname (Optional[str], optional): The process name of the window.
+                Defaults to None.
+            child_windows (Optional[List['Window']], optional): The child windows of
+                this window. Defaults to None.
         """
         self.window_id = window_id
         self.title = title
@@ -135,39 +160,61 @@ class WindowManager(BaseService):
         Lists all root windows in the system.
 
         Returns:
-            WindowListResult: Result object containing list of windows and error message if any.
+            WindowListResult: Result object containing list of windows and error
+                message if any.
         """
         args = {"timeout_ms": timeout_ms}
 
         try:
             result = self._call_mcp_tool("list_root_windows", args)
             if not result.success:
-                return WindowListResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return WindowListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             data = json.loads(result.data)
             windows = [Window.from_dict(window) for window in data]
-            return WindowListResult(request_id=result.request_id, success=True, windows=windows)
+            return WindowListResult(
+                request_id=result.request_id, success=True, windows=windows
+            )
         except Exception as e:
-            return WindowListResult(request_id="", success=False, error_message=f"Failed to list root windows: {e}")
+            return WindowListResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to list root windows: {e}",
+            )
 
     def get_active_window(self, timeout_ms: int = 3000) -> WindowInfoResult:
         """
         Gets the currently active window.
 
         Returns:
-            WindowInfoResult: Result object containing window information and error message if any.
+            WindowInfoResult: Result object containing window information and error
+                message if any.
         """
         args = {"timeout_ms": timeout_ms}
 
         try:
             result = self._call_mcp_tool("get_active_window", args)
             if not result.success:
-                return WindowInfoResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return WindowInfoResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             window = Window.from_dict(result.data)
-            return WindowInfoResult(request_id=result.request_id, success=True, window=window)
+            return WindowInfoResult(
+                request_id=result.request_id, success=True, window=window
+            )
         except Exception as e:
-            return WindowInfoResult(request_id="", success=False, error_message=f"Failed to get active window: {e}")
+            return WindowInfoResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to get active window: {e}",
+            )
 
     def activate_window(self, window_id: int) -> BoolResult:
         """
@@ -177,18 +224,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to activate.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("activate_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to activate window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to activate window: {e}",
+            )
 
     def maximize_window(self, window_id: int) -> BoolResult:
         """
@@ -198,18 +254,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to maximize.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("maximize_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to maximize window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to maximize window: {e}",
+            )
 
     def minimize_window(self, window_id: int) -> BoolResult:
         """
@@ -219,18 +284,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to minimize.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("minimize_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to minimize window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to minimize window: {e}",
+            )
 
     def restore_window(self, window_id: int) -> BoolResult:
         """
@@ -240,18 +314,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to restore.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("restore_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to restore window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to restore window: {e}",
+            )
 
     def close_window(self, window_id: int) -> BoolResult:
         """
@@ -261,18 +344,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to close.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("close_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to close window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to close window: {e}",
+            )
 
     def fullscreen_window(self, window_id: int) -> BoolResult:
         """
@@ -282,18 +374,27 @@ class WindowManager(BaseService):
             window_id (int): The ID of the window to make fullscreen.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"window_id": window_id}
 
         try:
             result = self._call_mcp_tool("fullscreen_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to make window fullscreen: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to make window fullscreen: {e}",
+            )
 
     def resize_window(self, window_id: int, width: int, height: int) -> BoolResult:
         """
@@ -305,22 +406,27 @@ class WindowManager(BaseService):
             height (int): The new height of the window.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
-        args = {
-            "window_id": window_id,
-            "width": width,
-            "height": height
-        }
+        args = {"window_id": window_id, "width": width, "height": height}
 
         try:
             result = self._call_mcp_tool("resize_window", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to resize window: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to resize window: {e}",
+            )
 
     def focus_mode(self, on: bool) -> BoolResult:
         """
@@ -330,15 +436,24 @@ class WindowManager(BaseService):
             on (bool): True to enable focus mode, False to disable it.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"on": on}
 
         try:
             result = self._call_mcp_tool("focus_mode", args)
             if not result.success:
-                return BoolResult(request_id=result.request_id, success=False, error_message=result.error_message)
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
 
             return BoolResult(request_id=result.request_id, success=True, data=True)
         except Exception as e:
-            return BoolResult(request_id="", success=False, error_message=f"Failed to toggle focus mode: {e}")
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to toggle focus mode: {e}",
+            )

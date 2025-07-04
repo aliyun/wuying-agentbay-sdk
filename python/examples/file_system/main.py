@@ -15,6 +15,7 @@ This example shows how to use various file system operations including:
 
 import os
 import time
+
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 
@@ -49,7 +50,10 @@ def main():
 
         # Example 1: Write a simple file
         print("\nExample 1: Writing a simple file...")
-        test_content = "This is a test file content.\nIt has multiple lines.\nThis is the third line."
+        test_content = (
+            "This is a test file content.\nIt has multiple lines.\n"
+            "This is the third line."
+        )
         test_file_path = "/tmp/test_file.txt"
 
         result = fs.write_file(test_file_path, test_content, "overwrite")
@@ -86,7 +90,7 @@ def main():
             print(f"Updated file content ({len(updated_content)} bytes):")
             print(updated_content)
             print(
-                f"Content matches expected: {updated_content == test_content + append_content}"
+                f"Content matches: {updated_content == test_content + append_content}"
             )
         else:
             print(f"Error reading updated file: {result.error_message}")
@@ -286,7 +290,8 @@ def main():
         write_time = time.time() - start_time
 
         print(
-            f"Write operation with custom chunk size completed in {write_time:.2f} seconds"
+            f"Write operation with custom chunk size completed in "
+            f"{write_time:.2f} seconds"
         )
         print(f"Success: {result.success}")
         if not result.success:
@@ -304,12 +309,16 @@ def main():
         if result.success:
             read_content2 = result.content
             print(
-                f"Read operation with custom chunk size completed in {read_time:.2f} seconds"
+                f"Read operation with custom chunk size completed in "
+                f"{read_time:.2f} seconds"
             )
             print(f"Content length: {len(read_content2)} bytes")
             print(f"Content matches original: {read_content2 == large_content}")
         else:
-            print(f"Error reading large file with custom chunk size: {result.error_message}")
+            print(
+                f"Error reading large file with custom chunk size: "
+                f"{result.error_message}"
+            )
         print(f"Request ID: {result.request_id}")
 
     finally:

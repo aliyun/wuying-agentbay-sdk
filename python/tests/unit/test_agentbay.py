@@ -1,11 +1,9 @@
-import json
 import os
 import unittest
 from unittest.mock import MagicMock, patch
 
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams, ListSessionParams
-from agentbay.exceptions import AgentBayError
 
 
 class TestAgentBay(unittest.TestCase):
@@ -20,7 +18,7 @@ class TestAgentBay(unittest.TestCase):
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
 
         # Mock client
@@ -46,7 +44,7 @@ class TestAgentBay(unittest.TestCase):
         mock_load_config.return_value = {
             "region_id": "cn-beijing",
             "endpoint": "another.endpoint.com",
-            "timeout_ms": 60000
+            "timeout_ms": 60000,
         }
 
         # Mock client
@@ -68,7 +66,7 @@ class TestAgentBay(unittest.TestCase):
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
 
         # Test initialization failure
@@ -80,13 +78,15 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay.agentbay.extract_request_id")
     @patch("agentbay.agentbay.load_config")
     @patch("agentbay.agentbay.mcp_client")
-    def test_create_session_success(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
+    def test_create_session_success(
+        self, mock_mcp_client, mock_load_config, mock_extract_request_id
+    ):
         """Test successfully creating a session"""
         # Mock configuration and request ID
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
         mock_extract_request_id.return_value = "create-request-id"
 
@@ -97,7 +97,7 @@ class TestAgentBay(unittest.TestCase):
             "body": {
                 "Data": {
                     "SessionId": "new-session-id",
-                    "ResourceUrl": "http://resource.url"
+                    "ResourceUrl": "http://resource.url",
                 }
             }
         }
@@ -129,16 +129,14 @@ class TestAgentBay(unittest.TestCase):
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
 
         # Mock client and invalid response
         mock_client = MagicMock()
         mock_response = MagicMock()
         mock_response.to_map.return_value = {
-            "body": {
-                "Data": None  # Invalid Data field
-            }
+            "body": {"Data": None}  # Invalid Data field
         }
         mock_client.create_mcp_session.return_value = mock_response
         mock_mcp_client.return_value = mock_client
@@ -157,13 +155,15 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay.agentbay.extract_request_id")
     @patch("agentbay.agentbay.load_config")
     @patch("agentbay.agentbay.mcp_client")
-    def test_list_by_labels(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
+    def test_list_by_labels(
+        self, mock_mcp_client, mock_load_config, mock_extract_request_id
+    ):
         """Test listing sessions by labels"""
         # Mock configuration and request ID
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
         mock_extract_request_id.return_value = "list-request-id"
 
@@ -174,7 +174,7 @@ class TestAgentBay(unittest.TestCase):
             "body": {
                 "Data": [
                     {"SessionId": "session-1"},
-                    {"SessionId": "session-2"}
+                    {"SessionId": "session-2"},
                 ]
             }
         }
@@ -210,7 +210,7 @@ class TestAgentBay(unittest.TestCase):
         mock_load_config.return_value = {
             "region_id": "cn-shanghai",
             "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000
+            "timeout_ms": 30000,
         }
 
         # Mock client
@@ -221,10 +221,7 @@ class TestAgentBay(unittest.TestCase):
         agent_bay = AgentBay(api_key="test-key")
         session1 = MagicMock()
         session2 = MagicMock()
-        agent_bay._sessions = {
-            "session-1": session1,
-            "session-2": session2
-        }
+        agent_bay._sessions = {"session-1": session1, "session-2": session2}
 
         # Test listing all sessions
         sessions = agent_bay.list()

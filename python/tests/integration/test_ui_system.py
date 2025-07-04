@@ -1,11 +1,12 @@
 import os
 import time
 import unittest
+
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
-from agentbay.ui.ui import UI, KeyCode, UIElementListResult
 from agentbay.model import BoolResult, OperationResult
 from agentbay.session_params import CreateSessionParams
+from agentbay.ui.ui import KeyCode, UIElementListResult
 
 
 class TestUISystemIntegration(unittest.TestCase):
@@ -48,7 +49,10 @@ class TestUISystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=3000)
             self.assertIsInstance(result, UIElementListResult)
-            self.assertTrue(result.success, f"Failed to get clickable UI elements: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to get clickable UI elements: {result.error_message}",
+            )
 
             clickable_elements = result.elements
             print("\nClickable UI Elements:")
@@ -71,15 +75,25 @@ class TestUISystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.send_key(KeyCode.HOME)
             self.assertIsInstance(result, BoolResult)
-            self.assertTrue(result.success, f"Failed to send key: {result.error_message}")
+            self.assertTrue(
+                result.success, f"Failed to send key: {result.error_message}"
+            )
             print("\nSent HOME key successfully.")
         except AgentBayError as e:
             self.fail(f"send_key failed with error: {e}")
 
     def test_swipe(self):
         try:
-            start_x, start_y, end_x, end_y, duration_ms = 100, 200, 300, 400, 500
-            result = self.__class__.ui.swipe(start_x, start_y, end_x, end_y, duration_ms)
+            start_x, start_y, end_x, end_y, duration_ms = (
+                100,
+                200,
+                300,
+                400,
+                500,
+            )
+            result = self.__class__.ui.swipe(
+                start_x, start_y, end_x, end_y, duration_ms
+            )
             self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to swipe: {result.error_message}")
             print(
@@ -93,7 +107,9 @@ class TestUISystemIntegration(unittest.TestCase):
             text = "Hello, world!"
             result = self.__class__.ui.input_text(text)
             self.assertIsInstance(result, BoolResult)
-            self.assertTrue(result.success, f"Failed to input text: {result.error_message}")
+            self.assertTrue(
+                result.success, f"Failed to input text: {result.error_message}"
+            )
             print(f"\nInput text '{text}' successfully.")
         except AgentBayError as e:
             self.fail(f"input_text failed with error: {e}")
@@ -102,7 +118,10 @@ class TestUISystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.get_all_ui_elements(timeout_ms=3000)
             self.assertIsInstance(result, UIElementListResult)
-            self.assertTrue(result.success, f"Failed to get all UI elements: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to get all UI elements: {result.error_message}",
+            )
 
             ui_elements = result.elements
             print("\nAll UI Elements:")
@@ -115,7 +134,10 @@ class TestUISystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.screenshot()
             self.assertIsInstance(result, OperationResult)
-            self.assertTrue(result.success, f"Failed to take screenshot: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to take screenshot: {result.error_message}",
+            )
 
             screenshot_path = result.data
             self.assertIsInstance(screenshot_path, str)

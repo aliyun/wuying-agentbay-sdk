@@ -3,7 +3,11 @@ import time
 import unittest
 
 from agentbay import AgentBay
-from agentbay.application.application import InstalledAppListResult, ProcessListResult, AppOperationResult
+from agentbay.application.application import (
+    AppOperationResult,
+    InstalledAppListResult,
+    ProcessListResult,
+)
 from agentbay.session_params import CreateSessionParams
 
 
@@ -13,7 +17,8 @@ def get_test_api_key():
     if not api_key:
         api_key = "akm-xxx"  # Replace with your test API key
         print(
-            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
+            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable "
+            "for testing."
         )
     return api_key
 
@@ -38,9 +43,7 @@ class TestApplication(unittest.TestCase):
         # Create a session
         print("Creating a new session for application testing...")
 
-        params = CreateSessionParams(
-            image_id="mobile_latest"
-        )
+        params = CreateSessionParams(image_id="mobile_latest")
         result = cls.agent_bay.create(params)
         cls.session = result.session
         print(f"Session created with ID: {cls.session.session_id}")
@@ -59,7 +62,10 @@ class TestApplication(unittest.TestCase):
 
     def test_get_installed_apps(self):
         """Test getting installed applications."""
-        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+        if (
+            hasattr(self.__class__.session, "application")
+            and self.__class__.session.application
+        ):
             print("Getting installed applications...")
             try:
                 result = self.__class__.session.application.get_installed_apps(
@@ -70,7 +76,11 @@ class TestApplication(unittest.TestCase):
                 self.assertIsInstance(result, InstalledAppListResult)
 
                 if not result.success:
-                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    print(
+                        f"Error: "
+                        f"{result.error_message} (Request ID: "
+                        f"{result.request_id})"
+                    )
                     return
 
                 apps = result.data
@@ -83,7 +93,7 @@ class TestApplication(unittest.TestCase):
                     # Print the first 3 apps or fewer if less than 3 are available
                     count = min(len(apps), 3)
                     for i in range(count):
-                        print(f"App {i+1}: {apps[i].name}")
+                        print(f"App {i + 1}: {apps[i].name}")
 
                     # Verify app properties
                     for app in apps:
@@ -100,12 +110,16 @@ class TestApplication(unittest.TestCase):
                 # Don't fail the test if the operation is not supported
         else:
             print(
-                "Note: Application interface is not available, skipping application test"
+                "Note: Application interface is not available, skipping application "
+                "test"
             )
 
     def test_list_visible_apps(self):
         """Test listing visible applications."""
-        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+        if (
+            hasattr(self.__class__.session, "application")
+            and self.__class__.session.application
+        ):
             print("Listing visible applications...")
             try:
                 result = self.__class__.session.application.list_visible_apps()
@@ -114,7 +128,11 @@ class TestApplication(unittest.TestCase):
                 self.assertIsInstance(result, ProcessListResult)
 
                 if not result.success:
-                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    print(
+                        f"Error: "
+                        f"{result.error_message} (Request ID: "
+                        f"{result.request_id})"
+                    )
                     return
 
                 visible_apps = result.data
@@ -128,7 +146,8 @@ class TestApplication(unittest.TestCase):
                     count = min(len(visible_apps), 3)
                     for i in range(count):
                         print(
-                            f"Process {i+1}: {visible_apps[i].pname} (PID: {visible_apps[i].pid})"
+                            f"Process {i + 1}: {visible_apps[i].pname} "
+                            f"(PID: {visible_apps[i].pid})"
                         )
 
                     # Verify app properties
@@ -137,7 +156,9 @@ class TestApplication(unittest.TestCase):
                             app.pname, "", "Found app with empty process name"
                         )
                         self.assertGreater(
-                            app.pid, 0, f"Found app with invalid PID: {app.pid}"
+                            app.pid,
+                            0,
+                            f"Found app with invalid PID: {app.pid}",
                         )
 
                 # Check if response contains "tool not found"
@@ -156,7 +177,10 @@ class TestApplication(unittest.TestCase):
 
     def test_start_app(self):
         """Test starting an application."""
-        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+        if (
+            hasattr(self.__class__.session, "application")
+            and self.__class__.session.application
+        ):
             start_cmd = "/usr/bin/google-chrome-stable"
 
             print(f"Starting application: {start_cmd}...")
@@ -167,12 +191,17 @@ class TestApplication(unittest.TestCase):
                 self.assertIsInstance(result, ProcessListResult)
 
                 if not result.success:
-                    print(f"Error: {result.error_message} (Request ID: {result.request_id})")
+                    print(
+                        f"Error: "
+                        f"{result.error_message} (Request ID: "
+                        f"{result.request_id})"
+                    )
                     return
 
                 processes = result.data
                 print(
-                    f"Application started successfully, returned {len(processes)} processes"
+                    f"Application started successfully, returned "
+                    f"{len(processes)} processes"
                 )
 
                 # Verify we got some processes back
@@ -183,11 +212,13 @@ class TestApplication(unittest.TestCase):
                 else:
                     # Print the processes
                     for i, process in enumerate(processes):
-                        print(f"Process {i+1}: {process.pname} (PID: {process.pid})")
+                        print(f"Process {i + 1}: {process.pname} (PID: {process.pid})")
 
                         # Verify process properties
                         self.assertNotEqual(
-                            process.pname, "", "Found process with empty process name"
+                            process.pname,
+                            "",
+                            "Found process with empty process name",
                         )
                         self.assertGreater(
                             process.pid,
@@ -198,20 +229,31 @@ class TestApplication(unittest.TestCase):
                         # Try to stop the process to clean up
                         if process.pid > 0:
                             print(
-                                f"Attempting to stop process {process.pname} (PID: {process.pid})..."
+                                f"Attempting to stop process "
+                                f"{process.pname} (PID: "
+                                f"{process.pid})..."
                             )
                             try:
-                                stop_result = self.__class__.session.application.stop_app_by_pid(process.pid)
+                                stop_result = (
+                                    self.__class__.session.application.stop_app_by_pid(
+                                        process.pid
+                                    )
+                                )
 
                                 # Verify result is of correct type
                                 self.assertIsInstance(stop_result, AppOperationResult)
 
                                 if stop_result.success:
                                     print(
-                                        f"Successfully stopped process {process.pname} (PID: {process.pid})"
+                                        f"Successfully stopped process "
+                                        f"{process.pname} (PID: "
+                                        f"{process.pid})"
                                     )
                                 else:
-                                    print(f"Warning: Failed to stop process: {stop_result.error_message}")
+                                    print(
+                                        f"Warning: Failed to stop process: "
+                                        f"{stop_result.error_message}"
+                                    )
                             except Exception as e:
                                 print(f"Warning: Failed to stop process: {e}")
 
@@ -242,7 +284,10 @@ class TestApplication(unittest.TestCase):
 
     def test_stop_app_by_pname(self):
         """Test stopping an application by process name."""
-        if hasattr(self.__class__.session, "application") and self.__class__.session.application:
+        if (
+            hasattr(self.__class__.session, "application")
+            and self.__class__.session.application
+        ):
             start_cmd = "/usr/bin/google-chrome-stable"
             print(f"Starting application: {start_cmd}...")
             try:
@@ -252,12 +297,17 @@ class TestApplication(unittest.TestCase):
                 self.assertIsInstance(start_result, ProcessListResult)
 
                 if not start_result.success:
-                    print(f"Error starting app: {start_result.error_message} (Request ID: {start_result.request_id})")
+                    print(
+                        f"Error starting app: "
+                        f"{start_result.error_message} (Request ID: "
+                        f"{start_result.request_id})"
+                    )
                     return
 
                 processes = start_result.data
                 print(
-                    f"Application started successfully, returned {len(processes)} processes"
+                    f"Application started successfully, returned "
+                    f"{len(processes)} processes"
                 )
 
                 # Verify we got some processes back
@@ -273,26 +323,37 @@ class TestApplication(unittest.TestCase):
 
                 # Call stop_app_by_pname function
                 try:
-                    stop_result = self.__class__.session.application.stop_app_by_pname(process_to_stop)
+                    stop_result = self.__class__.session.application.stop_app_by_pname(
+                        process_to_stop
+                    )
 
                     # Verify result is of correct type
                     self.assertIsInstance(stop_result, AppOperationResult)
 
                     if not stop_result.success:
-                        print(f"Error stopping app: {stop_result.error_message} (Request ID: {stop_result.request_id})")
+                        print(
+                            f"Error stopping app: "
+                            f"{stop_result.error_message} (Request ID: "
+                            f"{stop_result.request_id})"
+                        )
                         return
 
                     print(f"Successfully stopped process by name: {process_to_stop}")
 
                     # Verify the process was stopped by listing visible apps
-                    time.sleep(1)  # Give some time for the process to be terminated
+                    # Give some time for the process to be terminated
+                    time.sleep(1)
                     list_result = self.__class__.session.application.list_visible_apps()
 
                     # Verify result is of correct type
                     self.assertIsInstance(list_result, ProcessListResult)
 
                     if not list_result.success:
-                        print(f"Error listing apps: {list_result.error_message} (Request ID: {list_result.request_id})")
+                        print(
+                            f"Error listing apps: "
+                            f"{list_result.error_message} (Request ID: "
+                            f"{list_result.request_id})"
+                        )
                         return
 
                     visible_apps = list_result.data
@@ -305,9 +366,13 @@ class TestApplication(unittest.TestCase):
                             break
 
                     if process_still_running:
-                        print(f"Warning: Process {process_to_stop} is still running after stop_app_by_pname")
+                        print(
+                            f"Warning: Process {process_to_stop} is still running after stop_app_by_pname"
+                        )
                     else:
-                        print(f"Process {process_to_stop} was successfully stopped and is no longer running")
+                        print(
+                            f"Process {process_to_stop} was successfully stopped and is no longer running"
+                        )
                 except Exception as e:
                     print(f"Note: stop_app_by_pname failed: {e}")
                     # Don't fail the test if the operation is not supported

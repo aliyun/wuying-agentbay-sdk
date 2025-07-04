@@ -1,16 +1,15 @@
+import json
 import unittest
 from unittest import mock
-import json
 
 from agentbay import AgentBay
 from agentbay.session_params import ListSessionParams
-from agentbay.model import SessionListResult
 
 
 class TestSessionPagination(unittest.TestCase):
     """Test case for session pagination functionality."""
 
-    @mock.patch('agentbay.agentbay.mcp_client')
+    @mock.patch("agentbay.agentbay.mcp_client")
     def test_list_by_labels_with_pagination(self, mock_client):
         """Test list_by_labels method with pagination support."""
         # Mock response data
@@ -21,11 +20,11 @@ class TestSessionPagination(unittest.TestCase):
                 "Data": [
                     {"SessionId": "session-1"},
                     {"SessionId": "session-2"},
-                    {"SessionId": "session-3"}
+                    {"SessionId": "session-3"},
                 ],
                 "NextToken": "next-page-token",
                 "MaxResults": "5",
-                "TotalCount": "15"
+                "TotalCount": "15",
             }
         }
 
@@ -41,7 +40,7 @@ class TestSessionPagination(unittest.TestCase):
         params = ListSessionParams(
             max_results=5,
             next_token="",
-            labels={"env": "test", "project": "demo"}
+            labels={"env": "test", "project": "demo"},
         )
 
         # Call list_by_labels with pagination
@@ -51,7 +50,9 @@ class TestSessionPagination(unittest.TestCase):
         call_args = mock_client_instance.list_session.call_args[0][0]
         self.assertEqual(call_args.authorization, "Bearer test-api-key")
         self.assertEqual(call_args.max_results, "5")
-        self.assertEqual(json.loads(call_args.labels), {"env": "test", "project": "demo"})
+        self.assertEqual(
+            json.loads(call_args.labels), {"env": "test", "project": "demo"}
+        )
 
         # Check result
         self.assertTrue(result.success)
@@ -61,7 +62,7 @@ class TestSessionPagination(unittest.TestCase):
         self.assertEqual(result.max_results, 5)
         self.assertEqual(result.total_count, 15)
 
-    @mock.patch('agentbay.agentbay.mcp_client')
+    @mock.patch("agentbay.agentbay.mcp_client")
     def test_list_by_labels_with_next_token(self, mock_client):
         """Test list_by_labels method with next_token."""
         # Mock response for second page
@@ -71,11 +72,11 @@ class TestSessionPagination(unittest.TestCase):
                 "RequestId": "test-request-id-2",
                 "Data": [
                     {"SessionId": "session-4"},
-                    {"SessionId": "session-5"}
+                    {"SessionId": "session-5"},
                 ],
                 "NextToken": "",  # No more pages
                 "MaxResults": "5",
-                "TotalCount": "15"
+                "TotalCount": "15",
             }
         }
 
@@ -91,7 +92,7 @@ class TestSessionPagination(unittest.TestCase):
         params = ListSessionParams(
             max_results=5,
             next_token="next-page-token",  # Using token from previous test
-            labels={"env": "test", "project": "demo"}
+            labels={"env": "test", "project": "demo"},
         )
 
         # Call list_by_labels with pagination
@@ -107,7 +108,7 @@ class TestSessionPagination(unittest.TestCase):
         self.assertEqual(len(result.sessions), 2)
         self.assertEqual(result.next_token, "")  # No more pages
 
-    @mock.patch('agentbay.agentbay.mcp_client')
+    @mock.patch("agentbay.agentbay.mcp_client")
     def test_list_by_labels_default_params(self, mock_client):
         """Test list_by_labels method with default parameters."""
         # Mock response
@@ -115,11 +116,9 @@ class TestSessionPagination(unittest.TestCase):
         mock_response.to_map.return_value = {
             "body": {
                 "RequestId": "test-request-id",
-                "Data": [
-                    {"SessionId": "session-1"}
-                ],
+                "Data": [{"SessionId": "session-1"}],
                 "MaxResults": "10",
-                "TotalCount": "1"
+                "TotalCount": "1",
             }
         }
 
@@ -145,5 +144,5 @@ class TestSessionPagination(unittest.TestCase):
         self.assertEqual(result.total_count, 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

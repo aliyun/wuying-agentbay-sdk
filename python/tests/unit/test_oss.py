@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from agentbay.oss.oss import Oss
+
 from agentbay.model import OperationResult
+from agentbay.oss.oss import Oss
 
 
 class TestOss(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=True,
             data="Set oss config successfully",
-            error_message=""
+            error_message="",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -32,7 +33,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=False,
             data=None,
-            error_message="Failed to create OSS client"
+            error_message="Failed to create OSS client",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -51,7 +52,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=True,
             data="Upload success",
-            error_message=""
+            error_message="",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -71,7 +72,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=False,
             data=None,
-            error_message=error_msg
+            error_message=error_msg,
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -87,7 +88,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=True,
             data="upload_anon_success",
-            error_message=""
+            error_message="",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -103,7 +104,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=False,
             data=None,
-            error_message="Failed to upload anonymously"
+            error_message="Failed to upload anonymously",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -119,7 +120,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=True,
             data="download_success",
-            error_message=""
+            error_message="",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -135,7 +136,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=False,
             data=None,
-            error_message="Failed to download from OSS"
+            error_message="Failed to download from OSS",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -151,7 +152,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=True,
             data="download_anon_success",
-            error_message=""
+            error_message="",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 
@@ -167,7 +168,7 @@ class TestOss(unittest.TestCase):
             request_id="test-request-id",
             success=False,
             data=None,
-            error_message="Failed to download anonymously"
+            error_message="Failed to download anonymously",
         )
         self.oss._call_mcp_tool = MagicMock(return_value=mock_result)
 

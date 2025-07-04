@@ -1,11 +1,9 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from agentbay.exceptions import AgentBayError, UIError
-from agentbay.model import (
-    OperationResult, BoolResult, ApiResponse
-)
 from agentbay.api.base_service import BaseService
+from agentbay.exceptions import AgentBayError, UIError
+from agentbay.model import ApiResponse, BoolResult, OperationResult
 
 
 class KeyCode:
@@ -24,16 +22,25 @@ class KeyCode:
 class UIElementListResult(ApiResponse):
     """Result of UI element listing operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 elements: Optional[List[Dict[str, Any]]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        elements: Optional[List[Dict[str, Any]]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize a UIElementListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            elements (List[Dict[str, Any]], optional): UI elements. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
+            elements (List[Dict[str, Any]], optional): UI elements.
+                Defaults to None.
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -79,7 +86,8 @@ class UI(BaseService):
             timeout_ms (int, optional): Timeout in milliseconds. Defaults to 2000.
 
         Returns:
-            UIElementListResult: Result object containing clickable UI elements and error message if any.
+            UIElementListResult: Result object containing clickable UI elements and
+                error message if any.
         """
         args = {"timeout_ms": timeout_ms}
         try:
@@ -91,7 +99,7 @@ class UI(BaseService):
                     request_id=request_id,
                     success=False,
                     elements=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             try:
@@ -100,21 +108,21 @@ class UI(BaseService):
                     request_id=request_id,
                     success=True,
                     elements=elements,
-                    error_message=""
+                    error_message="",
                 )
             except Exception as e:
                 return UIElementListResult(
                     request_id=request_id,
                     success=False,
                     elements=None,
-                    error_message=f"Failed to parse clickable UI elements data: {e}"
+                    error_message=f"Failed to parse clickable UI elements data: {e}",
                 )
         except Exception as e:
             return UIElementListResult(
                 request_id="",
                 success=False,
                 elements=None,
-                error_message=f"Failed to get clickable UI elements: {str(e)}"
+                error_message=f"Failed to get clickable UI elements: {str(e)}",
             )
 
     def get_all_ui_elements(self, timeout_ms: int = 2000) -> UIElementListResult:
@@ -125,7 +133,8 @@ class UI(BaseService):
             timeout_ms (int, optional): Timeout in milliseconds. Defaults to 2000.
 
         Returns:
-            UIElementListResult: Result object containing UI elements and error message if any.
+            UIElementListResult: Result object containing UI elements and error
+                message if any.
         """
         args = {"timeout_ms": timeout_ms}
 
@@ -164,7 +173,7 @@ class UI(BaseService):
                     request_id=request_id,
                     success=False,
                     elements=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             try:
@@ -174,21 +183,21 @@ class UI(BaseService):
                     request_id=request_id,
                     success=True,
                     elements=parsed_elements,
-                    error_message=""
+                    error_message="",
                 )
             except Exception as e:
                 return UIElementListResult(
                     request_id=request_id,
                     success=False,
                     elements=None,
-                    error_message=f"Failed to parse UI elements data: {e}"
+                    error_message=f"Failed to parse UI elements data: {e}",
                 )
         except Exception as e:
             return UIElementListResult(
                 request_id="",
                 success=False,
                 elements=None,
-                error_message=f"Failed to get all UI elements: {str(e)}"
+                error_message=f"Failed to get all UI elements: {str(e)}",
             )
 
     def send_key(self, key: int) -> BoolResult:
@@ -205,7 +214,8 @@ class UI(BaseService):
                 - 82 : MENU
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"key": key}
         try:
@@ -216,21 +226,21 @@ class UI(BaseService):
                     request_id=result.request_id,
                     success=False,
                     data=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             return BoolResult(
                 request_id=result.request_id,
                 success=True,
                 data=True,
-                error_message=""
+                error_message="",
             )
         except Exception as e:
             return BoolResult(
                 request_id="",
                 success=False,
                 data=None,
-                error_message=f"Failed to send key: {str(e)}"
+                error_message=f"Failed to send key: {str(e)}",
             )
 
     def input_text(self, text: str) -> BoolResult:
@@ -241,7 +251,8 @@ class UI(BaseService):
             text (str): The text to input.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"text": text}
         try:
@@ -252,25 +263,30 @@ class UI(BaseService):
                     request_id=result.request_id,
                     success=False,
                     data=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             return BoolResult(
                 request_id=result.request_id,
                 success=True,
                 data=True,
-                error_message=""
+                error_message="",
             )
         except Exception as e:
             return BoolResult(
                 request_id="",
                 success=False,
                 data=None,
-                error_message=f"Failed to input text: {str(e)}"
+                error_message=f"Failed to input text: {str(e)}",
             )
 
     def swipe(
-        self, start_x: int, start_y: int, end_x: int, end_y: int, duration_ms: int = 300
+        self,
+        start_x: int,
+        start_y: int,
+        end_x: int,
+        end_y: int,
+        duration_ms: int = 300,
     ) -> BoolResult:
         """
         Performs a swipe gesture from one point to another.
@@ -280,10 +296,12 @@ class UI(BaseService):
             start_y (int): Starting Y coordinate.
             end_x (int): Ending X coordinate.
             end_y (int): Ending Y coordinate.
-            duration_ms (int, optional): Duration of the swipe in milliseconds. Defaults to 300.
+            duration_ms (int, optional): Duration of the swipe in milliseconds.
+                Defaults to 300.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {
             "start_x": start_x,
@@ -300,21 +318,21 @@ class UI(BaseService):
                     request_id=result.request_id,
                     success=False,
                     data=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             return BoolResult(
                 request_id=result.request_id,
                 success=True,
                 data=True,
-                error_message=""
+                error_message="",
             )
         except Exception as e:
             return BoolResult(
                 request_id="",
                 success=False,
                 data=None,
-                error_message=f"Failed to perform swipe: {str(e)}"
+                error_message=f"Failed to perform swipe: {str(e)}",
             )
 
     def click(self, x: int, y: int, button: str = "left") -> BoolResult:
@@ -324,10 +342,12 @@ class UI(BaseService):
         Args:
             x (int): X coordinate.
             y (int): Y coordinate.
-            button (str, optional): Button type (left, middle, right). Defaults to "left".
+            button (str, optional): Button type (left, middle, right).
+                Defaults to "left".
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            BoolResult: Result object containing success status and error
+                message if any.
         """
         args = {"x": x, "y": y, "button": button}
         try:
@@ -338,21 +358,21 @@ class UI(BaseService):
                     request_id=result.request_id,
                     success=False,
                     data=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             return BoolResult(
                 request_id=result.request_id,
                 success=True,
                 data=True,
-                error_message=""
+                error_message="",
             )
         except Exception as e:
             return BoolResult(
                 request_id="",
                 success=False,
                 data=None,
-                error_message=f"Failed to perform click: {str(e)}"
+                error_message=f"Failed to perform click: {str(e)}",
             )
 
     def screenshot(self) -> OperationResult:
@@ -360,7 +380,8 @@ class UI(BaseService):
         Takes a screenshot of the current screen using the system_screenshot tool.
 
         Returns:
-            OperationResult: Result object containing the path to the screenshot and error message if any.
+            OperationResult: Result object containing the path to the screenshot and
+                error message if any.
         """
         args = {}
         try:
@@ -371,14 +392,14 @@ class UI(BaseService):
                     request_id=result.request_id,
                     success=False,
                     data=None,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             return OperationResult(
                 request_id=result.request_id,
                 success=True,
                 data=result.data,
-                error_message=""
+                error_message="",
             )
         except Exception as e:
             # Handle any exceptions during the tool call
@@ -386,5 +407,5 @@ class UI(BaseService):
                 request_id="",
                 success=False,
                 data=None,
-                error_message=f"Network error: {str(e)}"
+                error_message=f"Network error: {str(e)}",
             )

@@ -1,8 +1,7 @@
 import unittest
-import json
 from unittest.mock import MagicMock, patch
 
-from agentbay.command.command import Command, CommandResult, CodeExecutionResult
+from agentbay.command.command import CodeExecutionResult, Command, CommandResult
 from agentbay.model import OperationResult
 
 
@@ -33,9 +32,7 @@ class TestCommand(unittest.TestCase):
         Test execute_command method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="line1\nline2\n"
+            request_id="request-123", success=True, data="line1\nline2\n"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -58,9 +55,7 @@ class TestCommand(unittest.TestCase):
         Test execute_command method with custom timeout.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="line1\nline2\n"
+            request_id="request-123", success=True, data="line1\nline2\n"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -83,7 +78,7 @@ class TestCommand(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Command execution failed"
+            error_message="Command execution failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -114,9 +109,7 @@ class TestCommand(unittest.TestCase):
         Test run_code method with Python code.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="Hello, world!\n2\n"
+            request_id="request-123", success=True, data="Hello, world!\n2\n"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -144,9 +137,7 @@ print(x)
         Test run_code method with JavaScript code.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="Hello, world!\n2\n"
+            request_id="request-123", success=True, data="Hello, world!\n2\n"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -187,7 +178,7 @@ console.log(x);
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Code execution failed"
+            error_message="Code execution failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 

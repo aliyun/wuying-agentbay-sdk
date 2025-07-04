@@ -1,7 +1,7 @@
 import os
 import shutil
 import tempfile
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -52,7 +52,8 @@ def mock_agent_bay_integration(monkeypatch):
     mock_client.delete_mcp_session.return_value = mock_delete_response
 
     # Patch the Client class to return our mock
-    # Since AgentBay imports Client as mcp_client, we need to patch it in agentbay.agentbay module
+    # Since AgentBay imports Client as mcp_client, we need to patch it in
+    # agentbay.agentbay module
     monkeypatch.setattr("agentbay.agentbay.mcp_client", lambda config: mock_client)
 
     yield mock_client
@@ -73,7 +74,12 @@ def mock_client():
     # Mock call_mcp_tool response
     mock_tool_response = Mock()
     mock_tool_response.to_map.return_value = {
-        "body": {"Data": {"Result": "success", "content": [{"text": "mock response"}]}}
+        "body": {
+            "Data": {
+                "Result": "success",
+                "content": [{"text": "mock response"}],
+            }
+        }
     }
     client.call_mcp_tool.return_value = mock_tool_response
 

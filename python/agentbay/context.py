@@ -1,5 +1,4 @@
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
-from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
+from typing import TYPE_CHECKING, List, Optional
 
 from agentbay.api.models import (
     DeleteContextRequest,
@@ -8,6 +7,7 @@ from agentbay.api.models import (
     ModifyContextRequest,
 )
 from agentbay.exceptions import AgentBayError
+from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
@@ -41,10 +41,13 @@ class Context:
         Args:
             id (str): The unique identifier of the context.
             name (str): The name of the context.
-            state (str, optional): The current state of the context. Defaults to "available".
-            created_at (Optional[str], optional): Date and time when the Context was created. Defaults to None.
-            last_used_at (Optional[str], optional): Date and time when the Context was last used. Defaults to None.
-            os_type (Optional[str], optional): The operating system type this context is bound to. Defaults to None.
+            state (str, optional): The current state of the context.
+            created_at (Optional[str], optional): Date and time when the Context was
+                created. Defaults to None.
+            last_used_at (Optional[str], optional): Date and time when the Context was
+                last used. Defaults to None.
+            os_type (Optional[str], optional): The operating system type this context is
+                bound to. Defaults to None.
         """
         self.id = id
         self.name = name
@@ -57,7 +60,13 @@ class Context:
 class ContextResult(ApiResponse):
     """Result of operations returning a Context."""
 
-    def __init__(self, request_id: str = "", success: bool = False, context_id: str = "", context: Optional[Context] = None):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        context_id: str = "",
+        context: Optional[Context] = None,
+    ):
         """
         Initialize a ContextResult.
 
@@ -76,7 +85,12 @@ class ContextResult(ApiResponse):
 class ContextListResult(ApiResponse):
     """Result of operations returning a list of Contexts."""
 
-    def __init__(self, request_id: str = "", success: bool = False, contexts: Optional[List[Context]] = None):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        contexts: Optional[List[Context]] = None,
+    ):
         """
         Initialize a ContextListResult.
 
@@ -109,7 +123,8 @@ class ContextService:
         Lists all available contexts.
 
         Returns:
-            ContextListResult: A result object containing the list of Context objects and request ID.
+            ContextListResult: A result object containing the list of Context objects
+                and request ID.
         """
         try:
             # Log API request
@@ -132,17 +147,13 @@ class ContextService:
                 response_map = response.to_map()
                 if not isinstance(response_map, dict):
                     return ContextListResult(
-                        request_id=request_id,
-                        success=False,
-                        contexts=[]
+                        request_id=request_id, success=False, contexts=[]
                     )
 
                 body = response_map.get("body", {})
                 if not isinstance(body, dict):
                     return ContextListResult(
-                        request_id=request_id,
-                        success=False,
-                        contexts=[]
+                        request_id=request_id, success=False, contexts=[]
                     )
 
                 contexts = []
@@ -161,16 +172,12 @@ class ContextService:
                             contexts.append(context)
 
                 return ContextListResult(
-                    request_id=request_id,
-                    success=True,
-                    contexts=contexts
+                    request_id=request_id, success=True, contexts=contexts
                 )
             except Exception as e:
                 print(f"Error parsing ListContexts response: {e}")
                 return ContextListResult(
-                    request_id=request_id,
-                    success=False,
-                    contexts=[]
+                    request_id=request_id, success=False, contexts=[]
                 )
         except Exception as e:
             print(f"Error calling ListContexts: {e}")
@@ -182,10 +189,11 @@ class ContextService:
 
         Args:
             name (str): The name of the context to get.
-            create (bool, optional): Whether to create the context if it doesn't exist. Defaults to False.
+            create (bool, optional): Whether to create the context if it doesn't exist.
 
         Returns:
-            ContextResult: The ContextResult object containing the Context and request ID.
+            ContextResult: The ContextResult object containing the Context and request
+                ID.
         """
         try:
             # Log API request
@@ -208,14 +216,18 @@ class ContextService:
             try:
                 response_map = response.to_map()
 
-                if not isinstance(response_map, dict) or \
-                   not isinstance(response_map.get("body", {}), dict) or \
-                   not isinstance(response_map.get("body", {}).get("Data", {}), dict):
+                if (
+                    not isinstance(response_map, dict)
+                    or not isinstance(response_map.get("body", {}), dict)
+                    or not isinstance(
+                        response_map.get("body", {}).get("Data", {}), dict
+                    )
+                ):
                     return ContextResult(
                         request_id=request_id,
                         success=False,
                         context_id="",
-                        context=None
+                        context=None,
                     )
 
                 data = response_map.get("body", {}).get("Data", {})
@@ -228,14 +240,14 @@ class ContextService:
                     state=data.get("State", "") or "available",
                     created_at=data.get("CreateTime"),
                     last_used_at=data.get("LastUsedTime"),
-                    os_type=data.get("OsType")
+                    os_type=data.get("OsType"),
                 )
 
                 return ContextResult(
                     request_id=request_id,
                     success=True,
                     context_id=context_id,
-                    context=context
+                    context=context,
                 )
             except Exception as e:
                 print(f"Error parsing GetContext response: {e}")
@@ -243,7 +255,7 @@ class ContextService:
                     request_id=request_id,
                     success=False,
                     context_id="",
-                    context=None
+                    context=None,
                 )
         except Exception as e:
             print(f"Error calling GetContext: {e}")
@@ -290,13 +302,15 @@ class ContextService:
             request_id = extract_request_id(response)
 
             try:
-                response_map = response.to_map() if hasattr(response, 'to_map') else {}
+                response_map = response.to_map() if hasattr(response, "to_map") else {}
 
-                if not isinstance(response_map, dict) or not isinstance(response_map.get("body", {}), dict):
+                if not isinstance(response_map, dict) or not isinstance(
+                    response_map.get("body", {}), dict
+                ):
                     return OperationResult(
                         request_id=request_id,
                         success=False,
-                        error_message="Invalid response format"
+                        error_message="Invalid response format",
                     )
 
                 body = response_map.get("body", {})
@@ -309,14 +323,14 @@ class ContextService:
                     request_id=request_id,
                     success=success,
                     data=True if success else False,
-                    error_message=error_message
+                    error_message=error_message,
                 )
             except Exception as e:
                 print(f"Error parsing ModifyContext response: {e}")
                 return OperationResult(
                     request_id=request_id,
                     success=False,
-                    error_message=f"Failed to parse response: {str(e)}"
+                    error_message=f"Failed to parse response: {str(e)}",
                 )
         except Exception as e:
             print(f"Error calling ModifyContext: {e}")
@@ -349,14 +363,16 @@ class ContextService:
             request_id = extract_request_id(response)
 
             try:
-                response_map = response.to_map() if hasattr(response, 'to_map') else {}
+                response_map = response.to_map() if hasattr(response, "to_map") else {}
 
                 # Check response format
-                if not isinstance(response_map, dict) or not isinstance(response_map.get("body", {}), dict):
+                if not isinstance(response_map, dict) or not isinstance(
+                    response_map.get("body", {}), dict
+                ):
                     return OperationResult(
                         request_id=request_id,
                         success=False,
-                        error_message="Invalid response format"
+                        error_message="Invalid response format",
                     )
 
                 body = response_map.get("body", {})
@@ -369,14 +385,14 @@ class ContextService:
                     request_id=request_id,
                     success=success,
                     data=True if success else False,
-                    error_message=error_message
+                    error_message=error_message,
                 )
             except Exception as e:
                 print(f"Error parsing DeleteContext response: {e}")
                 return OperationResult(
                     request_id=request_id,
                     success=False,
-                    error_message=f"Failed to parse response: {str(e)}"
+                    error_message=f"Failed to parse response: {str(e)}",
                 )
         except Exception as e:
             print(f"Error calling DeleteContext: {e}")

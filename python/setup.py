@@ -1,5 +1,6 @@
 import os
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 
 # Read README.md content as long_description
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -64,6 +65,6 @@ setup(
         "agentbay",
         "sdk",
         "cloud",
-        "api"
+        "api",
     ],
 )

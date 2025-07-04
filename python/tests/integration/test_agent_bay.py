@@ -2,11 +2,10 @@ import os
 import sys
 import unittest
 
+from agentbay import AgentBay
+
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from agentbay import AgentBay
-from agentbay.exceptions import APIError, AuthenticationError
 
 
 def get_test_api_key():
@@ -54,7 +53,8 @@ class TestAgentBay(unittest.TestCase):
 
         # Create a session
         print("Creating a new session...")
-        session = agent_bay.create()
+        result = agent_bay.create()
+        session = result.session
         print(f"Session created with ID: {session.session_id}")
 
         # Ensure session ID is not empty
@@ -103,9 +103,10 @@ class TestSession(unittest.TestCase):
         api_key = get_test_api_key()
         self.agent_bay = AgentBay(api_key=api_key)
 
-        # Create a session
+        # Create a session with default windows image
         print("Creating a new session for testing...")
-        self.session = self.agent_bay.create()
+        self.result = self.agent_bay.create()
+        self.session = self.result.session
         print(f"Session created with ID: {self.session.session_id}")
 
     def tearDown(self):
@@ -143,7 +144,8 @@ class TestSession(unittest.TestCase):
         """Test session delete method."""
         # Create a new session specifically for this test
         print("Creating a new session for delete testing...")
-        session = self.agent_bay.create()
+        result = self.agent_bay.create()
+        session = result.session
         print(f"Session created with ID: {session.session_id}")
 
         # Test delete method
@@ -165,7 +167,7 @@ class TestSession(unittest.TestCase):
             # Clean up if the test failed
             try:
                 self.agent_bay.delete(session)
-            except:
+            except BaseException:
                 pass
 
     def test_command(self):

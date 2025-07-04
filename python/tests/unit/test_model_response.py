@@ -1,14 +1,14 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from agentbay.model import (
     ApiResponse,
-    SessionResult,
-    SessionListResult,
+    BoolResult,
     DeleteResult,
     OperationResult,
-    BoolResult,
-    extract_request_id
+    SessionListResult,
+    SessionResult,
+    extract_request_id,
 )
 
 
@@ -31,7 +31,9 @@ class TestSessionResult(unittest.TestCase):
         """Test initialization of SessionResult"""
         request_id = "session-request-id"
         session = MagicMock()
-        result = SessionResult(request_id, success=True, error_message="", session=session)
+        result = SessionResult(
+            request_id, success=True, error_message="", session=session
+        )
 
         self.assertEqual(result.request_id, request_id)
         self.assertTrue(result.success)
@@ -45,7 +47,9 @@ class TestSessionListResult(unittest.TestCase):
         """Test initialization of SessionListResult"""
         request_id = "session-list-request-id"
         sessions = [MagicMock(), MagicMock()]
-        result = SessionListResult(request_id=request_id, success=True, sessions=sessions)
+        result = SessionListResult(
+            request_id=request_id, success=True, sessions=sessions
+        )
 
         self.assertEqual(result.request_id, request_id)
         self.assertEqual(len(result.sessions), 2)
@@ -149,11 +153,7 @@ class TestExtractRequestId(unittest.TestCase):
     def test_extract_request_id_success(self):
         """Test successfully extracting RequestId from a response"""
         response = MagicMock()
-        response.to_map.return_value = {
-            "body": {
-                "RequestId": "extracted-request-id"
-            }
-        }
+        response.to_map.return_value = {"body": {"RequestId": "extracted-request-id"}}
 
         request_id = extract_request_id(response)
         self.assertEqual(request_id, "extracted-request-id")
@@ -161,9 +161,7 @@ class TestExtractRequestId(unittest.TestCase):
     def test_extract_request_id_missing(self):
         """Test handling case where RequestId is missing"""
         response = MagicMock()
-        response.to_map.return_value = {
-            "body": {}
-        }
+        response.to_map.return_value = {"body": {}}
 
         request_id = extract_request_id(response)
         self.assertEqual(request_id, "")

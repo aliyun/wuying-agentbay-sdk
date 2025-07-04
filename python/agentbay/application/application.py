@@ -1,11 +1,9 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from agentbay.exceptions import ApplicationError, AgentBayError
-from agentbay.model import (
-    ApiResponse,
-)
 from agentbay.api.base_service import BaseService
+from agentbay.exceptions import AgentBayError, ApplicationError
+from agentbay.model import ApiResponse
 
 
 class InstalledApp:
@@ -32,8 +30,10 @@ class InstalledApp:
         Args:
             name (str): The name of the application.
             start_cmd (str): The command to start the application.
-            stop_cmd (Optional[str], optional): The command to stop the application. Defaults to None.
-            work_directory (Optional[str], optional): The working directory for the application. Defaults to None.
+            stop_cmd (Optional[str], optional): The command to stop the application.
+                Defaults to None.
+            work_directory (Optional[str], optional): The working directory for the
+                application. Defaults to None.
         """
         self.name = name
         self.start_cmd = start_cmd
@@ -84,7 +84,8 @@ class Process:
         Args:
             pname (str): The name of the process.
             pid (int): The process ID.
-            cmdline (Optional[str], optional): The command line used to start the process. Defaults to None.
+            cmdline (Optional[str], optional): The command line used to start the
+                process. Defaults to None.
         """
         self.pname = pname
         self.pid = pid
@@ -118,16 +119,25 @@ class Process:
 class ProcessListResult(ApiResponse):
     """Result of operations returning a list of Processes."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 data: Optional[List[Process]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        data: Optional[List[Process]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize a ProcessListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            data (Optional[List[Process]], optional): The list of process objects. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
+            data (Optional[List[Process]], optional): The list of process objects.
+                Defaults to None.
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -138,16 +148,22 @@ class ProcessListResult(ApiResponse):
 class InstalledAppListResult(ApiResponse):
     """Result of operations returning a list of InstalledApps."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 data: Optional[List[InstalledApp]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        data: Optional[List[InstalledApp]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize an InstalledAppListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            data (Optional[List[InstalledApp]], optional): The list of installed app objects. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            data (Optional[List[InstalledApp]], optional): The list of installed
+                app objects.
+            error_message (str, optional): Error message if the operation failed.
         """
         super().__init__(request_id)
         self.success = success
@@ -158,16 +174,21 @@ class InstalledAppListResult(ApiResponse):
 class AppInfoResult(ApiResponse):
     """Result of application info operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 app_info: Optional[Dict[str, Any]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        app_info: Optional[Dict[str, Any]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize an AppInfoResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            app_info (Dict[str, Any], optional): Application information. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            app_info (Dict[str, Any], optional): Application information.
+            error_message (str, optional): Error message if the operation failed.
         """
         super().__init__(request_id)
         self.success = success
@@ -178,16 +199,21 @@ class AppInfoResult(ApiResponse):
 class AppListResult(ApiResponse):
     """Result of application listing operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 apps: Optional[List[Dict[str, Any]]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        apps: Optional[List[Dict[str, Any]]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize an AppListResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            apps (List[Dict[str, Any]], optional): List of applications. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            apps (List[Dict[str, Any]], optional): List of applications.
+            error_message (str, optional): Error message if the operation failed.
         """
         super().__init__(request_id)
         self.success = success
@@ -198,14 +224,19 @@ class AppListResult(ApiResponse):
 class AppOperationResult(ApiResponse):
     """Result of application operations like start/stop."""
 
-    def __init__(self, request_id: str = "", success: bool = False, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        error_message: str = "",
+    ):
         """
         Initialize an AppOperationResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the operation was successful.
+            error_message (str, optional): Error message if the operation failed.
         """
         super().__init__(request_id)
         self.success = success
@@ -220,9 +251,9 @@ class AppInstallResult(ApiResponse):
         Initialize an AppInstallResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the installation was successful. Defaults to False.
-            message (str, optional): Result description or error message. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+            success (bool, optional): Whether the installation was successful.
+            message (str, optional): Result description or error message.
         """
         super().__init__(request_id)
         self.success = success
@@ -250,8 +281,9 @@ class ApplicationManager(BaseService):
             return ApplicationError(str(e))
         return e
 
-    def get_installed_apps(self, start_menu: bool, desktop: bool,
-                          ignore_system_apps: bool) -> InstalledAppListResult:
+    def get_installed_apps(
+        self, start_menu: bool, desktop: bool, ignore_system_apps: bool
+    ) -> InstalledAppListResult:
         """
         Retrieves a list of installed applications.
 
@@ -261,13 +293,14 @@ class ApplicationManager(BaseService):
             ignore_system_apps (bool): Whether to ignore system applications.
 
         Returns:
-            InstalledAppListResult: The result containing the list of installed applications.
+            InstalledAppListResult: The result containing the list of installed
+                applications.
         """
         try:
             args = {
                 "start_menu": start_menu,
                 "desktop": desktop,
-                "ignore_system_apps": ignore_system_apps
+                "ignore_system_apps": ignore_system_apps,
             }
 
             result = self._call_mcp_tool("get_installed_apps", args)
@@ -276,7 +309,7 @@ class ApplicationManager(BaseService):
                 return InstalledAppListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             try:
@@ -290,29 +323,32 @@ class ApplicationManager(BaseService):
                 return InstalledAppListResult(
                     request_id=result.request_id,
                     success=True,
-                    data=installed_apps
+                    data=installed_apps,
                 )
             except json.JSONDecodeError as e:
                 return InstalledAppListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=f"Failed to parse applications JSON: {e}"
+                    error_message=f"Failed to parse applications JSON: {e}",
                 )
         except Exception as e:
             handled_error = self._handle_error(e)
             return InstalledAppListResult(
-                success=False,
-                error_message=str(handled_error)
+                success=False, error_message=str(handled_error)
             )
 
-    def start_app(self, start_cmd: str, work_directory: str = "", activity: str = "") -> ProcessListResult:
+    def start_app(
+        self, start_cmd: str, work_directory: str = "", activity: str = ""
+    ) -> ProcessListResult:
         """
-        Starts an application with the given command, optional working directory and optional activity.
+        Starts an application with the given command, optional working directory and
+            optional activity.
 
         Args:
             start_cmd (str): The command to start the application.
-            work_directory (str, optional): The working directory for the application. Defaults to "".
-            activity (str, optional): Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to "".
+            work_directory (str, optional): The working directory for the application.
+            activity (str, optional): Activity name to launch (e.g. ".SettingsActivity"
+                or "com.package/.Activity"). Defaults to "".
 
         Returns:
             ProcessListResult: The result containing the list of processes started.
@@ -330,7 +366,7 @@ class ApplicationManager(BaseService):
                 return ProcessListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             try:
@@ -342,22 +378,17 @@ class ApplicationManager(BaseService):
                     processes.append(process)
 
                 return ProcessListResult(
-                    request_id=result.request_id,
-                    success=True,
-                    data=processes
+                    request_id=result.request_id, success=True, data=processes
                 )
             except json.JSONDecodeError as e:
                 return ProcessListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=f"Failed to parse processes JSON: {e}"
+                    error_message=f"Failed to parse processes JSON: {e}",
                 )
         except Exception as e:
             handled_error = self._handle_error(e)
-            return ProcessListResult(
-                success=False,
-                error_message=str(handled_error)
-            )
+            return ProcessListResult(success=False, error_message=str(handled_error))
 
     def stop_app_by_pname(self, pname: str) -> AppOperationResult:
         """
@@ -376,14 +407,11 @@ class ApplicationManager(BaseService):
             return AppOperationResult(
                 request_id=result.request_id,
                 success=result.success,
-                error_message=result.error_message
+                error_message=result.error_message,
             )
         except Exception as e:
             handled_error = self._handle_error(e)
-            return AppOperationResult(
-                success=False,
-                error_message=str(handled_error)
-            )
+            return AppOperationResult(success=False, error_message=str(handled_error))
 
     def stop_app_by_pid(self, pid: int) -> AppOperationResult:
         """
@@ -402,14 +430,11 @@ class ApplicationManager(BaseService):
             return AppOperationResult(
                 request_id=result.request_id,
                 success=result.success,
-                error_message=result.error_message
+                error_message=result.error_message,
             )
         except Exception as e:
             handled_error = self._handle_error(e)
-            return AppOperationResult(
-                success=False,
-                error_message=str(handled_error)
-            )
+            return AppOperationResult(success=False, error_message=str(handled_error))
 
     def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
         """
@@ -428,21 +453,19 @@ class ApplicationManager(BaseService):
             return AppOperationResult(
                 request_id=result.request_id,
                 success=result.success,
-                error_message=result.error_message
+                error_message=result.error_message,
             )
         except Exception as e:
             handled_error = self._handle_error(e)
-            return AppOperationResult(
-                success=False,
-                error_message=str(handled_error)
-            )
+            return AppOperationResult(success=False, error_message=str(handled_error))
 
     def list_visible_apps(self) -> ProcessListResult:
         """
         Returns a list of currently visible applications.
 
         Returns:
-            ProcessListResult: The result containing the list of visible applications/processes.
+            ProcessListResult: The result containing the list of visible
+                applications/processes.
         """
         try:
             result = self._call_mcp_tool("list_visible_apps", {})
@@ -451,7 +474,7 @@ class ApplicationManager(BaseService):
                 return ProcessListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=result.error_message
+                    error_message=result.error_message,
                 )
 
             try:
@@ -463,20 +486,14 @@ class ApplicationManager(BaseService):
                     processes.append(process)
 
                 return ProcessListResult(
-                    request_id=result.request_id,
-                    success=True,
-                    data=processes
+                    request_id=result.request_id, success=True, data=processes
                 )
             except json.JSONDecodeError as e:
                 return ProcessListResult(
                     request_id=result.request_id,
                     success=False,
-                    error_message=f"Failed to parse processes JSON: {e}"
+                    error_message=f"Failed to parse processes JSON: {e}",
                 )
         except Exception as e:
             handled_error = self._handle_error(e)
-            return ProcessListResult(
-                success=False,
-                error_message=str(handled_error)
-            )
-
+            return ProcessListResult(success=False, error_message=str(handled_error))

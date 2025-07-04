@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agentbay.session import Session
 from agentbay.model import DeleteResult
+from agentbay.session import Session
 
 
 class DummyAgentBay:
@@ -36,7 +36,9 @@ class TestSession(unittest.TestCase):
 
     @patch("agentbay.session.extract_request_id")
     @patch("agentbay.session.ReleaseMcpSessionRequest")
-    def test_delete_success(self, MockReleaseMcpSessionRequest, mock_extract_request_id):
+    def test_delete_success(
+        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+    ):
         mock_request = MagicMock()
         mock_response = MagicMock()
         MockReleaseMcpSessionRequest.return_value = mock_request
@@ -45,12 +47,7 @@ class TestSession(unittest.TestCase):
 
         # Mock the response.to_map() method
         mock_response.to_map.return_value = {
-            "body": {
-                "Data": {
-                    "IsError": False
-                },
-                "Success": True
-            }
+            "body": {"Data": {"IsError": False}, "Success": True}
         }
 
         result = self.session.delete()
@@ -65,7 +62,9 @@ class TestSession(unittest.TestCase):
 
     @patch("agentbay.session.extract_request_id")
     @patch("agentbay.session.ReleaseMcpSessionRequest")
-    def test_delete_failure(self, MockReleaseMcpSessionRequest, mock_extract_request_id):
+    def test_delete_failure(
+        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+    ):
         mock_request = MagicMock()
         MockReleaseMcpSessionRequest.return_value = mock_request
         mock_extract_request_id.return_value = "request-123"

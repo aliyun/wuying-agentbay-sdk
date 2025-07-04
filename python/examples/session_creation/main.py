@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import os
+
 from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
 from agentbay.exceptions import AgentBayError
+from agentbay.session_params import CreateSessionParams
 
 # This example demonstrates how to create, list, and delete sessions
 # using the Wuying AgentBay SDK.
@@ -51,7 +52,8 @@ def main():
                 additional_result = agent_bay.create()
                 additional_session = additional_result.session
                 print(
-                    f"Additional session created with ID: {additional_session.session_id}"
+                    f"Additional session created with ID: "
+                    f"{additional_session.session_id}"
                 )
                 print(f"Request ID: {additional_result.request_id}")
 
@@ -114,7 +116,8 @@ def main():
             session_with_params_result = agent_bay.create(params)
             session_with_params = session_with_params_result.session
             print(
-                f"\nSession created successfully with ID: {session_with_params.session_id}"
+                f"\nSession created successfully with ID: "
+                f"{session_with_params.session_id}"
             )
             print(f"Request ID: {session_with_params_result.request_id}")
         except AgentBayError as e:
@@ -134,8 +137,13 @@ def main():
             # Using new parameter - only specify protocol type
             print("\nTesting get_link method with protocol_type parameter...")
             try:
-                link_with_protocol_result = session_with_params.get_link(protocol_type="https")
-                print(f"Link with protocol https retrieved successfully: {link_with_protocol_result.data}")
+                link_with_protocol_result = session_with_params.get_link(
+                    protocol_type="https"
+                )
+                print(
+                    f"Link with protocol https retrieved successfully: "
+                    f"{link_with_protocol_result.data}"
+                )
                 print(f"Request ID: {link_with_protocol_result.request_id}")
             except AgentBayError as e:
                 print(f"Error retrieving link with protocol type: {e}")
@@ -144,16 +152,26 @@ def main():
             print("\nTesting get_link method with port parameter...")
             try:
                 link_with_port_result = session_with_params.get_link(port=8080)
-                print(f"Link with port 8080 retrieved successfully: {link_with_port_result.data}")
+                print(
+                    f"Link with port 8080 retrieved successfully: "
+                    f"{link_with_port_result.data}"
+                )
                 print(f"Request ID: {link_with_port_result.request_id}")
             except AgentBayError as e:
                 print(f"Error retrieving link with port: {e}")
 
             # Using new parameters - specify both protocol type and port
-            print("\nTesting get_link method with both protocol_type and port parameters...")
+            print(
+                "\nTesting get_link method with both protocol_type and port parameters..."
+            )
             try:
-                link_with_both_result = session_with_params.get_link(protocol_type="https", port=443)
-                print(f"Link with protocol https and port 443 retrieved successfully: {link_with_both_result.data}")
+                link_with_both_result = session_with_params.get_link(
+                    protocol_type="https", port=443
+                )
+                print(
+                    f"Link with protocol https and port 443 retrieved successfully: "
+                    f"{link_with_both_result.data}"
+                )
                 print(f"Request ID: {link_with_both_result.request_id}")
             except AgentBayError as e:
                 print(f"Error retrieving link with protocol and port: {e}")
@@ -171,13 +189,19 @@ def main():
                 print(f"Error retrieving link asynchronously: {e}")
 
             # Using new parameters - protocol type and port
-            print("\nTesting get_link_async method with both protocol_type and port parameters...")
+            print(
+                "\nTesting get_link_async method with both protocol_type and port parameters..."
+            )
             try:
                 import asyncio
+
                 link_async_with_params_result = asyncio.run(
                     session_with_params.get_link_async(protocol_type="https", port=8080)
                 )
-                print(f"Link with https and port 8080 retrieved successfully (async): {link_async_with_params_result.data}")
+                print(
+                    f"Link with https and port 8080 retrieved successfully (async): "
+                    f"{link_async_with_params_result.data}"
+                )
                 print(f"Request ID: {link_async_with_params_result.request_id}")
             except AgentBayError as e:
                 print(f"Error retrieving link asynchronously with parameters: {e}")

@@ -1,16 +1,17 @@
+from agentbay.session_params import CreateSessionParams
+from agentbay.exceptions import AgentBayError
+from agentbay import AgentBay
 import os
 import sys
 
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentbay import AgentBay
-from agentbay.exceptions import AgentBayError
-from agentbay.session_params import CreateSessionParams
 
 def main():
     # Initialize the AgentBay client
-    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY environment variable
+    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY
+    # environment variable
     api_key = os.environ.get("AGENTBAY_API_KEY") or "your_api_key_here"
     session = None
     try:
@@ -70,6 +71,7 @@ def main():
         print("Session deleted successfully")
 
     except AgentBayError as e:
+        print(f"AgentBay error: {e}")
         if session:
             try:
                 agent_bay.delete(session)
@@ -84,7 +86,6 @@ def main():
                 print("Session deleted during other error handling")
             except Exception as delete_error:
                 print(f"Failed to delete session during error handling: {delete_error}")
-
 
 
 if __name__ == "__main__":

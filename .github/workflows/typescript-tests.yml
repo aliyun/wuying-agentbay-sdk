@@ -73,14 +73,3 @@ jobs:
     - name: Run unit tests
       working-directory: ./typescript
       run: npm run test:unit
-
-    # - name: Generate coverage report
-    #   working-directory: ./typescript
-    #   run: npm run test:coverage
-
-    # - name: Run integration tests (if API key is provided)
-    #   working-directory: ./typescript
-    #   if: ${{ secrets.AGENTBAY_API_KEY != '' }}
-    #   env:
-    #     AGENTBAY_API_KEY: ${{ secrets.AGENTBAY_API_KEY }}
-    #   run: npm run test:integration

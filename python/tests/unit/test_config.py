@@ -1,7 +1,5 @@
-import json
-import os
 import unittest
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import mock_open, patch
 
 from agentbay.config import default_config, load_config
 
@@ -21,7 +19,9 @@ class TestConfig(unittest.TestCase):
     def test_load_config_from_env_var(self, mock_getenv):
         """Test loading configuration from a file specified by environment variable"""
         # Mock environment variable
-        mock_getenv.side_effect = lambda var, default=None: "/path/to/config.json" if var == "AGENTBAY_CONFIG_PATH" else None
+        mock_getenv.side_effect = lambda var, default=None: (
+            "/path/to/config.json" if var == "AGENTBAY_CONFIG_PATH" else None
+        )
 
         # Mock configuration file content
         mock_file_data = '{"region_id": "cn-beijing", "endpoint": "custom.endpoint.com", "timeout_ms": 30000}'
@@ -38,10 +38,14 @@ class TestConfig(unittest.TestCase):
     @patch("os.path.exists", return_value=True)
     @patch("os.getcwd", return_value="/current/dir")
     @patch("os.path.join")
-    def test_load_config_from_current_dir(self, mock_join, mock_getcwd, mock_exists, mock_getenv):
+    def test_load_config_from_current_dir(
+        self, mock_join, mock_getcwd, mock_exists, mock_getenv
+    ):
         """Test loading configuration file from current directory"""
         # Mock path joining
-        mock_join.side_effect = lambda *args: "/current/dir/.config.json" if args[1] == ".config.json" else "/other/path"
+        mock_join.side_effect = lambda *args: (
+            "/current/dir/.config.json" if args[1] == ".config.json" else "/other/path"
+        )
 
         # Mock configuration file content
         mock_file_data = '{"region_id": "cn-hongkong", "endpoint": "hk.endpoint.com", "custom_setting": true}'
@@ -72,7 +76,7 @@ class TestConfig(unittest.TestCase):
         mock_getenv.side_effect = lambda var, default=None: {
             "AGENTBAY_CONFIG_PATH": None,
             "AGENTBAY_REGION_ID": "cn-zhangjiakou",
-            "AGENTBAY_ENDPOINT": "env.endpoint.com"
+            "AGENTBAY_ENDPOINT": "env.endpoint.com",
         }.get(var, None)
 
         # Mock configuration file content
@@ -91,7 +95,9 @@ class TestConfig(unittest.TestCase):
     @patch("os.getenv", return_value=None)
     @patch("os.path.exists", return_value=True)
     @patch("builtins.open")
-    def test_load_config_handles_file_read_error(self, mock_open, mock_exists, mock_getenv):
+    def test_load_config_handles_file_read_error(
+        self, mock_open, mock_exists, mock_getenv
+    ):
         """Test handling configuration file read errors"""
         # Mock file read error
         mock_open.side_effect = IOError("Cannot read file")

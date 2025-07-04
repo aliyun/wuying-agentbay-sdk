@@ -3,11 +3,10 @@ import sys
 import time
 import unittest
 
+from agentbay import AgentBay
+
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from agentbay import AgentBay
-from agentbay.exceptions import AgentBayError
 
 
 def get_test_api_key():
@@ -65,7 +64,11 @@ class TestWindow(unittest.TestCase):
                     count = min(len(root_windows), 3)
                     for i in range(count):
                         print(
-                            f"Window {i+1}: {root_windows[i].title} (ID: {root_windows[i].window_id})"
+                            f"Window {
+                                i +
+                                1}: {
+                                root_windows[i].title} (ID: {
+                                root_windows[i].window_id})"
                         )
 
                     # Verify window properties
@@ -95,8 +98,12 @@ class TestWindow(unittest.TestCase):
             try:
                 active_window = self.session.window.get_active_window()
                 print(
-                    f"Active window: {active_window.title} (ID: {active_window.window_id}, "
-                    f"Process: {active_window.pname}, PID: {active_window.pid})"
+                    f"Active window: {
+                        active_window.title} (ID: {
+                        active_window.window_id}, "
+                    f"Process: {
+                        active_window.pname}, PID: {
+                        active_window.pid})"
                 )
 
                 # Verify window properties

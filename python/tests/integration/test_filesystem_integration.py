@@ -1,9 +1,14 @@
-import unittest
 import os
+import unittest
+
 from agentbay import AgentBay
 from agentbay.filesystem.filesystem import (
-    FileSystem, FileContentResult, FileInfoResult, DirectoryListResult,
-    FileSearchResult, BoolResult, MultipleFileContentResult
+    BoolResult,
+    DirectoryListResult,
+    FileContentResult,
+    FileInfoResult,
+    FileSearchResult,
+    MultipleFileContentResult,
 )
 from agentbay.session_params import CreateSessionParams
 
@@ -109,7 +114,10 @@ class TestFileSystemIntegration(unittest.TestCase):
 
         # Edit the file
         edits = [
-            {"oldText": "Line to be replaced.", "newText": "This line has been edited."}
+            {
+                "oldText": "Line to be replaced.",
+                "newText": "This line has been edited.",
+            }
         ]
         result = self.fs.edit_file(test_file_path, edits, False)
         self.assertIsInstance(result, BoolResult)
@@ -301,7 +309,8 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.assertEqual(read_content2, large_content)
         print("Test 4: File content verification with custom chunk size successful")
 
-        # Test 5: Cross-test - Read with custom chunk size a file written with default chunk size
+        # Test 5: Cross-test - Read with custom chunk size a file written with
+        # default chunk size
         print(
             "Test 5: Cross-test - Reading with custom chunk size a file written with default chunk size..."
         )

@@ -1,8 +1,8 @@
 """
 API response models for AgentBay SDK.
 """
-from typing import Dict, List, Optional, Any
-from typing import TYPE_CHECKING
+
+from typing import TYPE_CHECKING, Any, List, Optional
 
 if TYPE_CHECKING:
     from agentbay.session import Session
@@ -16,7 +16,8 @@ class ApiResponse:
         Initialize an ApiResponse with a request_id.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
         """
         self.request_id = request_id
 
@@ -28,15 +29,24 @@ class ApiResponse:
 class SessionResult(ApiResponse):
     """Result of operations returning a single Session."""
 
-    def __init__(self, request_id: str = "", success: bool = False, error_message: str = "", session: Optional["Session"] = None):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        error_message: str = "",
+        session: Optional["Session"] = None,
+    ):
         """
         Initialize a SessionResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
             session (Optional[Session], optional): The session object. Defaults to None.
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -55,7 +65,7 @@ class SessionListResult(ApiResponse):
         sessions: List["Session"] = None,
         next_token: str = "",
         max_results: int = 0,
-        total_count: int = 0
+        total_count: int = 0,
     ):
         """
         Initialize a SessionListResult.
@@ -81,14 +91,22 @@ class SessionListResult(ApiResponse):
 class DeleteResult(ApiResponse):
     """Result of delete operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        error_message: str = "",
+    ):
         """
         Initialize a DeleteResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the delete operation was successful. Defaults to False.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the delete operation was successful.
+                Defaults to False.
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -98,15 +116,24 @@ class DeleteResult(ApiResponse):
 class OperationResult(ApiResponse):
     """Result of general operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False, data: Any = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        data: Any = None,
+        error_message: str = "",
+    ):
         """
         Initialize an OperationResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
             data (Any, optional): Data returned by the operation. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -117,16 +144,24 @@ class OperationResult(ApiResponse):
 class BoolResult(ApiResponse):
     """Result of operations returning a boolean value."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 data: Optional[bool] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        data: Optional[bool] = None,
+        error_message: str = "",
+    ):
         """
         Initialize a BoolResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
             data (Optional[bool], optional): The boolean result. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -143,7 +178,8 @@ def extract_request_id(response) -> str:
         response: The response object from the API call.
 
     Returns:
-        str: The request ID extracted from the response, or an empty string if not found.
+        str: The request ID extracted from the response, or an empty string if not
+            found.
     """
     if response is None:
         return ""

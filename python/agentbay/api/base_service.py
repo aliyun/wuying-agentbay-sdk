@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any
+from typing import Any, Dict
 
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import AgentBayError
@@ -9,7 +9,8 @@ from agentbay.model import OperationResult, extract_request_id
 class BaseService:
     """
     Base service class that provides common functionality for all service classes.
-    This class implements the common methods for calling MCP tools and parsing responses.
+    This class implements the common methods for calling MCP tools and parsing
+    responses.
     """
 
     def __init__(self, session):
@@ -60,36 +61,56 @@ class BaseService:
 
             response_map = response.to_map()
             if not response_map:
-                return OperationResult(request_id=request_id, success=False, error_message="Invalid response format")
+                return OperationResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Invalid response format",
+                )
 
             body = response_map.get("body", {})
             print("response_map =", body)
             if not body:
-                return OperationResult(request_id=request_id, success=False, error_message="Invalid response body")
+                return OperationResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Invalid response body",
+                )
 
             result = self._parse_response_body(body)
             return OperationResult(request_id=request_id, success=True, data=result)
 
         except AgentBayError as e:
             handled_error = self._handle_error(e)
-            request_id = "" if 'request_id' not in locals() else request_id
-            return OperationResult(request_id=request_id, success=False, error_message=str(handled_error))
+            request_id = "" if "request_id" not in locals() else request_id
+            return OperationResult(
+                request_id=request_id,
+                success=False,
+                error_message=str(handled_error),
+            )
         except Exception as e:
             handled_error = self._handle_error(e)
-            request_id = "" if 'request_id' not in locals() else request_id
-            return OperationResult(request_id=request_id, success=False, error_message=f"Failed to call MCP tool {name}: {handled_error}")
+            request_id = "" if "request_id" not in locals() else request_id
+            return OperationResult(
+                request_id=request_id,
+                success=False,
+                error_message=f"Failed to call MCP tool {name}: {handled_error}",
+            )
 
-    def _parse_response_body(self, body: Dict[str, Any], parse_json: bool = False) -> Any:
+    def _parse_response_body(
+        self, body: Dict[str, Any], parse_json: bool = False
+    ) -> Any:
         """
         Parses the response body from the MCP tool.
 
         Args:
             body (Dict[str, Any]): The response body.
-            parse_json (bool, optional): Whether to parse the text as JSON. Defaults to False.
+            parse_json (bool, optional): Whether to parse the text as JSON.
+            Defaults to False.
 
         Returns:
-            Any: The parsed content. If parse_json is True, returns the parsed JSON object;
-                 otherwise returns the raw text.
+            Any: The parsed content. If parse_json is True, returns the parsed
+                 JSON object; otherwise returns the raw text.
+
 
         Raises:
             AgentBayError: If the response contains errors or is invalid.
@@ -129,5 +150,7 @@ class BaseService:
             raise handled_error
         except Exception as e:
             # Transform AgentBayError to the expected type
-            handled_error = self._handle_error(AgentBayError(f"Error parsing response body: {e}"))
+            handled_error = self._handle_error(
+                AgentBayError(f"Error parsing response body: {e}")
+            )
             raise handled_error

@@ -1,10 +1,10 @@
 import os
+from typing import Any, Dict, List
+
 from agentbay import AgentBay
-from agentbay.ui import KeyCode
-from agentbay.session import Session
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
-from typing import List, Dict, Any
+from agentbay.ui import KeyCode
 
 
 def main():
@@ -70,7 +70,10 @@ def main():
         def print_ui_element(element: Dict[str, Any], indent: int = 1):
             prefix = "  " * indent
             print(
-                f"{prefix}- {element['className']} (text: '{element['text']}', resourceId: '{element['resourceId']}')"
+                f"{prefix}- {
+                    element['className']} (text: '{
+                    element['text']}', resourceId: '{
+                    element['resourceId']}')"
             )
 
             children = element.get("children", [])
@@ -138,8 +141,7 @@ def main():
         start_cmd = f"monkey -p {app_package} -c android.intent.category.LAUNCHER 1"
 
         start_result = session.application.start_app(
-            start_cmd=start_cmd,
-            activity=app_activity
+            start_cmd=start_cmd, activity=app_activity
         )
         print(f"Start app with activity success: {start_result.success}")
         if start_result.success and start_result.data:

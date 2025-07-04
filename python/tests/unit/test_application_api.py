@@ -1,12 +1,13 @@
 import unittest
 from unittest.mock import MagicMock
+
 from agentbay.application.application import (
     ApplicationManager,
+    AppOperationResult,
     InstalledApp,
-    Process,
     InstalledAppListResult,
+    Process,
     ProcessListResult,
-    AppOperationResult
 )
 from agentbay.model import OperationResult
 
@@ -40,7 +41,7 @@ class TestApplicationApi(unittest.TestCase):
         "stop_cmd" : "am force-stop com.autonavi.minimap",
         "work_directory" : ""
     }
-]"""
+]""",
             )
         )
         result = self.app_manager.get_installed_apps(True, True, True)
@@ -58,7 +59,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to get installed apps"
+                error_message="Failed to get installed apps",
             )
         )
         result = self.app_manager.get_installed_apps(True, False, True)
@@ -78,7 +79,7 @@ class TestApplicationApi(unittest.TestCase):
                 "pid": 12345,
                 "cmdline": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
             }
-        ]"""
+        ]""",
             )
         )
         result = self.app_manager.start_app(
@@ -100,7 +101,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to start app"
+                error_message="Failed to start app",
             )
         )
         result = self.app_manager.start_app(
@@ -114,9 +115,7 @@ class TestApplicationApi(unittest.TestCase):
     def test_stop_app_by_cmd_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
             return_value=OperationResult(
-                request_id="request-123",
-                success=True,
-                data=None
+                request_id="request-123", success=True, data=None
             )
         )
         result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
@@ -129,7 +128,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to stop app"
+                error_message="Failed to stop app",
             )
         )
         result = self.app_manager.stop_app_by_cmd("am force-stop com.autonavi.minimap")
@@ -141,9 +140,7 @@ class TestApplicationApi(unittest.TestCase):
     def test_stop_app_by_pname_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
             return_value=OperationResult(
-                request_id="request-123",
-                success=True,
-                data=None
+                request_id="request-123", success=True, data=None
             )
         )
         result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
@@ -156,7 +153,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to stop app by pname"
+                error_message="Failed to stop app by pname",
             )
         )
         result = self.app_manager.stop_app_by_pname("com.autonavi.minimap")
@@ -168,9 +165,7 @@ class TestApplicationApi(unittest.TestCase):
     def test_stop_app_by_pid_success(self):
         self.app_manager._call_mcp_tool = MagicMock(
             return_value=OperationResult(
-                request_id="request-123",
-                success=True,
-                data=None
+                request_id="request-123", success=True, data=None
             )
         )
         result = self.app_manager.stop_app_by_pid(12345)
@@ -183,7 +178,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to stop app by pid"
+                error_message="Failed to stop app by pid",
             )
         )
         result = self.app_manager.stop_app_by_pid(12345)
@@ -200,7 +195,7 @@ class TestApplicationApi(unittest.TestCase):
                 data="""[
             {"pname": "com.autonavi.minimap", "pid": 12345, "cmdline": "cmd1"},
             {"pname": "com.xingin.xhs", "pid": 23456, "cmdline": "cmd2"}
-        ]"""
+        ]""",
             )
         )
         result = self.app_manager.list_visible_apps()
@@ -217,7 +212,7 @@ class TestApplicationApi(unittest.TestCase):
             return_value=OperationResult(
                 request_id="request-123",
                 success=False,
-                error_message="Failed to list visible apps"
+                error_message="Failed to list visible apps",
             )
         )
         result = self.app_manager.list_visible_apps()
@@ -237,12 +232,12 @@ class TestApplicationApi(unittest.TestCase):
                 "pid": 12345,
                 "cmdline": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
             }
-        ]"""
+        ]""",
             )
         )
         result = self.app_manager.start_app(
             "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
-            activity=".SettingsActivity"
+            activity=".SettingsActivity",
         )
         self.assertIsInstance(result, ProcessListResult)
         self.assertTrue(result.success)
@@ -260,8 +255,8 @@ class TestApplicationApi(unittest.TestCase):
             "start_app",
             {
                 "start_cmd": "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
-                "activity": ".SettingsActivity"
-            }
+                "activity": ".SettingsActivity",
+            },
         )
 
     def test_start_app_with_activity_and_work_directory(self):
@@ -275,13 +270,13 @@ class TestApplicationApi(unittest.TestCase):
                 "pid": 23456,
                 "cmdline": "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1"
             }
-        ]"""
+        ]""",
             )
         )
         result = self.app_manager.start_app(
             "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
             work_directory="/storage/emulated/0",
-            activity="com.xingin.xhs/.MainActivity"
+            activity="com.xingin.xhs/.MainActivity",
         )
         self.assertTrue(result.success)
         self.assertEqual(len(result.data), 1)
@@ -293,9 +288,10 @@ class TestApplicationApi(unittest.TestCase):
             {
                 "start_cmd": "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
                 "work_directory": "/storage/emulated/0",
-                "activity": "com.xingin.xhs/.MainActivity"
-            }
+                "activity": "com.xingin.xhs/.MainActivity",
+            },
         )
+
 
 if __name__ == "__main__":
     unittest.main()

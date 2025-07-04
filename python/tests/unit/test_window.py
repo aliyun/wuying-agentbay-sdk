@@ -1,9 +1,8 @@
 import json
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from agentbay.window import Window, WindowManager
-from agentbay.model import BoolResult, ApiResponse
 
 
 class TestWindow(unittest.TestCase):
@@ -19,7 +18,7 @@ class TestWindow(unittest.TestCase):
             width=800,
             height=600,
             pid=12345,
-            pname="test_process"
+            pname="test_process",
         )
 
         self.assertEqual(window.window_id, 1)
@@ -52,9 +51,9 @@ class TestWindow(unittest.TestCase):
                     "width": 400,
                     "height": 300,
                     "pid": 54322,
-                    "pname": "child_process"
+                    "pname": "child_process",
                 }
-            ]
+            ],
         }
 
         window = Window.from_dict(window_dict)
@@ -103,7 +102,7 @@ class TestWindowManager(unittest.TestCase):
                 "absolute_upper_left_x": 0,
                 "absolute_upper_left_y": 0,
                 "width": 800,
-                "height": 600
+                "height": 600,
             },
             {
                 "window_id": 2,
@@ -111,8 +110,8 @@ class TestWindowManager(unittest.TestCase):
                 "absolute_upper_left_x": 100,
                 "absolute_upper_left_y": 100,
                 "width": 400,
-                "height": 300
-            }
+                "height": 300,
+            },
         ]
 
         # Mock _call_mcp_tool method to return success result
@@ -153,7 +152,7 @@ class TestWindowManager(unittest.TestCase):
             "width": 1024,
             "height": 768,
             "pid": 12345,
-            "pname": "active_process"
+            "pname": "active_process",
         }
 
         # Mock _call_mcp_tool method to return success result
@@ -177,27 +176,37 @@ class TestWindowManager(unittest.TestCase):
         # Test activate window
         result = self.window_manager.activate_window(1)
         self.assertTrue(result.success)
-        self.window_manager._call_mcp_tool.assert_called_with("activate_window", {"window_id": 1})
+        self.window_manager._call_mcp_tool.assert_called_with(
+            "activate_window", {"window_id": 1}
+        )
 
         # Test maximize window
         result = self.window_manager.maximize_window(1)
         self.assertTrue(result.success)
-        self.window_manager._call_mcp_tool.assert_called_with("maximize_window", {"window_id": 1})
+        self.window_manager._call_mcp_tool.assert_called_with(
+            "maximize_window", {"window_id": 1}
+        )
 
         # Test minimize window
         result = self.window_manager.minimize_window(1)
         self.assertTrue(result.success)
-        self.window_manager._call_mcp_tool.assert_called_with("minimize_window", {"window_id": 1})
+        self.window_manager._call_mcp_tool.assert_called_with(
+            "minimize_window", {"window_id": 1}
+        )
 
         # Test restore window
         result = self.window_manager.restore_window(1)
         self.assertTrue(result.success)
-        self.window_manager._call_mcp_tool.assert_called_with("restore_window", {"window_id": 1})
+        self.window_manager._call_mcp_tool.assert_called_with(
+            "restore_window", {"window_id": 1}
+        )
 
     def test_window_operations_error_handling(self):
         """Test error handling for window operations"""
         # Mock _call_mcp_tool method to throw an exception
-        self.window_manager._call_mcp_tool = MagicMock(side_effect=Exception("Operation exception"))
+        self.window_manager._call_mcp_tool = MagicMock(
+            side_effect=Exception("Operation exception")
+        )
 
         # Test activate window error handling
         result = self.window_manager.activate_window(1)

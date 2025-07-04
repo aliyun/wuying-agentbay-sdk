@@ -6,15 +6,16 @@ Example demonstrating session pagination with AgentBay SDK.
 This example shows how to list sessions with pagination using labels.
 """
 
+from agentbay.session_params import CreateSessionParams, ListSessionParams
+from agentbay import AgentBay
 import os
 import sys
 import time
 
 # Add the parent directory to the path so we can import the agentbay package
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-from agentbay import AgentBay
-from agentbay.session_params import ListSessionParams, CreateSessionParams
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 
 def main():
@@ -39,8 +40,8 @@ def main():
                 labels={
                     "environment": "production",
                     "project": "demo",
-                    "test_index": str(i)
-                }
+                    "test_index": str(i),
+                },
             )
             result = agent_bay.create(params)
             if result.success:
@@ -54,17 +55,11 @@ def main():
         time.sleep(3)
 
         # Define labels to filter sessions by
-        labels = {
-            "environment": "production",
-            "project": "demo"
-        }
+        labels = {"environment": "production", "project": "demo"}
 
         # Create pagination parameters
         page_size = 3  # Smaller page size to demonstrate pagination
-        params = ListSessionParams(
-            max_results=page_size,
-            labels=labels
-        )
+        params = ListSessionParams(max_results=page_size, labels=labels)
 
         # Get the first page of results
         print(f"\nFetching first page of sessions with labels: {labels}")
@@ -107,7 +102,9 @@ def main():
                 break
 
         # Summary
-        print(f"\nSummary: Retrieved {len(all_sessions)} sessions in {page_num} page(s)")
+        print(
+            f"\nSummary: Retrieved {len(all_sessions)} sessions in {page_num} page(s)"
+        )
 
     finally:
         # Clean up: delete all created sessions
@@ -116,9 +113,16 @@ def main():
             try:
                 delete_result = agent_bay.delete(session)
                 if delete_result.success:
-                    print(f"Deleted session {i+1}/{len(created_sessions)}: {session.session_id}")
+                    print(
+                        f"Deleted session {i + 1}/{len(created_sessions)}: "
+                        f"{session.session_id}"
+                    )
                 else:
-                    print(f"Failed to delete session {session.session_id}: {delete_result.error_message}")
+                    print(
+                        f"Failed to delete session "
+                        f"{session.session_id}: "
+                        f"{delete_result.error_message}"
+                    )
             except Exception as e:
                 print(f"Error while deleting session {session.session_id}: {e}")
 

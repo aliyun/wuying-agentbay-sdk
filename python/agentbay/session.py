@@ -1,25 +1,22 @@
 import json
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional
+
 from agentbay.api.models import (
     GetLabelRequest,
+    GetLinkRequest,
+    GetLinkResponse,
     GetMcpResourceRequest,
     ReleaseMcpSessionRequest,
     SetLabelRequest,
-    GetLinkRequest,
-    GetLinkResponse,
-)
-from agentbay.model import (
-    DeleteResult,
-    OperationResult,
-    extract_request_id
 )
 from agentbay.application import ApplicationManager
 from agentbay.command import Command
 from agentbay.exceptions import SessionError
 from agentbay.filesystem import FileSystem
+from agentbay.model import DeleteResult, OperationResult, extract_request_id
 from agentbay.oss import Oss
-from agentbay.window import WindowManager
 from agentbay.ui import UI
+from agentbay.window import WindowManager
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
@@ -91,7 +88,8 @@ class Session:
         """
         try:
             request = ReleaseMcpSessionRequest(
-                authorization=f"Bearer {self.get_api_key()}", session_id=self.session_id
+                authorization=f"Bearer {self.get_api_key()}",
+                session_id=self.session_id,
             )
             response = self.get_client().release_mcp_session(request)
 
@@ -99,7 +97,11 @@ class Session:
             request_id = extract_request_id(response)
 
             if response.to_map().get("body", {}).get("Data", {}).get("IsError", False):
-                return DeleteResult(request_id=request_id, success=False, error_message="Failed to delete session")
+                return DeleteResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message="Failed to delete session",
+                )
 
             # Return success result with request ID
             return DeleteResult(request_id=request_id, success=True)
@@ -107,7 +109,10 @@ class Session:
         except Exception as e:
             print("Error calling release_mcp_session:", e)
             # In case of error, return failure result with error message
-            return DeleteResult(success=False, error_message=f"Failed to delete session {self.session_id}: {e}")
+            return DeleteResult(
+                success=False,
+                error_message=f"Failed to delete session {self.session_id}: {e}",
+            )
 
     def set_labels(self, labels: Dict[str, str]) -> OperationResult:
         """
@@ -157,7 +162,8 @@ class Session:
         """
         try:
             request = GetLabelRequest(
-                authorization=f"Bearer {self.get_api_key()}", session_id=self.session_id
+                authorization=f"Bearer {self.get_api_key()}",
+                session_id=self.session_id,
             )
 
             response = self.get_client().get_label(request)
@@ -187,14 +193,16 @@ class Session:
         Gets information about this session.
 
         Returns:
-            OperationResult: Result containing the session information as data and request ID.
+            OperationResult: Result containing the session information as data and
+                request ID.
 
         Raises:
             SessionError: If the operation fails.
         """
         try:
             request = GetMcpResourceRequest(
-                authorization=f"Bearer {self.get_api_key()}", session_id=self.session_id
+                authorization=f"Bearer {self.get_api_key()}",
+                session_id=self.session_id,
             )
 
             print("API Call: GetMcpResource")
@@ -235,7 +243,9 @@ class Session:
                 if "ResourceType" in desktop_info:
                     session_info.resource_type = desktop_info["ResourceType"]
 
-            return OperationResult(request_id=request_id, success=True, data=session_info)
+            return OperationResult(
+                request_id=request_id, success=True, data=session_info
+            )
 
         except Exception as e:
             print("Error calling GetMcpResource:", e)
@@ -250,8 +260,9 @@ class Session:
         Get a link associated with the current session.
 
         Args:
-            protocol_type (Optional[str], optional): The protocol type to use for the link. Defaults to None.
-            port (Optional[int], optional): The port to use for the link. Defaults to None.
+            protocol_type (Optional[str], optional): The protocol type to use for the
+                link. Defaults to None.
+            port (Optional[int], optional): The port to use for the link.
 
         Returns:
             OperationResult: Result containing the link as data and request ID.
@@ -275,7 +286,8 @@ class Session:
 
             if not isinstance(response_map, dict):
                 raise SessionError(
-                    "Invalid response format: expected a dictionary from response.to_map()"
+                    "Invalid response format: expected a dictionary from "
+                    "response.to_map()"
                 )
 
             body = response_map.get("body", {})
@@ -309,8 +321,10 @@ class Session:
         Asynchronously get a link associated with the current session.
 
         Args:
-            protocol_type (Optional[str], optional): The protocol type to use for the link. Defaults to None.
-            port (Optional[int], optional): The port to use for the link. Defaults to None.
+            protocol_type (Optional[str], optional): The protocol type to use for the
+                link. Defaults to None.
+            port (Optional[int], optional): The port to use for the link.
+                Defaults to None.
 
         Returns:
             OperationResult: Result containing the link as data and request ID.
@@ -336,7 +350,8 @@ class Session:
 
             if not isinstance(response_map, dict):
                 raise SessionError(
-                    "Invalid response format: expected a dictionary from response.to_map()"
+                    "Invalid response format: expected a dictionary from "
+                    "response.to_map()"
                 )
 
             body = response_map.get("body", {})

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
@@ -8,7 +9,8 @@ from agentbay.session_params import CreateSessionParams
 
 def main():
     # Initialize the AgentBay client
-    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY environment variable
+    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY
+    # environment variable
     api_key = os.environ.get("AGENTBAY_API_KEY")
     if not api_key:
         api_key = "akm-xxx"  # Replace with your actual API key

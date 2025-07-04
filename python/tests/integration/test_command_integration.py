@@ -1,6 +1,7 @@
-import unittest
 import os
 import time
+import unittest
+
 from agentbay import AgentBay
 from agentbay.command import Command
 from agentbay.session_params import CreateSessionParams

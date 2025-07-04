@@ -1,24 +1,33 @@
 import json
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from agentbay.exceptions import OssError, AgentBayError
-from agentbay.model import ApiResponse
 from agentbay.api.base_service import BaseService
+from agentbay.exceptions import AgentBayError, OssError
+from agentbay.model import ApiResponse
 
 
 class OSSClientResult(ApiResponse):
     """Result of OSS client creation operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 client_config: Optional[Dict[str, Any]] = None, error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        client_config: Optional[Dict[str, Any]] = None,
+        error_message: str = "",
+    ):
         """
         Initialize an OSSClientResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            client_config (Dict[str, Any], optional): OSS client configuration. Defaults to None.
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
+            client_config (Dict[str, Any], optional): OSS client configuration.
+                Defaults to None.
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -29,16 +38,24 @@ class OSSClientResult(ApiResponse):
 class OSSUploadResult(ApiResponse):
     """Result of OSS upload operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 content: str = "", error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        content: str = "",
+        error_message: str = "",
+    ):
         """
         Initialize an OSSUploadResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
             content (str, optional): Result of the upload operation. Defaults to "".
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -49,16 +66,24 @@ class OSSUploadResult(ApiResponse):
 class OSSDownloadResult(ApiResponse):
     """Result of OSS download operations."""
 
-    def __init__(self, request_id: str = "", success: bool = False,
-                 content: str = "", error_message: str = ""):
+    def __init__(
+        self,
+        request_id: str = "",
+        success: bool = False,
+        content: str = "",
+        error_message: str = "",
+    ):
         """
         Initialize an OSSDownloadResult.
 
         Args:
-            request_id (str, optional): Unique identifier for the API request. Defaults to "".
-            success (bool, optional): Whether the operation was successful. Defaults to False.
-            content (string, optional):  Defaults to "Download success"
-            error_message (str, optional): Error message if the operation failed. Defaults to "".
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            success (bool, optional): Whether the operation was successful.
+                Defaults to False.
+            content (string, optional): Defaults to "Download success"
+            error_message (str, optional): Error message if the operation failed.
+                Defaults to "".
         """
         super().__init__(request_id)
         self.success = success
@@ -115,7 +140,8 @@ class Oss(BaseService):
             region: The OSS region. If not specified, the default is used.
 
         Returns:
-            OSSClientResult: Result object containing client configuration and error message if any.
+            OSSClientResult: Result object containing client configuration and error
+                message if any.
         """
         try:
             args = {
@@ -136,15 +162,32 @@ class Oss(BaseService):
             if result.success:
                 try:
                     client_config = result.data
-                    return OSSClientResult(request_id=result.request_id, success=True, client_config=client_config)
+                    return OSSClientResult(
+                        request_id=result.request_id,
+                        success=True,
+                        client_config=client_config,
+                    )
                 except json.JSONDecodeError:
-                    return OSSClientResult(request_id=result.request_id, success=False, error_message="Failed to parse client configuration JSON")
+                    return OSSClientResult(
+                        request_id=result.request_id,
+                        success=False,
+                        error_message="Failed to parse client configuration JSON",
+                    )
             else:
-                return OSSClientResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to initialize OSS environment")
+                return OSSClientResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                    or "Failed to initialize OSS environment",
+                )
         except AgentBayError as e:
             return OSSClientResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return OSSClientResult(request_id="", success=False, error_message=f"Failed to initialize OSS environment: {e}")
+            return OSSClientResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to initialize OSS environment: {e}",
+            )
 
     def upload(self, bucket: str, object: str, path: str) -> OSSUploadResult:
         """
@@ -156,7 +199,8 @@ class Oss(BaseService):
             path: Local file or directory path to upload.
 
         Returns:
-            OSSUploadResult: Result object containing upload result and error message if any.
+            OSSUploadResult: Result object containing upload result and error message
+                if any.
         """
         try:
             args = {"bucket": bucket, "object": object, "path": path}
@@ -165,13 +209,25 @@ class Oss(BaseService):
             print("response =", result)
 
             if result.success:
-                return OSSUploadResult(request_id=result.request_id, success=True, content=result.data)
+                return OSSUploadResult(
+                    request_id=result.request_id,
+                    success=True,
+                    content=result.data,
+                )
             else:
-                return OSSUploadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to upload to OSS")
+                return OSSUploadResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message or "Failed to upload to OSS",
+                )
         except AgentBayError as e:
             return OSSUploadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return OSSUploadResult(request_id="", success=False, error_message=f"Failed to upload to OSS: {e}")
+            return OSSUploadResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to upload to OSS: {e}",
+            )
 
     def upload_anonymous(self, url: str, path: str) -> OSSUploadResult:
         """
@@ -182,7 +238,8 @@ class Oss(BaseService):
             path: Local file or directory path to upload.
 
         Returns:
-            OSSUploadResult: Result object containing upload result and error message if any.
+            OSSUploadResult: Result object containing upload result and error message
+                if any.
         """
         try:
             args = {"url": url, "path": path}
@@ -191,13 +248,26 @@ class Oss(BaseService):
             print("response =", result)
 
             if result.success:
-                return OSSUploadResult(request_id=result.request_id, success=True, content=result.data)
+                return OSSUploadResult(
+                    request_id=result.request_id,
+                    success=True,
+                    content=result.data,
+                )
             else:
-                return OSSUploadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to upload anonymously")
+                return OSSUploadResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                    or "Failed to upload anonymously",
+                )
         except AgentBayError as e:
             return OSSUploadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return OSSUploadResult(request_id="", success=False, error_message=f"Failed to upload anonymously: {e}")
+            return OSSUploadResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to upload anonymously: {e}",
+            )
 
     def download(self, bucket: str, object: str, path: str) -> OSSDownloadResult:
         """
@@ -209,7 +279,8 @@ class Oss(BaseService):
             path: Local file or directory path to download to.
 
         Returns:
-            OSSDownloadResult: Result object containing download status and error message if any.
+            OSSDownloadResult: Result object containing download status and error
+                message if any.
         """
         try:
             args = {"bucket": bucket, "object": object, "path": path}
@@ -218,13 +289,25 @@ class Oss(BaseService):
             print("response =", result)
 
             if result.success:
-                return OSSDownloadResult(request_id=result.request_id, success=True, content=result.data)
+                return OSSDownloadResult(
+                    request_id=result.request_id,
+                    success=True,
+                    content=result.data,
+                )
             else:
-                return OSSDownloadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to download from OSS")
+                return OSSDownloadResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message or "Failed to download from OSS",
+                )
         except AgentBayError as e:
             return OSSDownloadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return OSSDownloadResult(request_id="", success=False, error_message=f"Failed to download from OSS: {e}")
+            return OSSDownloadResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to download from OSS: {e}",
+            )
 
     def download_anonymous(self, url: str, path: str) -> OSSDownloadResult:
         """
@@ -235,7 +318,8 @@ class Oss(BaseService):
             path: Local file or directory path to download to.
 
         Returns:
-            OSSDownloadResult: Result object containing download status and error message if any.
+            OSSDownloadResult: Result object containing download status and error
+                message if any.
         """
         try:
             args = {"url": url, "path": path}
@@ -244,10 +328,23 @@ class Oss(BaseService):
             print("response =", result)
 
             if result.success:
-                return OSSDownloadResult(request_id=result.request_id, success=True, content=result.data)
+                return OSSDownloadResult(
+                    request_id=result.request_id,
+                    success=True,
+                    content=result.data,
+                )
             else:
-                return OSSDownloadResult(request_id=result.request_id, success=False, error_message=result.error_message or "Failed to download anonymously")
+                return OSSDownloadResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message
+                    or "Failed to download anonymously",
+                )
         except AgentBayError as e:
             return OSSDownloadResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return OSSDownloadResult(request_id="", success=False, error_message=f"Failed to download anonymously: {e}")
+            return OSSDownloadResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to download anonymously: {e}",
+            )

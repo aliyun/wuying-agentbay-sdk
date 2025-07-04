@@ -1,8 +1,8 @@
 import os
 import unittest
+
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
-
 
 
 def get_oss_credentials():
@@ -157,7 +157,8 @@ class TestOssIntegration(unittest.TestCase):
         # Download the file anonymously
         print("Downloading file anonymously...")
         download_url = os.getenv(
-            "OSS_TEST_DOWNLOAD_URL", "https://example.com/download/test-file.txt"
+            "OSS_TEST_DOWNLOAD_URL",
+            "https://example.com/download/test-file.txt",
         )
         download_path = "/tmp/test_oss_download_anon.txt"
         result = self.session.oss.download_anonymous(download_url, download_path)

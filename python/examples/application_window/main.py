@@ -8,6 +8,7 @@ of the Wuying AgentBay SDK.
 
 import os
 import sys
+
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
@@ -19,7 +20,8 @@ def main():
     if not api_key:
         api_key = "akm-xxx"  # Replace with your actual API key for testing
         print(
-            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
+            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable "
+            "production for use."
         )
 
     session = None
@@ -52,7 +54,7 @@ def main():
                 # Print the first 3 apps or fewer if less than 3 are available
                 count = min(len(apps), 3)
                 for i in range(count):
-                    print(f"App {i+1}: {apps[i].name}")
+                    print(f"App {i + 1}: {apps[i].name}")
                 print(f"Request ID: {result.request_id}")
             else:
                 print(f"Error getting installed apps: {result.error_message}")
@@ -71,7 +73,8 @@ def main():
                 count = min(len(visible_apps), 3)
                 for i in range(count):
                     print(
-                        f"Process {i+1}: {visible_apps[i].pname} (PID: {visible_apps[i].pid})"
+                        f"Process {i + 1}: {visible_apps[i].pname} "
+                        f"(PID: {visible_apps[i].pid})"
                     )
                 print(f"Request ID: {result.request_id}")
             else:
@@ -95,7 +98,8 @@ def main():
                 count = min(len(root_windows), 3)
                 for i in range(count):
                     print(
-                        f"Window {i+1}: {root_windows[i].title} (ID: {root_windows[i].window_id})"
+                        f"Window {i + 1}: {root_windows[i].title} "
+                        f"(ID: {root_windows[i].window_id})"
                     )
                 print(f"Request ID: {result.request_id}")
             else:
@@ -111,8 +115,9 @@ def main():
             if result.success:
                 active_window = result.window
                 print(
-                    f"Active window: {active_window.title} (ID: {active_window.window_id}, "
-                    f"Process: {active_window.pname}, PID: {active_window.pid})"
+                    f"Active window: {active_window.title} "
+                    f"(ID: {active_window.window_id}, Process: {active_window.pname}, "
+                    f"PID: {active_window.pid})"
                 )
                 print(f"Request ID: {result.request_id}")
             else:

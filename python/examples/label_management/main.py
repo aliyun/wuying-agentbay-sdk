@@ -8,6 +8,7 @@ of the Wuying AgentBay SDK.
 
 import os
 import sys
+
 from agentbay import AgentBay
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
@@ -85,7 +86,7 @@ def main():
         all_sessions = agent_bay.list()
         print(f"Found {len(all_sessions)} sessions")
         for i, session in enumerate(all_sessions):
-            print(f"Session {i+1} ID: {session.session_id}")
+            print(f"Session {i + 1} ID: {session.session_id}")
 
         # List sessions by label
         print("\nListing sessions with purpose=demo and feature=label-management...")
@@ -96,19 +97,25 @@ def main():
         print(f"Found {len(filtered_sessions)} matching sessions")
         print(f"Request ID: {filtered_result.request_id}")
         for i, session in enumerate(filtered_sessions):
-            print(f"Matching session {i+1} ID: {session.session_id}")
+            print(f"Matching session {i + 1} ID: {session.session_id}")
             labels_result = session.get_labels()
             print(f"Labels: {labels_result.data}")
 
         # Delete the sessions
         print("\nDeleting the sessions...")
         delete_result1 = agent_bay.delete(session1)
-        print(f"Session {session1.session_id} deleted successfully: {delete_result1.success}")
+        print(
+            f"Session {session1.session_id} deleted successfully: "
+            f"{delete_result1.success}"
+        )
         print(f"Request ID: {delete_result1.request_id}")
         session1 = None  # Clear reference to avoid deletion error
 
         delete_result2 = agent_bay.delete(session2)
-        print(f"Session {session2.session_id} deleted successfully: {delete_result2.success}")
+        print(
+            f"Session {session2.session_id} deleted successfully: "
+            f"{delete_result2.success}"
+        )
         print(f"Request ID: {delete_result2.request_id}")
         session2 = None  # Clear reference to avoid deletion error
 

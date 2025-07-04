@@ -1,9 +1,14 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from agentbay.filesystem.filesystem import (
-    FileSystem, FileInfoResult, DirectoryListResult, BoolResult,
-    FileContentResult, MultipleFileContentResult, FileSearchResult
+    BoolResult,
+    DirectoryListResult,
+    FileContentResult,
+    FileInfoResult,
+    FileSearchResult,
+    FileSystem,
+    MultipleFileContentResult,
 )
 from agentbay.model import OperationResult
 
@@ -35,9 +40,7 @@ class TestFileSystem(unittest.TestCase):
         Test read_file method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="file content"
+            request_id="request-123", success=True, data="file content"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -55,7 +58,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Error in response: some error message"
+            error_message="Error in response: some error message",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -74,7 +77,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Invalid response body"
+            error_message="Invalid response body",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -90,9 +93,7 @@ class TestFileSystem(unittest.TestCase):
         Test create_directory method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="True"
+            request_id="request-123", success=True, data="True"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -111,7 +112,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Directory creation failed"
+            error_message="Directory creation failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -127,9 +128,7 @@ class TestFileSystem(unittest.TestCase):
         Test edit_file method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="True"
+            request_id="request-123", success=True, data="True"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -149,7 +148,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Edit failed"
+            error_message="Edit failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -167,9 +166,7 @@ class TestFileSystem(unittest.TestCase):
         Test write_file method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="True"
+            request_id="request-123", success=True, data="True"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -189,7 +186,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Write failed"
+            error_message="Write failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -209,7 +206,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="name: test.txt\nsize: 100\nmodified: 2023-01-01T12:00:00Z\nisDirectory: false"
+            data="name: test.txt\nsize: 100\nmodified: 2023-01-01T12:00:00Z\nisDirectory: false",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -230,7 +227,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="File not found"
+            error_message="File not found",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -248,7 +245,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="[FILE] file1.txt\n[DIR] dir1\n[FILE] file2.txt"
+            data="[FILE] file1.txt\n[DIR] dir1\n[FILE] file2.txt",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -272,7 +269,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Directory not found"
+            error_message="Directory not found",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -289,9 +286,7 @@ class TestFileSystem(unittest.TestCase):
         Test move_file method with successful response.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="True"
+            request_id="request-123", success=True, data="True"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -309,7 +304,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            error_message="Move operation failed"
+            error_message="Move operation failed",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -327,11 +322,13 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="file1.txt:\nFile 1 content\n---\nfile2.txt:\nFile 2 content\n---"
+            data="file1.txt:\nFile 1 content\n---\nfile2.txt:\nFile 2 content\n---",
         )
         mock_call_mcp_tool.return_value = mock_result
 
-        result = self.fs.read_multiple_files(["/path/to/file1.txt", "/path/to/file2.txt"])
+        result = self.fs.read_multiple_files(
+            ["/path/to/file1.txt", "/path/to/file2.txt"]
+        )
         self.assertIsInstance(result, MultipleFileContentResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -347,7 +344,7 @@ class TestFileSystem(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="/path/to/file1.txt\n/path/to/file2.txt"
+            data="/path/to/file1.txt\n/path/to/file2.txt",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -365,9 +362,7 @@ class TestFileSystem(unittest.TestCase):
         Test search_files method with exclude patterns.
         """
         mock_result = OperationResult(
-            request_id="request-123",
-            success=True,
-            data="/path/to/file1.txt"
+            request_id="request-123", success=True, data="/path/to/file1.txt"
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -387,15 +382,24 @@ class TestFileSystem(unittest.TestCase):
         Test read_large_file method with successful response.
         """
         # Mock file info
-        file_info_result = FileInfoResult(request_id="request-123", success=True,
-                                          file_info={"size": 600, "isDirectory": False})
+        file_info_result = FileInfoResult(
+            request_id="request-123",
+            success=True,
+            file_info={"size": 600, "isDirectory": False},
+        )
         mock_get_file_info.return_value = file_info_result
 
         # Mock chunked reads
         mock_read_file.side_effect = [
-            FileContentResult(request_id="request-123-1", success=True, content="chunk1"),
-            FileContentResult(request_id="request-123-2", success=True, content="chunk2"),
-            FileContentResult(request_id="request-123-3", success=True, content="chunk3"),
+            FileContentResult(
+                request_id="request-123-1", success=True, content="chunk1"
+            ),
+            FileContentResult(
+                request_id="request-123-2", success=True, content="chunk2"
+            ),
+            FileContentResult(
+                request_id="request-123-3", success=True, content="chunk3"
+            ),
         ]
 
         result = self.fs.read_large_file("/path/to/large_file.txt", chunk_size=200)
@@ -410,8 +414,11 @@ class TestFileSystem(unittest.TestCase):
         """
         Test read_large_file method with error in get_file_info.
         """
-        error_result = FileInfoResult(request_id="request-123", success=False,
-                                     error_message="File not found")
+        error_result = FileInfoResult(
+            request_id="request-123",
+            success=False,
+            error_message="File not found",
+        )
         mock_get_file_info.return_value = error_result
 
         result = self.fs.read_large_file("/path/to/large_file.txt")
@@ -432,14 +439,18 @@ class TestFileSystem(unittest.TestCase):
         ]
 
         content = "a" * 300  # 300 bytes content
-        result = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
+        result = self.fs.write_large_file(
+            "/path/to/large_file.txt", content, chunk_size=100
+        )
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
         self.assertTrue(result.data)
         self.assertEqual(mock_write_file.call_count, 3)
 
         # Verify the calls
-        mock_write_file.assert_any_call("/path/to/large_file.txt", "a" * 100, "overwrite")
+        mock_write_file.assert_any_call(
+            "/path/to/large_file.txt", "a" * 100, "overwrite"
+        )
         mock_write_file.assert_any_call("/path/to/large_file.txt", "a" * 100, "append")
 
     @patch("agentbay.filesystem.filesystem.FileSystem.write_file")
@@ -447,7 +458,9 @@ class TestFileSystem(unittest.TestCase):
         """
         Test write_large_file method with content smaller than chunk size.
         """
-        mock_write_file.return_value = BoolResult(request_id="request-123", success=True, data=True)
+        mock_write_file.return_value = BoolResult(
+            request_id="request-123", success=True, data=True
+        )
 
         content = "small content"
         result = self.fs.write_large_file("/path/to/file.txt", content, chunk_size=100)
@@ -461,11 +474,16 @@ class TestFileSystem(unittest.TestCase):
         """
         Test write_large_file method with error in first write.
         """
-        mock_write_file.return_value = BoolResult(request_id="request-123", success=False,
-                                                 error_message="Write error")
+        mock_write_file.return_value = BoolResult(
+            request_id="request-123",
+            success=False,
+            error_message="Write error",
+        )
 
         content = "a" * 300  # 300 bytes content
-        result = self.fs.write_large_file("/path/to/large_file.txt", content, chunk_size=100)
+        result = self.fs.write_large_file(
+            "/path/to/large_file.txt", content, chunk_size=100
+        )
         self.assertIsInstance(result, BoolResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Write error")

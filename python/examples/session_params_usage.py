@@ -1,19 +1,19 @@
+from agentbay.session_params import CreateSessionParams
+from agentbay.exceptions import AgentBayError
+from agentbay import AgentBay
+import json
 import os
 import sys
-import json
 import time
 
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
-from agentbay.exceptions import AgentBayError
-
 
 def main():
     # Initialize the AgentBay client
-    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY environment variable
+    # You can provide the API key as a parameter or set the AGENTBAY_API_KEY
+    # environment variable
     api_key = os.environ.get("AGENTBAY_API_KEY") or "your_api_key_here"
     sessions = []
     contexts = []
@@ -38,7 +38,9 @@ def main():
 
         session_result2 = agent_bay.create(params2)
         print(
-            f"Session created with ID: {session_result2.session.session_id} and labels: {json.dumps(params2.labels)}"
+            f"Session created with ID: "
+            f"{session_result2.session.session_id} and labels: "
+            f"{json.dumps(params2.labels)}"
         )
         print(f"Request ID: {session_result2.request_id}")
         sessions.append(session_result2.session)
@@ -59,7 +61,9 @@ def main():
 
         session_result3 = agent_bay.create(params3)
         print(
-            f"Session created with ID: {session_result3.session.session_id} and context ID: {params3.context_id}"
+            f"Session created with ID: "
+            f"{session_result3.session.session_id} and context ID: "
+            f"{params3.context_id}"
         )
         print(f"Request ID: {session_result3.request_id}")
         sessions.append(session_result3.session)
@@ -79,7 +83,10 @@ def main():
 
         session_result4 = agent_bay.create(params4)
         print(
-            f"Session created with ID: {session_result4.session.session_id}, labels: {json.dumps(params4.labels)}, and context ID: {params4.context_id}"
+            f"Session created with ID: "
+            f"{session_result4.session.session_id}, labels: "
+            f"{json.dumps(params4.labels)}, and context ID: "
+            f"{params4.context_id}"
         )
         print(f"Request ID: {session_result4.request_id}")
         sessions.append(session_result4.session)
@@ -89,8 +96,11 @@ def main():
 
         for i, session in enumerate(sessions, 1):
             delete_result = agent_bay.delete(session)
-            print(f"Session {i} deleted successfully (Request ID: {delete_result.request_id})")
-            time.sleep(1) 
+            print(
+                f"Session {i} deleted successfully (Request ID: "
+                f"{delete_result.request_id})"
+            )
+            time.sleep(1)
 
     except AgentBayError as e:
         print(f"Error: {e}")
@@ -99,7 +109,9 @@ def main():
                 agent_bay.delete(session)
                 print(f"Session {session.session_id} cleaned up during error handling")
             except Exception as delete_error:
-                print(f"Failed to clean up session {session.session_id}: {delete_error}")
+                print(
+                    f"Failed to clean up session {session.session_id}: {delete_error}"
+                )
     except Exception as e:
         print(f"Unexpected error: {e}")
         for session in sessions:
@@ -107,7 +119,9 @@ def main():
                 agent_bay.delete(session)
                 print(f"Session {session.session_id} cleaned up during error handling")
             except Exception as delete_error:
-                print(f"Failed to clean up session {session.session_id}: {delete_error}")
+                print(
+                    f"Failed to clean up session {session.session_id}: {delete_error}"
+                )
 
 
 if __name__ == "__main__":

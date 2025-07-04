@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from alibabacloud_tea_openapi.client import Client as OpenApiClient
-from alibabacloud_tea_openapi import utils_models as open_api_util_models
-from darabonba.core import DaraCore as DaraCore
-from alibabacloud_tea_openapi.utils import Utils
-from agentbay.api import models as main_models
-from darabonba.runtime import RuntimeOptions
+
 from typing import Dict
 
+from alibabacloud_tea_openapi import utils_models as open_api_util_models
+from alibabacloud_tea_openapi.client import Client as OpenApiClient
+from alibabacloud_tea_openapi.utils import Utils
+from darabonba.core import DaraCore as DaraCore
+from darabonba.runtime import RuntimeOptions
+
+from agentbay.api import models as main_models
 
 """
 """
@@ -90,7 +92,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.CallMcpToolResponse(), self.call_api(params, req, runtime)
+            main_models.CallMcpToolResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def call_mcp_tool_with_options_async(
@@ -179,7 +182,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.CreateMcpSessionResponse(), self.call_api(params, req, runtime)
+            main_models.CreateMcpSessionResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def create_mcp_session_with_options_async(
@@ -256,7 +260,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.DeleteContextResponse(), self.call_api(params, req, runtime)
+            main_models.DeleteContextResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def delete_context_with_options_async(
@@ -327,7 +332,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetContextResponse(), self.call_api(params, req, runtime)
+            main_models.GetContextResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def get_context_with_options_async(
@@ -552,7 +558,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetMcpResourceResponse(), self.call_api(params, req, runtime)
+            main_models.GetMcpResourceResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def get_mcp_resource_with_options_async(
@@ -623,7 +630,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ListContextsResponse(), self.call_api(params, req, runtime)
+            main_models.ListContextsResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def list_contexts_with_options_async(
@@ -698,7 +706,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ListSessionResponse(), self.call_api(params, req, runtime)
+            main_models.ListSessionResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def list_session_with_options_async(
@@ -773,7 +782,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ModifyContextResponse(), self.call_api(params, req, runtime)
+            main_models.ModifyContextResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def modify_context_with_options_async(
@@ -844,7 +854,8 @@ class Client(OpenApiClient):
             body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ReleaseMcpSessionResponse(), self.call_api(params, req, runtime)
+            main_models.ReleaseMcpSessionResponse(),
+            self.call_api(params, req, runtime),
         )
 
     async def release_mcp_session_with_options_async(

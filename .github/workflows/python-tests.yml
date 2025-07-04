@@ -28,11 +28,12 @@ jobs:
     - name: Lint Python code
       working-directory: ./python
       run: |
-        # Run flake8 to check for code issues
-        # flake8 agentbay tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Current code checking strategy: only run security scan, temporarily disable format checking
+        # TODO: Re-enable the following format checks after the team confirms code style standards
+        #flake8 agentbay --count --select=E9,F63,F7,F82 --show-source --statistics
 
         # Use black to automatically format code
-        # black agentbay tests examples
+        # black --check agentbay tests examples
 
         # Check if there are uncommitted changes (indicating formatting issues)
         # git diff --exit-code || (echo "Formatting issues have been automatically fixed, please review the changes and commit them" && exit 1)
@@ -40,16 +41,16 @@ jobs:
     - name: Security scan with Bandit
       working-directory: ./python
       run: |
-        # Skip false positives: B105 (hardcoded password string), B106 (hardcoded password funcarg), B107 (hardcoded password default)
+        # Run security scan without blocking the build, so we can see results without interrupting workflow
         bandit -r agentbay -f json -o bandit-results.json --skip B105,B106,B107 || true
 
     - name: Check dependencies for vulnerabilities
       working-directory: ./python
       run: |
         # Install the package in development mode
-        cd ./python && pip install -e .
+        pip install -e .
         # Use pip-audit instead of deprecated safety check
-        pip-audit || true
+        pip-audit || true  # Allow execution to continue even if security issues are found
 
     - name: SonarQube Scan
       uses: SonarSource/sonarcloud-github-action@master
@@ -91,12 +92,3 @@ jobs:
       working-directory: ./python
       run: |
         poetry run python -m pytest tests/unit -v
-
-
-    # - name: Run integration tests (if API key is provided)
-    #   working-directory: ./python
-    #   if: ${{ secrets.AGENTBAY_API_KEY != '' }}
-    #   env:
-    #     AGENTBAY_API_KEY: ${{ secrets.AGENTBAY_API_KEY }}
-    #   run: |
-    #     poetry run python -m pytest tests/integration -v

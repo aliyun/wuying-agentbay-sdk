@@ -1,13 +1,13 @@
 import os
-import time
 import unittest
+
 from agentbay import AgentBay
+from agentbay.application.application import InstalledAppListResult, ProcessListResult
 from agentbay.exceptions import AgentBayError
 from agentbay.model import BoolResult, OperationResult
-from agentbay.application.application import InstalledAppListResult, ProcessListResult
+from agentbay.session_params import CreateSessionParams
 from agentbay.ui import KeyCode
 from agentbay.ui.ui import UIElementListResult
-from agentbay.session_params import CreateSessionParams
 
 
 class TestMobileSystemIntegration(unittest.TestCase):
@@ -57,7 +57,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
                 start_menu=True, desktop=False, ignore_system_apps=True
             )
             self.assertIsInstance(result, InstalledAppListResult)
-            self.assertTrue(result.success, f"Failed to get installed apps: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to get installed apps: {result.error_message}",
+            )
 
             installed_apps = result.data
             print("\nInstalled Applications:")
@@ -77,7 +80,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
             )
             start_result = self.__class__.application.start_app(start_cmd)
             self.assertIsInstance(start_result, ProcessListResult)
-            self.assertTrue(start_result.success, f"Failed to start app: {start_result.error_message}")
+            self.assertTrue(
+                start_result.success,
+                f"Failed to start app: {start_result.error_message}",
+            )
 
             processes = start_result.data
             print("\nStart App Result:", processes)
@@ -85,7 +91,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
             # Stop the application
             stop_cmd = "am force-stop com.autonavi.minimap"
             stop_result = self.__class__.application.stop_app_by_cmd(stop_cmd)
-            self.assertTrue(stop_result.success, f"Failed to stop app: {stop_result.error_message}")
+            self.assertTrue(
+                stop_result.success,
+                f"Failed to stop app: {stop_result.error_message}",
+            )
             print("\nApplication stopped successfully.")
         except AgentBayError as e:
             self.fail(f"start_and_stop_app failed with error: {e}")
@@ -97,7 +106,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=1000)
             self.assertIsInstance(result, UIElementListResult)
-            self.assertTrue(result.success, f"Failed to get clickable UI elements: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to get clickable UI elements: {result.error_message}",
+            )
 
             clickable_elements = result.elements
             print("\nClickable UI Elements:")
@@ -126,7 +138,9 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.send_key(KeyCode.HOME)
             self.assertIsInstance(result, BoolResult)
-            self.assertTrue(result.success, f"Failed to send key: {result.error_message}")
+            self.assertTrue(
+                result.success, f"Failed to send key: {result.error_message}"
+            )
             print("\nSent HOME key successfully.")
         except AgentBayError as e:
             self.fail(f"send_key failed with error: {e}")
@@ -136,8 +150,16 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test performing a swipe gesture.
         """
         try:
-            start_x, start_y, end_x, end_y, duration_ms = 100, 200, 300, 400, 500
-            result = self.__class__.ui.swipe(start_x, start_y, end_x, end_y, duration_ms)
+            start_x, start_y, end_x, end_y, duration_ms = (
+                100,
+                200,
+                300,
+                400,
+                500,
+            )
+            result = self.__class__.ui.swipe(
+                start_x, start_y, end_x, end_y, duration_ms
+            )
             self.assertIsInstance(result, BoolResult)
             self.assertTrue(result.success, f"Failed to swipe: {result.error_message}")
             print(
@@ -154,7 +176,9 @@ class TestMobileSystemIntegration(unittest.TestCase):
             text = "Hello, world!"
             result = self.__class__.ui.input_text(text)
             self.assertIsInstance(result, BoolResult)
-            self.assertTrue(result.success, f"Failed to input text: {result.error_message}")
+            self.assertTrue(
+                result.success, f"Failed to input text: {result.error_message}"
+            )
             print(f"\nInput text '{text}' successfully.")
         except AgentBayError as e:
             self.fail(f"input_text failed with error: {e}")
@@ -166,7 +190,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.get_all_ui_elements(timeout_ms=3000)
             self.assertIsInstance(result, UIElementListResult)
-            self.assertTrue(result.success, f"Failed to get all UI elements: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to get all UI elements: {result.error_message}",
+            )
 
             ui_elements = result.elements
             print("\nAll UI Elements:")
@@ -182,7 +209,10 @@ class TestMobileSystemIntegration(unittest.TestCase):
         try:
             result = self.__class__.ui.screenshot()
             self.assertIsInstance(result, OperationResult)
-            self.assertTrue(result.success, f"Failed to take screenshot: {result.error_message}")
+            self.assertTrue(
+                result.success,
+                f"Failed to take screenshot: {result.error_message}",
+            )
             screenshot_path = result.data
             self.assertIsInstance(screenshot_path, str)
             print(f"\nScreenshot saved to: {screenshot_path}")
