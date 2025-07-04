@@ -83,7 +83,7 @@ func (s *GetLinkResponseBody) SetMessage(v string) *GetLinkResponseBody {
 	s.Message = &v
 	return s
 }
-
+``
 func (s *GetLinkResponseBody) SetRequestId(v string) *GetLinkResponseBody {
 	s.RequestId = &v
 	return s
@@ -95,5 +95,30 @@ func (s *GetLinkResponseBody) SetSuccess(v bool) *GetLinkResponseBody {
 }
 
 func (s *GetLinkResponseBody) Validate() error {
+	return dara.Validate(s)
+}
+
+type GetLinkResponseBodyData struct {
+	Url *string `json:"Url,omitempty" xml:"Url,omitempty"`
+}
+
+func (s GetLinkResponseBodyData) String() string {
+	return dara.Prettify(s)
+}
+
+func (s GetLinkResponseBodyData) GoString() string {
+	return s.String()
+}
+
+func (s *GetLinkResponseBodyData) GetUrl() *string {
+	return s.Url
+}
+
+func (s *GetLinkResponseBodyData) SetUrl(v string) *GetLinkResponseBodyData {
+	s.Url = &v
+	return s
+}
+
+func (s *GetLinkResponseBodyData) Validate() error {
 	return dara.Validate(s)
 }

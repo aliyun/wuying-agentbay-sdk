@@ -89,6 +89,29 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		createSessionRequest.Labels = tea.String(labelsJSON)
 	}
 
+	// Add context sync configurations if provided
+	if len(params.ContextSync) > 0 {
+		var persistenceDataList []*mcp.CreateMcpSessionRequestPersistenceDataList
+		for _, contextSync := range params.ContextSync {
+			persistenceItem := &mcp.CreateMcpSessionRequestPersistenceDataList{
+				ContextId: tea.String(contextSync.ContextID),
+				Path:      tea.String(contextSync.Path),
+			}
+
+			// Convert policy to JSON string if provided
+			if contextSync.Policy != nil {
+				policyJSON, err := json.Marshal(contextSync.Policy)
+				if err != nil {
+					return nil, fmt.Errorf("failed to marshal context sync policy to JSON: %v", err)
+				}
+				persistenceItem.Policy = tea.String(string(policyJSON))
+			}
+
+			persistenceDataList = append(persistenceDataList, persistenceItem)
+		}
+		createSessionRequest.PersistenceDataList = persistenceDataList
+	}
+
 	// Log API request
 	fmt.Println("API Call: CreateMcpSession")
 	fmt.Printf("Request: ")
@@ -99,7 +122,17 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		fmt.Printf("ImageId=%s, ", *createSessionRequest.ImageId)
 	}
 	if createSessionRequest.Labels != nil {
-		fmt.Printf("Labels=%s", *createSessionRequest.Labels)
+		fmt.Printf("Labels=%s, ", *createSessionRequest.Labels)
+	}
+	if createSessionRequest.PersistenceDataList != nil && len(createSessionRequest.PersistenceDataList) > 0 {
+		fmt.Printf("PersistenceDataList=%d items, ", len(createSessionRequest.PersistenceDataList))
+		for i, pd := range createSessionRequest.PersistenceDataList {
+			fmt.Printf("Item%d[ContextId=%s, Path=%s", i, tea.StringValue(pd.ContextId), tea.StringValue(pd.Path))
+			if pd.Policy != nil {
+				fmt.Printf(", Policy=%s", tea.StringValue(pd.Policy))
+			}
+			fmt.Printf("], ")
+		}
 	}
 	fmt.Println()
 

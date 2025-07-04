@@ -11,6 +11,8 @@ type iReleaseMcpSessionResponseBody interface {
 	GoString() string
 	SetCode(v string) *ReleaseMcpSessionResponseBody
 	GetCode() *string
+	SetData(v interface{}) *ReleaseMcpSessionResponseBody
+	GetData() interface{}
 	SetHttpStatusCode(v int32) *ReleaseMcpSessionResponseBody
 	GetHttpStatusCode() *int32
 	SetMessage(v string) *ReleaseMcpSessionResponseBody
@@ -22,11 +24,12 @@ type iReleaseMcpSessionResponseBody interface {
 }
 
 type ReleaseMcpSessionResponseBody struct {
-	Code           *string `json:"Code,omitempty" xml:"Code,omitempty"`
-	HttpStatusCode *int32  `json:"HttpStatusCode,omitempty" xml:"HttpStatusCode,omitempty"`
-	Message        *string `json:"Message,omitempty" xml:"Message,omitempty"`
-	RequestId      *string `json:"RequestId,omitempty" xml:"RequestId,omitempty"`
-	Success        *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
+	Code           *string     `json:"Code,omitempty" xml:"Code,omitempty"`
+	Data           interface{} `json:"Data,omitempty" xml:"Data,omitempty"`
+	HttpStatusCode *int32      `json:"HttpStatusCode,omitempty" xml:"HttpStatusCode,omitempty"`
+	Message        *string     `json:"Message,omitempty" xml:"Message,omitempty"`
+	RequestId      *string     `json:"RequestId,omitempty" xml:"RequestId,omitempty"`
+	Success        *bool       `json:"Success,omitempty" xml:"Success,omitempty"`
 }
 
 func (s ReleaseMcpSessionResponseBody) String() string {
@@ -39,6 +42,10 @@ func (s ReleaseMcpSessionResponseBody) GoString() string {
 
 func (s *ReleaseMcpSessionResponseBody) GetCode() *string {
 	return s.Code
+}
+
+func (s *ReleaseMcpSessionResponseBody) GetData() interface{} {
+	return s.Data
 }
 
 func (s *ReleaseMcpSessionResponseBody) GetHttpStatusCode() *int32 {
@@ -59,6 +66,11 @@ func (s *ReleaseMcpSessionResponseBody) GetSuccess() *bool {
 
 func (s *ReleaseMcpSessionResponseBody) SetCode(v string) *ReleaseMcpSessionResponseBody {
 	s.Code = &v
+	return s
+}
+
+func (s *ReleaseMcpSessionResponseBody) SetData(v interface{}) *ReleaseMcpSessionResponseBody {
+	s.Data = v
 	return s
 }
 

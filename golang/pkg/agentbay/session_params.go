@@ -27,12 +27,17 @@ type CreateSessionParams struct {
 
 	// ImageId specifies the image ID to use for the session.
 	ImageId string
+
+	// ContextSync is a list of context synchronization configurations.
+	// These configurations define how contexts should be synchronized and mounted.
+	ContextSync []*ContextSync
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
 func NewCreateSessionParams() *CreateSessionParams {
 	return &CreateSessionParams{
-		Labels: make(map[string]string),
+		Labels:      make(map[string]string),
+		ContextSync: make([]*ContextSync, 0),
 	}
 }
 
@@ -66,4 +71,27 @@ func (p *CreateSessionParams) GetLabelsJSON() (string, error) {
 	}
 
 	return string(labelsJSON), nil
+}
+
+// AddContextSync adds a context sync configuration to the session parameters.
+func (p *CreateSessionParams) AddContextSync(contextID, path string, policy *SyncPolicy) *CreateSessionParams {
+	contextSync := &ContextSync{
+		ContextID: contextID,
+		Path:      path,
+		Policy:    policy,
+	}
+	p.ContextSync = append(p.ContextSync, contextSync)
+	return p
+}
+
+// AddContextSyncConfig adds a pre-configured context sync to the session parameters.
+func (p *CreateSessionParams) AddContextSyncConfig(contextSync *ContextSync) *CreateSessionParams {
+	p.ContextSync = append(p.ContextSync, contextSync)
+	return p
+}
+
+// WithContextSync sets the context sync configurations for the session parameters.
+func (p *CreateSessionParams) WithContextSync(contextSyncs []*ContextSync) *CreateSessionParams {
+	p.ContextSync = contextSyncs
+	return p
 }

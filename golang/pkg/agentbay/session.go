@@ -80,6 +80,9 @@ type Session struct {
 	UI          *ui.UIManager
 	Application *application.ApplicationManager
 	Window      *window.WindowManager
+
+	// Context management
+	Context *ContextManager
 }
 
 // NewSession creates a new Session object.
@@ -100,6 +103,9 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 	// Initialize application and window managers
 	session.Application = application.NewApplicationManager(session)
 	session.Window = window.NewWindowManager(session)
+
+	// Initialize context manager
+	session.Context = NewContextManager(session)
 	return session
 }
 
