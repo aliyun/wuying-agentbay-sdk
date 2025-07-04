@@ -225,11 +225,11 @@ func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, 
 
 	// Log API request
 	fmt.Println("API Call: ListSession")
-	fmt.Printf("Request: Labels=%s, MaxResults=%d", *listSessionRequest.Labels, *listSessionRequest.MaxResults)
+	requestInfo := fmt.Sprintf("Request: Labels=%s, MaxResults=%d", *listSessionRequest.Labels, *listSessionRequest.MaxResults)
 	if listSessionRequest.NextToken != nil {
-		fmt.Printf(", NextToken=%s", *listSessionRequest.NextToken)
+		requestInfo += fmt.Sprintf(", NextToken=%s", *listSessionRequest.NextToken)
 	}
-	fmt.Println()
+	fmt.Println(requestInfo)
 
 	response, err := a.Client.ListSession(listSessionRequest)
 

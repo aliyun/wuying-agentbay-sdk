@@ -14,10 +14,10 @@ import (
 // generateUniqueID creates a unique identifier for test labels
 // to avoid conflicts with existing data in the database
 func generateUniqueID() string {
-	// Seed the random number generator to ensure different random numbers each time
-	rand.Seed(time.Now().UnixNano())
+	// Use a local random source with its own seed
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	timestamp := time.Now().UnixNano()
-	randomPart := rand.Intn(10000)
+	randomPart := r.Intn(10000)
 	return fmt.Sprintf("%d-%d", timestamp, randomPart)
 }
 

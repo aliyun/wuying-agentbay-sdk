@@ -36,7 +36,8 @@ def test_oss_integration():
         params = CreateSessionParams(
             image_id="code_latest",
         )
-        session = agent_bay.create(params)
+        result = agent_bay.create(params)
+        session = result.session
 
         oss = Oss(session)
 

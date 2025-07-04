@@ -1,0 +1,106 @@
+name: Golang Tests
+
+on:
+  pull_request:
+    branches: [ main, v0.3.0_dev, v0.4.0_dev ]
+    paths:
+      - 'golang/**'
+      - '.github/workflows/golang-tests.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get full history for SonarQube analysis
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: 'golang/go.sum'
+
+    - name: Install tools
+      working-directory: ./golang
+      run: |
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        go install github.com/securego/gosec/v2/cmd/gosec@latest
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    - name: Format check
+      working-directory: ./golang
+      run: |
+        # Check for gofmt issues
+        gofmt_files=$(gofmt -l .)
+        if [[ -n "$gofmt_files" ]]; then
+          echo "Go files need formatting:"
+          echo "$gofmt_files"
+          echo "Please run 'gofmt -w .' to fix these issues"
+          exit 1
+        fi
+
+    - name: Lint Go code
+      working-directory: ./golang
+      run: |
+        # Run static code analysis
+        staticcheck ./... || true
+
+    - name: Security scan with gosec
+      working-directory: ./golang
+      run: |
+        # Run security scan without blocking the build
+        gosec -fmt=json ./... || true
+
+    - name: Check dependencies for vulnerabilities
+      working-directory: ./golang
+      run: |
+        # Scan for vulnerabilities in dependencies
+        govulncheck ./... || true
+
+    - name: SonarQube Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        projectBaseDir: ./golang
+        args: >
+          -Dsonar.projectKey=wuying-agentbay-sdk_golang
+          -Dsonar.organization=wuying-agentbay
+          -Dsonar.go.coverage.reportPaths=coverage.out
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.23', '1.22', '1.21']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: 'golang/go.sum'
+
+    - name: Install dependencies
+      working-directory: ./golang
+      run: |
+        go mod download
+
+    - name: Run unit tests
+      working-directory: ./golang
+      run: |
+        go test -v -race ./tests/unit/...
+
+    # - name: Upload coverage report
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: go-coverage-${{ matrix.go-version }}
+    #     path: ./golang/coverage.out

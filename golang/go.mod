@@ -2,6 +2,8 @@ module github.com/aliyun/wuying-agentbay-sdk/golang
 
 go 1.23.0
 
+toolchain go1.24.2
+
 require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.7
 	github.com/alibabacloud-go/tea v1.3.8

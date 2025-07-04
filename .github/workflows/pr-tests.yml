@@ -18,3 +18,8 @@ jobs:
     if: contains(github.event.pull_request.changed_files, 'typescript/') || contains(github.event.pull_request.changed_files, '.github/workflows/typescript-tests.yml')
     uses: ./.github/workflows/typescript-tests.yml
     secrets: inherit
+
+  golang-tests:
+    if: contains(github.event.pull_request.changed_files, 'golang/') || contains(github.event.pull_request.changed_files, '.github/workflows/golang-tests.yml')
+    uses: ./.github/workflows/golang-tests.yml
+    secrets: inherit

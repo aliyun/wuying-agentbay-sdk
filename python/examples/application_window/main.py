@@ -35,6 +35,7 @@ def main():
             image_id="linux_latest",
         )
         result = agent_bay.create(params)
+        result = result.session
         session = result.session
         print(f"Session created with ID: {session.session_id}")
         print(f"Request ID: {result.request_id}")
