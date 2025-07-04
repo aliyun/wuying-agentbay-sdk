@@ -1,5 +1,5 @@
-import { Session } from '../session';
-import { ApiResponse } from './api-response';
+import { Session } from "../session";
+import { ApiResponse } from "./api-response";
 
 /**
  * Parameters for listing sessions with pagination support
@@ -36,9 +36,11 @@ export interface SessionListResult extends ApiResponse {
 /**
  * Helper function to create ListSessionParams with default values
  */
-export function createListSessionParams(labels: Record<string, string> = {}): ListSessionParams {
+export function createListSessionParams(
+  labels: Record<string, string> = {}
+): ListSessionParams {
   return {
     maxResults: 10,
-    labels
+    labels,
   };
 }

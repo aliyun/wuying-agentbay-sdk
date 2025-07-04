@@ -1,6 +1,12 @@
-import { AgentBay, Session, AuthenticationError, APIError, ListSessionParams } from '../../src';
-import { getTestApiKey } from '../utils/test-helpers';
-import { log } from '../../src/utils/logger';
+import {
+  AgentBay,
+  Session,
+  AuthenticationError,
+  APIError,
+  ListSessionParams,
+} from "../../src";
+import { getTestApiKey } from "../utils/test-helpers";
+import { log } from "../../src/utils/logger";
 
 // Define Node.js process if it's not available
 declare namespace NodeJS {
@@ -12,12 +18,12 @@ declare namespace NodeJS {
 declare var process: {
   env: {
     [key: string]: string | undefined;
-  }
+  };
 };
 
-describe('AgentBay', () => {
-  describe('constructor', () => {
-    it.only('should initialize with API key from options', () => {
+describe("AgentBay", () => {
+  describe("constructor", () => {
+    it.only("should initialize with API key from options", () => {
       const apiKey = getTestApiKey();
       const agentBay = new AgentBay({ apiKey });
       log(apiKey);
@@ -25,13 +31,13 @@ describe('AgentBay', () => {
       expect(agentBay.getAPIKey()).toBe(apiKey);
     });
 
-    it.only('should initialize with API key from environment variable', () => {
+    it.only("should initialize with API key from environment variable", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
-      process.env.AGENTBAY_API_KEY = 'env_api_key';
+      process.env.AGENTBAY_API_KEY = "env_api_key";
 
       try {
         const agentBay = new AgentBay();
-        expect(agentBay.getAPIKey()).toBe('env_api_key');
+        expect(agentBay.getAPIKey()).toBe("env_api_key");
       } finally {
         // Restore original environment
         if (originalEnv) {
@@ -42,7 +48,7 @@ describe('AgentBay', () => {
       }
     });
 
-    it.only('should throw AuthenticationError if no API key is provided', () => {
+    it.only("should throw AuthenticationError if no API key is provided", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       delete process.env.AGENTBAY_API_KEY;
 
@@ -57,7 +63,7 @@ describe('AgentBay', () => {
     });
   });
 
-  describe('create, list, and delete', () => {
+  describe("create, list, and delete", () => {
     let agentBay: AgentBay;
     let session: Session;
 
@@ -66,17 +72,19 @@ describe('AgentBay', () => {
       agentBay = new AgentBay({ apiKey });
     });
 
-    it.only('should create, list, and delete a session with requestId', async () => {
+    it.only("should create, list, and delete a session with requestId", async () => {
       // Create a session
-      log('Creating a new session...');
+      log("Creating a new session...");
       const createResponse = await agentBay.create();
       session = createResponse.data;
       log(`Session created with ID: ${session.sessionId}`);
-      log(`Create Session RequestId: ${createResponse.requestId || 'undefined'}`);
+      log(
+        `Create Session RequestId: ${createResponse.requestId || "undefined"}`
+      );
 
       // Verify that the response contains requestId
       expect(createResponse.requestId).toBeDefined();
-      expect(typeof createResponse.requestId).toBe('string');
+      expect(typeof createResponse.requestId).toBe("string");
       expect(createResponse.requestId!.length).toBeGreaterThan(0);
 
       // Ensure session ID is not empty
@@ -84,81 +92,96 @@ describe('AgentBay', () => {
       expect(session.sessionId.length).toBeGreaterThan(0);
 
       // List sessions
-      log('Listing sessions...');
+      log("Listing sessions...");
       const sessions = agentBay.list();
 
       // Ensure at least one session (the one we just created)
       expect(sessions.length).toBeGreaterThanOrEqual(1);
 
       // Check if our created session is in the list
-      const found = sessions.some(s => s.sessionId === session.sessionId);
+      const found = sessions.some((s) => s.sessionId === session.sessionId);
       expect(found).toBe(true);
 
       // Delete the session
-      log('Deleting the session...');
+      log("Deleting the session...");
       const deleteResponse = await agentBay.delete(session);
-      log(`Delete Session RequestId: ${deleteResponse.requestId || 'undefined'}`);
+      log(
+        `Delete Session RequestId: ${deleteResponse.requestId || "undefined"}`
+      );
 
       // Verify that the delete response contains requestId
       expect(deleteResponse.requestId).toBeDefined();
-      expect(typeof deleteResponse.requestId).toBe('string');
+      expect(typeof deleteResponse.requestId).toBe("string");
       expect(deleteResponse.requestId!.length).toBeGreaterThan(0);
 
       // List sessions again to ensure it's deleted
       const sessionsAfterDelete = agentBay.list();
 
       // Check if the deleted session is not in the list
-      const stillExists = sessionsAfterDelete.some(s => s.sessionId === session.sessionId);
+      const stillExists = sessionsAfterDelete.some(
+        (s) => s.sessionId === session.sessionId
+      );
       expect(stillExists).toBe(false);
     });
   });
 
-  describe('listByLabels', () => {
+  describe("listByLabels", () => {
     let agentBay: AgentBay;
     let sessionA: Session;
     let sessionB: Session;
 
     beforeEach(async () => {
-      try{
+      try {
         const apiKey = getTestApiKey();
         agentBay = new AgentBay({ apiKey });
         const labelsA = {
-          environment: 'development',
-          owner: 'team-a',
-          project: 'project-x'
+          environment: "development",
+          owner: "team-a",
+          project: "project-x",
         };
 
         const labelsB = {
-          environment: 'testing',
-          owner: 'team-b',
-          project: 'project-y'
+          environment: "testing",
+          owner: "team-b",
+          project: "project-y",
         };
 
         // Create session with labels A
-        log('Creating session with labels A...');
+        log("Creating session with labels A...");
         const createResponseA = await agentBay.create({ labels: labelsA });
         sessionA = createResponseA.data;
         log(`Session created with ID: ${sessionA.sessionId}`);
-        log(`Create Session A RequestId: ${createResponseA.requestId || 'undefined'}`);
+        log(
+          `Create Session A RequestId: ${
+            createResponseA.requestId || "undefined"
+          }`
+        );
 
         // Create session with labels B
         const createResponseB = await agentBay.create({ labels: labelsB });
         sessionB = createResponseB.data;
         log(`Session created with ID: ${sessionB.sessionId}`);
-        log(`Create Session B RequestId: ${createResponseB.requestId || 'undefined'}`);
-
-      }catch(error){
-        log(`Failed to constructor: ${error}`)
+        log(
+          `Create Session B RequestId: ${
+            createResponseB.requestId || "undefined"
+          }`
+        );
+      } catch (error) {
+        log(`Failed to constructor: ${error}`);
       }
     });
 
     afterEach(async () => {
       // Clean up sessions
-      log('Cleaning up sessions...');
+      log("Cleaning up sessions...");
       if (sessionA) {
         try {
           const deleteResponseA = await agentBay.delete(sessionA);
-          log(`Delete Session A RequestId: ${deleteResponseA.requestId || 'undefined'}`);
+          log(
+            `Delete Session A RequestId: ${
+              deleteResponseA.requestId || "undefined"
+            }`
+          );
         } catch (error) {
           log(`Warning: Error deleting session A: ${error}`);
         }
@@ -167,15 +190,18 @@ describe('AgentBay', () => {
       if (sessionB) {
         try {
           const deleteResponseB = await agentBay.delete(sessionB);
-          log(`Delete Session B RequestId: ${deleteResponseB.requestId || 'undefined'}`);
+          log(
+            `Delete Session B RequestId: ${
+              deleteResponseB.requestId || "undefined"
+            }`
+          );
         } catch (error) {
           log(`Warning: Error deleting session B: ${error}`);
         }
       }
     });
 
-    it.only('should list sessions by labels with requestId', async () => {
-
+    it.only("should list sessions by labels with requestId", async () => {
       // Test 1: List all sessions
       const allSessions = agentBay.list();
       log(`Found ${allSessions.length} sessions in total`);
@@ -183,20 +209,30 @@ describe('AgentBay', () => {
       // Test 2: List sessions by environment=development label using new API
       try {
         const devSessionsParams: ListSessionParams = {
-          labels: { environment: 'development' },
-          maxResults: 5
+          labels: { environment: "development" },
+          maxResults: 5,
         };
-        const devSessionsResponse = await agentBay.listByLabels(devSessionsParams);
-        log(`List Sessions by environment=development RequestId: ${devSessionsResponse.requestId || 'undefined'}`);
-        log(`Total count: ${devSessionsResponse.totalCount}, Max results: ${devSessionsResponse.maxResults}`);
+        const devSessionsResponse = await agentBay.listByLabels(
+          devSessionsParams
+        );
+        log(
+          `List Sessions by environment=development RequestId: ${
+            devSessionsResponse.requestId || "undefined"
+          }`
+        );
+        log(
+          `Total count: ${devSessionsResponse.totalCount}, Max results: ${devSessionsResponse.maxResults}`
+        );
 
         // Verify that the response contains requestId
         expect(devSessionsResponse.requestId).toBeDefined();
-        expect(typeof devSessionsResponse.requestId).toBe('string');
+        expect(typeof devSessionsResponse.requestId).toBe("string");
         expect(devSessionsResponse.requestId!.length).toBeGreaterThan(0);
 
         // Verify that session A is in the results
-        const foundSessionA = devSessionsResponse.data.some(s => s.sessionId === sessionA.sessionId);
+        const foundSessionA = devSessionsResponse.data.some(
+          (s) => s.sessionId === sessionA.sessionId
+        );
         expect(foundSessionA).toBe(true);
       } catch (error) {
         log(`Error listing sessions by environment=development: ${error}`);
@@ -205,18 +241,28 @@ describe('AgentBay', () => {
       // Test 3: List sessions by owner=team-b label using new API
       try {
         const teamBSessionsParams: ListSessionParams = {
-          labels: { owner: 'team-b' },
-          maxResults: 5
+          labels: { owner: "team-b" },
+          maxResults: 5,
         };
-        const teamBSessionsResponse = await agentBay.listByLabels(teamBSessionsParams);
-        log(`List Sessions by owner=team-b RequestId: ${teamBSessionsResponse.requestId || 'undefined'}`);
-        log(`Total count: ${teamBSessionsResponse.totalCount}, Max results: ${teamBSessionsResponse.maxResults}`);
+        const teamBSessionsResponse = await agentBay.listByLabels(
+          teamBSessionsParams
+        );
+        log(
+          `List Sessions by owner=team-b RequestId: ${
+            teamBSessionsResponse.requestId || "undefined"
+          }`
+        );
+        log(
+          `Total count: ${teamBSessionsResponse.totalCount}, Max results: ${teamBSessionsResponse.maxResults}`
+        );
 
         // Verify that the response contains requestId
         expect(teamBSessionsResponse.requestId).toBeDefined();
 
         // Verify that session B is in the results
-        const foundSessionB = teamBSessionsResponse.data.some(s => s.sessionId === sessionB.sessionId);
+        const foundSessionB = teamBSessionsResponse.data.some(
+          (s) => s.sessionId === sessionB.sessionId
+        );
         expect(foundSessionB).toBe(true);
       } catch (error) {
         log(`Error listing sessions by owner=team-b: ${error}`);
@@ -226,32 +272,46 @@ describe('AgentBay', () => {
       try {
         const multiLabelSessionsParams: ListSessionParams = {
           labels: {
-            environment: 'testing',
-            project: 'project-y'
+            environment: "testing",
+            project: "project-y",
           },
-          maxResults: 5
+          maxResults: 5,
         };
-        const multiLabelSessionsResponse = await agentBay.listByLabels(multiLabelSessionsParams);
-        log(`Found ${multiLabelSessionsResponse.data.length} sessions with environment=testing AND project=project-y`);
-        log(`Total count: ${multiLabelSessionsResponse.totalCount}, Max results: ${multiLabelSessionsResponse.maxResults}`);
-        log(`List Sessions by multiple labels RequestId: ${multiLabelSessionsResponse.requestId || 'undefined'}`);
+        const multiLabelSessionsResponse = await agentBay.listByLabels(
+          multiLabelSessionsParams
+        );
+        log(
+          `Found ${multiLabelSessionsResponse.data.length} sessions with environment=testing AND project=project-y`
+        );
+        log(
+          `Total count: ${multiLabelSessionsResponse.totalCount}, Max results: ${multiLabelSessionsResponse.maxResults}`
+        );
+        log(
+          `List Sessions by multiple labels RequestId: ${
+            multiLabelSessionsResponse.requestId || "undefined"
+          }`
+        );
 
         // Verify that the response contains requestId
         expect(multiLabelSessionsResponse.requestId).toBeDefined();
 
         // Verify that session B is in the results and session A is not
-        const foundSessionA = multiLabelSessionsResponse.data.some(s => s.sessionId === sessionA.sessionId);
-        const foundSessionB = multiLabelSessionsResponse.data.some(s => s.sessionId === sessionB.sessionId);
+        const foundSessionA = multiLabelSessionsResponse.data.some(
+          (s) => s.sessionId === sessionA.sessionId
+        );
+        const foundSessionB = multiLabelSessionsResponse.data.some(
+          (s) => s.sessionId === sessionB.sessionId
+        );
 
         expect(foundSessionA).toBe(false);
         expect(foundSessionB).toBe(true);
 
         // Demonstrate pagination if there's a next token
         if (multiLabelSessionsResponse.nextToken) {
-          log('\nFetching next page...');
+          log("\nFetching next page...");
           const nextPageParams: ListSessionParams = {
             ...multiLabelSessionsParams,
-            nextToken: multiLabelSessionsResponse.nextToken
+            nextToken: multiLabelSessionsResponse.nextToken,
           };
           const nextPageResponse = await agentBay.listByLabels(nextPageParams);
           log(`Next page sessions count: ${nextPageResponse.data.length}`);
@@ -264,25 +324,37 @@ describe('AgentBay', () => {
       // Test 5: List sessions with non-existent label using new API
       try {
         const nonExistentSessionsParams: ListSessionParams = {
-          labels: { 'non-existent': 'value' },
-          maxResults: 5
+          labels: { "non-existent": "value" },
+          maxResults: 5,
         };
-        const nonExistentSessionsResponse = await agentBay.listByLabels(nonExistentSessionsParams);
-        log(`Found ${nonExistentSessionsResponse.data.length} sessions with non-existent label`);
-        log(`Total count: ${nonExistentSessionsResponse.totalCount}, Max results: ${nonExistentSessionsResponse.maxResults}`);
-        log(`List Sessions by non-existent label RequestId: ${nonExistentSessionsResponse.requestId || 'undefined'}`);
+        const nonExistentSessionsResponse = await agentBay.listByLabels(
+          nonExistentSessionsParams
+        );
+        log(
+          `Found ${nonExistentSessionsResponse.data.length} sessions with non-existent label`
+        );
+        log(
+          `Total count: ${nonExistentSessionsResponse.totalCount}, Max results: ${nonExistentSessionsResponse.maxResults}`
+        );
+        log(
+          `List Sessions by non-existent label RequestId: ${
+            nonExistentSessionsResponse.requestId || "undefined"
+          }`
+        );
 
         // Verify that the response contains requestId even for empty results
         expect(nonExistentSessionsResponse.requestId).toBeDefined();
 
         if (nonExistentSessionsResponse.data.length > 0) {
-          log('Warning: Found sessions with non-existent label, this might indicate an issue');
+          log(
+            "Warning: Found sessions with non-existent label, this might indicate an issue"
+          );
         }
       } catch (error) {
         log(`Error listing sessions by non-existent label: ${error}`);
       }
 
-      log('Test completed successfully');
-    },);
+      log("Test completed successfully");
+    });
   });
 });

@@ -19,7 +19,10 @@ import {
   ApiResponseWithData,
   extractRequestId,
 } from "./types/api-response";
-import { ListSessionParams, SessionListResult } from './types/list-session-params';
+import {
+  ListSessionParams,
+  SessionListResult,
+} from "./types/list-session-params";
 
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
@@ -171,7 +174,7 @@ export class AgentBay {
     if (!params) {
       params = {
         maxResults: 10,
-        labels: {}
+        labels: {},
       };
     }
 
@@ -184,11 +187,15 @@ export class AgentBay {
         authorization: `Bearer ${this.apiKey}`,
         labels: labelsJSON,
         maxResults: params.maxResults || 10,
-        ...(params.nextToken && { nextToken: params.nextToken })
+        ...(params.nextToken && { nextToken: params.nextToken }),
       });
 
       log("API Call: ListSession");
-      log(`Request: Labels=${labelsJSON}, MaxResults=${params.maxResults || 10}${params.nextToken ? `, NextToken=${params.nextToken}` : ''}`);
+      log(
+        `Request: Labels=${labelsJSON}, MaxResults=${params.maxResults || 10}${
+          params.nextToken ? `, NextToken=${params.nextToken}` : ""
+        }`
+      );
 
       const response = await this.client.listSession(listSessionRequest);
 
@@ -212,7 +219,7 @@ export class AgentBay {
         data: sessions,
         nextToken: response.body?.nextToken,
         maxResults: response.body?.maxResults || params.maxResults || 10,
-        totalCount: response.body?.totalCount || 0
+        totalCount: response.body?.totalCount || 0,
       };
     } catch (error) {
       logError("Error calling ListSession:", error);
