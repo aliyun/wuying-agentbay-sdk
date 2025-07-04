@@ -1,7 +1,8 @@
 import json
 import os
 from typing import Any, Dict
-
+import dotenv
+from pathlib import Path
 
 def default_config() -> Dict[str, Any]:
     """Return the default configuration"""
@@ -12,55 +13,23 @@ def default_config() -> Dict[str, Any]:
     }
 
 
-def load_config() -> Dict[str, Any]:
-    """Load configuration from file"""
-    # First check if the config file path is specified in environment variables
-    config_path = os.getenv("AGENTBAY_CONFIG_PATH")
-    if not config_path:
-        # Try to find the config file by traversing up from the current directory
-        try:
-            dir_path = os.getcwd()
-            found = False
+def load_config(cfg) -> Dict[str, Any]:
+    if cfg is not None:
+        config = {
+            "region_id": cfg.region_id,
+            "endpoint": cfg.endpoint,
+            "timeout_ms": cfg.timeout_ms,
+        }
+    else:
+        config = default_config()
 
-            # Start from current directory and traverse up to find .config.json
-            # This will check current dir, parent, grandparent, etc. up to filesystem root
-            for _ in range(10):  # Limit search depth to prevent infinite loop
-                possible_config_path = os.path.join(dir_path, ".config.json")
-                if os.path.exists(possible_config_path):
-                    config_path = possible_config_path
-                    found = True
-                    print(f"Found config file at: {possible_config_path}")
-                    break
-
-                # Move up one directory
-                parent_dir = os.path.dirname(dir_path)
-                if parent_dir == dir_path:
-                    # We've reached the filesystem root
-                    break
-                dir_path = parent_dir
-
-            if not found:
-                # Config file not found, return default config
-                print("Warning: Configuration file not found, using default values")
-                return default_config()
-        except Exception as e:
-            print(
-                f"Warning: Failed to search for configuration file: {e}, using default values"
-            )
-            return default_config()
-
-    try:
-        # Read the config file
-        with open(config_path, "r") as f:
-            config = json.load(f)
-    except Exception as e:
-        print(f"Warning: Failed to read configuration file: {e}, using default values")
-        return default_config()
-
-    # Allow environment variables to override config file values
-    if region_id := os.getenv("AGENTBAY_REGION_ID"):
-        config["region_id"] = region_id
-    if endpoint := os.getenv("AGENTBAY_ENDPOINT"):
-        config["endpoint"] = endpoint
-
+        env_path = Path('.') / '.env'
+        if env_path.is_file():
+            dotenv.load_dotenv(env_path)
+        if region_id := os.getenv("AGENTBAY_REGION_ID"):
+            config["region_id"] = region_id
+        if endpoint := os.getenv("AGENTBAY_ENDPOINT"):
+            config["endpoint"] = endpoint
+        if timeout_ms := os.getenv("AGENTBAY_TIMEOUT_MS"):
+            config["timeout_ms"] = timeout_ms
     return config

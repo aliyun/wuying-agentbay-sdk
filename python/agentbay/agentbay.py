@@ -13,6 +13,14 @@ from agentbay.context import ContextService
 from agentbay.exceptions import AgentBayError
 from agentbay.session import Session
 from agentbay.session_params import CreateSessionParams
+from typing import Optional
+
+class Config:
+    def __init__(self, region_id: str, endpoint: str, timeout_ms: str):
+        self.region_id = region_id
+        self.endpoint = endpoint
+        self.timeout_ms = timeout_ms
+
 
 
 class AgentBay:
@@ -20,7 +28,7 @@ class AgentBay:
     AgentBay represents the main client for interacting with the AgentBay cloud runtime environment.
     """
 
-    def __init__(self, api_key: str = ""):
+    def __init__(self, api_key: str = "", cfg: Optional[Config] = None):
         if not api_key:
             api_key = os.getenv("AGENTBAY_API_KEY")
             if not api_key:
@@ -29,7 +37,7 @@ class AgentBay:
                 )
 
         # Load configuration
-        config_data = load_config()
+        config_data = load_config(cfg)
 
         self.api_key = api_key
         self.region_id = config_data["region_id"]
