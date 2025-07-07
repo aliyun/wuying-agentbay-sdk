@@ -11,7 +11,7 @@ import {
   CreateMcpSessionResponse,
   ListSessionRequest,
 } from "./api/models/model";
-import { loadConfig } from "./config";
+import { loadConfig, Config } from "./config";
 import "dotenv/config";
 import { log, logError } from "./utils/logger";
 import {
@@ -44,10 +44,12 @@ export class AgentBay {
    *
    * @param options - Configuration options
    * @param options.apiKey - API key for authentication. If not provided, will look for AGENTBAY_API_KEY environment variable.
+   * @param options.config - Custom configuration object. If not provided, will use environment-based configuration.
    */
   constructor(
     options: {
       apiKey?: string;
+      config?: Config;
     } = {}
   ) {
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
@@ -58,8 +60,8 @@ export class AgentBay {
       );
     }
 
-    // Load configuration
-    const configData = loadConfig();
+    // Load configuration using the enhanced loadConfig function
+    const configData = loadConfig(options.config);
     this.regionId = configData.region_id;
     this.endpoint = configData.endpoint;
 
@@ -70,6 +72,7 @@ export class AgentBay {
 
     config.readTimeout = configData.timeout_ms;
     config.connectTimeout = configData.timeout_ms;
+    
     try {
       this.client = new Client(config);
 

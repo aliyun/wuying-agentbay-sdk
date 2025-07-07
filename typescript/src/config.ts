@@ -22,75 +22,37 @@ export function defaultConfig(): Config {
 /**
  * Loads configuration from file
  */
-export function loadConfig(): Config {
-  // First check if the config file path is specified in environment variables
-  let configPath = process.env.AGENTBAY_CONFIG_PATH;
-  if (!configPath) {
-    try {
-      // Try to find the config file by traversing up from the current directory
-      let dirPath = process.cwd();
-      let found = false;
+export function loadConfig(customConfig?: Config): Config {
+  // If custom config is provided, use it directly
+  if (customConfig) {
+    return { ...defaultConfig(), ...customConfig };
+  }
 
-      // Start from current directory and traverse up to find .config.json
-      // This will check current dir, parent, grandparent, etc. up to filesystem root
-      for (let i = 0; i < 10; i++) {
-        // Limit search depth to prevent infinite loop
-        const possibleConfigPath = path.join(dirPath, ".config.json");
-        if (fs.existsSync(possibleConfigPath)) {
-          configPath = possibleConfigPath;
-          found = true;
-          log(`Found config file at: ${possibleConfigPath}`);
-          break;
-        }
-
-        // Move up one directory
-        const parentDir = path.dirname(dirPath);
-        if (parentDir === dirPath) {
-          // We've reached the filesystem root
-          break;
-        }
-        dirPath = parentDir;
-      }
-
-      if (!found) {
-        // Config file not found, return default config
-        log("Warning: Configuration file not found, using default values");
-        return defaultConfig();
-      }
-    } catch (error) {
-      log(
-        `Warning: Failed to search for configuration file: ${error}, using default values`
-      );
-      return defaultConfig();
+  // Create base config from default values
+  const config = defaultConfig();
+  
+  // Try to load .env file
+  const envPath = path.resolve(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    // dotenv is imported in the top of the file with "dotenv/config"
+    log(`Loaded .env file at: ${envPath}`);
+  }
+  
+  // Override with environment variables if they exist
+  if (process.env.AGENTBAY_REGION_ID) {
+    config.region_id = process.env.AGENTBAY_REGION_ID;
+  }
+  
+  if (process.env.AGENTBAY_ENDPOINT) {
+    config.endpoint = process.env.AGENTBAY_ENDPOINT;
+  }
+  
+  if (process.env.AGENTBAY_TIMEOUT_MS) {
+    const timeout = parseInt(process.env.AGENTBAY_TIMEOUT_MS, 10);
+    if (!isNaN(timeout) && timeout > 0) {
+      config.timeout_ms = timeout;
     }
   }
 
-  try {
-    // Make sure configPath is defined
-    if (!configPath) {
-      log(
-        "Warning: Configuration file path is undefined, using default values"
-      );
-      return defaultConfig();
-    }
-
-    // Read the config file
-    const data = fs.readFileSync(configPath, "utf8");
-    const config = JSON.parse(data) as Config;
-
-    // Allow environment variables to override config file values
-    if (process.env.AGENTBAY_REGION_ID) {
-      config.region_id = process.env.AGENTBAY_REGION_ID;
-    }
-    if (process.env.AGENTBAY_ENDPOINT) {
-      config.endpoint = process.env.AGENTBAY_ENDPOINT;
-    }
-
-    return config;
-  } catch (error) {
-    log(
-      `Warning: Failed to read configuration file: ${error}, using default values`
-    );
-    return defaultConfig();
-  }
+  return config;
 }
