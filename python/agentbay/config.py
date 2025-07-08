@@ -4,6 +4,7 @@ from typing import Any, Dict
 import dotenv
 from pathlib import Path
 
+
 def default_config() -> Dict[str, Any]:
     """Return the default configuration"""
     return {
@@ -12,6 +13,7 @@ def default_config() -> Dict[str, Any]:
         "timeout_ms": 60000,
     }
 
+
 """
 The SDK uses the following precedence order for configuration (highest to lowest):
 1. Explicitly passed configuration in code.
@@ -19,6 +21,8 @@ The SDK uses the following precedence order for configuration (highest to lowest
 3. .env file.
 4. Default configuration.
 """
+
+
 def load_config(cfg) -> Dict[str, Any]:
     if cfg is not None:
         config = {
@@ -29,7 +33,7 @@ def load_config(cfg) -> Dict[str, Any]:
     else:
         config = default_config()
 
-        env_path = Path('.') / '.env'
+        env_path = Path(".") / ".env"
         if env_path.is_file():
             dotenv.load_dotenv(env_path)
         if region_id := os.getenv("AGENTBAY_REGION_ID"):

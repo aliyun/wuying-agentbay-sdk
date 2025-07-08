@@ -10,6 +10,7 @@ from agentbay.config import load_config, default_config
 from agentbay import Config
 from pathlib import Path
 
+
 class LoadConfigTestCase(unittest.TestCase):
     def setUp(self):
         # 创建临时 .env 文件目录
@@ -128,5 +129,6 @@ class LoadConfigTestCase(unittest.TestCase):
         self.assertEqual(result["endpoint"], "env-endpoint")
         self.assertEqual(result["timeout_ms"], 10000)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

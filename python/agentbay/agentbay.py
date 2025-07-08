@@ -20,12 +20,12 @@ from agentbay.session import Session
 from agentbay.session_params import CreateSessionParams, ListSessionParams
 from typing import Optional
 
+
 class Config:
     def __init__(self, region_id: str, endpoint: str, timeout_ms: int):
         self.region_id = region_id
         self.endpoint = endpoint
         self.timeout_ms = timeout_ms
-
 
 
 class AgentBay:
@@ -226,18 +226,16 @@ class AgentBay:
             body = response_map.get("body", {})
 
             # Check for errors in the response
-            if (
-                isinstance(body, dict)
-                and isinstance(body.get("Data"), dict)
-                and body.get("Data", {}).get("IsError", False)
-            ):
+            if isinstance(body, dict) and body.get("Success") is False:
+                # Extract error message from Message field if present, otherwise use Code
+                error_message = body.get("Message", body.get("Code", "Unknown error"))
                 return SessionListResult(
                     request_id=request_id,
                     success=False,
-                    error_message="Failed to list sessions by labels",
+                    error_message=f"Failed to list sessions by labels: {error_message}",
                     sessions=[],
                     next_token="",
-                    max_results=request.max_results,
+                    max_results=params.max_results,
                     total_count=0,
                 )
 
