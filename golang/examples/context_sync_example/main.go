@@ -40,7 +40,7 @@ func main() {
 
 	// Example 2: Create a basic context sync configuration
 	fmt.Println("\nExample 2: Creating a basic context sync configuration...")
-	basicSync := agentbay.NewBasicContextSync(context.ID, "/tmp/test")
+	basicSync := agentbay.NewBasicContextSync(context.ID, "/home/wuying")
 	fmt.Printf("Basic sync - ContextID: %s, Path: %s\n", basicSync.ContextID, basicSync.Path)
 
 	// Example 3: Create an advanced context sync configuration with policies

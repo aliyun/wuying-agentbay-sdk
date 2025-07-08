@@ -83,7 +83,7 @@ func (s *GetLinkResponseBody) SetMessage(v string) *GetLinkResponseBody {
 	s.Message = &v
 	return s
 }
-``
+
 func (s *GetLinkResponseBody) SetRequestId(v string) *GetLinkResponseBody {
 	s.RequestId = &v
 	return s

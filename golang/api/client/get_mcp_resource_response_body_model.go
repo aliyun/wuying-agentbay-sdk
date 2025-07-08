@@ -149,6 +149,7 @@ type GetMcpResourceResponseBodyDataDesktopInfo struct {
 	ConnectionProperties *string `json:"ConnectionProperties,omitempty" xml:"ConnectionProperties,omitempty"`
 	ResourceId           *string `json:"ResourceId,omitempty" xml:"ResourceId,omitempty"`
 	ResourceType         *string `json:"ResourceType,omitempty" xml:"ResourceType,omitempty"`
+	Ticket               *string `json:"Ticket,omitempty" xml:"Ticket,omitempty"`
 }
 
 func (s GetMcpResourceResponseBodyDataDesktopInfo) String() string {
@@ -179,6 +180,10 @@ func (s *GetMcpResourceResponseBodyDataDesktopInfo) GetResourceType() *string {
 	return s.ResourceType
 }
 
+func (s *GetMcpResourceResponseBodyDataDesktopInfo) GetTicket() *string {
+	return s.Ticket
+}
+
 func (s *GetMcpResourceResponseBodyDataDesktopInfo) SetAppId(v string) *GetMcpResourceResponseBodyDataDesktopInfo {
 	s.AppId = &v
 	return s
@@ -201,6 +206,11 @@ func (s *GetMcpResourceResponseBodyDataDesktopInfo) SetResourceId(v string) *Get
 
 func (s *GetMcpResourceResponseBodyDataDesktopInfo) SetResourceType(v string) *GetMcpResourceResponseBodyDataDesktopInfo {
 	s.ResourceType = &v
+	return s
+}
+
+func (s *GetMcpResourceResponseBodyDataDesktopInfo) SetTicket(v string) *GetMcpResourceResponseBodyDataDesktopInfo {
+	s.Ticket = &v
 	return s
 }
 

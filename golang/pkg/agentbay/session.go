@@ -63,6 +63,7 @@ type SessionInfo struct {
 	ConnectionProperties string
 	ResourceId           string
 	ResourceType         string
+	Ticket               string
 }
 
 // Session represents a session in the AgentBay cloud environment.
@@ -370,6 +371,7 @@ func (s *Session) Info() (*InfoResult, error) {
 			ConnectionProperties: "",
 			ResourceId:           "",
 			ResourceType:         "",
+			Ticket:               "",
 		}
 
 		if response.Body.Data.SessionId != nil {
@@ -398,6 +400,9 @@ func (s *Session) Info() (*InfoResult, error) {
 			}
 			if response.Body.Data.DesktopInfo.ResourceType != nil {
 				sessionInfo.ResourceType = *response.Body.Data.DesktopInfo.ResourceType
+			}
+			if response.Body.Data.DesktopInfo.Ticket != nil {
+				sessionInfo.Ticket = *response.Body.Data.DesktopInfo.Ticket
 			}
 		}
 

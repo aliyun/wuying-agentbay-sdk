@@ -352,4 +352,12 @@ func TestSession_InfoMethod(t *testing.T) {
 	t.Logf("DesktopInfo - ConnectionProperties: %s", infoResult.Info.ConnectionProperties)
 	t.Logf("DesktopInfo - ResourceId: %s", infoResult.Info.ResourceId)
 	t.Logf("DesktopInfo - ResourceType: %s", infoResult.Info.ResourceType)
+	t.Logf("DesktopInfo - Ticket: %s", infoResult.Info.Ticket)
+
+	// Test Ticket field specifically
+	if infoResult.Info.Ticket != "" {
+		t.Logf("✅ Ticket field is present: %s", infoResult.Info.Ticket)
+	} else {
+		t.Errorf("ℹ️  Ticket field is empty (this may be normal depending on the API response)")
+	}
 }
