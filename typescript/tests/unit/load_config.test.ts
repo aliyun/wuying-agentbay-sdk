@@ -9,16 +9,16 @@ describe("Config", () => {
 
   beforeEach(() => {
     originalEnv = process.env;
-    // 清除所有环境变量
+    // clear all environment variables
     process.env = {};
 
-    // 创建临时目录
+    // create a temporary directory
     const testDir = fs.mkdtempSync(path.join(os.tmpdir(), "config-test-"));
     process.chdir(testDir);
   });
 
   afterEach(() => {
-    // 恢复原始环境变量
+    // restore environment variables
     process.env = originalEnv;
   });
 
@@ -40,7 +40,7 @@ describe("Config", () => {
 
   describe("test_load_from_env_file", () => {
     it("should load configuration from .env file", () => {
-      // 创建 .env 文件并写入测试内容
+      // create .env file and write test content
       const envFilePath = path.resolve(process.cwd(), ".env");
       fs.writeFileSync(
         envFilePath,
@@ -49,16 +49,16 @@ describe("Config", () => {
           "AGENTBAY_TIMEOUT_MS=10000\n"
       );
 
-      // 验证文件确实存在
+      // validate file exists
       expect(fs.existsSync(envFilePath)).toBe(true);
 
-      // 清除环境变量
+      // clear environment variables
       process.env = {};
 
-      // 调用 loadConfig
+      // call loadConfig
       const result = loadConfig(undefined);
 
-      // 验证结果
+      // verify results
       expect(result.region_id).toBe("env-region");
       expect(result.endpoint).toBe("env-endpoint");
       expect(result.timeout_ms).toBe(10000);
@@ -67,21 +67,21 @@ describe("Config", () => {
 
   describe("test_load_from_system_env_vars", () => {
     it("should load configuration from system environment variables", () => {
-      // 设置环境变量
+      // set environment variables
       process.env.AGENTBAY_REGION_ID = "sys-region";
       process.env.AGENTBAY_ENDPOINT = "sys-endpoint";
       process.env.AGENTBAY_TIMEOUT_MS = "15000";
 
-      // 确保没有 .env 文件
+      // ensure no .env file exists
       const envFilePath = path.resolve(process.cwd(), ".env");
       if (fs.existsSync(envFilePath)) {
         fs.unlinkSync(envFilePath);
       }
 
-      // 调用 loadConfig
+      // call loadConfig
       const result = loadConfig(undefined);
 
-      // 验证结果
+      // verify results
       expect(result.region_id).toBe("sys-region");
       expect(result.endpoint).toBe("sys-endpoint");
       expect(result.timeout_ms).toBe(15000);
@@ -90,26 +90,26 @@ describe("Config", () => {
 
   describe("test_use_default_config_when_no_source_provided", () => {
     it("should use default configuration when no source is provided", () => {
-      // 清除环境变量
+      // clear all environment variables
       process.env = {};
 
-      // 确保没有 .env 文件
+      // make sure no .env file exists
       const envFilePath = path.resolve(process.cwd(), ".env");
       if (fs.existsSync(envFilePath)) {
         fs.unlinkSync(envFilePath);
       }
 
-      // 调用 loadConfig
+      // call loadConfig
       const result = loadConfig(undefined);
 
-      // 获取默认配置
+      // get default configuration
       const defaultCfg = {
         region_id: "cn-shanghai",
         endpoint: "wuyingai.cn-shanghai.aliyuncs.com",
         timeout_ms: 60000,
       };
 
-      // 验证结果
+      // verify results
       expect(result.region_id).toBe(defaultCfg.region_id);
       expect(result.endpoint).toBe(defaultCfg.endpoint);
       expect(result.timeout_ms).toBe(defaultCfg.timeout_ms);
@@ -118,7 +118,7 @@ describe("Config", () => {
 
   describe("test_config_precedence_order", () => {
     it("should follow the correct precedence order for configuration sources", () => {
-      // 创建 .env 文件并写入测试内容
+      // create .env file and write test content
       const envFilePath = path.resolve(process.cwd(), ".env");
       fs.writeFileSync(
         envFilePath,
@@ -127,22 +127,22 @@ describe("Config", () => {
           "AGENTBAY_TIMEOUT_MS=10000\n"
       );
 
-      // 验证文件确实存在
+      // verify file exists
       expect(fs.existsSync(envFilePath)).toBe(true);
 
-      // 设置环境变量
+      // set environment variables
       process.env.AGENTBAY_REGION_ID = "sys-region";
       process.env.AGENTBAY_ENDPOINT = "sys-endpoint";
       process.env.AGENTBAY_TIMEOUT_MS = "15000";
 
-      // 获取默认配置
+      // get default configuration
       const defaultCfg = {
         region_id: "cn-shanghai",
         endpoint: "wuyingai.cn-shanghai.aliyuncs.com",
         timeout_ms: 60000,
       };
 
-      // 1. 显式传入的配置应具有最高优先级
+      // 1. explicit configuration should take precedence over all other sources
       const customCfg: Config = {
         region_id: "explicit-region",
         endpoint: "explicit-endpoint",
@@ -153,20 +153,20 @@ describe("Config", () => {
       expect(result.endpoint).toBe("explicit-endpoint");
       expect(result.timeout_ms).toBe(2000);
 
-      // 2. 当显式配置为 undefined 时，应使用环境变量
+      // 2. when no explicit configuration is provided, system environment variables should take precedence over .env file
       result = loadConfig(undefined);
       expect(result.region_id).toBe("sys-region");
       expect(result.endpoint).toBe("sys-endpoint");
       expect(result.timeout_ms).toBe(15000);
 
-      // 3. 清除环境变量后，应使用 .env 文件
+      // 3. after clearing environment variables, .env file should take precedence over default configuration
       process.env = {};
       result = loadConfig(undefined);
       expect(result.region_id).toBe("env-region");
       expect(result.endpoint).toBe("env-endpoint");
       expect(result.timeout_ms).toBe(10000);
 
-      // 4. 所有其他来源都不存在时，应使用默认配置
+      // 4. when no .env file exists, default configuration should be used
       fs.unlinkSync(envFilePath);
       result = loadConfig(undefined);
       expect(result.region_id).toBe(defaultCfg.region_id);

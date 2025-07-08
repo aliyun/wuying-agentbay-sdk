@@ -54,13 +54,12 @@ export function loadConfig(customConfig?: Config): Config {
   // Try to load .env file
   const envPath = path.resolve(process.cwd(), ".env");
 
-  // 显式加载 .env 文件内容到 process.env
   if (fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath));
     for (const k in envConfig) {
-      // 仅当环境变量未设置时才使用 .env 文件中的值
+      // only load env variables that are not already set in process.env
       if (!process.env.hasOwnProperty(k)) {
-        // 更新 config 对象以反映 .env 文件的值
+        // update config object to reflect values from .env file
         if (k === "AGENTBAY_REGION_ID") config.region_id = envConfig[k];
         else if (k === "AGENTBAY_ENDPOINT") config.endpoint = envConfig[k];
         else if (k === "AGENTBAY_TIMEOUT_MS") {

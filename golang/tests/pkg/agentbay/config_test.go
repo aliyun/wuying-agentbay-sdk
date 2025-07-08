@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoadConfig_WithExplicitConfig(t *testing.T) {
-	// 测试显式传入的配置是否被正确使用
+	// test whether the LoadConfig function works as expected when a custom config is provided.
 	customCfg := &agentbay.Config{
 		RegionID:  "custom-region",
 		Endpoint:  "custom-endpoint",
@@ -26,7 +26,7 @@ func TestLoadConfig_WithExplicitConfig(t *testing.T) {
 }
 
 func TestLoadConfig_FromEnvFile(t *testing.T) {
-	// 创建临时目录和 .env 文件
+	// create temp dir and create .env file
 	dir := t.TempDir()
 	envFilePath := path.Join(dir, ".env")
 	err := os.WriteFile(envFilePath, []byte(`
@@ -38,17 +38,16 @@ AGENTBAY_TIMEOUT_MS=10000
 		t.Fatalf("Failed to create .env file: %v", err)
 	}
 
-	// 清除环境变量以避免干扰
+	// clear environment variables
 	os.Unsetenv("AGENTBAY_REGION_ID")
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 
-	// 切换到临时目录
+	// switch to temp dir
 	cwd, _ := os.Getwd()
 	defer os.Chdir(cwd)
 	os.Chdir(dir)
 
-	// 执行测试
 	result := agentbay.LoadConfig(nil)
 
 	assert.Equal(t, "env-region", result.RegionID)
@@ -57,7 +56,7 @@ AGENTBAY_TIMEOUT_MS=10000
 }
 
 func TestLoadConfig_FromEnvironmentVariables(t *testing.T) {
-	// 设置环境变量
+	// set environment variables
 	os.Setenv("AGENTBAY_REGION_ID", "sys-region")
 	os.Setenv("AGENTBAY_ENDPOINT", "sys-endpoint")
 	os.Setenv("AGENTBAY_TIMEOUT_MS", "15000")
@@ -67,7 +66,6 @@ func TestLoadConfig_FromEnvironmentVariables(t *testing.T) {
 		os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 	}()
 
-	// 执行测试
 	result := agentbay.LoadConfig(nil)
 
 	assert.Equal(t, "sys-region", result.RegionID)
@@ -76,12 +74,11 @@ func TestLoadConfig_FromEnvironmentVariables(t *testing.T) {
 }
 
 func TestLoadConfig_UsesDefaultsWhenNoSource(t *testing.T) {
-	// 确保所有环境变量都未设置
+	// ensure environment variables are cleared
 	os.Unsetenv("AGENTBAY_REGION_ID")
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 
-	// 执行测试
 	result := agentbay.LoadConfig(nil)
 
 	defaultCfg := agentbay.DefaultConfig()
@@ -102,12 +99,12 @@ AGENTBAY_TIMEOUT_MS=10000
 		t.Fatalf("Failed to create .env file: %v", err)
 	}
 
-	// 切换工作目录
+	// change to temp dir
 	cwd, _ := os.Getwd()
 	defer os.Chdir(cwd)
 	os.Chdir(dir)
 
-	// 设置环境变量
+	// set environment variables
 	os.Setenv("AGENTBAY_REGION_ID", "sys-region")
 	os.Setenv("AGENTBAY_ENDPOINT", "sys-endpoint")
 	os.Setenv("AGENTBAY_TIMEOUT_MS", "15000")
@@ -117,10 +114,10 @@ AGENTBAY_TIMEOUT_MS=10000
 		os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 	}()
 
-	// 默认配置
+	// default config
 	defaultCfg := agentbay.DefaultConfig()
 
-	// 1. 显式传入的配置应该优先
+	// 1. explicit config should take precedence over env vars
 	customCfg := &agentbay.Config{
 		RegionID:  "explicit-region",
 		Endpoint:  "explicit-endpoint",
@@ -131,13 +128,13 @@ AGENTBAY_TIMEOUT_MS=10000
 	assert.Equal(t, "explicit-endpoint", result.Endpoint)
 	assert.Equal(t, 2000, result.TimeoutMs)
 
-	// 2. 当 cfg == nil 时应使用环境变量
+	// 2. when there is no explicit config, env vars should take precedence over default config
 	result = agentbay.LoadConfig(nil)
 	assert.Equal(t, "sys-region", result.RegionID)
 	assert.Equal(t, "sys-endpoint", result.Endpoint)
 	assert.Equal(t, 15000, result.TimeoutMs)
 
-	// 3. 清除环境变量后应使用 .env 文件
+	// 3. after clearing environment variables, env vars should take precedence over default config
 	os.Unsetenv("AGENTBAY_REGION_ID")
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
@@ -147,8 +144,8 @@ AGENTBAY_TIMEOUT_MS=10000
 	assert.Equal(t, "env-endpoint", result.Endpoint)
 	assert.Equal(t, 10000, result.TimeoutMs)
 
-	// 4. 没有任何配置源时应使用默认值
-	os.Remove(envFilePath) // 删除 .env 文件
+	// 4. when no env vars are set, default config should be used
+	os.Remove(envFilePath) 
 	os.Unsetenv("AGENTBAY_REGION_ID")
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
