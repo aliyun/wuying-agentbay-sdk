@@ -1,28 +1,24 @@
-import axios, { AxiosInstance } from "axios";
-import { Session } from "./session";
-import { ContextService } from "./context";
-import { AuthenticationError, APIError } from "./exceptions";
-import * as $_client from "./api";
-import OpenApi from "@alicloud/openapi-core";
-import { OpenApiUtil, $OpenApiUtil } from "@alicloud/openapi-core";
-import { Client } from "./api/client";
-import {
-  CreateMcpSessionRequest,
-  CreateMcpSessionResponse,
-  ListSessionRequest,
-} from "./api/models/model";
-import { loadConfig, Config } from "./config";
+import { $OpenApiUtil } from "@alicloud/openapi-core";
 import "dotenv/config";
-import { log, logError } from "./utils/logger";
+import * as $_client from "./api";
+import { ListSessionRequest } from "./api/models/model";
+import { Client } from "./api/client";
+
+import { loadConfig, Config } from "./config";
+import { ContextService } from "./context";
+import { APIError, AuthenticationError } from "./exceptions";
+import { Session } from "./session";
+
 import {
-  ApiResponse,
   ApiResponseWithData,
+  DeleteResult,
   extractRequestId,
 } from "./types/api-response";
 import {
   ListSessionParams,
   SessionListResult,
 } from "./types/list-session-params";
+import { log, logError } from "./utils/logger";
 
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
@@ -236,7 +232,7 @@ export class AgentBay {
    * @param session - The session to delete.
    * @returns API response with requestId
    */
-  async delete(session: Session): Promise<ApiResponse> {
+  async delete(session: Session): Promise<DeleteResult> {
     const getSession = this.sessions.get(session.sessionId);
     if (!getSession) {
       throw new Error(`Session with ID ${session.sessionId} not found`);

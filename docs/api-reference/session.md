@@ -55,11 +55,14 @@ The return type has been updated to return a structured `DeleteResult` object in
 #### TypeScript
 
 ```typescript
-delete(): Promise<boolean>
+delete(): Promise<DeleteResult>
 ```
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the session was deleted successfully, false otherwise.
+- `Promise<DeleteResult>`: A promise that resolves to a DeleteResult object containing:
+  - `requestId` (string): Unique request identifier for debugging
+  - `success` (boolean): Whether the deletion was successful
+  - `errorMessage` (string, optional): Error message if the deletion failed
 
 **Throws:**
 - `APIError`: If the session deletion fails.

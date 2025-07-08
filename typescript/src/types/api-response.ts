@@ -15,6 +15,16 @@ export interface ApiResponseWithData<T> extends ApiResponse {
   data: T;
 }
 
+/**
+ * Interface for delete operation responses
+ */
+export interface DeleteResult extends ApiResponse {
+  /** Whether the delete operation was successful */
+  success: boolean;
+  /** Optional error message if the operation failed */
+  errorMessage?: string;
+}
+
 export function extractRequestId(response: any): string | undefined {
   if (!response) return undefined;
 

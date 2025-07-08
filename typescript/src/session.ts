@@ -1,25 +1,26 @@
 import { AgentBay } from "./agent-bay";
-import { APIError } from "./exceptions";
-import { FileSystem } from "./filesystem";
-import { Command } from "./command";
-import { Oss } from "./oss";
-import { Application } from "./application";
-import { WindowManager } from "./window";
-import { UI } from "./ui";
 import { Client } from "./api/client";
 import {
+  GetLabelRequest,
+  GetLinkRequest,
+  GetMcpResourceRequest,
   ReleaseMcpSessionRequest,
   SetLabelRequest,
-  GetLabelRequest,
-  GetMcpResourceRequest,
-  GetLinkRequest,
 } from "./api/models/model";
-import { log, logError } from "./utils/logger";
+import { Application } from "./application";
+import { Command } from "./command";
+import { APIError } from "./exceptions";
+import { FileSystem } from "./filesystem";
+import { Oss } from "./oss";
 import {
   ApiResponse,
   ApiResponseWithData,
+  DeleteResult,
   extractRequestId,
 } from "./types/api-response";
+import { UI } from "./ui";
+import { log, logError } from "./utils/logger";
+import { WindowManager } from "./window";
 
 /**
  * Contains information about a session.
@@ -94,9 +95,10 @@ export class Session {
   /**
    * Delete this session.
    *
-   * @returns API response with requestId
+   * @returns DeleteResult with requestId and success status
+   * @throws APIError if the operation fails
    */
-  async delete(): Promise<ApiResponse> {
+  async delete(): Promise<DeleteResult> {
     try {
       const releaseSessionRequest = new ReleaseMcpSessionRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
@@ -114,10 +116,22 @@ export class Session {
       // Log API response
       log(`Response from ReleaseMcpSession:`, response.body);
 
+      // Check if the response is success
+      const success = response.body?.Success !== false; // Default to true if Success field doesn't exist
+
+      if (!success) {
+        return {
+          requestId: extractRequestId(response),
+          success: false,
+          errorMessage: "Failed to delete session",
+        };
+      }
+
       this.agentBay.removeSession(this.sessionId);
 
       return {
         requestId: extractRequestId(response),
+        success: true,
       };
     } catch (error) {
       logError("Error calling ReleaseMcpSession:", error);

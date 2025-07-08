@@ -144,6 +144,24 @@ func (s *Session) Delete() (*DeleteResult, error) {
 		fmt.Println("Response from ReleaseMcpSession:", response.Body)
 	}
 
+	// Check if the response is success
+	success := true
+	if response != nil && response.Body != nil {
+		// Default to true if Success field doesn't exist
+		if response.Body.Success != nil {
+			success = *response.Body.Success
+		}
+	}
+
+	if !success {
+		return &DeleteResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: requestID,
+			},
+			Success: false,
+		}, nil
+	}
+
 	s.AgentBay.Sessions.Delete(s.SessionID)
 
 	return &DeleteResult{

@@ -92,11 +92,16 @@ class Session:
                 session_id=self.session_id,
             )
             response = self.get_client().release_mcp_session(request)
+            print(f"Response from release_mcp_session: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
 
-            if response.to_map().get("body", {}).get("Data", {}).get("IsError", False):
+            # Check if the response is success
+            response_map = response.to_map()
+            success = response_map.get("body", {}).get("Success", True)
+
+            if not success:
                 return DeleteResult(
                     request_id=request_id,
                     success=False,
