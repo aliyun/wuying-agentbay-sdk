@@ -1,11 +1,6 @@
 name: Python Tests
 
 on:
-  pull_request:
-    branches: [ main, v0.3.0_dev, v0.4.0_dev ]
-    paths:
-      - 'python/**'
-      - '.github/workflows/python-tests.yml'
   workflow_call:
 
 jobs:

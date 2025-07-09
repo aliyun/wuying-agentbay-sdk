@@ -9,12 +9,32 @@ on:
       - '*.md'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      typescript: ${{ steps.filter.outputs.typescript }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            python:
+              - 'python/**'
+              - '.github/workflows/python-tests.yml'
+            typescript:
+              - 'typescript/**'
+              - '.github/workflows/typescript-tests.yml'
+
   python-tests:
-    if: contains(github.event.pull_request.changed_files, 'python/') || contains(github.event.pull_request.changed_files, '.github/workflows/python-tests.yml')
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
     uses: ./.github/workflows/python-tests.yml
     secrets: inherit
 
   typescript-tests:
-    if: contains(github.event.pull_request.changed_files, 'typescript/') || contains(github.event.pull_request.changed_files, '.github/workflows/typescript-tests.yml')
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
     uses: ./.github/workflows/typescript-tests.yml
     secrets: inherit
