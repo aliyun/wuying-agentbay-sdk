@@ -22,6 +22,7 @@ class LoadConfigTestCase(unittest.TestCase):
 
     def test_load_from_passed_config(self):
         """测试从传入的 Config 对象加载配置"""
+        os.chdir(self.test_dir.name)
         custom_cfg = Config(
             region_id="custom-region",
             endpoint="custom-endpoint",
@@ -59,6 +60,7 @@ class LoadConfigTestCase(unittest.TestCase):
     @patch("pathlib.Path.is_file", return_value=False)
     def test_load_from_system_env_vars(self, mock_is_file):
         """测试从系统环境变量加载配置"""
+        os.chdir(self.test_dir.name)
         os.environ["AGENTBAY_REGION_ID"] = "sys-region"
         os.environ["AGENTBAY_ENDPOINT"] = "sys-endpoint"
         os.environ["AGENTBAY_TIMEOUT_MS"] = "15000"
@@ -73,6 +75,7 @@ class LoadConfigTestCase(unittest.TestCase):
     def test_use_default_config_when_no_source_provided(self, mock_is_file):
         """测试当没有提供任何配置源时使用默认值"""
         # 清除所有相关环境变量
+        os.chdir(self.test_dir.name)
         os.environ.pop("AGENTBAY_REGION_ID", None)
         os.environ.pop("AGENTBAY_ENDPOINT", None)
         os.environ.pop("AGENTBAY_TIMEOUT_MS", None)
@@ -87,6 +90,7 @@ class LoadConfigTestCase(unittest.TestCase):
     def test_config_precedence_order(self):
         """测试配置的优先级顺序"""
         # 创建 .env 文件
+        os.chdir(self.test_dir.name)
         with open(self.env_file, "w") as f:
             f.write(
                 "AGENTBAY_REGION_ID=env-region\n"

@@ -37,7 +37,15 @@ func LoadConfig(cfg *Config) Config {
 	}
 
 	// First try to load from .env file if present in current directory
-	err := godotenv.Load()
+	var envPath string
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Warning: Failed to get current working directory: %v\n", err)
+	} else {
+		envPath = workingDir + "/.env"
+	}
+	
+	err = godotenv.Load(envPath)
 	if err != nil {
 		fmt.Printf("Warning: Failed to load .env file: %v\n", err)
 	}

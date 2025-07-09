@@ -32,10 +32,11 @@ def load_config(cfg) -> Dict[str, Any]:
         }
     else:
         config = default_config()
-
-        env_path = Path(".") / ".env"
-        if env_path.is_file():
+        try:
+            env_path = Path(os.getcwd()) / ".env"
             dotenv.load_dotenv(env_path)
+        except:
+            print("Warning: Failed to load .env file")
         if region_id := os.getenv("AGENTBAY_REGION_ID"):
             config["region_id"] = region_id
         if endpoint := os.getenv("AGENTBAY_ENDPOINT"):
