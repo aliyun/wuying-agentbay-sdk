@@ -1,6 +1,11 @@
 name: TypeScript Tests
 
 on:
+  pull_request:
+    branches: [ main, v0.3.0_dev, v0.4.0_dev ]
+    paths:
+      - 'typescript/**'
+      - '.github/workflows/typescript-tests.yml'
   workflow_call:
 
 jobs:
