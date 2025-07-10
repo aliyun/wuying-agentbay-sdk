@@ -37,6 +37,7 @@ class SessionInfo:
         connection_properties: str = "",
         resource_id: str = "",
         resource_type: str = "",
+        ticket: str = "",
     ):
         self.session_id = session_id
         self.resource_url = resource_url
@@ -45,6 +46,7 @@ class SessionInfo:
         self.connection_properties = connection_properties
         self.resource_id = resource_id
         self.resource_type = resource_type
+        self.ticket = ticket
 
 
 class Session:
@@ -257,6 +259,8 @@ class Session:
                     session_info.resource_id = desktop_info["ResourceId"]
                 if "ResourceType" in desktop_info:
                     session_info.resource_type = desktop_info["ResourceType"]
+                if "Ticket" in desktop_info:
+                    session_info.ticket = desktop_info["Ticket"]
 
             return OperationResult(
                 request_id=request_id, success=True, data=session_info
