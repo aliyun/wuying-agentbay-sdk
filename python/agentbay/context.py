@@ -8,6 +8,7 @@ from agentbay.api.models import (
 )
 from agentbay.exceptions import AgentBayError
 from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
+import json
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
@@ -137,7 +138,11 @@ class ContextService:
             response = self.agent_bay.client.list_contexts(request)
 
             # Log API response
-            print(f"Response from ListContexts: {response}")
+            try:
+                print("Response body:")
+                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -202,13 +207,17 @@ class ContextService:
 
             request = GetContextRequest(
                 name=name,
-                allow_create="true" if create else "false",
+                allow_create=create,
                 authorization=f"Bearer {self.agent_bay.api_key}",
             )
             response = self.agent_bay.client.get_context(request)
 
             # Log API response
-            print(f"Response from GetContext: {response}")
+            try:
+                print("Response body:")
+                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)

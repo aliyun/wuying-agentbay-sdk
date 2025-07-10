@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
+import json
 
 from agentbay.api.base_service import BaseService
 from agentbay.exceptions import AgentBayError, FileError
@@ -287,7 +288,11 @@ class FileSystem(BaseService):
         args = {"path": path}
         try:
             result = self._call_mcp_tool("get_file_info", args)
-            print("Response from CallMcpTool - get_file_info:", result)
+            try:
+                print("Response body:")
+                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {result}")
             if result.success:
                 file_info = parse_file_info(result.data)
                 return FileInfoResult(
@@ -374,7 +379,11 @@ class FileSystem(BaseService):
         args = {"path": path}
         try:
             result = self._call_mcp_tool("list_directory", args)
-            print("Response from CallMcpTool - list_directory:", result)
+            try:
+                print("Response body:")
+                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {result}")
             if result.success:
                 entries = parse_directory_listing(result.data)
                 return DirectoryListResult(
@@ -453,7 +462,11 @@ class FileSystem(BaseService):
 
         try:
             result = self._call_mcp_tool("read_file", args)
-            print(f"Response from CallMcpTool - read_file: {result}")
+            try:
+                print("Response body:")
+                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {result}")
             if result.success:
                 return FileContentResult(
                     request_id=result.request_id,
@@ -545,7 +558,11 @@ class FileSystem(BaseService):
         args = {"paths": paths}
         try:
             result = self._call_mcp_tool("read_multiple_files", args)
-            print(f"Response from CallMcpTool - read_multiple_files: {result}")
+            try:
+                print("Response body:")
+                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {result}")
 
             if result.success:
                 files_content = parse_multiple_files_response(result.data)

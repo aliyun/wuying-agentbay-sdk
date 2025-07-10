@@ -1,4 +1,5 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+from agentbay.context_sync import ContextSync
 
 
 class CreateSessionParams:
@@ -18,6 +19,7 @@ class CreateSessionParams:
         labels: Optional[Dict[str, str]] = None,
         context_id: Optional[str] = None,
         image_id: Optional[str] = None,
+        context_syncs: Optional[List[ContextSync]] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -33,6 +35,7 @@ class CreateSessionParams:
         self.labels = labels or {}
         self.context_id = context_id
         self.image_id = image_id
+        self.context_syncs = context_syncs or []
 
 
 class ListSessionParams:

@@ -19,6 +19,7 @@ from agentbay.model import (
 from agentbay.session import Session
 from agentbay.session_params import CreateSessionParams, ListSessionParams
 from typing import Optional
+from agentbay.context_sync import ContextSync
 
 
 class Config:
@@ -81,6 +82,24 @@ class AgentBay:
             # Add context_id if provided
             if params.context_id:
                 request.context_id = params.context_id
+            # Add context_syncs if provided
+            if hasattr(params, 'context_syncs') and params.context_syncs:
+                from agentbay.api.models import CreateMcpSessionRequestPersistenceDataList
+                persistence_data_list = []
+                for cs in params.context_syncs:
+                    policy_json = None
+                    if cs.policy is not None:
+                        # policy 需序列化为 JSON 字符串
+                        import json as _json
+                        policy_json = _json.dumps(cs.policy, default=lambda o: o.__dict__, ensure_ascii=False)
+                    persistence_data_list.append(
+                        CreateMcpSessionRequestPersistenceDataList(
+                            context_id=cs.context_id,
+                            path=cs.path,
+                            policy=policy_json
+                        )
+                    )
+                request.persistence_data_list = persistence_data_list
 
             # Add labels if provided
             if params.labels:
@@ -89,8 +108,24 @@ class AgentBay:
 
             if params.image_id:
                 request.image_id = params.image_id
+            try:
+                req_map = request.to_map()
+                if 'Authorization' in req_map and isinstance(req_map['Authorization'], str):
+                    auth = req_map['Authorization']
+                    if len(auth) > 12:
+                        req_map['Authorization'] = auth[:6] + '*' * (len(auth)-10) + auth[-4:]
+                    else:
+                        req_map['Authorization'] = auth[:2] + '****' + auth[-2:]
+                print("CreateMcpSessionRequest body:")
+                print(json.dumps(req_map, ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"CreateMcpSessionRequest: {request}")
             response = self.client.create_mcp_session(request)
-            print("response =", response)
+            try:
+                print("Response body:")
+                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -244,7 +279,11 @@ class AgentBay:
             max_results = request.max_results
             total_count = 0
 
-            print("body =", body)
+            try:
+                print("Response body:")
+                print(json.dumps(body, ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {body}")
 
             # Extract pagination information
             if isinstance(body, dict):

@@ -68,7 +68,11 @@ class BaseService:
                 )
 
             body = response_map.get("body", {})
-            print("response_map =", body)
+            try:
+                print("Response body:")
+                print(json.dumps(body, ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {body}")
             if not body:
                 return OperationResult(
                     request_id=request_id,
@@ -118,7 +122,11 @@ class BaseService:
         try:
             if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
+                try:
+                    print("error_content =")
+                    print(json.dumps(error_content, ensure_ascii=False, indent=2))
+                except Exception:
+                    print(f"error_content: {error_content}")
                 error_message = "; ".join(
                     item.get("text", "Unknown error")
                     for item in error_content

@@ -17,6 +17,7 @@ from agentbay.model import DeleteResult, OperationResult, extract_request_id
 from agentbay.oss import Oss
 from agentbay.ui import UI
 from agentbay.window import WindowManager
+from agentbay.context_manager import ContextManager
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
@@ -66,6 +67,7 @@ class Session:
         self.window = WindowManager(self)
 
         self.ui = UI(self)
+        self.context = ContextManager(self)
 
     def get_api_key(self) -> str:
         """Return the API key for this session."""
@@ -92,7 +94,11 @@ class Session:
                 session_id=self.session_id,
             )
             response = self.get_client().release_mcp_session(request)
-            print(f"Response from release_mcp_session: {response}")
+            try:
+                print("Response body:")
+                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -214,7 +220,11 @@ class Session:
             print(f"Request: SessionId={self.session_id}")
 
             response = self.get_client().get_mcp_resource(request)
-            print(f"Response from GetMcpResource: {response}")
+            try:
+                print("Response body:")
+                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)

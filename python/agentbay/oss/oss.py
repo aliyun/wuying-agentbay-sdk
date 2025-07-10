@@ -157,7 +157,11 @@ class Oss(BaseService):
                 args["region"] = region
 
             result = self._call_mcp_tool("oss_env_init", args)
-            print("response =", result)
+            try:
+                print("Response body:")
+                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+            except Exception:
+                print(f"Response: {result}")
 
             if result.success:
                 try:
