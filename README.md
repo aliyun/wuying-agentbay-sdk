@@ -101,33 +101,33 @@ async function main() {
       imageId: 'linux_latest',
       labels: { project: 'demo', environment: 'testing' }
     });
-    const session = createResponse.data;
+    const session = createResponse.session;
     console.log(`Session created with ID: ${session.sessionId}`);
     console.log(`RequestID: ${createResponse.requestId}`);
 
     // Execute a command
     const commandResponse = await session.command.executeCommand('ls -la');
-    if (commandResponse.data) {
-      console.log(`Command output: ${commandResponse.data}`);
+    if (commandResponse.success) {
+      console.log(`Command output: ${commandResponse.output}`);
       console.log(`RequestID: ${commandResponse.requestId}`);
     }
 
     // Read a file
-    const fileResponse = await session.filesystem.readFile('/path/to/file.txt');
-    if (fileResponse.data) {
-      console.log(`File content: ${fileResponse.data}`);
+    const fileResponse = await session.fileSystem.readFile('/path/to/file.txt');
+    if (fileResponse.success) {
+      console.log(`File content: ${fileResponse.content}`);
       console.log(`RequestID: ${fileResponse.requestId}`);
     }
 
     // Work with large files
     const largeContent = 'x'.repeat(100 * 1024); // 100KB
-    const largeCWriteResponse = await session.filesystem.writeLargeFile('/path/to/large_file.txt', largeContent);
-    const largeReadResponse = await session.filesystem.readLargeFile('/path/to/large_file.txt');
-    console.log(`Large file content length: ${largeReadResponse.data?.length || 0}`);
+    const largeWriteResponse = await session.fileSystem.writeLargeFile('/path/to/large_file.txt', largeContent);
+    const largeReadResponse = await session.fileSystem.readLargeFile('/path/to/large_file.txt');
+    console.log(`Large file content length: ${largeReadResponse.content?.length || 0}`);
 
     // Execute code
     const codeResponse = await session.command.runCode('console.log("Hello, World!");', 'javascript');
-    console.log(`Code execution result: ${codeResponse.data}`);
+    console.log(`Code execution result: ${codeResponse.result}`);
 
 
     // List sessions by labels with pagination
@@ -136,7 +136,7 @@ async function main() {
       maxResults: 10
     };
     const listResponse = await agentBay.listByLabels(listParams);
-    console.log(`Found ${listResponse.data.length} sessions`);
+    console.log(`Found ${listResponse.sessions.length} sessions`);
     console.log(`Total count: ${listResponse.totalCount}`);
 
     // Handle pagination if needed
@@ -146,7 +146,7 @@ async function main() {
         nextToken: listResponse.nextToken
       };
       const nextPageResponse = await agentBay.listByLabels(nextPageParams);
-      console.log(`Next page has ${nextPageResponse.data.length} sessions`);
+      console.log(`Next page has ${nextPageResponse.sessions.length} sessions`);
     }
 
     // Delete the session when done

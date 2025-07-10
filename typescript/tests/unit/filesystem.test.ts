@@ -37,34 +37,29 @@ describe("TestFileSystem", () => {
 
       const result = await mockFileSystem.readFile("/path/to/file.txt");
 
-      expect(result.data).toBe("file content");
+      // Verify FileContentResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("file content");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_read_file_get_false", () => {
+  describe("test_read_file_failure", () => {
     it("should handle read file error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("some error message"));
 
-      await expect(
-        mockFileSystem.readFile("/path/to/file.txt")
-      ).rejects.toThrow("some error message");
-    });
-  });
+      const result = await mockFileSystem.readFile("/path/to/file.txt");
 
-  describe("test_read_file_error_format", () => {
-    it("should handle invalid response format", async () => {
-      sandbox
-        .stub(mockFileSystem as any, "callMcpTool")
-        .rejects(new Error("Invalid response body"));
-
-      await expect(
-        mockFileSystem.readFile("/path/to/file.txt")
-      ).rejects.toThrow("Invalid response body");
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("Failed to read file");
     });
   });
 
@@ -82,21 +77,28 @@ describe("TestFileSystem", () => {
 
       const result = await mockFileSystem.createDirectory("/path/to/directory");
 
-      expect(result.data).toBe("True");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_create_directory_error", () => {
+  describe("test_create_directory_failure", () => {
     it("should handle create directory error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("Directory creation failed"));
 
-      await expect(
-        mockFileSystem.createDirectory("/path/to/directory")
-      ).rejects.toThrow("Directory creation failed");
+      const result = await mockFileSystem.createDirectory("/path/to/directory");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to create directory");
     });
   });
 
@@ -116,28 +118,35 @@ describe("TestFileSystem", () => {
         { oldText: "foo", newText: "bar" },
       ]);
 
-      expect(result.data).toBe("True");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_edit_file_error", () => {
+  describe("test_edit_file_failure", () => {
     it("should handle edit file error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("Edit failed"));
 
-      await expect(
-        mockFileSystem.editFile("/path/to/file.txt", [
-          { oldText: "foo", newText: "bar" },
-        ])
-      ).rejects.toThrow("Edit failed");
+      const result = await mockFileSystem.editFile("/path/to/file.txt", [
+        { oldText: "foo", newText: "bar" },
+      ]);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to edit file");
     });
   });
 
   describe("test_write_file_success", () => {
-    it("should edit file successfully", async () => {
+    it("should write file successfully", async () => {
       const callMcpToolStub = sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .resolves({
@@ -154,25 +163,47 @@ describe("TestFileSystem", () => {
         "overwrite"
       );
 
-      expect(result.data).toBe("True");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_write_file_error", () => {
+  describe("test_write_file_failure", () => {
     it("should handle write file error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("Write failed"));
 
-      await expect(
-        mockFileSystem.writeFile(
-          "/path/to/file.txt",
-          "content to write",
-          "overwrite"
-        )
-      ).rejects.toThrow("Write failed");
+      const result = await mockFileSystem.writeFile(
+        "/path/to/file.txt",
+        "content to write",
+        "overwrite"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to write file");
+    });
+  });
+
+  describe("test_write_file_invalid_mode", () => {
+    it("should handle invalid write mode", async () => {
+      const result = await mockFileSystem.writeFile(
+        "/path/to/file.txt",
+        "content to write",
+        "invalid_mode" as any
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Invalid mode: invalid_mode");
     });
   });
 
@@ -183,7 +214,7 @@ describe("TestFileSystem", () => {
         .resolves({
           data: {},
           textContent:
-            "size: 36\nisDirectory: false\nisFile: true\npermissions: rw-r--r--",
+            "name: file.txt\npath: /path/to/file.txt\nsize: 36\nisDirectory: false\nmodTime: 2023-01-01T00:00:00Z\nmode: rw-r--r--",
           isError: false,
           statusCode: 200,
           requestId: "test-request-id",
@@ -191,22 +222,33 @@ describe("TestFileSystem", () => {
 
       const result = await mockFileSystem.getFileInfo("/path/to/file.txt");
 
-      expect(result.data.size).toBe(36);
-      expect(result.data.isDirectory).toBe(false);
+      // Verify FileInfoResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.fileInfo).toBeDefined();
+      expect(result.errorMessage).toBeUndefined();
+
+      expect(result.fileInfo!.size).toBe(36);
+      expect(result.fileInfo!.isDirectory).toBe(false);
+      expect(result.fileInfo!.name).toBe("file.txt");
+      expect(result.fileInfo!.path).toBe("/path/to/file.txt");
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_get_file_info_error", () => {
+  describe("test_get_file_info_failure", () => {
     it("should handle get file info error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("File not found"));
 
-      await expect(
-        mockFileSystem.getFileInfo("/path/to/file.txt")
-      ).rejects.toThrow("File not found");
+      const result = await mockFileSystem.getFileInfo("/path/to/file.txt");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to get file info");
     });
   });
 
@@ -216,7 +258,7 @@ describe("TestFileSystem", () => {
         .stub(mockFileSystem as any, "callMcpTool")
         .resolves({
           data: {},
-          textContent: "[DIR] subdir\n [FILE] file1.txt",
+          textContent: "[DIR] subdir\n[FILE] file1.txt",
           isError: false,
           statusCode: 200,
           requestId: "test-request-id",
@@ -224,25 +266,34 @@ describe("TestFileSystem", () => {
 
       const result = await mockFileSystem.listDirectory("/path/to/directory");
 
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0].name).toBe("subdir");
-      expect(result.data[0].isDirectory).toBe(true);
-      expect(result.data[1].name).toBe("file1.txt");
-      expect(result.data[1].isDirectory).toBe(false);
+      // Verify DirectoryListResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.entries).toHaveLength(2);
+      expect(result.errorMessage).toBeUndefined();
+
+      expect(result.entries[0].name).toBe("subdir");
+      expect(result.entries[0].isDirectory).toBe(true);
+      expect(result.entries[1].name).toBe("file1.txt");
+      expect(result.entries[1].isDirectory).toBe(false);
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_list_directory_error", () => {
+  describe("test_list_directory_failure", () => {
     it("should handle list directory error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("Directory not found"));
 
-      await expect(
-        mockFileSystem.listDirectory("/path/to/directory")
-      ).rejects.toThrow("Directory not found");
+      const result = await mockFileSystem.listDirectory("/path/to/directory");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.entries).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to list directory");
     });
   });
 
@@ -263,24 +314,31 @@ describe("TestFileSystem", () => {
         "/path/to/destination.txt"
       );
 
-      expect(result.data).toBe("True");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
 
-  describe("test_move_file_error", () => {
+  describe("test_move_file_failure", () => {
     it("should handle move file error", async () => {
       sandbox
         .stub(mockFileSystem as any, "callMcpTool")
         .rejects(new Error("Move failed"));
 
-      await expect(
-        mockFileSystem.moveFile(
-          "/path/to/source.txt",
-          "/path/to/destination.txt"
-        )
-      ).rejects.toThrow("Move failed");
+      const result = await mockFileSystem.moveFile(
+        "/path/to/source.txt",
+        "/path/to/destination.txt"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to move file");
     });
   });
 
@@ -302,9 +360,33 @@ describe("TestFileSystem", () => {
         "/path/to/file2.txt",
       ]);
 
-      expect(result["/path/to/file1.txt"]).toBe("Content of file1");
-      expect(result["/path/to/file2.txt"]).toBe("Content of file2");
+      // Verify MultipleFileContentResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.contents["/path/to/file1.txt"]).toBe("Content of file1");
+      expect(result.contents["/path/to/file2.txt"]).toBe("Content of file2");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe("test_read_multiple_files_failure", () => {
+    it("should handle read multiple files error", async () => {
+      sandbox
+        .stub(mockFileSystem as any, "callMcpTool")
+        .rejects(new Error("API Error"));
+
+      const result = await mockFileSystem.readMultipleFiles([
+        "/path/to/file1.txt",
+        "/path/to/file2.txt",
+      ]);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.contents).toEqual({});
+      expect(result.errorMessage).toContain("Failed to read multiple files");
     });
   });
 
@@ -326,11 +408,34 @@ describe("TestFileSystem", () => {
         ["ignored_pattern"]
       );
 
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0]).toBe("/path/to/file1.txt");
-      expect(result.data[1]).toBe("/path/to/file2.txt");
+      // Verify FileSearchResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.matches).toHaveLength(2);
+      expect(result.matches[0]).toBe("/path/to/file1.txt");
+      expect(result.matches[1]).toBe("/path/to/file2.txt");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
+    });
+  });
+
+  describe("test_search_files_failure", () => {
+    it("should handle search files error", async () => {
+      sandbox
+        .stub(mockFileSystem as any, "callMcpTool")
+        .rejects(new Error("API Error"));
+
+      const result = await mockFileSystem.searchFiles(
+        "/path/to/directory",
+        "pattern"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.matches).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to search files");
     });
   });
 
@@ -340,26 +445,39 @@ describe("TestFileSystem", () => {
       const getFileInfoStub = sandbox
         .stub(mockFileSystem, "getFileInfo")
         .resolves({
-          data: {
+          success: true,
+          requestId: "test-request-id",
+          fileInfo: {
             size: 150 * 1024,
             isDirectory: false,
-            name: "",
-            path: "",
-            modTime: "",
-            mode: "",
+            name: "large_file.txt",
+            path: "/path/to/large_file.txt",
+            modTime: "2023-01-01T00:00:00Z",
+            mode: "rw-r--r--",
           },
-          requestId: "test-request-id",
         });
 
       // Mock readFile to return chunks of content
       const readFileStub = sandbox
         .stub(mockFileSystem, "readFile")
         .onFirstCall()
-        .resolves({ data: "chunk1_content", requestId: "test-request-id" })
+        .resolves({
+          success: true,
+          requestId: "test-request-id",
+          content: "chunk1_content"
+        })
         .onSecondCall()
-        .resolves({ data: "chunk2_content", requestId: "test-request-id" })
+        .resolves({
+          success: true,
+          requestId: "test-request-id",
+          content: "chunk2_content"
+        })
         .onThirdCall()
-        .resolves({ data: "chunk3_content", requestId: "test-request-id" });
+        .resolves({
+          success: true,
+          requestId: "test-request-id",
+          content: "chunk3_content"
+        });
 
       // Set a smaller chunk size for testing (50KB)
       const testChunkSize = 50 * 1024;
@@ -369,8 +487,11 @@ describe("TestFileSystem", () => {
         testChunkSize
       );
 
-      // Verify the result is the concatenation of all chunks
-      expect(result).toBe("chunk1_contentchunk2_contentchunk3_content");
+      // Verify FileContentResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("chunk1_contentchunk2_contentchunk3_content");
+      expect(result.errorMessage).toBeUndefined();
 
       // Verify getFileInfo was called once
       expect(getFileInfoStub.calledOnce).toBe(true);
@@ -399,25 +520,37 @@ describe("TestFileSystem", () => {
     });
   });
 
-  describe("test_read_large_file_error", () => {
+  describe("test_read_large_file_failure", () => {
     it("should handle read large file error", async () => {
-      // Mock getFileInfo to raise an error
+      // Mock getFileInfo to return error
       sandbox
         .stub(mockFileSystem, "getFileInfo")
-        .rejects(new Error("File not found"));
+        .resolves({
+          success: false,
+          requestId: "",
+          errorMessage: "File not found"
+        });
 
-      await expect(
-        mockFileSystem.readLargeFile("/path/to/nonexistent_file.txt")
-      ).rejects.toThrow("File not found");
+      const result = await mockFileSystem.readLargeFile("/path/to/nonexistent_file.txt");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("File not found");
     });
   });
 
   describe("test_write_large_file_success", () => {
     it("should write large file successfully", async () => {
-      // Mock writeFile to return True
+      // Mock writeFile to return success
       const writeFileStub = sandbox
         .stub(mockFileSystem, "writeFile")
-        .resolves({ data: "True", requestId: "test-request-id" });
+        .resolves({
+          success: true,
+          requestId: "test-request-id",
+          data: true
+        });
 
       // Create a large content string (150KB)
       const largeContent = "x".repeat(150 * 1024);
@@ -431,8 +564,11 @@ describe("TestFileSystem", () => {
         testChunkSize
       );
 
-      // Verify the result is True
-      expect(result).toBe(true);
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
 
       // Verify writeFile was called three times with correct chunks
       expect(writeFileStub.callCount).toBe(3);
@@ -468,10 +604,14 @@ describe("TestFileSystem", () => {
 
   describe("test_write_large_file_small_content", () => {
     it("should write large file with small content", async () => {
-      // Mock writeFile to return True
+      // Mock writeFile to return success
       const writeFileStub = sandbox
         .stub(mockFileSystem, "writeFile")
-        .resolves({ data: "True", requestId: "test-request-id" });
+        .resolves({
+          success: true,
+          requestId: "test-request-id",
+          data: true
+        });
 
       // Create a small content string (10KB)
       const smallContent = "x".repeat(10 * 1024);
@@ -485,8 +625,11 @@ describe("TestFileSystem", () => {
         testChunkSize
       );
 
-      // Verify the result is True
-      expect(result).toBe(true);
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
 
       // Verify writeFile was called once with the entire content
       expect(
@@ -499,19 +642,26 @@ describe("TestFileSystem", () => {
     });
   });
 
-  describe("test_write_large_file_error", () => {
+  describe("test_write_large_file_failure", () => {
     it("should handle write large file error", async () => {
-      // Mock writeFile to raise an error
+      // Mock writeFile to return error
       sandbox
         .stub(mockFileSystem, "writeFile")
-        .rejects(new Error("Failed to write large file"));
+        .resolves({
+          success: false,
+          requestId: "",
+          errorMessage: "Failed to write large file"
+        });
 
       // Create a large content string (150KB)
       const largeContent = "x".repeat(150 * 1024);
 
-      await expect(
-        mockFileSystem.writeLargeFile("/path/to/large_file.txt", largeContent)
-      ).rejects.toThrow("Failed to write large file");
+      const result = await mockFileSystem.writeLargeFile("/path/to/large_file.txt", largeContent);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to write large file");
     });
   });
 });

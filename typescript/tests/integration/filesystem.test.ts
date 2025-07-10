@@ -9,7 +9,7 @@ import { log } from "../../src/utils/logger";
 // Define test path prefix based on platform
 const TestPathPrefix = "/tmp";
 
-describe("FileSystem", () => {
+describe("fileSystem", () => {
   let agentBay: AgentBay;
   let session: Session;
 
@@ -18,9 +18,9 @@ describe("FileSystem", () => {
     agentBay = new AgentBay({ apiKey });
 
     // Create a session with linux_latest image
-    log("Creating a new session for filesystem testing...");
+    log("Creating a new session for fileSystem testing...");
     const createResponse = await agentBay.create({ imageId: "linux_latest" });
-    session = createResponse.data;
+    session = createResponse.session!;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });
@@ -42,14 +42,14 @@ describe("FileSystem", () => {
 
   describe("readFile", () => {
     it.only("should read a file", async () => {
-      if (session.filesystem) {
+      if (session.fileSystem) {
         log("Reading file...");
         try {
           // Use a file that should exist on most systems
           const filePath = "/etc/hosts";
-          const readResponse = await session.filesystem.readFile(filePath);
+          const readResponse = await session.fileSystem.readFile(filePath);
           log(
-            `ReadFile result: content='${readResponse.data.substring(
+            `ReadFile result: content='${readResponse.content.substring(
               0,
               100
             )}...'`
@@ -61,30 +61,30 @@ describe("FileSystem", () => {
           expect(typeof readResponse.requestId).toBe("string");
 
           // Check if response contains "tool not found"
-          expect(containsToolNotFound(readResponse.data)).toBe(false);
+          expect(containsToolNotFound(readResponse.content)).toBe(false);
 
           // Verify the content is not empty
-          expect(readResponse.data.length).toBeGreaterThan(0);
+          expect(readResponse.content.length).toBeGreaterThan(0);
           log("File read successful");
         } catch (error) {
           log(`Note: File operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
-        log("Note: FileSystem interface is nil, skipping file test");
+        log("Note: fileSystem interface is nil, skipping file test");
       }
     });
 
     it.only("should handle file not found errors", async () => {
-      if (session.filesystem) {
+      if (session.fileSystem) {
         log("Reading non-existent file...");
         try {
           const nonExistentFile = "/path/to/non/existent/file";
-          const readResponse = await session.filesystem.readFile(
+          const readResponse = await session.fileSystem.readFile(
             nonExistentFile
           );
           log(
-            `ReadFile result for non-existent file: content='${readResponse.data}'`
+            `ReadFile result for non-existent file: content='${readResponse.content}'`
           );
           log(
             `Read Non-existent File RequestId: ${
@@ -97,24 +97,24 @@ describe("FileSystem", () => {
 
           // If we get here, the API might return an empty string or error message for non-existent files
           // We're just checking that the promise resolves
-          expect(readResponse.data).toBeDefined();
+          expect(readResponse.content).toBeDefined();
         } catch (error) {
           // If the API rejects the promise, that's also an acceptable behavior for a non-existent file
           log(`Non-existent file read failed as expected: ${error}`);
           expect(error).toBeDefined();
         }
       } else {
-        log("Note: FileSystem interface is nil, skipping file not found test");
+        log("Note: fileSystem interface is nil, skipping file not found test");
       }
     });
   });
 
   describe("writeFile", () => {
     it.only("should write to a file", async () => {
-      // Check if filesystem exists and has a writeFile method
+      // Check if fileSystem exists and has a writeFile method
       if (
-        session.filesystem &&
-        typeof session.filesystem.writeFile === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.writeFile === "function"
       ) {
         log("Writing to file...");
         try {
@@ -122,7 +122,7 @@ describe("FileSystem", () => {
           const tempFile = `${TestPathPrefix}/agentbay-test-${Date.now()}.txt`;
           const content = `Test content generated at ${new Date().toISOString()}`;
 
-          const writeResponse = await session.filesystem.writeFile(
+          const writeResponse = await session.fileSystem.writeFile(
             tempFile,
             content
           );
@@ -136,8 +136,8 @@ describe("FileSystem", () => {
           expect(typeof writeResponse.requestId).toBe("string");
 
           // Verify by reading the file back
-          const readResponse = await session.filesystem.readFile(tempFile);
-          log(`ReadFile after write: content='${readResponse.data}'`);
+          const readResponse = await session.fileSystem.readFile(tempFile);
+          log(`ReadFile after write: content='${readResponse.content}'`);
           log(
             `Read File after Write RequestId: ${
               readResponse.requestId || "undefined"
@@ -145,7 +145,7 @@ describe("FileSystem", () => {
           );
 
           // Check if the content matches
-          expect(readResponse.data).toBe(content);
+          expect(readResponse.content).toBe(content);
           log("File write verified successfully");
 
           // Clean up the temporary file
@@ -162,11 +162,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: File write operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem writeFile method is not available, skipping file write test"
+          "Note: fileSystem writeFile method is not available, skipping file write test"
         );
       }
     });
@@ -175,13 +175,13 @@ describe("FileSystem", () => {
   describe("createDirectory", () => {
     it.only("should create a directory", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.createDirectory === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.createDirectory === "function"
       ) {
         log("Creating directory...");
         try {
           const testDirPath = `${TestPathPrefix}/test_directory_${randomString()}`;
-          const createDirResponse = await session.filesystem.createDirectory(
+          const createDirResponse = await session.fileSystem.createDirectory(
             testDirPath
           );
           log(`CreateDirectory successful: ${testDirPath}`);
@@ -201,12 +201,12 @@ describe("FileSystem", () => {
             const lsResponse = await session.command.executeCommand(
               `ls -la ${testDirPath}`
             );
-            log(`ls command result: ${lsResponse.data}`);
+            log(`ls command result: ${lsResponse.output}`);
             log(`ls Command RequestId: ${lsResponse.requestId || "undefined"}`);
 
             // If the directory exists, the ls command should succeed
-            expect(lsResponse.data).toBeDefined();
-            expect(lsResponse.data.length).toBeGreaterThan(0);
+            expect(lsResponse.output).toBeDefined();
+            expect(lsResponse.output.length).toBeGreaterThan(0);
             log("Directory verified using ls command");
 
             // Clean up the test directory
@@ -228,11 +228,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: Directory creation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem createDirectory method is not available, skipping directory test"
+          "Note: fileSystem createDirectory method is not available, skipping directory test"
         );
       }
     });
@@ -241,8 +241,8 @@ describe("FileSystem", () => {
   describe("editFile", () => {
     it.only("should edit a file by replacing text", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.editFile === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.editFile === "function"
       ) {
         log("Editing file...");
         try {
@@ -250,7 +250,7 @@ describe("FileSystem", () => {
           const testFilePath = `${TestPathPrefix}/test_edit_${randomString()}.txt`;
           const initialContent =
             "This is the original content.\nLine to be replaced.\nThis is the final line.";
-          const writeResponse = await session.filesystem.writeFile(
+          const writeResponse = await session.fileSystem.writeFile(
             testFilePath,
             initialContent
           );
@@ -267,7 +267,7 @@ describe("FileSystem", () => {
             },
           ];
 
-          const editResponse = await session.filesystem.editFile(
+          const editResponse = await session.fileSystem.editFile(
             testFilePath,
             edits
           );
@@ -279,8 +279,8 @@ describe("FileSystem", () => {
           expect(typeof editResponse.requestId).toBe("string");
 
           // Verify the file was edited correctly by reading it back
-          const readResponse = await session.filesystem.readFile(testFilePath);
-          log(`ReadFile after edit: content='${readResponse.data}'`);
+          const readResponse = await session.fileSystem.readFile(testFilePath);
+          log(`ReadFile after edit: content='${readResponse.content}'`);
           log(
             `Read File after Edit RequestId: ${
               readResponse.requestId || "undefined"
@@ -289,7 +289,7 @@ describe("FileSystem", () => {
 
           const expectedContent =
             "This is the original content.\nThis line has been edited.\nThis is the final line.";
-          expect(readResponse.data).toBe(expectedContent);
+          expect(readResponse.content).toBe(expectedContent);
           log("File edit verified successfully");
 
           // Clean up the test file
@@ -302,11 +302,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: File edit operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem editFile method is not available, skipping file edit test"
+          "Note: fileSystem editFile method is not available, skipping file edit test"
         );
       }
     });
@@ -315,15 +315,15 @@ describe("FileSystem", () => {
   describe("getFileInfo", () => {
     it.only("should get file information", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.getFileInfo === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.getFileInfo === "function"
       ) {
         log("Getting file info...");
         try {
           // First create a file to get info for
           const testFilePath = `${TestPathPrefix}/test_info_${randomString()}.txt`;
           const testContent = "This is a test file for GetFileInfo.";
-          const writeResponse = await session.filesystem.writeFile(
+          const writeResponse = await session.fileSystem.writeFile(
             testFilePath,
             testContent
           );
@@ -333,10 +333,10 @@ describe("FileSystem", () => {
           );
 
           // Get file info
-          const fileInfoResponse = await session.filesystem.getFileInfo(
+          const fileInfoResponse = await session.fileSystem.getFileInfo(
             testFilePath
           );
-          log(`GetFileInfo result: ${JSON.stringify(fileInfoResponse.data)}`);
+          log(`GetFileInfo result: ${JSON.stringify(fileInfoResponse.fileInfo)}`);
           log(
             `Get File Info RequestId: ${
               fileInfoResponse.requestId || "undefined"
@@ -348,9 +348,9 @@ describe("FileSystem", () => {
           expect(typeof fileInfoResponse.requestId).toBe("string");
 
           // Verify the file info contains expected fields
-          expect(typeof fileInfoResponse.data.size).toBe("number");
-          expect(fileInfoResponse.data.isDirectory).toBe(false);
-          expect(fileInfoResponse.data.name).toBeDefined();
+          expect(typeof fileInfoResponse.fileInfo?.size).toBe("number");
+          expect(fileInfoResponse.fileInfo?.isDirectory).toBe(false);
+          expect(fileInfoResponse.fileInfo?.name).toBeDefined();
           log("File info verified successfully");
 
           // Clean up the test file
@@ -363,11 +363,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: Get file info operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem getFileInfo method is not available, skipping file info test"
+          "Note: fileSystem getFileInfo method is not available, skipping file info test"
         );
       }
     });
@@ -376,16 +376,16 @@ describe("FileSystem", () => {
   describe("listDirectory", () => {
     it.only("should list directory contents", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.listDirectory === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.listDirectory === "function"
       ) {
         log("Listing directory...");
         try {
-          const listResponse = await session.filesystem.listDirectory(
+          const listResponse = await session.fileSystem.listDirectory(
             `${TestPathPrefix}/`
           );
           log(
-            `ListDirectory result: entries count=${listResponse.data.length}`
+            `ListDirectory result: entries count=${listResponse.entries.length}`
           );
           log(
             `List Directory RequestId: ${listResponse.requestId || "undefined"}`
@@ -396,8 +396,8 @@ describe("FileSystem", () => {
           expect(typeof listResponse.requestId).toBe("string");
 
           // Verify the entries contain expected fields
-          if (listResponse.data.length > 0) {
-            const firstEntry = listResponse.data[0];
+          if (listResponse.entries.length > 0) {
+            const firstEntry = listResponse.entries[0];
             expect(typeof firstEntry.name).toBe("string");
             expect(typeof firstEntry.isDirectory).toBe("boolean");
             log("Directory listing verified successfully");
@@ -406,11 +406,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: List directory operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem listDirectory method is not available, skipping directory listing test"
+          "Note: fileSystem listDirectory method is not available, skipping directory listing test"
         );
       }
     });
@@ -419,8 +419,8 @@ describe("FileSystem", () => {
   describe("moveFile", () => {
     it.only("should move a file from source to destination", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.moveFile === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.moveFile === "function"
       ) {
         log("Moving file...");
         try {
@@ -428,7 +428,7 @@ describe("FileSystem", () => {
           const sourceFilePath = `${TestPathPrefix}/test_source_${randomString()}.txt`;
           const destFilePath = `${TestPathPrefix}/test_destination_${randomString()}.txt`;
           const testContent = "This is a test file for MoveFile.";
-          const writeResponse = await session.filesystem.writeFile(
+          const writeResponse = await session.fileSystem.writeFile(
             sourceFilePath,
             testContent
           );
@@ -438,7 +438,7 @@ describe("FileSystem", () => {
           );
 
           // Move the file
-          const moveResponse = await session.filesystem.moveFile(
+          const moveResponse = await session.fileSystem.moveFile(
             sourceFilePath,
             destFilePath
           );
@@ -450,20 +450,20 @@ describe("FileSystem", () => {
           expect(typeof moveResponse.requestId).toBe("string");
 
           // Verify the file was moved correctly by reading it back
-          const readResponse = await session.filesystem.readFile(destFilePath);
-          log(`ReadFile after move: content='${readResponse.data}'`);
+          const readResponse = await session.fileSystem.readFile(destFilePath);
+          log(`ReadFile after move: content='${readResponse.content}'`);
           log(
             `Read File after Move RequestId: ${
               readResponse.requestId || "undefined"
             }`
           );
 
-          expect(readResponse.data).toBe(testContent);
+          expect(readResponse.content).toBe(testContent);
           log("File move verified successfully");
 
           // Verify the source file no longer exists
           try {
-            await session.filesystem.readFile(sourceFilePath);
+            await session.fileSystem.readFile(sourceFilePath);
             // If we get here, the file still exists
             log("Source file still exists after move");
             expect(false).toBe(true); // This should fail the test
@@ -482,11 +482,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: File move operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem moveFile method is not available, skipping file move test"
+          "Note: fileSystem moveFile method is not available, skipping file move test"
         );
       }
     });
@@ -495,8 +495,8 @@ describe("FileSystem", () => {
   describe("readMultipleFiles", () => {
     it.only("should read multiple files at once", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.readMultipleFiles === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.readMultipleFiles === "function"
       ) {
         log("Reading multiple files...");
         try {
@@ -506,7 +506,7 @@ describe("FileSystem", () => {
           const testFile1Path = `${TestPathPrefix}/test_file1_${randomString()}.txt`;
           const testFile2Path = `${TestPathPrefix}/test_file2_${randomString()}.txt`;
 
-          const write1Response = await session.filesystem.writeFile(
+          const write1Response = await session.fileSystem.writeFile(
             testFile1Path,
             file1Content
           );
@@ -515,7 +515,7 @@ describe("FileSystem", () => {
             `Write File 1 RequestId: ${write1Response.requestId || "undefined"}`
           );
 
-          const write2Response = await session.filesystem.writeFile(
+          const write2Response = await session.fileSystem.writeFile(
             testFile2Path,
             file2Content
           );
@@ -526,12 +526,12 @@ describe("FileSystem", () => {
 
           // Read multiple files - Note: this method may not return ApiResponseWithData format
           const paths = [testFile1Path, testFile2Path];
-          const contents = await session.filesystem.readMultipleFiles(paths);
-          log(`ReadMultipleFiles result: ${JSON.stringify(contents)}`);
+          const readMultipleResponse = await session.fileSystem.readMultipleFiles(paths);
+          log(`ReadMultipleFiles result: ${JSON.stringify(readMultipleResponse.contents)}`);
 
           // Verify the contents of each file
-          expect(contents[testFile1Path]).toBe(file1Content);
-          expect(contents[testFile2Path]).toBe(file2Content);
+          expect(readMultipleResponse.contents[testFile1Path]).toBe(file1Content);
+          expect(readMultipleResponse.contents[testFile2Path]).toBe(file2Content);
           log("Multiple files read verified successfully");
 
           // Clean up the test files
@@ -544,11 +544,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: Read multiple files operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem readMultipleFiles method is not available, skipping read multiple files test"
+          "Note: fileSystem readMultipleFiles method is not available, skipping read multiple files test"
         );
       }
     });
@@ -557,14 +557,14 @@ describe("FileSystem", () => {
   describe("searchFiles", () => {
     it.only("should search for files matching a pattern", async () => {
       if (
-        session.filesystem &&
-        typeof session.filesystem.searchFiles === "function"
+        session.fileSystem &&
+        typeof session.fileSystem.searchFiles === "function"
       ) {
         log("Searching files...");
         try {
           // First create a subdirectory for testing
           const testSubdirPath = `${TestPathPrefix}/search_test_dir_${randomString()}`;
-          const createDirResponse = await session.filesystem.createDirectory(
+          const createDirResponse = await session.fileSystem.createDirectory(
             testSubdirPath
           );
           log(`Created test subdirectory: ${testSubdirPath}`);
@@ -584,26 +584,26 @@ describe("FileSystem", () => {
           const searchFile2Path = `${testSubdirPath}/regular_file2.txt`;
           const searchFile3Path = `${testSubdirPath}/SEARCHABLE_PATTERN_file3.txt`;
 
-          const write1Response = await session.filesystem.writeFile(
+          const write1Response = await session.fileSystem.writeFile(
             searchFile1Path,
             file1Content
           );
-          const write2Response = await session.filesystem.writeFile(
+          const write2Response = await session.fileSystem.writeFile(
             searchFile2Path,
             file2Content
           );
-          const write3Response = await session.filesystem.writeFile(
+          const write3Response = await session.fileSystem.writeFile(
             searchFile3Path,
             file3Content
           );
           log(`Created test files for search test`);
 
           // Search for files matching the pattern
-          const searchResponse = await session.filesystem.searchFiles(
+          const searchResponse = await session.fileSystem.searchFiles(
             testSubdirPath,
             searchPattern
           );
-          log(`SearchFiles result: ${JSON.stringify(searchResponse.data)}`);
+          log(`SearchFiles result: ${JSON.stringify(searchResponse.matches)}`);
           log(
             `Search Files RequestId: ${searchResponse.requestId || "undefined"}`
           );
@@ -613,11 +613,11 @@ describe("FileSystem", () => {
           expect(typeof searchResponse.requestId).toBe("string");
 
           // Verify the search results
-          expect(Array.isArray(searchResponse.data)).toBe(true);
-          expect(searchResponse.data.length).toBe(2); // Should find 2 files with the pattern
+          expect(Array.isArray(searchResponse.matches)).toBe(true);
+          expect(searchResponse.matches.length).toBe(2); // Should find 2 files with the pattern
 
           // Verify the search results contain the expected files
-          const resultPaths = searchResponse.data.map((result) => result);
+          const resultPaths = searchResponse.matches.map((result) => result);
           expect(
             resultPaths.includes(searchFile1Path) ||
               resultPaths.some((p) =>
@@ -642,11 +642,11 @@ describe("FileSystem", () => {
           }
         } catch (error) {
           log(`Note: Search files operation failed: ${error}`);
-          // Don't fail the test if filesystem operations are not supported
+          // Don't fail the test if fileSystem operations are not supported
         }
       } else {
         log(
-          "Note: FileSystem searchFiles method is not available, skipping search files test"
+          "Note: fileSystem searchFiles method is not available, skipping search files test"
         );
       }
     });

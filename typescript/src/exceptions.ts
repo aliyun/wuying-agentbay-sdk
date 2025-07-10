@@ -1,10 +1,14 @@
 /**
- * Base exception for all AgentBay errors.
+ * Base exception for all AgentBay SDK errors.
  */
 export class AgentBayError extends Error {
-  constructor(message: string) {
-    super(message);
+  extra: Record<string, any>;
+
+  constructor(message?: string, extra: Record<string, any> = {}) {
+    const errorMessage = message || "AgentBayError";
+    super(errorMessage);
     this.name = "AgentBayError";
+    this.extra = extra;
     Object.setPrototypeOf(this, AgentBayError.prototype);
   }
 }
@@ -13,8 +17,8 @@ export class AgentBayError extends Error {
  * Raised when there is an authentication error.
  */
 export class AuthenticationError extends AgentBayError {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string = "Authentication failed", extra: Record<string, any> = {}) {
+    super(message, extra);
     this.name = "AuthenticationError";
     Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
@@ -24,31 +28,78 @@ export class AuthenticationError extends AgentBayError {
  * Raised when there is an error with the API.
  */
 export class APIError extends AgentBayError {
-  constructor(message: string) {
-    super(message);
+  statusCode?: number;
+
+  constructor(message: string = "API error", statusCode?: number, extra: Record<string, any> = {}) {
+    super(message, extra);
     this.name = "APIError";
+    this.statusCode = statusCode;
     Object.setPrototypeOf(this, APIError.prototype);
   }
 }
 
 /**
- * Raised when there is an error with file operations.
+ * Raised for errors related to file operations.
  */
 export class FileError extends AgentBayError {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string = "File operation error", extra: Record<string, any> = {}) {
+    super(message, extra);
     this.name = "FileError";
     Object.setPrototypeOf(this, FileError.prototype);
   }
 }
 
 /**
- * Raised when there is an error with command execution.
+ * Raised for errors related to command execution.
  */
 export class CommandError extends AgentBayError {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string = "Command execution error", extra: Record<string, any> = {}) {
+    super(message, extra);
     this.name = "CommandError";
     Object.setPrototypeOf(this, CommandError.prototype);
+  }
+}
+
+/**
+ * Raised for errors related to session operations.
+ */
+export class SessionError extends AgentBayError {
+  constructor(message: string = "Session error", extra: Record<string, any> = {}) {
+    super(message, extra);
+    this.name = "SessionError";
+    Object.setPrototypeOf(this, SessionError.prototype);
+  }
+}
+
+/**
+ * Raised for errors related to OSS operations.
+ */
+export class OssError extends AgentBayError {
+  constructor(message: string = "OSS operation error", extra: Record<string, any> = {}) {
+    super(message, extra);
+    this.name = "OssError";
+    Object.setPrototypeOf(this, OssError.prototype);
+  }
+}
+
+/**
+ * Raised for errors related to application operations.
+ */
+export class ApplicationError extends AgentBayError {
+  constructor(message: string = "Application operation error", extra: Record<string, any> = {}) {
+    super(message, extra);
+    this.name = "ApplicationError";
+    Object.setPrototypeOf(this, ApplicationError.prototype);
+  }
+}
+
+/**
+ * Raised for errors related to UI operations.
+ */
+export class UIError extends AgentBayError {
+  constructor(message: string = "UI operation error", extra: Record<string, any> = {}) {
+    super(message, extra);
+    this.name = "UIError";
+    Object.setPrototypeOf(this, UIError.prototype);
   }
 }

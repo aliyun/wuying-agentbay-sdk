@@ -10,15 +10,24 @@ import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
 
 import {
-  ApiResponseWithData,
   DeleteResult,
   extractRequestId,
+  SessionResult,
 } from "./types/api-response";
 import {
   ListSessionParams,
   SessionListResult,
 } from "./types/list-session-params";
 import { log, logError } from "./utils/logger";
+
+/**
+ * Parameters for creating a session.
+ */
+export interface CreateSessionParams {
+  contextId?: string;
+  labels?: Record<string, string>;
+  imageId?: string;
+}
 
 /**
  * Main class for interacting with the AgentBay cloud runtime environment.
@@ -83,56 +92,73 @@ export class AgentBay {
   /**
    * Create a new session in the AgentBay cloud environment.
    *
-   * @param options - Optional parameters for creating the session
-   * @param options.contextId - ID of the context to bind to the session
-   * @param options.labels - Custom labels for the session
-   * @returns API response with session data and requestId
+   * @param params - Optional parameters for creating the session
+   * @returns SessionResult containing the created session and request ID
    */
-  async create(
-    options: {
-      contextId?: string;
-      labels?: Record<string, string>;
-      imageId?: string;
-    } = {}
-  ): Promise<ApiResponseWithData<Session>> {
+  async create(params?: CreateSessionParams): Promise<SessionResult> {
     try {
-      const createSessionRequest = new $_client.CreateMcpSessionRequest({
+      if (!params) {
+        params = {};
+      }
+
+      const request = new $_client.CreateMcpSessionRequest({
         authorization: "Bearer " + this.apiKey,
-        imageId: options.imageId,
       });
 
       // Add context_id if provided
-      if (options.contextId) {
-        createSessionRequest.contextId = options.contextId;
+      if (params.contextId) {
+        request.contextId = params.contextId;
       }
 
       // Add labels if provided
-      if (options.labels) {
-        createSessionRequest.labels = JSON.stringify(options.labels);
+      if (params.labels) {
+        request.labels = JSON.stringify(params.labels);
       }
 
-      // Log API request
-      log("API Call: CreateMcpSession");
-      log(
-        `Request: ${
-          options.contextId ? `ContextId=${options.contextId}, ` : ""
-        }${options.labels ? `Labels=${JSON.stringify(options.labels)}, ` : ""}${
-          options.imageId ? `ImageId=${options.imageId}` : ""
-        }`
-      );
+      // Add image_id if provided
+      if (params.imageId) {
+        request.imageId = params.imageId;
+      }
 
-      const response = await this.client.createMcpSession(createSessionRequest);
+      const response = await this.client.createMcpSession(request);
+      log("response =", response);
 
-      // Log API response
-      log(`Response from CreateMcpSession:`, response.body);
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
 
-      const sessionId = response.body?.data?.sessionId;
+      const sessionData = response.body;
+
+      if (!sessionData || typeof sessionData !== 'object') {
+        return {
+          requestId,
+          success: false,
+          errorMessage: "Invalid response format: expected a dictionary",
+        };
+      }
+
+      const data = sessionData.data;
+      if (!data || typeof data !== 'object') {
+        return {
+          requestId,
+          success: false,
+          errorMessage: "Invalid response format: 'data' field is not a dictionary",
+        };
+      }
+
+      const sessionId = data.sessionId;
       if (!sessionId) {
-        throw new APIError("Invalid session ID in response");
+        return {
+          requestId,
+          success: false,
+          errorMessage: "SessionId not found in response",
+        };
       }
 
       // ResourceUrl is optional in CreateMcpSession response
-      const resourceUrl = response.body?.data?.resourceUrl;
+      const resourceUrl = data.resourceUrl;
+
+      log("session_id =", sessionId);
+      log("resource_url =", resourceUrl);
 
       const session = new Session(this, sessionId);
       if (resourceUrl) {
@@ -141,13 +167,19 @@ export class AgentBay {
 
       this.sessions.set(session.sessionId, session);
 
+      // Return SessionResult with request ID
       return {
-        requestId: extractRequestId(response),
-        data: session,
+        requestId,
+        success: true,
+        session,
       };
     } catch (error) {
-      logError("Error calling CreateMcpSession:", error);
-      throw new APIError(`Failed to create session: ${error}`);
+      logError("Error calling create_mcp_session:", error);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to create session: ${error}`,
+      };
     }
   }
 
@@ -197,54 +229,109 @@ export class AgentBay {
       );
 
       const response = await this.client.listSession(listSessionRequest);
+      const body = response.body;
+      const requestId = extractRequestId(body?.requestId) || "";
 
-      // Log API response
-      log(`Response from ListSession:`, response.body);
+      // Check for errors in the response
+      if (
+        body?.data &&
+        typeof body.data === 'object' &&
+        body.success&&
+        body.success !== true
+      ) {
+        return {
+          requestId,
+          success: false,
+          errorMessage: "Failed to list sessions by labels",
+          data: [],
+          nextToken: "",
+          maxResults: params.maxResults || 10,
+          totalCount: 0,
+        };
+      }
 
       const sessions: Session[] = [];
-      if (response.body?.data) {
-        for (const sessionData of response.body.data) {
-          if (sessionData.sessionId) {
-            const session = new Session(this, sessionData.sessionId);
-            sessions.push(session);
-            // Also store in the local cache
-            this.sessions.set(sessionData.sessionId, session);
+      let nextToken = "";
+      let maxResults = params.maxResults || 10;
+      let totalCount = 0;
+
+      log("body =", body);
+
+      // Extract pagination information
+      if (body && typeof body === 'object') {
+        nextToken = body.nextToken || "";
+        maxResults = parseInt(String(body.maxResults || 0)) || maxResults;
+        totalCount = parseInt(String(body.totalCount || 0));
+      }
+
+      // Extract session data
+      const responseData = body?.data;
+
+      // Handle both list and dict responses
+      if (Array.isArray(responseData)) {
+        // Data is a list of session objects
+        for (const sessionData of responseData) {
+          if (sessionData && typeof sessionData === 'object') {
+            const sessionId = (sessionData as any).sessionId; // Capital S and I to match Python
+            if (sessionId) {
+              // Check if we already have this session in our cache
+              let session = this.sessions.get(sessionId);
+              if (!session) {
+                // Create a new session object
+                session = new Session(this, sessionId);
+                this.sessions.set(sessionId, session);
+              }
+              sessions.push(session);
+            }
           }
         }
       }
 
+      // Return SessionListResult with request ID and pagination info
       return {
-        requestId: extractRequestId(response),
+        requestId,
+        success: true,
         data: sessions,
-        nextToken: response.body?.nextToken,
-        maxResults: response.body?.maxResults || params.maxResults || 10,
-        totalCount: response.body?.totalCount || 0,
+        nextToken,
+        maxResults,
+        totalCount,
       };
     } catch (error) {
-      logError("Error calling ListSession:", error);
-      throw new APIError(`Failed to list sessions by labels: ${error}`);
+      logError("Error calling list_session:", error);
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to list sessions by labels: ${error}`,
+      };
     }
   }
 
   /**
-   * Delete a session by ID.
+   * Delete a session by session object.
    *
    * @param session - The session to delete.
-   * @returns API response with requestId
+   * @returns DeleteResult indicating success or failure and request ID
    */
   async delete(session: Session): Promise<DeleteResult> {
-    const getSession = this.sessions.get(session.sessionId);
-    if (!getSession) {
-      throw new Error(`Session with ID ${session.sessionId} not found`);
-    }
-
     try {
-      const deleteResponse = await session.delete();
-      return deleteResponse;
+      // Delete the session and get the result
+      const deleteResult = await session.delete();
+
+      this.sessions.delete(session.sessionId);
+
+      // Return the DeleteResult obtained from session.delete()
+      return deleteResult;
     } catch (error) {
-      throw new APIError(`Failed to delete session: ${error}`);
+      logError("Error deleting session:", error);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to delete session ${session.sessionId}: ${error}`,
+      };
     }
   }
+
   /**
    *
    * @param sessionId - The ID of the session to remove.
@@ -252,6 +339,7 @@ export class AgentBay {
   public removeSession(sessionId: string): void {
     this.sessions.delete(sessionId);
   }
+
   // For internal use by the Session class
   getClient(): Client {
     return this.client;

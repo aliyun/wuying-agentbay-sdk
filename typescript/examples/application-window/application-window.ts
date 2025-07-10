@@ -38,7 +38,7 @@ async function main() {
   // Create a new session with default parameters
   log('\nCreating a new session...');
   const createResponse = await agentBay.create({imageId:'linux_latest'});
-  const session = createResponse.data;
+  const session = createResponse.session;
   log(`\nSession created with ID: ${session.sessionId}`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 
@@ -49,7 +49,7 @@ async function main() {
     // Get installed applications
     log('\nGetting installed applications...');
     try {
-      const appsResponse = await session.Application.getInstalledApps(true, false, true);
+      const appsResponse = await session.application.getInstalledApps(true, false, true);
       log(`Found ${appsResponse.data.length} installed applications`);
       log(`Get Installed Apps RequestId: ${appsResponse.requestId}`);
 
@@ -65,7 +65,7 @@ async function main() {
     // List visible applications
     log('\nListing visible applications...');
     try {
-      const visibleAppsResponse = await session.Application.listVisibleApps();
+      const visibleAppsResponse = await session.application.listVisibleApps();
       log(`Found ${visibleAppsResponse.data.length} visible applications`);
       log(`List Visible Apps RequestId: ${visibleAppsResponse.requestId}`);
 
@@ -85,13 +85,13 @@ async function main() {
     log('\nListing root windows...');
     try {
       const rootWindowsResponse = await session.window.listRootWindows();
-      log(`Found ${rootWindowsResponse.data.length} root windows`);
+      log(`Found ${rootWindowsResponse.windows.length} root windows`);
       log(`List Root Windows RequestId: ${rootWindowsResponse.requestId}`);
 
       // Print the first 3 windows or fewer if less than 3 are available
-      const count = Math.min(rootWindowsResponse.data.length, 3);
+      const count = Math.min(rootWindowsResponse.windows.length, 3);
       for (let i = 0; i < count; i++) {
-        log(`Window ${i + 1}: ${rootWindowsResponse.data[i].title} (ID: ${rootWindowsResponse.data[i].window_id})`);
+        log(`Window ${i + 1}: ${rootWindowsResponse.windows[i].title} (ID: ${rootWindowsResponse.windows[i].window_id})`);
       }
     } catch (error) {
       log(`Error listing root windows: ${error}`);
@@ -102,8 +102,8 @@ async function main() {
     try {
       const activeWindowResponse = await session.window.getActiveWindow();
       log(`Get Active Window RequestId: ${activeWindowResponse.requestId}`);
-      if (activeWindowResponse.data) {
-        log(`Active window: ${activeWindowResponse.data.title} (ID: ${activeWindowResponse.data.window_id})`);
+      if (activeWindowResponse.window) {
+        log(`Active window: ${activeWindowResponse.window.title} (ID: ${activeWindowResponse.window.window_id})`);
       } else {
         log('No active window found');
       }
@@ -117,10 +117,10 @@ async function main() {
       const activeWindowResponse = await session.window.getActiveWindow();
       log(`Get Active Window Details RequestId: ${activeWindowResponse.requestId}`);
 
-      if (activeWindowResponse.data) {
-        log(`Window details: ${activeWindowResponse.data.title} (ID: ${activeWindowResponse.data.window_id})`);
-        if (activeWindowResponse.data.width && activeWindowResponse.data.height) {
-          log(`Window dimensions: ${activeWindowResponse.data.width}x${activeWindowResponse.data.height}`);
+      if (activeWindowResponse.window) {
+        log(`Window details: ${activeWindowResponse.window.title} (ID: ${activeWindowResponse.window.window_id})`);
+        if (activeWindowResponse.window.width && activeWindowResponse.window.height) {
+          log(`Window dimensions: ${activeWindowResponse.window.width}x${activeWindowResponse.window.height}`);
         }
       } else {
         log('No active window details available');

@@ -14,7 +14,7 @@ describe("Session Parameters", () => {
     try {
       if (session) {
         const deleteResponse = await session.delete();
-        log("Session deleted sucessfully");
+        log("Session deleted successfully");
         log(
           `Delete Session RequestId: ${deleteResponse.requestId || "undefined"}`
         );
@@ -28,7 +28,7 @@ describe("Session Parameters", () => {
     it.only("should accept empty options", async () => {
       try {
         const createResponse = await agentBay.create();
-        session = createResponse.data;
+        session = createResponse.session;
         log(
           `Create Session RequestId: ${createResponse.requestId || "undefined"}`
         );
@@ -45,7 +45,7 @@ describe("Session Parameters", () => {
       try {
         const contextId = "test-context-id";
         const createResponse = await agentBay.create({ contextId });
-        session = createResponse.data;
+        session = createResponse.session;
         log(
           `Create Session with ContextId RequestId: ${
             createResponse.requestId || "undefined"
@@ -60,7 +60,7 @@ describe("Session Parameters", () => {
       try {
         const labels = { username: "alice", project: "my-project" };
         const createResponse = await agentBay.create({ labels });
-        session = createResponse.data;
+        session = createResponse.session;
         log(
           `Create Session with Labels RequestId: ${
             createResponse.requestId || "undefined"
@@ -77,7 +77,7 @@ describe("Session Parameters", () => {
         const contextId = "test-context-id";
         const labels = { username: "alice", project: "my-project" };
         const createResponse = await agentBay.create({ contextId, labels });
-        session = createResponse.data;
+        session = createResponse.session;
         log(
           `Create Session with ContextId and Labels RequestId: ${
             createResponse.requestId || "undefined"
@@ -97,7 +97,7 @@ describe("Session Parameters", () => {
           contextId: "test-context-id",
           labels: { username: "alice" },
         });
-        session = createResponse.data;
+        session = createResponse.session;
         log(
           `Create Session with Options RequestId: ${
             createResponse.requestId || "undefined"

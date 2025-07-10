@@ -15,7 +15,7 @@ describe("Session GetLink", () => {
     // Create a session with imageId for getLink testing
     log("Creating a new session for getLink testing...");
     const createResponse = await agentBay.create({ imageId: "browser_latest" });
-    session = createResponse.data;
+    session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });

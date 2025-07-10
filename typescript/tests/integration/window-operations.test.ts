@@ -20,7 +20,7 @@ describe("Window Operations Integration", () => {
     // Create a session with linux_latest image
     log("Creating a new session for window operations testing...");
     const createResponse = await agentBay.create({ imageId: "linux_latest" });
-    session = createResponse.data;
+    session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });
@@ -45,14 +45,14 @@ describe("Window Operations Integration", () => {
       // Set timeout to 2 minutes (120000 ms)
       jest.setTimeout(120000);
       // Test window operations
-      if (session.window && session.Application) {
+      if (session.window && session.application) {
         // Start Terminal application (using Linux default)
         log("Starting Terminal application...");
         const startCmd = "gnome-terminal";
 
         let processes: any[] = [];
         try {
-          const startResponse = await session.Application.startApp(
+          const startResponse = await session.application.startApp(
             startCmd,
             ""
           );
@@ -79,7 +79,7 @@ describe("Window Operations Integration", () => {
                   `Attempting to stop Terminal process (PID: ${process.pid})...`
                 );
                 try {
-                  const stopResponse = await session.Application.stopAppByPID(
+                  const stopResponse = await session.application.stopAppByPID(
                     process.pid
                   );
                   log(
@@ -101,7 +101,7 @@ describe("Window Operations Integration", () => {
           try {
             // Get a list of root windows
             const rootWindowsResponse = await session.window.listRootWindows();
-            const rootWindows = rootWindowsResponse.data;
+            const rootWindows = rootWindowsResponse.windows;
             log(
               `List Root Windows RequestId: ${
                 rootWindowsResponse.requestId || "undefined"
@@ -232,7 +232,7 @@ describe("Window Operations Integration", () => {
 
             let terminalProcesses: any[] = [];
             try {
-              const terminalStartResponse = await session.Application.startApp(
+              const terminalStartResponse = await session.application.startApp(
                 terminalCmd,
                 ""
               );
@@ -258,7 +258,7 @@ describe("Window Operations Integration", () => {
                     );
                     try {
                       const stopResponse =
-                        await session.Application.stopAppByPID(process.pid);
+                        await session.application.stopAppByPID(process.pid);
                       log(
                         `Successfully stopped terminal process (PID: ${process.pid})`
                       );

@@ -16,7 +16,7 @@ describe("Session Labels", () => {
     // Create a real session
     log("Creating a new session for session labels testing...");
     const createResponse = await agentBay.create();
-    session = createResponse.data;
+    session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
 

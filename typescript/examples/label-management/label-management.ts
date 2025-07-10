@@ -26,7 +26,7 @@ async function main() {
         version: '1.0'
       }
     });
-    const session1 = createResponse1.data;
+    const session1 = createResponse1.session;
     log(`Session created with ID: ${session1.sessionId}`);
     log(`Create Session 1 RequestId: ${createResponse1.requestId}`);
 
@@ -45,7 +45,7 @@ async function main() {
         version: '2.0'
       }
     });
-    const session2 = createResponse2.data;
+    const session2 = createResponse2.session;
     log(`Session created with ID: ${session2.sessionId}`);
     log(`Create Session 2 RequestId: ${createResponse2.requestId}`);
 
@@ -65,13 +65,8 @@ async function main() {
     log(`Updated session labels: ${JSON.stringify(updatedLabelsResponse.data)}`);
     log(`Get Updated Labels RequestId: ${updatedLabelsResponse.requestId}`);
 
-    // List all sessions
-    log('\nListing all sessions...');
-    const allSessions = agentBay.list();
-    log(`Found ${allSessions.length} sessions`);
-    for (let i = 0; i < allSessions.length; i++) {
-      log(`Session ${i + 1} ID: ${allSessions[i].sessionId}`);
-    }
+    // List all sessions - Note: Simple list() method is not available in TypeScript version
+    log('\nNote: Simple list() method is not available in TypeScript version');
 
     // List sessions by label using new API
     log('\nListing sessions with purpose=demo and feature=label-management...');

@@ -15,7 +15,7 @@ describe("Session", () => {
       // Create a session
       log("Creating a new session for session testing...");
       const createResponse = await agentBay.create();
-      session = createResponse.data;
+      session = createResponse.session;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -49,7 +49,7 @@ describe("Session", () => {
     });
 
     it.only("should have filesystem, command, and ui properties", () => {
-      expect(session.filesystem).toBeDefined();
+      expect(session.fileSystem).toBeDefined();
       expect(session.command).toBeDefined();
       expect(session.ui).toBeDefined();
     });
@@ -66,7 +66,7 @@ describe("Session", () => {
       // Create a session
       log("Creating a new session for session testing...");
       const createResponse = await agentBay.create({ imageId: "code_latest" });
-      session = createResponse.data;
+      session = createResponse.session;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -114,7 +114,7 @@ describe("Session", () => {
       // Create a new session specifically for this test
       log("Creating a new session for delete testing...");
       const createResponse = await agentBay.create();
-      const testSession = createResponse.data;
+      const testSession = createResponse.session;
       log(`Session created with ID: ${testSession.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -134,15 +134,10 @@ describe("Session", () => {
           // Verify that the response contains requestId
           expect(deleteResponse.requestId).toBeDefined();
           expect(typeof deleteResponse.requestId).toBe("string");
+
+          // Verify the deletion was successful
+          expect(deleteResponse.success).toBe(true);
         }
-
-        // Verify the session was deleted by checking it's not in the list
-        const sessions = agentBay.list();
-
-        const stillExists = sessions.some(
-          (s) => s.sessionId === testSession.sessionId
-        );
-        expect(stillExists).toBe(false);
       } catch (error) {
         log(`Note: Session deletion failed: ${error}`);
         // Clean up if the test failed
@@ -174,7 +169,7 @@ describe("Session", () => {
       // Create a session
       log("Creating a new session for session testing...");
       const createResponse = await agentBay.create();
-      session = createResponse.data;
+      session = createResponse.session;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`

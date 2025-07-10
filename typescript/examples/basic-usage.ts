@@ -12,21 +12,21 @@ async function main() {
 
     // Create a new session with labels
     log('Creating a new session with labels...');
-    const createResponse = await agentBay.create({imageId:'linux_latest'});
-    const session = createResponse.data;
+    const createResponse = await agentBay.create({imageId:'browser_latest'});
+    const session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId}`);
 
     // Execute a command
     log('\nExecuting a command...');
     const commandResponse = await session.command.executeCommand('ls -la');
-    log('Command result:', commandResponse.data);
+    log('Command result:', commandResponse.output);
     log(`Execute Command RequestId: ${commandResponse.requestId}`);
 
     // Read a file
     log('\nReading a file...');
-    const fileResponse = await session.filesystem.readFile('/etc/hosts');
-    log(`File content: ${fileResponse.data}`);
+    const fileResponse = await session.fileSystem.readFile('/etc/hosts');
+    log(`File content: ${fileResponse.content}`);
     log(`Read File RequestId: ${fileResponse.requestId}`);
 
     // Get the session link

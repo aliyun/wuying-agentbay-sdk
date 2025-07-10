@@ -3,9 +3,10 @@ import { Session } from "../session";
 import { CallMcpToolRequest } from "../api/models/model";
 import { log, logError } from "../utils/logger";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   extractRequestId,
+  UIElementListResult,
+  BoolResult,
+  OperationResult,
 } from "../types/api-response";
 
 /**
@@ -161,134 +162,180 @@ export class UI {
 
   /**
    * Retrieves all clickable UI elements within the specified timeout.
+   * Corresponds to Python's get_clickable_ui_elements() method
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
-   * @returns API response with clickable UI elements array and requestId
-   * @throws Error if the operation fails.
+   * @returns UIElementListResult with clickable UI elements and requestId
    */
   async getClickableUIElements(
     timeoutMs = 2000
-  ): Promise<ApiResponseWithData<UIElement[]>> {
-    const args = {
-      timeout_ms: timeoutMs,
-    };
+  ): Promise<UIElementListResult> {
+    try {
+      const args = {
+        timeout_ms: timeoutMs,
+      };
 
-    const result = await this.callMcpTool(
-      "get_clickable_ui_elements",
-      args,
-      "Failed to get clickable UI elements"
-    );
+      const result = await this.callMcpTool(
+        "get_clickable_ui_elements",
+        args,
+        "Failed to get clickable UI elements"
+      );
 
-    let elements: UIElement[] = [];
-    if (result.textContent) {
-      try {
-        elements = JSON.parse(result.textContent) as UIElement[];
-      } catch (error) {
-        logError("Failed to parse clickable UI elements:", error);
-        throw new APIError(`Failed to parse clickable UI elements: ${error}`);
+      let elements: UIElement[] = [];
+      if (result.textContent) {
+        try {
+          elements = JSON.parse(result.textContent) as UIElement[];
+        } catch (error) {
+          return {
+            requestId: result.requestId || "",
+            success: false,
+            elements: [],
+            errorMessage: `Failed to parse clickable UI elements: ${error}`,
+          };
+        }
       }
-    }
 
-    return {
-      requestId: result.requestId,
-      data: elements,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        elements,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        elements: [],
+        errorMessage: `Failed to get clickable UI elements: ${error}`,
+      };
+    }
   }
 
   /**
    * Retrieves all UI elements within the specified timeout.
+   * Corresponds to Python's get_all_ui_elements() method
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
-   * @returns API response with all UI elements array and requestId
-   * @throws Error if the operation fails.
+   * @returns UIElementListResult with all UI elements and requestId
    */
   async getAllUIElements(
     timeoutMs = 2000
-  ): Promise<ApiResponseWithData<UIElement[]>> {
-    const args = {
-      timeout_ms: timeoutMs,
-    };
+  ): Promise<UIElementListResult> {
+    try {
+      const args = {
+        timeout_ms: timeoutMs,
+      };
 
-    const result = await this.callMcpTool(
-      "get_all_ui_elements",
-      args,
-      "Failed to get all UI elements"
-    );
+      const result = await this.callMcpTool(
+        "get_all_ui_elements",
+        args,
+        "Failed to get all UI elements"
+      );
 
-    let elements: UIElement[] = [];
-    if (result.textContent) {
-      try {
-        elements = JSON.parse(result.textContent) as UIElement[];
-      } catch (error) {
-        logError("Failed to parse all UI elements:", error);
-        throw new APIError(`Failed to parse all UI elements: ${error}`);
+      let elements: UIElement[] = [];
+      if (result.textContent) {
+        try {
+          elements = JSON.parse(result.textContent) as UIElement[];
+        } catch (error) {
+          return {
+            requestId: result.requestId || "",
+            success: false,
+            elements: [],
+            errorMessage: `Failed to parse all UI elements: ${error}`,
+          };
+        }
       }
-    }
 
-    return {
-      requestId: result.requestId,
-      data: elements,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        elements,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        elements: [],
+        errorMessage: `Failed to get all UI elements: ${error}`,
+      };
+    }
   }
 
   /**
    * Sends a key press event.
+   * Corresponds to Python's send_key() method
    *
    * @param key - The key code to send.
-   * @returns API response with key press result and requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with key press result and requestId
    */
-  async sendKey(key: number): Promise<ApiResponseWithData<string>> {
-    const args = {
-      key,
-    };
+  async sendKey(key: number): Promise<BoolResult> {
+    try {
+      const args = {
+        key,
+      };
 
-    const result = await this.callMcpTool(
-      "send_key",
-      args,
-      "Failed to send key"
-    );
+      const result = await this.callMcpTool(
+        "send_key",
+        args,
+        "Failed to send key"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to send key: ${error}`,
+      };
+    }
   }
 
   /**
    * Inputs text into the active field.
+   * Corresponds to Python's input_text() method
    *
    * @param text - The text to input.
-   * @returns API response with input result and requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with input result and requestId
    */
-  async inputText(text: string): Promise<ApiResponseWithData<string>> {
-    const args = {
-      text,
-    };
+  async inputText(text: string): Promise<BoolResult> {
+    try {
+      const args = {
+        text,
+      };
 
-    const result = await this.callMcpTool(
-      "input_text",
-      args,
-      "Failed to input text"
-    );
+      const result = await this.callMcpTool(
+        "input_text",
+        args,
+        "Failed to input text"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to input text: ${error}`,
+      };
+    }
   }
 
   /**
    * Performs a swipe gesture on the screen.
+   * Corresponds to Python's swipe() method
    *
    * @param startX - The starting X coordinate.
    * @param startY - The starting Y coordinate.
    * @param endX - The ending X coordinate.
    * @param endY - The ending Y coordinate.
    * @param durationMs - The duration of the swipe in milliseconds. Default is 300ms.
-   * @returns API response with swipe result and requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with swipe result and requestId
    */
   async swipe(
     startX: number,
@@ -296,77 +343,104 @@ export class UI {
     endX: number,
     endY: number,
     durationMs = 300
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      start_x: startX,
-      start_y: startY,
-      end_x: endX,
-      end_y: endY,
-      duration_ms: durationMs,
-    };
+  ): Promise<BoolResult> {
+    try {
+      const args = {
+        start_x: startX,
+        start_y: startY,
+        end_x: endX,
+        end_y: endY,
+        duration_ms: durationMs,
+      };
 
-    const result = await this.callMcpTool(
-      "swipe",
-      args,
-      "Failed to perform swipe"
-    );
+      const result = await this.callMcpTool(
+        "swipe",
+        args,
+        "Failed to perform swipe"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to perform swipe: ${error}`,
+      };
+    }
   }
 
   /**
    * Performs a click at the specified coordinates.
+   * Corresponds to Python's click() method
    *
    * @param x - The X coordinate.
    * @param y - The Y coordinate.
    * @param button - The mouse button to click. Default is 'left'.
-   * @returns API response with click result and requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with click result and requestId
    */
   async click(
     x: number,
     y: number,
     button = "left"
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      x,
-      y,
-      button,
-    };
+  ): Promise<BoolResult> {
+    try {
+      const args = {
+        x,
+        y,
+        button,
+      };
 
-    const result = await this.callMcpTool(
-      "click",
-      args,
-      "Failed to perform click"
-    );
+      const result = await this.callMcpTool(
+        "click",
+        args,
+        "Failed to perform click"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to perform click: ${error}`,
+      };
+    }
   }
 
   /**
    * Takes a screenshot of the current screen.
+   * Corresponds to Python's screenshot() method
    *
-   * @returns API response with screenshot data and requestId
-   * @throws Error if the operation fails.
+   * @returns OperationResult with screenshot data and requestId
    */
-  async screenshot(): Promise<ApiResponseWithData<string>> {
-    const args = {};
+  async screenshot(): Promise<OperationResult> {
+    try {
+      const args = {};
 
-    const result = await this.callMcpTool(
-      "system_screenshot",
-      args,
-      "Failed to take screenshot"
-    );
+      const result = await this.callMcpTool(
+        "system_screenshot",
+        args,
+        "Failed to take screenshot"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to take screenshot: ${error}`,
+      };
+    }
   }
 }

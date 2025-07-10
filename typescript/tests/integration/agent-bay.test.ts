@@ -23,7 +23,7 @@ declare var process: {
 
 describe("AgentBay", () => {
   describe("constructor", () => {
-    it.only("should initialize with API key from options", () => {
+    it("should initialize with API key from options", () => {
       const apiKey = getTestApiKey();
       const agentBay = new AgentBay({ apiKey });
       log(apiKey);
@@ -31,7 +31,7 @@ describe("AgentBay", () => {
       expect(agentBay.getAPIKey()).toBe(apiKey);
     });
 
-    it.only("should initialize with API key from environment variable", () => {
+    it("should initialize with API key from environment variable", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       process.env.AGENTBAY_API_KEY = "env_api_key";
 
@@ -48,7 +48,7 @@ describe("AgentBay", () => {
       }
     });
 
-    it.only("should throw AuthenticationError if no API key is provided", () => {
+    it("should throw AuthenticationError if no API key is provided", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       delete process.env.AGENTBAY_API_KEY;
 
@@ -72,20 +72,24 @@ describe("AgentBay", () => {
       agentBay = new AgentBay({ apiKey });
     });
 
-    it.only("should create, list, and delete a session with requestId", async () => {
+    it("should create, list, and delete a session with requestId", async () => {
       // Create a session
       log("Creating a new session...");
       const createResponse = await agentBay.create();
-      session = createResponse.data;
+
+      // Verify SessionResult structure
+      expect(createResponse.success).toBe(true);
+      expect(createResponse.requestId).toBeDefined();
+      expect(typeof createResponse.requestId).toBe("string");
+      expect(createResponse.requestId!.length).toBeGreaterThan(0);
+      expect(createResponse.session).toBeDefined();
+      expect(createResponse.errorMessage).toBeUndefined();
+
+      session = createResponse.session!;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
       );
-
-      // Verify that the response contains requestId
-      expect(createResponse.requestId).toBeDefined();
-      expect(typeof createResponse.requestId).toBe("string");
-      expect(createResponse.requestId!.length).toBeGreaterThan(0);
 
       // Ensure session ID is not empty
       expect(session.sessionId).toBeDefined();
@@ -109,10 +113,12 @@ describe("AgentBay", () => {
         `Delete Session RequestId: ${deleteResponse.requestId || "undefined"}`
       );
 
-      // Verify that the delete response contains requestId
+      // Verify DeleteResult structure
+      expect(deleteResponse.success).toBe(true);
       expect(deleteResponse.requestId).toBeDefined();
       expect(typeof deleteResponse.requestId).toBe("string");
       expect(deleteResponse.requestId!.length).toBeGreaterThan(0);
+      expect(deleteResponse.errorMessage).toBeUndefined();
 
       // List sessions again to ensure it's deleted
       const sessionsAfterDelete = agentBay.list();
@@ -149,7 +155,12 @@ describe("AgentBay", () => {
         // Create session with labels A
         log("Creating session with labels A...");
         const createResponseA = await agentBay.create({ labels: labelsA });
-        sessionA = createResponseA.data;
+
+        // Verify SessionResult structure
+        expect(createResponseA.success).toBe(true);
+        expect(createResponseA.session).toBeDefined();
+
+        sessionA = createResponseA.session!;
         log(`Session created with ID: ${sessionA.sessionId}`);
         log(
           `Create Session A RequestId: ${
@@ -159,7 +170,12 @@ describe("AgentBay", () => {
 
         // Create session with labels B
         const createResponseB = await agentBay.create({ labels: labelsB });
-        sessionB = createResponseB.data;
+
+        // Verify SessionResult structure
+        expect(createResponseB.success).toBe(true);
+        expect(createResponseB.session).toBeDefined();
+
+        sessionB = createResponseB.session!;
         log(`Session created with ID: ${sessionB.sessionId}`);
         log(
           `Create Session B RequestId: ${
@@ -201,7 +217,7 @@ describe("AgentBay", () => {
       }
     });
 
-    it.only("should list sessions by labels with requestId", async () => {
+    it("should list sessions by labels with requestId", async () => {
       // Test 1: List all sessions
       const allSessions = agentBay.list();
       log(`Found ${allSessions.length} sessions in total`);
@@ -224,10 +240,13 @@ describe("AgentBay", () => {
           `Total count: ${devSessionsResponse.totalCount}, Max results: ${devSessionsResponse.maxResults}`
         );
 
-        // Verify that the response contains requestId
+        // Verify SessionListResult structure
+        expect(devSessionsResponse.success).toBe(true);
         expect(devSessionsResponse.requestId).toBeDefined();
         expect(typeof devSessionsResponse.requestId).toBe("string");
         expect(devSessionsResponse.requestId!.length).toBeGreaterThan(0);
+        expect(devSessionsResponse.data).toBeDefined();
+        expect(Array.isArray(devSessionsResponse.data)).toBe(true);
 
         // Verify that session A is in the results
         const foundSessionA = devSessionsResponse.data.some(
@@ -256,7 +275,8 @@ describe("AgentBay", () => {
           `Total count: ${teamBSessionsResponse.totalCount}, Max results: ${teamBSessionsResponse.maxResults}`
         );
 
-        // Verify that the response contains requestId
+        // Verify SessionListResult structure
+        expect(teamBSessionsResponse.success).toBe(true);
         expect(teamBSessionsResponse.requestId).toBeDefined();
 
         // Verify that session B is in the results
@@ -292,7 +312,8 @@ describe("AgentBay", () => {
           }`
         );
 
-        // Verify that the response contains requestId
+        // Verify SessionListResult structure
+        expect(multiLabelSessionsResponse.success).toBe(true);
         expect(multiLabelSessionsResponse.requestId).toBeDefined();
 
         // Verify that session B is in the results and session A is not
@@ -316,6 +337,10 @@ describe("AgentBay", () => {
           const nextPageResponse = await agentBay.listByLabels(nextPageParams);
           log(`Next page sessions count: ${nextPageResponse.data.length}`);
           log(`Next page RequestId: ${nextPageResponse.requestId}`);
+
+          // Verify next page result structure
+          expect(nextPageResponse.success).toBe(true);
+          expect(nextPageResponse.requestId).toBeDefined();
         }
       } catch (error) {
         log(`Error listing sessions by multiple labels: ${error}`);
@@ -342,7 +367,8 @@ describe("AgentBay", () => {
           }`
         );
 
-        // Verify that the response contains requestId even for empty results
+        // Verify SessionListResult structure even for empty results
+        expect(nonExistentSessionsResponse.success).toBe(true);
         expect(nonExistentSessionsResponse.requestId).toBeDefined();
 
         if (nonExistentSessionsResponse.data.length > 0) {

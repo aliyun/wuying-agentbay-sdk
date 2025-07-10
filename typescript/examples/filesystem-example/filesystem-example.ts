@@ -5,6 +5,14 @@ import { getTestApiKey } from '../../tests/utils/test-helpers';
 // Define test path prefix
 const TestPathPrefix = '/tmp';
 
+// Define interfaces for file system operations
+interface FileEntry {
+  name: string;
+  isDirectory: boolean;
+  size?: number;
+  path?: string;
+}
+
 async function main() {
   // Get API key from environment variable or use default value for testing
   const apiKey = getTestApiKey();
@@ -15,7 +23,7 @@ async function main() {
   // Create a new session
   log('\nCreating a new session...');
   const createResponse = await agentBay.create({imageId:'linux_latest'});
-  const session = createResponse.data;
+  const session = createResponse.session;
   log(`\nSession created with ID: ${session.sessionId}`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 
@@ -24,8 +32,8 @@ async function main() {
     const testDirPath = `${TestPathPrefix}/test_directory`;
     log(`\nCreating directory: ${testDirPath}`);
     try {
-      const createDirResponse = await session.filesystem.createDirectory(testDirPath);
-      log(`Directory created: ${createDirResponse.data}`);
+      const createDirResponse = await session.fileSystem.createDirectory(testDirPath);
+      log(`Directory created: ${createDirResponse.success}`);
       log(`Create Directory RequestId: ${createDirResponse.requestId}`);
     } catch (error) {
       log(`Error creating directory: ${error}`);
@@ -36,8 +44,8 @@ async function main() {
     const testContent = "This is a sample file content.\nThis is the second line.\nThis is the third line.";
     log(`\nWriting file: ${testFilePath}`);
     try {
-      const writeResponse = await session.filesystem.writeFile(testFilePath, testContent, "overwrite");
-      log(`File written successfully: ${writeResponse.data}`);
+      const writeResponse = await session.fileSystem.writeFile(testFilePath, testContent, "overwrite");
+      log(`File written successfully: ${writeResponse.success}`);
       log(`Write File RequestId: ${writeResponse.requestId}`);
     } catch (error) {
       log(`Error writing file: ${error}`);
@@ -46,12 +54,12 @@ async function main() {
     // 3. Read the file we just created
     log(`\nReading file: ${testFilePath}`);
     try {
-      const readResponse = await session.filesystem.readFile(testFilePath);
-      log(`File content:\n${readResponse.data}`);
+      const readResponse = await session.fileSystem.readFile(testFilePath);
+      log(`File content:\n${readResponse.content}`);
       log(`Read File RequestId: ${readResponse.requestId}`);
 
       // Verify content matches what we wrote
-      if (readResponse.data === testContent) {
+      if (readResponse.content === testContent) {
         log('Content verification successful!');
       } else {
         log('Content verification failed!');
@@ -63,8 +71,9 @@ async function main() {
     // 4. Get file info
     log(`\nGetting file info for: ${testFilePath}`);
     try {
-      const fileInfoResponse = await session.filesystem.getFileInfo(testFilePath);
-      const fileInfo = fileInfoResponse.data;
+      const fileInfoResponse = await session.fileSystem.getFileInfo(testFilePath);
+      const fileInfo = fileInfoResponse.fileInfo;
+     log(`File info: ${fileInfo}`);
       log(`File info: Name=${fileInfo.name}, Path=${fileInfo.path}, Size=${fileInfo.size}, IsDirectory=${fileInfo.isDirectory}`);
       log(`Get File Info RequestId: ${fileInfoResponse.requestId}`);
     } catch (error) {
@@ -74,9 +83,9 @@ async function main() {
     // 5. List directory
     log(`\nListing directory: ${testDirPath}`);
     try {
-      const listResponse = await session.filesystem.listDirectory(testDirPath);
+      const listResponse = await session.fileSystem.listDirectory(testDirPath);
       log('Directory entries:');
-      listResponse.data.forEach(entry => {
+      listResponse.entries.forEach((entry: FileEntry) => {
         log(`${entry.isDirectory ? '[DIR]' : '[FILE]'} ${entry.name}`);
       });
       log(`List Directory RequestId: ${listResponse.requestId}`);
@@ -93,13 +102,13 @@ async function main() {
           newText: "MODIFIED second line"
         }
       ];
-      const editResponse = await session.filesystem.editFile(testFilePath, edits, false);
-      log(`File edited successfully: ${editResponse.data}`);
+      const editResponse = await session.fileSystem.editFile(testFilePath, edits, false);
+      log(`File edited successfully: ${editResponse.success}`);
       log(`Edit File RequestId: ${editResponse.requestId}`);
 
       // Read the file again to verify the edit
-      const readAgainResponse = await session.filesystem.readFile(testFilePath);
-      log(`Edited file content:\n${readAgainResponse.data}`);
+      const readAgainResponse = await session.fileSystem.readFile(testFilePath);
+      log(`Edited file content:\n${readAgainResponse.content}`);
       log(`Read File Again RequestId: ${readAgainResponse.requestId}`);
     } catch (error) {
       log(`Error editing file: ${error}`);
@@ -108,9 +117,9 @@ async function main() {
     // 7. Search files
     log(`\nSearching for files in ${TestPathPrefix} containing 'sample'`);
     try {
-      const searchResponse = await session.filesystem.searchFiles(TestPathPrefix, "sample", undefined);
-      log(`Search results: ${searchResponse.data.length} files found`);
-      searchResponse.data.forEach(path => {
+      const searchResponse = await session.fileSystem.searchFiles(TestPathPrefix, "sample", undefined);
+      log(`Search results: ${searchResponse.matches.length} files found`);
+      searchResponse.matches.forEach((path: string) => {
         log(`- ${path}`);
       });
       log(`Search Files RequestId: ${searchResponse.requestId}`);
@@ -122,14 +131,14 @@ async function main() {
     const newFilePath = `${TestPathPrefix}/test_directory/renamed.txt`;
     log(`\nMoving file from ${testFilePath} to ${newFilePath}`);
     try {
-      const moveResponse = await session.filesystem.moveFile(testFilePath, newFilePath);
-      log(`File moved successfully: ${moveResponse.data}`);
+      const moveResponse = await session.fileSystem.moveFile(testFilePath, newFilePath);
+      log(`File moved successfully: ${moveResponse.success}`);
       log(`Move File RequestId: ${moveResponse.requestId}`);
 
       // List directory again to verify the move
-      const listAgainResponse = await session.filesystem.listDirectory(testDirPath);
+      const listAgainResponse = await session.fileSystem.listDirectory(testDirPath);
       log('Directory entries after move:');
-      listAgainResponse.data.forEach(entry => {
+      listAgainResponse.entries.forEach((entry: FileEntry) => {
         log(`${entry.isDirectory ? '[DIR]' : '[FILE]'} ${entry.name}`);
       });
       log(`List Directory Again RequestId: ${listAgainResponse.requestId}`);

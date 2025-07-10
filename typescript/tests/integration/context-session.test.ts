@@ -25,7 +25,7 @@ describe("Context Session Integration", () => {
       log(`Creating new context with name: ${contextName}`);
 
       const createContextResponse = await agentBay.context.create(contextName);
-      const context = createContextResponse.data;
+      const context = createContextResponse.context;
       if (!context) {
         throw new Error("Failed to create context");
       }
@@ -47,7 +47,7 @@ describe("Context Session Integration", () => {
         const createSessionResponse = await agentBay.create({
           contextId: context.id,
         });
-        const session1 = createSessionResponse.data;
+        const session1 = createSessionResponse.session!;
         log(`Session created successfully with ID: ${session1.sessionId}`);
         log(
           `Create Session RequestId: ${
@@ -62,7 +62,7 @@ describe("Context Session Integration", () => {
         await wait(2000);
 
         const getContextResponse = await agentBay.context.get(contextName);
-        const updatedContext = getContextResponse.data;
+        const updatedContext = getContextResponse.context;
         if (!updatedContext) {
           throw new Error("Failed to retrieve updated context");
         }
@@ -86,7 +86,7 @@ describe("Context Session Integration", () => {
           const createSession2Response = await agentBay.create({
             contextId: context.id,
           });
-          const session2 = createSession2Response.data;
+          const session2 = createSession2Response.session!;
 
           // If somehow it succeeds (which shouldn't happen), make sure to clean it up
           log(
@@ -131,7 +131,7 @@ describe("Context Session Integration", () => {
         log("Step 6: Checking context status after session release...");
 
         const getContextAfterResponse = await agentBay.context.get(contextName);
-        const contextAfterRelease = getContextAfterResponse.data;
+        const contextAfterRelease = getContextAfterResponse.context;
         if (!contextAfterRelease) {
           throw new Error("Failed to retrieve context after release");
         }
@@ -152,7 +152,7 @@ describe("Context Session Integration", () => {
         const createSession3Response = await agentBay.create({
           contextId: context.id,
         });
-        const session3 = createSession3Response.data;
+        const session3 = createSession3Response.session!;
         log(`New session created successfully with ID: ${session3.sessionId}`);
         log(
           `Create Session 3 RequestId: ${
@@ -192,7 +192,7 @@ describe("Context Session Integration", () => {
       // Get initial list of contexts for comparison
       log("Getting initial list of contexts...");
       const initialContextsResponse = await agentBay.context.list();
-      const initialContexts = initialContextsResponse.data;
+      const initialContexts = initialContextsResponse.contexts;
       log(`Found ${initialContexts.length} contexts initially`);
       log(
         `List Initial Contexts RequestId: ${
@@ -211,7 +211,7 @@ describe("Context Session Integration", () => {
       log("Step 1: Creating a new context...");
       const contextName = `test-context-${Date.now()}`;
       const createContextResponse = await agentBay.context.create(contextName);
-      const context = createContextResponse.data;
+      const context = createContextResponse.context;
       if (!context) {
         throw new Error("Failed to create context");
       }
@@ -233,7 +233,7 @@ describe("Context Session Integration", () => {
         // Step 2: Get the context we just created
         log("Step 2: Getting the context we just created...");
         const getContextResponse = await agentBay.context.get(contextName);
-        const retrievedContext = getContextResponse.data;
+        const retrievedContext = getContextResponse.context;
         if (!retrievedContext) {
           throw new Error("Failed to retrieve context");
         }
@@ -253,7 +253,7 @@ describe("Context Session Integration", () => {
         // Step 3: List contexts and verify our new context is in the list
         log("Step 3: Listing all contexts...");
         const listContextsResponse = await agentBay.context.list();
-        const allContexts = listContextsResponse.data;
+        const allContexts = listContextsResponse.contexts;
         log(
           `List All Contexts RequestId: ${
             listContextsResponse.requestId || "undefined"
@@ -284,7 +284,7 @@ describe("Context Session Integration", () => {
             project: "test-project",
           },
         });
-        const session = createSessionResponse.data;
+        const session = createSessionResponse.session!;
         log(`Session created with ID: ${session.sessionId}`);
         log(
           `Create Session RequestId: ${
@@ -310,7 +310,7 @@ describe("Context Session Integration", () => {
           const getUpdatedContextResponse = await agentBay.context.get(
             updatedName
           );
-          const retrievedUpdatedContext = getUpdatedContextResponse.data;
+          const retrievedUpdatedContext = getUpdatedContextResponse.context;
           if (!retrievedUpdatedContext) {
             throw new Error("Failed to retrieve updated context");
           }
@@ -330,7 +330,7 @@ describe("Context Session Integration", () => {
           // Step 7: List contexts again to verify the update is visible in the list
           log("Step 7: Listing contexts again to verify the update...");
           const listUpdatedContextsResponse = await agentBay.context.list();
-          const updatedContexts = listUpdatedContextsResponse.data;
+          const updatedContexts = listUpdatedContextsResponse.contexts;
           log(
             `List Updated Contexts RequestId: ${
               listUpdatedContextsResponse.requestId || "undefined"
@@ -380,7 +380,7 @@ describe("Context Session Integration", () => {
             const getDeletedContextResponse = await agentBay.context.get(
               contextName
             );
-            const deletedContext = getDeletedContextResponse.data;
+            const deletedContext = getDeletedContextResponse.context;
             if (deletedContext && deletedContext.id === originalContextID) {
               log("Error: Context still exists after deletion");
             }

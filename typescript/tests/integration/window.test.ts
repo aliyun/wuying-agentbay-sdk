@@ -27,8 +27,8 @@ describe("WindowManager", () => {
     // Create a real session
     log("Creating a new session for window testing...");
     const createResponse = await agentBay.create({ imageId: "linux_latest" });
-    session = createResponse.data;
-    debugger;
+    session = createResponse.session;
+    debugger
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
 
@@ -56,7 +56,7 @@ describe("WindowManager", () => {
       try {
         // Call the method
         const windowsResponse = await windowManager.listRootWindows();
-        log(`Retrieved ${windowsResponse.data.length} root windows`);
+        log(`Retrieved ${windowsResponse.windows.length} root windows`);
         log(
           `List Root Windows RequestId: ${
             windowsResponse.requestId || "undefined"
@@ -68,12 +68,12 @@ describe("WindowManager", () => {
         expect(typeof windowsResponse.requestId).toBe("string");
 
         // Verify windows array
-        expect(windowsResponse.data).toBeDefined();
-        expect(Array.isArray(windowsResponse.data)).toBe(true);
+        expect(windowsResponse.windows).toBeDefined();
+        expect(Array.isArray(windowsResponse.windows)).toBe(true);
 
         // Verify the results
-        if (windowsResponse.data.length > 0) {
-          windowsResponse.data.forEach((window) => {
+        if (windowsResponse.windows.length > 0) {
+          windowsResponse.windows.forEach((window) => {
             expect(isValidWindow(window)).toBe(true);
           });
         } else {
@@ -102,13 +102,13 @@ describe("WindowManager", () => {
         expect(windowResponse.requestId).toBeDefined();
         expect(typeof windowResponse.requestId).toBe("string");
 
-        if (windowResponse.data) {
+        if (windowResponse.window) {
           log(
-            `Active window: ${windowResponse.data.title} (ID: ${windowResponse.data.window_id})`
+            `Active window: ${windowResponse.window.title} (ID: ${windowResponse.window.window_id})`
           );
 
           // Verify the results
-          expect(isValidWindow(windowResponse.data)).toBe(true);
+          expect(isValidWindow(windowResponse.window)).toBe(true);
         } else {
           log(
             "No active window found, this might be normal in some environments"
@@ -129,13 +129,13 @@ describe("WindowManager", () => {
         // First get a list of windows
         const windowsResponse = await windowManager.listRootWindows();
 
-        if (windowsResponse.data.length === 0) {
+        if (windowsResponse.windows.length === 0) {
           log("No windows available for testing activateWindow");
           return;
         }
 
         // Use the first window for testing
-        const windowId = windowsResponse.data[0].window_id;
+        const windowId = windowsResponse.windows[0].window_id;
         log(`Activating window with ID: ${windowId}`);
 
         // Call the method
@@ -165,13 +165,13 @@ describe("WindowManager", () => {
         // First get a list of windows
         const windowsResponse = await windowManager.listRootWindows();
 
-        if (windowsResponse.data.length === 0) {
+        if (windowsResponse.windows.length === 0) {
           log("No windows available for testing maximizeWindow");
           return;
         }
 
         // Use the first window for testing
-        const windowId = windowsResponse.data[0].window_id;
+        const windowId = windowsResponse.windows[0].window_id;
         log(`Maximizing window with ID: ${windowId}`);
 
         // Call the method
@@ -201,13 +201,13 @@ describe("WindowManager", () => {
         // First get a list of windows
         const windowsResponse = await windowManager.listRootWindows();
 
-        if (windowsResponse.data.length === 0) {
+        if (windowsResponse.windows.length === 0) {
           log("No windows available for testing minimizeWindow");
           return;
         }
 
         // Use the first window for testing
-        const windowId = windowsResponse.data[0].window_id;
+        const windowId = windowsResponse.windows[0].window_id;
         log(`Minimizing window with ID: ${windowId}`);
 
         // Call the method
@@ -237,13 +237,13 @@ describe("WindowManager", () => {
         // First get a list of windows
         const windowsResponse = await windowManager.listRootWindows();
 
-        if (windowsResponse.data.length === 0) {
+        if (windowsResponse.windows.length === 0) {
           log("No windows available for testing restoreWindow");
           return;
         }
 
         // Use the first window for testing
-        const windowId = windowsResponse.data[0].window_id;
+        const windowId = windowsResponse.windows[0].window_id;
         log(`Restoring window with ID: ${windowId}`);
 
         // Call the method
@@ -273,13 +273,13 @@ describe("WindowManager", () => {
         // First get a list of windows
         const windowsResponse = await windowManager.listRootWindows();
 
-        if (windowsResponse.data.length === 0) {
+        if (windowsResponse.windows.length === 0) {
           log("No windows available for testing resizeWindow");
           return;
         }
 
         // Use the first window for testing
-        const windowId = windowsResponse.data[0].window_id;
+        const windowId = windowsResponse.windows[0].window_id;
         log(`Resizing window with ID: ${windowId} to 800x600`);
 
         // Call the method

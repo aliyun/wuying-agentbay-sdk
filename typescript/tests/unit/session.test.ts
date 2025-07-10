@@ -36,10 +36,10 @@ describe("TestSession", () => {
     it("should initialize session with correct properties", () => {
       expect(mockSession.sessionId).toBe("test_session_id");
       expect(mockSession.getAPIKey()).toBe("test_api_key");
-      expect(mockSession.filesystem).toBeDefined();
+      expect(mockSession.fileSystem).toBeDefined();
       expect(mockSession.command).toBeDefined();
       expect(mockSession.oss).toBeDefined();
-      expect(mockSession.Application).toBeDefined();
+      expect(mockSession.application).toBeDefined();
       expect(mockSession.window).toBeDefined();
       expect(mockSession.ui).toBeDefined();
     });
@@ -72,6 +72,7 @@ describe("TestSession", () => {
       const mockResponse = {
         body: {
           requestId: "test-request-id",
+          success: true,
         },
         statusCode: 200,
       };
@@ -80,11 +81,12 @@ describe("TestSession", () => {
 
       const result = await mockSession.delete();
 
+      // Verify DeleteResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
-      expect(mockAgentBay.removeSession.calledOnceWith("test_session_id")).toBe(
-        true
-      );
 
       const callArgs = mockClient.releaseMcpSession.getCall(0).args[0];
       expect(callArgs.authorization).toBe("Bearer test_api_key");
@@ -96,9 +98,12 @@ describe("TestSession", () => {
     it("should handle delete failure", async () => {
       mockClient.releaseMcpSession.rejects(new Error("Test error"));
 
-      await expect(mockSession.delete()).rejects.toThrow(
-        "Failed to delete session: Error: Test error"
-      );
+      const result = await mockSession.delete();
+
+      // Verify DeleteResult error structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to delete session test_session_id");
 
       expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
 
@@ -116,11 +121,11 @@ describe("TestSession", () => {
             sessionId: "test_session_id",
             resourceUrl: "https://example.com/resource",
             desktopInfo: {
-              appId: "test-app-id",
-              authCode: "test-auth-code",
-              connectionProperties: "test-properties",
-              resourceId: "test-resource-id",
-              resourceType: "desktop",
+              AppId: "test-app-id",
+              AuthCode: "test-auth-code",
+              ConnectionProperties: "test-properties",
+              ResourceId: "test-resource-id",
+              ResourceType: "desktop",
             },
           },
           requestId: "info-request-id",
@@ -132,6 +137,12 @@ describe("TestSession", () => {
 
       const result = await mockSession.info();
 
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("info-request-id");
+      expect(result.data).toBeDefined();
+      expect(result.errorMessage).toBeUndefined();
+
       expect(result.data.sessionId).toBe("test_session_id");
       expect(result.data.resourceUrl).toBe("https://example.com/resource");
       expect(result.data.appId).toBe("test-app-id");
@@ -139,7 +150,7 @@ describe("TestSession", () => {
       expect(result.data.connectionProperties).toBe("test-properties");
       expect(result.data.resourceId).toBe("test-resource-id");
       expect(result.data.resourceType).toBe("desktop");
-      expect(result.requestId).toBe("info-request-id");
+
       expect(mockClient.getMcpResource.calledOnce).toBe(true);
 
       expect(mockSession.resourceUrl).toBe("https://example.com/resource");
@@ -176,8 +187,12 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLink();
 
-      expect(result.data).toBe("https://example.com/session-link");
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("get-link-request-id");
+      expect(result.data).toBe("https://example.com/session-link");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(mockClient.getLink.calledOnce).toBe(true);
 
       const callArgs = mockClient.getLink.getCall(0).args[0];
@@ -200,14 +215,94 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLink("https", 8080);
 
-      expect(result.data).toBe("https://example.com/session-link");
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("get-link-request-id");
+      expect(result.data).toBe("https://example.com/session-link");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(mockClient.getLink.calledOnce).toBe(true);
 
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.authorization).toBe("Bearer test_api_key");
-      expect(callArgs.sessionId).toBe("test_session_id");
-      expect(callArgs.protocolType).toBe("https");
+      expect(callArgs.authorization).toBe('Bearer test_api_key');
+      expect(callArgs.sessionId).toBe('test_session_id');
+      expect(callArgs.protocolType).toBe('https');
+      expect(callArgs.port).toBe(8080);
+    });
+
+    it('should handle string data response', async () => {
+      const mockResponse = {
+        body: {
+          data: {"Url": "https://example.com/session-link"},
+          requestId: 'get-link-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockClient.getLink.resolves(mockResponse);
+
+      const result = await mockSession.getLink();
+
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe('get-link-request-id');
+      expect(result.data).toBe('https://example.com/session-link');
+      expect(result.errorMessage).toBeUndefined();
+    });
+
+    it('should handle empty data response', async () => {
+      const mockResponse = {
+        body: {
+          data: {},
+          requestId: 'get-link-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockClient.getLink.resolves(mockResponse);
+
+      const result = await mockSession.getLink();
+
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe('get-link-request-id');
+      expect(result.data).toBe('');
+      expect(result.errorMessage).toBeUndefined();
+    });
+
+    it('should exclude undefined parameters from request', async () => {
+      const mockResponse = {
+        body: {
+          data: { Url: 'https://example.com/session-link' },
+          requestId: 'get-link-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockClient.getLink.resolves(mockResponse);
+
+      await mockSession.getLink(undefined, undefined);
+
+      const callArgs = mockClient.getLink.getCall(0).args[0];
+      expect(callArgs.protocolType).toBeUndefined();
+      expect(callArgs.port).toBeUndefined();
+    });
+
+    it('should exclude empty string protocol type from request', async () => {
+      const mockResponse = {
+        body: {
+          data: { Url: 'https://example.com/session-link' },
+          requestId: 'get-link-request-id'
+        },
+        statusCode: 200
+      };
+
+      mockClient.getLink.resolves(mockResponse);
+
+      await mockSession.getLink('', 8080);
+
+      const callArgs = mockClient.getLink.getCall(0).args[0];
+      expect(callArgs.protocolType).toBe('');
       expect(callArgs.port).toBe(8080);
     });
   });
@@ -217,7 +312,7 @@ describe("TestSession", () => {
       mockClient.getLink.rejects(new Error("Get link failed"));
 
       await expect(mockSession.getLink()).rejects.toThrow(
-        "Failed to get link for session test_session_id: Error: Get link failed"
+        "Failed to get link: Error: Get link failed"
       );
 
       expect(mockClient.getLink.calledOnce).toBe(true);

@@ -54,15 +54,19 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.getClickableUIElements();
 
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].bounds).toBe("48,90,1032,630");
-      expect(result.data[0].className).toBe("LinearLayout");
-      expect(result.data[0].text).toBe("digital_widget");
-      expect(result.data[0].type).toBe("clickable");
-      expect(result.data[0].resourceId).toBe(
+      // Verify UIElementListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.elements).toHaveLength(1);
+      expect(result.errorMessage).toBeUndefined();
+
+      expect(result.elements[0].bounds).toBe("48,90,1032,630");
+      expect(result.elements[0].className).toBe("LinearLayout");
+      expect(result.elements[0].text).toBe("digital_widget");
+      expect(result.elements[0].type).toBe("clickable");
+      expect(result.elements[0].resourceId).toBe(
         "com.android.deskclock:id/digital_widget"
       );
-      expect(result.requestId).toBe("test-request-id");
     });
   });
 
@@ -84,9 +88,13 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.getClickableUIElements()).rejects.toThrow(
-        "Failed to get clickable UI elements"
-      );
+      const result = await mockUI.getClickableUIElements();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.elements).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to get clickable UI elements");
     });
   });
 
@@ -111,8 +119,11 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.sendKey(KeyCode.HOME);
 
-      expect(result.data).toBe("true");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("send-key-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -134,9 +145,12 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.sendKey(KeyCode.HOME)).rejects.toThrow(
-        "Failed to send key"
-      );
+      const result = await mockUI.sendKey(KeyCode.HOME);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to send key");
     });
   });
 
@@ -161,8 +175,11 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.swipe(100, 200, 300, 400, 500);
 
-      expect(result.data).toBe("Swipe completed");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("swipe-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -184,9 +201,12 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.swipe(100, 200, 300, 400, 500)).rejects.toThrow(
-        "Failed to perform swipe"
-      );
+      const result = await mockUI.swipe(100, 200, 300, 400, 500);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to perform swipe");
     });
   });
 
@@ -211,8 +231,11 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.click(150, 250, "left");
 
-      expect(result.data).toBe("Click completed");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("click-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -234,9 +257,12 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.click(150, 250, "left")).rejects.toThrow(
-        "Failed to perform click"
-      );
+      const result = await mockUI.click(150, 250, "left");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to perform click");
     });
   });
 
@@ -261,8 +287,11 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.inputText("Hello, world!");
 
-      expect(result.data).toBe("Text input completed");
+      // Verify BoolResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("input-text-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -284,9 +313,12 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.inputText("Hello, world!")).rejects.toThrow(
-        "Failed to input text"
-      );
+      const result = await mockUI.inputText("Hello, world!");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to input text");
     });
   });
 
@@ -335,15 +367,19 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.getAllUIElements();
 
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].bounds).toBe("48,90,1032,630");
-      expect(result.data[0].className).toBe("LinearLayout");
-      expect(result.data[0].text).toBe("Sample Text");
-      expect(result.data[0].type).toBe("UIElement");
-      expect(result.data[0].resourceId).toBe("com.example:id/sample");
-      expect(result.data[0].children).toHaveLength(1);
-      expect(result.data[0].children![0].text).toBe("Child Text");
+      // Verify UIElementListResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("get-all-elements-request-id");
+      expect(result.elements).toHaveLength(1);
+      expect(result.errorMessage).toBeUndefined();
+
+      expect(result.elements[0].bounds).toBe("48,90,1032,630");
+      expect(result.elements[0].className).toBe("LinearLayout");
+      expect(result.elements[0].text).toBe("Sample Text");
+      expect(result.elements[0].type).toBe("UIElement");
+      expect(result.elements[0].resourceId).toBe("com.example:id/sample");
+      expect(result.elements[0].children).toHaveLength(1);
+      expect(result.elements[0].children![0].text).toBe("Child Text");
     });
   });
 
@@ -365,9 +401,13 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.getAllUIElements()).rejects.toThrow(
-        "Failed to get all UI elements"
-      );
+      const result = await mockUI.getAllUIElements();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.elements).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to get all UI elements");
     });
   });
 
@@ -393,8 +433,11 @@ describe("TestUIApi", () => {
 
       const result = await mockUI.screenshot();
 
-      expect(result.data).toBe(OSS_URL);
+      // Verify OperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("screenshot-request-id");
+      expect(result.data).toBe(OSS_URL);
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -416,9 +459,12 @@ describe("TestUIApi", () => {
 
       mockSession.getClient().callMcpTool.resolves(mockResponse);
 
-      await expect(mockUI.screenshot()).rejects.toThrow(
-        "Error in response: Failed to take screenshot"
-      );
+      const result = await mockUI.screenshot();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to take screenshot");
     });
   });
 
@@ -426,9 +472,12 @@ describe("TestUIApi", () => {
     it("should handle screenshot exception", async () => {
       mockSession.getClient().callMcpTool.rejects(new Error("Network error"));
 
-      await expect(mockUI.screenshot()).rejects.toThrow(
-        "Failed to call system_screenshot: Error: Network error"
-      );
+      const result = await mockUI.screenshot();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to take screenshot");
     });
   });
 });

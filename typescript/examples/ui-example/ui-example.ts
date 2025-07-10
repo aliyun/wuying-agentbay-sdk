@@ -52,7 +52,7 @@ async function main() {
   // Create a new session
   log('\nCreating a new session with mobile_latest image...');
   const createResponse = await agentBay.create(params);
-  const session = createResponse.data;
+  const session = createResponse.session;
   log(`\nSession created with ID: ${session.sessionId}`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 
@@ -81,14 +81,14 @@ async function main() {
     try {
       const elementsResponse = await session.ui.getAllUIElements(2000); // 2 second timeout
 
-      log(`Found ${elementsResponse.data.length} UI elements`);
+      log(`Found ${elementsResponse.elements.length} UI elements`);
       log(`Get All UI Elements RequestId: ${elementsResponse.requestId}`);
       // Print details of the first few elements if available
-      const elementsToShow = Math.min(elementsResponse.data.length, 3);
+      const elementsToShow = Math.min(elementsResponse.elements.length, 3);
 
       log('\nSample of UI elements found:');
       for (let i = 0; i < elementsToShow; i++) {
-        const elem = elementsResponse.data[i];
+        const elem = elementsResponse.elements[i];
         log(`Element #${i+1}:`);
         log(`  Type: ${elem.type}`);
         log(`  Text: ${elem.text}`);
@@ -104,14 +104,14 @@ async function main() {
     try {
       const clickableResponse = await session.ui.getClickableUIElements(2000); // 2 second timeout
 
-      log(`Found ${clickableResponse.data.length} clickable UI elements`);
+      log(`Found ${clickableResponse.elements.length} clickable UI elements`);
       log(`Get Clickable UI Elements RequestId: ${clickableResponse.requestId}`);
       // Print details of the first few clickable elements if available
-      const elementsToShow = Math.min(clickableResponse.data.length, 3);
+      const elementsToShow = Math.min(clickableResponse.elements.length, 3);
 
       log('\nSample of clickable UI elements found:');
       for (let i = 0; i < elementsToShow; i++) {
-        const elem = clickableResponse.data[i];
+        const elem = clickableResponse.elements[i];
         log(`Element #${i+1}:`);
         log(`  Type: ${elem.type}`);
         log(`  Text: ${elem.text}`);

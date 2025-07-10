@@ -24,7 +24,7 @@ describe("Command", () => {
       // Create a session with linux_latest image
       log("Creating a new session for run_code testing...");
       const createResponse = await agentBay.create({ imageId: "code_latest" });
-      session = createResponse.data;
+      session = createResponse.session!;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -48,7 +48,7 @@ describe("Command", () => {
       }
     });
 
-    it.only("should execute Python code", async () => {
+    it("should execute Python code", async () => {
       if (session.command) {
         // Test with Python code
         log("Executing Python code...");
@@ -64,7 +64,7 @@ print(x)
             pythonCode,
             "python"
           );
-          log(`Python code execution output:`, runCodeResponse.data);
+          log(`Python code execution output:`, runCodeResponse.result);
           log(
             `Run Code RequestId: ${runCodeResponse.requestId || "undefined"}`
           );
@@ -74,12 +74,12 @@ print(x)
           expect(typeof runCodeResponse.requestId).toBe("string");
 
           // Check if output has valid format
-          expect(runCodeResponse.data).toBeDefined();
-          expect(hasErrorInContent(runCodeResponse.data)).toBe(false);
+          expect(runCodeResponse.result).toBeDefined();
+          expect(hasErrorInContent(runCodeResponse.result)).toBe(false);
 
           // Verify the response contains expected output
-          expect(runCodeResponse.data.includes("Hello, world!")).toBe(true);
-          expect(runCodeResponse.data.includes("2")).toBe(true);
+          expect(runCodeResponse.result.includes("Hello, world!")).toBe(true);
+          expect(runCodeResponse.result.includes("2")).toBe(true);
           log("Python code execution verified successfully");
         } catch (error) {
           log(`Note: Python code execution failed: ${error}`);
@@ -90,7 +90,7 @@ print(x)
       }
     });
 
-    it.only("should execute JavaScript code with custom timeout", async () => {
+    it("should execute JavaScript code with custom timeout", async () => {
       if (session.command) {
         // Test with JavaScript code
         log("Executing JavaScript code with custom timeout...");
@@ -108,7 +108,7 @@ print(x)
             "javascript",
             customTimeout
           );
-          log(`JavaScript code execution output:`, runCodeResponse.data);
+          log(`JavaScript code execution output:`, runCodeResponse.result);
           log(
             `Run Code RequestId: ${runCodeResponse.requestId || "undefined"}`
           );
@@ -118,12 +118,12 @@ print(x)
           expect(typeof runCodeResponse.requestId).toBe("string");
 
           // Check if output has valid format
-          expect(runCodeResponse.data).toBeDefined();
-          expect(hasErrorInContent(runCodeResponse.data)).toBe(false);
+          expect(runCodeResponse.result).toBeDefined();
+          expect(hasErrorInContent(runCodeResponse.result)).toBe(false);
 
           // Verify the response contains expected output
-          expect(runCodeResponse.data.includes("Hello, world!")).toBe(true);
-          expect(runCodeResponse.data.includes("2")).toBe(true);
+          expect(runCodeResponse.result.includes("Hello, world!")).toBe(true);
+          expect(runCodeResponse.result.includes("2")).toBe(true);
           log("JavaScript code execution verified successfully");
         } catch (error) {
           log(`Note: JavaScript code execution failed: ${error}`);
@@ -134,7 +134,7 @@ print(x)
       }
     });
 
-    it.only("should handle invalid language", async () => {
+    it("should handle invalid language", async () => {
       if (session.command) {
         // Test with invalid language
         log("Testing with invalid language...");
@@ -166,7 +166,7 @@ print(x)
       // Create a session with linux_latest image
       log("Creating a new session for command testing...");
       const createResponse = await agentBay.create({ imageId: "linux_latest" });
-      session = createResponse.data;
+      session = createResponse.session!;
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -189,7 +189,7 @@ print(x)
         log(`Warning: Error deleting session: ${error}`);
       }
     });
-    it.only("should execute a command", async () => {
+    it("should execute a command", async () => {
       if (session.command) {
         // Test with echo command (works on all platforms)
         log("Executing echo command...");
@@ -202,7 +202,7 @@ print(x)
             echoCmd,
             10000
           );
-          log(`Echo command output:`, executeResponse.data);
+          log(`Echo command output:`, executeResponse.output);
           log(
             `Execute Command RequestId: ${
               executeResponse.requestId || "undefined"
@@ -214,11 +214,11 @@ print(x)
           expect(typeof executeResponse.requestId).toBe("string");
 
           // Check if output has valid format
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(false);
+          expect(executeResponse.output).toBeDefined();
+          expect(hasErrorInContent(executeResponse.output)).toBe(false);
 
           // Verify the output contains the test string
-          expect(executeResponse.data.includes(testString)).toBe(true);
+          expect(executeResponse.output.includes(testString)).toBe(true);
           log("Echo command verified successfully");
         } catch (error) {
           log(`Note: Echo command failed: ${error}`);
@@ -229,7 +229,7 @@ print(x)
       }
     });
 
-    it.only("should handle command execution errors", async () => {
+    it("should handle command execution errors", async () => {
       if (session.command) {
         // Test with an invalid command
         log("Executing invalid command...");
@@ -239,7 +239,8 @@ print(x)
           const executeResponse = await session.command.executeCommand(
             invalidCmd
           );
-          log(`Invalid command output:`, executeResponse.data);
+          log(`Invalid command:`, executeResponse);
+          log(`Invalid command output:`, executeResponse.output);
           log(
             `Execute Invalid Command RequestId: ${
               executeResponse.requestId || "undefined"
@@ -250,8 +251,8 @@ print(x)
           expect(executeResponse.requestId).toBeDefined();
 
           // Just check that we got a content array back
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(true);
+          expect(executeResponse.output).toBeDefined();
+          expect(hasErrorInContent(executeResponse.output)).toBe(true);
 
           // For invalid commands, the output may contain error information, which is fine
         } catch (error) {
@@ -264,7 +265,7 @@ print(x)
       }
     });
 
-    it.only("should execute a command with arguments", async () => {
+    it("should execute a command with arguments", async () => {
       if (session.command) {
         // Test with a command that takes arguments
         log("Executing command with arguments...");
@@ -278,7 +279,7 @@ print(x)
             cmd,
             10000
           );
-          log(`Command with arguments output:`, executeResponse.data);
+          log(`Command with arguments output:`, executeResponse.output);
           log(
             `Execute Command with Args RequestId: ${
               executeResponse.requestId || "undefined"
@@ -290,12 +291,12 @@ print(x)
           expect(typeof executeResponse.requestId).toBe("string");
 
           // Check if output has valid format
-          expect(executeResponse.data).toBeDefined();
-          expect(hasErrorInContent(executeResponse.data)).toBe(false);
+          expect(executeResponse.output).toBeDefined();
+          expect(hasErrorInContent(executeResponse.output)).toBe(false);
 
           // Verify the output contains both arguments
-          expect(executeResponse.data.includes(arg1)).toBe(true);
-          expect(executeResponse.data.includes(arg2)).toBe(true);
+          expect(executeResponse.output.includes(arg1)).toBe(true);
+          expect(executeResponse.output.includes(arg2)).toBe(true);
           log("Command with arguments verified successfully");
         } catch (error) {
           log(`Note: Command with arguments failed: ${error}`);

@@ -85,7 +85,7 @@ describe("OSS", () => {
     // Create a session
     log("Creating a new session for OSS testing...");
     const createResponse = await agentBay.create({ imageId: "code_latest" });
-    session = createResponse.data;
+    session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });
@@ -126,17 +126,24 @@ describe("OSS", () => {
             endpoint,
             region
           );
-          log(`EnvInit content:`, envInitResponse.data);
+          log(`EnvInit clientConfig:`, envInitResponse.clientConfig);
           log(`EnvInit RequestId: ${envInitResponse.requestId || "undefined"}`);
 
           // Verify that the response contains requestId
           expect(envInitResponse.requestId).toBeDefined();
           expect(typeof envInitResponse.requestId).toBe("string");
 
-          // Check if content has errors
-          expect(envInitResponse.data).toBeDefined();
-          expect(typeof envInitResponse.data).toBe("string");
-          expect(hasErrorInContent(envInitResponse.data)).toBe(false);
+          // Check success status
+          expect(envInitResponse.success).toBe(true);
+
+          // Check if clientConfig is defined
+          expect(envInitResponse.clientConfig).toBeDefined();
+          expect(typeof envInitResponse.clientConfig).toBe("object");
+
+          // If there's an error, it should not be successful
+          if (envInitResponse.errorMessage) {
+            expect(envInitResponse.success).toBe(false);
+          }
 
           log("OSS environment initialization successful");
         } catch (error) {
@@ -151,7 +158,7 @@ describe("OSS", () => {
 
   describe("upload", () => {
     it.only("should upload a file to OSS", async () => {
-      if (session.oss && session.filesystem) {
+      if (session.oss && session.fileSystem) {
         // First initialize the OSS environment
         const {
           accessKeyId,
@@ -172,7 +179,7 @@ describe("OSS", () => {
         // Create a test file to upload
         const testContent = "This is a test file for OSS upload.";
         const testFilePath = "/tmp/test_oss_upload.txt";
-        const writeResponse = await session.filesystem.writeFile(
+        const writeResponse = await session.fileSystem.writeFile(
           testFilePath,
           testContent
         );
@@ -188,17 +195,25 @@ describe("OSS", () => {
             objectKey,
             testFilePath
           );
-          log(`Upload content:`, uploadResponse.data);
+          log(`Upload content:`, uploadResponse.content);
           log(`Upload RequestId: ${uploadResponse.requestId || "undefined"}`);
 
           // Verify that the response contains requestId
           expect(uploadResponse.requestId).toBeDefined();
           expect(typeof uploadResponse.requestId).toBe("string");
 
-          // Check if content has errors
-          expect(uploadResponse.data).toBeDefined();
-          expect(typeof uploadResponse.data).toBe("string");
-          expect(hasErrorInContent(uploadResponse.data)).toBe(false);
+          // Check success status
+          expect(uploadResponse.success).toBe(true);
+
+          // Check if content is defined
+          expect(uploadResponse.content).toBeDefined();
+          expect(typeof uploadResponse.content).toBe("string");
+          expect(hasErrorInContent(uploadResponse.content)).toBe(false);
+
+          // If there's an error, it should not be successful
+          if (uploadResponse.errorMessage) {
+            expect(uploadResponse.success).toBe(false);
+          }
 
           log("OSS upload successful");
         } catch (error) {
@@ -206,18 +221,18 @@ describe("OSS", () => {
           throw error;
         }
       } else {
-        log("Note: OSS or FileSystem interface is nil, skipping OSS test");
+        log("Note: OSS or fileSystem interface is nil, skipping OSS test");
       }
     });
   });
 
   describe("uploadAnonymous", () => {
     it.only("should upload a file anonymously", async () => {
-      if (session.oss && session.filesystem) {
+      if (session.oss && session.fileSystem) {
         // Create a test file to upload
         const testContent = "This is a test file for OSS anonymous upload.";
         const testFilePath = "/tmp/test_oss_upload_anon.txt";
-        const writeResponse = await session.filesystem.writeFile(
+        const writeResponse = await session.fileSystem.writeFile(
           testFilePath,
           testContent
         );
@@ -233,7 +248,7 @@ describe("OSS", () => {
             uploadUrl,
             testFilePath
           );
-          log(`UploadAnonymous content:`, uploadAnonResponse.data);
+          log(`UploadAnonymous content:`, uploadAnonResponse.content);
           log(
             `UploadAnonymous RequestId: ${
               uploadAnonResponse.requestId || "undefined"
@@ -244,12 +259,20 @@ describe("OSS", () => {
           expect(uploadAnonResponse.requestId).toBeDefined();
           expect(typeof uploadAnonResponse.requestId).toBe("string");
 
-          // Check if content has errors
-          expect(uploadAnonResponse.data).toBeDefined();
-          expect(typeof uploadAnonResponse.data).toBe("string");
-          expect(uploadAnonResponse.data.toLowerCase().includes("error")).toBe(
+          // Check success status
+          expect(uploadAnonResponse.success).toBe(true);
+
+          // Check if content is defined
+          expect(uploadAnonResponse.content).toBeDefined();
+          expect(typeof uploadAnonResponse.content).toBe("string");
+          expect(uploadAnonResponse.content.toLowerCase().includes("error")).toBe(
             false
           );
+
+          // If there's an error, it should not be successful
+          if (uploadAnonResponse.errorMessage) {
+            expect(uploadAnonResponse.success).toBe(false);
+          }
 
           log("OSS anonymous upload successful");
         } catch (error) {
@@ -257,14 +280,14 @@ describe("OSS", () => {
           throw error;
         }
       } else {
-        log("Note: OSS or FileSystem interface is nil, skipping OSS test");
+        log("Note: OSS or fileSystem interface is nil, skipping OSS test");
       }
     });
   });
 
   describe("download", () => {
     it.only("should download a file from OSS", async () => {
-      if (session.oss && session.filesystem) {
+      if (session.oss && session.fileSystem) {
         // First initialize the OSS environment
         const {
           accessKeyId,
@@ -293,7 +316,7 @@ describe("OSS", () => {
             objectKey,
             downloadPath
           );
-          log(`Download content:`, downloadResponse.data);
+          log(`Download content:`, downloadResponse.content);
           log(
             `Download RequestId: ${downloadResponse.requestId || "undefined"}`
           );
@@ -302,37 +325,45 @@ describe("OSS", () => {
           expect(downloadResponse.requestId).toBeDefined();
           expect(typeof downloadResponse.requestId).toBe("string");
 
-          // Check if content has errors
-          expect(downloadResponse.data).toBeDefined();
-          expect(typeof downloadResponse.data).toBe("string");
-          expect(hasErrorInContent(downloadResponse.data)).toBe(false);
+          // Check success status
+          expect(downloadResponse.success).toBe(true);
+
+          // Check if content is defined
+          expect(downloadResponse.content).toBeDefined();
+          expect(typeof downloadResponse.content).toBe("string");
+          expect(hasErrorInContent(downloadResponse.content)).toBe(false);
+
+          // If there's an error, it should not be successful
+          if (downloadResponse.errorMessage) {
+            expect(downloadResponse.success).toBe(false);
+          }
 
           log("OSS download successful");
 
           // Verify the downloaded file exists
-          const fileInfoResponse = await session.filesystem.getFileInfo(
+          const fileInfoResponse = await session.fileSystem.getFileInfo(
             downloadPath
           );
-          log(`Downloaded file info:`, fileInfoResponse.data);
+          log(`Downloaded file info:`, fileInfoResponse.fileInfo);
           log(
             `Get File Info RequestId: ${
               fileInfoResponse.requestId || "undefined"
             }`
           );
-          expect(fileInfoResponse.data).toBeDefined();
+          expect(fileInfoResponse.fileInfo).toBeDefined();
         } catch (error) {
           log(`OSS download failed: ${error}`);
           throw error;
         }
       } else {
-        log("Note: OSS or FileSystem interface is nil, skipping OSS test");
+        log("Note: OSS or fileSystem interface is nil, skipping OSS test");
       }
     });
   });
 
   describe("downloadAnonymous", () => {
     it.only("should download a file anonymously", async () => {
-      if (session.oss && session.filesystem) {
+      if (session.oss && session.fileSystem) {
         log("Downloading file anonymously...");
         const downloadUrl =
           process.env.OSS_TEST_DOWNLOAD_URL ||
@@ -344,7 +375,7 @@ describe("OSS", () => {
             downloadUrl,
             downloadPath
           );
-          log(`DownloadAnonymous content:`, downloadAnonResponse.data);
+          log(`DownloadAnonymous content:`, downloadAnonResponse.content);
           log(
             `DownloadAnonymous RequestId: ${
               downloadAnonResponse.requestId || "undefined"
@@ -355,30 +386,40 @@ describe("OSS", () => {
           expect(downloadAnonResponse.requestId).toBeDefined();
           expect(typeof downloadAnonResponse.requestId).toBe("string");
 
-          // Check if content has errors
-          expect(downloadAnonResponse.data).toBeDefined();
-          expect(typeof downloadAnonResponse.data).toBe("string");
-          expect(hasErrorInContent(downloadAnonResponse.data)).toBe(false);
+          // Check success status
+          expect(downloadAnonResponse.success).toBe(true);
+
+          // Check if content is defined
+          expect(downloadAnonResponse.content).toBeDefined();
+          expect(typeof downloadAnonResponse.content).toBe("string");
+          expect(downloadAnonResponse.content.toLowerCase().includes("error")).toBe(
+            false
+          );
+
+          // If there's an error, it should not be successful
+          if (downloadAnonResponse.errorMessage) {
+            expect(downloadAnonResponse.success).toBe(false);
+          }
 
           log("OSS anonymous download successful");
 
           // Verify the downloaded file exists
-          const fileInfoResponse = await session.filesystem.getFileInfo(
+          const fileInfoResponse = await session.fileSystem.getFileInfo(
             downloadPath
           );
-          log(`Downloaded file info:`, fileInfoResponse.data);
+          log(`Downloaded file info:`, fileInfoResponse.fileInfo);
           log(
             `Get File Info RequestId: ${
               fileInfoResponse.requestId || "undefined"
             }`
           );
-          expect(fileInfoResponse.data).toBeDefined();
+          expect(fileInfoResponse.fileInfo).toBeDefined();
         } catch (error) {
           log(`OSS anonymous download failed: ${error}`);
           throw error;
         }
       } else {
-        log("Note: OSS or FileSystem interface is nil, skipping OSS test");
+        log("Note: OSS or fileSystem interface is nil, skipping OSS test");
       }
     });
   });

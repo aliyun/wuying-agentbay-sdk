@@ -14,7 +14,12 @@ describe("Application - Mobile System Tests", () => {
     // Create a session with mobile_latest image
     log("Creating a new mobile session for application testing...");
     const createResponse = await agentBay.create({ imageId: "mobile_latest" });
-    session = createResponse.data;
+
+    // Verify SessionResult structure
+    expect(createResponse.success).toBe(true);
+    expect(createResponse.session).toBeDefined();
+
+    session = createResponse.session!;
     log(`Mobile session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });
@@ -22,6 +27,7 @@ describe("Application - Mobile System Tests", () => {
   afterEach(async () => {
     log("Cleaning up: Deleting the mobile session...");
     try {
+      debugger
       const deleteResponse = await agentBay.delete(session);
       log("Mobile session successfully deleted");
       log(
@@ -33,9 +39,9 @@ describe("Application - Mobile System Tests", () => {
   });
 
   describe("getInstalledApps() - Mobile", () => {
-    it.only("should return mobile installed applications with valid properties", async () => {
+    it("should return mobile installed applications with valid properties", async () => {
       log("Testing getInstalledApps for mobile...");
-      const appsResponse = await session.Application.getInstalledApps(
+      const appsResponse = await session.application.getInstalledApps(
         true,
         false,
         true
@@ -45,13 +51,13 @@ describe("Application - Mobile System Tests", () => {
         `Get Installed Apps RequestId: ${appsResponse.requestId || "undefined"}`
       );
 
-      // Verify that the response contains requestId
+      // Verify InstalledAppListResult structure
+      expect(appsResponse.success).toBe(true);
       expect(appsResponse.requestId).toBeDefined();
       expect(typeof appsResponse.requestId).toBe("string");
-
-      // Verify results
       expect(appsResponse.data).toBeDefined();
       expect(Array.isArray(appsResponse.data)).toBe(true);
+      expect(appsResponse.errorMessage).toBeUndefined();
 
       if (appsResponse.data.length > 0) {
         appsResponse.data.forEach((app, index) => {
@@ -64,7 +70,7 @@ describe("Application - Mobile System Tests", () => {
   });
 
   describe("startApp() - Mobile Applications (Python Example Style)", () => {
-    it.only("should start mobile app with simple command like Python example", async () => {
+    it("should start mobile app with simple command like Python example", async () => {
       try {
         // Test case matching Python example usage:
         // session.application.start_app("monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1")
@@ -72,20 +78,20 @@ describe("Application - Mobile System Tests", () => {
           "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1";
         log(`Starting mobile app with command: ${startCmd}`);
 
-        const processesResponse = await session.Application.startApp(startCmd);
+        const processesResponse = await session.application.startApp(startCmd);
         log(
           `Start Mobile App RequestId: ${
             processesResponse.requestId || "undefined"
           }`
         );
 
-        // Verify that the response contains requestId
+        // Verify ProcessListResult structure
+        expect(processesResponse.success).toBe(true);
         expect(processesResponse.requestId).toBeDefined();
         expect(typeof processesResponse.requestId).toBe("string");
-
-        // Verify results structure
         expect(processesResponse.data).toBeDefined();
         expect(Array.isArray(processesResponse.data)).toBe(true);
+        expect(processesResponse.errorMessage).toBeUndefined();
 
         log(
           `Mobile app start result: ${processesResponse.data.length} processes`
@@ -108,7 +114,7 @@ describe("Application - Mobile System Tests", () => {
       }
     });
 
-    it.only("should start mobile app with activity like Python example", async () => {
+    it("should start mobile app with activity like Python example", async () => {
       try {
         // Test case matching Python example usage with activity:
         // session.application.start_app(start_cmd=start_cmd, activity=app_activity)
@@ -120,7 +126,7 @@ describe("Application - Mobile System Tests", () => {
         log(`Starting mobile app with activity: ${appActivity}`);
         log(`Start command: ${startCmd}`);
 
-        const processesResponse = await session.Application.startApp(
+        const processesResponse = await session.application.startApp(
           startCmd,
           "", // empty work_directory like Python example
           appActivity
@@ -131,13 +137,13 @@ describe("Application - Mobile System Tests", () => {
           }`
         );
 
-        // Verify that the response contains requestId
+        // Verify ProcessListResult structure
+        expect(processesResponse.success).toBe(true);
         expect(processesResponse.requestId).toBeDefined();
         expect(typeof processesResponse.requestId).toBe("string");
-
-        // Verify results structure
         expect(processesResponse.data).toBeDefined();
         expect(Array.isArray(processesResponse.data)).toBe(true);
+        expect(processesResponse.errorMessage).toBeUndefined();
 
         log(
           `Mobile app with activity start result: ${processesResponse.data.length} processes`
@@ -164,14 +170,14 @@ describe("Application - Mobile System Tests", () => {
   });
 
   describe("stopAppByCmd() - Mobile Style (Python Example)", () => {
-    it.only("should stop mobile app by command like Python example", async () => {
+    it("should stop mobile app by command like Python example", async () => {
       try {
         // Test case matching Python example usage:
         // session.application.stop_app_by_cmd("am force-stop com.sankuai.meituan")
-        const stopCmd = "am force-stop com.sankuai.meituan";
+        const stopCmd = "am force-stop com.xingin.xhs";
         log(`Stopping mobile app with command: ${stopCmd}`);
 
-        const stopResponse = await session.Application.stopAppByCmd(stopCmd);
+        const stopResponse = await session.application.stopAppByCmd(stopCmd);
         log("Mobile application stopped by command successfully");
         log(
           `Stop Mobile App by Cmd RequestId: ${
@@ -179,12 +185,12 @@ describe("Application - Mobile System Tests", () => {
           }`
         );
 
-        // Verify that the response contains requestId
+        // Verify AppOperationResult structure
+        expect(stopResponse.success).toBe(true);
         expect(stopResponse.requestId).toBeDefined();
         expect(typeof stopResponse.requestId).toBe("string");
-
-        // stopAppByCmd returns void data
-        expect(stopResponse.data).toBeUndefined();
+        expect(stopResponse.errorMessage).toBeUndefined();
+        // AppOperationResult does not have data field
       } catch (error) {
         log(
           `Note: Mobile app stop by command test (expected in mobile environment): ${error}`
@@ -196,17 +202,19 @@ describe("Application - Mobile System Tests", () => {
   });
 
   describe("Mobile App Management Integration", () => {
-    it.only("should handle complete mobile workflow like Python example", async () => {
+    it("should handle complete mobile workflow like Python example", async () => {
       try {
         // Test complete workflow matching Python example:
         // 1. Get installed apps
         log("Step 1: Getting mobile installed applications...");
-        const appsResponse = await session.Application.getInstalledApps(
+        const appsResponse = await session.application.getInstalledApps(
           true,
           false,
           true
         );
 
+        // Verify InstalledAppListResult structure
+        expect(appsResponse.success).toBe(true);
         expect(appsResponse.requestId).toBeDefined();
         expect(appsResponse.data).toBeDefined();
         expect(Array.isArray(appsResponse.data)).toBe(true);
@@ -216,8 +224,10 @@ describe("Application - Mobile System Tests", () => {
         log("Step 2: Starting mobile app with simple command...");
         const startCmd =
           "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1";
-        const startResponse = await session.Application.startApp(startCmd);
+        const startResponse = await session.application.startApp(startCmd);
 
+        // Verify ProcessListResult structure
+        expect(startResponse.success).toBe(true);
         expect(startResponse.requestId).toBeDefined();
         expect(startResponse.data).toBeDefined();
         expect(Array.isArray(startResponse.data)).toBe(true);
@@ -227,29 +237,34 @@ describe("Application - Mobile System Tests", () => {
         log("Step 3: Starting mobile app with activity...");
         const appPackage = "com.xingin.xhs";
         const appActivity =
-          "com.xingin.outside.activity.VivoOutsideFeedActivity";
+          "com.xingin.outside.activity.OppoOutsideFeedActivity";
         const activityStartCmd = `monkey -p ${appPackage} -c android.intent.category.LAUNCHER 1`;
 
-        const activityStartResponse = await session.Application.startApp(
+        const activityStartResponse = await session.application.startApp(
           activityStartCmd,
           "",
           appActivity
         );
 
+        // Verify ProcessListResult structure
+        expect(activityStartResponse.success).toBe(true);
         expect(activityStartResponse.requestId).toBeDefined();
         expect(activityStartResponse.data).toBeDefined();
         expect(Array.isArray(activityStartResponse.data)).toBe(true);
         log(
           `Started mobile app with activity: ${activityStartResponse.data.length} processes`
         );
-
+        debugger
         // 4. Stop mobile app
         log("Step 4: Stopping mobile app...");
-        const stopCmd = "am force-stop com.sankuai.meituan";
-        const stopResponse = await session.Application.stopAppByCmd(stopCmd);
+        const stopCmd = "am force-stop com.xingin.xhs";
+        const stopResponse = await session.application.stopAppByCmd(stopCmd);
 
+        // Verify AppOperationResult structure
+        expect(stopResponse.success).toBe(true);
         expect(stopResponse.requestId).toBeDefined();
-        expect(stopResponse.data).toBeUndefined(); // void response
+        expect(stopResponse.errorMessage).toBeUndefined();
+        // AppOperationResult does not have data field
         log("Mobile app stopped successfully");
 
         log("Mobile workflow completed successfully!");

@@ -85,14 +85,17 @@ describe("ApplicationApi", () => {
         });
 
       const result = await mockApplication.getInstalledApps();
+
+      // Verify InstalledAppListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
       expect(result.data).toHaveLength(3);
+      expect(result.errorMessage).toBeUndefined();
 
       expect(result.data[0]).toBeInstanceOf(Object);
       expect(result.data[0].name).toBe("美团");
       expect(result.data[1].name).toBe("小红书");
       expect(result.data[2].name).toBe("高德地图");
-
-      expect(result.requestId).toBe("test-request-id");
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -104,9 +107,13 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to get installed apps"));
 
-      await expect(mockApplication.getInstalledApps()).rejects.toThrow(
-        "Failed to get installed apps"
-      );
+      const result = await mockApplication.getInstalledApps();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.data).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to get installed apps");
     });
   });
 
@@ -126,13 +133,17 @@ describe("ApplicationApi", () => {
         "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
       );
 
+      // Verify ProcessListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
       expect(result.data).toHaveLength(1);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(result.data[0].pname).toBe("com.autonavi.minimap");
       expect(result.data[0].pid).toBe(12345);
       expect(result.data[0].cmdline).toBe(
         "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
       );
-      expect(result.requestId).toBe("test-request-id");
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -144,11 +155,15 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to start app"));
 
-      await expect(
-        mockApplication.startApp(
-          "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
-        )
-      ).rejects.toThrow("Failed to start app");
+      const result = await mockApplication.startApp(
+        "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.data).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to start app");
     });
   });
 
@@ -170,13 +185,17 @@ describe("ApplicationApi", () => {
         ".SettingsActivity"
       );
 
+      // Verify ProcessListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
       expect(result.data).toHaveLength(1);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(result.data[0].pname).toBe("com.autonavi.minimap");
       expect(result.data[0].pid).toBe(12345);
       expect(result.data[0].cmdline).toBe(
         "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
       );
-      expect(result.requestId).toBe("test-request-id");
 
       // Verify that activity was passed correctly
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -217,10 +236,14 @@ describe("ApplicationApi", () => {
         "com.xingin.xhs/.MainActivity"
       );
 
+      // Verify ProcessListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-456");
       expect(result.data).toHaveLength(1);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(result.data[0].pname).toBe("com.xingin.xhs");
       expect(result.data[0].pid).toBe(23456);
-      expect(result.requestId).toBe("test-request-456");
 
       // Verify all parameters were passed correctly
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -250,8 +273,10 @@ describe("ApplicationApi", () => {
         "am force-stop com.autonavi.minimap"
       );
 
+      // Verify AppOperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
-      expect(result.data).toBeUndefined(); // void response
+      expect(result.errorMessage).toBeUndefined();
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -263,9 +288,14 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to stop app"));
 
-      await expect(
-        mockApplication.stopAppByCmd("am force-stop com.autonavi.minimap")
-      ).rejects.toThrow("Failed to stop app");
+      const result = await mockApplication.stopAppByCmd(
+        "am force-stop com.autonavi.minimap"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to stop app by command");
     });
   });
 
@@ -284,8 +314,10 @@ describe("ApplicationApi", () => {
         "com.autonavi.minimap"
       );
 
+      // Verify AppOperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
-      expect(result.data).toBeUndefined(); // void response
+      expect(result.errorMessage).toBeUndefined();
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -297,9 +329,14 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to stop app by pname"));
 
-      await expect(
-        mockApplication.stopAppByPName("com.autonavi.minimap")
-      ).rejects.toThrow("Failed to stop app by pname");
+      const result = await mockApplication.stopAppByPName(
+        "com.autonavi.minimap"
+      );
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to stop app by pname");
     });
   });
 
@@ -316,8 +353,10 @@ describe("ApplicationApi", () => {
 
       const result = await mockApplication.stopAppByPID(12345);
 
+      // Verify AppOperationResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
-      expect(result.data).toBeUndefined(); // void response
+      expect(result.errorMessage).toBeUndefined();
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -329,9 +368,12 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to stop app by pid"));
 
-      await expect(mockApplication.stopAppByPID(12345)).rejects.toThrow(
-        "Failed to stop app by pid"
-      );
+      const result = await mockApplication.stopAppByPID(12345);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to stop app by pid");
     });
   });
 
@@ -349,11 +391,15 @@ describe("ApplicationApi", () => {
 
       const result = await mockApplication.listVisibleApps();
 
+      // Verify ProcessListResult structure
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
       expect(result.data).toHaveLength(2);
+      expect(result.errorMessage).toBeUndefined();
+
       expect(result.data[0]).toBeInstanceOf(Object);
       expect(result.data[0].pname).toBe("com.autonavi.minimap");
       expect(result.data[1].pname).toBe("com.xingin.xhs");
-      expect(result.requestId).toBe("test-request-id");
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -365,9 +411,13 @@ describe("ApplicationApi", () => {
         .stub(mockApplication as any, "callMcpTool")
         .rejects(new APIError("Failed to list visible apps"));
 
-      await expect(mockApplication.listVisibleApps()).rejects.toThrow(
-        "Failed to list visible apps"
-      );
+      const result = await mockApplication.listVisibleApps();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.data).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to list visible apps");
     });
   });
 });

@@ -2,7 +2,12 @@ import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
 import { Client } from "../api/client";
 import { log, logError } from "../utils/logger";
 import { APIError } from "../exceptions";
-import { ApiResponseWithData, extractRequestId } from "../types/api-response";
+import {
+  extractRequestId,
+  ProcessListResult,
+  InstalledAppListResult,
+  AppOperationResult,
+} from "../types/api-response";
 
 /**
  * Result object for a CallMcpTool operation
@@ -168,173 +173,239 @@ export class Application {
 
   /**
    * Retrieves a list of installed applications.
+   * Corresponds to Python's get_installed_apps() method
+   *
    * @param startMenu Whether to include applications from the start menu. Defaults to true.
    * @param desktop Whether to include applications from the desktop. Defaults to true.
    * @param ignoreSystemApps Whether to ignore system applications. Defaults to true.
-   * @returns API response with installed apps and requestId
+   * @returns InstalledAppListResult with installed apps and requestId
    * @throws Error if the operation fails.
    */
   async getInstalledApps(
     startMenu = true,
     desktop = true,
     ignoreSystemApps = true
-  ): Promise<ApiResponseWithData<InstalledApp[]>> {
-    const args = {
-      start_menu: startMenu,
-      desktop,
-      ignore_system_apps: ignoreSystemApps,
-    };
+  ): Promise<InstalledAppListResult> {
+    try {
+      const args = {
+        start_menu: startMenu,
+        desktop,
+        ignore_system_apps: ignoreSystemApps,
+      };
 
-    const result = await this.callMcpTool(
-      "get_installed_apps",
-      args,
-      "Failed to get installed apps"
-    );
+      const result = await this.callMcpTool(
+        "get_installed_apps",
+        args,
+        "Failed to get installed apps"
+      );
 
-    let apps: InstalledApp[] = [];
-    if (result.textContent) {
-      apps = this.parseJSON<InstalledApp[]>(result.textContent);
+      let apps: InstalledApp[] = [];
+      if (result.textContent) {
+        apps = this.parseJSON<InstalledApp[]>(result.textContent);
+      }
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: apps,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to get installed apps: ${error}`,
+      };
     }
-
-    return {
-      requestId: result.requestId,
-      data: apps,
-    };
   }
 
   /**
    * Starts an application with the given command and optional working directory.
+   * Corresponds to Python's start_app() method
+   *
    * @param startCmd The command to start the application.
    * @param workDirectory The working directory for the application. Defaults to an empty string.
    * @param activity Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to an empty string.
-   * @returns API response with started processes and requestId
+   * @returns ProcessListResult with started processes and requestId
    * @throws Error if the operation fails.
    */
   async startApp(
     startCmd: string,
     workDirectory = "",
     activity = ""
-  ): Promise<ApiResponseWithData<Process[]>> {
-    const args: any = {
-      start_cmd: startCmd,
-    };
+  ): Promise<ProcessListResult> {
+    try {
+      const args: any = {
+        start_cmd: startCmd,
+      };
 
-    if (workDirectory) {
-      args.work_directory = workDirectory;
+      if (workDirectory) {
+        args.work_directory = workDirectory;
+      }
+
+      if (activity) {
+        args.activity = activity;
+      }
+
+      const result = await this.callMcpTool(
+        "start_app",
+        args,
+        "Failed to start app"
+      );
+
+      let processes: Process[] = [];
+      if (result.textContent) {
+        processes = this.parseJSON<Process[]>(result.textContent);
+      }
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: processes,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to start app: ${error}`,
+      };
     }
-
-    if (activity) {
-      args.activity = activity;
-    }
-
-    const result = await this.callMcpTool(
-      "start_app",
-      args,
-      "Failed to start app"
-    );
-
-    let processes: Process[] = [];
-    if (result.textContent) {
-      processes = this.parseJSON<Process[]>(result.textContent);
-    }
-
-    return {
-      requestId: result.requestId,
-      data: processes,
-    };
   }
 
   /**
    * Stops an application by process name.
+   * Corresponds to Python's stop_app_by_pname() method
+   *
    * @param pname The name of the process to stop.
-   * @returns API response with requestId
+   * @returns AppOperationResult with requestId
    * @throws Error if the operation fails.
    */
-  async stopAppByPName(pname: string): Promise<ApiResponseWithData<void>> {
-    const args = {
-      pname,
-    };
+  async stopAppByPName(pname: string): Promise<AppOperationResult> {
+    try {
+      const args = {
+        pname,
+      };
 
-    const result = await this.callMcpTool(
-      "stop_app_by_pname",
-      args,
-      "Failed to stop app by pname"
-    );
+      const result = await this.callMcpTool(
+        "stop_app_by_pname",
+        args,
+        "Failed to stop app by pname"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: undefined,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to stop app by pname: ${error}`,
+      };
+    }
   }
 
   /**
    * Stops an application by process ID.
+   * Corresponds to Python's stop_app_by_pid() method
+   *
    * @param pid The ID of the process to stop.
-   * @returns API response with requestId
+   * @returns AppOperationResult with requestId
    * @throws Error if the operation fails.
    */
-  async stopAppByPID(pid: number): Promise<ApiResponseWithData<void>> {
-    const args = {
-      pid,
-    };
+  async stopAppByPID(pid: number): Promise<AppOperationResult> {
+    try {
+      const args = {
+        pid,
+      };
 
-    const result = await this.callMcpTool(
-      "stop_app_by_pid",
-      args,
-      "Failed to stop app by pid"
-    );
+      const result = await this.callMcpTool(
+        "stop_app_by_pid",
+        args,
+        "Failed to stop app by pid"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: undefined,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to stop app by pid: ${error}`,
+      };
+    }
   }
 
   /**
    * Stops an application by stop command.
+   * Corresponds to Python's stop_app_by_cmd() method
+   *
    * @param stopCmd The command to stop the application.
-   * @returns API response with requestId
+   * @returns AppOperationResult with requestId
    * @throws Error if the operation fails.
    */
-  async stopAppByCmd(stopCmd: string): Promise<ApiResponseWithData<void>> {
-    const args = {
-      stop_cmd: stopCmd,
-    };
+  async stopAppByCmd(stopCmd: string): Promise<AppOperationResult> {
+    try {
+      const args = {
+        stop_cmd: stopCmd,
+      };
 
-    const result = await this.callMcpTool(
-      "stop_app_by_cmd",
-      args,
-      "Failed to stop app by command"
-    );
+      const result = await this.callMcpTool(
+        "stop_app_by_cmd",
+        args,
+        "Failed to stop app by command"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: undefined,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to stop app by command: ${error}`,
+      };
+    }
   }
 
   /**
    * Lists all currently visible applications.
-   * @returns API response with visible processes and requestId
+   * Corresponds to Python's list_visible_apps() method
+   *
+   * @returns ProcessListResult with visible processes and requestId
    * @throws Error if the operation fails.
    */
-  async listVisibleApps(): Promise<ApiResponseWithData<Process[]>> {
-    const args = {};
+  async listVisibleApps(): Promise<ProcessListResult> {
+    try {
+      const args = {};
 
-    const result = await this.callMcpTool(
-      "list_visible_apps",
-      args,
-      "Failed to list visible apps"
-    );
+      const result = await this.callMcpTool(
+        "list_visible_apps",
+        args,
+        "Failed to list visible apps"
+      );
 
-    let processes: Process[] = [];
-    if (result.textContent) {
-      processes = this.parseJSON<Process[]>(result.textContent);
+      let processes: Process[] = [];
+      if (result.textContent) {
+        processes = this.parseJSON<Process[]>(result.textContent);
+      }
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: processes,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to list visible apps: ${error}`,
+      };
     }
-
-    return {
-      requestId: result.requestId,
-      data: processes,
-    };
   }
 }

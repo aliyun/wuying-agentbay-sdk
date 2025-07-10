@@ -29,7 +29,7 @@ async function main() {
   // Create a new session
   console.log('\nCreating a new session with code_latest image...');
   const createResponse = await agentBay.create(params);
-  const session = createResponse.data;
+  const session = createResponse.session;
   console.log(`\nSession created with ID: ${session.sessionId}`);
   console.log(`Create Session RequestId: ${createResponse.requestId}`);
 
@@ -39,7 +39,7 @@ async function main() {
     try {
       const echoCommand = "echo 'Hello from AgentBay SDK!'";
       const echoResponse = await session.command.executeCommand(echoCommand);
-      console.log(`Echo command output:\n${echoResponse.data}`);
+      console.log(`Echo command output:\n${echoResponse.output}`);
       console.log(`Execute Command RequestId: ${echoResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing echo command: ${error}`);
@@ -51,7 +51,7 @@ async function main() {
       const lsCommand = "ls -la /etc";
       const timeoutMs = 5000; // 5 seconds timeout
       const lsResponse = await session.command.executeCommand(lsCommand, timeoutMs);
-      console.log(`Directory listing (first few lines):\n${truncateOutput(lsResponse.data, 5)}`);
+      console.log(`Directory listing (first few lines):\n${truncateOutput(lsResponse.output, 5)}`);
       console.log(`Execute Command with Timeout RequestId: ${lsResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing ls command: ${error}`);
@@ -71,8 +71,18 @@ for i in range(1, 6):
     print(f"{i} squared is {i*i}")
 `;
       const pythonResponse = await session.command.runCode(pythonCode, "python");
-      console.log(`Python code output:\n${pythonResponse.data}`);
+
+      console.log('Debug - Full Python Response:', JSON.stringify(pythonResponse, null, 2));
+
+      console.log(`Python code output:\n${pythonResponse.result}`);
       console.log(`Run Python Code RequestId: ${pythonResponse.requestId}`);
+
+      if (!pythonResponse.result || pythonResponse.result.trim() === '') {
+        console.log('Warning: Python code execution returned empty result');
+        if (pythonResponse.errorMessage) {
+          console.log(`Error message: ${pythonResponse.errorMessage}`);
+        }
+      }
     } catch (error) {
       console.log(`Error running Python code: ${error}`);
     }
@@ -96,7 +106,7 @@ console.log("Sum of array:", sum);
 `;
       const timeoutS = 10; // 10 seconds timeout
       const jsResponse = await session.command.runCode(jsCode, "javascript", timeoutS);
-      console.log(`JavaScript code output:\n${jsResponse.data}`);
+      console.log(`JavaScript code output:\n${jsResponse.result}`);
       console.log(`Run JavaScript Code RequestId: ${jsResponse.requestId}`);
     } catch (error) {
       console.log(`Error running JavaScript code: ${error}`);
@@ -116,7 +126,7 @@ echo "\nDisk usage:"
 df -h | head -5
 `;
       const complexResponse = await session.command.executeCommand(complexCommand);
-      console.log(`Complex command output:\n${truncateOutput(complexResponse.data, 15)}`);
+      console.log(`Complex command output:\n${truncateOutput(complexResponse.output, 15)}`);
       console.log(`Execute Complex Command RequestId: ${complexResponse.requestId}`);
     } catch (error) {
       console.log(`Error executing complex command: ${error}`);

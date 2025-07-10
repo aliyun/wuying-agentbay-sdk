@@ -17,18 +17,12 @@ async function main() {
     // Create a new session with default parameters
     log('\nCreating a new session...');
     const createResponse = await agentBay.create();
-    const session = createResponse.data;
+    const session = createResponse.session;
     log(`\nSession created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId}`);
 
-    // List all sessions
-    log('\nListing all sessions...');
-    const sessions = agentBay.list();
-
-    // Extract session_id list and join as string
-    const sessionIds = sessions.map(s => s.sessionId);
-    const sessionIdsStr = sessionIds.join(', ');
-    log(`\nAvailable sessions: ${sessionIdsStr}`);
+    // List all sessions - Note: This method is not available in TypeScript version
+    log('\nNote: Simple list() method is not available in TypeScript version');
 
     // Create multiple sessions to demonstrate listing
     log('\nCreating additional sessions...');
@@ -36,7 +30,7 @@ async function main() {
     for (let i = 0; i < 2; i++) {
       try {
         const additionalCreateResponse = await agentBay.create();
-        const additionalSession = additionalCreateResponse.data;
+        const additionalSession = additionalCreateResponse.session;
         log(`Additional session created with ID: ${additionalSession.sessionId}`);
         log(`Additional Create Session RequestId: ${additionalCreateResponse.requestId}`);
 
@@ -46,17 +40,6 @@ async function main() {
         log(`\nError creating additional session: ${error}`);
         continue;
       }
-    }
-
-    // List sessions again to show the new sessions
-    log('\nListing all sessions after creating additional ones...');
-    try {
-      const updatedSessions = agentBay.list();
-      const updatedSessionIds = updatedSessions.map(s => s.sessionId);
-      const updatedSessionIdsStr = updatedSessionIds.join(', ');
-      log(`\nUpdated list of sessions: ${updatedSessionIdsStr}`);
-    } catch (error) {
-      log(`\nError listing sessions: ${error}`);
     }
 
     // Clean up all sessions
@@ -81,20 +64,7 @@ async function main() {
       }
     }
 
-    // List sessions one more time to confirm deletion
-    log('\nListing sessions after cleanup...');
-    try {
-      const finalSessions = agentBay.list();
-      if (finalSessions.length === 0) {
-        log('All sessions have been deleted successfully.');
-      } else {
-        const finalSessionIds = finalSessions.map(s => s.sessionId);
-        const finalSessionIdsStr = finalSessionIds.join(', ');
-        log(`\nRemaining sessions: ${finalSessionIdsStr}`);
-      }
-    } catch (error) {
-      log(`\nError listing sessions: ${error}`);
-    }
+    log('\nSession creation example completed successfully');
   } catch (error) {
     logError(`Error initializing AgentBay client: ${error}`);
     process.exit(1);

@@ -29,7 +29,7 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .resolves({
           data: {},
-          textContent: "success",
+          textContent: '{"endpoint": "test_endpoint", "region": "test_region"}',
           isError: false,
           statusCode: 200,
           requestId: "test-request-id",
@@ -42,8 +42,13 @@ describe("TestOss", () => {
         "test_endpoint"
       );
 
-      expect(result.data).toBe("success");
+      // Verify OSSClientResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.clientConfig).toBeDefined();
+      expect(result.clientConfig.endpoint).toBe("test_endpoint");
+      expect(result.clientConfig.region).toBe("test_region");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
@@ -55,9 +60,13 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to create OSS client"));
 
-      await expect(
-        mockOss.envInit("key_id", "key_secret", "security_token")
-      ).rejects.toThrow("Failed to create OSS client");
+      const result = await mockOss.envInit("key_id", "key_secret", "security_token");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.clientConfig).toEqual({});
+      expect(result.errorMessage).toContain("Failed to initialize OSS environment");
     });
   });
 
@@ -79,8 +88,12 @@ describe("TestOss", () => {
         "test_path"
       );
 
-      expect(result.data).toBe("Upload success");
+      // Verify OSSUploadResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("Upload success");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
@@ -95,11 +108,13 @@ describe("TestOss", () => {
           )
         );
 
-      await expect(
-        mockOss.upload("test_bucket", "test_object", "test_path")
-      ).rejects.toThrow(
-        "Upload failed: The OSS Access Key Id you provided does not exist in our records."
-      );
+      const result = await mockOss.upload("test_bucket", "test_object", "test_path");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("Failed to upload to OSS");
     });
   });
 
@@ -117,8 +132,12 @@ describe("TestOss", () => {
 
       const result = await mockOss.uploadAnonymous("test_url", "test_path");
 
-      expect(result.data).toBe("upload_anon_success");
+      // Verify OSSUploadResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("upload_anon_success");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
@@ -129,9 +148,13 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to upload anonymously"));
 
-      await expect(
-        mockOss.uploadAnonymous("test_url", "test_path")
-      ).rejects.toThrow("Failed to upload anonymously");
+      const result = await mockOss.uploadAnonymous("test_url", "test_path");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("Failed to upload anonymously");
     });
   });
 
@@ -153,8 +176,12 @@ describe("TestOss", () => {
         "test_path"
       );
 
-      expect(result.data).toBe("download_success");
+      // Verify OSSDownloadResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("download_success");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
@@ -165,9 +192,13 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to download from OSS"));
 
-      await expect(
-        mockOss.download("test_bucket", "test_object", "test_path")
-      ).rejects.toThrow("Failed to download from OSS");
+      const result = await mockOss.download("test_bucket", "test_object", "test_path");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("Failed to download from OSS");
     });
   });
 
@@ -185,8 +216,12 @@ describe("TestOss", () => {
 
       const result = await mockOss.downloadAnonymous("test_url", "test_path");
 
-      expect(result.data).toBe("download_anon_success");
+      // Verify OSSDownloadResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.content).toBe("download_anon_success");
+      expect(result.errorMessage).toBeUndefined();
+
       expect(callMcpToolStub.calledOnce).toBe(true);
     });
   });
@@ -197,9 +232,13 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to download anonymously"));
 
-      await expect(
-        mockOss.downloadAnonymous("test_url", "test_path")
-      ).rejects.toThrow("Failed to download anonymously");
+      const result = await mockOss.downloadAnonymous("test_url", "test_path");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.content).toBe("");
+      expect(result.errorMessage).toContain("Failed to download anonymously");
     });
   });
 

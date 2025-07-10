@@ -4,9 +4,9 @@ import { Client } from "../api/client";
 import { CallMcpToolRequest } from "../api/models/model";
 import { log, logError } from "../utils/logger";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   extractRequestId,
+  CommandResult,
+  CodeExecutionResult,
 } from "../types/api-response";
 
 import * as $_client from "../api";
@@ -22,24 +22,6 @@ interface CallMcpToolResult {
   errorMsg?: string;
   statusCode: number;
   requestId?: string;
-}
-
-/**
- * Represents the result of a command execution
- */
-export interface CommandResult {
-  output: string;
-  exitCode?: number;
-  durationMs?: number;
-}
-
-/**
- * Represents the result of code execution
- */
-export interface CodeExecutionResult {
-  output: string;
-  durationMs?: number;
-  memoryKb?: number;
 }
 
 /**
@@ -157,91 +139,93 @@ export class Command {
   }
 
   /**
-   * Helper method to parse JSON string or return a simple object with output
-   */
-  private parseCommandResult(text: string): CommandResult {
-    try {
-      return JSON.parse(text) as CommandResult;
-    } catch (error) {
-      return { output: text };
-    }
-  }
-
-  /**
    * Execute a command in the cloud environment with a specified timeout.
+   * Corresponds to Python's execute_command() method
    *
    * @param command - The command to execute.
    * @param timeoutMs - The timeout for the command execution in milliseconds. Default is 1000ms.
-   * @returns API response with command output and requestId
+   * @returns CommandResult with command output and requestId
    */
   async executeCommand(
     command: string,
     timeoutMs = 1000
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      command,
-      timeout_ms: timeoutMs,
-    };
-
-    const result = await this.callMcpTool(
-      "shell",
-      args,
-      "Failed to execute command"
-    );
-
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
-  }
-
-  /**
-   * Helper method to parse JSON string or return a simple object with output
-   */
-  private parseCodeExecutionResult(text: string): CodeExecutionResult {
+  ): Promise<CommandResult> {
     try {
-      return JSON.parse(text) as CodeExecutionResult;
+      const args = {
+        command,
+        timeout_ms: timeoutMs,
+      };
+
+      const result = await this.callMcpTool(
+        "shell",
+        args,
+        "Failed to execute command"
+      );
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        output: result.textContent || "",
+      };
     } catch (error) {
-      return { output: text };
+      return {
+        requestId: "",
+        success: false,
+        output: "",
+        errorMessage: `Failed to execute command: ${error}`,
+      };
     }
   }
 
   /**
    * Execute code in the specified language with a timeout.
+   * Corresponds to Python's run_code() method
    *
    * @param code - The code to execute.
    * @param language - The programming language of the code. Must be either 'python' or 'javascript'.
    * @param timeoutS - The timeout for the code execution in seconds. Default is 300s.
-   * @returns API response with code execution output and requestId
-   * @throws APIError if the code execution fails or if an unsupported language is specified.
+   * @returns CodeExecutionResult with code execution output and requestId
+   * @throws Error if an unsupported language is specified.
    */
   async runCode(
     code: string,
     language: string,
     timeoutS = 300
-  ): Promise<ApiResponseWithData<string>> {
-    // Validate language
-    if (language !== "python" && language !== "javascript") {
-      throw new Error(
-        `Unsupported language: ${language}. Supported languages are 'python' and 'javascript'`
+  ): Promise<CodeExecutionResult> {
+    try {
+      // Validate language
+      if (language !== "python" && language !== "javascript") {
+        return {
+          requestId: "",
+          success: false,
+          result: "",
+          errorMessage: `Unsupported language: ${language}. Supported languages are 'python' and 'javascript'`,
+        };
+      }
+
+      const args = {
+        code,
+        language,
+        timeout_s: timeoutS,
+      };
+
+      const result = await this.callMcpTool(
+        "run_code",
+        args,
+        "Failed to execute code"
       );
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        result: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        result: "",
+        errorMessage: `Failed to run code: ${error}`,
+      };
     }
-
-    const args = {
-      code,
-      language,
-      timeout_s: timeoutS,
-    };
-
-    const result = await this.callMcpTool(
-      "run_code",
-      args,
-      "Failed to execute code"
-    );
-
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
   }
 }

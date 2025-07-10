@@ -2,9 +2,10 @@ import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
 import { log, logError } from "../utils/logger";
 import { APIError } from "../exceptions";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   extractRequestId,
+  WindowListResult,
+  WindowInfoResult,
+  BoolResult,
 } from "../types/api-response";
 
 /**
@@ -168,235 +169,350 @@ export class WindowManager {
 
   /**
    * Lists all root windows in the system.
-   * @returns API response with windows array and requestId
-   * @throws Error if the operation fails.
+   * Corresponds to Python's list_root_windows() method
+   *
+   * @param timeoutMs - The timeout in milliseconds. Default is 3000ms.
+   * @returns WindowListResult with windows array and requestId
    */
-  async listRootWindows(): Promise<ApiResponseWithData<Window[]>> {
-    const args = {};
+  async listRootWindows(timeoutMs = 3000): Promise<WindowListResult> {
+    try {
+      const args = {
+        timeout_ms: timeoutMs,
+      };
 
-    const result = await this.callMcpTool(
-      "list_root_windows",
-      args,
-      "Failed to list root windows"
-    );
+      const result = await this.callMcpTool(
+        "list_root_windows",
+        args,
+        "Failed to list root windows"
+      );
 
-    const windows = result.textContent
-      ? this.parseWindowsFromJSON(result.textContent)
-      : [];
+      const windows = result.textContent
+        ? this.parseWindowsFromJSON(result.textContent)
+        : [];
 
-    return {
-      requestId: result.requestId,
-      data: windows,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        windows,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        windows: [],
+        errorMessage: `Failed to list root windows: ${error}`,
+      };
+    }
   }
 
   /**
    * Gets the currently active window.
-   * @returns API response with active window data and requestId
-   * @throws Error if the operation fails.
+   * Corresponds to Python's get_active_window() method
+   *
+   * @param timeoutMs - The timeout in milliseconds. Default is 3000ms.
+   * @returns WindowInfoResult with active window data and requestId
    */
-  async getActiveWindow(): Promise<ApiResponseWithData<Window | null>> {
-    const args = {};
+  async getActiveWindow(timeoutMs = 3000): Promise<WindowInfoResult> {
+    try {
+      const args = {
+        timeout_ms: timeoutMs,
+      };
 
-    const result = await this.callMcpTool(
-      "get_active_window",
-      args,
-      "Failed to get active window"
-    );
+      const result = await this.callMcpTool(
+        "get_active_window",
+        args,
+        "Failed to get active window"
+      );
 
-    let activeWindow: Window | null = null;
-    if (result.textContent) {
-      const windows = this.parseWindowsFromJSON(result.textContent);
-      activeWindow = windows.length > 0 ? windows[0] : null;
+      let activeWindow: Window | undefined = undefined;
+      if (result.textContent) {
+        const windows = this.parseWindowsFromJSON(result.textContent);
+        activeWindow = windows.length > 0 ? windows[0] : undefined;
+      }
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        window: activeWindow,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to get active window: ${error}`,
+      };
     }
-
-    return {
-      requestId: result.requestId,
-      data: activeWindow,
-    };
   }
 
   /**
    * Activates a window by ID.
+   * Corresponds to Python's activate_window() method
+   *
    * @param windowId The ID of the window to activate.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async activateWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async activateWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "activate_window",
-      args,
-      "Failed to activate window"
-    );
+      const result = await this.callMcpTool(
+        "activate_window",
+        args,
+        "Failed to activate window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to activate window: ${error}`,
+      };
+    }
   }
 
   /**
    * Maximizes a window by ID.
+   * Corresponds to Python's maximize_window() method
+   *
    * @param windowId The ID of the window to maximize.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async maximizeWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async maximizeWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "maximize_window",
-      args,
-      "Failed to maximize window"
-    );
+      const result = await this.callMcpTool(
+        "maximize_window",
+        args,
+        "Failed to maximize window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to maximize window: ${error}`,
+      };
+    }
   }
 
   /**
    * Minimizes a window by ID.
+   * Corresponds to Python's minimize_window() method
+   *
    * @param windowId The ID of the window to minimize.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async minimizeWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async minimizeWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "minimize_window",
-      args,
-      "Failed to minimize window"
-    );
+      const result = await this.callMcpTool(
+        "minimize_window",
+        args,
+        "Failed to minimize window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to minimize window: ${error}`,
+      };
+    }
   }
 
   /**
    * Restores a window by ID.
+   * Corresponds to Python's restore_window() method
+   *
    * @param windowId The ID of the window to restore.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async restoreWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async restoreWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "restore_window",
-      args,
-      "Failed to restore window"
-    );
+      const result = await this.callMcpTool(
+        "restore_window",
+        args,
+        "Failed to restore window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to restore window: ${error}`,
+      };
+    }
   }
 
   /**
    * Closes a window by ID.
+   * Corresponds to Python's close_window() method
+   *
    * @param windowId The ID of the window to close.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async closeWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async closeWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "close_window",
-      args,
-      "Failed to close window"
-    );
+      const result = await this.callMcpTool(
+        "close_window",
+        args,
+        "Failed to close window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to close window: ${error}`,
+      };
+    }
   }
 
   /**
    * Sets a window to fullscreen by ID.
+   * Corresponds to Python's fullscreen_window() method
+   *
    * @param windowId The ID of the window to set to fullscreen.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async fullscreenWindow(windowId: number): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-    };
+  async fullscreenWindow(windowId: number): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+      };
 
-    const result = await this.callMcpTool(
-      "fullscreen_window",
-      args,
-      "Failed to set window to fullscreen"
-    );
+      const result = await this.callMcpTool(
+        "fullscreen_window",
+        args,
+        "Failed to set window to fullscreen"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to make window fullscreen: ${error}`,
+      };
+    }
   }
 
   /**
    * Resizes a window by ID.
+   * Corresponds to Python's resize_window() method
+   *
    * @param windowId The ID of the window to resize.
    * @param width The new width of the window.
    * @param height The new height of the window.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
   async resizeWindow(
     windowId: number,
     width: number,
     height: number
-  ): Promise<ApiResponse> {
-    const args = {
-      window_id: windowId,
-      width,
-      height,
-    };
+  ): Promise<BoolResult> {
+    try {
+      const args = {
+        window_id: windowId,
+        width,
+        height,
+      };
 
-    const result = await this.callMcpTool(
-      "resize_window",
-      args,
-      "Failed to resize window"
-    );
+      const result = await this.callMcpTool(
+        "resize_window",
+        args,
+        "Failed to resize window"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to resize window: ${error}`,
+      };
+    }
   }
 
   /**
    * Enables or disables focus mode.
+   * Corresponds to Python's focus_mode() method
+   *
    * @param on Whether to enable focus mode.
-   * @returns API response with requestId
-   * @throws Error if the operation fails.
+   * @returns BoolResult with requestId
    */
-  async focusMode(on: boolean): Promise<ApiResponse> {
-    const args = {
-      on,
-    };
+  async focusMode(on: boolean): Promise<BoolResult> {
+    try {
+      const args = {
+        on,
+      };
 
-    const result = await this.callMcpTool(
-      "focus_mode",
-      args,
-      "Failed to set focus mode"
-    );
+      const result = await this.callMcpTool(
+        "focus_mode",
+        args,
+        "Failed to set focus mode"
+      );
 
-    return {
-      requestId: result.requestId,
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to toggle focus mode: ${error}`,
+      };
+    }
   }
 }

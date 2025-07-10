@@ -42,7 +42,108 @@ describe("Session Labels", () => {
   });
 
   describe("setLabels()", () => {
-    it.only("should set labels for a session", async () => {
+    it("should set labels for a session successfully", async () => {
+      // Mock setLabel response
+      const mockSetLabelsResponse = {
+        body: {
+          requestId: "set-labels-request-id",
+        },
+        statusCode: 200,
+      };
+      mockClient.setLabel.resolves(mockSetLabelsResponse);
+
+      // Call the method
+      const setLabelsResponse = await mockSession.setLabels(labels);
+
+      // Verify OperationResult structure
+      expect(setLabelsResponse.success).toBe(true);
+      expect(setLabelsResponse.requestId).toBe("set-labels-request-id");
+      expect(typeof setLabelsResponse.requestId).toBe("string");
+      expect(setLabelsResponse.errorMessage).toBeUndefined();
+
+      // Verify API was called correctly
+      expect(mockClient.setLabel.calledOnce).toBe(true);
+      const callArgs = mockClient.setLabel.getCall(0).args[0];
+      expect(callArgs.sessionId).toBe("test-session-id");
+      expect(JSON.parse(callArgs.labels)).toEqual(labels);
+    });
+
+    it("should handle setLabels failure", async () => {
+      // Mock setLabel to reject
+      mockClient.setLabel.rejects(new Error("API Error"));
+
+      // Call the method and expect error
+      await expect(mockSession.setLabels(labels)).rejects.toThrow(
+        "Failed to set labels for session test-session-id"
+      );
+    });
+  });
+
+  describe("getLabels()", () => {
+    it("should get labels for a session successfully", async () => {
+      // Mock getLabel response
+      const mockGetLabelsResponse = {
+        body: {
+          data: {
+            labels: JSON.stringify(labels),
+          },
+          requestId: "get-labels-request-id",
+        },
+        statusCode: 200,
+      };
+      mockClient.getLabel.resolves(mockGetLabelsResponse);
+
+      // Call the method
+      const getLabelsResponse = await mockSession.getLabels();
+
+      // Verify OperationResult structure
+      expect(getLabelsResponse.success).toBe(true);
+      expect(getLabelsResponse.requestId).toBe("get-labels-request-id");
+      expect(typeof getLabelsResponse.requestId).toBe("string");
+      expect(getLabelsResponse.data).toEqual(labels);
+      expect(getLabelsResponse.errorMessage).toBeUndefined();
+
+      // Verify API was called correctly
+      expect(mockClient.getLabel.calledOnce).toBe(true);
+      const callArgs = mockClient.getLabel.getCall(0).args[0];
+      expect(callArgs.sessionId).toBe("test-session-id");
+    });
+
+    it("should return empty object if no labels", async () => {
+      // Mock getLabel response for empty labels
+      const mockGetEmptyLabelsResponse = {
+        body: {
+          data: {},
+          requestId: "get-empty-labels-request-id",
+        },
+        statusCode: 200,
+      };
+      mockClient.getLabel.resolves(mockGetEmptyLabelsResponse);
+
+      // Call the method
+      const getLabelsResponse = await mockSession.getLabels();
+
+      // Verify OperationResult structure
+      expect(getLabelsResponse.success).toBe(true);
+      expect(getLabelsResponse.requestId).toBe("get-empty-labels-request-id");
+      expect(typeof getLabelsResponse.requestId).toBe("string");
+      expect(getLabelsResponse.data).toEqual({});
+      expect(getLabelsResponse.errorMessage).toBeUndefined();
+    });
+
+    it("should handle getLabels failure", async () => {
+      // Mock getLabel to reject
+      mockClient.getLabel.rejects(new Error("API Error"));
+
+      // Call the method and expect error
+      await expect(mockSession.getLabels()).rejects.toThrow(
+        "Failed to get labels for session test-session-id"
+      );
+    });
+  });
+
+  describe("combined setLabels and getLabels", () => {
+    it("should set and then retrieve labels", async () => {
       // Mock setLabel response
       const mockSetLabelsResponse = {
         body: {
@@ -64,96 +165,21 @@ describe("Session Labels", () => {
       };
       mockClient.getLabel.resolves(mockGetLabelsResponse);
 
-      // Call the method
+      // First set labels
       const setLabelsResponse = await mockSession.setLabels(labels);
-
-      // Verify that the response contains requestId
+      expect(setLabelsResponse.success).toBe(true);
       expect(setLabelsResponse.requestId).toBe("set-labels-request-id");
-      expect(typeof setLabelsResponse.requestId).toBe("string");
 
-      // Verify by getting the labels
+      // Then get labels to verify
       const retrievedLabelsResponse = await mockSession.getLabels();
+      expect(retrievedLabelsResponse.success).toBe(true);
       expect(retrievedLabelsResponse.data).toEqual(labels);
       expect(retrievedLabelsResponse.requestId).toBe("get-labels-request-id");
     });
   });
 
-  describe("getLabels()", () => {
-    it.only("should get labels for a session", async () => {
-      // Mock setLabel response
-      const mockSetLabelsResponse = {
-        body: {
-          requestId: "set-labels-request-id",
-        },
-        statusCode: 200,
-      };
-      mockClient.setLabel.resolves(mockSetLabelsResponse);
-
-      // Mock getLabel response
-      const mockGetLabelsResponse = {
-        body: {
-          data: {
-            labels: JSON.stringify(labels),
-          },
-          requestId: "get-labels-request-id",
-        },
-        statusCode: 200,
-      };
-      mockClient.getLabel.resolves(mockGetLabelsResponse);
-
-      // First set some labels
-      const setLabelsResponse = await mockSession.setLabels(labels);
-      expect(setLabelsResponse.requestId).toBe("set-labels-request-id");
-
-      // Then get the labels
-      const getLabelsResponse = await mockSession.getLabels();
-
-      // Verify that the response contains requestId
-      expect(getLabelsResponse.requestId).toBe("get-labels-request-id");
-      expect(typeof getLabelsResponse.requestId).toBe("string");
-
-      // Verify the results
-      expect(getLabelsResponse.data).toEqual(labels);
-    });
-
-    it.only("should return empty object if no labels", async () => {
-      // Mock setLabel response for empty labels
-      const mockSetEmptyLabelsResponse = {
-        body: {
-          requestId: "set-empty-labels-request-id",
-        },
-        statusCode: 200,
-      };
-      mockClient.setLabel.resolves(mockSetEmptyLabelsResponse);
-
-      // Mock getLabel response for empty labels
-      const mockGetEmptyLabelsResponse = {
-        body: {
-          data: {},
-          requestId: "get-empty-labels-request-id",
-        },
-        statusCode: 200,
-      };
-      mockClient.getLabel.resolves(mockGetEmptyLabelsResponse);
-
-      // First clear any existing labels
-      const setLabelsResponse = await mockSession.setLabels({});
-      expect(setLabelsResponse.requestId).toBe("set-empty-labels-request-id");
-
-      // Then get the labels
-      const getLabelsResponse = await mockSession.getLabels();
-
-      // Verify that the response contains requestId
-      expect(getLabelsResponse.requestId).toBe("get-empty-labels-request-id");
-      expect(typeof getLabelsResponse.requestId).toBe("string");
-
-      // Verify the results - should be empty or close to empty
-      expect(Object.keys(getLabelsResponse.data).length).toBeLessThanOrEqual(0);
-    });
-  });
-
   describe("listByLabels()", () => {
-    it.only("should list sessions filtered by labels", async () => {
+    it("should list sessions filtered by labels", async () => {
       // Mock setLabel response
       const mockSetLabelsResponse = {
         body: {
@@ -165,6 +191,7 @@ describe("Session Labels", () => {
 
       // Mock listByLabels response using new API format
       const mockListByLabelsResponse = {
+        success: true,
         data: [
           { sessionId: "test-session-id", labels: labels },
           { sessionId: "other-session-id", labels: labels },
@@ -177,6 +204,7 @@ describe("Session Labels", () => {
 
       // First set some unique labels on our session
       const setLabelsResponse = await mockSession.setLabels(labels);
+      expect(setLabelsResponse.success).toBe(true);
       expect(setLabelsResponse.requestId).toBe("set-labels-request-id");
 
       // Then list sessions with those labels using new API format
@@ -186,7 +214,8 @@ describe("Session Labels", () => {
       };
       const listByLabelsResponse = await mockAgentBay.listByLabels(listParams);
 
-      // Verify that the response contains requestId
+      // Verify that the response contains requestId and success
+      expect(listByLabelsResponse.success).toBe(true);
       expect(listByLabelsResponse.requestId).toBe("list-by-labels-request-id");
       expect(typeof listByLabelsResponse.requestId).toBe("string");
 
@@ -209,7 +238,7 @@ describe("Session Labels", () => {
       });
     });
 
-    it.only("should handle non-matching labels", async () => {
+    it("should handle non-matching labels", async () => {
       // Use a label that shouldn't match any sessions
       const nonMatchingLabels = {
         nonexistent: "label-unique-12345",
@@ -217,6 +246,7 @@ describe("Session Labels", () => {
 
       // Mock listByLabels response for non-matching labels using new API format
       const mockListByLabelsResponse = {
+        success: true,
         data: [],
         requestId: "list-non-matching-labels-request-id",
         maxResults: 5,
@@ -230,7 +260,8 @@ describe("Session Labels", () => {
       };
       const listByLabelsResponse = await mockAgentBay.listByLabels(listParams);
 
-      // Verify that the response contains requestId
+      // Verify that the response contains requestId and success
+      expect(listByLabelsResponse.success).toBe(true);
       expect(listByLabelsResponse.requestId).toBe(
         "list-non-matching-labels-request-id"
       );

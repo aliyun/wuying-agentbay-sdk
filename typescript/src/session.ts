@@ -13,10 +13,9 @@ import { APIError } from "./exceptions";
 import { FileSystem } from "./filesystem";
 import { Oss } from "./oss";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   DeleteResult,
   extractRequestId,
+  OperationResult,
 } from "./types/api-response";
 import { UI } from "./ui";
 import { log, logError } from "./utils/logger";
@@ -36,21 +35,51 @@ export interface SessionInfo {
 }
 
 /**
+ * SessionInfo class to match Python version structure
+ */
+export class SessionInfoClass {
+  sessionId: string;
+  resourceUrl: string;
+  appId: string;
+  authCode: string;
+  connectionProperties: string;
+  resourceId: string;
+  resourceType: string;
+
+  constructor(
+    sessionId: string = "",
+    resourceUrl: string = "",
+    appId: string = "",
+    authCode: string = "",
+    connectionProperties: string = "",
+    resourceId: string = "",
+    resourceType: string = ""
+  ) {
+    this.sessionId = sessionId;
+    this.resourceUrl = resourceUrl;
+    this.appId = appId;
+    this.authCode = authCode;
+    this.connectionProperties = connectionProperties;
+    this.resourceId = resourceId;
+    this.resourceType = resourceType;
+  }
+}
+
+/**
  * Represents a session in the AgentBay cloud environment.
  */
 export class Session {
   private agentBay: AgentBay;
-  public client: Client;
   public sessionId: string;
   public resourceUrl: string = "";
 
-  // File, command, and oss handlers
-  public filesystem: FileSystem;
+  // File, command, and oss handlers (matching Python naming)
+  public fileSystem: FileSystem;  // file_system in Python
   public command: Command;
   public oss: Oss;
 
-  // Application, window, and UI management
-  public Application: Application;
+  // Application, window, and UI management (matching Python naming)
+  public application: Application;  // application in Python (ApplicationManager)
   public window: WindowManager;
   public ui: UI;
 
@@ -63,79 +92,83 @@ export class Session {
   constructor(agentBay: AgentBay, sessionId: string) {
     this.agentBay = agentBay;
     this.sessionId = sessionId;
-    this.client = agentBay.getClient();
-    log(`Session created with ID: ${sessionId}`);
+    this.resourceUrl = "";
 
-    // Initialize filesystem, command, and oss handlers
-    this.filesystem = new FileSystem(this);
+    // Initialize file system, command handlers (matching Python naming)
+    this.fileSystem = new FileSystem(this);
     this.command = new Command(this);
     this.oss = new Oss(this);
 
-    // Initialize application, window, and UI managers
-    this.Application = new Application(this);
+    // Initialize application and window managers (matching Python naming)
+    this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
   }
 
   /**
-   * Get information about this session.
-   *
-   * @returns Session information.
+   * Return the API key for this session.
    */
-  // async get_info(): Promise<Record<string, any>> {
-  //   // TODO: Implement the API call to get session info
-  //   try {
-  //     const response = await this.client.get(this.baseUrl);
-  //     return response.data;
-  //   } catch (error) {
-  //     throw new APIError(`Failed to get session info: ${error}`);
-  //   }
-  // }
+  getAPIKey(): string {
+    return this.agentBay.getAPIKey();
+  }
+
+  /**
+   * Return the HTTP client for this session.
+   */
+  getClient(): Client {
+    return this.agentBay.getClient();
+  }
+
+  /**
+   * Return the session_id for this session.
+   */
+  getSessionId(): string {
+    return this.sessionId;
+  }
 
   /**
    * Delete this session.
    *
-   * @returns DeleteResult with requestId and success status
-   * @throws APIError if the operation fails
+   * @returns DeleteResult indicating success or failure and request ID
    */
   async delete(): Promise<DeleteResult> {
     try {
-      const releaseSessionRequest = new ReleaseMcpSessionRequest({
+      const request = new ReleaseMcpSessionRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId,
       });
 
-      // Log API request
-      log("API Call: ReleaseMcpSession");
-      log(`Request: SessionId=${this.sessionId}`);
+      const response = await this.getClient().releaseMcpSession(request);
+      log(`Response from release_mcp_session: ${JSON.stringify(response)}`);
 
-      const response = await this.client.releaseMcpSession(
-        releaseSessionRequest
-      );
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
 
-      // Log API response
-      log(`Response from ReleaseMcpSession:`, response.body);
-
-      // Check if the response is success
-      const success = response.body?.Success !== false; // Default to true if Success field doesn't exist
+      // Check if the response is success (matching Python logic)
+      const responseBody = response.body;
+      const success = responseBody?.success !== false; // Note: capital S to match Python
 
       if (!success) {
         return {
-          requestId: extractRequestId(response),
+          requestId,
           success: false,
           errorMessage: "Failed to delete session",
         };
       }
 
-      this.agentBay.removeSession(this.sessionId);
-
+      // Return success result with request ID
       return {
-        requestId: extractRequestId(response),
+        requestId,
         success: true,
       };
     } catch (error) {
-      logError("Error calling ReleaseMcpSession:", error);
-      throw new APIError(`Failed to delete session: ${error}`);
+      logError("Error calling release_mcp_session:", error);
+      // In case of error, return failure result with error message (matching Python)
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to delete session ${this.sessionId}: ${error}`,
+      };
     }
   }
 
@@ -143,10 +176,10 @@ export class Session {
    * Sets the labels for this session.
    *
    * @param labels - The labels to set for the session.
-   * @returns API response with requestId
-   * @throws APIError if the operation fails.
+   * @returns OperationResult indicating success or failure with request ID
+   * @throws Error if the operation fails (matching Python SessionError)
    */
-  async setLabels(labels: Record<string, string>): Promise<ApiResponse> {
+  async setLabels(labels: Record<string, string>): Promise<OperationResult> {
     try {
       // Convert labels to JSON string
       const labelsJSON = JSON.stringify(labels);
@@ -157,97 +190,71 @@ export class Session {
         labels: labelsJSON,
       });
 
-      // Log API request
-      log("API Call: SetLabel");
-      log(`Request: SessionId=${this.sessionId}, Labels=${labelsJSON}`);
+      const response = await this.getClient().setLabel(request);
 
-      const response = await this.client.setLabel(request);
-
-      // Log API response
-      log(`Response from SetLabel:`, response.body);
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
 
       return {
-        requestId: extractRequestId(response),
+        requestId,
+        success: true,
       };
     } catch (error) {
-      logError("Error calling SetLabel:", error);
-      throw new APIError(`Failed to set labels for session: ${error}`);
+      logError("Error calling set_label:", error);
+      throw new Error(
+        `Failed to set labels for session ${this.sessionId}: ${error}`
+      );
     }
   }
 
   /**
    * Gets the labels for this session.
    *
-   * @returns API response with labels data and requestId
-   * @throws APIError if the operation fails.
+   * @returns OperationResult containing the labels as data and request ID
+   * @throws Error if the operation fails (matching Python SessionError)
    */
-  async getLabels(): Promise<ApiResponseWithData<Record<string, string>>> {
+  async getLabels(): Promise<OperationResult> {
     try {
       const request = new GetLabelRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId,
       });
 
-      // Log API request
-      log("API Call: GetLabel");
-      log(`Request: SessionId=${this.sessionId}`);
+      const response = await this.getClient().getLabel(request);
 
-      const response = await this.client.getLabel(request);
-      // Log API response
-      log(`Response from GetLabel:`, response.body);
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
 
-      // Extract labels from response
-      const labelsJSON = response.body?.data?.labels;
-      let labels: Record<string, string> = {};
+      // Extract labels from response (matching Python structure)
+      const responseBody = response?.body;
+      const data = responseBody?.data ; // Capital D to match Python
+      const labelsJSON = data?.labels; // Capital L to match Python
 
+      let labels = {};
       if (labelsJSON) {
         labels = JSON.parse(labelsJSON);
       }
 
       return {
-        requestId: extractRequestId(response),
+        requestId,
+        success: true,
         data: labels,
       };
     } catch (error) {
-      logError("Error calling GetLabel:", error);
-      throw new APIError(`Failed to get labels for session: ${error}`);
+      logError("Error calling get_label:", error);
+      throw new Error(
+        `Failed to get labels for session ${this.sessionId}: ${error}`
+      );
     }
-  }
-
-  /**
-   * Get the API key.
-   *
-   * @returns The API key.
-   */
-  getAPIKey(): string {
-    return this.agentBay.getAPIKey();
-  }
-
-  /**
-   * Get the client.
-   *
-   * @returns The client.
-   */
-  getClient(): Client {
-    return this.client;
-  }
-
-  /**
-   * Get the session ID.
-   *
-   * @returns The session ID.
-   */
-  getSessionId(): string {
-    return this.sessionId;
   }
 
   /**
    * Gets information about this session.
    *
-   * @returns API response with session information and requestId
-   * @throws APIError if the operation fails.
+   * @returns OperationResult containing the session information as data and request ID
+   * @throws Error if the operation fails (matching Python SessionError)
    */
-  async info(): Promise<ApiResponseWithData<SessionInfo>> {
+  async info(): Promise<OperationResult> {
     try {
       const request = new GetMcpResourceRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
@@ -257,109 +264,177 @@ export class Session {
       log("API Call: GetMcpResource");
       log(`Request: SessionId=${this.sessionId}`);
 
-      const response = await this.client.getMcpResource(request);
-      log(`Response from GetMcpResource:`, response.body);
+      const response = await this.getClient().getMcpResource(request);
+      log(`Response from GetMcpResource: ${JSON.stringify(response)}`);
 
-      // Extract session info from response
-      const sessionInfo: SessionInfo = {
-        sessionId: response.body?.data?.sessionId || "",
-        resourceUrl: response.body?.data?.resourceUrl || "",
-      };
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
 
-      // Update the session's resourceUrl with the latest value
-      if (response.body?.data?.resourceUrl) {
-        this.resourceUrl = response.body.data.resourceUrl;
+      // Extract session info from response (matching Python structure)
+      const responseBody = response.body;
+      const data = responseBody?.data; // Capital D to match Python
+
+      const sessionInfo = new SessionInfoClass();
+
+      if (data?.sessionId) { // Capital S and I to match Python
+        sessionInfo.sessionId = data.sessionId;
       }
 
-      // Transfer DesktopInfo fields to SessionInfo
-      if (response.body?.data?.desktopInfo) {
-        const desktopInfo = response.body.data.desktopInfo;
-        sessionInfo.appId = desktopInfo.appId;
-        sessionInfo.authCode = desktopInfo.authCode;
-        sessionInfo.connectionProperties = desktopInfo.connectionProperties;
-        sessionInfo.resourceId = desktopInfo.resourceId;
-        sessionInfo.resourceType = desktopInfo.resourceType;
+      if (data?.resourceUrl) { // Capital R and U to match Python
+        sessionInfo.resourceUrl = data.resourceUrl;
+        // Update the session's resource_url with the latest value
+        this.resourceUrl = data.resourceUrl;
+      }
+
+      // Transfer DesktopInfo fields to SessionInfo (matching Python structure)
+      if (data?.desktopInfo) { // Capital D and I to match Python
+        const desktopInfo = data.desktopInfo;
+        if (desktopInfo.AppId) {
+          sessionInfo.appId = desktopInfo.AppId;
+        }
+        if (desktopInfo.AuthCode) {
+          sessionInfo.authCode = desktopInfo.AuthCode;
+        }
+        if (desktopInfo.ConnectionProperties) {
+          sessionInfo.connectionProperties = desktopInfo.ConnectionProperties;
+        }
+        if (desktopInfo.ResourceId) {
+          sessionInfo.resourceId = desktopInfo.ResourceId;
+        }
+        if (desktopInfo.ResourceType) {
+          sessionInfo.resourceType = desktopInfo.ResourceType;
+        }
       }
 
       return {
-        requestId: extractRequestId(response),
+        requestId,
+        success: true,
         data: sessionInfo,
       };
     } catch (error) {
       logError("Error calling GetMcpResource:", error);
-      throw new APIError(
+      throw new Error(
         `Failed to get session info for session ${this.sessionId}: ${error}`
       );
     }
   }
 
   /**
-   * Gets the link for this session.
+   * Get a link associated with the current session.
    *
    * @param protocolType - Optional protocol type to use for the link
    * @param port - Optional port to use for the link
-   * @returns API response with link data and requestId
-   * @throws APIError if the operation fails.
+   * @returns OperationResult containing the link as data and request ID
+   * @throws Error if the operation fails (matching Python SessionError)
    */
   async getLink(
     protocolType?: string,
     port?: number
-  ): Promise<ApiResponseWithData<string>> {
+  ): Promise<OperationResult> {
     try {
-      const requestParams: any = {
+      const request = new GetLinkRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
-        sessionId: this.sessionId,
-      };
+        sessionId: this.getSessionId(),
+        protocolType,
+        port,
+      });
 
-      // Only include protocolType if it has a value
-      if (
-        protocolType !== undefined &&
-        protocolType !== null &&
-        protocolType !== ""
-      ) {
-        requestParams.protocolType = protocolType;
+      const response = await this.agentBay.getClient().getLink(request);
+
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
+
+      const responseBody = response.body;
+
+      if (typeof responseBody !== 'object') {
+        throw new Error(
+          "Invalid response format: expected a dictionary from response body"
+        );
       }
 
-      // Only include port if it has a value
-      if (port !== undefined && port !== null) {
-        requestParams.port = port;
-      }
-
-      const request = new GetLinkRequest(requestParams);
-
-      log("API Call: GetLink");
-      log(
-        `Request: SessionId=${this.sessionId}, ProtocolType=${protocolType}, Port=${port}`
-      );
-
-      const response = await this.client.getLink(request);
-      log(`Response from GetLink:`, response.data);
-
-      // Extract data from response, similar to Python version
-      let data = response.body?.data || {};
+      let data = responseBody.data || {}; // Capital D to match Python
       log(`Data: ${JSON.stringify(data)}`);
 
-      // If data is not an object, try to parse it as JSON (similar to Python version)
-      if (typeof data !== "object" || data === null) {
+      if (typeof data !== 'object') {
         try {
-          data = typeof data === "string" ? JSON.parse(data) : {};
-        } catch (error) {
+          data = typeof data === 'string' ? JSON.parse(data) : {};
+        } catch (jsonError) {
           data = {};
         }
       }
 
-      // Extract URL from data (similar to Python version)
       const url = (data as any).Url || "";
 
       return {
-        requestId: extractRequestId(response),
+        requestId,
+        success: true,
         data: url,
       };
     } catch (error) {
-      logError("Error calling GetLink:", error);
-      throw new APIError(
-        `Failed to get link for session ${this.sessionId}: ${error}`
-      );
+      if (error instanceof Error && error.message.includes("Invalid response format")) {
+        throw error;
+      }
+      throw new Error(`Failed to get link: ${error}`);
+    }
+  }
+
+  /**
+   * Asynchronously get a link associated with the current session.
+   *
+   * @param protocolType - Optional protocol type to use for the link
+   * @param port - Optional port to use for the link
+   * @returns OperationResult containing the link as data and request ID
+   * @throws Error if the operation fails (matching Python SessionError)
+   */
+  async getLinkAsync(
+    protocolType?: string,
+    port?: number
+  ): Promise<OperationResult> {
+    try {
+      const request = new GetLinkRequest({
+        authorization: `Bearer ${this.getAPIKey()}`,
+        sessionId: this.getSessionId(),
+        protocolType,
+        port,
+      });
+
+      // Note: In TypeScript, async is the default, but keeping this method for API compatibility
+      const response = await this.agentBay.getClient().getLink(request);
+
+      // Extract request ID
+      const requestId = extractRequestId(response) || "";
+
+      const responseBody = response?.body;
+
+      if (typeof responseBody !== 'object') {
+        throw new Error(
+          "Invalid response format: expected a dictionary from response body"
+        );
+      }
+
+      let data = responseBody?.data || {}; // Capital D to match Python
+      log(`Data: ${JSON.stringify(data)}`);
+
+      if (typeof data !== 'object') {
+        try {
+          data = typeof data === 'string' ? JSON.parse(data) : {};
+        } catch (jsonError) {
+          data = {};
+        }
+      }
+
+      const url = (data as any).Url || "";
+
+      return {
+        requestId,
+        success: true,
+        data: url,
+      };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Invalid response format")) {
+        throw error;
+      }
+      throw new Error(`Failed to get link asynchronously: ${error}`);
     }
   }
 }

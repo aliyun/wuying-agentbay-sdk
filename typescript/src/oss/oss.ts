@@ -4,9 +4,10 @@ import { Client } from "../api/client";
 import { CallMcpToolRequest } from "../api/models/model";
 import { log, logError } from "../utils/logger";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   extractRequestId,
+  OSSClientResult,
+  OSSUploadResult,
+  OSSDownloadResult,
 } from "../types/api-response";
 
 import * as $_client from "../api";
@@ -141,202 +142,229 @@ export class Oss {
 
   /**
    * Initialize OSS environment variables with the specified credentials.
+   * Corresponds to Python's env_init() method
    *
    * @param accessKeyId - The Access Key ID for OSS authentication.
    * @param accessKeySecret - The Access Key Secret for OSS authentication.
    * @param securityToken - The security token for OSS authentication.
    * @param endpoint - The OSS service endpoint. If not specified, the default is used.
    * @param region - The OSS region. If not specified, the default is used.
-   * @returns API response with initialization result and requestId
+   * @returns OSSClientResult with initialization result and requestId
    */
   async envInit(
     accessKeyId: string,
     accessKeySecret: string,
-    securityToken: string,
+    securityToken?: string,
     endpoint?: string,
     region?: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args: Record<string, any> = {
-      access_key_id: accessKeyId,
-      access_key_secret: accessKeySecret,
-      security_token: securityToken,
-    };
+  ): Promise<OSSClientResult> {
+    try {
+      const args: Record<string, any> = {
+        access_key_id: accessKeyId,
+        access_key_secret: accessKeySecret,
+      };
 
-    // Add optional parameters if provided
-    if (endpoint) {
-      args.endpoint = endpoint;
+      // Add optional parameters if provided
+      if (securityToken) {
+        args.security_token = securityToken;
+      }
+      if (endpoint) {
+        args.endpoint = endpoint;
+      }
+      if (region) {
+        args.region = region;
+      }
+
+      const result = await this.callMcpTool(
+        "oss_env_init",
+        args,
+        "Failed to initialize OSS environment"
+      );
+
+      let clientConfig: Record<string, any> = {};
+      if (result.textContent) {
+        try {
+          clientConfig = JSON.parse(result.textContent);
+        } catch (parseError) {
+          // If parsing fails, treat as string data
+          clientConfig = { data: result.textContent };
+        }
+      }
+
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        clientConfig,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        clientConfig: {},
+        errorMessage: `Failed to initialize OSS environment: ${error}`,
+      };
     }
-    if (region) {
-      args.region = region;
-    }
-
-    const result = await this.callMcpTool(
-      "oss_env_init",
-      args,
-      "error initializing OSS environment"
-    );
-
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
-  }
-
-  /**
-   * Create an OSS client with the provided credentials.
-   *
-   * @param accessKeyId - The Access Key ID for OSS authentication.
-   * @param accessKeySecret - The Access Key Secret for OSS authentication.
-   * @param endpoint - The OSS service endpoint. If not specified, the default is used.
-   * @param region - The OSS region. If not specified, the default is used.
-   * @returns API response with client creation result and requestId
-   */
-  async createClient(
-    accessKeyId: string,
-    accessKeySecret: string,
-    endpoint?: string,
-    region?: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args: Record<string, any> = {
-      access_key_id: accessKeyId,
-      access_key_secret: accessKeySecret,
-    };
-
-    // Add optional parameters if provided
-    if (endpoint) {
-      args.endpoint = endpoint;
-    }
-    if (region) {
-      args.region = region;
-    }
-
-    const result = await this.callMcpTool(
-      "oss_client_create",
-      args,
-      "error creating OSS client"
-    );
-
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
   }
 
   /**
    * Upload a local file or directory to OSS.
+   * Corresponds to Python's upload() method
    *
    * @param bucket - OSS bucket name.
-   * @param object - Object key in OSS.
+   * @param object - ObjectS.
    * @param path - Local file or directory path to upload.
-   * @returns API response with upload result and requestId
+   * @returns OSSUploadResult with upload result and requestId
    */
   async upload(
     bucket: string,
     object: string,
     path: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      bucket,
-      object,
-      path,
-    };
+  ): Promise<OSSUploadResult> {
+    try {
+      const args = {
+        bucket,
+        object,
+        path,
+      };
 
-    const result = await this.callMcpTool(
-      "oss_upload",
-      args,
-      "error uploading to OSS"
-    );
+      const result = await this.callMcpTool(
+        "oss_upload",
+        args,
+        "Failed to upload to OSS"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        content: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        content: "",
+        errorMessage: `Failed to upload to OSS: ${error}`,
+      };
+    }
   }
 
   /**
    * Upload a local file or directory to OSS using a pre-signed URL.
+   * Corresponds to Python's upload_anonymous() method
    *
    * @param url - Pre-signed URL for anonymous upload.
    * @param path - Local file or directory path to upload.
-   * @returns API response with upload result and requestId
+   * @returns OSSUploadResult with upload result and requestId
    */
   async uploadAnonymous(
     url: string,
     path: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      url,
-      path,
-    };
+  ): Promise<OSSUploadResult> {
+    try {
+      const args = {
+        url,
+        path,
+      };
 
-    const result = await this.callMcpTool(
-      "oss_upload_annon",
-      args,
-      "error uploading anonymously"
-    );
+      const result = await this.callMcpTool(
+        "oss_upload_annon",
+        args,
+        "Failed to upload anonymously"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        content: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        content: "",
+        errorMessage: `Failed to upload anonymously: ${error}`,
+      };
+    }
   }
 
   /**
    * Download an object from OSS to a local file or directory.
+   * Corresponds to Python's download() method
    *
    * @param bucket - OSS bucket name.
    * @param object - Object key in OSS.
    * @param path - Local file or directory path to save the downloaded content.
-   * @returns API response with download result and requestId
+   * @returns OSSDownloadResult with download result and requestId
    */
   async download(
     bucket: string,
     object: string,
     path: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      bucket,
-      object,
-      path,
-    };
+  ): Promise<OSSDownloadResult> {
+    try {
+      const args = {
+        bucket,
+        object,
+        path,
+      };
 
-    const result = await this.callMcpTool(
-      "oss_download",
-      args,
-      "error downloading from OSS"
-    );
+      const result = await this.callMcpTool(
+        "oss_download",
+        args,
+        "Failed to download from OSS"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        content: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        content: "",
+        errorMessage: `Failed to download from OSS: ${error}`,
+      };
+    }
   }
 
   /**
    * Download an object from OSS using a pre-signed URL.
+   * Corresponds to Python's download_anonymous() method
    *
    * @param url - Pre-signed URL for anonymous download.
    * @param path - Local file or directory path to save the downloaded content.
-   * @returns API response with download result and requestId
+   * @returns OSSDownloadResult with download result and requestId
    */
   async downloadAnonymous(
     url: string,
     path: string
-  ): Promise<ApiResponseWithData<string>> {
-    const args = {
-      url,
-      path,
-    };
+  ): Promise<OSSDownloadResult> {
+    try {
+      const args = {
+        url,
+        path,
+      };
 
-    const result = await this.callMcpTool(
-      "oss_download_annon",
-      args,
-      "error downloading anonymously"
-    );
+      const result = await this.callMcpTool(
+        "oss_download_annon",
+        args,
+        "Failed to download anonymously"
+      );
 
-    return {
-      requestId: result.requestId,
-      data: result.textContent || "",
-    };
+      return {
+        requestId: result.requestId || "",
+        success: true,
+        content: result.textContent || "",
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        content: "",
+        errorMessage: `Failed to download anonymously: ${error}`,
+      };
+    }
   }
 }

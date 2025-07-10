@@ -56,7 +56,7 @@ describe("UI", () => {
     // Create a session with mobile_latest image (consistent with Go implementation)
     log("Creating a new session for UI testing...");
     const createResponse = await agentBay.create({ imageId: "mobile_latest" });
-    session = createResponse.data;
+    session = createResponse.session;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
   });
@@ -83,7 +83,7 @@ describe("UI", () => {
         log("Testing UI.getClickableUIElements method...");
         try {
           const elementsResponse = await session.ui.getClickableUIElements();
-          log(`Retrieved content:`, elementsResponse.data);
+          log(`Retrieved content:`, elementsResponse.elements);
           log(
             `Get Clickable UI Elements RequestId: ${
               elementsResponse.requestId || "undefined"
@@ -95,12 +95,12 @@ describe("UI", () => {
           expect(typeof elementsResponse.requestId).toBe("string");
 
           // Verify the content
-          expect(elementsResponse.data).toBeDefined();
-          expect(Array.isArray(elementsResponse.data)).toBe(true);
+          expect(elementsResponse.elements).toBeDefined();
+          expect(Array.isArray(elementsResponse.elements)).toBe(true);
 
           // Log the first element if available
-          if (elementsResponse.data.length > 0) {
-            log("First UI element:", elementsResponse.data[0]);
+          if (elementsResponse.elements.length > 0) {
+            log("First UI element:", elementsResponse.elements[0]);
           }
         } catch (error) {
           log(`Note: UI.getClickableUIElements execution failed: ${error}`);
@@ -120,7 +120,7 @@ describe("UI", () => {
         log("Testing UI.getAllUIElements method...");
         try {
           const elementsResponse = await session.ui.getAllUIElements();
-          log(`Retrieved content:`, elementsResponse.data);
+          log(`Retrieved content:`, elementsResponse.elements);
           log(
             `Get All UI Elements RequestId: ${
               elementsResponse.requestId || "undefined"
@@ -132,12 +132,12 @@ describe("UI", () => {
           expect(typeof elementsResponse.requestId).toBe("string");
 
           // Verify the content
-          expect(elementsResponse.data).toBeDefined();
-          expect(Array.isArray(elementsResponse.data)).toBe(true);
+          expect(elementsResponse.elements).toBeDefined();
+          expect(Array.isArray(elementsResponse.elements)).toBe(true);
 
           // Log the first element if available
-          if (elementsResponse.data.length > 0) {
-            log("First UI element:", elementsResponse.data[0]);
+          if (elementsResponse.elements.length > 0) {
+            log("First UI element:", elementsResponse.elements[0]);
           }
         } catch (error) {
           log(`Note: UI.getAllUIElements execution failed: ${error}`);
@@ -167,7 +167,7 @@ describe("UI", () => {
 
           // Verify the content
           expect(sendKeyResponse.data).toBeDefined();
-          expect(typeof sendKeyResponse.data).toBe("string");
+          expect(typeof sendKeyResponse.data).toBe("boolean");
         } catch (error) {
           log(`Note: UI.sendKey execution failed: ${error}`);
           // Don't fail the test if the method is not fully implemented

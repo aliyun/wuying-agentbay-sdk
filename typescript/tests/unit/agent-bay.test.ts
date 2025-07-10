@@ -198,7 +198,7 @@ describe("AgentBay", () => {
       // Create a session
       log("Creating a new session...");
       const createResponse = await agentBay.create();
-      session = createResponse.data;
+      session = createResponse.session!; // Use session field instead of data
       log(`Session created with ID: ${session.sessionId}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -209,18 +209,20 @@ describe("AgentBay", () => {
       log(`createMcpSessionStub called: ${createMcpSessionStub.called}`);
       log(`createMcpSessionStub callCount: ${createMcpSessionStub.callCount}`);
 
-      // Verify that the response contains requestId
+      // Verify that the response contains requestId and success
       expect(createResponse.requestId).toBeDefined();
       expect(typeof createResponse.requestId).toBe("string");
       expect(createResponse.requestId).toBe("mock-request-id-create");
+      expect(createResponse.success).toBe(true);
+      expect(createResponse.session).toBeDefined();
 
       // Ensure session ID matches mock data
       expect(session.sessionId).toBe(mockSessionData.sessionId);
       expect(session.resourceUrl).toBe(mockSessionData.resourceUrl);
 
       // Verify session uses mock client
-      expect(session.client).toBe(mockClient);
-      log(`Session client is mockClient: ${session.client === mockClient}`);
+      expect(session.getClient()).toBe(mockClient);
+      log(`Session client is mockClient: ${session.getClient() === mockClient}`);
 
       // List sessions
       log("Listing sessions...");
@@ -244,10 +246,11 @@ describe("AgentBay", () => {
         `releaseMcpSessionStub callCount: ${releaseMcpSessionStub.callCount}`
       );
 
-      // Verify that the delete response contains requestId
+      // Verify that the delete response contains requestId and success
       expect(deleteResponse.requestId).toBeDefined();
       expect(typeof deleteResponse.requestId).toBe("string");
       expect(deleteResponse.requestId).toBe("mock-request-id-delete");
+      expect(deleteResponse.success).toBe(true);
 
       // List sessions again to ensure it's deleted
       const sessionsAfterDelete = agentBay.list();
@@ -314,7 +317,7 @@ describe("AgentBay", () => {
       // Create session with labels A
       log("Creating session with labels A...");
       const createResponseA = await agentBay.create({ labels: labelsA });
-      sessionA = createResponseA.data;
+      sessionA = createResponseA.session!; // Use session field instead of data
       log(`Session created with ID: ${sessionA.sessionId}`);
       log(
         `Create Session A RequestId: ${
@@ -324,7 +327,7 @@ describe("AgentBay", () => {
 
       // Create session with labels B
       const createResponseB = await agentBay.create({ labels: labelsB });
-      sessionB = createResponseB.data;
+      sessionB = createResponseB.session!; // Use session field instead of data
       log(`Session created with ID: ${sessionB.sessionId}`);
       log(
         `Create Session B RequestId: ${
@@ -391,10 +394,11 @@ describe("AgentBay", () => {
         statusCode: 200,
         body: {
           data: [mockSessionAData],
-          requestId: "mock-request-id-list-dev",
           maxResults: 5,
           totalCount: 1,
+          requestId: "mock-request-id-list-dev",
         },
+
       };
 
       listSessionStub.resolves(devSessionsResponse);

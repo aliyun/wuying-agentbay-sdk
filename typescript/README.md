@@ -48,13 +48,24 @@ The SDK includes several examples demonstrating various features:
 
 - **basic-usage.ts**: Basic SDK usage
 - **context-usage.ts**: Context creation and management
+- **command-example/**: Command execution examples
+- **filesystem-example/**: File system operation examples
+- **ui-example/**: UI interaction examples
+- **application-mobile/**: Mobile application management
+- **application-window/**: Window and application management
+- **label-management/**: Session label management
+- **session-params/**: Session parameter examples
+- **session-creation/**: Session creation examples
+- **context-management/**: Context management examples
 
 ## Running Examples
 
-You can run the example file using ts-node:
+You can run the example files using ts-node:
 
 ```bash
 npx ts-node examples/basic-usage.ts
+npx ts-node examples/command-example/command-example.ts
+npx ts-node examples/filesystem-example/filesystem-example.ts
 ```
 
 ## TypeScript-Specific Usage
@@ -76,22 +87,23 @@ async function main() {
         environment: 'development'
       }
     });
-    const session = createResponse.data;
+    const session = createResponse.session;
     console.log(`Session created with ID: ${session.sessionId}`);
     console.log(`Request ID: ${createResponse.requestId}`);
 
     // Execute a command
     const commandResponse = await session.command.executeCommand('ls -la');
-    console.log(`Command result: ${commandResponse.data}`);
+    console.log(`Command result: ${commandResponse.output}`);
     console.log(`Request ID: ${commandResponse.requestId}`);
 
     // Read a file
-    const fileResponse = await session.filesystem.readFile('/etc/hosts');
-    console.log(`File content: ${fileResponse.data}`);
+    const fileResponse = await session.fileSystem.readFile('/etc/hosts');
+    console.log(`File content: ${fileResponse.content}`);
     console.log(`Request ID: ${fileResponse.requestId}`);
 
     // Write a file
-    const writeResponse = await session.filesystem.writeFile('/tmp/test.txt', 'Hello World');
+    const writeResponse = await session.fileSystem.writeFile('/tmp/test.txt', 'Hello World');
+    console.log(`Write file success: ${writeResponse.success}`);
     console.log(`Write file Request ID: ${writeResponse.requestId}`);
 
     // Run code
@@ -103,27 +115,29 @@ print(f"Current working directory: {os.getcwd()}")
 print(f"Python version: {platform.python_version()}")
 `;
     const codeResponse = await session.command.runCode(pythonCode, 'python');
-    console.log(`Code execution result: ${codeResponse.data}`);
+    console.log(`Code execution result: ${codeResponse.result}`);
     console.log(`Request ID: ${codeResponse.requestId}`);
 
-    // Get installed applications (note: capital A in Application)
-    const appsResponse = await session.Application.getInstalledApps(true, false, true);
+    // Get installed applications
+    const appsResponse = await session.application.getInstalledApps(true, false, true);
     console.log(`Found ${appsResponse.data.length} installed applications`);
     console.log(`Request ID: ${appsResponse.requestId}`);
 
     // List visible applications
-    const processesResponse = await session.Application.listVisibleApps();
+    const processesResponse = await session.application.listVisibleApps();
     console.log(`Found ${processesResponse.data.length} visible applications`);
     console.log(`Request ID: ${processesResponse.requestId}`);
 
     // List root windows
     const windowsResponse = await session.window.listRootWindows();
-    console.log(`Found ${windowsResponse.data.length} root windows`);
+    console.log(`Found ${windowsResponse.windows.length} root windows`);
     console.log(`Request ID: ${windowsResponse.requestId}`);
 
     // Get active window
     const activeWindowResponse = await session.window.getActiveWindow();
-    console.log(`Active window: ${activeWindowResponse.data.title}`);
+    if (activeWindowResponse.window) {
+      console.log(`Active window: ${activeWindowResponse.window.title}`);
+    }
     console.log(`Request ID: ${activeWindowResponse.requestId}`);
 
     // Take a screenshot
@@ -145,7 +159,7 @@ print(f"Python version: {platform.python_version()}")
 
     // Get session labels
     const labelsResponse = await session.getLabels();
-    console.log(`Session labels: ${JSON.stringify(labelsResponse.data)}`);
+    console.log(`Session labels: ${JSON.stringify(labelsResponse.labels)}`);
     console.log(`Request ID: ${labelsResponse.requestId}`);
 
     // Get session info
@@ -162,7 +176,7 @@ print(f"Python version: {platform.python_version()}")
       // nextToken: 'your_next_token'  // Optional: for pagination
     };
     const filteredSessionsResponse = await agentBay.listByLabels(listParams);
-    console.log(`Found ${filteredSessionsResponse.data.length} matching sessions`);
+    console.log(`Found ${filteredSessionsResponse.sessions.length} matching sessions`);
     console.log(`Total count: ${filteredSessionsResponse.totalCount}`);
     console.log(`Request ID: ${filteredSessionsResponse.requestId}`);
 
@@ -173,12 +187,12 @@ print(f"Python version: {platform.python_version()}")
         nextToken: filteredSessionsResponse.nextToken
       };
       const nextPageResponse = await agentBay.listByLabels(nextPageParams);
-      console.log(`Next page sessions: ${nextPageResponse.data.length}`);
+      console.log(`Next page sessions: ${nextPageResponse.sessions.length}`);
     }
 
     // Access context service
     const contextResponse = await agentBay.context.list();
-    console.log(`Available contexts: ${contextResponse.data.length}`);
+    console.log(`Available contexts: ${contextResponse.contexts.length}`);
     console.log(`Request ID: ${contextResponse.requestId}`);
 
     // Clean up
@@ -201,10 +215,24 @@ All API methods return responses in the following format:
 ```typescript
 interface ApiResponse {
   requestId: string;
+  success: boolean;
 }
 
-interface ApiResponseWithData<T> extends ApiResponse {
-  data: T;
+// Different response types based on the operation
+interface SessionResult extends ApiResponse {
+  session: Session;
+}
+
+interface CommandResult extends ApiResponse {
+  output: string;
+}
+
+interface CodeExecutionResult extends ApiResponse {
+  result: string;
+}
+
+interface FileContentResult extends ApiResponse {
+  content: string;
 }
 ```
 
@@ -219,10 +247,10 @@ interface ApiResponseWithData<T> extends ApiResponse {
 
 ### Available Session Modules
 
-- `session.filesystem` - File system operations
+- `session.fileSystem` - File system operations (note: camelCase)
 - `session.command` - Command execution and code running
 - `session.oss` - Object Storage Service operations
-- `session.Application` - Application management (note: capital A)
+- `session.application` - Application management (note: lowercase)
 - `session.window` - Window management
 - `session.ui` - UI interactions including screenshots
 

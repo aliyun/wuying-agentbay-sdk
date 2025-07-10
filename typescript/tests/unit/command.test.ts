@@ -37,8 +37,11 @@ describe("TestCommand", () => {
 
       const result = await mockCommand.executeCommand("ls -la");
 
-      expect(result.data).toBe("line1\nline2\n");
+      // Verify CommandResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.output).toBe("line1\nline2\n");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(
         callMcpToolStub.calledOnceWith(
@@ -68,8 +71,11 @@ describe("TestCommand", () => {
       const customTimeout = 2000;
       const result = await mockCommand.executeCommand("ls -la", customTimeout);
 
-      expect(result.data).toBe("line1\nline2\n");
+      // Verify CommandResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.output).toBe("line1\nline2\n");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(
         callMcpToolStub.calledOnceWith(
@@ -96,8 +102,11 @@ describe("TestCommand", () => {
 
       const result = await mockCommand.executeCommand("ls -la");
 
-      expect(result.data).toBe("");
+      // Verify CommandResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.output).toBe("");
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -107,9 +116,13 @@ describe("TestCommand", () => {
         .stub(mockCommand as any, "callMcpTool")
         .rejects(new Error("mock error"));
 
-      await expect(mockCommand.executeCommand("ls -la")).rejects.toThrow(
-        "mock error"
-      );
+      const result = await mockCommand.executeCommand("ls -la");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.output).toBe("");
+      expect(result.errorMessage).toContain("Failed to execute command");
     });
   });
 
@@ -132,8 +145,11 @@ print(x)
 `;
       const result = await mockCommand.runCode(code, "python");
 
-      expect(result.data).toBe("Hello, world!\n2\n");
+      // Verify CodeExecutionResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.result).toBe("Hello, world!\n2\n");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(
         callMcpToolStub.calledOnceWith(
@@ -173,8 +189,11 @@ console.log(x);
         customTimeout
       );
 
-      expect(result.data).toBe("Hello, world!\n2\n");
+      // Verify CodeExecutionResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.result).toBe("Hello, world!\n2\n");
+      expect(result.errorMessage).toBeUndefined();
 
       expect(
         callMcpToolStub.calledOnceWith(
@@ -192,9 +211,13 @@ console.log(x);
 
   describe("test_run_code_invalid_language", () => {
     it("should handle invalid language", async () => {
-      await expect(
-        mockCommand.runCode("print('test')", "invalid_language")
-      ).rejects.toThrow("Unsupported language");
+      const result = await mockCommand.runCode("print('test')", "invalid_language");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.result).toBe("");
+      expect(result.errorMessage).toContain("Unsupported language: invalid_language");
     });
   });
 
@@ -210,8 +233,11 @@ console.log(x);
 
       const result = await mockCommand.runCode("print('test')", "python");
 
-      expect(result.data).toBe("");
+      // Verify CodeExecutionResult structure
+      expect(result.success).toBe(true);
       expect(result.requestId).toBe("test-request-id");
+      expect(result.result).toBe("");
+      expect(result.errorMessage).toBeUndefined();
     });
   });
 
@@ -221,9 +247,13 @@ console.log(x);
         .stub(mockCommand as any, "callMcpTool")
         .rejects(new Error("mock error"));
 
-      await expect(
-        mockCommand.runCode("print('test')", "python")
-      ).rejects.toThrow("mock error");
+      const result = await mockCommand.runCode("print('test')", "python");
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.result).toBe("");
+      expect(result.errorMessage).toContain("Failed to run code");
     });
   });
 });

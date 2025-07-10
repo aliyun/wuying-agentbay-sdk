@@ -28,7 +28,7 @@ async function main() {
   // Create a new mobile session
   log('\nCreating a new mobile session...');
   const createResponse = await agentBay.create({imageId:'mobile_latest'});
-  const session = createResponse.data;
+  const session = createResponse.session;
   log(`\nMobile session created with ID: ${session.sessionId}`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 
@@ -39,7 +39,7 @@ async function main() {
     // Get installed mobile applications
     log('\nGetting installed mobile applications...');
     try {
-      const appsResponse = await session.Application.getInstalledApps(true, false, true);
+      const appsResponse = await session.application.getInstalledApps(true, false, true);
       log(`Found ${appsResponse.data.length} installed mobile applications`);
       log(`Get Installed Apps RequestId: ${appsResponse.requestId}`);
 
@@ -66,13 +66,13 @@ async function main() {
       const startCmd = "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1";
       log(`Starting mobile app with command: ${startCmd}`);
 
-      const startResponse = await session.Application.startApp(startCmd);
+      const startResponse = await session.application.startApp(startCmd);
       log(`Start Mobile App RequestId: ${startResponse.requestId}`);
       log(`Started ${startResponse.data.length} mobile processes`);
 
       // Print started processes
       if (startResponse.data.length > 0) {
-        startResponse.data.forEach((proc, index) => {
+        startResponse.data.forEach((proc: MobileProcess, index: number) => {
           log(`Mobile Process ${index + 1}: ${proc.pname} (PID: ${proc.pid})`);
           if (proc.cmdline) {
             log(`  Command Line: ${proc.cmdline}`);
@@ -94,7 +94,7 @@ async function main() {
       log(`Starting mobile app with activity: ${appActivity}`);
       log(`Start command: ${activityStartCmd}`);
 
-      const activityStartResponse = await session.Application.startApp(
+      const activityStartResponse = await session.application.startApp(
         activityStartCmd,
         "", // empty work_directory like Python example
         appActivity
@@ -104,7 +104,7 @@ async function main() {
 
       // Print started processes with activity
       if (activityStartResponse.data.length > 0) {
-        activityStartResponse.data.forEach((proc, index) => {
+        activityStartResponse.data.forEach((proc: MobileProcess, index: number) => {
           log(`Mobile Process with Activity ${index + 1}: ${proc.pname} (PID: ${proc.pid})`);
         });
       }
@@ -119,7 +119,7 @@ async function main() {
       const stopCmd = "am force-stop com.sankuai.meituan";
       log(`Stopping mobile app with command: ${stopCmd}`);
 
-      const stopResponse = await session.Application.stopAppByCmd(stopCmd);
+      const stopResponse = await session.application.stopAppByCmd(stopCmd);
       log('Mobile application stopped by command successfully');
       log(`Stop Mobile App by Cmd RequestId: ${stopResponse.requestId}`);
     } catch (error) {
@@ -131,13 +131,13 @@ async function main() {
     try {
       // Step 1: Get installed apps
       log('Step 1: Getting mobile installed applications...');
-      const workflowAppsResponse = await session.Application.getInstalledApps(true, false, true);
+      const workflowAppsResponse = await session.application.getInstalledApps(true, false, true);
       log(`Found ${workflowAppsResponse.data.length} mobile apps in workflow`);
 
       // Step 2: Start mobile app (simple command)
       log('Step 2: Starting mobile app with simple command...');
       const workflowStartCmd = "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1";
-      const workflowStartResponse = await session.Application.startApp(workflowStartCmd);
+      const workflowStartResponse = await session.application.startApp(workflowStartCmd);
       log(`Started mobile app in workflow: ${workflowStartResponse.data.length} processes`);
 
       // Step 3: Start mobile app with activity
@@ -146,7 +146,7 @@ async function main() {
       const workflowAppActivity = "com.xingin.outside.activity.VivoOutsideFeedActivity";
       const workflowActivityStartCmd = `monkey -p ${workflowAppPackage} -c android.intent.category.LAUNCHER 1`;
 
-      const workflowActivityStartResponse = await session.Application.startApp(
+      const workflowActivityStartResponse = await session.application.startApp(
         workflowActivityStartCmd,
         "",
         workflowAppActivity
@@ -156,7 +156,7 @@ async function main() {
       // Step 4: Stop mobile app
       log('Step 4: Stopping mobile app...');
       const workflowStopCmd = "am force-stop com.sankuai.meituan";
-      const workflowStopResponse = await session.Application.stopAppByCmd(workflowStopCmd);
+      const workflowStopResponse = await session.application.stopAppByCmd(workflowStopCmd);
       log('Mobile app stopped successfully in workflow');
 
       log('Mobile workflow completed successfully!');

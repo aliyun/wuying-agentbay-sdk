@@ -3,9 +3,10 @@ import { APIError } from "./exceptions";
 import * as $_client from "./api";
 import { log, logError } from "./utils/logger";
 import {
-  ApiResponse,
-  ApiResponseWithData,
   extractRequestId,
+  ContextResult,
+  ContextListResult,
+  OperationResult,
 } from "./types/api-response";
 
 /**
@@ -86,10 +87,11 @@ export class ContextService {
 
   /**
    * Lists all available contexts.
+   * Corresponds to Python's list() method
    *
-   * @returns API response with contexts list and requestId
+   * @returns ContextListResult with contexts list and requestId
    */
-  async list(): Promise<ApiResponseWithData<Context[]>> {
+  async list(): Promise<ContextListResult> {
     try {
       const request = new $_client.ListContextsRequest({
         authorization: `Bearer ${this.agentBay.getAPIKey()}`,
@@ -97,7 +99,7 @@ export class ContextService {
 
       // Log API request
       log("API Call: ListContexts");
-      log("Request: No parameters");
+      log("Request: (no parameters)");
 
       const response = await this.agentBay.getClient().listContexts(request);
 
@@ -121,26 +123,32 @@ export class ContextService {
       }
 
       return {
-        requestId: extractRequestId(response),
-        data: contexts,
+        requestId: extractRequestId(response) || "",
+        success: true,
+        contexts,
       };
     } catch (error) {
       logError("Error calling ListContexts:", error);
-      throw new APIError(`Failed to list contexts: ${error}`);
+      return {
+        requestId: "",
+        success: false,
+        contexts: [],
+      };
     }
   }
 
   /**
    * Gets a context by name. Optionally creates it if it doesn't exist.
+   * Corresponds to Python's get() method
    *
    * @param name - The name of the context to get.
    * @param create - Whether to create the context if it doesn't exist.
-   * @returns API response with context data and requestId
+   * @returns ContextResult with context data and requestId
    */
   async get(
     name: string,
     create: boolean = false
-  ): Promise<ApiResponseWithData<Context | null>> {
+  ): Promise<ContextResult> {
     try {
       const request = new $_client.GetContextRequest({
         name: name,
@@ -157,21 +165,25 @@ export class ContextService {
       // Log API response
       log(`Response from GetContext:`, response.body);
 
-      const contextId = response.body?.data?.id;
+      const contextId = response.body?.data?.id || "";
       if (!contextId) {
         return {
-          requestId: extractRequestId(response),
-          data: null,
+          requestId: extractRequestId(response) || "",
+          success: false,
+          contextId: "",
+          context: undefined,
         };
       }
 
       // Get the full context details
       const contextsResponse = await this.list();
-      for (const context of contextsResponse.data) {
+      for (const context of contextsResponse.contexts) {
         if (context.id === contextId) {
           return {
-            requestId: extractRequestId(response),
-            data: context,
+            requestId: extractRequestId(response) || "",
+            success: true,
+            contextId,
+            context,
           };
         }
       }
@@ -179,39 +191,41 @@ export class ContextService {
       // If we couldn't find the context in the list, create a basic one
       const context = new Context(contextId, name);
       return {
-        requestId: extractRequestId(response),
-        data: context,
+        requestId: extractRequestId(response) || "",
+        success: true,
+        contextId,
+        context,
       };
     } catch (error) {
       logError("Error calling GetContext:", error);
-      throw new APIError(`Failed to get context ${name}: ${error}`);
+      return {
+        requestId: "",
+        success: false,
+        contextId: "",
+        context: undefined,
+      };
     }
   }
 
   /**
    * Creates a new context with the given name.
+   * Corresponds to Python's create() method
    *
    * @param name - The name for the new context.
-   * @returns API response with created context data and requestId
+   * @returns ContextResult with created context data and requestId
    */
-  async create(name: string): Promise<ApiResponseWithData<Context>> {
-    const contextResponse = await this.get(name, true);
-    if (!contextResponse.data) {
-      throw new APIError(`Failed to create context ${name}`);
-    }
-    return {
-      requestId: contextResponse.requestId,
-      data: contextResponse.data,
-    };
+  async create(name: string): Promise<ContextResult> {
+    return await this.get(name, true);
   }
 
   /**
    * Updates the specified context.
+   * Corresponds to Python's update() method
    *
    * @param context - The Context object to update.
-   * @returns API response with updated context data and requestId
+   * @returns OperationResult with updated context data and requestId
    */
-  async update(context: Context): Promise<ApiResponseWithData<Context>> {
+  async update(context: Context): Promise<OperationResult> {
     try {
       const request = new $_client.ModifyContextRequest({
         id: context.id,
@@ -228,24 +242,34 @@ export class ContextService {
       // Log API response
       log(`Response from ModifyContext:`, response.body);
 
-      // Return the updated context
+      // Check for success (matching Python logic)
+      const success = response.body?.success !== false;
+      const errorMessage = success ? "" : `Update failed: ${response.body?.code}`;
+
       return {
-        requestId: extractRequestId(response),
-        data: context,
+        requestId: extractRequestId(response) || "",
+        success,
+        data: success,
+        errorMessage,
       };
     } catch (error) {
       logError("Error calling ModifyContext:", error);
-      throw new APIError(`Failed to update context ${context.id}: ${error}`);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to update context ${context.id}: ${error}`,
+      };
     }
   }
 
   /**
    * Deletes the specified context.
+   * Corresponds to Python's delete() method
    *
    * @param context - The Context object to delete.
-   * @returns API response with requestId
+   * @returns OperationResult with requestId
    */
-  async delete(context: Context): Promise<ApiResponse> {
+  async delete(context: Context): Promise<OperationResult> {
     try {
       const request = new $_client.DeleteContextRequest({
         id: context.id,
@@ -261,12 +285,23 @@ export class ContextService {
       // Log API response
       log(`Response from DeleteContext:`, response.body);
 
+      // Check for success (matching Python logic)
+      const success = response.body?.success !== false;
+      const errorMessage = success ? "" : `Delete failed: ${response.body?.code}`;
+
       return {
-        requestId: extractRequestId(response),
+        requestId: extractRequestId(response) || "",
+        success,
+        data: success,
+        errorMessage,
       };
     } catch (error) {
       logError("Error calling DeleteContext:", error);
-      throw new APIError(`Failed to delete context ${context.id}: ${error}`);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to delete context ${context.id}: ${error}`,
+      };
     }
   }
 }

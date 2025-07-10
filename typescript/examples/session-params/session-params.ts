@@ -21,7 +21,7 @@ async function main() {
   };
 
   const createResponse = await agentBay.create(params);
-  const session = createResponse.data;
+  const session = createResponse.session;
   log(`\nSession created with ID: ${session.sessionId} and labels: username=alice, project=my-project`);
   log(`Create Session RequestId: ${createResponse.requestId}`);
 

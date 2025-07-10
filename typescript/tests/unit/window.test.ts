@@ -72,7 +72,7 @@ describe("WindowManager", () => {
   });
 
   describe("listRootWindows()", () => {
-    it.only("should return a list of root windows with requestId", async () => {
+    it("should return a list of root windows with requestId", async () => {
       log("Testing listRootWindows...");
 
       // Setup mock response
@@ -91,25 +91,27 @@ describe("WindowManager", () => {
 
       // Call the method
       const windowsResponse = await windowManager.listRootWindows();
-      log(`Retrieved ${windowsResponse.data.length} root windows`);
+      log(`Retrieved ${windowsResponse.windows.length} root windows`);
       log(
         `List Root Windows RequestId: ${
           windowsResponse.requestId || "undefined"
         }`
       );
 
-      // Verify that the response contains requestId
+      // Verify WindowListResult structure
+      expect(windowsResponse.success).toBe(true);
       expect(windowsResponse.requestId).toBeDefined();
       expect(typeof windowsResponse.requestId).toBe("string");
       expect(windowsResponse.requestId).toBe("mock-request-id-list");
+      expect(windowsResponse.errorMessage).toBeUndefined();
 
       // Verify windows array
-      expect(windowsResponse.data).toBeDefined();
-      expect(Array.isArray(windowsResponse.data)).toBe(true);
-      expect(windowsResponse.data.length).toBe(2);
+      expect(windowsResponse.windows).toBeDefined();
+      expect(Array.isArray(windowsResponse.windows)).toBe(true);
+      expect(windowsResponse.windows.length).toBe(2);
 
       // Verify the results
-      windowsResponse.data.forEach((window) => {
+      windowsResponse.windows.forEach((window) => {
         expect(isValidWindow(window)).toBe(true);
       });
 
@@ -120,10 +122,32 @@ describe("WindowManager", () => {
       expect(callArgs.sessionId).toBe("mock-session-id");
       expect(callArgs.authorization).toBe("Bearer mock-api-key");
     });
+
+    it("should handle list root windows failure", async () => {
+      const mockResponse = {
+        statusCode: 500,
+        body: {
+          data: {
+            isError: true,
+            content: [{ text: "Failed to list root windows" }],
+          },
+        },
+      };
+
+      callMcpToolStub.resolves(mockResponse);
+
+      const result = await windowManager.listRootWindows();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.windows).toEqual([]);
+      expect(result.errorMessage).toContain("Failed to list root windows");
+    });
   });
 
   describe("getActiveWindow()", () => {
-    it.only("should return the active window with requestId", async () => {
+    it("should return the active window with requestId", async () => {
       log("Testing getActiveWindow...");
 
       // Setup mock response
@@ -147,20 +171,22 @@ describe("WindowManager", () => {
         }`
       );
 
-      // Verify that the response contains requestId
+      // Verify WindowInfoResult structure
+      expect(windowResponse.success).toBe(true);
       expect(windowResponse.requestId).toBeDefined();
       expect(typeof windowResponse.requestId).toBe("string");
       expect(windowResponse.requestId).toBe("mock-request-id-active");
+      expect(windowResponse.errorMessage).toBeUndefined();
 
-      if (windowResponse.data) {
+      if (windowResponse.window) {
         log(
-          `Active window: ${windowResponse.data.title} (ID: ${windowResponse.data.window_id})`
+          `Active window: ${windowResponse.window.title} (ID: ${windowResponse.window.window_id})`
         );
 
         // Verify the results
-        expect(isValidWindow(windowResponse.data)).toBe(true);
-        expect(windowResponse.data.window_id).toBe(mockActiveWindow.window_id);
-        expect(windowResponse.data.title).toBe(mockActiveWindow.title);
+        expect(isValidWindow(windowResponse.window)).toBe(true);
+        expect(windowResponse.window.window_id).toBe(mockActiveWindow.window_id);
+        expect(windowResponse.window.title).toBe(mockActiveWindow.title);
       }
 
       // Verify the API was called with correct parameters
@@ -168,10 +194,32 @@ describe("WindowManager", () => {
       const callArgs = callMcpToolStub.getCall(0).args[0];
       expect(callArgs.name).toBe("get_active_window");
     });
+
+    it("should handle get active window failure", async () => {
+      const mockResponse = {
+        statusCode: 500,
+        body: {
+          data: {
+            isError: true,
+            content: [{ text: "Failed to get active window" }],
+          },
+        },
+      };
+
+      callMcpToolStub.resolves(mockResponse);
+
+      const result = await windowManager.getActiveWindow();
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.window).toBeUndefined();
+      expect(result.errorMessage).toContain("Failed to get active window");
+    });
   });
 
   describe("activateWindow()", () => {
-    it.only("should activate a window with requestId", async () => {
+    it("should activate a window with requestId", async () => {
       log("Testing activateWindow...");
 
       const windowId = mockWindows[0].window_id;
@@ -200,10 +248,13 @@ describe("WindowManager", () => {
         }`
       );
 
-      // Verify that the response contains requestId
+      // Verify BoolResult structure
+      expect(activateResponse.success).toBe(true);
       expect(activateResponse.requestId).toBeDefined();
       expect(typeof activateResponse.requestId).toBe("string");
       expect(activateResponse.requestId).toBe("mock-request-id-activate");
+      expect(activateResponse.data).toBe(true);
+      expect(activateResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -211,10 +262,31 @@ describe("WindowManager", () => {
       expect(callArgs.name).toBe("activate_window");
       expect(JSON.parse(callArgs.args)).toEqual({ window_id: windowId });
     });
+
+    it("should handle activate window failure", async () => {
+      const mockResponse = {
+        statusCode: 500,
+        body: {
+          data: {
+            isError: true,
+            content: [{ text: "Failed to activate window" }],
+          },
+        },
+      };
+
+      callMcpToolStub.resolves(mockResponse);
+
+      const result = await windowManager.activateWindow(1);
+
+      // Verify error result structure
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.errorMessage).toContain("Failed to activate window");
+    });
   });
 
   describe("maximizeWindow()", () => {
-    it.only("should maximize a window with requestId", async () => {
+    it("should maximize a window with requestId", async () => {
       log("Testing maximizeWindow...");
 
       const windowId = mockWindows[0].window_id;
@@ -243,10 +315,13 @@ describe("WindowManager", () => {
         }`
       );
 
-      // Verify that the response contains requestId
+      // Verify BoolResult structure
+      expect(maximizeResponse.success).toBe(true);
       expect(maximizeResponse.requestId).toBeDefined();
       expect(typeof maximizeResponse.requestId).toBe("string");
       expect(maximizeResponse.requestId).toBe("mock-request-id-maximize");
+      expect(maximizeResponse.data).toBe(true);
+      expect(maximizeResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -257,7 +332,7 @@ describe("WindowManager", () => {
   });
 
   describe("minimizeWindow()", () => {
-    it.only("should minimize a window with requestId", async () => {
+    it("should minimize a window with requestId", async () => {
       log("Testing minimizeWindow...");
 
       const windowId = mockWindows[0].window_id;
@@ -286,10 +361,13 @@ describe("WindowManager", () => {
         }`
       );
 
-      // Verify that the response contains requestId
+      // Verify BoolResult structure
+      expect(minimizeResponse.success).toBe(true);
       expect(minimizeResponse.requestId).toBeDefined();
       expect(typeof minimizeResponse.requestId).toBe("string");
       expect(minimizeResponse.requestId).toBe("mock-request-id-minimize");
+      expect(minimizeResponse.data).toBe(true);
+      expect(minimizeResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -300,7 +378,7 @@ describe("WindowManager", () => {
   });
 
   describe("restoreWindow()", () => {
-    it.only("should restore a window with requestId", async () => {
+    it("should restore a window with requestId", async () => {
       log("Testing restoreWindow...");
 
       const windowId = mockWindows[0].window_id;
@@ -327,10 +405,13 @@ describe("WindowManager", () => {
         `Restore Window RequestId: ${restoreResponse.requestId || "undefined"}`
       );
 
-      // Verify that the response contains requestId
+      // Verify BoolResult structure
+      expect(restoreResponse.success).toBe(true);
       expect(restoreResponse.requestId).toBeDefined();
       expect(typeof restoreResponse.requestId).toBe("string");
       expect(restoreResponse.requestId).toBe("mock-request-id-restore");
+      expect(restoreResponse.data).toBe(true);
+      expect(restoreResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -341,7 +422,7 @@ describe("WindowManager", () => {
   });
 
   describe("resizeWindow()", () => {
-    it.only("should resize a window with requestId", async () => {
+    it("should resize a window with requestId", async () => {
       log("Testing resizeWindow...");
 
       const windowId = mockWindows[0].window_id;
@@ -374,10 +455,13 @@ describe("WindowManager", () => {
         `Resize Window RequestId: ${resizeResponse.requestId || "undefined"}`
       );
 
-      // Verify that the response contains requestId
+      // Verify BoolResult structure
+      expect(resizeResponse.success).toBe(true);
       expect(resizeResponse.requestId).toBeDefined();
       expect(typeof resizeResponse.requestId).toBe("string");
       expect(resizeResponse.requestId).toBe("mock-request-id-resize");
+      expect(resizeResponse.data).toBe(true);
+      expect(resizeResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -392,7 +476,7 @@ describe("WindowManager", () => {
   });
 
   describe("focusMode()", () => {
-    it.only("should enable focus mode with requestId", async () => {
+    it("should enable focus mode with requestId", async () => {
       log("Testing focusMode enable...");
 
       // Setup mock response
@@ -419,11 +503,14 @@ describe("WindowManager", () => {
       );
 
       // Verify that the response contains requestId
+      expect(focusEnableResponse.success).toBe(true);
       expect(focusEnableResponse.requestId).toBeDefined();
       expect(typeof focusEnableResponse.requestId).toBe("string");
       expect(focusEnableResponse.requestId).toBe(
         "mock-request-id-focus-enable"
       );
+      expect(focusEnableResponse.data).toBe(true);
+      expect(focusEnableResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
@@ -432,7 +519,7 @@ describe("WindowManager", () => {
       expect(JSON.parse(callArgs.args)).toEqual({ on: true });
     });
 
-    it.only("should disable focus mode with requestId", async () => {
+    it("should disable focus mode with requestId", async () => {
       log("Testing focusMode disable...");
 
       // Setup mock response
@@ -459,11 +546,14 @@ describe("WindowManager", () => {
       );
 
       // Verify that the response contains requestId
+      expect(focusDisableResponse.success).toBe(true);
       expect(focusDisableResponse.requestId).toBeDefined();
       expect(typeof focusDisableResponse.requestId).toBe("string");
       expect(focusDisableResponse.requestId).toBe(
         "mock-request-id-focus-disable"
       );
+      expect(focusDisableResponse.data).toBe(true);
+      expect(focusDisableResponse.errorMessage).toBeUndefined();
 
       // Verify the API was called with correct parameters
       expect(callMcpToolStub.calledOnce).toBe(true);
