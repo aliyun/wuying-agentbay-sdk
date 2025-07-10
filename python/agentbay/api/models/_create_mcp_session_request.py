@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
+from darabonba.model import DaraModel
 
 
 class CreateMcpSessionRequest(DaraModel):
@@ -30,44 +30,43 @@ class CreateMcpSessionRequest(DaraModel):
         if _map is not None:
             result = _map
         if self.authorization is not None:
-            result['Authorization'] = self.authorization
+            result["Authorization"] = self.authorization
 
         if self.context_id is not None:
-            result['ContextId'] = self.context_id
+            result["ContextId"] = self.context_id
 
         if self.external_user_id is not None:
-            result['ExternalUserId'] = self.external_user_id
+            result["ExternalUserId"] = self.external_user_id
 
         if self.image_id is not None:
-            result['ImageId'] = self.image_id
+            result["ImageId"] = self.image_id
 
         if self.labels is not None:
-            result['Labels'] = self.labels
+            result["Labels"] = self.labels
 
         if self.session_id is not None:
-            result['SessionId'] = self.session_id
+            result["SessionId"] = self.session_id
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('Authorization') is not None:
-            self.authorization = m.get('Authorization')
+        if m.get("Authorization") is not None:
+            self.authorization = m.get("Authorization")
 
-        if m.get('ContextId') is not None:
-            self.context_id = m.get('ContextId')
+        if m.get("ContextId") is not None:
+            self.context_id = m.get("ContextId")
 
-        if m.get('ExternalUserId') is not None:
-            self.external_user_id = m.get('ExternalUserId')
+        if m.get("ExternalUserId") is not None:
+            self.external_user_id = m.get("ExternalUserId")
 
-        if m.get('ImageId') is not None:
-            self.image_id = m.get('ImageId')
+        if m.get("ImageId") is not None:
+            self.image_id = m.get("ImageId")
 
-        if m.get('Labels') is not None:
-            self.labels = m.get('Labels')
+        if m.get("Labels") is not None:
+            self.labels = m.get("Labels")
 
-        if m.get('SessionId') is not None:
-            self.session_id = m.get('SessionId')
+        if m.get("SessionId") is not None:
+            self.session_id = m.get("SessionId")
 
         return self
-

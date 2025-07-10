@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 
-
 from ._apply_mqtt_token_request import ApplyMqttTokenRequest
 from ._apply_mqtt_token_response_body import ApplyMqttTokenResponseBody
 from ._apply_mqtt_token_response import ApplyMqttTokenResponse
@@ -127,5 +126,5 @@ __all__ = [
     GetMcpResourceResponseBodyDataDesktopInfo,
     GetMcpResourceResponseBodyData,
     ListContextsResponseBodyData,
-    ListSessionResponseBodyData
+    ListSessionResponseBodyData,
 ]

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
-from alibabacloud_wuyingai20250506 import models as main_models 
+from darabonba.model import DaraModel
+from agentbay.api import models as main_models
 
 
 class GetContextInfoResponseBody(DaraModel):
@@ -32,47 +32,48 @@ class GetContextInfoResponseBody(DaraModel):
         if _map is not None:
             result = _map
         if self.code is not None:
-            result['Code'] = self.code
+            result["Code"] = self.code
 
         if self.data is not None:
-            result['Data'] = self.data.to_map()
+            result["Data"] = self.data.to_map()
 
         if self.http_status_code is not None:
-            result['HttpStatusCode'] = self.http_status_code
+            result["HttpStatusCode"] = self.http_status_code
 
         if self.message is not None:
-            result['Message'] = self.message
+            result["Message"] = self.message
 
         if self.request_id is not None:
-            result['RequestId'] = self.request_id
+            result["RequestId"] = self.request_id
 
         if self.success is not None:
-            result['Success'] = self.success
+            result["Success"] = self.success
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('Code') is not None:
-            self.code = m.get('Code')
+        if m.get("Code") is not None:
+            self.code = m.get("Code")
 
-        if m.get('Data') is not None:
+        if m.get("Data") is not None:
             temp_model = main_models.GetContextInfoResponseBodyData()
-            self.data = temp_model.from_map(m.get('Data'))
+            self.data = temp_model.from_map(m.get("Data"))
 
-        if m.get('HttpStatusCode') is not None:
-            self.http_status_code = m.get('HttpStatusCode')
+        if m.get("HttpStatusCode") is not None:
+            self.http_status_code = m.get("HttpStatusCode")
 
-        if m.get('Message') is not None:
-            self.message = m.get('Message')
+        if m.get("Message") is not None:
+            self.message = m.get("Message")
 
-        if m.get('RequestId') is not None:
-            self.request_id = m.get('RequestId')
+        if m.get("RequestId") is not None:
+            self.request_id = m.get("RequestId")
 
-        if m.get('Success') is not None:
-            self.success = m.get('Success')
+        if m.get("Success") is not None:
+            self.success = m.get("Success")
 
         return self
+
 
 class GetContextInfoResponseBodyData(DaraModel):
     def __init__(
@@ -90,14 +91,13 @@ class GetContextInfoResponseBodyData(DaraModel):
         if _map is not None:
             result = _map
         if self.context_status is not None:
-            result['ContextStatus'] = self.context_status
+            result["ContextStatus"] = self.context_status
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('ContextStatus') is not None:
-            self.context_status = m.get('ContextStatus')
+        if m.get("ContextStatus") is not None:
+            self.context_status = m.get("ContextStatus")
 
         return self
-

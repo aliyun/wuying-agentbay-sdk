@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
-from alibabacloud_wuyingai20250506 import models as main_models 
+from darabonba.model import DaraModel
+from agentbay.api import models as main_models
 from typing import Dict
 
 
@@ -27,27 +27,26 @@ class ApplyMqttTokenResponse(DaraModel):
         if _map is not None:
             result = _map
         if self.headers is not None:
-            result['headers'] = self.headers
+            result["headers"] = self.headers
 
         if self.status_code is not None:
-            result['statusCode'] = self.status_code
+            result["statusCode"] = self.status_code
 
         if self.body is not None:
-            result['body'] = self.body.to_map()
+            result["body"] = self.body.to_map()
 
         return result
 
     def from_map(self, m: dict = None):
         m = m or dict()
-        if m.get('headers') is not None:
-            self.headers = m.get('headers')
+        if m.get("headers") is not None:
+            self.headers = m.get("headers")
 
-        if m.get('statusCode') is not None:
-            self.status_code = m.get('statusCode')
+        if m.get("statusCode") is not None:
+            self.status_code = m.get("statusCode")
 
-        if m.get('body') is not None:
+        if m.get("body") is not None:
             temp_model = main_models.ApplyMqttTokenResponseBody()
-            self.body = temp_model.from_map(m.get('body'))
+            self.body = temp_model.from_map(m.get("body"))
 
         return self
-
