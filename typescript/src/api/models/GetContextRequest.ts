@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class GetContextRequest extends $dara.Model {
   allowCreate?: boolean;
@@ -7,17 +8,17 @@ export class GetContextRequest extends $dara.Model {
   name?: string;
   static names(): { [key: string]: string } {
     return {
-      allowCreate: "AllowCreate",
-      authorization: "Authorization",
-      name: "Name",
+      allowCreate: 'AllowCreate',
+      authorization: 'Authorization',
+      name: 'Name',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      allowCreate: "boolean",
-      authorization: "string",
-      name: "string",
+      allowCreate: 'boolean',
+      authorization: 'string',
+      name: 'string',
     };
   }
 
@@ -29,3 +30,4 @@ export class GetContextRequest extends $dara.Model {
     super(map);
   }
 }
+

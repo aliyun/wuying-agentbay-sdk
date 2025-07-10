@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class ListContextsResponseBodyData extends $dara.Model {
   createTime?: string;
@@ -10,23 +11,23 @@ export class ListContextsResponseBodyData extends $dara.Model {
   state?: string;
   static names(): { [key: string]: string } {
     return {
-      createTime: "CreateTime",
-      id: "Id",
-      lastUsedTime: "LastUsedTime",
-      name: "Name",
-      osType: "OsType",
-      state: "State",
+      createTime: 'CreateTime',
+      id: 'Id',
+      lastUsedTime: 'LastUsedTime',
+      name: 'Name',
+      osType: 'OsType',
+      state: 'State',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      createTime: "string",
-      id: "string",
-      lastUsedTime: "string",
-      name: "string",
-      osType: "string",
-      state: "string",
+      createTime: 'string',
+      id: 'string',
+      lastUsedTime: 'string',
+      name: 'string',
+      osType: 'string',
+      state: 'string',
     };
   }
 
@@ -38,3 +39,4 @@ export class ListContextsResponseBodyData extends $dara.Model {
     super(map);
   }
 }
+

@@ -1,6 +1,7 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
 import { GetMcpResourceResponseBodyDataDesktopInfo } from "./GetMcpResourceResponseBodyDataDesktopInfo";
+
 
 export class GetMcpResourceResponseBodyData extends $dara.Model {
   desktopInfo?: GetMcpResourceResponseBodyDataDesktopInfo;
@@ -8,25 +9,22 @@ export class GetMcpResourceResponseBodyData extends $dara.Model {
   sessionId?: string;
   static names(): { [key: string]: string } {
     return {
-      desktopInfo: "DesktopInfo",
-      resourceUrl: "ResourceUrl",
-      sessionId: "SessionId",
+      desktopInfo: 'DesktopInfo',
+      resourceUrl: 'ResourceUrl',
+      sessionId: 'SessionId',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
       desktopInfo: GetMcpResourceResponseBodyDataDesktopInfo,
-      resourceUrl: "string",
-      sessionId: "string",
+      resourceUrl: 'string',
+      sessionId: 'string',
     };
   }
 
   validate() {
-    if (
-      this.desktopInfo &&
-      typeof (this.desktopInfo as any).validate === "function"
-    ) {
+    if(this.desktopInfo && typeof (this.desktopInfo as any).validate === 'function') {
       (this.desktopInfo as any).validate();
     }
     super.validate();
@@ -36,3 +34,4 @@ export class GetMcpResourceResponseBodyData extends $dara.Model {
     super(map);
   }
 }
+

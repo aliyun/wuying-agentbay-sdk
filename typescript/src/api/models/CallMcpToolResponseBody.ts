@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class CallMcpToolResponseBody extends $dara.Model {
   code?: string;
@@ -10,23 +11,23 @@ export class CallMcpToolResponseBody extends $dara.Model {
   success?: boolean;
   static names(): { [key: string]: string } {
     return {
-      code: "Code",
-      data: "Data",
-      httpStatusCode: "HttpStatusCode",
-      message: "Message",
-      requestId: "RequestId",
-      success: "Success",
+      code: 'Code',
+      data: 'Data',
+      httpStatusCode: 'HttpStatusCode',
+      message: 'Message',
+      requestId: 'RequestId',
+      success: 'Success',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      code: "string",
-      data: "any",
-      httpStatusCode: "number",
-      message: "string",
-      requestId: "string",
-      success: "boolean",
+      code: 'string',
+      data: 'any',
+      httpStatusCode: 'number',
+      message: 'string',
+      requestId: 'string',
+      success: 'boolean',
     };
   }
 
@@ -38,3 +39,4 @@ export class CallMcpToolResponseBody extends $dara.Model {
     super(map);
   }
 }
+

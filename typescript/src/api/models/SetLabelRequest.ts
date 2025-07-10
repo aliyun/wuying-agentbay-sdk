@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class SetLabelRequest extends $dara.Model {
   authorization?: string;
@@ -7,17 +8,17 @@ export class SetLabelRequest extends $dara.Model {
   sessionId?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: "Authorization",
-      labels: "Labels",
-      sessionId: "SessionId",
+      authorization: 'Authorization',
+      labels: 'Labels',
+      sessionId: 'SessionId',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: "string",
-      labels: "string",
-      sessionId: "string",
+      authorization: 'string',
+      labels: 'string',
+      sessionId: 'string',
     };
   }
 
@@ -29,3 +30,4 @@ export class SetLabelRequest extends $dara.Model {
     super(map);
   }
 }
+

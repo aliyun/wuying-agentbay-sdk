@@ -212,22 +212,16 @@ func (client *Client) CallMcpTool(request *CallMcpToolRequest) (_result *CallMcp
 //
 // 创建 mcp session
 //
-// @param tmpReq - CreateMcpSessionRequest
+// @param request - CreateMcpSessionRequest
 //
 // @param runtime - runtime options for this request RuntimeOptions
 //
 // @return CreateMcpSessionResponse
-func (client *Client) CreateMcpSessionWithOptions(tmpReq *CreateMcpSessionRequest, runtime *dara.RuntimeOptions) (_result *CreateMcpSessionResponse, _err error) {
-	_err = tmpReq.Validate()
+func (client *Client) CreateMcpSessionWithOptions(request *CreateMcpSessionRequest, runtime *dara.RuntimeOptions) (_result *CreateMcpSessionResponse, _err error) {
+	_err = request.Validate()
 	if _err != nil {
 		return _result, _err
 	}
-	request := &CreateMcpSessionShrinkRequest{}
-	openapiutil.Convert(tmpReq, request)
-	if !dara.IsNil(tmpReq.PersistenceDataList) {
-		request.PersistenceDataListShrink = openapiutil.ArrayToStringWithSpecifiedStyle(tmpReq.PersistenceDataList, dara.String("PersistenceDataList"), dara.String("json"))
-	}
-
 	body := map[string]interface{}{}
 	if !dara.IsNil(request.Authorization) {
 		body["Authorization"] = request.Authorization
@@ -247,10 +241,6 @@ func (client *Client) CreateMcpSessionWithOptions(tmpReq *CreateMcpSessionReques
 
 	if !dara.IsNil(request.Labels) {
 		body["Labels"] = request.Labels
-	}
-
-	if !dara.IsNil(request.PersistenceDataListShrink) {
-		body["PersistenceDataList"] = request.PersistenceDataListShrink
 	}
 
 	if !dara.IsNil(request.SessionId) {
@@ -607,14 +597,6 @@ func (client *Client) GetLinkWithOptions(request *GetLinkRequest, runtime *dara.
 
 	if !dara.IsNil(request.SessionId) {
 		body["SessionId"] = request.SessionId
-	}
-
-	if !dara.IsNil(request.ProtocolType) {
-		body["ProtocolType"] = request.ProtocolType
-	}
-
-	if !dara.IsNil(request.Port) {
-		body["Port"] = request.Port
 	}
 
 	req := &openapiutil.OpenApiRequest{

@@ -1,5 +1,6 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class ListSessionRequest extends $dara.Model {
   authorization?: string;
@@ -8,19 +9,19 @@ export class ListSessionRequest extends $dara.Model {
   nextToken?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: "Authorization",
-      labels: "Labels",
-      maxResults: "MaxResults",
-      nextToken: "NextToken",
+      authorization: 'Authorization',
+      labels: 'Labels',
+      maxResults: 'MaxResults',
+      nextToken: 'NextToken',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: "string",
-      labels: "string",
-      maxResults: "number",
-      nextToken: "string",
+      authorization: 'string',
+      labels: 'string',
+      maxResults: 'number',
+      nextToken: 'string',
     };
   }
 
@@ -32,3 +33,4 @@ export class ListSessionRequest extends $dara.Model {
     super(map);
   }
 }
+

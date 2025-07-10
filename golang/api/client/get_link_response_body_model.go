@@ -11,8 +11,8 @@ type iGetLinkResponseBody interface {
 	GoString() string
 	SetCode(v string) *GetLinkResponseBody
 	GetCode() *string
-	SetData(v interface{}) *GetLinkResponseBody
-	GetData() interface{}
+	SetData(v *GetLinkResponseBodyData) *GetLinkResponseBody
+	GetData() *GetLinkResponseBodyData
 	SetHttpStatusCode(v int32) *GetLinkResponseBody
 	GetHttpStatusCode() *int32
 	SetMessage(v string) *GetLinkResponseBody
@@ -24,12 +24,12 @@ type iGetLinkResponseBody interface {
 }
 
 type GetLinkResponseBody struct {
-	Code           *string     `json:"Code,omitempty" xml:"Code,omitempty"`
-	Data           interface{} `json:"Data,omitempty" xml:"Data,omitempty"`
-	HttpStatusCode *int32      `json:"HttpStatusCode,omitempty" xml:"HttpStatusCode,omitempty"`
-	Message        *string     `json:"Message,omitempty" xml:"Message,omitempty"`
-	RequestId      *string     `json:"RequestId,omitempty" xml:"RequestId,omitempty"`
-	Success        *bool       `json:"Success,omitempty" xml:"Success,omitempty"`
+	Code           *string                  `json:"Code,omitempty" xml:"Code,omitempty"`
+	Data           *GetLinkResponseBodyData `json:"Data,omitempty" xml:"Data,omitempty" type:"Struct"`
+	HttpStatusCode *int32                   `json:"HttpStatusCode,omitempty" xml:"HttpStatusCode,omitempty"`
+	Message        *string                  `json:"Message,omitempty" xml:"Message,omitempty"`
+	RequestId      *string                  `json:"RequestId,omitempty" xml:"RequestId,omitempty"`
+	Success        *bool                    `json:"Success,omitempty" xml:"Success,omitempty"`
 }
 
 func (s GetLinkResponseBody) String() string {
@@ -44,7 +44,7 @@ func (s *GetLinkResponseBody) GetCode() *string {
 	return s.Code
 }
 
-func (s *GetLinkResponseBody) GetData() interface{} {
+func (s *GetLinkResponseBody) GetData() *GetLinkResponseBodyData {
 	return s.Data
 }
 
@@ -69,7 +69,7 @@ func (s *GetLinkResponseBody) SetCode(v string) *GetLinkResponseBody {
 	return s
 }
 
-func (s *GetLinkResponseBody) SetData(v interface{}) *GetLinkResponseBody {
+func (s *GetLinkResponseBody) SetData(v *GetLinkResponseBodyData) *GetLinkResponseBody {
 	s.Data = v
 	return s
 }

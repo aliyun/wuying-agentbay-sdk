@@ -1,26 +1,27 @@
 // This file is auto-generated, don't edit it
-import * as $dara from "@darabonba/typescript";
+import * as $dara from '@darabonba/typescript';
+
 
 export class GetLinkRequest extends $dara.Model {
   authorization?: string;
-  sessionId?: string;
-  protocolType?: string;
   port?: number;
+  protocolType?: string;
+  sessionId?: string;
   static names(): { [key: string]: string } {
     return {
-      authorization: "Authorization",
-      sessionId: "SessionId",
-      protocolType: "ProtocolType",
-      port: "Port",
+      authorization: 'Authorization',
+      port: 'Port',
+      protocolType: 'ProtocolType',
+      sessionId: 'SessionId',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
-      authorization: "string",
-      sessionId: "string",
-      protocolType: "string",
-      port: "number",
+      authorization: 'string',
+      port: 'number',
+      protocolType: 'string',
+      sessionId: 'string',
     };
   }
 
@@ -32,3 +33,4 @@ export class GetLinkRequest extends $dara.Model {
     super(map);
   }
 }
+
