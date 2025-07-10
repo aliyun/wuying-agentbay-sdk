@@ -93,13 +93,15 @@ run_linting() {
 
     print_section "Running code linting and formatting"
 
-    # Run gofmt to format code
+    # Run gofmt to format code, excluding api/client directory
     echo "Running gofmt..."
-    find . -name "*.go" -not -path "./vendor/*" | xargs gofmt -w -s
+    find . -name "*.go" -not -path "./vendor/*" -not -path "*/api/client/*" | xargs gofmt -w -s
 
-    # Run go fmt
+    # Run go fmt, excluding api/client directory
     echo "Running go fmt..."
-    go fmt ./...
+    for dir in $(go list ./... | grep -v "/api/client"); do
+        go fmt $dir
+    done
 
     # Run golint to check for style issues
     echo "Running golint..."

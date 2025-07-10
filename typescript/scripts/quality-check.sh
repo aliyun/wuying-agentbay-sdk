@@ -83,9 +83,9 @@ run_linting() {
     echo "Running ESLint with auto-fix..."
     npm run lint -- --fix
 
-    # Run Prettier formatting
+    # Run Prettier formatting, excluding api/models directory
     echo "Running Prettier formatting..."
-    npx prettier --write "src/**/*.ts" "tests/**/*.ts"
+    npx prettier --write "src/**/*.ts" "tests/**/*.ts" "!src/api/models/**"
 
     # Check if there are uncommitted changes after formatting
     if ! git diff --quiet src tests; then
