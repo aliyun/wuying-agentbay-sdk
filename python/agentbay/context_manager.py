@@ -61,7 +61,7 @@ class ContextManager:
         response = self.session.get_client().sync_context(request)
         try:
             print("Response from SyncContext:")
-            print(json.dumps(response.to_map(), ensure_ascii=False, indent=2))
+            print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
         except Exception:
             print(f"Response from SyncContext: {response}")
         request_id = extract_request_id(response)
