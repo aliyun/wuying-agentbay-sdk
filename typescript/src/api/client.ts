@@ -149,12 +149,18 @@ export default class Client extends OpenApi {
   /**
    * 创建 mcp session
    * 
-   * @param request - CreateMcpSessionRequest
+   * @param tmpReq - CreateMcpSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns CreateMcpSessionResponse
    */
-  async createMcpSessionWithOptions(request: $_model.CreateMcpSessionRequest, runtime: $dara.RuntimeOptions): Promise<$_model.CreateMcpSessionResponse> {
-    request.validate();
+  async createMcpSessionWithOptions(tmpReq: $_model.CreateMcpSessionRequest, runtime: $dara.RuntimeOptions): Promise<$_model.CreateMcpSessionResponse> {
+    tmpReq.validate();
+    let request = new $_model.CreateMcpSessionShrinkRequest({ });
+    OpenApiUtil.convert(tmpReq, request);
+    if (!$dara.isNull(tmpReq.persistenceDataList)) {
+      request.persistenceDataListShrink = OpenApiUtil.arrayToStringWithSpecifiedStyle(tmpReq.persistenceDataList, "PersistenceDataList", "json");
+    }
+
     let body : {[key: string ]: any} = { };
     if (!$dara.isNull(request.authorization)) {
       body["Authorization"] = request.authorization;
@@ -174,6 +180,10 @@ export default class Client extends OpenApi {
 
     if (!$dara.isNull(request.labels)) {
       body["Labels"] = request.labels;
+    }
+
+    if (!$dara.isNull(request.persistenceDataListShrink)) {
+      body["PersistenceDataList"] = request.persistenceDataListShrink;
     }
 
     if (!$dara.isNull(request.sessionId)) {

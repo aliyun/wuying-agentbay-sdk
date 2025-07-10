@@ -4,7 +4,6 @@ import * as $dara from '@darabonba/typescript';
 
 export class ReleaseMcpSessionResponseBody extends $dara.Model {
   code?: string;
-  data?: any;
   httpStatusCode?: number;
   message?: string;
   requestId?: string;
@@ -12,7 +11,6 @@ export class ReleaseMcpSessionResponseBody extends $dara.Model {
   static names(): { [key: string]: string } {
     return {
       code: 'Code',
-      data: 'Data',
       httpStatusCode: 'HttpStatusCode',
       message: 'Message',
       requestId: 'RequestId',
@@ -23,7 +21,6 @@ export class ReleaseMcpSessionResponseBody extends $dara.Model {
   static types(): { [key: string]: any } {
     return {
       code: 'string',
-      data: 'any',
       httpStatusCode: 'number',
       message: 'string',
       requestId: 'string',

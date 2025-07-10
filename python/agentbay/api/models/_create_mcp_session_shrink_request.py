@@ -4,20 +4,24 @@ from __future__ import annotations
 from darabonba.model import DaraModel 
 
 
-class GetContextInfoRequest(DaraModel):
+class CreateMcpSessionShrinkRequest(DaraModel):
     def __init__(
         self,
         authorization: str = None,
         context_id: str = None,
-        path: str = None,
+        external_user_id: str = None,
+        image_id: str = None,
+        labels: str = None,
+        persistence_data_list_shrink: str = None,
         session_id: str = None,
-        task_type: str = None,
     ):
         self.authorization = authorization
         self.context_id = context_id
-        self.path = path
+        self.external_user_id = external_user_id
+        self.image_id = image_id
+        self.labels = labels
+        self.persistence_data_list_shrink = persistence_data_list_shrink
         self.session_id = session_id
-        self.task_type = task_type
 
     def validate(self):
         pass
@@ -33,14 +37,20 @@ class GetContextInfoRequest(DaraModel):
         if self.context_id is not None:
             result['ContextId'] = self.context_id
 
-        if self.path is not None:
-            result['Path'] = self.path
+        if self.external_user_id is not None:
+            result['ExternalUserId'] = self.external_user_id
+
+        if self.image_id is not None:
+            result['ImageId'] = self.image_id
+
+        if self.labels is not None:
+            result['Labels'] = self.labels
+
+        if self.persistence_data_list_shrink is not None:
+            result['PersistenceDataList'] = self.persistence_data_list_shrink
 
         if self.session_id is not None:
             result['SessionId'] = self.session_id
-
-        if self.task_type is not None:
-            result['TaskType'] = self.task_type
 
         return result
 
@@ -52,14 +62,20 @@ class GetContextInfoRequest(DaraModel):
         if m.get('ContextId') is not None:
             self.context_id = m.get('ContextId')
 
-        if m.get('Path') is not None:
-            self.path = m.get('Path')
+        if m.get('ExternalUserId') is not None:
+            self.external_user_id = m.get('ExternalUserId')
+
+        if m.get('ImageId') is not None:
+            self.image_id = m.get('ImageId')
+
+        if m.get('Labels') is not None:
+            self.labels = m.get('Labels')
+
+        if m.get('PersistenceDataList') is not None:
+            self.persistence_data_list_shrink = m.get('PersistenceDataList')
 
         if m.get('SessionId') is not None:
             self.session_id = m.get('SessionId')
-
-        if m.get('TaskType') is not None:
-            self.task_type = m.get('TaskType')
 
         return self
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 
+
 from ._apply_mqtt_token_request import ApplyMqttTokenRequest
 from ._apply_mqtt_token_response_body import ApplyMqttTokenResponseBody
 from ._apply_mqtt_token_response import ApplyMqttTokenResponse
@@ -10,6 +11,7 @@ from ._call_mcp_tool_request import CallMcpToolRequest
 from ._call_mcp_tool_response_body import CallMcpToolResponseBody
 from ._call_mcp_tool_response import CallMcpToolResponse
 from ._create_mcp_session_request import CreateMcpSessionRequest
+from ._create_mcp_session_shrink_request import CreateMcpSessionShrinkRequest
 from ._create_mcp_session_response_body import CreateMcpSessionResponseBody
 from ._create_mcp_session_response import CreateMcpSessionResponse
 from ._delete_context_request import DeleteContextRequest
@@ -55,6 +57,7 @@ from ._sync_context_request import SyncContextRequest
 from ._sync_context_response_body import SyncContextResponseBody
 from ._sync_context_response import SyncContextResponse
 from ._apply_mqtt_token_response_body import ApplyMqttTokenResponseBodyData
+from ._create_mcp_session_request import CreateMcpSessionRequestPersistenceDataList
 from ._create_mcp_session_response_body import CreateMcpSessionResponseBodyData
 from ._get_context_response_body import GetContextResponseBodyData
 from ._get_context_info_response_body import GetContextInfoResponseBodyData
@@ -73,6 +76,7 @@ __all__ = [
     CallMcpToolResponseBody,
     CallMcpToolResponse,
     CreateMcpSessionRequest,
+    CreateMcpSessionShrinkRequest,
     CreateMcpSessionResponseBody,
     CreateMcpSessionResponse,
     DeleteContextRequest,
@@ -118,6 +122,7 @@ __all__ = [
     SyncContextResponseBody,
     SyncContextResponse,
     ApplyMqttTokenResponseBodyData,
+    CreateMcpSessionRequestPersistenceDataList,
     CreateMcpSessionResponseBodyData,
     GetContextResponseBodyData,
     GetContextInfoResponseBodyData,
@@ -126,5 +131,5 @@ __all__ = [
     GetMcpResourceResponseBodyDataDesktopInfo,
     GetMcpResourceResponseBodyData,
     ListContextsResponseBodyData,
-    ListSessionResponseBodyData,
+    ListSessionResponseBodyData
 ]

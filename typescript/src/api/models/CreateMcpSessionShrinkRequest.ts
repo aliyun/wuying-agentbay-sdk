@@ -1,15 +1,14 @@
 // This file is auto-generated, don't edit it
 import * as $dara from '@darabonba/typescript';
-import { CreateMcpSessionRequestPersistenceDataList } from "./CreateMcpSessionRequestPersistenceDataList";
 
 
-export class CreateMcpSessionRequest extends $dara.Model {
+export class CreateMcpSessionShrinkRequest extends $dara.Model {
   authorization?: string;
   contextId?: string;
   externalUserId?: string;
   imageId?: string;
   labels?: string;
-  persistenceDataList?: CreateMcpSessionRequestPersistenceDataList[];
+  persistenceDataListShrink?: string;
   sessionId?: string;
   static names(): { [key: string]: string } {
     return {
@@ -18,7 +17,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
       externalUserId: 'ExternalUserId',
       imageId: 'ImageId',
       labels: 'Labels',
-      persistenceDataList: 'PersistenceDataList',
+      persistenceDataListShrink: 'PersistenceDataList',
       sessionId: 'SessionId',
     };
   }
@@ -30,15 +29,12 @@ export class CreateMcpSessionRequest extends $dara.Model {
       externalUserId: 'string',
       imageId: 'string',
       labels: 'string',
-      persistenceDataList: { 'type': 'array', 'itemType': CreateMcpSessionRequestPersistenceDataList },
+      persistenceDataListShrink: 'string',
       sessionId: 'string',
     };
   }
 
   validate() {
-    if(Array.isArray(this.persistenceDataList)) {
-      $dara.Model.validateArray(this.persistenceDataList);
-    }
     super.validate();
   }
 

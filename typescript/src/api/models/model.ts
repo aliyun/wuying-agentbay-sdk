@@ -1,4 +1,5 @@
 export { ApplyMqttTokenResponseBodyData } from './ApplyMqttTokenResponseBodyData';
+export { CreateMcpSessionRequestPersistenceDataList } from './CreateMcpSessionRequestPersistenceDataList';
 export { CreateMcpSessionResponseBodyData } from './CreateMcpSessionResponseBodyData';
 export { GetContextResponseBodyData } from './GetContextResponseBodyData';
 export { GetContextInfoResponseBodyData } from './GetContextInfoResponseBodyData';
@@ -15,6 +16,7 @@ export { CallMcpToolRequest } from './CallMcpToolRequest';
 export { CallMcpToolResponseBody } from './CallMcpToolResponseBody';
 export { CallMcpToolResponse } from './CallMcpToolResponse';
 export { CreateMcpSessionRequest } from './CreateMcpSessionRequest';
+export { CreateMcpSessionShrinkRequest } from './CreateMcpSessionShrinkRequest';
 export { CreateMcpSessionResponseBody } from './CreateMcpSessionResponseBody';
 export { CreateMcpSessionResponse } from './CreateMcpSessionResponse';
 export { DeleteContextRequest } from './DeleteContextRequest';

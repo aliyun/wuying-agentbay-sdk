@@ -19,17 +19,20 @@ type iCreateMcpSessionRequest interface {
 	GetImageId() *string
 	SetLabels(v string) *CreateMcpSessionRequest
 	GetLabels() *string
+	SetPersistenceDataList(v []*CreateMcpSessionRequestPersistenceDataList) *CreateMcpSessionRequest
+	GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList
 	SetSessionId(v string) *CreateMcpSessionRequest
 	GetSessionId() *string
 }
 
 type CreateMcpSessionRequest struct {
-	Authorization  *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
-	ContextId      *string `json:"ContextId,omitempty" xml:"ContextId,omitempty"`
-	ExternalUserId *string `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
-	ImageId        *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
-	Labels         *string `json:"Labels,omitempty" xml:"Labels,omitempty"`
-	SessionId      *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	Authorization       *string                                       `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
+	ContextId           *string                                       `json:"ContextId,omitempty" xml:"ContextId,omitempty"`
+	ExternalUserId      *string                                       `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
+	ImageId             *string                                       `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
+	Labels              *string                                       `json:"Labels,omitempty" xml:"Labels,omitempty"`
+	PersistenceDataList []*CreateMcpSessionRequestPersistenceDataList `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty" type:"Repeated"`
+	SessionId           *string                                       `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 }
 
 func (s CreateMcpSessionRequest) String() string {
@@ -58,6 +61,10 @@ func (s *CreateMcpSessionRequest) GetImageId() *string {
 
 func (s *CreateMcpSessionRequest) GetLabels() *string {
 	return s.Labels
+}
+
+func (s *CreateMcpSessionRequest) GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList {
+	return s.PersistenceDataList
 }
 
 func (s *CreateMcpSessionRequest) GetSessionId() *string {
@@ -89,11 +96,61 @@ func (s *CreateMcpSessionRequest) SetLabels(v string) *CreateMcpSessionRequest {
 	return s
 }
 
+func (s *CreateMcpSessionRequest) SetPersistenceDataList(v []*CreateMcpSessionRequestPersistenceDataList) *CreateMcpSessionRequest {
+	s.PersistenceDataList = v
+	return s
+}
+
 func (s *CreateMcpSessionRequest) SetSessionId(v string) *CreateMcpSessionRequest {
 	s.SessionId = &v
 	return s
 }
 
 func (s *CreateMcpSessionRequest) Validate() error {
+	return dara.Validate(s)
+}
+
+type CreateMcpSessionRequestPersistenceDataList struct {
+	ContextId *string `json:"ContextId,omitempty" xml:"ContextId,omitempty"`
+	Path      *string `json:"Path,omitempty" xml:"Path,omitempty"`
+	Policy    *string `json:"Policy,omitempty" xml:"Policy,omitempty"`
+}
+
+func (s CreateMcpSessionRequestPersistenceDataList) String() string {
+	return dara.Prettify(s)
+}
+
+func (s CreateMcpSessionRequestPersistenceDataList) GoString() string {
+	return s.String()
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) GetContextId() *string {
+	return s.ContextId
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) GetPath() *string {
+	return s.Path
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) GetPolicy() *string {
+	return s.Policy
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) SetContextId(v string) *CreateMcpSessionRequestPersistenceDataList {
+	s.ContextId = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) SetPath(v string) *CreateMcpSessionRequestPersistenceDataList {
+	s.Path = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) SetPolicy(v string) *CreateMcpSessionRequestPersistenceDataList {
+	s.Policy = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequestPersistenceDataList) Validate() error {
 	return dara.Validate(s)
 }
