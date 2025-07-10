@@ -1,7 +1,6 @@
 package agentbay
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -292,39 +291,8 @@ func (s *Session) GetLink(protocolType *string, port *int32) (*LinkResult, error
 	if response != nil && response.Body != nil && response.Body.Data != nil {
 		data := response.Body.Data
 		fmt.Printf("Data: %v\n", data)
-
-		// Try to parse data similar to Python version
-		// Handle different data types
-		switch v := data.(type) {
-		case string:
-			// If data is a string, try to parse as JSON first
-			if v != "" {
-				var jsonData map[string]interface{}
-				err := json.Unmarshal([]byte(v), &jsonData)
-				if err == nil {
-					// Successfully parsed as JSON, extract Url field
-					if url, exists := jsonData["Url"]; exists {
-						if urlStr, ok := url.(string); ok {
-							link = urlStr
-						}
-					}
-				} else {
-					// Not valid JSON, use data directly
-					link = v
-				}
-			}
-		case map[string]interface{}:
-			// If data is already a map, extract Url field directly
-			if url, exists := v["Url"]; exists {
-				if urlStr, ok := url.(string); ok {
-					link = urlStr
-				}
-			}
-		default:
-			// For other types, try to convert to string
-			if dataStr := fmt.Sprintf("%v", data); dataStr != "" {
-				link = dataStr
-			}
+		if data.Url != nil {
+			link = *data.Url
 		}
 	}
 
