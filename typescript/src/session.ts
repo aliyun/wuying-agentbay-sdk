@@ -9,6 +9,7 @@ import {
 } from "./api/models/model";
 import { Application } from "./application";
 import { Command } from "./command";
+import { ContextManager, newContextManager } from "./context-manager";
 import { APIError } from "./exceptions";
 import { FileSystem } from "./filesystem";
 import { Oss } from "./oss";
@@ -83,6 +84,9 @@ export class Session {
   public window: WindowManager;
   public ui: UI;
 
+  // Context management (matching Go version)
+  public context: ContextManager;
+
   /**
    * Initialize a Session object.
    *
@@ -103,6 +107,9 @@ export class Session {
     this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
+
+    // Initialize context manager (matching Go version)
+    this.context = newContextManager(this);
   }
 
   /**
