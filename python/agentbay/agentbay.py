@@ -37,7 +37,7 @@ class AgentBay:
 
     def __init__(self, api_key: str = "", cfg: Optional[Config] = None):
         if not api_key:
-            api_key = os.getenv("AGENTBAY_API_KEY") or ""
+            api_key = os.getenv("AGENTBAY_API_KEY")
             if not api_key:
                 raise ValueError(
                     "API key is required. Provide it as a parameter or set the "
@@ -92,12 +92,11 @@ class AgentBay:
                         # policy 需序列化为 JSON 字符串
                         import json as _json
                         policy_json = _json.dumps(cs.policy, default=lambda o: o.__dict__, ensure_ascii=False)
-                    # Always pass a string for policy
                     persistence_data_list.append(
                         CreateMcpSessionRequestPersistenceDataList(
                             context_id=cs.context_id,
                             path=cs.path,
-                            policy=policy_json if policy_json is not None else ""
+                            policy=policy_json
                         )
                     )
                 request.persistence_data_list = persistence_data_list
@@ -118,15 +117,15 @@ class AgentBay:
                     else:
                         req_map['Authorization'] = auth[:2] + '****' + auth[-2:]
                 print("CreateMcpSessionRequest body:")
-                print(json.dumps(req_map.get('body', {}), ensure_ascii=False, indent=2))
+                print(json.dumps(req_map, ensure_ascii=False, indent=2))
             except Exception:
-                print(f"CreateMcpSessionRequest body: {getattr(request, 'body', {})}")
+                print(f"CreateMcpSessionRequest: {request}")
             response = self.client.create_mcp_session(request)
             try:
                 print("Response body:")
                 print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
             except Exception:
-                print(f"Response body: {getattr(response, 'body', {})}")
+                print(f"Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -238,7 +237,9 @@ class AgentBay:
             request = ListSessionRequest(
                 authorization=f"Bearer {self.api_key}",
                 labels=labels_json,
-                max_results=params.max_results if params.max_results is not None else 0,
+                max_results=str(
+                    params.max_results
+                ),  # Convert to string as expected by the API
             )
 
             # Add next_token if provided
@@ -282,13 +283,13 @@ class AgentBay:
                 print("Response body:")
                 print(json.dumps(body, ensure_ascii=False, indent=2))
             except Exception:
-                print(f"Response body: {body}")
+                print(f"Response: {body}")
 
             # Extract pagination information
             if isinstance(body, dict):
                 next_token = body.get("NextToken", "")
-                max_results = int(body.get("MaxResults", 0)) if body.get("MaxResults") is not None else 0
-                total_count = int(body.get("TotalCount", 0)) if body.get("TotalCount") is not None else 0
+                max_results = int(body.get("MaxResults", 0))
+                total_count = int(body.get("TotalCount", 0))
 
             # Extract session data
             response_data = body.get("Data")
@@ -317,8 +318,8 @@ class AgentBay:
                 success=True,
                 sessions=sessions,
                 next_token=next_token,
-                max_results=max_results if max_results is not None else 0,
-                total_count=total_count if total_count is not None else 0,
+                max_results=max_results,
+                total_count=total_count,
             )
 
         except Exception as e:
