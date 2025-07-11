@@ -33,6 +33,7 @@ export interface SessionInfo {
   connectionProperties?: string;
   resourceId?: string;
   resourceType?: string;
+  ticket?: string;
 }
 
 /**
@@ -46,6 +47,7 @@ export class SessionInfoClass {
   connectionProperties: string;
   resourceId: string;
   resourceType: string;
+  ticket: string;
 
   constructor(
     sessionId = "",
@@ -54,7 +56,8 @@ export class SessionInfoClass {
     authCode = "",
     connectionProperties = "",
     resourceId = "",
-    resourceType = ""
+    resourceType = "",
+    ticket = ""
   ) {
     this.sessionId = sessionId;
     this.resourceUrl = resourceUrl;
@@ -63,6 +66,7 @@ export class SessionInfoClass {
     this.connectionProperties = connectionProperties;
     this.resourceId = resourceId;
     this.resourceType = resourceType;
+    this.ticket = ticket;
   }
 }
 
@@ -299,20 +303,23 @@ export class Session {
       if (data?.desktopInfo) {
         // Capital D and I to match Python
         const desktopInfo = data.desktopInfo;
-        if (desktopInfo.AppId) {
-          sessionInfo.appId = desktopInfo.AppId;
+        if (desktopInfo.appId) {
+          sessionInfo.appId = desktopInfo.appId;
         }
-        if (desktopInfo.AuthCode) {
-          sessionInfo.authCode = desktopInfo.AuthCode;
+        if (desktopInfo.authCode) {
+          sessionInfo.authCode = desktopInfo.authCode;
         }
-        if (desktopInfo.ConnectionProperties) {
-          sessionInfo.connectionProperties = desktopInfo.ConnectionProperties;
+        if (desktopInfo.connectionProperties) {
+          sessionInfo.connectionProperties = desktopInfo.connectionProperties;
         }
-        if (desktopInfo.ResourceId) {
-          sessionInfo.resourceId = desktopInfo.ResourceId;
+        if (desktopInfo.resourceId) {
+          sessionInfo.resourceId = desktopInfo.resourceId;
         }
-        if (desktopInfo.ResourceType) {
-          sessionInfo.resourceType = desktopInfo.ResourceType;
+        if (desktopInfo.resourceType) {
+          sessionInfo.resourceType = desktopInfo.resourceType;
+        }
+        if (desktopInfo.ticket) {
+          sessionInfo.ticket = desktopInfo.ticket;
         }
       }
 

@@ -123,11 +123,12 @@ describe("TestSession", () => {
             sessionId: "test_session_id",
             resourceUrl: "https://example.com/resource",
             desktopInfo: {
-              AppId: "test-app-id",
-              AuthCode: "test-auth-code",
-              ConnectionProperties: "test-properties",
-              ResourceId: "test-resource-id",
-              ResourceType: "desktop",
+              appId: "test-app-id",
+              authCode: "test-auth-code",
+              connectionProperties: "test-properties",
+              resourceId: "test-resource-id",
+              resourceType: "desktop",
+              ticket: "test-ticket",
             },
           },
           requestId: "info-request-id",
@@ -152,6 +153,7 @@ describe("TestSession", () => {
       expect(result.data.connectionProperties).toBe("test-properties");
       expect(result.data.resourceId).toBe("test-resource-id");
       expect(result.data.resourceType).toBe("desktop");
+      expect(result.data.ticket).toBe("test-ticket");
 
       expect(mockClient.getMcpResource.calledOnce).toBe(true);
 

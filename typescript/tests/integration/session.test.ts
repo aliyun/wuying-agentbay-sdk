@@ -198,60 +198,71 @@ describe("Session", () => {
         log("Testing session.info method...");
         try {
           const sessionInfoResponse = await session.info();
-          log("Session info:", sessionInfoResponse.data);
-          log(
-            `Session Info RequestId: ${
-              sessionInfoResponse.requestId || "undefined"
-            }`
-          );
 
           // Verify that the response contains requestId
           expect(sessionInfoResponse.requestId).toBeDefined();
           expect(typeof sessionInfoResponse.requestId).toBe("string");
 
-          // Verify the session info
+          // Verify the operation was successful (matching Python test)
+          expect(sessionInfoResponse.success).toBe(true);
+
+          // Verify the session info data exists
           expect(sessionInfoResponse.data).toBeDefined();
+          const info = sessionInfoResponse.data;
 
-          // Check SessionId field
-          expect(sessionInfoResponse.data.sessionId).toBeDefined();
-          expect(sessionInfoResponse.data.sessionId).toBe(session.sessionId);
+          // Log SessionInfo similar to Python test
+          log(`SessionInfo: ${JSON.stringify(info)}`);
 
-          // Check ResourceUrl field
-          if (sessionInfoResponse.data.resourceUrl) {
-            log(
-              `Session ResourceUrl from Info: ${sessionInfoResponse.data.resourceUrl}`
-            );
+          // Check sessionId field (matching Python test)
+          expect(info.sessionId).toBeDefined();
+          expect(info.sessionId).toBeTruthy();
+          expect(info.sessionId).toBe(session.sessionId);
+
+          // Check resourceUrl field (matching Python test)
+          expect(info.resourceUrl).toBeDefined();
+          expect(info.resourceUrl).toBeTruthy();
+
+          // Check ticket field (matching Python test)
+          expect(info).toHaveProperty("ticket");
+          // ticket may be empty depending on backend, but should exist
+
+          // Check other fields exist (matching Python test)
+          expect(info).toHaveProperty("appId");
+          expect(info).toHaveProperty("authCode");
+          expect(info).toHaveProperty("connectionProperties");
+          expect(info).toHaveProperty("resourceId");
+          expect(info).toHaveProperty("resourceType");
+
+          // Update session.resourceUrl if present (matching Python behavior)
+          if (info.resourceUrl) {
+            log(`Session ResourceUrl from Info: ${info.resourceUrl}`);
+            expect(session.resourceUrl).toBe(info.resourceUrl);
 
             // Extract resourceId from URL if possible
-            const resourceId = extractResourceId(
-              sessionInfoResponse.data.resourceUrl
-            );
+            const resourceId = extractResourceId(info.resourceUrl);
             if (resourceId) {
               log(`Extracted ResourceId: ${resourceId}`);
             }
-
-            // Verify that session.resourceUrl was updated with the value from the API response
-            expect(session.resourceUrl).toBe(
-              sessionInfoResponse.data.resourceUrl
-            );
           }
 
           // Log other fields (these may be empty depending on the API response)
-          if (sessionInfoResponse.data.appId)
-            log(`AppId: ${sessionInfoResponse.data.appId}`);
-          if (sessionInfoResponse.data.authCode)
-            log(`AuthCode: ${sessionInfoResponse.data.authCode}`);
-          if (sessionInfoResponse.data.connectionProperties)
-            log(
-              `ConnectionProperties: ${sessionInfoResponse.data.connectionProperties}`
-            );
-          if (sessionInfoResponse.data.resourceId)
-            log(`ResourceId: ${sessionInfoResponse.data.resourceId}`);
-          if (sessionInfoResponse.data.resourceType)
-            log(`ResourceType: ${sessionInfoResponse.data.resourceType}`);
+          if (info.appId) log(`AppId: ${info.appId}`);
+          if (info.authCode) log(`AuthCode: ${info.authCode}`);
+          if (info.connectionProperties)
+            log(`ConnectionProperties: ${info.connectionProperties}`);
+          if (info.resourceId) log(`ResourceId: ${info.resourceId}`);
+          if (info.resourceType) log(`ResourceType: ${info.resourceType}`);
+          if (info.ticket) log(`Ticket: ${info.ticket}`);
+
+          log(
+            `Session Info RequestId: ${
+              sessionInfoResponse.requestId || "undefined"
+            }`
+          );
         } catch (error) {
           log(`Note: Session info retrieval failed: ${error}`);
           // Don't fail the test if info method is not fully implemented
+          throw error;
         }
       } else {
         log("Note: Session info method is not available, skipping info test");
