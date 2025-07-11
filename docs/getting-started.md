@@ -1,6 +1,6 @@
-# Getting Started with Wuying AgentBay SDK
+# Getting Started with AgentBay SDK
 
-This guide will help you get started with the Wuying AgentBay SDK, including installation, authentication, and basic usage.
+The AgentBay SDK provides a comprehensive set of tools to interact with the AgentBay cloud environment, enabling you to create and manage cloud sessions, execute commands, manipulate files, and interact with UIs.
 
 ## Installation
 
@@ -19,175 +19,300 @@ npm install wuying-agentbay-sdk
 ### Golang
 
 ```bash
-go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
+go get github.com/aliyun/wuying-agentbay-sdk
 ```
 
 ## Authentication
 
-Authentication is done using an API key, which can be provided in several ways:
+To use the AgentBay SDK, you need an API key. You can set the API key in two ways:
 
-1. As a parameter when initializing the SDK
-2. Through environment variables (`AGENTBAY_API_KEY`)
+### 1. Set Environment Variable
 
-For more details on authentication, see the [Authentication Guide](guides/authentication.md).
+```bash
+export AGENTBAY_API_KEY=your_api_key
+```
 
-## Basic Usage
-
-### Python
+### 2. Pass the API Key Directly
 
 ```python
+# Python
 from agentbay import AgentBay
 
-# Initialize the AgentBay client
-api_key = "your_api_key_here"
-agent_bay = AgentBay(api_key=api_key)
-
-try:
-    # Create a new session
-    session_result = agent_bay.create()
-    if session_result.success:
-        session = session_result.session
-        print(f"Session created with ID: {session.session_id}")
-
-        # Execute a command
-        result = session.command.execute_command("ls -la")
-        if result.success:
-            print(f"Command result: {result.data}")
-        else:
-            print(f"Command failed: {result.error_message}")
-
-        # Read a file
-        file_result = session.filesystem.read_file("/etc/hosts")
-        if file_result.success:
-            print(f"File content: {file_result.data}")
-        else:
-            print(f"File read failed: {file_result.error_message}")
-
-        # Execute code
-        code_result = session.command.run_code('print("Hello, World!")', "python")
-        if code_result.success:
-            print(f"Code execution result: {code_result.data}")
-        else:
-            print(f"Code execution failed: {code_result.error_message}")
-
-        # Delete the session
-        delete_result = session.delete()
-        if delete_result.success:
-            print("Session deleted successfully")
-        else:
-            print(f"Session deletion failed: {delete_result.error_message}")
-    else:
-        print(f"Failed to create session: {session_result.error_message}")
-except Exception as e:
-    print(f"An error occurred: {e}")
+agent_bay = AgentBay(api_key="your_api_key")
 ```
-
-### TypeScript
 
 ```typescript
+// TypeScript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
-async function main() {
-  // Initialize the AgentBay client
-  const apiKey = 'your_api_key_here';
-  const agentBay = new AgentBay({ apiKey });
-
-  try {
-    // Create a new session
-    const session = await agentBay.create();
-    log(`Session created with ID: ${session.sessionId}`);
-
-    // Execute a command
-    const result = await session.command.executeCommand('ls -la');
-    log('Command result:', result);
-
-    // Read a file
-    const content = await session.filesystem.readFile('/etc/hosts');
-    log(`File content: ${content}`);
-
-    // Execute code
-    const codeResult = await session.command.runCode('console.log("Hello, World!");', 'javascript');
-    log(`Code execution result: ${codeResult}`);
-
-    // Delete the session
-    await agentBay.delete(session);
-    log('Session deleted successfully');
-  } catch (error) {
-    logError('Error:', error);
-  }
-}
-
-main();
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 ```
 
-### Golang
-
 ```go
+// Golang
 package main
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
-	// Initialize the AgentBay client
-	apiKey := "your_api_key_here"
-	client, err := agentbay.NewAgentBay(apiKey)
-	if err != nil {
-		fmt.Printf("Error initializing AgentBay client: %v\n", err)
-		os.Exit(1)
-	}
+    client, _ := agentbay.NewAgentBay("your_api_key", nil)
+    // Use client...
+}
+```
 
-	// Create a new session
-	session, err := client.Create(nil)
-	if err != nil {
-		fmt.Printf("Error creating session: %v\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Session created with ID: %s\n", session.SessionID)
+For more details about authentication, see the [Authentication Guide](guides/authentication.md).
 
-    // Execute a command
-    result, err := session.Command.ExecuteCommand("ls -la")
+## Basic Usage
+
+### Create a Session
+
+```python
+# Python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+result = agent_bay.create()
+
+if result.success:
+    session = result.session
+    print(f"Session created with ID: {session.session_id}")
+```
+
+```typescript
+// TypeScript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+const agentBay = new AgentBay();
+const result = await agentBay.create();
+
+if (result.success) {
+    const session = result.session;
+    console.log(`Session created with ID: ${session.sessionId}`);
+}
+```
+
+```go
+// Golang
+package main
+
+import (
+    "fmt"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+    client, err := agentbay.NewAgentBay("", nil)
     if err != nil {
-        fmt.Printf("Error executing command: %v\n", err)
-        os.Exit(1)
+        fmt.Printf("Error initializing client: %v\n", err)
+        return
     }
-    fmt.Printf("Command result: %v\n", result)
 
-    // Read a file
-    content, err := session.FileSystem.ReadFile("/etc/hosts")
+    result, err := client.Create(nil)
     if err != nil {
-        fmt.Printf("Error reading file: %v\n", err)
-        os.Exit(1)
+        fmt.Printf("Error creating session: %v\n", err)
+        return
     }
-    fmt.Printf("File content: %s\n", content)
 
-    // Execute code
-    codeResult, err := session.Command.RunCode(`print("Hello, World!")`, "python")
-    if err != nil {
-        fmt.Printf("Error executing code: %v\n", err)
-        os.Exit(1)
-    }
-    fmt.Printf("Code execution result: %s\n", codeResult)
+    fmt.Printf("Session created with ID: %s\n", result.Session.SessionID)
+}
+```
 
-	// Delete the session
-	err = client.Delete(session)
-	if err != nil {
-		fmt.Printf("Error deleting session: %v\n", err)
-		os.Exit(1)
-	}
-	fmt.Println("Session deleted successfully")
+### Execute a Command
+
+```python
+# Python
+command_result = session.command.execute("ls -la")
+if command_result.success:
+    print(f"Output: {command_result.data.stdout}")
+```
+
+```typescript
+// TypeScript
+const commandResult = await session.command.execute('ls -la');
+if (commandResult.success) {
+    console.log(`Output: ${commandResult.data.stdout}`);
+}
+```
+
+```go
+// Golang
+commandResult, err := session.Command.Execute("ls -la")
+if err != nil {
+    fmt.Printf("Error executing command: %v\n", err)
+    return
+}
+
+fmt.Printf("Output: %s\n", commandResult.Data.Stdout)
+```
+
+### Working with Files
+
+```python
+# Python
+# Write a file
+write_result = session.file_system.write_file(
+    path="/tmp/test.txt",
+    content="Hello, World!"
+)
+
+# Read a file
+read_result = session.file_system.read_file(path="/tmp/test.txt")
+if read_result.success:
+    print(f"File content: {read_result.data}")
+```
+
+```typescript
+// TypeScript
+// Write a file
+const writeResult = await session.fileSystem.writeFile(
+    '/tmp/test.txt',
+    'Hello, World!'
+);
+
+// Read a file
+const readResult = await session.fileSystem.readFile('/tmp/test.txt');
+if (readResult.success) {
+    console.log(`File content: ${readResult.data}`);
+}
+```
+
+```go
+// Golang
+// Write a file
+_, err = session.FileSystem.WriteFile(
+    "/tmp/test.txt",
+    []byte("Hello, World!"),
+)
+if err != nil {
+    fmt.Printf("Error writing file: %v\n", err)
+    return
+}
+
+// Read a file
+readResult, err := session.FileSystem.ReadFile("/tmp/test.txt")
+if err != nil {
+    fmt.Printf("Error reading file: %v\n", err)
+    return
+}
+
+fmt.Printf("File content: %s\n", string(readResult.Data))
+```
+
+### Using Persistent Contexts
+
+```python
+# Python
+from agentbay import AgentBay
+from agentbay.context_sync import ContextSync, SyncPolicy
+from agentbay.session_params import CreateSessionParams
+
+# Initialize the client
+agent_bay = AgentBay()
+
+# Get or create a context
+context_result = agent_bay.context.get("my-persistent-context", create=True)
+
+if context_result.success:
+    context = context_result.context
+    
+    # Create a session with context synchronization
+    context_sync = ContextSync.new(
+        context_id=context.id,
+        path="/mnt/data",  # Mount path in the session
+        policy=SyncPolicy.default()
+    )
+    
+    params = CreateSessionParams(context_syncs=[context_sync])
+    session_result = agent_bay.create(params)
+```
+
+```typescript
+// TypeScript
+import { AgentBay, ContextSync, SyncPolicy } from 'wuying-agentbay-sdk';
+
+// Initialize the client
+const agentBay = new AgentBay();
+
+// Get or create a context
+const contextResult = await agentBay.context.get('my-persistent-context', true);
+
+if (contextResult.success) {
+    const context = contextResult.context;
+    
+    // Create a session with context synchronization
+    const contextSync = new ContextSync({
+        contextId: context.id,
+        path: '/mnt/data',  // Mount path in the session
+        policy: SyncPolicy.default()
+    });
+    
+    const sessionResult = await agentBay.create({
+        contextSync: [contextSync]
+    });
+}
+```
+
+```go
+// Golang
+package main
+
+import (
+    "fmt"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+    // Initialize the client
+    client, _ := agentbay.NewAgentBay("", nil)
+    
+    // Get or create a context
+    contextResult, _ := client.Context.Get("my-persistent-context", true)
+    
+    // Create a session with context synchronization
+    policy := agentbay.NewSyncPolicy()
+    contextSync := agentbay.NewContextSync(
+        contextResult.Context.ID,
+        "/mnt/data",  // Mount path in the session
+        policy,
+    )
+    
+    params := agentbay.NewCreateSessionParams().
+        AddContextSyncConfig(contextSync)
+    
+    sessionResult, _ := client.Create(params)
 }
 ```
 
 ## Next Steps
 
-Now that you've learned the basics of using the Wuying AgentBay SDK, you can explore more advanced features:
+Now that you know the basics of using the AgentBay SDK, you can explore more features:
 
-- [Sessions](concepts/sessions.md): Learn more about sessions in the AgentBay cloud environment.
-- [Contexts](concepts/contexts.md): Learn about persistent storage contexts.
-- [Applications](concepts/applications.md): Learn about managing applications and windows.
-- [API Reference](api-reference/agentbay.md): Explore the complete API reference.
+### Tutorials
+
+- [Session Management](tutorials/session-management.md)
+- [Command Execution](tutorials/command-execution.md)
+- [Code Execution](tutorials/code-execution.md)
+- [File Operations](tutorials/file-operations.md)
+- [UI Interaction](tutorials/ui-interaction.md)
+- [Window Management](tutorials/window-management.md)
+- [OSS Integration](tutorials/oss-integration.md)
+- [Application Management](tutorials/application-management.md)
+
+### API Reference
+
+- [AgentBay](api-reference/agentbay.md)
+- [Session](api-reference/session.md)
+- [Command](api-reference/command.md)
+- [FileSystem](api-reference/filesystem.md)
+- [UI](api-reference/ui.md)
+- [Window](api-reference/window.md)
+- [OSS](api-reference/oss.md)
+- [Application](api-reference/application.md)
+- [Context](api-reference/context.md)
+- [ContextManager](api-reference/context-manager.md)
+
+### Examples
+
+Check out the [examples directory](examples/README.md) for more code examples in Python, TypeScript, and Golang.

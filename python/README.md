@@ -27,14 +27,24 @@ pip install wuying-agentbay-sdk
 
 ## Running Examples
 
-You can run the example file:
+You can find examples in the `docs/examples/python` directory, including:
+
+- Basic SDK usage
+- Context management
+- Label management
+- Mobile system integration
+- OSS management
+- File system operations
+- Session creation
+
+To run the examples:
 
 ```bash
 # Using Poetry
-poetry run python examples/basic_usage.py
+poetry run python docs/examples/python/basic_usage.py
 
 # Or directly with Python if installed in your environment
-python examples/basic_usage.py
+python docs/examples/python/basic_usage.py
 ```
 
 ## Python-Specific Usage
@@ -59,91 +69,120 @@ def main():
         }
         session_result = agent_bay.create(params)
         session = session_result.session
-        print(f"Session created with ID: {session.session_id}")
-        print(f"Request ID: {session_result.request_id}")
-
+        
         # Execute a command
         cmd_result = session.command.execute_command("ls -la")
-        print(f"Command success: {cmd_result.success}")
-        print(f"Command output: {cmd_result.output}")
-        print(f"Request ID: {cmd_result.request_id}")
-
+        
         # Read a file
         file_result = session.file_system.read_file("/path/to/file.txt")
-        if file_result.success:
-            print(f"File content: {file_result.content}")
-        else:
-            print(f"Error reading file: {file_result.error_message}")
-        print(f"Request ID: {file_result.request_id}")
-
+        
         # Run code
-        python_code = """
-import os
-import platform
-
-print(f"Current working directory: {os.getcwd()}")
-print(f"Python version: {platform.python_version()}")
-"""
-        code_result = session.command.run_code(python_code, "python")
-        if code_result.success:
-            print(f"Code execution result: {code_result.result}")
-        else:
-            print(f"Error executing code: {code_result.error_message}")
-        print(f"Request ID: {code_result.request_id}")
-
-        # Get installed applications
+        code_result = session.command.run_code("print('Hello, World!')", "python")
+        
+        # Application management
         apps_result = session.application.get_installed_apps(
             include_system_apps=True,
             include_store_apps=False,
             include_desktop_apps=True
         )
-        if apps_result.success:
-            print(f"Found {len(apps_result.data)} installed applications")
-        print(f"Request ID: {apps_result.request_id}")
-
-        # List visible applications
-        processes_result = session.application.list_visible_apps()
-        if processes_result.success:
-            print(f"Found {len(processes_result.processes)} visible applications")
-        print(f"Request ID: {processes_result.request_id}")
-
-        # List root windows
+        
+        # Window management
         windows_result = session.window.list_root_windows()
-        if windows_result.success:
-            print(f"Found {len(windows_result.windows)} root windows")
-        print(f"Request ID: {windows_result.request_id}")
-
-        # Get active window
         window_result = session.window.get_active_window()
-        if window_result.success:
-            print(f"Active window: {window_result.window.title}")
-        print(f"Request ID: {window_result.request_id}")
-
-        # Get session labels
+        
+        # UI interactions
+        screenshot_result = session.ui.screenshot()
+        session.ui.send_key(3)  # Send HOME key
+        
+        # OSS operations
+        upload_result = session.oss.upload_file("/local/path/file.txt", "remote/path/")
+        
+        # Context management
+        contexts_result = agent_bay.context.list()
+        
+        # Session labels
         labels_result = session.get_labels()
-        if labels_result.success:
-            print(f"Session labels: {labels_result.data}")
-        print(f"Request ID: {labels_result.request_id}")
-
-        # List sessions by labels
-        filtered_result = agent_bay.list_by_labels({
-            "purpose": "demo"
-        })
-        if filtered_result.sessions:
-            print(f"Found {len(filtered_result.sessions)} matching sessions")
-        print(f"Request ID: {filtered_result.request_id}")
-
+        
         # Clean up
         delete_result = agent_bay.delete(session)
-        print(f"Session deleted successfully: {delete_result.success}")
-        print(f"Request ID: {delete_result.request_id}")
 
     except AgentBayError as e:
         print(f"Error: {e}")
-
-if __name__ == "__main__":
-    main()
 ```
+
+## Key Features
+
+### Session Management
+
+- Create sessions with optional parameters (image_id, context_id, labels)
+- List sessions with pagination and filtering by labels
+- Delete sessions and clean up resources
+- Manage session labels
+- Get session information and links
+
+### Command Execution
+
+- Execute shell commands
+- Run code in various languages
+- Get command output and execution status
+
+### File System Operations
+
+- Read and write files
+- List directory contents
+- Create and delete files and directories
+- Get file information
+
+### UI Interaction
+
+- Take screenshots
+- Find UI elements by criteria
+- Click on UI elements
+- Send text input
+- Perform swipe gestures
+- Send key events (HOME, BACK, MENU, etc.)
+
+### Application Management
+
+- Get installed applications
+- List running applications
+- Start and stop applications
+- Get application information
+
+### Window Management
+
+- List windows
+- Get active window
+- Focus, resize, and move windows
+- Get window properties
+
+### Context Management
+
+- Create, list, and delete contexts
+- Bind sessions to contexts
+- Synchronize context data using policies
+- Get context information
+
+### OSS Integration
+
+- Upload files to OSS
+- Download files from OSS
+- Initialize OSS environment
+
+### Mobile System Support
+
+- Special UI interactions for mobile environments
+- Support for mobile application management
+- Touch and gesture simulation
+
+## Response Format
+
+All API methods return responses that include:
+
+- `request_id`: A unique identifier for the request
+- `success`: A boolean indicating whether the operation was successful
+- Operation-specific data (varies by method)
+- `error_message`: Error details if the operation failed
 
 ## Development
 
@@ -159,4 +198,4 @@ poetry build
 poetry run pytest
 ```
 
-For more detailed documentation, please refer to the main [README](../README.md) and [SDK Documentation](../docs/README.md) in the project root.
+For more detailed documentation, refer to the [SDK Documentation](../docs/README.md).

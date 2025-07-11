@@ -1,93 +1,79 @@
-# Wuying AgentBay SDK Documentation
+# AgentBay SDK Documentation
 
-Welcome to the Wuying AgentBay SDK documentation. This documentation provides comprehensive information about the SDK, including concepts, guides, and API references.
-
-## Documentation Structure
-
-The documentation is organized into the following sections:
-
-### Getting Started
-
-- [Getting Started](getting-started.md): Installation, authentication, and basic usage.
-
-### Concepts
-
-Core concepts and components of the Wuying AgentBay SDK:
-
-- [Sessions](concepts/sessions.md): Understanding sessions in the AgentBay cloud environment.
-- [Contexts](concepts/contexts.md): Working with persistent storage contexts.
-- [Applications](concepts/applications.md): Managing applications and windows in the cloud environment.
-- [Code Execution](concepts/code-execution.md): Executing code snippets in various programming languages.
-
-### Guides
-
-Practical guides for using the SDK effectively:
-
-- [Authentication](guides/authentication.md): How to authenticate with the AgentBay SDK.
-
-### API Reference
-
-Detailed API reference documentation:
-
-- [AgentBay Class](api-reference/agentbay.md): The main entry point for interacting with the AgentBay cloud environment.
-- [Session Class](api-reference/session.md): Represents a session in the AgentBay cloud environment.
-- [FileSystem Class](api-reference/filesystem.md): Provides methods for file operations within a session.
-- [Command Class](api-reference/command.md): Provides methods for executing commands within a session.
-- [UI Class](api-reference/ui.md): Provides methods for interacting with UI elements in the cloud environment.
-- [OSS Class](api-reference/oss.md): Provides methods for object storage operations.
-- [Application Class](api-reference/application.md): Provides methods for managing applications in the cloud environment.
-- [Window Class](api-reference/window.md): Provides methods for managing windows in the cloud environment.
-
-## Supported Languages
-
-The Wuying AgentBay SDK is available in the following languages:
-
-- [Golang](../golang/README.md)
-- [Python](../python/README.md)
-- [TypeScript](../typescript/README.md)
-
-## Examples
-
-Example code demonstrating how to use the SDK:
-
-### Golang Examples
-
-- [Basic Usage](../golang/examples/basic_usage/README.md)
-- [Session Creation](../golang/examples/session_creation/README.md)
-- [Session Parameters](../golang/examples/session_params/README.md)
-- [Context Management](../golang/examples/context_management/README.md)
-- [Application Window](../golang/examples/application_window/README.md)
-- [Command Example](../golang/examples/command_example/README.md)
-- [Filesystem Example](../golang/examples/filesystem_example/README.md)
-
-### Python Examples
-
-- [Basic Usage](../python/examples/basic_usage.py)
-- [Session Parameters Usage](../python/examples/session_params_usage.py)
-- [Application Window](../python/examples/application_window/README.md)
-- [Label Management](../python/examples/label_management/README.md)
-- [Context Management](../python/examples/context_management/README.md)
-- [Session Creation](../python/examples/session_creation/README.md)
-- [OSS Management](../python/examples/oss_management/README.md)
-
-### TypeScript Examples
-
-- [Basic Usage](../typescript/examples/basic-usage.ts)
-- [Context Usage](../typescript/examples/context-usage.ts)
-- [Application Window](../typescript/examples/application-window/README.md)
-- [Context Management](../typescript/examples/context-management/README.md)
-- [Session Creation](../typescript/examples/session-creation/README.md)
-- [Label Management](../typescript/examples/label-management/README.md)
-- [Command Example](../typescript/examples/command-example/README.md)
-- [Filesystem Example](../typescript/examples/filesystem-example/README.md)
-- [UI Example](../typescript/examples/ui-example/README.md)
+Welcome to the documentation for the AgentBay SDK, a powerful toolkit for interacting with AgentBay cloud environment.
 
 ## Getting Started
 
-To get started with the Wuying AgentBay SDK, follow these steps:
+- [Getting Started Guide](getting-started.md): Installation, authentication, and basic usage
+- [Authentication Guide](guides/authentication.md): How to authenticate with the AgentBay API
 
-1. Install the SDK for your preferred language.
-2. Set up authentication with your API key.
-3. Create a session and start using the SDK features.
+## Tutorials
 
-For more detailed instructions, refer to the language-specific README files and examples.
+Our tutorials provide step-by-step instructions for using different features of the SDK:
+
+- [Session Management](tutorials/session-management.md): Create, list, and manage sessions
+- [Command Execution](tutorials/command-execution.md): Execute shell commands in the cloud environment
+- [Code Execution](tutorials/code-execution.md): Run Python and JavaScript code in the cloud environment
+- [File Operations](tutorials/file-operations.md): Work with files and directories in the cloud environment
+- [UI Interaction](tutorials/ui-interaction.md): Interact with UI elements and capture screenshots
+- [Window Management](tutorials/window-management.md): Manage application windows in the cloud environment
+- [OSS Integration](tutorials/oss-integration.md): Work with Object Storage Service (OSS)
+- [Application Management](tutorials/application-management.md): Launch and manage applications
+- [SDK Configuration](tutorials/sdk-configuration.md): Configure SDK settings for different environments
+- [Data Persistence](tutorials/data-persistence.md): Persist data across sessions using contexts
+
+## API Reference
+
+Detailed documentation for all classes and methods in the SDK:
+
+- [AgentBay](api-reference/agentbay.md): The main entry point for the SDK
+- [Session](api-reference/session.md): Represents a session in the cloud environment
+- [Command](api-reference/command.md): Execute commands in the cloud environment
+- [FileSystem](api-reference/filesystem.md): Work with files and directories
+- [UI](api-reference/ui.md): Interact with UI elements
+- [Window](api-reference/window.md): Manage application windows
+- [OSS](api-reference/oss.md): Work with Object Storage Service
+- [Application](api-reference/application.md): Launch and manage applications
+- [Context](api-reference/context.md): Manage persistent contexts
+- [ContextManager](api-reference/context-manager.md): Manage contexts within a session
+
+## Examples
+
+Code examples for different languages:
+
+- [Python Examples](examples/python): Basic usage, session creation, file operations, context management, and more
+- [TypeScript Examples](examples/typescript): Basic usage, session creation, context management, command execution, and more 
+- [Golang Examples](examples/golang): Basic usage, session creation, context management, command execution, and more
+
+## SDK Architecture
+
+The AgentBay SDK follows a client-service architecture:
+
+```
+AgentBay
+├── Session
+│   ├── FileSystem
+│   ├── Command
+│   ├── UI
+│   ├── Window
+│   ├── Application
+│   ├── OSS
+│   └── Context
+└── ContextService
+```
+
+1. The `AgentBay` class is the main entry point and client for the SDK
+2. Use `AgentBay` to create `Session` instances
+3. Each `Session` provides access to various services:
+   - `FileSystem`: File and directory operations
+   - `Command`: Command execution
+   - `UI`: UI interaction
+   - `Window`: Window management
+   - `Application`: Application management
+   - `OSS`: Object Storage Service
+   - `Context`: Context management within a session
+4. The `AgentBay` class also provides direct access to `ContextService` for managing persistent contexts
+
+## Feedback and Support
+
+If you encounter any issues or have questions about the SDK, please submit an issue on GitHub or contact our support team.

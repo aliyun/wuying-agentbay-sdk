@@ -13,6 +13,9 @@ type CreateSessionParams struct {
 	// ContextID is the ID of the context to bind to the session.
 	// The context can include various types of persistence like file system (volume) and cookies.
 	//
+	// Deprecated: This field is deprecated and will be removed in a future version.
+	// Please use ContextSync instead for more flexible and powerful data persistence.
+	//
 	// Important Limitations:
 	// 1. One session at a time: A context can only be used by one session at a time.
 	//    If you try to create a session with a context ID that is already in use by another active session,

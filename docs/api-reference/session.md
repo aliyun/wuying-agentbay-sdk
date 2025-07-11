@@ -1,44 +1,58 @@
 # Session Class API Reference
 
-The `Session` class represents a session in the AgentBay cloud environment. A session is a container for executing commands and manipulating files. Each session has its own isolated environment.
+The `Session` class represents a session in the AgentBay cloud environment. It provides methods for managing file systems, executing commands, and more.
 
 ## Properties
 
 ### Python
 
-- `session_id`: The ID of the session.
-- `resource_url`: The resource URL associated with the session.
-- `filesystem`: The FileSystem instance for this session.
-- `command`: The Command instance for this session.
-- `ui`: The UI instance for this session.
-- `application`: The Application instance for this session.
-- `window`: The Window instance for this session.
+```python
+agent_bay  # The AgentBay instance that created this session
+session_id  # The ID of this session
+resource_url  # The URL of the resource associated with this session
+file_system  # The FileSystem instance for this session
+command  # The Command instance for this session
+oss  # The Oss instance for this session
+application  # The ApplicationManager instance for this session
+window  # The WindowManager instance for this session
+ui  # The UI instance for this session
+context  # The ContextManager instance for this session
+```
 
 ### TypeScript
 
-- `sessionId`: The ID of the session.
-- `resourceUrl`: The resource URL associated with the session.
-- `filesystem`: The FileSystem instance for this session.
-- `command`: The Command instance for this session.
-- `ui`: The UI instance for this session.
-- `application`: The Application instance for this session.
-- `window`: The Window instance for this session.
+```typescript
+agentBay  // The AgentBay instance that created this session
+sessionId  // The ID of this session
+resourceUrl  // The URL of the resource associated with this session
+fileSystem  // The FileSystem instance for this session
+command  // The Command instance for this session
+oss  // The Oss instance for this session
+application  // The ApplicationManager instance for this session
+window  // The WindowManager instance for this session
+ui  // The UI instance for this session
+context  // The ContextManager instance for this session
+```
 
 ### Golang
 
-- `SessionID`: The ID of the session.
-- `ResourceUrl`: The resource URL associated with the session.
-- `FileSystem`: The FileSystem instance for this session.
-- `Command`: The Command instance for this session.
-- `UI`: The UI instance for this session.
-- `Application`: The Application instance for this session.
-- `Window`: The Window instance for this session.
+```go
+SessionID  // The ID of this session
+ResourceURL  // The URL of the resource associated with this session
+FileSystem  // The FileSystem instance for this session
+Command  // The Command instance for this session
+Oss  // The Oss instance for this session
+Application  // The ApplicationManager instance for this session
+Window  // The WindowManager instance for this session
+UI  // The UI instance for this session
+Context  // The ContextManager instance for this session
+```
 
 ## Methods
 
 ### delete / Delete
 
-Deletes the session.
+Deletes this session.
 
 #### Python
 
@@ -47,10 +61,30 @@ delete() -> DeleteResult
 ```
 
 **Returns:**
-- `DeleteResult`: A result object containing success status, request ID, and error message if the deletion failed.
+- `DeleteResult`: A result object containing success status, request ID, and error message if any.
 
-**Note:**
-The return type has been updated to return a structured `DeleteResult` object instead of a boolean value. This provides more detailed information about the operation result.
+**Example:**
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create a session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+    print(f"Session created with ID: {session.session_id}")
+    
+    # Use the session...
+    
+    # Delete the session when done
+    delete_result = session.delete()
+    if delete_result.success:
+        print(f"Session deleted successfully")
+    else:
+        print(f"Failed to delete session: {delete_result.error_message}")
+```
 
 #### TypeScript
 
@@ -59,13 +93,40 @@ delete(): Promise<DeleteResult>
 ```
 
 **Returns:**
-- `Promise<DeleteResult>`: A promise that resolves to a DeleteResult object containing:
-  - `requestId` (string): Unique request identifier for debugging
-  - `success` (boolean): Whether the deletion was successful
-  - `errorMessage` (string, optional): Error message if the deletion failed
+- `Promise<DeleteResult>`: A promise that resolves to a result object containing success status, request ID, and error message if any.
 
-**Throws:**
-- `APIError`: If the session deletion fails.
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// Initialize the SDK
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Create and delete a session
+async function createAndDeleteSession() {
+  try {
+    const result = await agentBay.create();
+    if (result.success) {
+      const session = result.session;
+      console.log(`Created session with ID: ${session.sessionId}`);
+      
+      // Use the session...
+      
+      // Delete the session when done
+      const deleteResult = await session.delete();
+      if (deleteResult.success) {
+        console.log('Session deleted successfully');
+      } else {
+        console.log(`Failed to delete session: ${deleteResult.errorMessage}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+createAndDeleteSession();
+```
 
 #### Golang
 
@@ -77,17 +138,52 @@ Delete() (*DeleteResult, error)
 - `*DeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the session deletion fails.
 
-**DeleteResult Structure:**
+**Example:**
 ```go
-type DeleteResult struct {
-    RequestID string // Unique request identifier for debugging
-    Success   bool   // Whether the deletion was successful
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create a session
+	createResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	session := createResult.Session
+	fmt.Printf("Created session with ID: %s\n", session.SessionID)
+	
+	// Use the session...
+	
+	// Delete the session when done
+	deleteResult, err := session.Delete()
+	if err != nil {
+		fmt.Printf("Error deleting session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	fmt.Println("Session deleted successfully")
+	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
 }
 ```
 
 ### set_labels / setLabels / SetLabels
 
-Sets labels for the session. Labels are key-value pairs that can be used to categorize and filter sessions.
+Sets labels for this session.
 
 #### Python
 
@@ -96,41 +192,150 @@ set_labels(labels: Dict[str, str]) -> OperationResult
 ```
 
 **Parameters:**
-- `labels` (Dict[str, str]): A dictionary of labels to set for the session.
+- `labels` (Dict[str, str]): Key-value pairs representing the labels to set.
 
 **Returns:**
 - `OperationResult`: A result object containing success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If setting the labels fails due to API errors or other issues.
+- `SessionError`: If the operation fails.
+
+**Example:**
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create a session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+    
+    # Set labels for the session
+    labels = {
+        "project": "demo",
+        "environment": "testing",
+        "owner": "user123"
+    }
+    
+    label_result = session.set_labels(labels)
+    if label_result.success:
+        print(f"Labels set successfully, request ID: {label_result.request_id}")
+    else:
+        print(f"Failed to set labels: {label_result.error_message}")
+```
 
 #### TypeScript
 
 ```typescript
-setLabels(labels: Record<string, string>): Promise<void>
+setLabels(labels: Record<string, string>): Promise<OperationResult>
 ```
 
 **Parameters:**
-- `labels` (Record<string, string>): An object of labels to set for the session.
+- `labels` (Record<string, string>): Key-value pairs representing the labels to set.
 
-**Throws:**
-- `APIError`: If setting the labels fails.
+**Returns:**
+- `Promise<OperationResult>`: A promise that resolves to a result object containing success status, request ID, and error message if any.
+
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// Initialize the SDK
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Create a session and set labels
+async function setSessionLabels() {
+  try {
+    const result = await agentBay.create();
+    if (result.success) {
+      const session = result.session;
+      
+      // Set labels for the session
+      const labels = {
+        project: 'demo',
+        environment: 'testing',
+        owner: 'user123'
+      };
+      
+      const labelResult = await session.setLabels(labels);
+      if (labelResult.success) {
+        console.log(`Labels set successfully, request ID: ${labelResult.requestId}`);
+      } else {
+        console.log(`Failed to set labels: ${labelResult.errorMessage}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+setSessionLabels();
+```
 
 #### Golang
 
 ```go
-SetLabels(labels map[string]string) error
+SetLabels(labels map[string]string) (*OperationResult, error)
 ```
 
 **Parameters:**
-- `labels` (map[string]string): A map of labels to set for the session.
+- `labels` (map[string]string): Key-value pairs representing the labels to set.
 
 **Returns:**
-- `error`: An error if setting the labels fails.
+- `*OperationResult`: A result object containing success status and RequestID.
+- `error`: An error if the operation fails.
+
+**Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create a session
+	createResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	session := createResult.Session
+	
+	// Set labels for the session
+	labels := map[string]string{
+		"project":     "demo",
+		"environment": "testing",
+		"owner":       "user123",
+	}
+	
+	labelResult, err := session.SetLabels(labels)
+	if err != nil {
+		fmt.Printf("Error setting labels: %v\n", err)
+		os.Exit(1)
+	}
+	
+	fmt.Println("Labels set successfully")
+	fmt.Printf("Request ID: %s\n", labelResult.RequestID)
+}
+```
 
 ### get_labels / getLabels / GetLabels
 
-Gets the labels for the session.
+Gets the labels for this session.
 
 #### Python
 
@@ -142,33 +347,307 @@ get_labels() -> OperationResult
 - `OperationResult`: A result object containing the labels as data, success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If getting the labels fails due to API errors or other issues.
+- `SessionError`: If the operation fails.
+
+**Example:**
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create a session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+    
+    # Set some labels first
+    session.set_labels({"project": "demo", "environment": "testing"})
+    
+    # Get the labels
+    label_result = session.get_labels()
+    if label_result.success:
+        labels = label_result.data
+        print(f"Session labels:")
+        for key, value in labels.items():
+            print(f"  {key}: {value}")
+        print(f"Request ID: {label_result.request_id}")
+    else:
+        print(f"Failed to get labels: {label_result.error_message}")
+```
 
 #### TypeScript
 
 ```typescript
-getLabels(): Promise<Record<string, string>>
+getLabels(): Promise<OperationResult>
 ```
 
 **Returns:**
-- `Promise<Record<string, string>>`: A promise that resolves to an object of labels for the session.
+- `Promise<OperationResult>`: A promise that resolves to a result object containing the labels as data, success status, request ID, and error message if any.
 
-**Throws:**
-- `APIError`: If getting the labels fails.
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// Initialize the SDK
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Create a session and get labels
+async function getSessionLabels() {
+  try {
+    const result = await agentBay.create();
+    if (result.success) {
+      const session = result.session;
+      
+      // Set some labels first
+      await session.setLabels({
+        project: 'demo', 
+        environment: 'testing'
+      });
+      
+      // Get the labels
+      const labelResult = await session.getLabels();
+      if (labelResult.success) {
+        const labels = labelResult.data;
+        console.log('Session labels:');
+        Object.entries(labels).forEach(([key, value]) => {
+          console.log(`  ${key}: ${value}`);
+        });
+        console.log(`Request ID: ${labelResult.requestId}`);
+      } else {
+        console.log(`Failed to get labels: ${labelResult.errorMessage}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+getSessionLabels();
+```
 
 #### Golang
 
 ```go
-GetLabels() (map[string]string, error)
+GetLabels() (*OperationResult, error)
 ```
 
 **Returns:**
-- `map[string]string`: A map of labels for the session.
-- `error`: An error if getting the labels fails.
+- `*OperationResult`: A result object containing the labels as data, success status, and RequestID.
+- `error`: An error if the operation fails.
+
+**Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create a session
+	createResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	session := createResult.Session
+	
+	// Set some labels first
+	labels := map[string]string{
+		"project":     "demo",
+		"environment": "testing",
+	}
+	_, err = session.SetLabels(labels)
+	if err != nil {
+		fmt.Printf("Error setting labels: %v\n", err)
+		os.Exit(1)
+	}
+	
+	// Get the labels
+	labelResult, err := session.GetLabels()
+	if err != nil {
+		fmt.Printf("Error getting labels: %v\n", err)
+		os.Exit(1)
+	}
+	
+	// The data is returned as an interface{}, convert it to map[string]string
+	labelsData, ok := labelResult.Data.(map[string]string)
+	if !ok {
+		fmt.Println("Error: Labels data is not in expected format")
+		os.Exit(1)
+	}
+	
+	fmt.Println("Session labels:")
+	for key, value := range labelsData {
+		fmt.Printf("  %s: %s\n", key, value)
+	}
+	fmt.Printf("Request ID: %s\n", labelResult.RequestID)
+}
+```
+
+### info / Info
+
+Gets information about this session.
+
+#### Python
+
+```python
+info() -> OperationResult
+```
+
+**Returns:**
+- `OperationResult`: A result object containing the session information as data, success status, request ID, and error message if any.
+
+**Raises:**
+- `SessionError`: If the operation fails.
+
+**Example:**
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create a session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+    
+    # Get session information
+    info_result = session.info()
+    if info_result.success:
+        session_info = info_result.data
+        print(f"Session Information:")
+        print(f"  Session ID: {session_info.session_id}")
+        print(f"  Resource URL: {session_info.resource_url}")
+        print(f"  Resource ID: {session_info.resource_id}")
+        print(f"  Resource Type: {session_info.resource_type}")
+        print(f"Request ID: {info_result.request_id}")
+    else:
+        print(f"Failed to get session info: {info_result.error_message}")
+```
+
+#### TypeScript
+
+```typescript
+info(): Promise<OperationResult>
+```
+
+**Returns:**
+- `Promise<OperationResult>`: A promise that resolves to a result object containing the session information as data, success status, request ID, and error message if any.
+
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// Initialize the SDK
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Create a session and get info
+async function getSessionInfo() {
+  try {
+    const result = await agentBay.create();
+    if (result.success) {
+      const session = result.session;
+      
+      // Get session information
+      const infoResult = await session.info();
+      if (infoResult.success) {
+        const sessionInfo = infoResult.data;
+        console.log('Session Information:');
+        console.log(`  Session ID: ${sessionInfo.sessionId}`);
+        console.log(`  Resource URL: ${sessionInfo.resourceUrl}`);
+        console.log(`  Resource ID: ${sessionInfo.resourceId}`);
+        console.log(`  Resource Type: ${sessionInfo.resourceType}`);
+        console.log(`Request ID: ${infoResult.requestId}`);
+      } else {
+        console.log(`Failed to get session info: ${infoResult.errorMessage}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+getSessionInfo();
+```
+
+#### Golang
+
+```go
+Info() (*OperationResult, error)
+```
+
+**Returns:**
+- `*OperationResult`: A result object containing the session information as data, success status, and RequestID.
+- `error`: An error if the operation fails.
+
+**Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create a session
+	createResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	session := createResult.Session
+	
+	// Get session information
+	infoResult, err := session.Info()
+	if err != nil {
+		fmt.Printf("Error getting session info: %v\n", err)
+		os.Exit(1)
+	}
+	
+	// The data is returned as an interface{}, convert it to SessionInfo
+	sessionInfo, ok := infoResult.Data.(*agentbay.SessionInfo)
+	if !ok {
+		fmt.Println("Error: Session info data is not in expected format")
+		os.Exit(1)
+	}
+	
+	fmt.Println("Session Information:")
+	fmt.Printf("  Session ID: %s\n", sessionInfo.SessionID)
+	fmt.Printf("  Resource URL: %s\n", sessionInfo.ResourceURL)
+	fmt.Printf("  Resource ID: %s\n", sessionInfo.ResourceID)
+	fmt.Printf("  Resource Type: %s\n", sessionInfo.ResourceType)
+	fmt.Printf("Request ID: %s\n", infoResult.RequestID)
+}
+```
 
 ### get_link / getLink / GetLink
 
-Gets the public link for the session which can be used to access the session from a browser.
+Gets a link to access the session via the specified protocol and port.
 
 #### Python
 
@@ -177,89 +656,148 @@ get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> Ope
 ```
 
 **Parameters:**
-- `protocol_type` (str, optional): The protocol type for the link (e.g., "http", "https").
-- `port` (int, optional): The port number for the link.
+- `protocol_type` (str, optional): The protocol type for the link (e.g., "http", "https", "ssh"). If None, the default protocol is used.
+- `port` (int, optional): The port number for the link. If None, the default port for the protocol is used.
 
 **Returns:**
-- `OperationResult`: A result object containing the link as data, success status, request ID, and error message if any.
+- `OperationResult`: A result object containing the link information as data, success status, request ID, and error message if any.
 
 **Raises:**
-- `AgentBayError`: If getting the link fails due to API errors or other issues.
+- `SessionError`: If the operation fails.
 
-#### TypeScript
-
-```typescript
-getLink(): Promise<string>
-```
-
-**Returns:**
-- `Promise<string>`: A promise that resolves to the link for the session.
-
-**Throws:**
-- `APIError`: If getting the link fails.
-
-#### Golang
-
-```go
-GetLink() (string, error)
-```
-
-**Returns:**
-- `string`: The link for the session.
-- `error`: An error if getting the link fails.
-
-### info / Info
-
-Gets information about the session, including the session ID, resource URL, and desktop information.
-
-#### Python
-
+**Example:**
 ```python
-info() -> Dict[str, Any]
+from agentbay import AgentBay
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create a session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+    
+    # Get an HTTP link on port 8080
+    link_result = session.get_link(protocol_type="http", port=8080)
+    if link_result.success:
+        link_info = link_result.data
+        print(f"Link Information:")
+        print(f"  URL: {link_info.url}")
+        print(f"  Connection string: {link_info.connection_string}")
+        print(f"Request ID: {link_result.request_id}")
+    else:
+        print(f"Failed to get link: {link_result.error_message}")
 ```
-
-**Returns:**
-- `Dict[str, Any]`: A dictionary containing information about the session, with the following keys:
-  - `session_id` (str): The ID of the session.
-  - `resource_url` (str): The resource URL associated with the session.
-  - `app_id` (str, optional): The application ID associated with the desktop.
-  - `auth_code` (str, optional): The authentication code for the desktop.
-  - `connection_properties` (str, optional): Connection properties for the desktop.
-  - `resource_id` (str, optional): The resource ID of the desktop.
-  - `resource_type` (str, optional): The type of the desktop resource.
-
-**Raises:**
-- `AgentBayError`: If getting the session information fails.
 
 #### TypeScript
 
 ```typescript
-info(): Promise<{
-  sessionId: string;
-  resourceUrl: string;
-  appId?: string;
-  authCode?: string;
-  connectionProperties?: string;
-  resourceId?: string;
-  resourceType?: string;
-}>
+getLink(protocolType?: string, port?: number): Promise<OperationResult>
 ```
 
-**Returns:**
-- `Promise<SessionInfo>`: A promise that resolves to an object containing information about the session.
+**Parameters:**
+- `protocolType` (string, optional): The protocol type for the link (e.g., "http", "https", "ssh"). If not provided, the default protocol is used.
+- `port` (number, optional): The port number for the link. If not provided, the default port for the protocol is used.
 
-**Throws:**
-- `APIError`: If getting the session information fails.
+**Returns:**
+- `Promise<OperationResult>`: A promise that resolves to a result object containing the link information as data, success status, request ID, and error message if any.
+
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// Initialize the SDK
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Create a session and get link
+async function getSessionLink() {
+  try {
+    const result = await agentBay.create();
+    if (result.success) {
+      const session = result.session;
+      
+      // Get an HTTP link on port 8080
+      const linkResult = await session.getLink('http', 8080);
+      if (linkResult.success) {
+        const linkInfo = linkResult.data;
+        console.log('Link Information:');
+        console.log(`  URL: ${linkInfo.url}`);
+        console.log(`  Connection string: ${linkInfo.connectionString}`);
+        console.log(`Request ID: ${linkResult.requestId}`);
+      } else {
+        console.log(`Failed to get link: ${linkResult.errorMessage}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+getSessionLink();
+```
 
 #### Golang
 
 ```go
-Info() (*SessionInfo, error)
+GetLink(protocolType string, port int) (*OperationResult, error)
 ```
 
+**Parameters:**
+- `protocolType` (string): The protocol type for the link (e.g., "http", "https", "ssh"). If empty, the default protocol is used.
+- `port` (int): The port number for the link. If 0, the default port for the protocol is used.
+
 **Returns:**
-- `*SessionInfo`: An object containing information about the session.
-- `error`: An error if getting the session information fails.
+- `*OperationResult`: A result object containing the link information as data, success status, and RequestID.
+- `error`: An error if the operation fails.
+
+**Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create a session
+	createResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	
+	session := createResult.Session
+	
+	// Get an HTTP link on port 8080
+	linkResult, err := session.GetLink("http", 8080)
+	if err != nil {
+		fmt.Printf("Error getting session link: %v\n", err)
+		os.Exit(1)
+	}
+	
+	// The data is returned as an interface{}, convert it to LinkInfo
+	linkInfo, ok := linkResult.Data.(*agentbay.LinkInfo)
+	if !ok {
+		fmt.Println("Error: Link info data is not in expected format")
+		os.Exit(1)
+	}
+	
+	fmt.Println("Link Information:")
+	fmt.Printf("  URL: %s\n", linkInfo.URL)
+	fmt.Printf("  Connection string: %s\n", linkInfo.ConnectionString)
+	fmt.Printf("Request ID: %s\n", linkResult.RequestID)
+}
+```
 
 ## Related Classes
 

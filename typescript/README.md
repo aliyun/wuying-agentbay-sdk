@@ -44,28 +44,21 @@ npm install wuying-agentbay-sdk
 
 ## Examples
 
-The SDK includes several examples demonstrating various features:
+You can find examples in the `docs/examples/typescript` directory, including:
 
-- **basic-usage.ts**: Basic SDK usage
-- **context-usage.ts**: Context creation and management
-- **command-example/**: Command execution examples
-- **filesystem-example/**: File system operation examples
-- **ui-example/**: UI interaction examples
-- **application-mobile/**: Mobile application management
-- **application-window/**: Window and application management
-- **label-management/**: Session label management
-- **session-params/**: Session parameter examples
-- **session-creation/**: Session creation examples
-- **context-management/**: Context management examples
+- Basic SDK usage
+- Context management
+- Command execution
+- File system operations
+- UI interaction
+- Application management
+- Window management
+- Session management
 
-## Running Examples
-
-You can run the example files using ts-node:
+To run the examples:
 
 ```bash
-npx ts-node examples/basic-usage.ts
-npx ts-node examples/command-example/command-example.ts
-npx ts-node examples/filesystem-example/filesystem-example.ts
+npx ts-node docs/examples/typescript/basic-usage.ts
 ```
 
 ## TypeScript-Specific Usage
@@ -77,185 +70,116 @@ async function main() {
   // Initialize with API key
   const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-  try {
-    // Create a session with optional parameters
-    const createResponse = await agentBay.create({
-      imageId: 'linux_latest',  // Optional: specify the image to use
-      contextId: 'your_context_id',  // Optional: bind to an existing context
-      labels: {
-        purpose: 'demo',
-        environment: 'development'
-      }
-    });
-    const session = createResponse.session;
-    console.log(`Session created with ID: ${session.sessionId}`);
-    console.log(`Request ID: ${createResponse.requestId}`);
-
-    // Execute a command
-    const commandResponse = await session.command.executeCommand('ls -la');
-    console.log(`Command result: ${commandResponse.output}`);
-    console.log(`Request ID: ${commandResponse.requestId}`);
-
-    // Read a file
-    const fileResponse = await session.fileSystem.readFile('/etc/hosts');
-    console.log(`File content: ${fileResponse.content}`);
-    console.log(`Request ID: ${fileResponse.requestId}`);
-
-    // Write a file
-    const writeResponse = await session.fileSystem.writeFile('/tmp/test.txt', 'Hello World');
-    console.log(`Write file success: ${writeResponse.success}`);
-    console.log(`Write file Request ID: ${writeResponse.requestId}`);
-
-    // Run code
-    const pythonCode = `
-import os
-import platform
-
-print(f"Current working directory: {os.getcwd()}")
-print(f"Python version: {platform.python_version()}")
-`;
-    const codeResponse = await session.command.runCode(pythonCode, 'python');
-    console.log(`Code execution result: ${codeResponse.result}`);
-    console.log(`Request ID: ${codeResponse.requestId}`);
-
-    // Get installed applications
-    const appsResponse = await session.application.getInstalledApps(true, false, true);
-    console.log(`Found ${appsResponse.data.length} installed applications`);
-    console.log(`Request ID: ${appsResponse.requestId}`);
-
-    // List visible applications
-    const processesResponse = await session.application.listVisibleApps();
-    console.log(`Found ${processesResponse.data.length} visible applications`);
-    console.log(`Request ID: ${processesResponse.requestId}`);
-
-    // List root windows
-    const windowsResponse = await session.window.listRootWindows();
-    console.log(`Found ${windowsResponse.windows.length} root windows`);
-    console.log(`Request ID: ${windowsResponse.requestId}`);
-
-    // Get active window
-    const activeWindowResponse = await session.window.getActiveWindow();
-    if (activeWindowResponse.window) {
-      console.log(`Active window: ${activeWindowResponse.window.title}`);
+  // Create a session with optional parameters
+  const createResponse = await agentBay.create({
+    imageId: 'linux_latest',  // Optional: specify the image to use
+    contextId: 'your_context_id',  // Optional: bind to an existing context
+    labels: {
+      purpose: 'demo',
+      environment: 'development'
     }
-    console.log(`Request ID: ${activeWindowResponse.requestId}`);
-
-    // Take a screenshot
-    const screenshotResponse = await session.ui.screenshot();
-    console.log(`Screenshot data length: ${screenshotResponse.data.length} characters`);
-    console.log(`Request ID: ${screenshotResponse.requestId}`);
-
-    // Get session link
-    const linkResponse = await session.getLink();
-    console.log(`Session link: ${linkResponse.data}`);
-    console.log(`Request ID: ${linkResponse.requestId}`);
-
-    // Set session labels
-    const setLabelsResponse = await session.setLabels({
-      environment: 'production',
-      version: '1.0.0'
-    });
-    console.log(`Set labels Request ID: ${setLabelsResponse.requestId}`);
-
-    // Get session labels
-    const labelsResponse = await session.getLabels();
-    console.log(`Session labels: ${JSON.stringify(labelsResponse.labels)}`);
-    console.log(`Request ID: ${labelsResponse.requestId}`);
-
-    // Get session info
-    const infoResponse = await session.info();
-    console.log(`Session info: ${JSON.stringify(infoResponse.data)}`);
-    console.log(`Request ID: ${infoResponse.requestId}`);
-
-    // List sessions by labels with pagination support
-    const listParams: ListSessionParams = {
-      labels: {
-        purpose: 'demo'
-      },
-      maxResults: 10,
-      // nextToken: 'your_next_token'  // Optional: for pagination
-    };
-    const filteredSessionsResponse = await agentBay.listByLabels(listParams);
-    console.log(`Found ${filteredSessionsResponse.sessions.length} matching sessions`);
-    console.log(`Total count: ${filteredSessionsResponse.totalCount}`);
-    console.log(`Request ID: ${filteredSessionsResponse.requestId}`);
-
-    // Handle pagination if needed
-    if (filteredSessionsResponse.nextToken) {
-      const nextPageParams: ListSessionParams = {
-        ...listParams,
-        nextToken: filteredSessionsResponse.nextToken
-      };
-      const nextPageResponse = await agentBay.listByLabels(nextPageParams);
-      console.log(`Next page sessions: ${nextPageResponse.sessions.length}`);
-    }
-
-    // Access context service
-    const contextResponse = await agentBay.context.list();
-    console.log(`Available contexts: ${contextResponse.contexts.length}`);
-    console.log(`Request ID: ${contextResponse.requestId}`);
-
-    // Clean up
-    const deleteResponse = await agentBay.delete(session);
-    console.log('Session deleted successfully');
-    console.log(`Request ID: ${deleteResponse.requestId}`);
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  });
+  const session = createResponse.session;
+  
+  // Execute a command
+  const commandResponse = await session.command.executeCommand('ls -la');
+  
+  // Run code
+  const codeResponse = await session.command.runCode('print("Hello World")', 'python');
+  
+  // File operations
+  const fileContent = await session.fileSystem.readFile('/etc/hosts');
+  await session.fileSystem.writeFile('/tmp/test.txt', 'Hello World');
+  
+  // UI operations
+  const screenshot = await session.ui.screenshot();
+  
+  // Application management
+  const installedApps = await session.application.getInstalledApps(true, false, true);
+  const visibleApps = await session.application.listVisibleApps();
+  
+  // Window management
+  const windows = await session.window.listRootWindows();
+  const activeWindow = await session.window.getActiveWindow();
+  
+  // Session management
+  await session.setLabels({ environment: 'production' });
+  const labels = await session.getLabels();
+  const info = await session.info();
+  
+  // Context management
+  const contexts = await agentBay.context.list();
+  
+  // Clean up
+  await agentBay.delete(session);
 }
-
-main();
 ```
 
 ## Key Features
 
-### API Response Format
-
-All API methods return responses in the following format:
-```typescript
-interface ApiResponse {
-  requestId: string;
-  success: boolean;
-}
-
-// Different response types based on the operation
-interface SessionResult extends ApiResponse {
-  session: Session;
-}
-
-interface CommandResult extends ApiResponse {
-  output: string;
-}
-
-interface CodeExecutionResult extends ApiResponse {
-  result: string;
-}
-
-interface FileContentResult extends ApiResponse {
-  content: string;
-}
-```
-
 ### Session Management
 
-- **Create sessions** with optional `imageId`, `contextId`, and `labels`
-- **List sessions** with pagination support using `ListSessionParams`
-- **Delete sessions** and clean up resources
-- **Manage session labels** with `setLabels()` and `getLabels()`
-- **Get session information** with `info()` method
-- **Get session link** with `getLink()` method
+- Create sessions with optional parameters (imageId, contextId, labels)
+- List sessions with pagination and filtering by labels
+- Delete sessions and clean up resources
+- Manage session labels
+- Get session information and links
 
-### Available Session Modules
+### Command Execution
 
-- `session.fileSystem` - File system operations (note: camelCase)
-- `session.command` - Command execution and code running
-- `session.oss` - Object Storage Service operations
-- `session.application` - Application management (note: lowercase)
-- `session.window` - Window management
-- `session.ui` - UI interactions including screenshots
+- Execute shell commands
+- Run code in various languages
+- Get command output and execution status
+
+### File System Operations
+
+- Read and write files
+- List directory contents
+- Create and delete files and directories
+- Get file information
+
+### UI Interaction
+
+- Take screenshots
+- Find UI elements by criteria
+- Click on UI elements
+- Send text input
+- Perform swipe gestures
+- Send key events
+
+### Application Management
+
+- Get installed applications
+- List running applications
+- Start and stop applications
+- Get application information
+
+### Window Management
+
+- List windows
+- Get active window
+- Focus, resize, and move windows
+- Get window properties
 
 ### Context Management
 
-The SDK provides a context service accessible via `agentBay.context` for managing persistent contexts across sessions.
+- Create, list, and delete contexts
+- Bind sessions to contexts
+- Synchronize context data
+- Get context information
 
-For more detailed documentation, please refer to the main [README](../README.md) and [SDK Documentation](../docs/README.md) in the project root.
+### OSS Integration
+
+- Upload files to OSS
+- Download files from OSS
+- Initialize OSS environment
+
+## Response Format
+
+All API methods return responses that include:
+
+- `requestId`: A unique identifier for the request
+- `success`: A boolean indicating whether the operation was successful
+- Operation-specific data (varies by method)
+
+For more detailed documentation, refer to the [SDK Documentation](../docs/README.md).

@@ -42,7 +42,14 @@ npm install wuying-agentbay-sdk
 go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 ```
 
-## 使用方法
+## 准备工作
+
+在使用 SDK 之前，您需要：
+
+1. 在 [https://aliyun.com](https://aliyun.com) 注册阿里云账号
+2. 在 [AgentBay 控制台](https://agentbay.console.aliyun.com/service-management) 注册 API 密钥
+
+## 快速开始
 
 ### Python
 

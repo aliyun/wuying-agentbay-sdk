@@ -42,7 +42,14 @@ npm install wuying-agentbay-sdk
 go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 ```
 
-## Usage
+## Preparation
+
+Before using the SDK, you need to:
+
+1. Register an Alibaba Cloud account at [https://aliyun.com](https://aliyun.com)
+2. Register an API key at [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+
+## Quick Start
 
 ### Python
 

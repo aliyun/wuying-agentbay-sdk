@@ -2,17 +2,6 @@
 
 This directory contains the Golang implementation of the Wuying AgentBay SDK.
 
-## Version
-
-**Current Version:** 0.3.0
-
-## Authors
-
-- **Organization:** Alibaba Group
-- **Team:** Wuying AI Team
-- **Email:** wuying-ai-team@alibabacloud.com
-- **Website:** https://github.com/aliyun/wuying-agentbay-sdk
-
 ## Prerequisites
 
 - Go 1.18 or later
@@ -36,10 +25,21 @@ go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 
 ## Running Examples
 
-You can run the example file:
+You can find examples in the `docs/examples/golang` directory, including:
+
+- Basic SDK usage
+- Application window management
+- Command execution
+- Context management
+- Context synchronization
+- File system operations
+- Session parameter configuration
+- UI interaction
+
+To run the examples:
 
 ```bash
-go run examples/basic_usage.go
+go run docs/examples/golang/basic_usage/main.go
 ```
 
 ## Golang-Specific Usage
@@ -61,57 +61,144 @@ func main() {
 		apiKey = "your_api_key" // Replace with your actual API key
 	}
 
+	// Create client with configuration options
 	client, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Create a session
-	session, err := client.Create()
+	// Create a session with parameters
+	params := agentbay.NewCreateSessionParams()
+	params.ImageId = "linux_latest"
+	params.Labels = map[string]string{
+		"purpose": "demo",
+		"environment": "development",
+	}
+	
+	session, err := client.Create(params)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Session created with ID: %s\n", session.SessionID)
-
+	
 	// Execute a command
-	result, err := session.Command.ExecuteCommand("ls -la")
+	commandResult, err := session.Session.Command.ExecuteCommand("ls -la")
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Command result: %s\n", result)
-
-	// Run code
-	pythonCode := `
-print("Hello, World!")
-print(1 + 1)
-`
-	codeResult, err := session.Command.RunCode(pythonCode, "python")
-	if err != nil {
-		fmt.Printf("Error running code: %v\n", err)
-		os.Exit(1)
-	}
-	fmt.Printf("Code execution result: %s\n", codeResult)
-
-	// Read a file
-	content, err := session.FileSystem.ReadFile("/path/to/file.txt")
+	
+	// File system operations
+	fileContent, err := session.Session.FileSystem.ReadFile("/etc/hosts")
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
-		os.Exit(1)
 	}
-	fmt.Printf("File content: %s\n", content)
-
+	
+	// Run code
+	codeResult, err := session.Session.Command.RunCode("print('Hello, World!')", "python")
+	if err != nil {
+		fmt.Printf("Error running code: %v\n", err)
+	}
+	
+	// Application management
+	appsResult, err := session.Session.Application.GetInstalledApps(true, false, true)
+	if err != nil {
+		fmt.Printf("Error getting installed apps: %v\n", err)
+	}
+	
+	// Window management
+	windowsResult, err := session.Session.Window.ListRootWindows()
+	if err != nil {
+		fmt.Printf("Error listing windows: %v\n", err)
+	}
+	
+	// UI operations
+	screenshotResult, err := session.Session.UI.Screenshot()
+	if err != nil {
+		fmt.Printf("Error taking screenshot: %v\n", err)
+	}
+	
+	// Context management
+	contextsResult, err := client.Context.List()
+	if err != nil {
+		fmt.Printf("Error listing contexts: %v\n", err)
+	}
+	
 	// Clean up
-	err = client.Delete(session)
+	err = client.Delete(session.Session)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
-		os.Exit(1)
 	}
-	fmt.Println("Session deleted successfully")
 }
 ```
+
+## Key Features
+
+### Session Management
+
+- Create sessions with optional parameters (ImageId, ContextID, Labels)
+- List sessions with pagination and filtering by labels
+- Delete sessions and clean up resources
+- Manage session labels
+- Get session information and links
+
+### Command Execution
+
+- Execute shell commands
+- Run code in various languages
+- Get command output and execution status
+
+### File System Operations
+
+- Read and write files
+- List directory contents
+- Create and delete files and directories
+- Get file information
+
+### UI Interaction
+
+- Take screenshots
+- Find UI elements by criteria
+- Click on UI elements
+- Send text input
+- Perform swipe gestures
+- Send key events (HOME, BACK, MENU, etc.)
+
+### Application Management
+
+- Get installed applications
+- List running applications
+- Start and stop applications
+- Get application information
+
+### Window Management
+
+- List windows
+- Get active window
+- Focus, resize, and move windows
+- Get window properties
+
+### Context Management
+
+- Create, list, and delete contexts
+- Bind sessions to contexts
+- Synchronize context data using policies
+- Get context information
+
+### OSS Integration
+
+- Upload files to OSS
+- Download files from OSS
+- Initialize OSS environment
+
+## Response Format
+
+All API methods return responses that include:
+
+- RequestID: A unique identifier for the request
+- ApiResponse embedded structure that tracks success/failure
+- Operation-specific data (varies by method)
 
 ## Development
 
@@ -127,4 +214,4 @@ go build ./...
 go test ./...
 ```
 
-For more detailed documentation, please refer to the main [README](../README.md) and [SDK Documentation](../docs/README.md) in the project root.
+For more detailed documentation, refer to the [SDK Documentation](../docs/README.md).
