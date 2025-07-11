@@ -1,14 +1,13 @@
 // This file is auto-generated, don't edit it
 import * as $dara from '@darabonba/typescript';
-import * as OpenApiDefault from "@alicloud/openapi-core";
+import OpenApi from '@alicloud/openapi-core';
 import { OpenApiUtil, $OpenApiUtil }from '@alicloud/openapi-core';
 
-const OpenApi = OpenApiDefault.default || OpenApiDefault;
 
 import * as $_model from './models/model';
 export * from './models/model';
 
-export class Client extends OpenApi {
+export default class Client extends OpenApi {
 
   constructor(config: $OpenApiUtil.Config) {
     super(config);
@@ -33,14 +32,14 @@ export class Client extends OpenApi {
 
   /**
    * 获取MQTT Token
-   *
+   * 
    * @param request - ApplyMqttTokenRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ApplyMqttTokenResponse
    */
   async applyMqttTokenWithOptions(request: $_model.ApplyMqttTokenRequest, runtime: $dara.RuntimeOptions): Promise<$_model.ApplyMqttTokenResponse> {
     request.validate();
-    let query : {[key: string ]: any} = { };
+    let query = { };
     if (!$dara.isNull(request.desktopId)) {
       query["DesktopId"] = request.desktopId;
     }
@@ -68,7 +67,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取MQTT Token
-   *
+   * 
    * @param request - ApplyMqttTokenRequest
    * @returns ApplyMqttTokenResponse
    */
@@ -79,7 +78,7 @@ export class Client extends OpenApi {
 
   /**
    * 调用mcp工具
-   *
+   * 
    * @param request - CallMcpToolRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns CallMcpToolResponse
@@ -138,7 +137,7 @@ export class Client extends OpenApi {
 
   /**
    * 调用mcp工具
-   *
+   * 
    * @param request - CallMcpToolRequest
    * @returns CallMcpToolResponse
    */
@@ -149,7 +148,7 @@ export class Client extends OpenApi {
 
   /**
    * 创建 mcp session
-   *
+   * 
    * @param tmpReq - CreateMcpSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns CreateMcpSessionResponse
@@ -210,7 +209,7 @@ export class Client extends OpenApi {
 
   /**
    * 创建 mcp session
-   *
+   * 
    * @param request - CreateMcpSessionRequest
    * @returns CreateMcpSessionResponse
    */
@@ -221,7 +220,7 @@ export class Client extends OpenApi {
 
   /**
    * 删除持久化上下文
-   *
+   * 
    * @param request - DeleteContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns DeleteContextResponse
@@ -256,7 +255,7 @@ export class Client extends OpenApi {
 
   /**
    * 删除持久化上下文
-   *
+   * 
    * @param request - DeleteContextRequest
    * @returns DeleteContextResponse
    */
@@ -267,7 +266,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文
-   *
+   * 
    * @param request - GetContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns GetContextResponse
@@ -306,7 +305,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文
-   *
+   * 
    * @param request - GetContextRequest
    * @returns GetContextResponse
    */
@@ -317,7 +316,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文信息
-   *
+   * 
    * @param request - GetContextInfoRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns GetContextInfoResponse
@@ -364,7 +363,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文信息
-   *
+   * 
    * @param request - GetContextInfoRequest
    * @returns GetContextInfoResponse
    */
@@ -375,7 +374,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取标签
-   *
+   * 
    * @param request - GetLabelRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns GetLabelResponse
@@ -418,7 +417,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取标签
-   *
+   * 
    * @param request - GetLabelRequest
    * @returns GetLabelResponse
    */
@@ -429,7 +428,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取特定端口的转发链接
-   *
+   * 
    * @param request - GetLinkRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns GetLinkResponse
@@ -472,7 +471,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取特定端口的转发链接
-   *
+   * 
    * @param request - GetLinkRequest
    * @returns GetLinkResponse
    */
@@ -483,7 +482,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取mcp资源信息
-   *
+   * 
    * @param request - GetMcpResourceRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns GetMcpResourceResponse
@@ -518,7 +517,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取mcp资源信息
-   *
+   * 
    * @param request - GetMcpResourceRequest
    * @returns GetMcpResourceResponse
    */
@@ -529,14 +528,14 @@ export class Client extends OpenApi {
 
   /**
    * 处理来自AI Engine的消息
-   *
+   * 
    * @param request - HandleAIEngineMessageRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns HandleAIEngineMessageResponse
    */
   async handleAIEngineMessageWithOptions(request: $_model.HandleAIEngineMessageRequest, runtime: $dara.RuntimeOptions): Promise<$_model.HandleAIEngineMessageResponse> {
     request.validate();
-    let query:{[key: string ]: any} = { };
+    let query = { };
     if (!$dara.isNull(request.sessionToken)) {
       query["SessionToken"] = request.sessionToken;
     }
@@ -570,7 +569,7 @@ export class Client extends OpenApi {
 
   /**
    * 处理来自AI Engine的消息
-   *
+   * 
    * @param request - HandleAIEngineMessageRequest
    * @returns HandleAIEngineMessageResponse
    */
@@ -581,7 +580,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文列表
-   *
+   * 
    * @param request - ListContextsRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ListContextsResponse
@@ -620,7 +619,7 @@ export class Client extends OpenApi {
 
   /**
    * 获取上下文列表
-   *
+   * 
    * @param request - ListContextsRequest
    * @returns ListContextsResponse
    */
@@ -631,7 +630,7 @@ export class Client extends OpenApi {
 
   /**
    * ListMcpTools
-   *
+   * 
    * @param request - ListMcpToolsRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ListMcpToolsResponse
@@ -666,7 +665,7 @@ export class Client extends OpenApi {
 
   /**
    * ListMcpTools
-   *
+   * 
    * @param request - ListMcpToolsRequest
    * @returns ListMcpToolsResponse
    */
@@ -677,7 +676,7 @@ export class Client extends OpenApi {
 
   /**
    * 根据Lable查询Session列表
-   *
+   * 
    * @param request - ListSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ListSessionResponse
@@ -720,7 +719,7 @@ export class Client extends OpenApi {
 
   /**
    * 根据Lable查询Session列表
-   *
+   * 
    * @param request - ListSessionRequest
    * @returns ListSessionResponse
    */
@@ -731,7 +730,7 @@ export class Client extends OpenApi {
 
   /**
    * 修改上下文
-   *
+   * 
    * @param request - ModifyContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ModifyContextResponse
@@ -770,7 +769,7 @@ export class Client extends OpenApi {
 
   /**
    * 修改上下文
-   *
+   * 
    * @param request - ModifyContextRequest
    * @returns ModifyContextResponse
    */
@@ -781,7 +780,7 @@ export class Client extends OpenApi {
 
   /**
    * 释放 mcp session
-   *
+   * 
    * @param request - ReleaseMcpSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ReleaseMcpSessionResponse
@@ -816,7 +815,7 @@ export class Client extends OpenApi {
 
   /**
    * 释放 mcp session
-   *
+   * 
    * @param request - ReleaseMcpSessionRequest
    * @returns ReleaseMcpSessionResponse
    */
@@ -827,7 +826,7 @@ export class Client extends OpenApi {
 
   /**
    * 设置标签
-   *
+   * 
    * @param request - SetLabelRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns SetLabelResponse
@@ -866,7 +865,7 @@ export class Client extends OpenApi {
 
   /**
    * 设置标签
-   *
+   * 
    * @param request - SetLabelRequest
    * @returns SetLabelResponse
    */
@@ -877,14 +876,14 @@ export class Client extends OpenApi {
 
   /**
    * 同步上下文
-   *
+   * 
    * @param request - SyncContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns SyncContextResponse
    */
   async syncContextWithOptions(request: $_model.SyncContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.SyncContextResponse> {
     request.validate();
-    let query: {[key: string ]: any} = { };
+    let query = { };
     if (!$dara.isNull(request.authorization)) {
       query["Authorization"] = request.authorization;
     }
@@ -926,7 +925,7 @@ export class Client extends OpenApi {
 
   /**
    * 同步上下文
-   *
+   * 
    * @param request - SyncContextRequest
    * @returns SyncContextResponse
    */
