@@ -56,7 +56,7 @@ export class Context {
   constructor(
     id: string,
     name: string,
-    state: string = "available",
+    state = "available",
     createdAt?: string,
     lastUsedAt?: string,
     osType?: string
@@ -145,10 +145,7 @@ export class ContextService {
    * @param create - Whether to create the context if it doesn't exist.
    * @returns ContextResult with context data and requestId
    */
-  async get(
-    name: string,
-    create: boolean = false
-  ): Promise<ContextResult> {
+  async get(name: string, create = false): Promise<ContextResult> {
     try {
       const request = new $_client.GetContextRequest({
         name: name,
@@ -244,7 +241,9 @@ export class ContextService {
 
       // Check for success (matching Python logic)
       const success = response.body?.success !== false;
-      const errorMessage = success ? "" : `Update failed: ${response.body?.code}`;
+      const errorMessage = success
+        ? ""
+        : `Update failed: ${response.body?.code}`;
 
       return {
         requestId: extractRequestId(response) || "",
@@ -287,7 +286,9 @@ export class ContextService {
 
       // Check for success (matching Python logic)
       const success = response.body?.success !== false;
-      const errorMessage = success ? "" : `Delete failed: ${response.body?.code}`;
+      const errorMessage = success
+        ? ""
+        : `Delete failed: ${response.body?.code}`;
 
       return {
         requestId: extractRequestId(response) || "",

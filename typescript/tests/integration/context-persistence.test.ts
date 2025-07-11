@@ -58,7 +58,9 @@ describe("Context Persistence Integration", () => {
         testContext = createContextResponse.context;
         testContextId = testContext!.id;
         log(
-          `Context created successfully - ID: ${testContextId}, Name: ${testContext!.name}, State: ${testContext!.state}, OSType: ${testContext!.osType}`
+          `Context created successfully - ID: ${testContextId}, Name: ${
+            testContext!.name
+          }, State: ${testContext!.state}, OSType: ${testContext!.osType}`
         );
         log(
           `Create Context RequestId: ${
@@ -104,7 +106,7 @@ describe("Context Persistence Integration", () => {
     }
 
     // Create first session with the test context
-    let session1: Session
+    let session1: Session;
     try {
       const createSession1Response = await agentBay.create({
         imageId: "linux_latest",

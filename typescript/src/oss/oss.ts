@@ -256,10 +256,7 @@ export class Oss {
    * @param path - Local file or directory path to upload.
    * @returns OSSUploadResult with upload result and requestId
    */
-  async uploadAnonymous(
-    url: string,
-    path: string
-  ): Promise<OSSUploadResult> {
+  async uploadAnonymous(url: string, path: string): Promise<OSSUploadResult> {
     try {
       const args = {
         url,

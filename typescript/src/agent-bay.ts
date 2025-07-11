@@ -6,6 +6,7 @@ import { Client } from "./api/client";
 
 import { loadConfig, Config } from "./config";
 import { ContextService } from "./context";
+import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
 
@@ -27,6 +28,7 @@ export interface CreateSessionParams {
   contextId?: string;
   labels?: Record<string, string>;
   imageId?: string;
+  contextSync?: ContextSync[];
 }
 
 /**
@@ -120,6 +122,52 @@ export class AgentBay {
         request.imageId = params.imageId;
       }
 
+      // Add context sync configurations if provided
+      if (params.contextSync && params.contextSync.length > 0) {
+        const persistenceDataList: any[] = [];
+        for (const contextSync of params.contextSync) {
+          const persistenceItem: any = {
+            contextId: contextSync.contextId,
+            path: contextSync.path,
+          };
+
+          // Convert policy to JSON string if provided
+          if (contextSync.policy) {
+            persistenceItem.policy = JSON.stringify(contextSync.policy);
+          }
+
+          persistenceDataList.push(persistenceItem);
+        }
+        request.persistenceDataList = persistenceDataList;
+      }
+
+      // Log API request
+      log("API Call: CreateMcpSession");
+      let requestLog = "Request: ";
+      if (request.contextId) {
+        requestLog += `ContextId=${request.contextId}, `;
+      }
+      if (request.imageId) {
+        requestLog += `ImageId=${request.imageId}, `;
+      }
+      if (request.labels) {
+        requestLog += `Labels=${request.labels}, `;
+      }
+      if (
+        request.persistenceDataList &&
+        request.persistenceDataList.length > 0
+      ) {
+        requestLog += `PersistenceDataList=${request.persistenceDataList.length} items, `;
+        request.persistenceDataList.forEach((pd: any, i: number) => {
+          requestLog += `Item${i}[ContextId=${pd.contextId}, Path=${pd.path}`;
+          if (pd.policy) {
+            requestLog += `, Policy=${pd.policy}`;
+          }
+          requestLog += `], `;
+        });
+      }
+      log(requestLog);
+
       const response = await this.client.createMcpSession(request);
       log("response =", response);
 
@@ -128,7 +176,7 @@ export class AgentBay {
 
       const sessionData = response.body;
 
-      if (!sessionData || typeof sessionData !== 'object') {
+      if (!sessionData || typeof sessionData !== "object") {
         return {
           requestId,
           success: false,
@@ -137,11 +185,12 @@ export class AgentBay {
       }
 
       const data = sessionData.data;
-      if (!data || typeof data !== 'object') {
+      if (!data || typeof data !== "object") {
         return {
           requestId,
           success: false,
-          errorMessage: "Invalid response format: 'data' field is not a dictionary",
+          errorMessage:
+            "Invalid response format: 'data' field is not a dictionary",
         };
       }
 
@@ -235,8 +284,8 @@ export class AgentBay {
       // Check for errors in the response
       if (
         body?.data &&
-        typeof body.data === 'object' &&
-        body.success&&
+        typeof body.data === "object" &&
+        body.success &&
         body.success !== true
       ) {
         return {
@@ -258,7 +307,7 @@ export class AgentBay {
       log("body =", body);
 
       // Extract pagination information
-      if (body && typeof body === 'object') {
+      if (body && typeof body === "object") {
         nextToken = body.nextToken || "";
         maxResults = parseInt(String(body.maxResults || 0)) || maxResults;
         totalCount = parseInt(String(body.totalCount || 0));
@@ -271,7 +320,7 @@ export class AgentBay {
       if (Array.isArray(responseData)) {
         // Data is a list of session objects
         for (const sessionData of responseData) {
-          if (sessionData && typeof sessionData === 'object') {
+          if (sessionData && typeof sessionData === "object") {
             const sessionId = (sessionData as any).sessionId; // Capital S and I to match Python
             if (sessionId) {
               // Check if we already have this session in our cache
@@ -348,4 +397,15 @@ export class AgentBay {
   getAPIKey(): string {
     return this.apiKey;
   }
+}
+
+/**
+ * Creates a new AgentBay client using default configuration.
+ * This is a convenience function that allows creating an AgentBay instance without a config parameter.
+ *
+ * @param apiKey - API key for authentication
+ * @returns A new AgentBay instance with default configuration
+ */
+export function newAgentBayWithDefaults(apiKey: string): AgentBay {
+  return new AgentBay({ apiKey });
 }

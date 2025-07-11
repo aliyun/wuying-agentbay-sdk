@@ -344,7 +344,9 @@ describe("Application - Linux System Tests", () => {
           `Found ${visibleAppsResponse.data.length} visible Linux applications`
         );
         log(
-          `List Visible Apps RequestId: ${visibleAppsResponse.requestId || "undefined"}`
+          `List Visible Apps RequestId: ${
+            visibleAppsResponse.requestId || "undefined"
+          }`
         );
 
         // Verify that the response contains requestId

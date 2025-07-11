@@ -185,7 +185,9 @@ describe("WindowManager", () => {
 
         // Verify the results
         expect(isValidWindow(windowResponse.window)).toBe(true);
-        expect(windowResponse.window.window_id).toBe(mockActiveWindow.window_id);
+        expect(windowResponse.window.window_id).toBe(
+          mockActiveWindow.window_id
+        );
         expect(windowResponse.window.title).toBe(mockActiveWindow.title);
       }
 

@@ -27,7 +27,7 @@ describe("Application - Mobile System Tests", () => {
   afterEach(async () => {
     log("Cleaning up: Deleting the mobile session...");
     try {
-      debugger
+      debugger;
       const deleteResponse = await agentBay.delete(session);
       log("Mobile session successfully deleted");
       log(
@@ -254,7 +254,7 @@ describe("Application - Mobile System Tests", () => {
         log(
           `Started mobile app with activity: ${activityStartResponse.data.length} processes`
         );
-        debugger
+        debugger;
         // 4. Stop mobile app
         log("Step 4: Stopping mobile app...");
         const stopCmd = "am force-stop com.xingin.xhs";

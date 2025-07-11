@@ -8,7 +8,6 @@ export interface ApiResponse {
   errorMessage?: string;
   /** Optional status code if the operation failed */
   success?: boolean;
-
 }
 
 /**
@@ -429,7 +428,7 @@ export function extractRequestId(response: any): string | undefined {
   if (!response) return undefined;
 
   // If response is a string (like body?.requestId), return it directly
-  if (typeof response === 'string' && response.length > 0) {
+  if (typeof response === "string" && response.length > 0) {
     return response;
   }
 

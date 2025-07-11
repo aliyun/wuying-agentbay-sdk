@@ -94,7 +94,9 @@ describe("TestUIApi", () => {
       expect(result.success).toBe(false);
       expect(result.requestId).toBe("");
       expect(result.elements).toEqual([]);
-      expect(result.errorMessage).toContain("Failed to get clickable UI elements");
+      expect(result.errorMessage).toContain(
+        "Failed to get clickable UI elements"
+      );
     });
   });
 

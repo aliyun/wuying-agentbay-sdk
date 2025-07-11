@@ -605,7 +605,7 @@ export class FileSystem {
         "Failed to read multiple files"
       );
 
-      let fileContents: Record<string, string> = {};
+      const fileContents: Record<string, string> = {};
 
       if (result.textContent) {
         // Parse the response into a map of file paths to contents
@@ -749,7 +749,9 @@ export class FileSystem {
         return {
           requestId: "",
           success: false,
-          errorMessage: `Invalid mode: ${mode}. Must be one of ${validModes.join(", ")}`,
+          errorMessage: `Invalid mode: ${mode}. Must be one of ${validModes.join(
+            ", "
+          )}`,
         };
       }
 

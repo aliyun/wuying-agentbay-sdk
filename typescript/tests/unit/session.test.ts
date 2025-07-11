@@ -103,7 +103,9 @@ describe("TestSession", () => {
       // Verify DeleteResult error structure
       expect(result.success).toBe(false);
       expect(result.requestId).toBe("");
-      expect(result.errorMessage).toContain("Failed to delete session test_session_id");
+      expect(result.errorMessage).toContain(
+        "Failed to delete session test_session_id"
+      );
 
       expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
 
@@ -224,19 +226,19 @@ describe("TestSession", () => {
       expect(mockClient.getLink.calledOnce).toBe(true);
 
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.authorization).toBe('Bearer test_api_key');
-      expect(callArgs.sessionId).toBe('test_session_id');
-      expect(callArgs.protocolType).toBe('https');
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.protocolType).toBe("https");
       expect(callArgs.port).toBe(8080);
     });
 
-    it('should handle string data response', async () => {
+    it("should handle string data response", async () => {
       const mockResponse = {
         body: {
-          data: {"Url": "https://example.com/session-link"},
-          requestId: 'get-link-request-id'
+          data: { Url: "https://example.com/session-link" },
+          requestId: "get-link-request-id",
         },
-        statusCode: 200
+        statusCode: 200,
       };
 
       mockClient.getLink.resolves(mockResponse);
@@ -245,18 +247,18 @@ describe("TestSession", () => {
 
       // Verify OperationResult structure
       expect(result.success).toBe(true);
-      expect(result.requestId).toBe('get-link-request-id');
-      expect(result.data).toBe('https://example.com/session-link');
+      expect(result.requestId).toBe("get-link-request-id");
+      expect(result.data).toBe("https://example.com/session-link");
       expect(result.errorMessage).toBeUndefined();
     });
 
-    it('should handle empty data response', async () => {
+    it("should handle empty data response", async () => {
       const mockResponse = {
         body: {
           data: {},
-          requestId: 'get-link-request-id'
+          requestId: "get-link-request-id",
         },
-        statusCode: 200
+        statusCode: 200,
       };
 
       mockClient.getLink.resolves(mockResponse);
@@ -265,18 +267,18 @@ describe("TestSession", () => {
 
       // Verify OperationResult structure
       expect(result.success).toBe(true);
-      expect(result.requestId).toBe('get-link-request-id');
-      expect(result.data).toBe('');
+      expect(result.requestId).toBe("get-link-request-id");
+      expect(result.data).toBe("");
       expect(result.errorMessage).toBeUndefined();
     });
 
-    it('should exclude undefined parameters from request', async () => {
+    it("should exclude undefined parameters from request", async () => {
       const mockResponse = {
         body: {
-          data: { Url: 'https://example.com/session-link' },
-          requestId: 'get-link-request-id'
+          data: { Url: "https://example.com/session-link" },
+          requestId: "get-link-request-id",
         },
-        statusCode: 200
+        statusCode: 200,
       };
 
       mockClient.getLink.resolves(mockResponse);
@@ -288,21 +290,21 @@ describe("TestSession", () => {
       expect(callArgs.port).toBeUndefined();
     });
 
-    it('should exclude empty string protocol type from request', async () => {
+    it("should exclude empty string protocol type from request", async () => {
       const mockResponse = {
         body: {
-          data: { Url: 'https://example.com/session-link' },
-          requestId: 'get-link-request-id'
+          data: { Url: "https://example.com/session-link" },
+          requestId: "get-link-request-id",
         },
-        statusCode: 200
+        statusCode: 200,
       };
 
       mockClient.getLink.resolves(mockResponse);
 
-      await mockSession.getLink('', 8080);
+      await mockSession.getLink("", 8080);
 
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.protocolType).toBe('');
+      expect(callArgs.protocolType).toBe("");
       expect(callArgs.port).toBe(8080);
     });
   });

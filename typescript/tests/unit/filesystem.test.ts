@@ -464,19 +464,19 @@ describe("TestFileSystem", () => {
         .resolves({
           success: true,
           requestId: "test-request-id",
-          content: "chunk1_content"
+          content: "chunk1_content",
         })
         .onSecondCall()
         .resolves({
           success: true,
           requestId: "test-request-id",
-          content: "chunk2_content"
+          content: "chunk2_content",
         })
         .onThirdCall()
         .resolves({
           success: true,
           requestId: "test-request-id",
-          content: "chunk3_content"
+          content: "chunk3_content",
         });
 
       // Set a smaller chunk size for testing (50KB)
@@ -523,15 +523,15 @@ describe("TestFileSystem", () => {
   describe("test_read_large_file_failure", () => {
     it("should handle read large file error", async () => {
       // Mock getFileInfo to return error
-      sandbox
-        .stub(mockFileSystem, "getFileInfo")
-        .resolves({
-          success: false,
-          requestId: "",
-          errorMessage: "File not found"
-        });
+      sandbox.stub(mockFileSystem, "getFileInfo").resolves({
+        success: false,
+        requestId: "",
+        errorMessage: "File not found",
+      });
 
-      const result = await mockFileSystem.readLargeFile("/path/to/nonexistent_file.txt");
+      const result = await mockFileSystem.readLargeFile(
+        "/path/to/nonexistent_file.txt"
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);
@@ -544,13 +544,11 @@ describe("TestFileSystem", () => {
   describe("test_write_large_file_success", () => {
     it("should write large file successfully", async () => {
       // Mock writeFile to return success
-      const writeFileStub = sandbox
-        .stub(mockFileSystem, "writeFile")
-        .resolves({
-          success: true,
-          requestId: "test-request-id",
-          data: true
-        });
+      const writeFileStub = sandbox.stub(mockFileSystem, "writeFile").resolves({
+        success: true,
+        requestId: "test-request-id",
+        data: true,
+      });
 
       // Create a large content string (150KB)
       const largeContent = "x".repeat(150 * 1024);
@@ -605,13 +603,11 @@ describe("TestFileSystem", () => {
   describe("test_write_large_file_small_content", () => {
     it("should write large file with small content", async () => {
       // Mock writeFile to return success
-      const writeFileStub = sandbox
-        .stub(mockFileSystem, "writeFile")
-        .resolves({
-          success: true,
-          requestId: "test-request-id",
-          data: true
-        });
+      const writeFileStub = sandbox.stub(mockFileSystem, "writeFile").resolves({
+        success: true,
+        requestId: "test-request-id",
+        data: true,
+      });
 
       // Create a small content string (10KB)
       const smallContent = "x".repeat(10 * 1024);
@@ -645,18 +641,19 @@ describe("TestFileSystem", () => {
   describe("test_write_large_file_failure", () => {
     it("should handle write large file error", async () => {
       // Mock writeFile to return error
-      sandbox
-        .stub(mockFileSystem, "writeFile")
-        .resolves({
-          success: false,
-          requestId: "",
-          errorMessage: "Failed to write large file"
-        });
+      sandbox.stub(mockFileSystem, "writeFile").resolves({
+        success: false,
+        requestId: "",
+        errorMessage: "Failed to write large file",
+      });
 
       // Create a large content string (150KB)
       const largeContent = "x".repeat(150 * 1024);
 
-      const result = await mockFileSystem.writeLargeFile("/path/to/large_file.txt", largeContent);
+      const result = await mockFileSystem.writeLargeFile(
+        "/path/to/large_file.txt",
+        largeContent
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);

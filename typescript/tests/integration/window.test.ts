@@ -28,7 +28,7 @@ describe("WindowManager", () => {
     log("Creating a new session for window testing...");
     const createResponse = await agentBay.create({ imageId: "linux_latest" });
     session = createResponse.session;
-    debugger
+    debugger;
     log(`Session created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId || "undefined"}`);
 

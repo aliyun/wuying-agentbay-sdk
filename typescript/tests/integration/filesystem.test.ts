@@ -336,7 +336,9 @@ describe("fileSystem", () => {
           const fileInfoResponse = await session.fileSystem.getFileInfo(
             testFilePath
           );
-          log(`GetFileInfo result: ${JSON.stringify(fileInfoResponse.fileInfo)}`);
+          log(
+            `GetFileInfo result: ${JSON.stringify(fileInfoResponse.fileInfo)}`
+          );
           log(
             `Get File Info RequestId: ${
               fileInfoResponse.requestId || "undefined"
@@ -526,12 +528,21 @@ describe("fileSystem", () => {
 
           // Read multiple files - Note: this method may not return ApiResponseWithData format
           const paths = [testFile1Path, testFile2Path];
-          const readMultipleResponse = await session.fileSystem.readMultipleFiles(paths);
-          log(`ReadMultipleFiles result: ${JSON.stringify(readMultipleResponse.contents)}`);
+          const readMultipleResponse =
+            await session.fileSystem.readMultipleFiles(paths);
+          log(
+            `ReadMultipleFiles result: ${JSON.stringify(
+              readMultipleResponse.contents
+            )}`
+          );
 
           // Verify the contents of each file
-          expect(readMultipleResponse.contents[testFile1Path]).toBe(file1Content);
-          expect(readMultipleResponse.contents[testFile2Path]).toBe(file2Content);
+          expect(readMultipleResponse.contents[testFile1Path]).toBe(
+            file1Content
+          );
+          expect(readMultipleResponse.contents[testFile2Path]).toBe(
+            file2Content
+          );
           log("Multiple files read verified successfully");
 
           // Clean up the test files

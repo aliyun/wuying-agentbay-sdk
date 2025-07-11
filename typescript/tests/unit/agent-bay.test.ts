@@ -222,7 +222,9 @@ describe("AgentBay", () => {
 
       // Verify session uses mock client
       expect(session.getClient()).toBe(mockClient);
-      log(`Session client is mockClient: ${session.getClient() === mockClient}`);
+      log(
+        `Session client is mockClient: ${session.getClient() === mockClient}`
+      );
 
       // List sessions
       log("Listing sessions...");
@@ -398,7 +400,6 @@ describe("AgentBay", () => {
           totalCount: 1,
           requestId: "mock-request-id-list-dev",
         },
-
       };
 
       listSessionStub.resolves(devSessionsResponse);

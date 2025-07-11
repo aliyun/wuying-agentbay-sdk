@@ -150,14 +150,20 @@ describe("Session Parameters", () => {
       };
       mockAgentBay.create.resolves(mockCreateResponse);
 
-      const createResponse = await mockAgentBay.create({ contextId, labels, imageId });
+      const createResponse = await mockAgentBay.create({
+        contextId,
+        labels,
+        imageId,
+      });
 
       // Verify SessionResult structure
       expect(createResponse.success).toBe(true);
       expect(createResponse.requestId).toBe("create-with-all-request-id");
       expect(createResponse.session).toBe(mockSession);
       expect(createResponse.errorMessage).toBeUndefined();
-      expect(mockAgentBay.create.calledOnceWith({ contextId, labels, imageId })).toBe(true);
+      expect(
+        mockAgentBay.create.calledOnceWith({ contextId, labels, imageId })
+      ).toBe(true);
     });
   });
 

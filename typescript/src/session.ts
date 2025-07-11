@@ -9,6 +9,7 @@ import {
 } from "./api/models/model";
 import { Application } from "./application";
 import { Command } from "./command";
+import { ContextManager, newContextManager } from "./context-manager";
 import { APIError } from "./exceptions";
 import { FileSystem } from "./filesystem";
 import { Oss } from "./oss";
@@ -47,13 +48,13 @@ export class SessionInfoClass {
   resourceType: string;
 
   constructor(
-    sessionId: string = "",
-    resourceUrl: string = "",
-    appId: string = "",
-    authCode: string = "",
-    connectionProperties: string = "",
-    resourceId: string = "",
-    resourceType: string = ""
+    sessionId = "",
+    resourceUrl = "",
+    appId = "",
+    authCode = "",
+    connectionProperties = "",
+    resourceId = "",
+    resourceType = ""
   ) {
     this.sessionId = sessionId;
     this.resourceUrl = resourceUrl;
@@ -71,17 +72,20 @@ export class SessionInfoClass {
 export class Session {
   private agentBay: AgentBay;
   public sessionId: string;
-  public resourceUrl: string = "";
+  public resourceUrl = "";
 
   // File, command, and oss handlers (matching Python naming)
-  public fileSystem: FileSystem;  // file_system in Python
+  public fileSystem: FileSystem; // file_system in Python
   public command: Command;
   public oss: Oss;
 
   // Application, window, and UI management (matching Python naming)
-  public application: Application;  // application in Python (ApplicationManager)
+  public application: Application; // application in Python (ApplicationManager)
   public window: WindowManager;
   public ui: UI;
+
+  // Context management (matching Go version)
+  public context: ContextManager;
 
   /**
    * Initialize a Session object.
@@ -103,6 +107,9 @@ export class Session {
     this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
+
+    // Initialize context manager (matching Go version)
+    this.context = newContextManager(this);
   }
 
   /**
@@ -227,7 +234,7 @@ export class Session {
 
       // Extract labels from response (matching Python structure)
       const responseBody = response?.body;
-      const data = responseBody?.data ; // Capital D to match Python
+      const data = responseBody?.data; // Capital D to match Python
       const labelsJSON = data?.labels; // Capital L to match Python
 
       let labels = {};
@@ -276,18 +283,21 @@ export class Session {
 
       const sessionInfo = new SessionInfoClass();
 
-      if (data?.sessionId) { // Capital S and I to match Python
+      if (data?.sessionId) {
+        // Capital S and I to match Python
         sessionInfo.sessionId = data.sessionId;
       }
 
-      if (data?.resourceUrl) { // Capital R and U to match Python
+      if (data?.resourceUrl) {
+        // Capital R and U to match Python
         sessionInfo.resourceUrl = data.resourceUrl;
         // Update the session's resource_url with the latest value
         this.resourceUrl = data.resourceUrl;
       }
 
       // Transfer DesktopInfo fields to SessionInfo (matching Python structure)
-      if (data?.desktopInfo) { // Capital D and I to match Python
+      if (data?.desktopInfo) {
+        // Capital D and I to match Python
         const desktopInfo = data.desktopInfo;
         if (desktopInfo.AppId) {
           sessionInfo.appId = desktopInfo.AppId;
@@ -346,7 +356,7 @@ export class Session {
 
       const responseBody = response.body;
 
-      if (typeof responseBody !== 'object') {
+      if (typeof responseBody !== "object") {
         throw new Error(
           "Invalid response format: expected a dictionary from response body"
         );
@@ -355,9 +365,9 @@ export class Session {
       let data = responseBody.data || {}; // Capital D to match Python
       log(`Data: ${JSON.stringify(data)}`);
 
-      if (typeof data !== 'object') {
+      if (typeof data !== "object") {
         try {
-          data = typeof data === 'string' ? JSON.parse(data) : {};
+          data = typeof data === "string" ? JSON.parse(data) : {};
         } catch (jsonError) {
           data = {};
         }
@@ -371,7 +381,10 @@ export class Session {
         data: url,
       };
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Invalid response format")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Invalid response format")
+      ) {
         throw error;
       }
       throw new Error(`Failed to get link: ${error}`);
@@ -406,7 +419,7 @@ export class Session {
 
       const responseBody = response?.body;
 
-      if (typeof responseBody !== 'object') {
+      if (typeof responseBody !== "object") {
         throw new Error(
           "Invalid response format: expected a dictionary from response body"
         );
@@ -415,9 +428,9 @@ export class Session {
       let data = responseBody?.data || {}; // Capital D to match Python
       log(`Data: ${JSON.stringify(data)}`);
 
-      if (typeof data !== 'object') {
+      if (typeof data !== "object") {
         try {
-          data = typeof data === 'string' ? JSON.parse(data) : {};
+          data = typeof data === "string" ? JSON.parse(data) : {};
         } catch (jsonError) {
           data = {};
         }
@@ -431,7 +444,10 @@ export class Session {
         data: url,
       };
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Invalid response format")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Invalid response format")
+      ) {
         throw error;
       }
       throw new Error(`Failed to get link asynchronously: ${error}`);

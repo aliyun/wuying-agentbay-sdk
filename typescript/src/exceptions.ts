@@ -17,7 +17,10 @@ export class AgentBayError extends Error {
  * Raised when there is an authentication error.
  */
 export class AuthenticationError extends AgentBayError {
-  constructor(message: string = "Authentication failed", extra: Record<string, any> = {}) {
+  constructor(
+    message = "Authentication failed",
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "AuthenticationError";
     Object.setPrototypeOf(this, AuthenticationError.prototype);
@@ -30,7 +33,11 @@ export class AuthenticationError extends AgentBayError {
 export class APIError extends AgentBayError {
   statusCode?: number;
 
-  constructor(message: string = "API error", statusCode?: number, extra: Record<string, any> = {}) {
+  constructor(
+    message = "API error",
+    statusCode?: number,
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "APIError";
     this.statusCode = statusCode;
@@ -42,7 +49,10 @@ export class APIError extends AgentBayError {
  * Raised for errors related to file operations.
  */
 export class FileError extends AgentBayError {
-  constructor(message: string = "File operation error", extra: Record<string, any> = {}) {
+  constructor(
+    message = "File operation error",
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "FileError";
     Object.setPrototypeOf(this, FileError.prototype);
@@ -53,7 +63,10 @@ export class FileError extends AgentBayError {
  * Raised for errors related to command execution.
  */
 export class CommandError extends AgentBayError {
-  constructor(message: string = "Command execution error", extra: Record<string, any> = {}) {
+  constructor(
+    message = "Command execution error",
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "CommandError";
     Object.setPrototypeOf(this, CommandError.prototype);
@@ -64,7 +77,7 @@ export class CommandError extends AgentBayError {
  * Raised for errors related to session operations.
  */
 export class SessionError extends AgentBayError {
-  constructor(message: string = "Session error", extra: Record<string, any> = {}) {
+  constructor(message = "Session error", extra: Record<string, any> = {}) {
     super(message, extra);
     this.name = "SessionError";
     Object.setPrototypeOf(this, SessionError.prototype);
@@ -75,7 +88,10 @@ export class SessionError extends AgentBayError {
  * Raised for errors related to OSS operations.
  */
 export class OssError extends AgentBayError {
-  constructor(message: string = "OSS operation error", extra: Record<string, any> = {}) {
+  constructor(
+    message = "OSS operation error",
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "OssError";
     Object.setPrototypeOf(this, OssError.prototype);
@@ -86,7 +102,10 @@ export class OssError extends AgentBayError {
  * Raised for errors related to application operations.
  */
 export class ApplicationError extends AgentBayError {
-  constructor(message: string = "Application operation error", extra: Record<string, any> = {}) {
+  constructor(
+    message = "Application operation error",
+    extra: Record<string, any> = {}
+  ) {
     super(message, extra);
     this.name = "ApplicationError";
     Object.setPrototypeOf(this, ApplicationError.prototype);
@@ -97,7 +116,7 @@ export class ApplicationError extends AgentBayError {
  * Raised for errors related to UI operations.
  */
 export class UIError extends AgentBayError {
-  constructor(message: string = "UI operation error", extra: Record<string, any> = {}) {
+  constructor(message = "UI operation error", extra: Record<string, any> = {}) {
     super(message, extra);
     this.name = "UIError";
     Object.setPrototypeOf(this, UIError.prototype);

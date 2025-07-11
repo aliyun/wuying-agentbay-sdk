@@ -60,13 +60,19 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to create OSS client"));
 
-      const result = await mockOss.envInit("key_id", "key_secret", "security_token");
+      const result = await mockOss.envInit(
+        "key_id",
+        "key_secret",
+        "security_token"
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);
       expect(result.requestId).toBe("");
       expect(result.clientConfig).toEqual({});
-      expect(result.errorMessage).toContain("Failed to initialize OSS environment");
+      expect(result.errorMessage).toContain(
+        "Failed to initialize OSS environment"
+      );
     });
   });
 
@@ -108,7 +114,11 @@ describe("TestOss", () => {
           )
         );
 
-      const result = await mockOss.upload("test_bucket", "test_object", "test_path");
+      const result = await mockOss.upload(
+        "test_bucket",
+        "test_object",
+        "test_path"
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);
@@ -192,7 +202,11 @@ describe("TestOss", () => {
         .stub(mockOss as any, "callMcpTool")
         .rejects(new Error("Failed to download from OSS"));
 
-      const result = await mockOss.download("test_bucket", "test_object", "test_path");
+      const result = await mockOss.download(
+        "test_bucket",
+        "test_object",
+        "test_path"
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);

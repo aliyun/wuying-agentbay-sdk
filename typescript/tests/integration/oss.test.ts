@@ -265,9 +265,9 @@ describe("OSS", () => {
           // Check if content is defined
           expect(uploadAnonResponse.content).toBeDefined();
           expect(typeof uploadAnonResponse.content).toBe("string");
-          expect(uploadAnonResponse.content.toLowerCase().includes("error")).toBe(
-            false
-          );
+          expect(
+            uploadAnonResponse.content.toLowerCase().includes("error")
+          ).toBe(false);
 
           // If there's an error, it should not be successful
           if (uploadAnonResponse.errorMessage) {
@@ -392,9 +392,9 @@ describe("OSS", () => {
           // Check if content is defined
           expect(downloadAnonResponse.content).toBeDefined();
           expect(typeof downloadAnonResponse.content).toBe("string");
-          expect(downloadAnonResponse.content.toLowerCase().includes("error")).toBe(
-            false
-          );
+          expect(
+            downloadAnonResponse.content.toLowerCase().includes("error")
+          ).toBe(false);
 
           // If there's an error, it should not be successful
           if (downloadAnonResponse.errorMessage) {

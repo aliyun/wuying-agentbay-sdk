@@ -167,9 +167,7 @@ export class UI {
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
    * @returns UIElementListResult with clickable UI elements and requestId
    */
-  async getClickableUIElements(
-    timeoutMs = 2000
-  ): Promise<UIElementListResult> {
+  async getClickableUIElements(timeoutMs = 2000): Promise<UIElementListResult> {
     try {
       const args = {
         timeout_ms: timeoutMs,
@@ -217,9 +215,7 @@ export class UI {
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
    * @returns UIElementListResult with all UI elements and requestId
    */
-  async getAllUIElements(
-    timeoutMs = 2000
-  ): Promise<UIElementListResult> {
+  async getAllUIElements(timeoutMs = 2000): Promise<UIElementListResult> {
     try {
       const args = {
         timeout_ms: timeoutMs,
@@ -382,11 +378,7 @@ export class UI {
    * @param button - The mouse button to click. Default is 'left'.
    * @returns BoolResult with click result and requestId
    */
-  async click(
-    x: number,
-    y: number,
-    button = "left"
-  ): Promise<BoolResult> {
+  async click(x: number, y: number, button = "left"): Promise<BoolResult> {
     try {
       const args = {
         x,

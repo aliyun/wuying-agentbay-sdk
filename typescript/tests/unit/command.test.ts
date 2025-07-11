@@ -211,13 +211,18 @@ console.log(x);
 
   describe("test_run_code_invalid_language", () => {
     it("should handle invalid language", async () => {
-      const result = await mockCommand.runCode("print('test')", "invalid_language");
+      const result = await mockCommand.runCode(
+        "print('test')",
+        "invalid_language"
+      );
 
       // Verify error result structure
       expect(result.success).toBe(false);
       expect(result.requestId).toBe("");
       expect(result.result).toBe("");
-      expect(result.errorMessage).toContain("Unsupported language: invalid_language");
+      expect(result.errorMessage).toContain(
+        "Unsupported language: invalid_language"
+      );
     });
   });
 
