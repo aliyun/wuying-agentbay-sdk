@@ -1,5 +1,7 @@
 # Wuying AgentBay SDK
 
+[English](README.md) | [中文](README-CN.md)
+
 Wuying AgentBay SDK provides APIs for Python, TypeScript, and Golang to interact with the Wuying AgentBay cloud runtime environment. This environment enables running commands, executing code, and manipulating files.
 
 ## Features
@@ -46,113 +48,45 @@ go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 
 ```python
 from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
 
 # Initialize with API key
 agent_bay = AgentBay(api_key="your_api_key")
 
 # Create a session
-params = CreateSessionParams(image_id="linux_latest")
-session_result = agent_bay.create(params)
+session_result = agent_bay.create()
 session = session_result.session
-print(f"Session created with ID: {session.session_id}")
 
-# Execute a command
-result = session.command.execute_command("ls -la")
+# Execute a simple echo command
+result = session.command.execute_command("echo 'Hello, AgentBay!'")
 if result.success:
     print(f"Command output: {result.output}")
 
-# Read a file
-result = session.file_system.read_file("/path/to/file.txt")
-if result.success:
-    print(f"File content: {result.content}")
-
-# Read/write large files
-large_content = "x" * (100 * 1024)  # 100KB content
-write_result = session.file_system.write_large_file("/path/to/large_file.txt", large_content)
-read_result = session.file_system.read_large_file("/path/to/large_file.txt")
-retrieved_content = read_result.content if read_result.success else None
-
-# Work with OSS
-upload_result = session.oss.upload_file("/local/path/file.txt", "bucket-name", "remote/path/file.txt")
-download_result = session.oss.download_file("bucket-name", "remote/path/file.txt", "/local/path/downloaded.txt")
-
-# Session labels
-session.set_labels({"project": "demo", "environment": "testing"})
-labels_result = session.get_labels()
-all_labels = labels_result.data
-
-# Delete the session when done
+# Don't forget to delete the session when done
 delete_result = agent_bay.delete(session)
 ```
 
 ### TypeScript
 
 ```typescript
-import { AgentBay, ListSessionParams } from 'wuying-agentbay-sdk';
+import { AgentBay } from 'wuying-agentbay-sdk';
 
 // Initialize with API key
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// Create a session
+// Create a session and run a command
 async function main() {
   try {
-    const createResponse = await agentBay.create({
-      imageId: 'linux_latest',
-      labels: { project: 'demo', environment: 'testing' }
-    });
+    // Create a session
+    const createResponse = await agentBay.create();
     const session = createResponse.session;
-    console.log(`Session created with ID: ${session.sessionId}`);
-    console.log(`RequestID: ${createResponse.requestId}`);
-
-    // Execute a command
-    const commandResponse = await session.command.executeCommand('ls -la');
-    if (commandResponse.success) {
-      console.log(`Command output: ${commandResponse.output}`);
-      console.log(`RequestID: ${commandResponse.requestId}`);
-    }
-
-    // Read a file
-    const fileResponse = await session.fileSystem.readFile('/path/to/file.txt');
-    if (fileResponse.success) {
-      console.log(`File content: ${fileResponse.content}`);
-      console.log(`RequestID: ${fileResponse.requestId}`);
-    }
-
-    // Work with large files
-    const largeContent = 'x'.repeat(100 * 1024); // 100KB
-    const largeWriteResponse = await session.fileSystem.writeLargeFile('/path/to/large_file.txt', largeContent);
-    const largeReadResponse = await session.fileSystem.readLargeFile('/path/to/large_file.txt');
-    console.log(`Large file content length: ${largeReadResponse.content?.length || 0}`);
-
-    // Execute code
-    const codeResponse = await session.command.runCode('console.log("Hello, World!");', 'javascript');
-    console.log(`Code execution result: ${codeResponse.result}`);
-
-
-    // List sessions by labels with pagination
-    const listParams: ListSessionParams = {
-      labels: { project: 'demo' },
-      maxResults: 10
-    };
-    const listResponse = await agentBay.listByLabels(listParams);
-    console.log(`Found ${listResponse.sessions.length} sessions`);
-    console.log(`Total count: ${listResponse.totalCount}`);
-
-    // Handle pagination if needed
-    if (listResponse.nextToken) {
-      const nextPageParams: ListSessionParams = {
-        ...listParams,
-        nextToken: listResponse.nextToken
-      };
-      const nextPageResponse = await agentBay.listByLabels(nextPageParams);
-      console.log(`Next page has ${nextPageResponse.sessions.length} sessions`);
-    }
-
+    
+    // Execute a simple echo command
+    const result = await session.command.executeCommand("echo 'Hello, AgentBay!'");
+    console.log(`Command output: ${result.output}`);
+    
     // Delete the session when done
-    const deleteResponse = await agentBay.delete(session);
-    console.log(`Session deleted, RequestID: ${deleteResponse.requestId}`);
-
+    await agentBay.delete(session);
+    console.log('Session deleted successfully');
   } catch (error) {
     console.error('Error:', error);
   }
@@ -181,74 +115,34 @@ func main() {
     os.Exit(1)
   }
 
-  // Create a session with default parameters
+  // Create a session
   result, err := client.Create(nil)
   if err != nil {
     fmt.Printf("Error creating session: %v\n", err)
     os.Exit(1)
   }
 
-  // Access the session and RequestID
   session := result.Session
-  fmt.Printf("Session created with ID: %s (RequestID: %s)\n",
-    session.SessionID, result.RequestID)
 
-  // Execute a command
-  cmdResult, err := session.Command.ExecuteCommand("ls -la")
+  // Execute a simple echo command
+  cmdResult, err := session.Command.ExecuteCommand("echo 'Hello, AgentBay!'")
   if err != nil {
     fmt.Printf("Error executing command: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("Command result: %s (RequestID: %s)\n",
-    cmdResult.Output, cmdResult.RequestID)
-
-  // Read a file
-  fileResult, err := session.FileSystem.ReadFile("/path/to/file.txt")
-  if err != nil {
-    fmt.Printf("Error reading file: %v\n", err)
-    os.Exit(1)
-  }
-  fmt.Printf("File content: %s (RequestID: %s)\n",
-    fileResult.Content, fileResult.RequestID)
+  fmt.Printf("Command output: %s\n", cmdResult.Output)
 
   // Delete the session when done
-  deleteResult, err := client.Delete(session)
+  _, err = client.Delete(session)
   if err != nil {
     fmt.Printf("Error deleting session: %v\n", err)
     os.Exit(1)
   }
-  fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
+  fmt.Println("Session deleted successfully")
 }
 ```
 
-## Authentication
-
-Authentication is done using an API key, which can be provided in several ways:
-
-1. As a parameter when initializing the SDK
-2. Through environment variables (`AGENTBAY_API_KEY`)
-
-## RequestID Standardization
-
-The SDK provides standardized RequestID in all API responses, which can be used for:
-
-- Debugging API calls
-- Correlating client requests with server-side logs
-- Tracking request history
-- Providing better support through detailed logging
-
-### Golang
-
-All API responses include a RequestID field embedded from the base `ApiResponse` type. This makes it easy to trace and debug operations throughout the SDK.
-
-```go
-// Example showing RequestID usage
-result, err := client.Create(nil)
-if err != nil {
-  // Handle error
-}
-fmt.Printf("Operation completed with RequestID: %s\n", result.RequestID)
-```
+For more detailed examples and advanced usage, please refer to the [docs](docs/) directory.
 
 ## What's New
 
@@ -261,9 +155,3 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## Documentation
 
 For more detailed documentation, examples, and advanced usage, please refer to the [docs](docs/) directory.
-
-## Development
-
-### CI/CD Workflows
-
-This project uses GitHub Actions for continuous integration and testing. For information about the available workflows and how to configure them, see [GitHub Workflows](.github/WORKFLOWS.md).
