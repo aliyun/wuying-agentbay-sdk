@@ -3,8 +3,23 @@ import { Client } from "./api/client";
 import { GetContextInfoRequest, SyncContextRequest } from "./api/models/model";
 import { log, logError } from "./utils/logger";
 
+export interface ContextStatusData {
+  contextId: string;
+  path: string;
+  errorMessage: string;
+  status: string;
+  startTime: number;
+  finishTime: number;
+  taskType: string;
+}
+
+export interface ContextStatusItem {
+  type: string;
+  data: string;
+}
+
 export interface ContextInfoResult extends ApiResponse {
-  contextStatus: string;
+  contextStatusData: ContextStatusData[];
 }
 
 export interface ContextSyncResult extends ApiResponse {
@@ -73,14 +88,30 @@ export class ContextManager {
         log("Response from GetContextInfo:", response.body);
       }
 
-      let contextStatus = "";
+      // Parse the context status data
+      const contextStatusData: ContextStatusData[] = [];
       if (response?.body?.data?.contextStatus) {
-        contextStatus = response.body.data.contextStatus;
+        try {
+          // First, parse the outer array
+          const contextStatusStr = response.body.data.contextStatus;
+          const statusItems: ContextStatusItem[] = JSON.parse(contextStatusStr);
+          
+          // Process each item in the array
+          for (const item of statusItems) {
+            if (item.type === "data") {
+              // Parse the inner data string
+              const dataItems: ContextStatusData[] = JSON.parse(item.data);
+              contextStatusData.push(...dataItems);
+            }
+          }
+        } catch (error) {
+          logError("Error parsing context status:", error);
+        }
       }
 
       return {
         requestId,
-        contextStatus,
+        contextStatusData,
       };
     } catch (error) {
       logError("Error calling GetContextInfo:", error);

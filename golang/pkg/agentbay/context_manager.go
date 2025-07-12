@@ -1,6 +1,7 @@
 package agentbay
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -8,10 +9,27 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
+// ContextStatusData represents the parsed context status data
+type ContextStatusData struct {
+	ContextId    string `json:"contextId"`
+	Path         string `json:"path"`
+	ErrorMessage string `json:"errorMessage"`
+	Status       string `json:"status"`
+	StartTime    int64  `json:"startTime"`
+	FinishTime   int64  `json:"finishTime"`
+	TaskType     string `json:"taskType"`
+}
+
+// ContextStatusItem represents an item in the context status response
+type ContextStatusItem struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
+}
+
 // ContextInfoResult wraps context info result and RequestID
 type ContextInfoResult struct {
 	models.ApiResponse
-	ContextStatus string
+	ContextStatusData []ContextStatusData // Parsed context status data
 }
 
 // ContextSyncResult wraps context sync result and RequestID
@@ -92,16 +110,37 @@ func (cm *ContextManager) InfoWithParams(contextId, path, taskType string) (*Con
 		fmt.Println("Response from GetContextInfo:", response.Body)
 	}
 
-	var contextStatus string
+	// Parse the context status data
+	var contextStatusData []ContextStatusData
 	if response.Body != nil && response.Body.Data != nil {
-		contextStatus = tea.StringValue(response.Body.Data.ContextStatus)
+		contextStatus := tea.StringValue(response.Body.Data.ContextStatus)
+		if contextStatus != "" {
+			// First, parse the outer array
+			var statusItems []ContextStatusItem
+			if err := json.Unmarshal([]byte(contextStatus), &statusItems); err != nil {
+				fmt.Println("Error parsing context status:", err)
+			} else {
+				// Process each item in the array
+				for _, item := range statusItems {
+					if item.Type == "data" {
+						// Parse the inner data string
+						var dataItems []ContextStatusData
+						if err := json.Unmarshal([]byte(item.Data), &dataItems); err != nil {
+							fmt.Println("Error parsing context status data:", err)
+						} else {
+							contextStatusData = append(contextStatusData, dataItems...)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return &ContextInfoResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		ContextStatus: contextStatus,
+		ContextStatusData: contextStatusData,
 	}, nil
 }
 

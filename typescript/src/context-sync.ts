@@ -61,68 +61,9 @@ export class ContextSync {
     this.policy = policy;
   }
 
-  // WithUploadPolicy sets the upload policy
-  withUploadPolicy(policy: UploadPolicy): ContextSync {
-    if (!this.policy) {
-      this.policy = newSyncPolicy();
-    }
-    this.policy.uploadPolicy = policy;
-    return this;
-  }
-
-  // WithDownloadPolicy sets the download policy
-  withDownloadPolicy(policy: DownloadPolicy): ContextSync {
-    if (!this.policy) {
-      this.policy = newSyncPolicy();
-    }
-    this.policy.downloadPolicy = policy;
-    return this;
-  }
-
-  // WithDeletePolicy sets the delete policy
-  withDeletePolicy(policy: DeletePolicy): ContextSync {
-    if (!this.policy) {
-      this.policy = newSyncPolicy();
-    }
-    this.policy.deletePolicy = policy;
-    return this;
-  }
-
-  // WithBWList sets the black and white list
-  withBWList(bwList: BWList): ContextSync {
-    if (!this.policy) {
-      this.policy = newSyncPolicy();
-    }
-    this.policy.bwList = bwList;
-    return this;
-  }
-
-  // WithWhiteList sets the white list
-  withWhiteList(path: string, excludePaths: string[] = []): ContextSync {
-    const whiteList: WhiteList = {
-      path,
-      excludePaths,
-    };
-    const bwList: BWList = {
-      whiteLists: [whiteList],
-    };
-    return this.withBWList(bwList);
-  }
-
-  // WithWhiteLists sets multiple white lists
-  withWhiteLists(whiteLists: WhiteList[]): ContextSync {
-    const bwList: BWList = {
-      whiteLists,
-    };
-    return this.withBWList(bwList);
-  }
-
-  // WithSyncPaths sets the sync paths
-  withSyncPaths(syncPaths: string[]): ContextSync {
-    if (!this.policy) {
-      this.policy = newSyncPolicy();
-    }
-    this.policy.syncPaths = syncPaths;
+  // WithPolicy sets the policy and returns the context sync for chaining
+  withPolicy(policy: SyncPolicy): ContextSync {
+    this.policy = policy;
     return this;
   }
 }
@@ -170,22 +111,6 @@ export function newSyncPolicy(): SyncPolicy {
 }
 
 // NewContextSync creates a new context sync configuration
-export function newContextSync(contextId: string, path: string): ContextSync {
-  return new ContextSync(contextId, path, newSyncPolicy());
-}
-
-// NewBasicContextSync creates a basic context sync configuration with default policies
-export function newBasicContextSync(
-  contextId: string,
-  path: string
-): ContextSync {
-  return new ContextSync(contextId, path, newSyncPolicy());
-}
-
-// NewContextSyncWithoutPolicy creates a context sync configuration without any policies
-export function newContextSyncWithoutPolicy(
-  contextId: string,
-  path: string
-): ContextSync {
-  return new ContextSync(contextId, path);
+export function newContextSync(contextId: string, path: string, policy?: SyncPolicy): ContextSync {
+  return new ContextSync(contextId, path, policy);
 }

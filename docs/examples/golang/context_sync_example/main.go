@@ -38,9 +38,10 @@ func main() {
 	context := contextResult.Context
 	fmt.Printf("Context created/retrieved: %s (ID: %s)\n", context.Name, context.ID)
 
-	// Example 2: Create a basic context sync configuration
+	// Example 2: Creating a basic context sync configuration
 	fmt.Println("\nExample 2: Creating a basic context sync configuration...")
-	basicSync := agentbay.NewBasicContextSync(context.ID, "/home/wuying")
+	basicPolicy := agentbay.NewSyncPolicy()
+	basicSync := agentbay.NewContextSync(context.ID, "/home/wuying", basicPolicy)
 	fmt.Printf("Basic sync - ContextID: %s, Path: %s\n", basicSync.ContextID, basicSync.Path)
 
 	// Example 3: Create an advanced context sync configuration with policies
@@ -84,11 +85,7 @@ func main() {
 	}
 
 	// Create advanced sync configuration
-	advancedSync := &agentbay.ContextSync{
-		ContextID: context.ID,
-		Path:      "/data",
-		Policy:    syncPolicy,
-	}
+	advancedSync := agentbay.NewContextSync(context.ID, "/data", syncPolicy)
 
 	fmt.Printf("Advanced sync - ContextID: %s, Path: %s\n", advancedSync.ContextID, advancedSync.Path)
 	fmt.Printf("  - Upload: Auto=%t, Strategy=%s, Period=%d\n",
@@ -155,16 +152,29 @@ func main() {
 
 	// Example 7: Alternative way using builder pattern
 	fmt.Println("\nExample 7: Using builder pattern for context sync...")
-	builderSync := agentbay.NewContextSync(context.ID, "/workspace").
-		WithUploadPolicy(&agentbay.UploadPolicy{
+
+	// Create a custom policy for the builder example
+	builderPolicy := &agentbay.SyncPolicy{
+		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-		}).
-		WithDownloadPolicy(&agentbay.DownloadPolicy{
+		},
+		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     true,
 			DownloadStrategy: agentbay.DownloadAsync,
-		}).
-		WithWhiteList("/workspace/src", []string{"/workspace/src/node_modules"})
+		},
+		BWList: &agentbay.BWList{
+			WhiteLists: []*agentbay.WhiteList{
+				{
+					Path:         "/workspace/src",
+					ExcludePaths: []string{"/workspace/src/node_modules"},
+				},
+			},
+		},
+	}
+
+	builderSync := agentbay.NewContextSync(context.ID, "/workspace", nil).
+		WithPolicy(builderPolicy)
 
 	fmt.Printf("Builder sync - ContextID: %s, Path: %s\n",
 		builderSync.ContextID, builderSync.Path)
