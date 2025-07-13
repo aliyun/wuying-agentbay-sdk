@@ -1,0 +1,43 @@
+package interfaces
+
+import (
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
+)
+
+//go:generate mockgen -destination=../../../tests/pkg/unit/mock/mock_filesystem.go -package=mock github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/interface FileSystemInterface
+
+// FileSystemInterface defines the interface for filesystem operations
+type FileSystemInterface interface {
+	// ReadFile reads content from a file
+	ReadFile(path string, optionalParams ...int) (*filesystem.FileReadResult, error)
+
+	// WriteFile writes content to a file
+	WriteFile(path, content string, mode string) (*filesystem.FileWriteResult, error)
+
+	// EditFile edits a file by replacing occurrences of oldText with newText
+	EditFile(path string, edits []map[string]string, dryRun bool) (*filesystem.FileWriteResult, error)
+
+	// CreateDirectory creates a directory
+	CreateDirectory(path string) (*filesystem.FileDirectoryResult, error)
+
+	// GetFileInfo gets information about a file or directory
+	GetFileInfo(path string) (*filesystem.FileInfoResult, error)
+
+	// ListDirectory lists the contents of a directory
+	ListDirectory(path string) (*filesystem.DirectoryListResult, error)
+
+	// MoveFile moves a file or directory from source to destination
+	MoveFile(source, destination string) (*filesystem.FileWriteResult, error)
+
+	// ReadMultipleFiles reads the contents of multiple files
+	ReadMultipleFiles(paths []string) (map[string]string, error)
+
+	// SearchFiles searches for files matching a pattern in a directory
+	SearchFiles(path, pattern string, excludePatterns []string) (*filesystem.SearchFilesResult, error)
+
+	// ReadLargeFile reads a large file in chunks
+	ReadLargeFile(path string, chunkSize int) (*filesystem.FileReadResult, error)
+
+	// WriteLargeFile writes a large file in chunks
+	WriteLargeFile(path, content string, chunkSize int) (*filesystem.FileWriteResult, error)
+}

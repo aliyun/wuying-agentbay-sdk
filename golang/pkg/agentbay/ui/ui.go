@@ -102,6 +102,12 @@ type callMcpToolResult struct {
 
 // callMcpTool is an internal helper to call MCP tool and handle errors
 func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
+	// Check if client is nil
+	client := u.Session.GetClient()
+	if client == nil {
+		return nil, fmt.Errorf("client is nil, failed to call %s", name)
+	}
+
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal args: %w", err)
@@ -120,7 +126,7 @@ func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg s
 	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
 
 	// Call the MCP tool
-	response, err := u.Session.GetClient().CallMcpTool(callToolRequest)
+	response, err := client.CallMcpTool(callToolRequest)
 	if err != nil {
 		fmt.Println("Error calling CallMcpTool -", name, ":", err)
 		return nil, fmt.Errorf("failed to call %s: %w", name, err)
