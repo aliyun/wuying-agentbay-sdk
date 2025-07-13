@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
@@ -9,12 +8,6 @@ import (
 
 // AgentBayInterface defines the interface for AgentBay operations
 type AgentBayInterface interface {
-	// GetAPIKey gets the API Key
-	GetAPIKey() string
-
-	// GetClient gets the client
-	GetClient() *client.Client
-
 	// Create creates a new session
 	Create(params *agentbay.CreateSessionParams) (*agentbay.SessionResult, error)
 

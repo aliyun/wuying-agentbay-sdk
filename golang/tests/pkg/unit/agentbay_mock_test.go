@@ -3,48 +3,11 @@ package agentbay_test
 import (
 	"testing"
 
-	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/unit/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestAgentBay_GetAPIKey_WithMockClient(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create mock AgentBay
-	mockAgentBay := mock.NewMockAgentBayInterface(ctrl)
-
-	// Set expected behavior
-	mockAgentBay.EXPECT().GetAPIKey().Return("test_api_key")
-
-	// Test GetAPIKey method call
-	result := mockAgentBay.GetAPIKey()
-
-	// Verify call success
-	assert.Equal(t, "test_api_key", result)
-}
-
-func TestAgentBay_GetClient_WithMockClient(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create mock AgentBay
-	mockAgentBay := mock.NewMockAgentBayInterface(ctrl)
-
-	// Set expected behavior
-	expectedClient := &client.Client{}
-	mockAgentBay.EXPECT().GetClient().Return(expectedClient)
-
-	// Test GetClient method call
-	result := mockAgentBay.GetClient()
-
-	// Verify call success
-	assert.NotNil(t, result)
-	assert.Equal(t, expectedClient, result)
-}
 
 func TestAgentBay_Create_WithMockClient(t *testing.T) {
 	ctrl := gomock.NewController(t)

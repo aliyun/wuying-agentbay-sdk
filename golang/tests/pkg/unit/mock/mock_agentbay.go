@@ -7,7 +7,6 @@ package mock
 import (
 	reflect "reflect"
 
-	client "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -63,34 +62,6 @@ func (m *MockAgentBayInterface) Delete(arg0 *agentbay.Session) (*agentbay.Delete
 func (mr *MockAgentBayInterfaceMockRecorder) Delete(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAgentBayInterface)(nil).Delete), arg0)
-}
-
-// GetAPIKey mocks base method.
-func (m *MockAgentBayInterface) GetAPIKey() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAPIKey")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetAPIKey indicates an expected call of GetAPIKey.
-func (mr *MockAgentBayInterfaceMockRecorder) GetAPIKey() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAPIKey", reflect.TypeOf((*MockAgentBayInterface)(nil).GetAPIKey))
-}
-
-// GetClient mocks base method.
-func (m *MockAgentBayInterface) GetClient() *client.Client {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClient")
-	ret0, _ := ret[0].(*client.Client)
-	return ret0
-}
-
-// GetClient indicates an expected call of GetClient.
-func (mr *MockAgentBayInterfaceMockRecorder) GetClient() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClient", reflect.TypeOf((*MockAgentBayInterface)(nil).GetClient))
 }
 
 // List mocks base method.
