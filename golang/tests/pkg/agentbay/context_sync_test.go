@@ -1,6 +1,7 @@
 package agentbay_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
@@ -136,4 +137,99 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	// Verify sync paths
 	assert.NotNil(t, sync.Policy.SyncPaths)
 	assert.Equal(t, []string{"/data/important"}, sync.Policy.SyncPaths)
+}
+
+func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
+	// Create a default sync policy
+	policy := agentbay.NewSyncPolicy()
+
+	// Verify the policy matches the exact requirements
+	assert.NotNil(t, policy)
+
+	// Verify uploadPolicy
+	assert.NotNil(t, policy.UploadPolicy)
+	assert.True(t, policy.UploadPolicy.AutoUpload, "uploadPolicy.autoUpload should be true")
+	assert.Equal(t, agentbay.UploadBeforeResourceRelease, policy.UploadPolicy.UploadStrategy, "uploadPolicy.uploadStrategy should be 'UploadBeforeResourceRelease'")
+	assert.Equal(t, 30, policy.UploadPolicy.Period, "uploadPolicy.period should be 30")
+
+	// Verify downloadPolicy
+	assert.NotNil(t, policy.DownloadPolicy)
+	assert.True(t, policy.DownloadPolicy.AutoDownload, "downloadPolicy.autoDownload should be true")
+	assert.Equal(t, agentbay.DownloadAsync, policy.DownloadPolicy.DownloadStrategy, "downloadPolicy.downloadStrategy should be 'DownloadAsync'")
+
+	// Verify deletePolicy
+	assert.NotNil(t, policy.DeletePolicy)
+	assert.True(t, policy.DeletePolicy.SyncLocalFile, "deletePolicy.syncLocalFile should be true")
+
+	// Verify bwList
+	assert.NotNil(t, policy.BWList)
+	assert.NotNil(t, policy.BWList.WhiteLists)
+	assert.Len(t, policy.BWList.WhiteLists, 1, "bwList.whiteLists should have exactly 1 element")
+
+	whiteList := policy.BWList.WhiteLists[0]
+	assert.Equal(t, "", whiteList.Path, "bwList.whiteLists[0].path should be empty string")
+	assert.NotNil(t, whiteList.ExcludePaths)
+	assert.Empty(t, whiteList.ExcludePaths, "bwList.whiteLists[0].excludePaths should be empty array")
+
+	// Verify syncPaths
+	assert.NotNil(t, policy.SyncPaths)
+	assert.Len(t, policy.SyncPaths, 1, "syncPaths should have exactly 1 element")
+	assert.Equal(t, "", policy.SyncPaths[0], "syncPaths[0] should be empty string")
+
+	// Additional verification: test JSON marshaling to ensure the structure is correct
+	jsonData, err := json.Marshal(policy)
+	assert.NoError(t, err, "Policy should be marshallable to JSON")
+
+	// Debug: print the JSON structure
+	t.Logf("Generated JSON: %s", string(jsonData))
+
+	// Verify the JSON structure matches the expected format
+	var jsonMap map[string]interface{}
+	err = json.Unmarshal(jsonData, &jsonMap)
+	assert.NoError(t, err, "JSON should be unmarshallable")
+
+	// Verify uploadPolicy in JSON
+	uploadPolicy, exists := jsonMap["uploadPolicy"].(map[string]interface{})
+	assert.True(t, exists, "uploadPolicy should exist in JSON")
+	assert.Equal(t, true, uploadPolicy["autoUpload"], "JSON uploadPolicy.autoUpload should be true")
+	assert.Equal(t, "UploadBeforeResourceRelease", uploadPolicy["uploadStrategy"], "JSON uploadPolicy.uploadStrategy should be 'UploadBeforeResourceRelease'")
+	assert.Equal(t, float64(30), uploadPolicy["period"], "JSON uploadPolicy.period should be 30")
+
+	// Verify downloadPolicy in JSON
+	downloadPolicy, exists := jsonMap["downloadPolicy"].(map[string]interface{})
+	assert.True(t, exists, "downloadPolicy should exist in JSON")
+	assert.Equal(t, true, downloadPolicy["autoDownload"], "JSON downloadPolicy.autoDownload should be true")
+	assert.Equal(t, "DownloadAsync", downloadPolicy["downloadStrategy"], "JSON downloadPolicy.downloadStrategy should be 'DownloadAsync'")
+
+	// Verify deletePolicy in JSON
+	deletePolicy, exists := jsonMap["deletePolicy"].(map[string]interface{})
+	assert.True(t, exists, "deletePolicy should exist in JSON")
+	assert.Equal(t, true, deletePolicy["syncLocalFile"], "JSON deletePolicy.syncLocalFile should be true")
+
+	// Verify bwList in JSON
+	bwList, exists := jsonMap["bwList"].(map[string]interface{})
+	assert.True(t, exists, "bwList should exist in JSON")
+
+	whiteLists, exists := bwList["whiteLists"].([]interface{})
+	assert.True(t, exists, "bwList.whiteLists should exist in JSON")
+	assert.Len(t, whiteLists, 1, "JSON bwList.whiteLists should have exactly 1 element")
+
+	whiteListMap := whiteLists[0].(map[string]interface{})
+	assert.Equal(t, "", whiteListMap["path"], "JSON bwList.whiteLists[0].path should be empty string")
+
+	// Check if excludePaths exists in the JSON (it might be omitted if empty)
+	if excludePaths, exists := whiteListMap["excludePaths"]; exists {
+		excludePathsArray, ok := excludePaths.([]interface{})
+		assert.True(t, ok, "bwList.whiteLists[0].excludePaths should be an array if present")
+		assert.Empty(t, excludePathsArray, "JSON bwList.whiteLists[0].excludePaths should be empty array")
+	} else {
+		// If excludePaths is not present in JSON (omitted due to omitempty), that's also acceptable
+		t.Log("excludePaths is omitted from JSON (which is acceptable due to omitempty tag)")
+	}
+
+	// Verify syncPaths in JSON
+	syncPaths, exists := jsonMap["syncPaths"].([]interface{})
+	assert.True(t, exists, "syncPaths should exist in JSON")
+	assert.Len(t, syncPaths, 1, "JSON syncPaths should have exactly 1 element")
+	assert.Equal(t, "", syncPaths[0], "JSON syncPaths[0] should be empty string")
 }
