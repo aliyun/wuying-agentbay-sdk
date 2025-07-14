@@ -14,6 +14,7 @@ jobs:
     outputs:
       python: ${{ steps.filter.outputs.python }}
       typescript: ${{ steps.filter.outputs.typescript }}
+      golang: ${{ steps.filter.outputs.golang }}
     steps:
       - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v3
@@ -26,6 +27,10 @@ jobs:
             typescript:
               - 'typescript/**'
               - '.github/workflows/typescript-tests.yml'
+            golang:
+              - 'golang/**'
+              - '.github/workflows/golang-tests.yml'
+              - '.golangci.yml'
 
   python-tests:
     needs: changes
@@ -37,4 +42,10 @@ jobs:
     needs: changes
     if: needs.changes.outputs.typescript == 'true'
     uses: ./.github/workflows/typescript-tests.yml
+    secrets: inherit
+
+  golang-tests:
+    needs: changes
+    if: needs.changes.outputs.golang == 'true'
+    uses: ./.github/workflows/golang-tests.yml
     secrets: inherit

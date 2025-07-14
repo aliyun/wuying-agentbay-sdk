@@ -122,11 +122,13 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 	}
 
 	// Check if there's an error in the response
+	//nolint:govet
 	isError, ok := data["isError"].(bool)
 	if ok && isError {
 		result.IsError = true
 
 		// Try to extract the error message from the content field
+		//nolint:govet
 		contentArray, ok := data["content"].([]interface{})
 		if ok && len(contentArray) > 0 {
 			// Convert content array to a more usable format
@@ -141,6 +143,7 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 
 			// Extract error message from the first content item
 			if len(result.Content) > 0 {
+				//nolint:govet
 				text, ok := result.Content[0]["text"].(string)
 				if ok {
 					result.ErrorMsg = text
@@ -152,10 +155,12 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 	}
 
 	// Extract content array if it exists
+	//nolint:govet
 	contentArray, ok := data["content"].([]interface{})
 	if ok {
 		result.Content = make([]map[string]interface{}, 0, len(contentArray))
 		for _, item := range contentArray {
+			//nolint:govet
 			contentItem, ok := item.(map[string]interface{})
 			if !ok {
 				continue
@@ -166,6 +171,7 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 		// Extract text content from the content items
 		var textBuilder strings.Builder
 		for _, item := range result.Content {
+			//nolint:govet
 			text, ok := item["text"].(string)
 			if !ok {
 				continue

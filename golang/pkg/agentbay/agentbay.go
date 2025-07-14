@@ -151,7 +151,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if createSessionRequest.Labels != nil {
 		fmt.Printf("Labels=%s, ", *createSessionRequest.Labels)
 	}
-	if createSessionRequest.PersistenceDataList != nil && len(createSessionRequest.PersistenceDataList) > 0 {
+	if len(createSessionRequest.PersistenceDataList) > 0 {
 		fmt.Printf("PersistenceDataList=%d items, ", len(createSessionRequest.PersistenceDataList))
 		for i, pd := range createSessionRequest.PersistenceDataList {
 			fmt.Printf("Item%d[ContextId=%s, Path=%s", i, tea.StringValue(pd.ContextId), tea.StringValue(pd.Path))
@@ -179,7 +179,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		// Convert response body to JSON for proper printing without escaped characters
 		responseJSON, _ := json.MarshalIndent(response.Body, "", "  ")
 		// Replace \u0026 with & for better readability
-		jsonStr := strings.Replace(string(responseJSON), "\\u0026", "&", -1)
+		jsonStr := strings.ReplaceAll(string(responseJSON), "\\u0026", "&")
 		fmt.Println("Response from CreateMcpSession:")
 		fmt.Println(jsonStr)
 	}
@@ -195,7 +195,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		if response.Body.Data.ErrMsg != nil {
 			errMsg = *response.Body.Data.ErrMsg
 		}
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 
 	// Check if SessionId is present

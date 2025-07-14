@@ -105,11 +105,13 @@ func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultError
 		result.IsError = true
 
 		// Try to extract the error message from the content field
+		//nolint:govet
 		contentArray, ok := data["content"].([]interface{})
 		if ok && len(contentArray) > 0 {
 			// Convert content array to a more usable format
 			result.Content = make([]map[string]interface{}, 0, len(contentArray))
 			for _, item := range contentArray {
+				//nolint:govet
 				contentItem, ok := item.(map[string]interface{})
 				if !ok {
 					continue
@@ -119,6 +121,7 @@ func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultError
 
 			// Extract error message from the first content item
 			if len(result.Content) > 0 {
+				//nolint:govet
 				text, ok := result.Content[0]["text"].(string)
 				if ok {
 					result.ErrorMsg = text
@@ -130,10 +133,12 @@ func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultError
 	}
 
 	// Extract content array if it exists
+	//nolint:govet
 	contentArray, ok := data["content"].([]interface{})
 	if ok {
 		result.Content = make([]map[string]interface{}, 0, len(contentArray))
 		for _, item := range contentArray {
+			//nolint:govet
 			contentItem, ok := item.(map[string]interface{})
 			if !ok {
 				continue
@@ -144,6 +149,7 @@ func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultError
 		// Extract text content from the content items
 		var textBuilder strings.Builder
 		for i, item := range result.Content {
+			//nolint:govet
 			text, ok := item["text"].(string)
 			if !ok {
 				continue

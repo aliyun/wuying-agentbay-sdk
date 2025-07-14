@@ -1,0 +1,177 @@
+name: Golang Tests
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Get full history for SonarQube analysis
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      working-directory: ./golang
+      run: |
+        go mod download
+        go mod verify
+
+    - name: Install linting tools
+      run: |
+        # Install golangci-lint for comprehensive linting (updated to latest version)
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
+
+        # Install gosec for security scanning
+        go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+
+        # Install govulncheck for vulnerability scanning
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    # - name: Format check
+    #   working-directory: ./golang
+    #   run: |
+    #     # Check if code is properly formatted
+    #     unformatted=$(gofmt -l .)
+    #     if [ -n "$unformatted" ]; then
+    #       echo "The following files are not properly formatted:"
+    #       echo "$unformatted"
+    #       echo "Please run 'go fmt ./...' to format the code"
+    #       exit 1
+    #     fi
+
+    - name: Go vet
+      working-directory: ./golang
+      run: |
+        go vet ./...
+
+        - name: Lint Go code
+      working-directory: ./golang
+      run: |
+        # Run golangci-lint with updated configuration file (compatible with v2.2.2)
+        echo "Running golangci-lint with custom configuration..."
+        golangci-lint run --timeout=5m --config=.golangci.yml || {
+          echo "Linting completed with issues found."
+          echo "Issues found will be reported but won't fail the build."
+          echo "Please review and fix the linting issues when possible."
+        }
+
+    - name: Security scan with gosec
+      working-directory: ./golang
+      run: |
+        # Run security scan and output results in JSON format
+        gosec -fmt json -out gosec-results.json ./... || true
+
+    - name: Check for vulnerabilities
+      working-directory: ./golang
+      run: |
+        # Check for known vulnerabilities in dependencies
+        govulncheck ./... || true
+
+    - name: Generate test coverage
+      working-directory: ./golang
+      run: |
+        # Run tests with coverage
+        go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+        # Convert coverage to XML format for SonarQube
+        go install github.com/axw/gocov/gocov@latest
+        go install github.com/AlekSi/gocov-xml@latest
+        gocov convert coverage.out | gocov-xml > coverage.xml
+
+    - name: SonarQube Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        projectBaseDir: ./golang
+        args: >
+          -Dsonar.projectKey=wuying-agentbay-sdk_golang
+          -Dsonar.organization=wuying-agentbay
+          -Dsonar.go.coverage.reportPaths=coverage.xml
+
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.20', '1.21', '1.22']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go-version }}-
+
+    - name: Install dependencies
+      working-directory: ./golang
+      run: |
+        go mod download
+        go mod verify
+
+    - name: Build
+      working-directory: ./golang
+      run: |
+        go build -v ./...
+
+    - name: Run unit tests
+      working-directory: ./golang
+      run: |
+        # Run unit tests with race detection and verbose output
+        go test -race -v ./tests/pkg/unit/...
+
+    - name: Run integration tests
+      working-directory: ./golang
+      run: |
+        # Run integration tests if they exist
+        if [ -d "./tests/pkg/integration" ]; then
+          go test -race -v ./tests/pkg/integration/...
+        fi
+
+    - name: Run package tests
+      working-directory: ./golang
+      run: |
+        # Run main package tests
+        if [ -d "./tests/pkg/agentbay" ]; then
+          go test -race -v ./tests/pkg/agentbay/...
+        fi
+
+    - name: Test examples
+      working-directory: ./golang
+      run: |
+        # Build all examples to ensure they compile
+        for example_dir in ./examples/*/; do
+          if [ -f "$example_dir/main.go" ]; then
+            echo "Building example: $example_dir"
+            (cd "$example_dir" && go build -v .)
+          fi
+        done

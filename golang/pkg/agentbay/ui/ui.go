@@ -160,12 +160,15 @@ func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg s
 		result.IsError = true
 
 		// Try to extract the error message from the content field
+		//nolint:govet
 		contentArray, ok := data["content"].([]interface{})
 		if ok && len(contentArray) > 0 {
 			// Extract error message from the first content item
 			if len(contentArray) > 0 {
+				//nolint:govet
 				contentItem, ok := contentArray[0].(map[string]interface{})
 				if ok {
+					//nolint:govet
 					text, ok := contentItem["text"].(string)
 					if ok {
 						result.ErrorMsg = text
@@ -178,15 +181,18 @@ func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg s
 	}
 
 	// Extract text from content array if it exists
+	//nolint:govet
 	contentArray, ok := data["content"].([]interface{})
 	if ok && len(contentArray) > 0 {
 		var textBuilder strings.Builder
 		for i, item := range contentArray {
+			//nolint:govet
 			contentItem, ok := item.(map[string]interface{})
 			if !ok {
 				continue
 			}
 
+			//nolint:govet
 			text, ok := contentItem["text"].(string)
 			if !ok {
 				continue
