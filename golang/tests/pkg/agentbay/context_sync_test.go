@@ -85,12 +85,12 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	policy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     false,
-			UploadStrategy: agentbay.PeriodicUpload,
+			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 			Period:         15,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     false,
-			DownloadStrategy: agentbay.DownloadSync,
+			DownloadStrategy: agentbay.DownloadAsync,
 		},
 		DeletePolicy: &agentbay.DeletePolicy{
 			SyncLocalFile: false,
@@ -116,13 +116,13 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	// Verify upload policy
 	assert.NotNil(t, sync.Policy.UploadPolicy)
 	assert.False(t, sync.Policy.UploadPolicy.AutoUpload)
-	assert.Equal(t, agentbay.PeriodicUpload, sync.Policy.UploadPolicy.UploadStrategy)
+	assert.Equal(t, agentbay.UploadBeforeResourceRelease, sync.Policy.UploadPolicy.UploadStrategy)
 	assert.Equal(t, 15, sync.Policy.UploadPolicy.Period)
 
 	// Verify download policy
 	assert.NotNil(t, sync.Policy.DownloadPolicy)
 	assert.False(t, sync.Policy.DownloadPolicy.AutoDownload)
-	assert.Equal(t, agentbay.DownloadSync, sync.Policy.DownloadPolicy.DownloadStrategy)
+	assert.Equal(t, agentbay.DownloadAsync, sync.Policy.DownloadPolicy.DownloadStrategy)
 
 	// Verify delete policy
 	assert.NotNil(t, sync.Policy.DeletePolicy)

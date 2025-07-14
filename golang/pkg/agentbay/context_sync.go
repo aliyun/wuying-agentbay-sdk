@@ -6,18 +6,12 @@ type UploadStrategy string
 const (
 	// UploadBeforeResourceRelease uploads files before resource release
 	UploadBeforeResourceRelease UploadStrategy = "UploadBeforeResourceRelease"
-	// UploadAfterFileClose uploads files after file close
-	UploadAfterFileClose UploadStrategy = "UploadAfterFileClose"
-	// PeriodicUpload uploads files periodically
-	PeriodicUpload UploadStrategy = "PERIODIC_UPLOAD"
 )
 
 // DownloadStrategy defines the download strategy for context synchronization
 type DownloadStrategy string
 
 const (
-	// DownloadSync downloads files synchronously
-	DownloadSync DownloadStrategy = "DownloadSync"
 	// DownloadAsync downloads files asynchronously
 	DownloadAsync DownloadStrategy = "DownloadAsync"
 )

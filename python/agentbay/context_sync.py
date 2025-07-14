@@ -6,13 +6,10 @@ from typing import List, Optional
 class UploadStrategy(Enum):
     """Upload strategy for context synchronization"""
     UPLOAD_BEFORE_RESOURCE_RELEASE = "UploadBeforeResourceRelease"
-    UPLOAD_AFTER_FILE_CLOSE = "UploadAfterFileClose"
-    PERIODIC_UPLOAD = "PERIODIC_UPLOAD"
 
 
 class DownloadStrategy(Enum):
     """Download strategy for context synchronization"""
-    DOWNLOAD_SYNC = "DownloadSync"
     DOWNLOAD_ASYNC = "DownloadAsync"
 
 

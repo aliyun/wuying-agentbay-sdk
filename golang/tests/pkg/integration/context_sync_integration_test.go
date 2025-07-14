@@ -188,12 +188,12 @@ func TestContextSyncWithMultipleContexts(t *testing.T) {
 	customPolicy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     true,
-			UploadStrategy: agentbay.PeriodicUpload,
+			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 			Period:         15,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     true,
-			DownloadStrategy: agentbay.DownloadSync,
+			DownloadStrategy: agentbay.DownloadAsync,
 		},
 		BWList: &agentbay.BWList{
 			WhiteLists: []*agentbay.WhiteList{
@@ -292,7 +292,7 @@ func TestContextSyncSessionParams(t *testing.T) {
 		syncPolicy := &agentbay.SyncPolicy{
 			UploadPolicy: &agentbay.UploadPolicy{
 				AutoUpload:     true,
-				UploadStrategy: agentbay.PeriodicUpload,
+				UploadStrategy: agentbay.UploadBeforeResourceRelease,
 				Period:         10,
 			},
 		}
@@ -311,7 +311,7 @@ func TestContextSyncSessionParams(t *testing.T) {
 
 		uploadPolicy := &agentbay.UploadPolicy{
 			AutoUpload:     false,
-			UploadStrategy: agentbay.UploadAfterFileClose,
+			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		}
 		syncPolicy := &agentbay.SyncPolicy{
 			UploadPolicy: uploadPolicy,
@@ -326,7 +326,7 @@ func TestContextSyncSessionParams(t *testing.T) {
 		assert.NotNil(t, sessionParams.ContextSync[0].Policy)
 		assert.NotNil(t, sessionParams.ContextSync[0].Policy.UploadPolicy)
 		assert.False(t, sessionParams.ContextSync[0].Policy.UploadPolicy.AutoUpload)
-		assert.Equal(t, agentbay.UploadAfterFileClose, sessionParams.ContextSync[0].Policy.UploadPolicy.UploadStrategy)
+		assert.Equal(t, agentbay.UploadBeforeResourceRelease, sessionParams.ContextSync[0].Policy.UploadPolicy.UploadStrategy)
 	})
 
 	// Test adding multiple context syncs

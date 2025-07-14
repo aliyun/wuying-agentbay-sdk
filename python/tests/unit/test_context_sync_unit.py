@@ -56,7 +56,7 @@ class TestContextSyncUnit(unittest.TestCase):
         # Create upload policy
         upload_policy = UploadPolicy(
             auto_upload=True,
-            upload_strategy=UploadStrategy.PERIODIC_UPLOAD,
+            upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
             period=15  # 15 minutes
         )
         
@@ -103,7 +103,7 @@ class TestContextSyncUnit(unittest.TestCase):
         
         # Verify custom policy values
         self.assertTrue(advanced_sync.policy.upload_policy.auto_upload)
-        self.assertEqual(advanced_sync.policy.upload_policy.upload_strategy, UploadStrategy.PERIODIC_UPLOAD)
+        self.assertEqual(advanced_sync.policy.upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE)
         self.assertEqual(advanced_sync.policy.upload_policy.period, 15)
         
         self.assertTrue(advanced_sync.policy.download_policy.auto_download)
@@ -218,15 +218,13 @@ class TestContextSyncUnit(unittest.TestCase):
         
         strategies = [
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
-            UploadStrategy.UPLOAD_AFTER_FILE_CLOSE,
-            UploadStrategy.PERIODIC_UPLOAD
         ]
         
         for strategy in strategies:
             upload_policy = UploadPolicy(
                 auto_upload=True,
                 upload_strategy=strategy,
-                period=30 if strategy == UploadStrategy.PERIODIC_UPLOAD else None
+                period=30
             )
             
             sync_policy = SyncPolicy(upload_policy=upload_policy)
@@ -240,7 +238,6 @@ class TestContextSyncUnit(unittest.TestCase):
         print("\nTest 6: Testing different download strategies...")
         
         strategies = [
-            DownloadStrategy.DOWNLOAD_SYNC,
             DownloadStrategy.DOWNLOAD_ASYNC
         ]
         

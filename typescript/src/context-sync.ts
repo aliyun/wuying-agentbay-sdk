@@ -1,13 +1,10 @@
 // UploadStrategy defines the upload strategy for context synchronization
 export enum UploadStrategy {
   UploadBeforeResourceRelease = "UploadBeforeResourceRelease",
-  UploadAfterFileClose = "UploadAfterFileClose",
-  PeriodicUpload = "PERIODIC_UPLOAD",
 }
 
 // DownloadStrategy defines the download strategy for context synchronization
 export enum DownloadStrategy {
-  DownloadSync = "DownloadSync",
   DownloadAsync = "DownloadAsync",
 }
 
