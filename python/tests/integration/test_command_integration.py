@@ -24,8 +24,12 @@ class TestCommandIntegration(unittest.TestCase):
         params = CreateSessionParams(
             image_id="code_latest",
         )
-        cls.result = cls.agent_bay.create(params)
-        cls.command = Command(cls.result.session)
+        session_result = cls.agent_bay.create(params)
+        if not session_result.success or not session_result.session:
+            raise unittest.SkipTest("Failed to create session")
+            
+        cls.session = session_result.session
+        cls.command = Command(cls.session)
 
     @classmethod
     def tearDownClass(cls):

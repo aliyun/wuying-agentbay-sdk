@@ -29,6 +29,7 @@ def test_oss_integration():
     if not api_key:
         api_key = "akm-xxx"
 
+    session = None
     try:
         agent_bay = AgentBay(api_key=api_key)
         # Create session
@@ -36,7 +37,13 @@ def test_oss_integration():
         params = CreateSessionParams(
             image_id="code_latest",
         )
-        session = agent_bay.create(params)
+        session_result = agent_bay.create(params)
+        if not session_result.success or not session_result.session:
+            print("Failed to create session")
+            return
+            
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
 
         oss = Oss(session)
 

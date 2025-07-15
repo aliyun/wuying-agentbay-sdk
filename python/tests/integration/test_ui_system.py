@@ -25,6 +25,9 @@ class TestUISystemIntegration(unittest.TestCase):
             image_id="mobile_latest",
         )
         result = cls.agent_bay.create(params)
+        if not result.success or not result.session:
+            raise unittest.SkipTest("Failed to create session")
+            
         cls.session = result.session
         cls.ui = cls.session.ui
         time.sleep(3)

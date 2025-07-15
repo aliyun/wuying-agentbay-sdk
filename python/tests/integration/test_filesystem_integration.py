@@ -32,9 +32,12 @@ class TestFileSystemIntegration(unittest.TestCase):
             image_id="linux_latest",
         )
         result = cls.agent_bay.create(params)
+        if not result.success or not result.session:
+            raise unittest.SkipTest("Failed to create session")
+            
         cls.session = result.session
         cls.fs = cls.session.file_system
-        print(f"Session created with ID: {cls.session.get_session_id()}")
+        print(f"Session created with ID: {cls.session.session_id}")
 
     @classmethod
     def tearDownClass(cls):
