@@ -68,7 +68,7 @@
         "typescript": "^5.0.0"
     },
     "dependencies": {
-        "@alicloud/openapi-core": "^1.0.0",
+        "@alicloud/openapi-core": "^1.0.4",
         "@darabonba/typescript": "^1.0.0",
         "axios": "^1.3.4"
     },

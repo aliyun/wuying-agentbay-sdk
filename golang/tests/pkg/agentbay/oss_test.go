@@ -10,41 +10,6 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
-// Helper function to get OSS credentials from environment variables or use defaults
-func getOssCredentials(t *testing.T) (string, string, string, string, string) {
-	accessKeyId := os.Getenv("OSS_ACCESS_KEY_ID")
-	if accessKeyId == "" {
-		t.Log("OSS_ACCESS_KEY_ID environment variable not set, using default value")
-		accessKeyId = "test-access-key-id"
-	}
-
-	accessKeySecret := os.Getenv("OSS_ACCESS_KEY_SECRET")
-	if accessKeySecret == "" {
-		t.Log("OSS_ACCESS_KEY_SECRET environment variable not set, using default value")
-		accessKeySecret = "test-access-key-secret"
-	}
-
-	securityToken := os.Getenv("OSS_SECURITY_TOKEN")
-	if securityToken == "" {
-		t.Log("OSS_SECURITY_TOKEN environment variable not set, using default value")
-		securityToken = "test-security-token"
-	}
-
-	endpoint := os.Getenv("OSS_ENDPOINT")
-	if endpoint == "" {
-		t.Log("OSS_ENDPOINT environment variable not set, using default value")
-		endpoint = "https://oss-cn-hangzhou.aliyuncs.com"
-	}
-
-	region := os.Getenv("OSS_REGION")
-	if region == "" {
-		t.Log("OSS_REGION environment variable not set, using default value")
-		region = "cn-hangzhou"
-	}
-
-	return accessKeyId, accessKeySecret, securityToken, endpoint, region
-}
-
 func TestOss_EnvInit(t *testing.T) {
 	// Setup session with cleanup and ImageId set to code_latest
 	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
@@ -53,8 +18,35 @@ func TestOss_EnvInit(t *testing.T) {
 
 	// Test OSS EnvInit
 	if session.Oss != nil {
-		// Get OSS credentials from environment variables
-		accessKeyId, accessKeySecret, securityToken, endpoint, region := getOssCredentials(t)
+		accessKeyId := os.Getenv("OSS_ACCESS_KEY_ID")
+		if accessKeyId == "" {
+			t.Log("OSS_ACCESS_KEY_ID environment variable not set, using default value")
+			accessKeyId = "test-access-key-id"
+		}
+
+		accessKeySecret := os.Getenv("OSS_ACCESS_KEY_SECRET")
+		if accessKeySecret == "" {
+			t.Log("OSS_ACCESS_KEY_SECRET environment variable not set, using default value")
+			accessKeySecret = "test-access-key-secret"
+		}
+
+		securityToken := os.Getenv("OSS_SECURITY_TOKEN")
+		if securityToken == "" {
+			t.Log("OSS_SECURITY_TOKEN environment variable not set, using default value")
+			securityToken = "test-security-token"
+		}
+
+		endpoint := os.Getenv("OSS_ENDPOINT")
+		if endpoint == "" {
+			t.Log("OSS_ENDPOINT environment variable not set, using default value")
+			endpoint = "https://oss-cn-hangzhou.aliyuncs.com"
+		}
+
+		region := os.Getenv("OSS_REGION")
+		if region == "" {
+			t.Log("OSS_REGION environment variable not set, using default value")
+			region = "cn-hangzhou"
+		}
 
 		fmt.Println("Initializing OSS environment...")
 		envInitResult, err := session.Oss.EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region)
@@ -83,7 +75,36 @@ func TestOss_Upload(t *testing.T) {
 	// Test OSS Upload
 	if session.Oss != nil {
 		// First initialize the OSS environment
-		accessKeyId, accessKeySecret, securityToken, endpoint, region := getOssCredentials(t)
+		accessKeyId := os.Getenv("OSS_ACCESS_KEY_ID")
+		if accessKeyId == "" {
+			t.Log("OSS_ACCESS_KEY_ID environment variable not set, using default value")
+			accessKeyId = "test-access-key-id"
+		}
+
+		accessKeySecret := os.Getenv("OSS_ACCESS_KEY_SECRET")
+		if accessKeySecret == "" {
+			t.Log("OSS_ACCESS_KEY_SECRET environment variable not set, using default value")
+			accessKeySecret = "test-access-key-secret"
+		}
+
+		securityToken := os.Getenv("OSS_SECURITY_TOKEN")
+		if securityToken == "" {
+			t.Log("OSS_SECURITY_TOKEN environment variable not set, using default value")
+			securityToken = "test-security-token"
+		}
+
+		endpoint := os.Getenv("OSS_ENDPOINT")
+		if endpoint == "" {
+			t.Log("OSS_ENDPOINT environment variable not set, using default value")
+			endpoint = "https://oss-cn-hangzhou.aliyuncs.com"
+		}
+
+		region := os.Getenv("OSS_REGION")
+		if region == "" {
+			t.Log("OSS_REGION environment variable not set, using default value")
+			region = "cn-hangzhou"
+		}
+
 		initResult, err := session.Oss.EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region)
 		if err != nil {
 			t.Fatalf("Failed to initialize OSS environment: %v", err)
@@ -176,7 +197,36 @@ func TestOss_Download(t *testing.T) {
 	// Test OSS Download
 	if session.Oss != nil {
 		// First initialize the OSS environment
-		accessKeyId, accessKeySecret, securityToken, endpoint, region := getOssCredentials(t)
+		accessKeyId := os.Getenv("OSS_ACCESS_KEY_ID")
+		if accessKeyId == "" {
+			t.Log("OSS_ACCESS_KEY_ID environment variable not set, using default value")
+			accessKeyId = "test-access-key-id"
+		}
+
+		accessKeySecret := os.Getenv("OSS_ACCESS_KEY_SECRET")
+		if accessKeySecret == "" {
+			t.Log("OSS_ACCESS_KEY_SECRET environment variable not set, using default value")
+			accessKeySecret = "test-access-key-secret"
+		}
+
+		securityToken := os.Getenv("OSS_SECURITY_TOKEN")
+		if securityToken == "" {
+			t.Log("OSS_SECURITY_TOKEN environment variable not set, using default value")
+			securityToken = "test-security-token"
+		}
+
+		endpoint := os.Getenv("OSS_ENDPOINT")
+		if endpoint == "" {
+			t.Log("OSS_ENDPOINT environment variable not set, using default value")
+			endpoint = "https://oss-cn-hangzhou.aliyuncs.com"
+		}
+
+		region := os.Getenv("OSS_REGION")
+		if region == "" {
+			t.Log("OSS_REGION environment variable not set, using default value")
+			region = "cn-hangzhou"
+		}
+
 		initResult, err := session.Oss.EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region)
 		if err != nil {
 			t.Fatalf("Failed to initialize OSS environment: %v", err)

@@ -1,9 +1,7 @@
 // This file is auto-generated, don't edit it
 import * as $dara from "@darabonba/typescript";
-import * as OpenApiDefault from "@alicloud/openapi-core";
+import OpenApi from "@alicloud/openapi-core";
 import { OpenApiUtil, $OpenApiUtil } from "@alicloud/openapi-core";
-
-const OpenApi = OpenApiDefault.default || OpenApiDefault;
 
 import * as $_model from "./models/model";
 export * from "./models/model";
@@ -49,60 +47,6 @@ export class Client extends OpenApi {
       network,
       suffix
     );
-  }
-
-  /**
-   * 获取MQTT Token
-   *
-   * @param request - ApplyMqttTokenRequest
-   * @param runtime - runtime options for this request RuntimeOptions
-   * @returns ApplyMqttTokenResponse
-   */
-  async applyMqttTokenWithOptions(
-    request: $_model.ApplyMqttTokenRequest,
-    runtime: $dara.RuntimeOptions
-  ): Promise<$_model.ApplyMqttTokenResponse> {
-    request.validate();
-    const query: { [key: string]: any } = {};
-    if (!$dara.isNull(request.desktopId)) {
-      query["DesktopId"] = request.desktopId;
-    }
-
-    if (!$dara.isNull(request.sessionToken)) {
-      query["SessionToken"] = request.sessionToken;
-    }
-
-    const req = new $OpenApiUtil.OpenApiRequest({
-      query: OpenApiUtil.query(query),
-    });
-    const params = new $OpenApiUtil.Params({
-      action: "ApplyMqttToken",
-      version: "2025-05-06",
-      protocol: "HTTPS",
-      pathname: "/",
-      method: "POST",
-      authType: "Anonymous",
-      style: "RPC",
-      reqBodyType: "formData",
-      bodyType: "json",
-    });
-    return $dara.cast<$_model.ApplyMqttTokenResponse>(
-      await this.callApi(params, req, runtime),
-      new $_model.ApplyMqttTokenResponse({})
-    );
-  }
-
-  /**
-   * 获取MQTT Token
-   *
-   * @param request - ApplyMqttTokenRequest
-   * @returns ApplyMqttTokenResponse
-   */
-  async applyMqttToken(
-    request: $_model.ApplyMqttTokenRequest
-  ): Promise<$_model.ApplyMqttTokenResponse> {
-    const runtime = new $dara.RuntimeOptions({});
-    return await this.applyMqttTokenWithOptions(request, runtime);
   }
 
   /**
@@ -622,66 +566,6 @@ export class Client extends OpenApi {
   ): Promise<$_model.GetMcpResourceResponse> {
     const runtime = new $dara.RuntimeOptions({});
     return await this.getMcpResourceWithOptions(request, runtime);
-  }
-
-  /**
-   * 处理来自AI Engine的消息
-   *
-   * @param request - HandleAIEngineMessageRequest
-   * @param runtime - runtime options for this request RuntimeOptions
-   * @returns HandleAIEngineMessageResponse
-   */
-  async handleAIEngineMessageWithOptions(
-    request: $_model.HandleAIEngineMessageRequest,
-    runtime: $dara.RuntimeOptions
-  ): Promise<$_model.HandleAIEngineMessageResponse> {
-    request.validate();
-    const query: { [key: string]: any } = {};
-    if (!$dara.isNull(request.sessionToken)) {
-      query["SessionToken"] = request.sessionToken;
-    }
-
-    const body: { [key: string]: any } = {};
-    if (!$dara.isNull(request.data)) {
-      body["Data"] = request.data;
-    }
-
-    if (!$dara.isNull(request.msgType)) {
-      body["MsgType"] = request.msgType;
-    }
-
-    const req = new $OpenApiUtil.OpenApiRequest({
-      query: OpenApiUtil.query(query),
-      body: OpenApiUtil.parseToMap(body),
-    });
-    const params = new $OpenApiUtil.Params({
-      action: "HandleAIEngineMessage",
-      version: "2025-05-06",
-      protocol: "HTTPS",
-      pathname: "/",
-      method: "POST",
-      authType: "Anonymous",
-      style: "RPC",
-      reqBodyType: "formData",
-      bodyType: "json",
-    });
-    return $dara.cast<$_model.HandleAIEngineMessageResponse>(
-      await this.callApi(params, req, runtime),
-      new $_model.HandleAIEngineMessageResponse({})
-    );
-  }
-
-  /**
-   * 处理来自AI Engine的消息
-   *
-   * @param request - HandleAIEngineMessageRequest
-   * @returns HandleAIEngineMessageResponse
-   */
-  async handleAIEngineMessage(
-    request: $_model.HandleAIEngineMessageRequest
-  ): Promise<$_model.HandleAIEngineMessageResponse> {
-    const runtime = new $dara.RuntimeOptions({});
-    return await this.handleAIEngineMessageWithOptions(request, runtime);
   }
 
   /**
