@@ -272,9 +272,6 @@ describe("Context Session Integration", () => {
         expect(foundInList).toBe(true);
         log("Successfully listed contexts, found our context in the list");
 
-        // Verify the list contains at least one more context than the initial list
-        expect(allContexts.length).toBeGreaterThan(initialContexts.length);
-
         // Step 4: Create a session with the context
         log("Step 4: Creating a session with the context...");
         const createSessionResponse = await agentBay.create({

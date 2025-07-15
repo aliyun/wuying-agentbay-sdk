@@ -23,41 +23,41 @@ class TestContextSyncIntegration(unittest.TestCase):
         api_key = os.environ.get("AGENTBAY_API_KEY")
         if not api_key or os.environ.get("CI"):
             raise unittest.SkipTest("Skipping integration test: No API key available or running in CI")
-        
+
         # Initialize AgentBay client
         cls.agent_bay = AgentBay(api_key)
-        
+
         # Create a unique context name for this test
         cls.context_name = f"test-sync-context-{int(time.time())}"
-        
+
         # Create a context
         context_result = cls.agent_bay.context.get(cls.context_name, True)
         if not context_result.success or not context_result.context:
             raise unittest.SkipTest("Failed to create context")
-        
+
         cls.context = context_result.context
         print(f"Created context: {cls.context.name} (ID: {cls.context.id})")
-        
+
         # Create session parameters with context sync
         session_params = CreateSessionParams()
-        
+
         # Create context sync configuration
         context_sync = ContextSync.new(cls.context.id, "/home/wuying", SyncPolicy.default())
         session_params.context_syncs = [context_sync]
-        
+
         # Add labels and image ID
         session_params.labels = {"test": "context-sync-integration"}
         session_params.image_id = "linux_latest"
-        
+
         # Create session
         session_result = cls.agent_bay.create(session_params)
         if not session_result.success or not session_result.session:
             cls.agent_bay.context.delete(cls.context)
             raise unittest.SkipTest("Failed to create session")
-        
+
         cls.session = session_result.session
         print(f"Created session: {cls.session.session_id}")
-        
+
         # Wait for session to be ready
         time.sleep(10)
 
@@ -70,7 +70,7 @@ class TestContextSyncIntegration(unittest.TestCase):
                 print(f"Session deleted: {cls.session.session_id}")
             except Exception as e:
                 print(f"Warning: Failed to delete session: {e}")
-        
+
         # Clean up context
         if hasattr(cls, "context"):
             try:
@@ -83,11 +83,11 @@ class TestContextSyncIntegration(unittest.TestCase):
         """Test that context info returns parsed ContextStatusData."""
         # Get context info
         context_info = self.session.context.info()
-        
+
         # Verify that we have a request ID
         self.assertIsNotNone(context_info.request_id)
         self.assertNotEqual(context_info.request_id, "")
-        
+
         # Log the context status data
         print(f"Context status data count: {len(context_info.context_status_data)}")
         for i, data in enumerate(context_info.context_status_data):
@@ -100,7 +100,7 @@ class TestContextSyncIntegration(unittest.TestCase):
             print(f"  Finish Time: {data.finish_time}")
             if data.error_message:
                 print(f"  Error: {data.error_message}")
-        
+
         # There might not be any status data yet, so we don't assert on the count
         # But if there is data, verify it has the expected structure
         for data in context_info.context_status_data:
@@ -114,21 +114,21 @@ class TestContextSyncIntegration(unittest.TestCase):
         """Test syncing context and then getting info."""
         # Sync context
         sync_result = self.session.context.sync()
-        
+
         # Verify sync result
         self.assertTrue(sync_result.success)
         self.assertIsNotNone(sync_result.request_id)
         self.assertNotEqual(sync_result.request_id, "")
-        
+
         # Wait for sync to complete
         time.sleep(5)
-        
+
         # Get context info
         context_info = self.session.context.info()
-        
+
         # Verify context info
         self.assertIsNotNone(context_info.request_id)
-        
+
         # Log the context status data
         print(f"Context status data after sync, count: {len(context_info.context_status_data)}")
         for i, data in enumerate(context_info.context_status_data):
@@ -137,7 +137,7 @@ class TestContextSyncIntegration(unittest.TestCase):
             print(f"  Path: {data.path}")
             print(f"  Status: {data.status}")
             print(f"  Task Type: {data.task_type}")
-        
+
         # Check if we have status data for our context
         found_context = False
         for data in context_info.context_status_data:
@@ -148,7 +148,7 @@ class TestContextSyncIntegration(unittest.TestCase):
                 self.assertIsNotNone(data.status)
                 self.assertNotEqual(data.status, "")
                 break
-        
+
         # We should have found our context in the status data
         # But this might be flaky in CI, so just log a warning if not found
         if not found_context:
@@ -162,10 +162,10 @@ class TestContextSyncIntegration(unittest.TestCase):
             path="/home/wuying",
             task_type=None
         )
-        
+
         # Verify that we have a request ID
         self.assertIsNotNone(context_info.request_id)
-        
+
         # Log the filtered context status data
         print(f"Filtered context status data count: {len(context_info.context_status_data)}")
         for i, data in enumerate(context_info.context_status_data):
@@ -174,7 +174,7 @@ class TestContextSyncIntegration(unittest.TestCase):
             print(f"  Path: {data.path}")
             print(f"  Status: {data.status}")
             print(f"  Task Type: {data.task_type}")
-        
+
         # If we have status data, verify it matches our filters
         for data in context_info.context_status_data:
             if data.context_id == self.context.id:
@@ -223,12 +223,12 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                 for i in range(20):  # Retry up to 20 times
                     context_info = session1.context.info()
-                    
+
                     if context_info.context_status_data:
                         print(f"Found context status data on attempt {i+1}")
                         found_data = True
                         break
-                    
+
                     print(f"No context status data available yet (attempt {i+1}), retrying in 1 second...")
                     time.sleep(1)
 
@@ -257,21 +257,21 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                 # 6. Get context info with retry for upload status
                 print("Checking file upload status with retry...")
-                
+
                 found_upload = False
                 for i in range(20):  # Retry up to 20 times
                     context_info = session1.context.info()
-                    
+
                     # Check if we have upload status for our context
                     for data in context_info.context_status_data:
                         if data.context_id == context.id and data.task_type == "upload":
                             found_upload = True
                             print(f"Found upload task for context at attempt {i+1}")
                             break
-                    
+
                     if found_upload:
                         break
-                    
+
                     print(f"No upload status found yet (attempt {i+1}), retrying in 1 second...")
                     time.sleep(1)
 
@@ -304,21 +304,21 @@ class TestContextSyncIntegration(unittest.TestCase):
                 try:
                     # 9. Get context info with retry for download status
                     print("Checking file download status with retry...")
-                    
+
                     found_download = False
                     for i in range(20):  # Retry up to 20 times
                         context_info = session2.context.info()
-                        
+
                         # Check if we have download status for our context
                         for data in context_info.context_status_data:
                             if data.context_id == context.id and data.task_type == "download":
                                 found_download = True
                                 print(f"Found download task for context at attempt {i+1}")
                                 break
-                        
+
                         if found_download:
                             break
-                        
+
                         print(f"No download status found yet (attempt {i+1}), retrying in 1 second...")
                         time.sleep(1)
 
@@ -376,4 +376,4 @@ class TestContextSyncIntegration(unittest.TestCase):
             print(f"  StartTime: {item.start_time}")
             print(f"  FinishTime: {item.finish_time}")
             if item.error_message:
-                print(f"  ErrorMessage: {item.error_message}") 
+                print(f"  ErrorMessage: {item.error_message}")

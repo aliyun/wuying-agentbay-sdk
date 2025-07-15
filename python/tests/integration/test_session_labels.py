@@ -9,7 +9,6 @@ from agentbay import AgentBay
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 def get_test_api_key():
     """Get API key for testing"""
     api_key = os.environ.get("AGENTBAY_API_KEY")
@@ -20,13 +19,11 @@ def get_test_api_key():
         )
     return api_key
 
-
 def generate_unique_id():
     """Create a unique identifier for test labels to avoid conflicts with existing data"""
     timestamp = int(time.time() * 1000000)
     random_part = random.randint(0, 10000)
     return f"{timestamp}-{random_part}"
-
 
 class TestSessionLabels(unittest.TestCase):
     """Test cases for session labels functionality."""
@@ -55,9 +52,8 @@ class TestSessionLabels(unittest.TestCase):
         try:
             result = cls.agent_bay.delete(cls.session)
             print(
-                f"Session deleted. Success: {
-                    result.success}, Request ID: {
-                    result.request_id}"
+                f"Session deleted. Success: {result.success}",
+                f"Request ID: {result.request_id}"
             )
         except Exception as e:
             print(f"Warning: Error deleting session: {e}")
@@ -101,8 +97,8 @@ class TestSessionLabels(unittest.TestCase):
                 self.assertEqual(
                     expected_value,
                     retrieved_labels[key],
-                    f"Label '{key}' value mismatch: expected '{expected_value}', got '{
-                        retrieved_labels[key]}'",
+                    f"Label '{key}' value mismatch: expected '{expected_value}'"
+                    f"got '{retrieved_labels[key]}'"
                 )
         except Exception as e:
             self.fail(f"Error getting labels: {e}")
@@ -117,10 +113,9 @@ class TestSessionLabels(unittest.TestCase):
             list_result = self.agent_bay.list_by_labels(single_label_filter)
             sessions = list_result.sessions
             print(
-                f"Found {
-                    len(sessions)} sessions with single label filter. Request ID: {
-                    list_result.request_id}"
-            )
+                  f"Found {len(sessions)} sessions with single label filter.",
+                  f"Request ID: {list_result.request_id}"
+                )
 
             # Check if our session is in the results
             found_in_single_label_results = False
@@ -147,10 +142,9 @@ class TestSessionLabels(unittest.TestCase):
             list_result = self.agent_bay.list_by_labels(multi_label_filter)
             sessions = list_result.sessions
             print(
-                f"Found {
-                    len(sessions)} sessions with multiple labels filter. Request ID: {
-                    list_result.request_id}"
-            )
+                f"Found {len(sessions)} sessions with multiple labels filter.",
+                f"Request ID: {list_result.request_id}"
+                )
 
             # Check if our session is in the results
             found_in_multi_label_results = False
@@ -229,8 +223,8 @@ class TestSessionLabels(unittest.TestCase):
                 self.assertEqual(
                     expected_value,
                     retrieved_updated_labels[key],
-                    f"Updated label '{key}' value mismatch: expected '{expected_value}', got '{
-                        retrieved_updated_labels[key]}'",
+                    f"Updated label '{key}' value mismatch: expected '{expected_value}'"
+                    f"got '{retrieved_updated_labels[key]}'"
                 )
 
             # Verify that the old label that was removed is no longer present
@@ -249,10 +243,9 @@ class TestSessionLabels(unittest.TestCase):
             list_result = self.agent_bay.list_by_labels(updated_env_filter)
             sessions = list_result.sessions
             print(
-                f"Found {
-                    len(sessions)} sessions with updated environment filter. Request ID: {
-                    list_result.request_id}"
-            )
+                f"Found {len(sessions)} sessions with old environment filter.",
+                f"Request ID: {list_result.request_id}"
+                )
 
             found_with_updated_env = False
             for s in sessions:
@@ -277,10 +270,9 @@ class TestSessionLabels(unittest.TestCase):
             list_result = self.agent_bay.list_by_labels(old_env_filter)
             sessions = list_result.sessions
             print(
-                f"Found {
-                    len(sessions)} sessions with old environment filter. Request ID: {
-                    list_result.request_id}"
-            )
+                f"Found {len(sessions)} sessions with old environment filter.",
+                f"Request ID: {list_result.request_id}"
+                )
 
             found_with_old_env = False
             for s in sessions:
@@ -297,7 +289,6 @@ class TestSessionLabels(unittest.TestCase):
             self.fail(f"Error listing sessions by old environment label: {e}")
 
         print("Session labels test completed successfully")
-
 
 if __name__ == "__main__":
     unittest.main()

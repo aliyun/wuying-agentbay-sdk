@@ -5,8 +5,8 @@ import { ContextSync, SyncPolicy } from "./context-sync";
  */
 export interface CreateSessionParamsConfig {
   labels: Record<string, string>;
-  /** 
-   * @deprecated This field is deprecated and will be removed in a future version. 
+  /**
+   * @deprecated This field is deprecated and will be removed in a future version.
    * Please use contextSync instead for more flexible and powerful data persistence.
    */
   contextId?: string;
@@ -26,7 +26,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    * ID of the context to bind to the session.
    * The context can include various types of persistence like file system (volume) and cookies.
    *
-   * @deprecated This field is deprecated and will be removed in a future version. 
+   * @deprecated This field is deprecated and will be removed in a future version.
    * Please use contextSync instead for more flexible and powerful data persistence.
    *
    * Important Limitations:

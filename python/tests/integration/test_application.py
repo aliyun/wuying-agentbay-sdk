@@ -43,7 +43,7 @@ class TestApplication(unittest.TestCase):
         # Create a session
         print("Creating a new session for application testing...")
 
-        params = CreateSessionParams(image_id="mobile_latest")
+        params = CreateSessionParams(image_id="linux_latest")
         result = cls.agent_bay.create(params)
         cls.session = result.session
         print(f"Session created with ID: {cls.session.session_id}")

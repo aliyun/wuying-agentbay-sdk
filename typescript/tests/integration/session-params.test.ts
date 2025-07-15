@@ -43,7 +43,10 @@ describe("Session Parameters", () => {
 
     it.only("should accept contextId option", async () => {
       try {
-        const contextId = "test-context-id";
+        const contextName = `test-context-${Date.now()}`;
+        const createContextResponse = await agentBay.context.create(contextName);
+        const context = createContextResponse.context;
+        const contextId = context.id;
         const createResponse = await agentBay.create({ contextId });
         session = createResponse.session;
         log(
@@ -74,7 +77,10 @@ describe("Session Parameters", () => {
 
     it.only("should accept both contextId and labels options", async () => {
       try {
-        const contextId = "test-context-id";
+        const contextName = `test-context-${Date.now()}`;
+        const createContextResponse = await agentBay.context.create(contextName);
+        const context = createContextResponse.context;
+        const contextId = context.id;
         const labels = { username: "alice", project: "my-project" };
         const createResponse = await agentBay.create({ contextId, labels });
         session = createResponse.session;
@@ -93,8 +99,12 @@ describe("Session Parameters", () => {
   describe("session creation with options", () => {
     it.only("should create a session with the specified options", async () => {
       try {
+        const contextName = `test-context-${Date.now()}`;
+        const createContextResponse = await agentBay.context.create(contextName);
+        const context = createContextResponse.context;
+        const contextId = context.id;
         const createResponse = await agentBay.create({
-          contextId: "test-context-id",
+          contextId,
           labels: { username: "alice" },
         });
         session = createResponse.session;

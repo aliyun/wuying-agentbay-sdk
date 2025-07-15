@@ -37,7 +37,13 @@ class TestWindow(unittest.TestCase):
 
         # Create a session
         print("Creating a new session for window testing...")
-        self.session = self.agent_bay.create()
+        session_result = self.agent_bay.create()
+
+        # Check if session creation was successful
+        if not session_result.success or session_result.session is None:
+            raise Exception(f"Failed to create session: {session_result.error_message}")
+
+        self.session = session_result.session
         print(f"Session created with ID: {self.session.session_id}")
 
     def tearDown(self):
@@ -64,12 +70,9 @@ class TestWindow(unittest.TestCase):
                     count = min(len(root_windows), 3)
                     for i in range(count):
                         print(
-                            f"Window {
-                                i +
-                                1}: {
-                                root_windows[i].title} (ID: {
-                                root_windows[i].window_id})"
-                        )
+                            f"Window {i + 1}: {root_windows[i].title} ",
+                            f"(ID: {root_windows[i].window_id})"
+                            )
 
                     # Verify window properties
                     for window in root_windows:
@@ -98,12 +101,10 @@ class TestWindow(unittest.TestCase):
             try:
                 active_window = self.session.window.get_active_window()
                 print(
-                    f"Active window: {
-                        active_window.title} (ID: {
-                        active_window.window_id}, "
-                    f"Process: {
-                        active_window.pname}, PID: {
-                        active_window.pid})"
+                    f"Active window: {active_window.title}",
+                    f"(ID: {active_window.window_id}",
+                    f"Process: {active_window.pname}",
+                    f"(PID: {active_window.pid})"
                 )
 
                 # Verify window properties
@@ -196,7 +197,7 @@ class TestWindow(unittest.TestCase):
                 self.session.window.focus_mode(True)
                 print("Focus mode enabled successfully")
             except Exception as e:
-                print(f"Note: Enabling focus mode failed: {e}")
+                print(f"Noteramento: Enabling focus mode failed: {e}")
 
             # Disable focus mode
             print("Disabling focus mode...")
