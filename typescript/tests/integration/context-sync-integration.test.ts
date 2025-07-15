@@ -221,9 +221,9 @@ describe("ContextSyncIntegration", () => {
     const contextIdLocal = contextObj.id;
     console.log(`Created context: ${contextObj.name} (ID: ${contextIdLocal})`);
     
-    // 2. Create a session with context sync, using a timestamped path under /data/wuying/
+    // 2. Create a session with context sync, using a timestamped path under /home/wuying/
     const timestamp = Date.now();
-    const syncPath = `/data/wuying/test-path-ts-${timestamp}`;
+    const syncPath = `/home/wuying/test-path-ts-${timestamp}`;
     
     // Use default sync policy
     const sessionParams = {

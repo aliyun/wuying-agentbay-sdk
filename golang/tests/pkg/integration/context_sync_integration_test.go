@@ -441,7 +441,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 
 	sessionParams := agentbay.NewCreateSessionParams()
 	sessionParams.AddContextSync(context.ID, syncPath, defaultPolicy)
-	sessionParams.WithImageId("imgc-07eksy57eawchjkro")
+	sessionParams.WithImageId("linux_latest")
 	sessionParams.WithLabels(map[string]string{
 		"test": "file-persistence-test",
 	})
@@ -838,9 +838,9 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 		}
 	}()
 
-	// 2. Create a session with context sync, using a timestamped path under /data/wuying/
+	// 2. Create a session with context sync, using a timestamped path under /home/wuying/
 	timestamp := time.Now().Unix()
-	syncPath := fmt.Sprintf("/data/wuying/test-path-%d", timestamp)
+	syncPath := fmt.Sprintf("/home/wuying/test-path-%d", timestamp)
 
 	// Use default policy
 	defaultPolicy := agentbay.NewSyncPolicy()

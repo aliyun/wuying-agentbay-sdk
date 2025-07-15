@@ -192,9 +192,9 @@ class TestContextSyncIntegration(unittest.TestCase):
         print(f"Created context: {context.name} (ID: {context.id})")
 
         try:
-            # 2. Create a session with context sync, using a timestamped path under /data/wuying/
+            # 2. Create a session with context sync, using a timestamped path under /home/wuying/
             timestamp = int(time.time())
-            sync_path = f"/data/wuying/test-path-py-{timestamp}"
+            sync_path = f"/home/wuying/test-path-py-{timestamp}"
 
             # Use default policy
             default_policy = SyncPolicy.default()

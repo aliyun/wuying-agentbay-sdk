@@ -132,11 +132,11 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	assert.NotNil(t, sync.Policy.BWList)
 	assert.Len(t, sync.Policy.BWList.WhiteLists, 1)
 	assert.Equal(t, "/data", sync.Policy.BWList.WhiteLists[0].Path)
-	assert.Equal(t, []string{"/data/temp"}, sync.Policy.BWList.WhiteLists[0].ExcludePaths)
+	assert.Equal(t, []string{"/home/wuying/temp"}, sync.Policy.BWList.WhiteLists[0].ExcludePaths)
 
 	// Verify sync paths
 	assert.NotNil(t, sync.Policy.SyncPaths)
-	assert.Equal(t, []string{"/data/important"}, sync.Policy.SyncPaths)
+	assert.Equal(t, []string{"/home/wuying/important"}, sync.Policy.SyncPaths)
 }
 
 func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {

@@ -31,6 +31,13 @@ class UploadPolicy:
     def default(cls):
         """Creates a new upload policy with default values"""
         return cls()
+    
+    def __dict__(self):
+        return {
+            "autoUpload": self.auto_upload,
+            "uploadStrategy": self.upload_strategy.value if self.upload_strategy else None,
+            "period": self.period
+        }
 
 
 @dataclass
@@ -49,6 +56,12 @@ class DownloadPolicy:
     def default(cls):
         """Creates a new download policy with default values"""
         return cls()
+    
+    def __dict__(self):
+        return {
+            "autoDownload": self.auto_download,
+            "downloadStrategy": self.download_strategy.value if self.download_strategy else None
+        }
 
 
 @dataclass
@@ -65,6 +78,11 @@ class DeletePolicy:
     def default(cls):
         """Creates a new delete policy with default values"""
         return cls()
+    
+    def __dict__(self):
+        return {
+            "syncLocalFile": self.sync_local_file
+        }
 
 
 @dataclass
@@ -78,6 +96,12 @@ class WhiteList:
     """
     path: str = ""
     exclude_paths: List[str] = field(default_factory=list)
+    
+    def __dict__(self):
+        return {
+            "path": self.path,
+            "excludePaths": self.exclude_paths
+        }
 
 
 @dataclass
@@ -89,6 +113,11 @@ class BWList:
         white_lists: Defines the white lists
     """
     white_lists: List[WhiteList] = field(default_factory=list)
+    
+    def __dict__(self):
+        return {
+            "whiteLists": [wl.__dict__() for wl in self.white_lists] if self.white_lists else []
+        }
 
 
 @dataclass
@@ -126,6 +155,20 @@ class SyncPolicy:
             ),
             sync_paths=[""]
         )
+    
+    def __dict__(self):
+        result = {}
+        if self.upload_policy:
+            result["uploadPolicy"] = self.upload_policy.__dict__()
+        if self.download_policy:
+            result["downloadPolicy"] = self.download_policy.__dict__()
+        if self.delete_policy:
+            result["deletePolicy"] = self.delete_policy.__dict__()
+        if self.bw_list:
+            result["bwList"] = self.bw_list.__dict__()
+        if self.sync_paths:
+            result["syncPaths"] = self.sync_paths
+        return result
 
 
 @dataclass

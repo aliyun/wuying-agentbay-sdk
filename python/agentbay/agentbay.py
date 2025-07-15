@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 from threading import Lock
 from typing import Dict, List, Optional, Union
 
@@ -93,7 +94,11 @@ class AgentBay:
                         import json as _json
                         def safe_serialize(obj):
                             try:
-                                if hasattr(obj, '__dict__'):
+                                if isinstance(obj, Enum):
+                                    return obj.value
+                                elif hasattr(obj, '__dict__') and callable(obj.__dict__):
+                                    return obj.__dict__()
+                                elif hasattr(obj, '__dict__'):
                                     return obj.__dict__
                                 elif hasattr(obj, 'to_map'):
                                     return obj.to_map()

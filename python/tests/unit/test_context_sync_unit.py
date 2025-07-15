@@ -73,8 +73,8 @@ class TestContextSyncUnit(unittest.TestCase):
         
         # Create white list
         white_list = WhiteList(
-            path="/data/important",
-            exclude_paths=["/data/important/temp", "/data/important/logs"]
+            path="/home/wuying/important",
+            exclude_paths=["/home/wuying/important/temp", "/home/wuying/important/logs"]
         )
         
         # Create BW list
@@ -93,7 +93,7 @@ class TestContextSyncUnit(unittest.TestCase):
         # Create advanced sync configuration
         advanced_sync = ContextSync.new(
             "test-context-id",
-            "/data",
+            "/home/wuying",
             sync_policy
         )
         
@@ -112,8 +112,8 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertTrue(advanced_sync.policy.delete_policy.sync_local_file)
         
         self.assertEqual(len(advanced_sync.policy.bw_list.white_lists), 1)
-        self.assertEqual(advanced_sync.policy.bw_list.white_lists[0].path, "/data/important")
-        self.assertEqual(advanced_sync.policy.bw_list.white_lists[0].exclude_paths, ["/data/important/temp", "/data/important/logs"])
+        self.assertEqual(advanced_sync.policy.bw_list.white_lists[0].path, "/home/wuying/important")
+        self.assertEqual(advanced_sync.policy.bw_list.white_lists[0].exclude_paths, ["/home/wuying/important/temp", "/home/wuying/important/logs"])
         
         print(f"Advanced sync - ContextID: {advanced_sync.context_id}, Path: {advanced_sync.path}")
         print(f"  - Upload: Auto={advanced_sync.policy.upload_policy.auto_upload}, "

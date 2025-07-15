@@ -67,8 +67,8 @@ func main() {
 
 	// Create white list
 	whiteList := &agentbay.WhiteList{
-		Path:         "/data/important",
-		ExcludePaths: []string{"/data/important/temp", "/data/important/logs"},
+		Path:         "/home/wuying/important",
+		ExcludePaths: []string{"/home/wuying/important/temp", "/home/wuying/important/logs"},
 	}
 
 	// Create BW list
