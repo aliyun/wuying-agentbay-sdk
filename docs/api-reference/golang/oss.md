@@ -69,60 +69,9 @@ func main() {
 }
 ```
 
-### CreateClient
-
-Creates an OSS client with the provided credentials.
-
-```go
-func (o *Oss) CreateClient(accessKeyId, accessKeySecret, endpoint, region string) (string, error)
-```
-
-**Parameters:**
-- `accessKeyId`: The Access Key ID for OSS authentication.
-- `accessKeySecret`: The Access Key Secret for OSS authentication.
-- `endpoint`: The OSS service endpoint. If not specified, the default is used.
-- `region`: The OSS region. If not specified, the default is used.
-
-**Returns:**
-- `string`: The result of the client creation operation.
-- `error`: An error if the operation fails.
-
-**Example:**
-```go
-package main
-
-import (
-	"fmt"
-	"os"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
-	if err != nil {
-		fmt.Printf("Error initializing AgentBay client: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Create OSS client
-	result, err := client.Oss.CreateClient(
-		"your_access_key_id",
-		"your_access_key_secret",
-		"oss-cn-hangzhou.aliyuncs.com",
-		"cn-hangzhou",
-	)
-	if err != nil {
-		fmt.Printf("Error creating OSS client: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("OSS client created successfully: %s\n", result)
-}
-```
-
 ### Upload
+
+**Note:** Before calling this API, you must call `EnvInit` to initialize the OSS environment.
 
 Uploads a local file or directory to OSS.
 
@@ -166,7 +115,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Upload file to OSS
+	// Step 1: Initialize OSS environment
+	_, err = client.Oss.EnvInit(
+		"your_access_key_id",
+		"your_access_key_secret",
+		"your_security_token",
+		"oss-cn-hangzhou.aliyuncs.com",
+		"cn-hangzhou",
+	)
+	if err != nil {
+		fmt.Printf("Error initializing OSS environment: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Step 2: Upload file to OSS
 	result, err := client.Oss.Upload("my-bucket", "my-object", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error uploading file: %v\n", err)
@@ -178,6 +140,8 @@ func main() {
 ```
 
 ### UploadAnonymous
+
+**Note:** Before calling this API, you must call `EnvInit` to initialize the OSS environment.
 
 Uploads a local file or directory to a URL anonymously.
 
@@ -212,7 +176,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Upload file anonymously
+	// Step 1: Initialize OSS environment
+	_, err = client.Oss.EnvInit(
+		"your_access_key_id",
+		"your_access_key_secret",
+		"your_security_token",
+		"oss-cn-hangzhou.aliyuncs.com",
+		"cn-hangzhou",
+	)
+	if err != nil {
+		fmt.Printf("Error initializing OSS environment: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Step 2: Upload file anonymously
 	result, err := client.Oss.UploadAnonymous("https://example.com/upload", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error uploading file anonymously: %v\n", err)
@@ -224,6 +201,8 @@ func main() {
 ```
 
 ### Download
+
+**Note:** Before calling this API, you must call `EnvInit` to initialize the OSS environment.
 
 Downloads an object from OSS to a local file.
 
@@ -267,7 +246,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Download file from OSS
+	// Step 1: Initialize OSS environment
+	_, err = client.Oss.EnvInit(
+		"your_access_key_id",
+		"your_access_key_secret",
+		"your_security_token",
+		"oss-cn-hangzhou.aliyuncs.com",
+		"cn-hangzhou",
+	)
+	if err != nil {
+		fmt.Printf("Error initializing OSS environment: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Step 2: Download file from OSS
 	result, err := client.Oss.Download("my-bucket", "my-object", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error downloading file: %v\n", err)
@@ -279,6 +271,8 @@ func main() {
 ```
 
 ### DownloadAnonymous
+
+**Note:** Before calling this API, you must call `EnvInit` to initialize the OSS environment.
 
 Downloads a file from a URL anonymously to a local file.
 
@@ -313,7 +307,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Download file anonymously
+	// Step 1: Initialize OSS environment
+	_, err = client.Oss.EnvInit(
+		"your_access_key_id",
+		"your_access_key_secret",
+		"your_security_token",
+		"oss-cn-hangzhou.aliyuncs.com",
+		"cn-hangzhou",
+	)
+	if err != nil {
+		fmt.Printf("Error initializing OSS environment: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Step 2: Download file anonymously
 	result, err := client.Oss.DownloadAnonymous("https://example.com/file.txt", "/path/to/local/file.txt")
 	if err != nil {
 		fmt.Printf("Error downloading file anonymously: %v\n", err)

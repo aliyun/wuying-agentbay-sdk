@@ -111,6 +111,8 @@ createOSSClient();
 
 ### upload
 
+**Note:** Before calling this API, you must call `envInit` to initialize the OSS environment.
+
 Uploads a local file or directory to OSS.
 
 ```typescript
@@ -135,9 +137,17 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Initialize the SDK
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// Upload file to OSS
 async function uploadFile() {
   try {
+    // Step 1: Initialize OSS environment
+    await agentBay.oss.envInit(
+      'your_access_key_id',
+      'your_access_key_secret',
+      'your_security_token',
+      'oss-cn-hangzhou.aliyuncs.com',
+      'cn-hangzhou'
+    );
+    // Step 2: Upload file to OSS
     const result = await agentBay.oss.upload('my-bucket', 'my-object', '/path/to/local/file');
     console.log('File uploaded successfully:', result);
   } catch (error) {
@@ -149,6 +159,8 @@ uploadFile();
 ```
 
 ### uploadAnonymous
+
+**Note:** Before calling this API, you must call `envInit` to initialize the OSS environment.
 
 Uploads a local file or directory to a URL anonymously.
 
@@ -173,9 +185,17 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Initialize the SDK
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// Upload file anonymously
 async function uploadFileAnonymously() {
   try {
+    // Step 1: Initialize OSS environment
+    await agentBay.oss.envInit(
+      'your_access_key_id',
+      'your_access_key_secret',
+      'your_security_token',
+      'oss-cn-hangzhou.aliyuncs.com',
+      'cn-hangzhou'
+    );
+    // Step 2: Upload file anonymously
     const result = await agentBay.oss.uploadAnonymous('https://example.com/upload', '/path/to/local/file');
     console.log('File uploaded anonymously successfully:', result);
   } catch (error) {
@@ -187,6 +207,8 @@ uploadFileAnonymously();
 ```
 
 ### download
+
+**Note:** Before calling this API, you must call `envInit` to initialize the OSS environment.
 
 Downloads an object from OSS to a local file.
 
@@ -212,9 +234,17 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Initialize the SDK
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// Download file from OSS
 async function downloadFile() {
   try {
+    // Step 1: Initialize OSS environment
+    await agentBay.oss.envInit(
+      'your_access_key_id',
+      'your_access_key_secret',
+      'your_security_token',
+      'oss-cn-hangzhou.aliyuncs.com',
+      'cn-hangzhou'
+    );
+    // Step 2: Download file from OSS
     const result = await agentBay.oss.download('my-bucket', 'my-object', '/path/to/local/file');
     console.log('File downloaded successfully:', result);
   } catch (error) {
@@ -226,6 +256,8 @@ downloadFile();
 ```
 
 ### downloadAnonymous
+
+**Note:** Before calling this API, you must call `envInit` to initialize the OSS environment.
 
 Downloads a file from a URL anonymously to a local file.
 
@@ -250,9 +282,17 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Initialize the SDK
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// Download file anonymously
 async function downloadFileAnonymously() {
   try {
+    // Step 1: Initialize OSS environment
+    await agentBay.oss.envInit(
+      'your_access_key_id',
+      'your_access_key_secret',
+      'your_security_token',
+      'oss-cn-hangzhou.aliyuncs.com',
+      'cn-hangzhou'
+    );
+    // Step 2: Download file anonymously
     const result = await agentBay.oss.downloadAnonymous('https://example.com/file.txt', '/path/to/local/file.txt');
     console.log('File downloaded anonymously successfully:', result);
   } catch (error) {
