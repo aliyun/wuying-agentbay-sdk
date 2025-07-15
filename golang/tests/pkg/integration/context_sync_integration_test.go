@@ -805,3 +805,210 @@ func TestContextStatusDataParsing(t *testing.T) {
 		}
 	})
 }
+
+// TestContextSyncPersistenceWithRetry tests the context synchronization with file persistence between sessions
+// with retry mechanism for context status checks
+func TestContextSyncPersistenceWithRetry(t *testing.T) {
+	// Skip in CI environment or if API key is not available
+	apiKey := os.Getenv("AGENTBAY_API_KEY")
+	if apiKey == "" || os.Getenv("CI") != "" {
+		t.Skip("Skipping integration test: No API key available or running in CI")
+	}
+
+	// Initialize the AgentBay client
+	ab, err := agentbay.NewAgentBay(apiKey)
+	require.NoError(t, err, "Failed to create AgentBay client")
+
+	// 1. Create a unique context name and get its ID
+	contextName := fmt.Sprintf("test-persistence-retry-%d", time.Now().Unix())
+	contextResult, err := ab.Context.Get(contextName, true)
+	require.NoError(t, err, "Error getting/creating context")
+	require.NotNil(t, contextResult.Context, "Context should not be nil")
+
+	context := contextResult.Context
+	t.Logf("Created context: %s (ID: %s)", context.Name, context.ID)
+
+	// Ensure context is deleted after the test
+	defer func() {
+		deleteContextResult, err := ab.Context.Delete(context)
+		if err != nil {
+			t.Logf("Warning: Failed to delete context: %v", err)
+		} else {
+			t.Logf("Context deleted: %s (RequestID: %s)", context.ID, deleteContextResult.RequestID)
+		}
+	}()
+
+	// 2. Create a session with context sync, using a timestamped path under /data/wuying/
+	timestamp := time.Now().Unix()
+	syncPath := fmt.Sprintf("/data/wuying/test-path-%d", timestamp)
+
+	// Use default policy
+	defaultPolicy := agentbay.NewSyncPolicy()
+
+	// Create session parameters with context sync
+	sessionParams := agentbay.NewCreateSessionParams()
+	sessionParams.AddContextSync(context.ID, syncPath, defaultPolicy)
+	sessionParams.WithImageId("linux_latest")
+	sessionParams.WithLabels(map[string]string{
+		"test": "persistence-retry-test",
+	})
+
+	// Create first session
+	sessionResult, err := ab.Create(sessionParams)
+	require.NoError(t, err, "Error creating first session")
+	require.NotNil(t, sessionResult.Session, "Session should not be nil")
+
+	session1 := sessionResult.Session
+	t.Logf("Created first session: %s", session1.SessionID)
+
+	// 3. Wait for session to be ready and retry context info until data is available
+	t.Logf("Waiting for session to be ready and context status data to be available...")
+
+	var contextInfo *agentbay.ContextInfoResult
+	var foundData bool
+	for i := 0; i < 20; i++ {
+		contextInfo, err = session1.Context.Info()
+		require.NoError(t, err, "Error getting context info")
+
+		if len(contextInfo.ContextStatusData) > 0 {
+			t.Logf("Found context status data on attempt %d", i+1)
+			foundData = true
+			break
+		}
+
+		t.Logf("No context status data available yet (attempt %d), retrying in 1 second...", i+1)
+		time.Sleep(1 * time.Second)
+	}
+
+	require.True(t, foundData, "Context status data should be available after retries")
+	t.Logf("Context status data:")
+	printContextStatusData(t, contextInfo.ContextStatusData)
+
+	// 4. Write a file to the context sync path
+	testContent := fmt.Sprintf("Test content for persistence retry test at %d", timestamp)
+	testFilePath := syncPath + "/test-file.txt"
+
+	// Create directory first
+	t.Logf("Creating directory: %s", syncPath)
+	dirResult, err := session1.FileSystem.CreateDirectory(syncPath)
+	require.NoError(t, err, "Error creating directory")
+	assert.NotEmpty(t, dirResult.RequestID, "Directory creation request ID should not be empty")
+
+	// Write the file
+	t.Logf("Writing file to %s", testFilePath)
+	writeResult, err := session1.FileSystem.WriteFile(testFilePath, testContent, "")
+	require.NoError(t, err, "Error writing file")
+	assert.NotEmpty(t, writeResult.RequestID, "Write request ID should not be empty")
+
+	// 5. Sync to trigger file upload
+	t.Logf("Triggering context sync...")
+	syncResult, err := session1.Context.Sync()
+	require.NoError(t, err, "Error syncing context")
+	require.True(t, syncResult.Success, "Context sync should be successful")
+	t.Logf("Context sync successful (RequestID: %s)", syncResult.RequestID)
+
+	// 6. Get context info with retry for upload status
+	t.Logf("Checking file upload status with retry...")
+
+	foundUpload := false
+	for i := 0; i < 20; i++ {
+		contextInfo, err = session1.Context.Info()
+		require.NoError(t, err, "Error getting context info")
+
+		// Check if we have upload status for our context
+		for _, data := range contextInfo.ContextStatusData {
+			if data.ContextId == context.ID && data.TaskType == "upload" {
+				foundUpload = true
+				t.Logf("Found upload task for context at attempt %d", i+1)
+				break
+			}
+		}
+
+		if foundUpload {
+			break
+		}
+
+		t.Logf("No upload status found yet (attempt %d), retrying in 1 second...", i+1)
+		time.Sleep(1 * time.Second)
+	}
+
+	if foundUpload {
+		t.Logf("Found upload status for context")
+		printContextStatusData(t, contextInfo.ContextStatusData)
+	} else {
+		t.Logf("Warning: Could not find upload status after all retries")
+	}
+
+	// 7. Release first session
+	t.Logf("Releasing first session...")
+	deleteResult, err := ab.Delete(session1)
+	require.NoError(t, err, "Error deleting first session")
+	require.NotEmpty(t, deleteResult.RequestID, "Delete request ID should not be empty")
+
+	// 8. Create a second session with the same context ID
+	t.Logf("Creating second session with the same context ID...")
+	sessionParams = agentbay.NewCreateSessionParams()
+	sessionParams.AddContextSync(context.ID, syncPath, defaultPolicy)
+	sessionParams.WithImageId("linux_latest")
+	sessionParams.WithLabels(map[string]string{
+		"test": "persistence-retry-test-second",
+	})
+
+	sessionResult, err = ab.Create(sessionParams)
+	require.NoError(t, err, "Error creating second session")
+	require.NotNil(t, sessionResult.Session, "Second session should not be nil")
+
+	session2 := sessionResult.Session
+	t.Logf("Created second session: %s", session2.SessionID)
+
+	// Ensure second session is deleted after the test
+	defer func() {
+		deleteResult, err := ab.Delete(session2)
+		if err != nil {
+			t.Logf("Warning: Failed to delete second session: %v", err)
+		} else {
+			t.Logf("Second session deleted: %s (RequestID: %s)", session2.SessionID, deleteResult.RequestID)
+		}
+	}()
+
+	// 9. Get context info with retry for download status
+	t.Logf("Checking file download status with retry...")
+
+	foundDownload := false
+	for i := 0; i < 20; i++ {
+		contextInfo, err = session2.Context.Info()
+		require.NoError(t, err, "Error getting context info")
+
+		// Check if we have download status for our context
+		for _, data := range contextInfo.ContextStatusData {
+			if data.ContextId == context.ID && data.TaskType == "download" {
+				foundDownload = true
+				t.Logf("Found download task for context at attempt %d", i+1)
+				break
+			}
+		}
+
+		if foundDownload {
+			break
+		}
+
+		t.Logf("No download status found yet (attempt %d), retrying in 1 second...", i+1)
+		time.Sleep(1 * time.Second)
+	}
+
+	if foundDownload {
+		t.Logf("Found download status for context")
+		printContextStatusData(t, contextInfo.ContextStatusData)
+	} else {
+		t.Logf("Warning: Could not find download status after all retries")
+	}
+
+	// 10. Read the file from the second session
+	t.Logf("Reading file from second session...")
+	readResult, err := session2.FileSystem.ReadFile(testFilePath)
+	require.NoError(t, err, "Error reading file")
+
+	// 11. Verify the file content matches what was written
+	require.Equal(t, testContent, readResult.Content, "File content should match what was written")
+	t.Logf("File content verified successfully")
+}

@@ -180,6 +180,200 @@ class TestContextSyncIntegration(unittest.TestCase):
             if data.context_id == self.context.id:
                 self.assertEqual(data.path, "/home/wuying")
 
+    def test_context_sync_persistence_with_retry(self):
+        """Test context sync persistence with retry for context status checks."""
+        # 1. Create a unique context name and get its ID
+        context_name = f"test-persistence-retry-py-{int(time.time())}"
+        context_result = self.agent_bay.context.get(context_name, True)
+        self.assertTrue(context_result.success, "Error getting/creating context")
+        self.assertIsNotNone(context_result.context, "Context should not be None")
 
-if __name__ == "__main__":
-    unittest.main() 
+        context = context_result.context
+        print(f"Created context: {context.name} (ID: {context.id})")
+
+        try:
+            # 2. Create a session with context sync, using a timestamped path under /data/wuying/
+            timestamp = int(time.time())
+            sync_path = f"/data/wuying/test-path-py-{timestamp}"
+
+            # Use default policy
+            default_policy = SyncPolicy.default()
+
+            # Create session parameters with context sync
+            session_params = CreateSessionParams()
+            context_sync = ContextSync.new(context.id, sync_path, default_policy)
+            session_params.context_syncs = [context_sync]
+            session_params.image_id = "linux_latest"
+            session_params.labels = {"test": "persistence-retry-test-py"}
+
+            # Create first session
+            session_result = self.agent_bay.create(session_params)
+            self.assertTrue(session_result.success, "Error creating first session")
+            self.assertIsNotNone(session_result.session, "Session should not be None")
+
+            session1 = session_result.session
+            print(f"Created first session: {session1.session_id}")
+
+            try:
+                # 3. Wait for session to be ready and retry context info until data is available
+                print("Waiting for session to be ready and context status data to be available...")
+
+                found_data = False
+                context_info = None
+
+                for i in range(20):  # Retry up to 20 times
+                    context_info = session1.context.info()
+                    
+                    if context_info.context_status_data:
+                        print(f"Found context status data on attempt {i+1}")
+                        found_data = True
+                        break
+                    
+                    print(f"No context status data available yet (attempt {i+1}), retrying in 1 second...")
+                    time.sleep(1)
+
+                self.assertTrue(found_data, "Context status data should be available after retries")
+                self._print_context_status_data(context_info.context_status_data)
+
+                # 4. Write a file to the context sync path
+                test_content = f"Test content for Python persistence retry test at {timestamp}"
+                test_file_path = f"{sync_path}/test-file.txt"
+
+                # Create directory first
+                print(f"Creating directory: {sync_path}")
+                dir_result = session1.file_system.create_directory(sync_path)
+                self.assertTrue(dir_result.success, "Error creating directory")
+
+                # Write the file
+                print(f"Writing file to {test_file_path}")
+                write_result = session1.file_system.write_file(test_file_path, test_content)
+                self.assertTrue(write_result.success, "Error writing file")
+
+                # 5. Sync to trigger file upload
+                print("Triggering context sync...")
+                sync_result = session1.context.sync()
+                self.assertTrue(sync_result.success, "Context sync should be successful")
+                print(f"Context sync successful (RequestID: {sync_result.request_id})")
+
+                # 6. Get context info with retry for upload status
+                print("Checking file upload status with retry...")
+                
+                found_upload = False
+                for i in range(20):  # Retry up to 20 times
+                    context_info = session1.context.info()
+                    
+                    # Check if we have upload status for our context
+                    for data in context_info.context_status_data:
+                        if data.context_id == context.id and data.task_type == "upload":
+                            found_upload = True
+                            print(f"Found upload task for context at attempt {i+1}")
+                            break
+                    
+                    if found_upload:
+                        break
+                    
+                    print(f"No upload status found yet (attempt {i+1}), retrying in 1 second...")
+                    time.sleep(1)
+
+                if found_upload:
+                    print("Found upload status for context")
+                    self._print_context_status_data(context_info.context_status_data)
+                else:
+                    print("Warning: Could not find upload status after all retries")
+
+                # 7. Release first session
+                print("Releasing first session...")
+                delete_result = self.agent_bay.delete(session1)
+                self.assertTrue(delete_result.success, "Error deleting first session")
+
+                # 8. Create a second session with the same context ID
+                print("Creating second session with the same context ID...")
+                session_params = CreateSessionParams()
+                context_sync = ContextSync.new(context.id, sync_path, default_policy)
+                session_params.context_syncs = [context_sync]
+                session_params.image_id = "linux_latest"
+                session_params.labels = {"test": "persistence-retry-test-py-second"}
+
+                session_result = self.agent_bay.create(session_params)
+                self.assertTrue(session_result.success, "Error creating second session")
+                self.assertIsNotNone(session_result.session, "Second session should not be None")
+
+                session2 = session_result.session
+                print(f"Created second session: {session2.session_id}")
+
+                try:
+                    # 9. Get context info with retry for download status
+                    print("Checking file download status with retry...")
+                    
+                    found_download = False
+                    for i in range(20):  # Retry up to 20 times
+                        context_info = session2.context.info()
+                        
+                        # Check if we have download status for our context
+                        for data in context_info.context_status_data:
+                            if data.context_id == context.id and data.task_type == "download":
+                                found_download = True
+                                print(f"Found download task for context at attempt {i+1}")
+                                break
+                        
+                        if found_download:
+                            break
+                        
+                        print(f"No download status found yet (attempt {i+1}), retrying in 1 second...")
+                        time.sleep(1)
+
+                    if found_download:
+                        print("Found download status for context")
+                        self._print_context_status_data(context_info.context_status_data)
+                    else:
+                        print("Warning: Could not find download status after all retries")
+
+                    # 10. Read the file from the second session
+                    print("Reading file from second session...")
+                    read_result = session2.file_system.read_file(test_file_path)
+                    self.assertTrue(read_result.success, "Error reading file")
+
+                    # 11. Verify the file content matches what was written
+                    self.assertEqual(test_content, read_result.content, "File content should match what was written")
+                    print("File content verified successfully")
+
+                finally:
+                    # Clean up second session
+                    try:
+                        self.agent_bay.delete(session2)
+                        print(f"Second session deleted: {session2.session_id}")
+                    except Exception as e:
+                        print(f"Warning: Failed to delete second session: {e}")
+
+            finally:
+                # Clean up first session if it still exists
+                try:
+                    self.agent_bay.delete(session1)
+                    print(f"First session deleted: {session1.session_id}")
+                except Exception:
+                    pass  # Already deleted
+
+        finally:
+            # Clean up context
+            try:
+                self.agent_bay.context.delete(context)
+                print(f"Context deleted: {context.id}")
+            except Exception as e:
+                print(f"Warning: Failed to delete context: {e}")
+
+    def _print_context_status_data(self, data):
+        """Helper method to print context status data."""
+        if not data:
+            print("No context status data available")
+            return
+
+        for i, item in enumerate(data):
+            print(f"Context Status Data [{i}]:")
+            print(f"  ContextId: {item.context_id}")
+            print(f"  Path: {item.path}")
+            print(f"  Status: {item.status}")
+            print(f"  TaskType: {item.task_type}")
+            print(f"  StartTime: {item.start_time}")
+            print(f"  FinishTime: {item.finish_time}")
+            if item.error_message:
+                print(f"  ErrorMessage: {item.error_message}") 

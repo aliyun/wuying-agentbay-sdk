@@ -91,7 +91,19 @@ class AgentBay:
                     if cs.policy is not None:
                         # policy 需序列化为 JSON 字符串
                         import json as _json
-                        policy_json = _json.dumps(cs.policy, default=lambda o: o.__dict__, ensure_ascii=False)
+                        def safe_serialize(obj):
+                            try:
+                                if hasattr(obj, '__dict__'):
+                                    return obj.__dict__
+                                elif hasattr(obj, 'to_map'):
+                                    return obj.to_map()
+                                elif hasattr(obj, 'to_dict'):
+                                    return obj.to_dict()
+                                else:
+                                    return str(obj)
+                            except:
+                                return str(obj)
+                        policy_json = _json.dumps(cs.policy, default=safe_serialize, ensure_ascii=False)
                     persistence_data_list.append(
                         CreateMcpSessionRequestPersistenceDataList(
                             context_id=cs.context_id,

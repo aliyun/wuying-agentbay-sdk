@@ -2,7 +2,7 @@ import { AgentBay } from "../../src/agent-bay";
 import { ContextStatusData } from "../../src/context-manager";
 import { ContextSync, SyncPolicy } from "../../src/context-sync";
 import { CreateSessionParams } from "../../src/session-params";
-import { sleep } from "../utils/test-helpers";
+import { sleep, wait, randomString } from "../utils/test-helpers";
 
 describe("ContextSyncIntegration", () => {
   let agentBay: AgentBay;
@@ -209,4 +209,220 @@ describe("ContextSyncIntegration", () => {
       }
     }
   });
+
+  itif("should test context sync persistence with retry", async () => {
+    // 1. Create a unique context name and get its ID
+    const contextName = `test-persistence-retry-ts-${randomString()}`;
+    const contextResult = await agentBay.context.get(contextName, true);
+    expect(contextResult.success).toBe(true);
+    expect(contextResult.context).toBeDefined();
+    
+    const contextObj = contextResult.context!;
+    const contextIdLocal = contextObj.id;
+    console.log(`Created context: ${contextObj.name} (ID: ${contextIdLocal})`);
+    
+    // 2. Create a session with context sync, using a timestamped path under /data/wuying/
+    const timestamp = Date.now();
+    const syncPath = `/data/wuying/test-path-ts-${timestamp}`;
+    
+    // Use default sync policy
+    const sessionParams = {
+      imageId: "linux_latest",
+      labels: { "test": "persistence-retry-test-ts" },
+      contextSync: [
+        {
+          contextId: contextIdLocal,
+          path: syncPath,
+          policy: {
+            uploadPolicy: {
+              autoUpload: true,
+              uploadStrategy: "beforeResourceRelease"
+            },
+            downloadPolicy: {
+              autoDownload: true,
+              downloadStrategy: "async"
+            }
+          }
+        }
+      ]
+    };
+    
+    // Create first session
+    const sessionResult = await agentBay.create(sessionParams);
+    expect(sessionResult.success).toBe(true);
+    expect(sessionResult.session).toBeDefined();
+    
+    let session1 = sessionResult.session!;
+    console.log(`Created first session: ${session1.sessionId}`);
+    
+    // 3. Wait for session to be ready and retry context info until data is available
+    console.log("Waiting for session to be ready and context status data to be available...");
+    
+    let foundData = false;
+    let contextInfo;
+    
+    for (let i = 0; i < 20; i++) { // Retry up to 20 times
+      contextInfo = await session1.context.info();
+      
+      if (contextInfo.contextStatusData && contextInfo.contextStatusData.length > 0) {
+        console.log(`Found context status data on attempt ${i+1}`);
+        foundData = true;
+        break;
+      }
+      
+      console.log(`No context status data available yet (attempt ${i+1}), retrying in 1 second...`);
+      await wait(1000);
+    }
+    
+    expect(foundData).toBe(true);
+    printContextStatusData(contextInfo?.contextStatusData || []);
+    
+    // 4. Write a file to the context sync path
+    const testContent = `Test content for TypeScript persistence retry test at ${timestamp}`;
+    const testFilePath = `${syncPath}/test-file.txt`;
+    
+    // Create directory first
+    console.log(`Creating directory: ${syncPath}`);
+    const dirResult = await session1.fileSystem.createDirectory(syncPath);
+    expect(dirResult.success).toBe(true);
+    
+    // Write the file
+    console.log(`Writing file to ${testFilePath}`);
+    const writeResult = await session1.fileSystem.writeFile(testFilePath, testContent);
+    expect(writeResult.success).toBe(true);
+    
+    // 5. Sync to trigger file upload
+    console.log("Triggering context sync...");
+    const syncResult = await session1.context.sync();
+    expect(syncResult.success).toBe(true);
+    console.log(`Context sync successful (RequestID: ${syncResult.requestId})`);
+    
+    // 6. Get context info with retry for upload status
+    console.log("Checking file upload status with retry...");
+    
+    let foundUpload = false;
+    for (let i = 0; i < 20; i++) { // Retry up to 20 times
+      contextInfo = await session1.context.info();
+      
+      // Check if we have upload status for our context
+      for (const data of contextInfo.contextStatusData) {
+        if (data.contextId === contextIdLocal && data.taskType === "upload") {
+          foundUpload = true;
+          console.log(`Found upload task for context at attempt ${i+1}`);
+          break;
+        }
+      }
+      
+      if (foundUpload) {
+        break;
+      }
+      
+      console.log(`No upload status found yet (attempt ${i+1}), retrying in 1 second...`);
+      await wait(1000);
+    }
+    
+    if (foundUpload) {
+      console.log("Found upload status for context");
+      printContextStatusData(contextInfo?.contextStatusData || []);
+    } else {
+      console.log("Warning: Could not find upload status after all retries");
+    }
+    
+    // 7. Release first session
+    console.log("Releasing first session...");
+    const deleteResult = await session1.delete();
+    expect(deleteResult.success).toBe(true);
+    
+    // 8. Create a second session with the same context ID
+    console.log("Creating second session with the same context ID...");
+    const sessionParams2 = {
+      imageId: "linux_latest",
+      labels: { "test": "persistence-retry-test-ts-second" },
+      contextSync: [
+        {
+          contextId: contextIdLocal,
+          path: syncPath,
+          policy: {
+            uploadPolicy: {
+              autoUpload: true,
+              uploadStrategy: "beforeResourceRelease"
+            },
+            downloadPolicy: {
+              autoDownload: true,
+              downloadStrategy: "async"
+            }
+          }
+        }
+      ]
+    };
+    
+    const sessionResult2 = await agentBay.create(sessionParams2);
+    expect(sessionResult2.success).toBe(true);
+    expect(sessionResult2.session).toBeDefined();
+    
+    let session2 = sessionResult2.session!;
+    console.log(`Created second session: ${session2.sessionId}`);
+    
+    // 9. Get context info with retry for download status
+    console.log("Checking file download status with retry...");
+    
+    let foundDownload = false;
+    for (let i = 0; i < 20; i++) { // Retry up to 20 times
+      contextInfo = await session2.context.info();
+      
+      // Check if we have download status for our context
+      for (const data of contextInfo.contextStatusData) {
+        if (data.contextId === contextIdLocal && data.taskType === "download") {
+          foundDownload = true;
+          console.log(`Found download task for context at attempt ${i+1}`);
+          break;
+        }
+      }
+      
+      if (foundDownload) {
+        break;
+      }
+      
+      console.log(`No download status found yet (attempt ${i+1}), retrying in 1 second...`);
+      await wait(1000);
+    }
+    
+    if (foundDownload) {
+      console.log("Found download status for context");
+      printContextStatusData(contextInfo?.contextStatusData || []);
+    } else {
+      console.log("Warning: Could not find download status after all retries");
+    }
+    
+    // 10. Read the file from the second session
+    console.log("Reading file from second session...");
+    const readResult = await session2.fileSystem.readFile(testFilePath);
+    expect(readResult.success).toBe(true);
+    
+    // 11. Verify the file content matches what was written
+    expect(readResult.content).toBe(testContent);
+    console.log("File content verified successfully");
+  });
 }); 
+
+// Helper function to print context status data
+function printContextStatusData(data: any[]): void {
+  if (data.length === 0) {
+    console.log("No context status data available");
+    return;
+  }
+  
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+    console.log(`Context Status Data [${i}]:`);
+    console.log(`  ContextId: ${item.contextId}`);
+    console.log(`  Path: ${item.path}`);
+    console.log(`  Status: ${item.status}`);
+    console.log(`  TaskType: ${item.taskType}`);
+    console.log(`  StartTime: ${item.startTime}`);
+    console.log(`  FinishTime: ${item.finishTime}`);
+    if (item.errorMessage) {
+      console.log(`  ErrorMessage: ${item.errorMessage}`);
+    }
+  }
+} 
