@@ -419,6 +419,9 @@ class BrowserAgent:
         Raises:
             BrowserError: If indices cannot be determined.
         """
+        if page is None:
+            raise BrowserError("Page is None")
+            
         try:
             cdp_session = page.context.new_cdp_session(page)
             target_info = cdp_session.send("Target.getTargetInfo")

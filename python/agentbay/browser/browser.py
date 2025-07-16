@@ -44,11 +44,9 @@ class Browser:
             data = body.get("Data", {})
             success = data.get("Port") is not None
             if success:
-                cdp_url = self.session.get_link()
-                self._endpoint_url = cdp_url.data
                 self._initialized = True
                 self._option = option
-                print("Browser instance initialized with CDP url:", cdp_url)
+                print("Browser instance was successfully initialized.")
 
             return success
         except Exception as e:
