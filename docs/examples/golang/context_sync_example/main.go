@@ -49,7 +49,7 @@ func main() {
 
 	// Create upload policy
 	uploadPolicy := &agentbay.UploadPolicy{
-		AutoUpload:     true,
+		AutoUpload:     false,
 		UploadStrategy: agentbay.PeriodicUpload,
 		Period:         15, // 15 minutes
 	}
@@ -156,7 +156,7 @@ func main() {
 	// Create a custom policy for the builder example
 	builderPolicy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     true,
+			AutoUpload:     false,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{

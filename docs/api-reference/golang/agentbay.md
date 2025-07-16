@@ -90,7 +90,7 @@ func main() {
 	// RECOMMENDED: Create a session with context synchronization
 	policy := agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     true,
+			AutoUpload:     false,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 			Period:         30,
 		},
