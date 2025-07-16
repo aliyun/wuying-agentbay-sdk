@@ -77,11 +77,6 @@ class TestContextSync(unittest.TestCase):
         self.assertIsNotNone(white_list.exclude_paths)
         self.assertEqual(len(white_list.exclude_paths), 0)
 
-        # Verify syncPaths
-        self.assertIsNotNone(policy.sync_paths)
-        self.assertEqual(len(policy.sync_paths), 1)
-        self.assertEqual(policy.sync_paths[0], "")
-
     def test_default_sync_policy_json_structure(self):
         """Test that default SyncPolicy JSON structure matches requirements"""
         policy = SyncPolicy.default()
@@ -113,8 +108,7 @@ class TestContextSync(unittest.TestCase):
                         "excludePaths": policy.bw_list.white_lists[0].exclude_paths
                     }
                 ]
-            },
-            "syncPaths": policy.sync_paths
+            }
         }
 
         json_string = json.dumps(policy_dict)
@@ -143,10 +137,8 @@ class TestContextSync(unittest.TestCase):
         self.assertIn("excludePaths", json_object["bwList"]["whiteLists"][0])
         self.assertEqual(len(json_object["bwList"]["whiteLists"][0]["excludePaths"]), 0)
 
-        # Verify syncPaths in JSON
-        self.assertIn("syncPaths", json_object)
-        self.assertEqual(len(json_object["syncPaths"]), 1)
-        self.assertEqual(json_object["syncPaths"][0], "")
+        # Verify syncPaths should not exist in JSON
+        self.assertNotIn("syncPaths", json_object)
 
         # Log the generated JSON for verification
         print(f"Generated JSON: {json_string}")

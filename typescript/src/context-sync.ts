@@ -43,7 +43,6 @@ export interface SyncPolicy {
   downloadPolicy?: DownloadPolicy;
   deletePolicy?: DeletePolicy;
   bwList?: BWList;
-  syncPaths?: string[];
 }
 
 // ContextSync defines the context synchronization configuration
@@ -103,7 +102,6 @@ export function newSyncPolicy(): SyncPolicy {
         },
       ],
     },
-    syncPaths: [""],
   };
 }
 

@@ -39,11 +39,6 @@ describe("ContextSync Unit Tests", () => {
       expect(policy.bwList!.whiteLists![0].path).toBe("");
       expect(policy.bwList!.whiteLists![0].excludePaths).toBeDefined();
       expect(policy.bwList!.whiteLists![0].excludePaths).toHaveLength(0);
-
-      // Verify syncPaths
-      expect(policy.syncPaths).toBeDefined();
-      expect(policy.syncPaths).toHaveLength(1);
-      expect(policy.syncPaths![0]).toBe("");
     });
 
     it("should create default SyncPolicy that matches JSON requirements", () => {
@@ -77,10 +72,8 @@ describe("ContextSync Unit Tests", () => {
       expect(jsonObject.bwList.whiteLists[0].excludePaths).toBeDefined();
       expect(jsonObject.bwList.whiteLists[0].excludePaths).toHaveLength(0);
 
-      // Verify syncPaths in JSON
-      expect(jsonObject.syncPaths).toBeDefined();
-      expect(jsonObject.syncPaths).toHaveLength(1);
-      expect(jsonObject.syncPaths[0]).toBe("");
+      // Verify syncPaths should not exist in JSON
+      expect(jsonObject.syncPaths).toBeUndefined();
 
       // Log the generated JSON for verification
       console.log("Generated JSON:", jsonString);

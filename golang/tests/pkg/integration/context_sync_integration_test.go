@@ -59,7 +59,6 @@ func TestContextSyncIntegration(t *testing.T) {
 				},
 			},
 		},
-		SyncPaths: []string{"/home/wuying/documents"},
 	}
 
 	// Add context sync to session parameters

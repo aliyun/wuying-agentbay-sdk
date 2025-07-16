@@ -44,9 +44,7 @@ func TestNewSyncPolicy(t *testing.T) {
 	assert.Len(t, policy.BWList.WhiteLists, 1)
 	assert.Equal(t, "", policy.BWList.WhiteLists[0].Path)
 	assert.Empty(t, policy.BWList.WhiteLists[0].ExcludePaths)
-	assert.NotNil(t, policy.SyncPaths)
-	assert.Len(t, policy.SyncPaths, 1)
-	assert.Equal(t, "", policy.SyncPaths[0])
+
 }
 
 func TestNewContextSync(t *testing.T) {
@@ -103,7 +101,6 @@ func TestContextSyncWithPolicy(t *testing.T) {
 				},
 			},
 		},
-		SyncPaths: []string{"/data/important"},
 	}
 
 	// Apply the policy
@@ -132,11 +129,8 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	assert.NotNil(t, sync.Policy.BWList)
 	assert.Len(t, sync.Policy.BWList.WhiteLists, 1)
 	assert.Equal(t, "/data", sync.Policy.BWList.WhiteLists[0].Path)
-	assert.Equal(t, []string{"/home/wuying/temp"}, sync.Policy.BWList.WhiteLists[0].ExcludePaths)
+	assert.Equal(t, []string{"/data/temp"}, sync.Policy.BWList.WhiteLists[0].ExcludePaths)
 
-	// Verify sync paths
-	assert.NotNil(t, sync.Policy.SyncPaths)
-	assert.Equal(t, []string{"/home/wuying/important"}, sync.Policy.SyncPaths)
 }
 
 func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
@@ -170,11 +164,6 @@ func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
 	assert.Equal(t, "", whiteList.Path, "bwList.whiteLists[0].path should be empty string")
 	assert.NotNil(t, whiteList.ExcludePaths)
 	assert.Empty(t, whiteList.ExcludePaths, "bwList.whiteLists[0].excludePaths should be empty array")
-
-	// Verify syncPaths
-	assert.NotNil(t, policy.SyncPaths)
-	assert.Len(t, policy.SyncPaths, 1, "syncPaths should have exactly 1 element")
-	assert.Equal(t, "", policy.SyncPaths[0], "syncPaths[0] should be empty string")
 
 	// Additional verification: test JSON marshaling to ensure the structure is correct
 	jsonData, err := json.Marshal(policy)
@@ -227,9 +216,7 @@ func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
 		t.Log("excludePaths is omitted from JSON (which is acceptable due to omitempty tag)")
 	}
 
-	// Verify syncPaths in JSON
-	syncPaths, exists := jsonMap["syncPaths"].([]interface{})
-	assert.True(t, exists, "syncPaths should exist in JSON")
-	assert.Len(t, syncPaths, 1, "JSON syncPaths should have exactly 1 element")
-	assert.Equal(t, "", syncPaths[0], "JSON syncPaths[0] should be empty string")
+	// Check that syncPaths should not exist in the JSON
+	_, syncPathsExists := jsonMap["syncPaths"]
+	assert.False(t, syncPathsExists, "syncPaths should not exist in JSON")
 }

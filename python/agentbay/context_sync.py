@@ -130,13 +130,11 @@ class SyncPolicy:
         download_policy: Defines the download policy
         delete_policy: Defines the delete policy
         bw_list: Defines the black and white list
-        sync_paths: Defines the paths to synchronize
     """
     upload_policy: Optional[UploadPolicy] = None
     download_policy: Optional[DownloadPolicy] = None
     delete_policy: Optional[DeletePolicy] = None
     bw_list: Optional[BWList] = None
-    sync_paths: List[str] = field(default_factory=list)
 
     @classmethod
     def default(cls):
@@ -152,8 +150,7 @@ class SyncPolicy:
                         exclude_paths=[]
                     )
                 ]
-            ),
-            sync_paths=[""]
+            )
         )
     
     def __dict__(self):
@@ -166,8 +163,6 @@ class SyncPolicy:
             result["deletePolicy"] = self.delete_policy.__dict__()
         if self.bw_list:
             result["bwList"] = self.bw_list.__dict__()
-        if self.sync_paths:
-            result["syncPaths"] = self.sync_paths
         return result
 
 

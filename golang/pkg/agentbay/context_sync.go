@@ -88,8 +88,6 @@ type SyncPolicy struct {
 	DeletePolicy *DeletePolicy `json:"deletePolicy,omitempty"`
 	// BWList defines the black and white list
 	BWList *BWList `json:"bwList,omitempty"`
-	// SyncPaths defines the paths to synchronize
-	SyncPaths []string `json:"syncPaths,omitempty"`
 }
 
 // NewSyncPolicy creates a new sync policy with default values
@@ -106,7 +104,6 @@ func NewSyncPolicy() *SyncPolicy {
 				},
 			},
 		},
-		SyncPaths: []string{""},
 	}
 }
 
