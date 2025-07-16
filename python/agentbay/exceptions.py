@@ -63,3 +63,9 @@ class UIError(AgentBayError):
 
     def __init__(self, message="UI operation error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
+
+class BrowserError(AgentBayError):
+    """Raised when there is an error with the browser."""
+
+    def __init__(self, message="Browser error", *args, **kwargs):
+        super().__init__(message, *args, **kwargs)

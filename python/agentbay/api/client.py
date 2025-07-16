@@ -716,6 +716,84 @@ class Client(OpenApiClient):
         runtime = RuntimeOptions()
         return await self.get_mcp_resource_with_options_async(request, runtime)
 
+    def init_browser_with_options(
+        self,
+        request: main_models.InitBrowserRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.InitBrowserResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.persistent_path):
+            body['PersistentPath'] = request.persistent_path
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'InitBrowser',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.InitBrowserResponse(),
+            self.call_api(params, req, runtime)
+        )
+
+    async def init_browser_with_options_async(
+        self,
+        request: main_models.InitBrowserRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.InitBrowserResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.persistent_path):
+            body['PersistentPath'] = request.persistent_path
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'InitBrowser',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.InitBrowserResponse(),
+            await self.call_api_async(params, req, runtime)
+        )
+
+    def init_browser(
+        self,
+        request: main_models.InitBrowserRequest,
+    ) -> main_models.InitBrowserResponse:
+        runtime = RuntimeOptions()
+        return self.init_browser_with_options(request, runtime)
+
+    async def init_browser_async(
+        self,
+        request: main_models.InitBrowserRequest,
+    ) -> main_models.InitBrowserResponse:
+        runtime = RuntimeOptions()
+        return await self.init_browser_with_options_async(request, runtime)
+
     def list_contexts_with_options(
         self,
         request: main_models.ListContextsRequest,

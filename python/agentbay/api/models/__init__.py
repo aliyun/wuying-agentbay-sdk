@@ -29,6 +29,9 @@ from ._get_link_response import GetLinkResponse
 from ._get_mcp_resource_request import GetMcpResourceRequest
 from ._get_mcp_resource_response_body import GetMcpResourceResponseBody
 from ._get_mcp_resource_response import GetMcpResourceResponse
+from ._init_browser_request import InitBrowserRequest
+from ._init_browser_response_body import InitBrowserResponseBody
+from ._init_browser_response import InitBrowserResponse
 from ._list_contexts_request import ListContextsRequest
 from ._list_contexts_response_body import ListContextsResponseBody
 from ._list_contexts_response import ListContextsResponse
@@ -58,6 +61,7 @@ from ._get_label_response_body import GetLabelResponseBodyData
 from ._get_link_response_body import GetLinkResponseBodyData
 from ._get_mcp_resource_response_body import GetMcpResourceResponseBodyDataDesktopInfo
 from ._get_mcp_resource_response_body import GetMcpResourceResponseBodyData
+from ._init_browser_response_body import InitBrowserResponseBodyData
 from ._list_contexts_response_body import ListContextsResponseBodyData
 from ._list_session_response_body import ListSessionResponseBodyData
 
@@ -87,6 +91,9 @@ __all__ = [
     GetMcpResourceRequest,
     GetMcpResourceResponseBody,
     GetMcpResourceResponse,
+    InitBrowserRequest,
+    InitBrowserResponseBody,
+    InitBrowserResponse,
     ListContextsRequest,
     ListContextsResponseBody,
     ListContextsResponse,
@@ -116,6 +123,7 @@ __all__ = [
     GetLinkResponseBodyData,
     GetMcpResourceResponseBodyDataDesktopInfo,
     GetMcpResourceResponseBodyData,
+    InitBrowserResponseBodyData,
     ListContextsResponseBodyData,
     ListSessionResponseBodyData
 ]

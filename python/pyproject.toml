@@ -28,9 +28,11 @@ httpx = "^0.28.1"
 cryptography = "^45.0.2"
 alibabacloud-tea-util = "^0.3.13"
 python-dotenv = "^1.1.1"
+pydantic = "^2.0"
+playwright = ">=1.5.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
+pytest = "^8.2.2"
 pytest-cov = "^6.0.0"
 pytest-asyncio = "^0.25.0"
 black = "^24.0.0"

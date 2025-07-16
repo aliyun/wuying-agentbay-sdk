@@ -22,6 +22,7 @@ from agentbay.context_manager import ContextManager
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
 
+from agentbay.browser import Browser
 
 class SessionInfo:
     """
@@ -70,6 +71,7 @@ class Session:
 
         self.ui = UI(self)
         self.context = ContextManager(self)
+        self.browser = Browser(self)
 
     def get_api_key(self) -> str:
         """Return the API key for this session."""
