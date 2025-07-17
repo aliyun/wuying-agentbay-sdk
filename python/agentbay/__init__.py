@@ -8,6 +8,7 @@ from .session import Session
 from .session_params import CreateSessionParams
 from .ui import UI
 from .window import Window
+from .agent import Agent
 from .context_sync import (
     ContextSync,
     SyncPolicy,
@@ -32,6 +33,7 @@ __all__ = [
     "Oss",
     "FileSystem",
     "Window",
+    "Agent",
     "Command",
     "ApplicationManager",
     "InstalledApp",
