@@ -153,7 +153,7 @@ func main() {
 	startY := 1500
 	endX := 540
 	endY := 500
-	swipeDuration := 500 // milliseconds
+	swipeDuration := 10000 // milliseconds
 	swipeResult, err := session.UI.Swipe(startX, startY, endX, endY, swipeDuration)
 	if err != nil {
 		fmt.Printf("Error performing swipe from (%d,%d) to (%d,%d): %v\n",

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
@@ -65,9 +66,75 @@ func TestWindow_GetActiveWindow(t *testing.T) {
 	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
-	// Test GetActiveWindow
-	if session.Window != nil {
-		fmt.Println("Getting active window...")
+	// Test GetActiveWindow with full workflow
+	if session.Window != nil && session.Application != nil {
+		// Step 1: Get installed applications
+		t.Logf("Step 1: Getting installed applications...")
+		appListResult, err := session.Application.GetInstalledApps(true, false, true)
+		if err != nil {
+			t.Logf("Note: GetInstalledApps failed: %v", err)
+			return
+		}
+		t.Logf("Found %d installed applications (RequestID: %s)", len(appListResult.Applications), appListResult.RequestID)
+
+		if len(appListResult.Applications) == 0 {
+			t.Logf("No installed applications found, skipping test")
+			return
+		}
+
+		// Find an app with name "Google Chrome" to launch
+		var appToStart *application.Application
+		for _, app := range appListResult.Applications {
+			if app.Name == "Google Chrome" {
+				appToStart = &app
+				break
+			}
+		}
+
+		if appToStart == nil {
+			t.Logf("No application with name 'Google Chrome' found, skipping test")
+			return
+		}
+
+		// Step 2: Start the application
+		t.Logf("Step 2: Starting application: %s with command: %s", appToStart.Name, appToStart.CmdLine)
+		startResult, err := session.Application.StartApp(appToStart.CmdLine, "", "")
+		if err != nil {
+			t.Logf("Note: StartApp failed: %v", err)
+			return
+		}
+		t.Logf("Application start result (RequestID: %s): %d processes started", startResult.RequestID, len(startResult.Processes))
+
+		// Step 3: Wait for 1 minute
+		t.Logf("Step 3: Waiting for 1 minute for application to fully load...")
+		testutil.SleepWithMessage(60, "Application is starting...")
+
+		// Step 4: List root windows
+		t.Logf("Step 4: Listing root windows...")
+		listResult, err := session.Window.ListRootWindows()
+		if err != nil {
+			t.Logf("Note: ListRootWindows failed: %v", err)
+			return
+		}
+		t.Logf("Found %d root windows (RequestID: %s)", len(listResult.Windows), listResult.RequestID)
+
+		if len(listResult.Windows) == 0 {
+			t.Logf("No root windows found after starting application")
+			return
+		}
+
+		// Step 5: Activate a window
+		windowToActivate := &listResult.Windows[0]
+		t.Logf("Step 5: Activating window: %s (ID: %d)", windowToActivate.Title, windowToActivate.WindowID)
+		activateResult, err := session.Window.ActivateWindow(windowToActivate.WindowID)
+		if err != nil {
+			t.Logf("Note: ActivateWindow failed: %v", err)
+		} else {
+			t.Logf("Window activated successfully (RequestID: %s)", activateResult.RequestID)
+		}
+
+		// Step 6: Get active window
+		t.Logf("Step 6: Getting active window...")
 		activeWindowResult, err := session.Window.GetActiveWindow()
 		if err != nil {
 			t.Logf("Note: GetActiveWindow failed: %v", err)
@@ -88,7 +155,7 @@ func TestWindow_GetActiveWindow(t *testing.T) {
 			}
 		}
 	} else {
-		t.Logf("Note: Window interface is nil, skipping window test")
+		t.Logf("Note: Window or Application interface is nil, skipping window test")
 	}
 }
 

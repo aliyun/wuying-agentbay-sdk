@@ -49,8 +49,8 @@ func main() {
 
 	// Create upload policy
 	uploadPolicy := &agentbay.UploadPolicy{
-		AutoUpload:     false,
-		UploadStrategy: agentbay.PeriodicUpload,
+		AutoUpload:     true,
+		UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		Period:         15, // 15 minutes
 	}
 
@@ -139,7 +139,15 @@ func main() {
 	if err != nil {
 		log.Printf("Error getting context info: %v", err)
 	} else {
-		fmt.Printf("Context status: %s (RequestID: %s)\n", contextInfo.ContextStatus, contextInfo.RequestID)
+		fmt.Printf("Context info RequestID: %s\n", contextInfo.RequestID)
+		if len(contextInfo.ContextStatusData) > 0 {
+			fmt.Printf("Found %d context status entries:\n", len(contextInfo.ContextStatusData))
+			for i, statusData := range contextInfo.ContextStatusData {
+				fmt.Printf("  Status[%d]: %s\n", i, statusData.Status)
+			}
+		} else {
+			fmt.Println("No context status data available")
+		}
 	}
 
 	// Sync context
