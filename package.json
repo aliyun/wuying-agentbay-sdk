@@ -1,7 +1,5 @@
 {
-  "devDependencies": {
-    "@types/sinon": "^17.0.4",
-    "sinon": "^20.0.0"
-  },
-  "repository": "http://gitlab.alibaba-inc.com/ltt02016330/internal-repo.git"
+  "dependencies": {
+    "wuying-agentbay-sdk": "^0.3.0"
+  }
 }

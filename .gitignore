@@ -49,6 +49,8 @@ coverage/
 *.out
 go.work
 vendor/
+*.mod
+*.sum
 
 # IDE
 .idea/
@@ -57,3 +59,5 @@ vendor/
 *.swo
 .DS_Store
 .cursor
+*.patch
+*.lock
