@@ -77,17 +77,17 @@ run_linting() {
 
     # Run flake8 to check for code issues
     echo "Running flake8..."
-    python -m flake8 agentbay tests examples --count --select=E9,F63,F7,F82 --show-source --statistics
+    python -m flake8 agentbay tests --count --select=E9,F63,F7,F82 --show-source --statistics
 
     # For more comprehensive checks (uncomment when ready)
-    # python -m flake8 agentbay tests examples --count --max-complexity=10 --max-line-length=127 --statistics
+    # python -m flake8 agentbay tests --count --max-complexity=10 --max-line-length=127 --statistics
 
     # Run black to format code, excluding agentbay/api/models directory
     echo "Running black formatter..."
-    python -m black agentbay tests examples --exclude "agentbay/api/models"
+    python -m black agentbay tests --exclude "agentbay/api/models"
 
     # Check if there are uncommitted changes after formatting
-    if ! git diff --quiet agentbay tests examples; then
+    if ! git diff --quiet agentbay tests; then
         print_warning "Formatting changes were made. Please review and commit these changes."
     else
         print_success "No formatting changes needed."
