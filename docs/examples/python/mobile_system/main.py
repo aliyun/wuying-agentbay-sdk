@@ -69,11 +69,9 @@ def main():
 
         def print_ui_element(element: Dict[str, Any], indent: int = 1):
             prefix = "  " * indent
-            print(
-                f"{prefix}- {
-                    element['className']} (text: '{
-                    element['text']}', resourceId: '{
-                    element['resourceId']}')"
+            print(f"{prefix}- {element['className']} ",
+                  f"(text: '{element['text']}'",
+                  f"resourceId: '{element['resourceId']}')"
             )
 
             children = element.get("children", [])
