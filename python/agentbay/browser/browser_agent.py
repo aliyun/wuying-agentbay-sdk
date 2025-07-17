@@ -3,8 +3,8 @@ import json
 import re
 from typing import List, Dict, Union, Any, Optional, Tuple, TypeVar, Generic, Type
 from pydantic import BaseModel
-
-from agentbay.exceptions import BrowserError
+from agentbay.api.base_service import BaseService
+from agentbay.exceptions import BrowserError, AgentBayError
 from agentbay.api.models import CallMcpToolRequest
 
 T = TypeVar('T', bound=BaseModel)
@@ -64,7 +64,7 @@ class ExtractOptions(Generic[T]):
         self.iframe = iframe
         self.domSettleTimeoutsMS = domSettleTimeoutsMS
 
-class BrowserAgent:
+class BrowserAgent(BaseService):
     """
     BrowserAgent handles browser automation and agent logic.
     """
@@ -95,18 +95,21 @@ class BrowserAgent:
                 args["iframes"] = options.iframes
             if options.domSettleTimeoutMS is not None:
                 args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
-            response = self.call_mcp_tool("page_use_act", args)
-            print("Response from CallMcpTool - page_use_act:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+            response = self._call_mcp_tool("page_use_act", args)
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_act:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    data = response.data
+                # Map snake_case keys to ActResult members
+                success = data.get("success", False)
+                message = data.get("message", "")
+                action = data.get("action", "")
+                return ActResult(success=success, message=message, action=action)
             else:
-                data = response
-            # Map snake_case keys to ActResult members
-            success = data.get("success", False)
-            message = data.get("message", "")
-            action = data.get("action", "")
-            return ActResult(success=success, message=message, action=action)
+                return ActResult(success=False, message=response.error_message, action="")
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
@@ -133,18 +136,21 @@ class BrowserAgent:
                 args["iframes"] = options.iframes
             if options.domSettleTimeoutMS is not None:
                 args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
-            response = self.call_mcp_tool("page_use_act", args)
-            print("Response from CallMcpTool - page_use_act:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+            response = self._call_mcp_tool("page_use_act", args)
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_act:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    data = response.data
+                # Map snake_case keys to ActResult members
+                success = data.get("success", False)
+                message = data.get("message", "")
+                action = data.get("action", "")
+                return ActResult(success=success, message=message, action=action)
             else:
-                data = response
-            # Map snake_case keys to ActResult members
-            success = data.get("success", False)
-            message = data.get("message", "")
-            action = data.get("action", "")
-            return ActResult(success=success, message=message, action=action)
+                return ActResult(success=False, message=response.error_message, action="")
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
@@ -172,29 +178,38 @@ class BrowserAgent:
                 args["iframes"] = options.iframes
             if options.domSettleTimeoutMS is not None:
                 args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
-            response = self.call_mcp_tool("page_use_observe", args)
+            response = self._call_mcp_tool("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_observe:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    raise BrowserError("Observe response data is not a json!!!")
+        
+                # Check if observe was successful
+                success = data.get("success", False)
+                if not success:
+                    return False, []
+
+                results = []
+                observeResults = json.loads(data.get("observe_result", ""))
+                print("observeResults =", observeResults)
+                
+                for item in observeResults:
+                    selector = item.get("selector", "")
+                    description = item.get("description", "")
+                    method = item.get("method", "")
+                    arguments = item.get("arguments", {})
+                    results.append(ObserveResult(selector, description, method, arguments))
+                
+                return success, results
             else:
-                raise BrowserError("Observe response data is not a json!!!")
-     
-            results = []
-            observeResults = json.loads(data.get("observe_result", ""))
-            print("observeResults =", observeResults)
-            
-            # Check if observe was successful
-            success = data.get("success", False)
-            
-            for item in observeResults:
-                selector = item.get("selector", "")
-                description = item.get("description", "")
-                method = item.get("method", "")
-                arguments = item.get("arguments", {})
-                results.append(ObserveResult(selector, description, method, arguments))
-            
-            return success, results
+                print(f"Response from CallMcpTool - page_use_observe:", response.error_message)
+                return False, []
+
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
@@ -222,33 +237,40 @@ class BrowserAgent:
                 args["iframes"] = options.iframes
             if options.domSettleTimeoutMS is not None:
                 args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
-            response = self.call_mcp_tool("page_use_observe", args)
+            response = self._call_mcp_tool("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_observe:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    raise BrowserError("Observe response data is not a json!!!")
+        
+                # Check if observe was successful
+                success = data.get("success", False)
+                if not success:
+                    return False, []
+
+                results = []
+                observeResults = json.loads(data.get("observe_result", ""))
+                print("observeResults =", observeResults)
+                
+                for item in observeResults:
+                    selector = item.get("selector", "")
+                    description = item.get("description", "")
+                    method = item.get("method", "")
+                    arguments = item.get("arguments", {})
+                    results.append(ObserveResult(selector, description, method, arguments))
+                
+                return success, results
             else:
-                raise BrowserError("Observe response data is not a json!!!")
-     
-            results = []
-            observeResults = json.loads(data.get("observe_result", ""))
-            print("observeResults =", observeResults)
-            
-            # Check if observe was successful
-            success = data.get("success", False)
-            
-            for item in observeResults:
-                selector = item.get("selector", "")
-                description = item.get("description", "")
-                method = item.get("method", "")
-                arguments = item.get("arguments", {})
-                results.append(ObserveResult(selector, description, method, arguments))
-            
-            return success, results
+                print(f"Response from CallMcpTool - page_use_observe:", response.error_message)
+                return False, []
+                
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
-
-    
 
     def extract(self, page, options: ExtractOptions) -> Tuple[bool, List[T]]:
         """
@@ -273,25 +295,31 @@ class BrowserAgent:
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
 
-            response = self.call_mcp_tool("page_use_extract", args)
+            response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_extract:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    data = response.data
+                print("extract data =", data)
+                success = data.get("success", False)
+                extract_objs = []
+                if success:
+                    extract_results = json.loads(data.get("extract_result", ""))
+                    for extract_result in extract_results:
+                        print("extract_result =", extract_result)
+                        extract_objs.append(options.schema.model_validate(extract_result))
+                else:
+                    extract_results = data.get("extract_result", "")
+                    print("Extract failed due to: ", extract_results)
+                return success, extract_objs
             else:
-                data = response
-            print("extract data =", data)
-            success = data.get("success", False)
-            extract_objs = []
-            if success:
-                extract_results = json.loads(data.get("extract_result", ""))
-                for extract_result in extract_results:
-                    print("extract_result =", extract_result)
-                    extract_objs.append(options.schema.model_validate(extract_result))
-            else:
-                extract_results = data.get("extract_result", "")
-                print("Extract failed due to: ", extract_results)
-            return success, extract_objs
+                print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
+                return False, []
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
@@ -318,96 +346,33 @@ class BrowserAgent:
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
 
-            response = self.call_mcp_tool("page_use_extract", args)
+            response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
-            import json as _json
-            if isinstance(response, str):
-                data = _json.loads(response)
+
+            if response.success:
+                print(f"Response from CallMcpTool - page_use_extract:", response.data)
+                import json as _json
+                if isinstance(response.data, str):
+                    data = _json.loads(response.data)
+                else:
+                    data = response.data
+                print("extract data =", data)
+                success = data.get("success", False)
+                extract_objs = []
+                if success:
+                    extract_results = json.loads(data.get("extract_result", ""))
+                    for extract_result in extract_results:
+                        print("extract_result =", extract_result)
+                        extract_objs.append(options.schema.model_validate(extract_result))
+                else:
+                    extract_results = data.get("extract_result", "")
+                    print("Extract failed due to: ", extract_results)
+                return success, extract_objs
             else:
-                data = response
-            print("extract data =", data)
-            success = data.get("success", False)
-            extract_objs = []
-            if success:
-                extract_results = json.loads(data.get("extract_result", ""))
-                for extract_result in extract_results:
-                    print("extract_result =", extract_result)
-                    extract_objs.append(options.schema.model_validate(extract_result))
-            else:
-                extract_results = data.get("extract_result", "")
-                print("Extract failed due to: ", extract_results)
-            return success, extract_objs
+                print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
+                return False, []
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")  
-
-    def call_mcp_tool(self, name: str, args: dict):
-        """
-        Call an MCP tool and handle errors.
-        Args:
-            name (str): The name of the tool to call.
-            args (dict): Arguments to pass to the tool.
-        Returns:
-            Any: The response from the tool.
-        Raises:
-            BrowserError: If the tool call fails.
-        """
-        try:
-            args_json = json.dumps(args, ensure_ascii=False)
-            request = CallMcpToolRequest(
-                authorization=f"Bearer {self.session.get_api_key()}",
-                session_id=self.session.get_session_id(),
-                name=name,
-                args=args_json,
-            )
-            response = self.session.get_client().call_mcp_tool(request)
-            response_map = response.to_map()
-            if not response_map:
-                raise BrowserError("Invalid response format")
-            body = response_map.get("body", {})
-            if not body:
-                raise BrowserError("Invalid response body")
-            return self._parse_response_body(body)
-        except Exception as e:
-            raise BrowserError(f"Failed to call MCP tool {name}: {e}")
-
-    def _parse_response_body(self, body: Dict[str, Any]) -> Any:
-        """
-        Parses the response body from the MCP tool.
-
-        Args:
-            body (Dict[str, Any]): The response body.
-
-        Returns:
-            Any: The parsed content.
-
-        Raises:
-            BrowserError: If the response contains errors or is invalid.
-        """
-        try:
-            if body.get("Data", {}).get("isError", False):
-                error_content = body.get("Data", {}).get("content", [])
-                print("error_content =", error_content)
-                error_message = "; ".join(
-                    item.get("text", "Unknown error")
-                    for item in error_content
-                    if isinstance(item, dict)
-                )
-                raise BrowserError(f"Error in response: {error_message}")
-
-            response_data = body.get("Data", {})
-            if not response_data:
-                raise BrowserError("No data field in response")
-
-            # Handle 'content' field for other methods
-            content = response_data.get("content", [])
-            if not content or not isinstance(content, list):
-                raise BrowserError("No content found in response")
-
-            content_item = content[0]
-            json_text = content_item.get("text")
-            return json_text
-        except Exception as e:
-            raise BrowserError(f"{e}")
 
     def _get_page_and_context_index(self, page):
         """
@@ -457,3 +422,20 @@ class BrowserAgent:
             return page_index, context_index
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
+
+    def _handle_error(self, e):
+        """
+        Handle and convert exceptions. This method should be overridden by subclasses
+        to provide specific error handling.
+
+        Args:
+            e (Exception): The exception to handle.
+
+        Returns:
+            Exception: The handled exception.
+        """
+        if isinstance(e, BrowserError):
+            return e
+        if isinstance(e, AgentBayError):
+            return BrowserError(str(e))
+        return e
