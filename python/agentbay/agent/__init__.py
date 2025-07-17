@@ -1,5 +1,6 @@
-from .agent import Agent
+from .agent import Agent, TaskResult
 
 __all__ = [
     "Agent",
+    "TaskResult",
 ]
