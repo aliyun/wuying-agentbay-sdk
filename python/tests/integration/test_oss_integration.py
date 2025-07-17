@@ -36,12 +36,10 @@ class TestOssIntegration(unittest.TestCase):
         params = CreateSessionParams(
             image_id="code_latest",
         )
-        session_result = cls.agent_bay.create(params)
-        if not session_result.success or not session_result.session:
-            raise unittest.SkipTest("Failed to create session")
-            
-        cls.session = session_result.session
-        print(f"Session created with ID: {cls.session.session_id}")
+        result = cls.agent_bay.create(params)
+        cls.session = result.session
+        print(cls.session.get_session_id())
+        print(f"Session created with ID: {cls.session.get_session_id()}")
 
     @classmethod
     def tearDownClass(cls):
