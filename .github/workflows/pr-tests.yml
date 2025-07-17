@@ -2,7 +2,7 @@ name: PR Tests
 
 on:
   pull_request:
-    branches: [ main, v0.3.0_dev, v0.4.0_dev ]
+    branches: [ '*' ]
     paths-ignore:
       - 'README.md'
       - 'docs/**'
