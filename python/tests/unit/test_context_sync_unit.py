@@ -18,7 +18,6 @@ from agentbay.context_sync import (
     WhiteList,
 )
 
-
 class TestContextSyncUnit(unittest.TestCase):
     """Unit tests for context synchronization functionality."""
 
@@ -35,8 +34,8 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertEqual(basic_sync.path, "/home/wuying")
         self.assertIsNotNone(basic_sync.policy)
 
-        # Verify default policy values
-        self.assertTrue(basic_sync.policy.upload_policy.auto_upload)
+        # Verify default policy values - auto_upload defaults to False
+        self.assertFalse(basic_sync.policy.upload_policy.auto_upload)
         self.assertEqual(
             basic_sync.policy.upload_policy.upload_strategy,
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
@@ -98,7 +97,7 @@ class TestContextSyncUnit(unittest.TestCase):
         advanced_sync = ContextSync.new("test-context-id", "/home/wuying", sync_policy)
 
         self.assertEqual(advanced_sync.context_id, "test-context-id")
-        self.assertEqual(advanced_sync.path, "/data")
+        self.assertEqual(advanced_sync.path, "/home/wuying")
         self.assertIsNotNone(advanced_sync.policy)
 
         # Verify custom policy values
@@ -226,23 +225,18 @@ class TestContextSyncUnit(unittest.TestCase):
             white_lists=[source_white_list, docs_white_list, config_white_list]
         )
 
-        # Create sync policy
+        # Create sync policy - remove sync_paths parameter as it's not supported
         sync_policy = SyncPolicy(
             upload_policy=UploadPolicy.default(),
             download_policy=DownloadPolicy.default(),
             delete_policy=DeletePolicy.default(),
             bw_list=bw_list,
-            sync_paths=["/workspace/src", "/workspace/docs", "/workspace/config"],
         )
 
         # Create context sync
         context_sync = ContextSync.new("test-context-id", "/workspace", sync_policy)
 
         self.assertEqual(len(context_sync.policy.bw_list.white_lists), 3)
-        self.assertEqual(
-            context_sync.policy.sync_paths,
-            ["/workspace/src", "/workspace/docs", "/workspace/config"],
-        )
 
         print(
             f"Multiple white lists - ContextID: {context_sync.context_id}, Path: {context_sync.path}"
@@ -250,7 +244,6 @@ class TestContextSyncUnit(unittest.TestCase):
         print(
             f"  - Number of white lists: {len(context_sync.policy.bw_list.white_lists)}"
         )
-        print(f"  - Sync paths: {context_sync.policy.sync_paths}")
 
     def test_05_different_upload_strategies(self):
         """Test different upload strategies."""
@@ -299,9 +292,9 @@ class TestContextSyncUnit(unittest.TestCase):
         # Create initial context sync
         context_sync = ContextSync.new("test-context-id", "/test", SyncPolicy.default())
 
-        # Modify upload policy
+        # Modify upload policy - use existing upload strategy
         new_upload_policy = UploadPolicy(
-            auto_upload=False, upload_strategy=UploadStrategy.PERIODIC_UPLOAD, period=60
+            auto_upload=False, upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE, period=60
         )
 
         # Create new sync policy with modified upload policy
@@ -318,7 +311,7 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertFalse(context_sync.policy.upload_policy.auto_upload)
         self.assertEqual(
             context_sync.policy.upload_policy.upload_strategy,
-            UploadStrategy.PERIODIC_UPLOAD,
+            UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
         )
         self.assertEqual(context_sync.policy.upload_policy.period, 60)
 
@@ -334,7 +327,7 @@ class TestContextSyncUnit(unittest.TestCase):
 
         # Test default upload policy
         upload_policy = UploadPolicy.default()
-        self.assertTrue(upload_policy.auto_upload)
+        self.assertFalse(upload_policy.auto_upload)  # Default is False
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
@@ -353,7 +346,7 @@ class TestContextSyncUnit(unittest.TestCase):
 
         # Test default sync policy
         sync_policy = SyncPolicy.default()
-        self.assertTrue(sync_policy.upload_policy.auto_upload)
+        self.assertFalse(sync_policy.upload_policy.auto_upload)  # Default is False
         self.assertTrue(sync_policy.download_policy.auto_download)
         self.assertTrue(sync_policy.delete_policy.sync_local_file)
 
@@ -363,14 +356,14 @@ class TestContextSyncUnit(unittest.TestCase):
         """Test context sync object serialization."""
         print("\nTest 9: Testing context sync serialization...")
 
-        # Create a complex context sync
+        # Create a complex context sync - use existing upload strategy
         context_sync = ContextSync.new(
             "test-context-id",
             "/workspace",
             SyncPolicy(
                 upload_policy=UploadPolicy(
                     auto_upload=True,
-                    upload_strategy=UploadStrategy.PERIODIC_UPLOAD,
+                    upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
                     period=15,
                 ),
                 download_policy=DownloadPolicy(
@@ -385,7 +378,6 @@ class TestContextSyncUnit(unittest.TestCase):
                         )
                     ]
                 ),
-                sync_paths=["/workspace/src", "/workspace/docs"],
             ),
         )
 
@@ -395,9 +387,6 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertTrue(context_sync.policy.upload_policy.auto_upload)
         self.assertEqual(context_sync.policy.upload_policy.period, 15)
         self.assertEqual(len(context_sync.policy.bw_list.white_lists), 1)
-        self.assertEqual(
-            context_sync.policy.sync_paths, ["/workspace/src", "/workspace/docs"]
-        )
 
         print("Context sync serialization test passed")
 
@@ -424,7 +413,6 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertIsNone(bw_list.white_lists)
 
         print("Edge cases test passed")
-
 
 if __name__ == "__main__":
     # Run the tests

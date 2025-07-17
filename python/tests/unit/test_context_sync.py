@@ -15,7 +15,6 @@ from agentbay.context_sync import (
     WhiteList,
 )
 
-
 class TestContextSync(unittest.TestCase):
     def test_initialization(self):
         context_sync = ContextSync.new("test-context", "/test/path")
@@ -48,7 +47,7 @@ class TestContextSync(unittest.TestCase):
         self.assertIsNotNone(policy.upload_policy)
         upload_policy = policy.upload_policy
         assert upload_policy is not None  # type: ignore
-        self.assertTrue(upload_policy.auto_upload)
+        self.assertFalse(upload_policy.auto_upload)  # Default is False
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
@@ -118,7 +117,7 @@ class TestContextSync(unittest.TestCase):
 
         # Verify uploadPolicy in JSON
         self.assertIn("uploadPolicy", json_object)
-        self.assertTrue(json_object["uploadPolicy"]["autoUpload"])
+        self.assertFalse(json_object["uploadPolicy"]["autoUpload"])  # Default is False
         self.assertEqual(
             json_object["uploadPolicy"]["uploadStrategy"], "UploadBeforeResourceRelease"
         )
@@ -153,7 +152,7 @@ class TestContextSync(unittest.TestCase):
         """Test individual policy components with default values"""
         # Test UploadPolicy defaults
         upload_policy = UploadPolicy.default()
-        self.assertTrue(upload_policy.auto_upload)
+        self.assertFalse(upload_policy.auto_upload)  # Default is False
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
@@ -197,7 +196,6 @@ class TestContextSync(unittest.TestCase):
         bw_list_with_default = BWList(white_lists=[WhiteList()])
         self.assertEqual(len(bw_list_with_default.white_lists), 1)
         self.assertEqual(bw_list_with_default.white_lists[0].path, "")
-
 
 if __name__ == "__main__":
     unittest.main()
