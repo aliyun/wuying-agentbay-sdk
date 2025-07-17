@@ -14,7 +14,7 @@ class CreateSessionParams:
             and cookies.
             Deprecated: This field is deprecated and will be removed in a future version.
             Please use context_syncs instead for more flexible and powerful data persistence.
-        context_syncs (Optional[List[ContextSync]]): List of context synchronization 
+        context_syncs (Optional[List[ContextSync]]): List of context synchronization
             configurations that define how contexts should be synchronized and mounted.
     """
 
@@ -37,7 +37,7 @@ class CreateSessionParams:
                 Please use context_syncs instead.
             image_id (Optional[str], optional): ID of the image to use for the session.
                 Defaults to None.
-            context_syncs (Optional[List[ContextSync]], optional): List of context 
+            context_syncs (Optional[List[ContextSync]], optional): List of context
                 synchronization configurations. Defaults to None.
         """
         self.labels = labels or {}

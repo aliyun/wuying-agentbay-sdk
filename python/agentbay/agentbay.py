@@ -84,36 +84,43 @@ class AgentBay:
             if params.context_id:
                 request.context_id = params.context_id
             # Add context_syncs if provided
-            if hasattr(params, 'context_syncs') and params.context_syncs:
-                from agentbay.api.models import CreateMcpSessionRequestPersistenceDataList
+            if hasattr(params, "context_syncs") and params.context_syncs:
+                from agentbay.api.models import (
+                    CreateMcpSessionRequestPersistenceDataList,
+                )
+
                 persistence_data_list = []
                 for cs in params.context_syncs:
                     policy_json = None
                     if cs.policy is not None:
                         # policy 需序列化为 JSON 字符串
                         import json as _json
+
                         def safe_serialize(obj):
                             try:
                                 if isinstance(obj, Enum):
                                     return obj.value
-                                elif hasattr(obj, '__dict__') and callable(obj.__dict__):
+                                elif hasattr(obj, "__dict__") and callable(
+                                    obj.__dict__
+                                ):
                                     return obj.__dict__()
-                                elif hasattr(obj, '__dict__'):
+                                elif hasattr(obj, "__dict__"):
                                     return obj.__dict__
-                                elif hasattr(obj, 'to_map'):
+                                elif hasattr(obj, "to_map"):
                                     return obj.to_map()
-                                elif hasattr(obj, 'to_dict'):
+                                elif hasattr(obj, "to_dict"):
                                     return obj.to_dict()
                                 else:
                                     return str(obj)
                             except:
                                 return str(obj)
-                        policy_json = _json.dumps(cs.policy, default=safe_serialize, ensure_ascii=False)
+
+                        policy_json = _json.dumps(
+                            cs.policy, default=safe_serialize, ensure_ascii=False
+                        )
                     persistence_data_list.append(
                         CreateMcpSessionRequestPersistenceDataList(
-                            context_id=cs.context_id,
-                            path=cs.path,
-                            policy=policy_json
+                            context_id=cs.context_id, path=cs.path, policy=policy_json
                         )
                     )
                 request.persistence_data_list = persistence_data_list
@@ -127,12 +134,16 @@ class AgentBay:
                 request.image_id = params.image_id
             try:
                 req_map = request.to_map()
-                if 'Authorization' in req_map and isinstance(req_map['Authorization'], str):
-                    auth = req_map['Authorization']
+                if "Authorization" in req_map and isinstance(
+                    req_map["Authorization"], str
+                ):
+                    auth = req_map["Authorization"]
                     if len(auth) > 12:
-                        req_map['Authorization'] = auth[:6] + '*' * (len(auth)-10) + auth[-4:]
+                        req_map["Authorization"] = (
+                            auth[:6] + "*" * (len(auth) - 10) + auth[-4:]
+                        )
                     else:
-                        req_map['Authorization'] = auth[:2] + '****' + auth[-2:]
+                        req_map["Authorization"] = auth[:2] + "****" + auth[-2:]
                 print("CreateMcpSessionRequest body:")
                 print(json.dumps(req_map, ensure_ascii=False, indent=2))
             except Exception:
@@ -140,7 +151,11 @@ class AgentBay:
             response = self.client.create_mcp_session(request)
             try:
                 print("Response body:")
-                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {response}")
 

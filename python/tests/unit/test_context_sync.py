@@ -49,7 +49,9 @@ class TestContextSync(unittest.TestCase):
         upload_policy = policy.upload_policy
         assert upload_policy is not None  # type: ignore
         self.assertTrue(upload_policy.auto_upload)
-        self.assertEqual(upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE)
+        self.assertEqual(
+            upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
+        )
         self.assertEqual(upload_policy.period, 30)
 
         # Verify downloadPolicy
@@ -57,7 +59,9 @@ class TestContextSync(unittest.TestCase):
         download_policy = policy.download_policy
         assert download_policy is not None  # type: ignore
         self.assertTrue(download_policy.auto_download)
-        self.assertEqual(download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC)
+        self.assertEqual(
+            download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC
+        )
 
         # Verify deletePolicy
         self.assertIsNotNone(policy.delete_policy)
@@ -71,7 +75,7 @@ class TestContextSync(unittest.TestCase):
         assert bw_list is not None  # type: ignore
         self.assertIsNotNone(bw_list.white_lists)
         self.assertEqual(len(bw_list.white_lists), 1)
-        
+
         white_list = bw_list.white_lists[0]
         self.assertEqual(white_list.path, "")
         self.assertIsNotNone(white_list.exclude_paths)
@@ -87,28 +91,26 @@ class TestContextSync(unittest.TestCase):
         assert policy.download_policy is not None  # type: ignore
         assert policy.delete_policy is not None  # type: ignore
         assert policy.bw_list is not None  # type: ignore
-        
+
         policy_dict = {
             "uploadPolicy": {
                 "autoUpload": policy.upload_policy.auto_upload,
                 "uploadStrategy": policy.upload_policy.upload_strategy.value,
-                "period": policy.upload_policy.period
+                "period": policy.upload_policy.period,
             },
             "downloadPolicy": {
                 "autoDownload": policy.download_policy.auto_download,
-                "downloadStrategy": policy.download_policy.download_strategy.value
+                "downloadStrategy": policy.download_policy.download_strategy.value,
             },
-            "deletePolicy": {
-                "syncLocalFile": policy.delete_policy.sync_local_file
-            },
+            "deletePolicy": {"syncLocalFile": policy.delete_policy.sync_local_file},
             "bwList": {
                 "whiteLists": [
                     {
                         "path": policy.bw_list.white_lists[0].path,
-                        "excludePaths": policy.bw_list.white_lists[0].exclude_paths
+                        "excludePaths": policy.bw_list.white_lists[0].exclude_paths,
                     }
                 ]
-            }
+            },
         }
 
         json_string = json.dumps(policy_dict)
@@ -117,13 +119,17 @@ class TestContextSync(unittest.TestCase):
         # Verify uploadPolicy in JSON
         self.assertIn("uploadPolicy", json_object)
         self.assertTrue(json_object["uploadPolicy"]["autoUpload"])
-        self.assertEqual(json_object["uploadPolicy"]["uploadStrategy"], "UploadBeforeResourceRelease")
+        self.assertEqual(
+            json_object["uploadPolicy"]["uploadStrategy"], "UploadBeforeResourceRelease"
+        )
         self.assertEqual(json_object["uploadPolicy"]["period"], 30)
 
         # Verify downloadPolicy in JSON
         self.assertIn("downloadPolicy", json_object)
         self.assertTrue(json_object["downloadPolicy"]["autoDownload"])
-        self.assertEqual(json_object["downloadPolicy"]["downloadStrategy"], "DownloadAsync")
+        self.assertEqual(
+            json_object["downloadPolicy"]["downloadStrategy"], "DownloadAsync"
+        )
 
         # Verify deletePolicy in JSON
         self.assertIn("deletePolicy", json_object)
@@ -148,13 +154,17 @@ class TestContextSync(unittest.TestCase):
         # Test UploadPolicy defaults
         upload_policy = UploadPolicy.default()
         self.assertTrue(upload_policy.auto_upload)
-        self.assertEqual(upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE)
+        self.assertEqual(
+            upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
+        )
         self.assertEqual(upload_policy.period, 30)
 
         # Test DownloadPolicy defaults
         download_policy = DownloadPolicy.default()
         self.assertTrue(download_policy.auto_download)
-        self.assertEqual(download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC)
+        self.assertEqual(
+            download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC
+        )
 
         # Test DeletePolicy defaults
         delete_policy = DeletePolicy.default()
@@ -190,4 +200,4 @@ class TestContextSync(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()

@@ -22,7 +22,9 @@ class TestContextSyncIntegration(unittest.TestCase):
         # Skip if no API key is available or in CI environment
         api_key = os.environ.get("AGENTBAY_API_KEY")
         if not api_key or os.environ.get("CI"):
-            raise unittest.SkipTest("Skipping integration test: No API key available or running in CI")
+            raise unittest.SkipTest(
+                "Skipping integration test: No API key available or running in CI"
+            )
 
         # Initialize AgentBay client
         cls.agent_bay = AgentBay(api_key)
@@ -42,7 +44,9 @@ class TestContextSyncIntegration(unittest.TestCase):
         session_params = CreateSessionParams()
 
         # Create context sync configuration
-        context_sync = ContextSync.new(cls.context.id, "/home/wuying", SyncPolicy.default())
+        context_sync = ContextSync.new(
+            cls.context.id, "/home/wuying", SyncPolicy.default()
+        )
         session_params.context_syncs = [context_sync]
 
         # Add labels and image ID
@@ -130,7 +134,9 @@ class TestContextSyncIntegration(unittest.TestCase):
         self.assertIsNotNone(context_info.request_id)
 
         # Log the context status data
-        print(f"Context status data after sync, count: {len(context_info.context_status_data)}")
+        print(
+            f"Context status data after sync, count: {len(context_info.context_status_data)}"
+        )
         for i, data in enumerate(context_info.context_status_data):
             print(f"Status data {i}:")
             print(f"  Context ID: {data.context_id}")
@@ -158,16 +164,16 @@ class TestContextSyncIntegration(unittest.TestCase):
         """Test getting context info with specific parameters."""
         # Get context info with parameters
         context_info = self.session.context.info(
-            context_id=self.context.id,
-            path="/home/wuying",
-            task_type=None
+            context_id=self.context.id, path="/home/wuying", task_type=None
         )
 
         # Verify that we have a request ID
         self.assertIsNotNone(context_info.request_id)
 
         # Log the filtered context status data
-        print(f"Filtered context status data count: {len(context_info.context_status_data)}")
+        print(
+            f"Filtered context status data count: {len(context_info.context_status_data)}"
+        )
         for i, data in enumerate(context_info.context_status_data):
             print(f"Status data {i}:")
             print(f"  Context ID: {data.context_id}")
@@ -216,7 +222,9 @@ class TestContextSyncIntegration(unittest.TestCase):
 
             try:
                 # 3. Wait for session to be ready and retry context info until data is available
-                print("Waiting for session to be ready and context status data to be available...")
+                print(
+                    "Waiting for session to be ready and context status data to be available..."
+                )
 
                 found_data = False
                 context_info = None
@@ -229,14 +237,20 @@ class TestContextSyncIntegration(unittest.TestCase):
                         found_data = True
                         break
 
-                    print(f"No context status data available yet (attempt {i+1}), retrying in 1 second...")
+                    print(
+                        f"No context status data available yet (attempt {i+1}), retrying in 1 second..."
+                    )
                     time.sleep(1)
 
-                self.assertTrue(found_data, "Context status data should be available after retries")
+                self.assertTrue(
+                    found_data, "Context status data should be available after retries"
+                )
                 self._print_context_status_data(context_info.context_status_data)
 
                 # 4. Write a file to the context sync path
-                test_content = f"Test content for Python persistence retry test at {timestamp}"
+                test_content = (
+                    f"Test content for Python persistence retry test at {timestamp}"
+                )
                 test_file_path = f"{sync_path}/test-file.txt"
 
                 # Create directory first
@@ -246,13 +260,17 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                 # Write the file
                 print(f"Writing file to {test_file_path}")
-                write_result = session1.file_system.write_file(test_file_path, test_content)
+                write_result = session1.file_system.write_file(
+                    test_file_path, test_content
+                )
                 self.assertTrue(write_result.success, "Error writing file")
 
                 # 5. Sync to trigger file upload
                 print("Triggering context sync...")
                 sync_result = session1.context.sync()
-                self.assertTrue(sync_result.success, "Context sync should be successful")
+                self.assertTrue(
+                    sync_result.success, "Context sync should be successful"
+                )
                 print(f"Context sync successful (RequestID: {sync_result.request_id})")
 
                 # 6. Get context info with retry for upload status
@@ -272,7 +290,9 @@ class TestContextSyncIntegration(unittest.TestCase):
                     if found_upload:
                         break
 
-                    print(f"No upload status found yet (attempt {i+1}), retrying in 1 second...")
+                    print(
+                        f"No upload status found yet (attempt {i+1}), retrying in 1 second..."
+                    )
                     time.sleep(1)
 
                 if found_upload:
@@ -296,7 +316,9 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                 session_result = self.agent_bay.create(session_params)
                 self.assertTrue(session_result.success, "Error creating second session")
-                self.assertIsNotNone(session_result.session, "Second session should not be None")
+                self.assertIsNotNone(
+                    session_result.session, "Second session should not be None"
+                )
 
                 session2 = session_result.session
                 print(f"Created second session: {session2.session_id}")
@@ -311,22 +333,33 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                         # Check if we have download status for our context
                         for data in context_info.context_status_data:
-                            if data.context_id == context.id and data.task_type == "download":
+                            if (
+                                data.context_id == context.id
+                                and data.task_type == "download"
+                            ):
                                 found_download = True
-                                print(f"Found download task for context at attempt {i+1}")
+                                print(
+                                    f"Found download task for context at attempt {i+1}"
+                                )
                                 break
 
                         if found_download:
                             break
 
-                        print(f"No download status found yet (attempt {i+1}), retrying in 1 second...")
+                        print(
+                            f"No download status found yet (attempt {i+1}), retrying in 1 second..."
+                        )
                         time.sleep(1)
 
                     if found_download:
                         print("Found download status for context")
-                        self._print_context_status_data(context_info.context_status_data)
+                        self._print_context_status_data(
+                            context_info.context_status_data
+                        )
                     else:
-                        print("Warning: Could not find download status after all retries")
+                        print(
+                            "Warning: Could not find download status after all retries"
+                        )
 
                     # 10. Read the file from the second session
                     print("Reading file from second session...")
@@ -334,7 +367,11 @@ class TestContextSyncIntegration(unittest.TestCase):
                     self.assertTrue(read_result.success, "Error reading file")
 
                     # 11. Verify the file content matches what was written
-                    self.assertEqual(test_content, read_result.content, "File content should match what was written")
+                    self.assertEqual(
+                        test_content,
+                        read_result.content,
+                        "File content should match what was written",
+                    )
                     print("File content verified successfully")
 
                 finally:

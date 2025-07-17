@@ -159,7 +159,11 @@ class Oss(BaseService):
             result = self._call_mcp_tool("oss_env_init", args)
             try:
                 print("Response body:")
-                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        getattr(result, "body", result), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {result}")
 

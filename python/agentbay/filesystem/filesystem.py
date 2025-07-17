@@ -290,7 +290,11 @@ class FileSystem(BaseService):
             result = self._call_mcp_tool("get_file_info", args)
             try:
                 print("Response body:")
-                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        getattr(result, "body", result), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {result}")
             if result.success:
@@ -381,7 +385,11 @@ class FileSystem(BaseService):
             result = self._call_mcp_tool("list_directory", args)
             try:
                 print("Response body:")
-                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        getattr(result, "body", result), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {result}")
             if result.success:
@@ -464,7 +472,11 @@ class FileSystem(BaseService):
             result = self._call_mcp_tool("read_file", args)
             try:
                 print("Response body:")
-                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        getattr(result, "body", result), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {result}")
             if result.success:
@@ -560,7 +572,11 @@ class FileSystem(BaseService):
             result = self._call_mcp_tool("read_multiple_files", args)
             try:
                 print("Response body:")
-                print(json.dumps(getattr(result, 'body', result), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        getattr(result, "body", result), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {result}")
 

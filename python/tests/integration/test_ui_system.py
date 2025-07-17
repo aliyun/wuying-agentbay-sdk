@@ -27,7 +27,7 @@ class TestUISystemIntegration(unittest.TestCase):
         result = cls.agent_bay.create(params)
         if not result.success or not result.session:
             raise unittest.SkipTest("Failed to create session")
-            
+
         cls.session = result.session
         cls.ui = cls.session.ui
         time.sleep(3)
@@ -50,7 +50,7 @@ class TestUISystemIntegration(unittest.TestCase):
 
     def test_get_clickable_ui_elements(self):
         try:
-            result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=3000)
+            result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=10000)
             self.assertIsInstance(result, UIElementListResult)
             self.assertTrue(
                 result.success,
@@ -119,7 +119,7 @@ class TestUISystemIntegration(unittest.TestCase):
 
     def test_get_all_ui_elements(self):
         try:
-            result = self.__class__.ui.get_all_ui_elements(timeout_ms=3000)
+            result = self.__class__.ui.get_all_ui_elements(timeout_ms=10000)
             self.assertIsInstance(result, UIElementListResult)
             self.assertTrue(
                 result.success,

@@ -140,7 +140,11 @@ class ContextService:
             # Log API response
             try:
                 print("Response body:")
-                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {response}")
 
@@ -215,7 +219,11 @@ class ContextService:
             # Log API response
             try:
                 print("Response body:")
-                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {response}")
 

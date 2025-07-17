@@ -34,7 +34,7 @@ class TestFileSystemIntegration(unittest.TestCase):
         result = cls.agent_bay.create(params)
         if not result.success or not result.session:
             raise unittest.SkipTest("Failed to create session")
-            
+
         cls.session = result.session
         cls.fs = cls.session.file_system
         print(f"Session created with ID: {cls.session.session_id}")

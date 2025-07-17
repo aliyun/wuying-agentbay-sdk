@@ -27,7 +27,7 @@ class TestCommandIntegration(unittest.TestCase):
         session_result = cls.agent_bay.create(params)
         if not session_result.success or not session_result.session:
             raise unittest.SkipTest("Failed to create session")
-            
+
         cls.session = session_result.session
         cls.command = Command(cls.session)
 

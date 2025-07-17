@@ -98,7 +98,11 @@ class Session:
             response = self.get_client().release_mcp_session(request)
             try:
                 print("Response body:")
-                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {response}")
 
@@ -224,7 +228,11 @@ class Session:
             response = self.get_client().get_mcp_resource(request)
             try:
                 print("Response body:")
-                print(json.dumps(response.to_map().get("body", {}), ensure_ascii=False, indent=2))
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
             except Exception:
                 print(f"Response: {response}")
 

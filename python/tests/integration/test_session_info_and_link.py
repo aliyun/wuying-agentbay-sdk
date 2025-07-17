@@ -10,6 +10,7 @@ from agentbay import AgentBay
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def get_test_api_key():
     api_key = os.environ.get("AGENTBAY_API_KEY")
     if not api_key:
@@ -18,6 +19,7 @@ def get_test_api_key():
             "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
         )
     return api_key
+
 
 class TestSessionInfoAndLink(unittest.TestCase):
     """Integration test for session info and get_link APIs."""
@@ -30,7 +32,7 @@ class TestSessionInfoAndLink(unittest.TestCase):
         # Use browser_latest image for get_link compatibility
         params = CreateSessionParams(image_id="browser_latest")
         result = cls.agent_bay.create(params=params)
-        cls.session = getattr(result, 'session', None)
+        cls.session = getattr(result, "session", None)
         print(f"Session created with ID: {getattr(cls.session, 'session_id', None)}")
         print(f"Request ID: {getattr(result, 'request_id', None)}")
 
@@ -40,7 +42,9 @@ class TestSessionInfoAndLink(unittest.TestCase):
         try:
             if cls.session is not None:
                 result = cls.agent_bay.delete(cls.session)
-                print(f"Session deleted. Success: {getattr(result, 'success', None)}, Request ID: {getattr(result, 'request_id', None)}")
+                print(
+                    f"Session deleted. Success: {getattr(result, 'success', None)}, Request ID: {getattr(result, 'request_id', None)}"
+                )
             else:
                 print("No session to delete.")
         except Exception as e:
@@ -77,4 +81,7 @@ class TestSessionInfoAndLink(unittest.TestCase):
         url = result.data
         print(f"Session link URL: {url}")
         self.assertIsInstance(url, str)
-        self.assertTrue(url.startswith("http") or url.startswith("wss") or url.startswith("ws"), "Returned link does not look like a URL") 
+        self.assertTrue(
+            url.startswith("http") or url.startswith("wss") or url.startswith("ws"),
+            "Returned link does not look like a URL",
+        )
