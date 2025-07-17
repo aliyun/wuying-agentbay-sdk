@@ -69,3 +69,9 @@ class BrowserError(AgentBayError):
 
     def __init__(self, message="Browser error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
+
+class AgentError(AgentBayError):
+    """Raised for errors related to Agent actions."""
+
+    def __init__(self, message="Agent action error", *args, **kwargs):
+        super().__init__(message, *args, **kwargs)

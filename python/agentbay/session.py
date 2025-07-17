@@ -16,6 +16,7 @@ from agentbay.filesystem import FileSystem
 from agentbay.model import DeleteResult, OperationResult, extract_request_id
 from agentbay.oss import Oss
 from agentbay.ui import UI
+from agentbay.agent import Agent
 from agentbay.window import WindowManager
 from agentbay.context_manager import ContextManager
 
@@ -72,6 +73,8 @@ class Session:
         self.ui = UI(self)
         self.context = ContextManager(self)
         self.browser = Browser(self)
+
+        self.agent = Agent(self)
 
     def get_api_key(self) -> str:
         """Return the API key for this session."""
