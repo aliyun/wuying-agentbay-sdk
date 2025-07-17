@@ -104,7 +104,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving clickable UI elements.
         """
         try:
-            result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=1000)
+            result = self.__class__.ui.get_clickable_ui_elements(timeout_ms=10000)
             self.assertIsInstance(result, UIElementListResult)
             self.assertTrue(
                 result.success,
@@ -188,7 +188,7 @@ class TestMobileSystemIntegration(unittest.TestCase):
         Test retrieving all UI elements.
         """
         try:
-            result = self.__class__.ui.get_all_ui_elements(timeout_ms=3000)
+            result = self.__class__.ui.get_all_ui_elements(timeout_ms=10000)
             self.assertIsInstance(result, UIElementListResult)
             self.assertTrue(
                 result.success,

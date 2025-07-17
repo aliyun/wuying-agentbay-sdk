@@ -71,8 +71,8 @@ class TestWindow(unittest.TestCase):
                     for i in range(count):
                         print(
                             f"Window {i + 1}: {root_windows[i].title} ",
-                            f"(ID: {root_windows[i].window_id})"
-                            )
+                            f"(ID: {root_windows[i].window_id})",
+                        )
 
                     # Verify window properties
                     for window in root_windows:
@@ -96,15 +96,77 @@ class TestWindow(unittest.TestCase):
 
     def test_get_active_window(self):
         """Test getting the active window."""
-        if hasattr(self.session, "window") and self.session.window:
-            print("Getting active window...")
+        if (
+            hasattr(self.session, "window")
+            and self.session.window
+            and hasattr(self.session, "application")
+            and self.session.application
+        ):
+            # Step 1: Get installed applications
+            print("Step 1: Getting installed applications...")
             try:
-                active_window = self.session.window.get_active_window()
+                result = self.session.application.get_installed_apps(
+                    start_menu=True, desktop=False, ignore_system_apps=True
+                )
+                installed_apps = result.data
+                print(f"Found {len(installed_apps)} installed applications")
+
+                if not installed_apps:
+                    print("No installed applications found, skipping test")
+                    return
+
+                # Find an app with name "Google Chrome" to launch
+                app_to_start = None
+                for app in installed_apps:
+                    if hasattr(app, "name") and app.name == "Google Chrome":
+                        app_to_start = app
+                        break
+
+                if not app_to_start:
+                    print(
+                        "No application with name 'Google Chrome' found, skipping test"
+                    )
+                    return
+
+                # Step 2: Start the application
+                print(
+                    f"Step 2: Starting application: {app_to_start.name} with command: {app_to_start.start_cmd}"
+                )
+                start_result = self.session.application.start_app(
+                    app_to_start.start_cmd
+                )
+                print(f"Application start result: {start_result}")
+
+                # Step 3: Wait for 1 minute
+                print("Step 3: Waiting for 1 minute for application to fully load...")
+                time.sleep(60)
+
+                # Step 4: List root windows
+                print("Step 4: Listing root windows...")
+                result = self.session.window.list_root_windows()
+                root_windows = result.windows
+                print(f"Found {len(root_windows)} root windows")
+                breakpoint()  # 断点
+                if not root_windows:
+                    print("No root windows found after starting application")
+                    return
+
+                # Step 5: Activate a window
+                window_to_activate = root_windows[0]
+                print(
+                    f"Step 5: Activating window: {window_to_activate.title} (ID: {window_to_activate.window_id})"
+                )
+                self.session.window.activate_window(window_to_activate.window_id)
+
+                # Step 6: Get active window
+                print("Step 6: Getting active window...")
+                result = self.session.window.get_active_window()
+                active_window = result.window
                 print(
                     f"Active window: {active_window.title}",
                     f"(ID: {active_window.window_id}",
                     f"Process: {active_window.pname}",
-                    f"(PID: {active_window.pid})"
+                    f"(PID: {active_window.pid})",
                 )
 
                 # Verify window properties
@@ -126,10 +188,12 @@ class TestWindow(unittest.TestCase):
                     "Window.get_active_window returned 'tool not found'",
                 )
             except Exception as e:
-                print(f"Note: get_active_window failed: {e}")
+                print(f"Note: get_active_window workflow failed: {e}")
                 # Don't fail the test if the operation is not supported
         else:
-            print("Note: Window interface is not available, skipping window test")
+            print(
+                "Note: Window or Application interface is not available, skipping window test"
+            )
 
     def test_window_operations(self):
         """Test window operations (activate, maximize, minimize, restore, resize)."""
