@@ -2,7 +2,7 @@
 
 All notable changes to the Wuying AgentBay SDK will be documented in this file.
 
-## [Unreleased]
+## [0.4.0] - 2025-07-18
 
 ### Added
 
@@ -34,7 +34,7 @@ All notable changes to the Wuying AgentBay SDK will be documented in this file.
 - **CI/CD**: Fixed cross-platform line endings and environment variable loading issues.
 - **API Responses**: Fixed incomplete response structures in some APIs.
 
-## [0.3.0] - 2024-06-16
+## [0.3.0] - 2025-06-16
 
 ### Added
 
@@ -77,7 +77,7 @@ All notable changes to the Wuying AgentBay SDK will be documented in this file.
 - Command execution timeouts
 - File reading/writing inconsistencies
 
-## [0.1.0] - 2024-05-15
+## [0.1.0] - 2025-05-15
 
 ### Added
 
