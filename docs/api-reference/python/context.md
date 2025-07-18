@@ -112,17 +112,17 @@ else:
 
 ### delete
 
-Deletes a context by name or ID.
+Deletes a context.
 
 ```python
-delete(context_id_or_name: str) -> DeleteResult
+delete(context: Context) -> OperationResult
 ```
 
 **Parameters:**
-- `context_id_or_name` (str): The ID or name of the context to delete.
+- `context` (Context): The Context object to delete.
 
 **Returns:**
-- `DeleteResult`: A result object containing success status and request ID.
+- `OperationResult`: A result object containing success status and request ID.
 
 **Example:**
 ```python
@@ -131,35 +131,32 @@ from agentbay import AgentBay
 # Initialize the SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# Delete a context by name
-result = agent_bay.context.delete("my-context")
-if result.success:
-    print("Context deleted successfully")
+# Get a context first
+result = agent_bay.context.get("my-context")
+if result.success and result.context:
+    # Delete the context
+    delete_result = agent_bay.context.delete(result.context)
+    if delete_result.success:
+        print("Context deleted successfully")
+    else:
+        print(f"Failed to delete context: {delete_result.error_message}")
 else:
-    print(f"Failed to delete context: {result.error_message}")
-
-# Delete a context by ID
-result = agent_bay.context.delete("ctx-1234567890abcdef")
-if result.success:
-    print("Context deleted successfully")
-else:
-    print(f"Failed to delete context: {result.error_message}")
+    print(f"Failed to get context: {result.error_message}")
 ```
 
-### modify
+### update
 
-Modifies a context's properties.
+Updates a context's properties.
 
 ```python
-modify(context_id_or_name: str, **kwargs) -> ContextResult
+update(context: Context) -> OperationResult
 ```
 
 **Parameters:**
-- `context_id_or_name` (str): The ID or name of the context to modify.
-- `**kwargs`: Key-value pairs of properties to modify.
+- `context` (Context): The Context object with updated properties.
 
 **Returns:**
-- `ContextResult`: A result object containing the modified Context object and request ID.
+- `OperationResult`: A result object containing success status and request ID.
 
 **Example:**
 ```python
@@ -168,13 +165,21 @@ from agentbay import AgentBay
 # Initialize the SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# Modify a context
-result = agent_bay.context.modify("my-context", name="my-renamed-context")
-if result.success:
+# Get a context first
+result = agent_bay.context.get("my-context")
+if result.success and result.context:
+    # Update the context name
     context = result.context
-    print(f"Modified context: {context.name}")
+    context.name = "my-renamed-context"
+    
+    # Save the changes
+    update_result = agent_bay.context.update(context)
+    if update_result.success:
+        print("Context updated successfully")
+    else:
+        print(f"Failed to update context: {update_result.error_message}")
 else:
-    print(f"Failed to modify context: {result.error_message}")
+    print(f"Failed to get context: {result.error_message}")
 ```
 
 ## Related Resources
