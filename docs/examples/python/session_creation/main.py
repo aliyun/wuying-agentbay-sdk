@@ -16,15 +16,15 @@ def create_session_with_default_params() -> None:
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Create a session with default parameters
     result = agent_bay.create()
-    
+
     if result.success and result.session:
         session = result.session
         print(f"Session created successfully with ID: {session.session_id}")
         print(f"Request ID: {result.request_id}")
-        
+
         # Clean up
         delete_result = agent_bay.delete(session)
         if delete_result.success:
@@ -40,25 +40,25 @@ def create_session_with_labels() -> None:
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Define labels
     labels: Dict[str, str] = {
         "environment": "development",
         "project": "example",
         "owner": "user123"
     }
-    
+
     # Create session parameters with labels
     params = CreateSessionParams(labels=labels)
-    
+
     # Create a session with the parameters
     result = agent_bay.create(params)
-    
+
     if result.success and result.session:
         session = result.session
         print(f"Session with labels created successfully with ID: {session.session_id}")
         print(f"Request ID: {result.request_id}")
-        
+
         # Verify the labels were set
         label_result = session.get_labels()
         if label_result.success:
@@ -66,7 +66,7 @@ def create_session_with_labels() -> None:
             print("Retrieved labels:")
             for key, value in retrieved_labels.items():
                 print(f"  {key}: {value}")
-        
+
         # Clean up
         delete_result = agent_bay.delete(session)
         if delete_result.success:
@@ -82,23 +82,23 @@ def create_session_with_context() -> None:
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Create or get a persistent context
     context_result = agent_bay.context.get("example-context", create=True)
-    
+
     if context_result.success and context_result.context:
         context = context_result.context
         print(f"Using context with ID: {context.id}")
-        
+
         # Create a session linked to the context
         session_params = CreateSessionParams(context_id=context.id)
         session_result = agent_bay.create(session_params)
-        
+
         if session_result.success and session_result.session:
             session = session_result.session
             print(f"Session with context created successfully with ID: {session.session_id}")
             print(f"Request ID: {session_result.request_id}")
-            
+
             # Clean up
             delete_result = agent_bay.delete(session)
             if delete_result.success:
@@ -116,39 +116,39 @@ def create_session_with_context_sync() -> None:
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Create or get a persistent context
     context_result = agent_bay.context.get("example-sync-context", create=True)
-    
+
     if context_result.success and context_result.context:
         context = context_result.context
         print(f"Using context with ID: {context.id}")
-        
+
         # Create a context sync configuration with default policy
         context_sync = ContextSync.new(
             context_id=context.id,
             path="/mnt/persistent",
             policy=SyncPolicy.default()
         )
-        
+
         # Create a session with context synchronization
         session_params = CreateSessionParams(context_syncs=[context_sync])
         session_result = agent_bay.create(session_params)
-        
+
         if session_result.success and session_result.session:
             session = session_result.session
             print(f"Session with context sync created successfully with ID: {session.session_id}")
             print(f"Request ID: {session_result.request_id}")
-            
+
             # List the synchronized contexts
             time.sleep(2)  # Wait for context to be synchronized
-            list_result = session.context.list()
-            if list_result.success and list_result.data:
-                contexts = list_result.data
+            list_result = agent_bay.context.list()
+            if list_result.success and list_result.contexts:
+                contexts = list_result.contexts
                 print(f"Found {len(contexts)} synchronized contexts:")
                 for ctx in contexts:
-                    print(f"  Context ID: {ctx.context_id}, Path: {ctx.path}, State: {ctx.state}")
-            
+                    print(f"  Context ID: {ctx.id}, Name: {ctx.name}, State: {ctx.state}")
+
             # Clean up
             delete_result = agent_bay.delete(session)
             if delete_result.success:
