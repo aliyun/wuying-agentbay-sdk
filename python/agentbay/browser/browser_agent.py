@@ -396,7 +396,7 @@ class BrowserAgent(BaseService):
                 context_index = page.context.browser.contexts.index(page.context)
             else:
                 context_index = 0
-            return page_index, context_index
+            return page_index, 0
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
@@ -419,7 +419,7 @@ class BrowserAgent(BaseService):
                 context_index = page.context.browser.contexts.index(page.context)
             else:
                 context_index = 0
-            return page_index, context_index
+            return page_index, 0
         except Exception as e:
             raise BrowserError(f"Failed to get page/context index: {e}")
 
