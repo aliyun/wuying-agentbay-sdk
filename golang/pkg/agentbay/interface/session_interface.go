@@ -19,7 +19,7 @@ type SessionInterface interface {
 	GetSessionId() string
 
 	// Delete deletes this session
-	Delete() (*agentbay.DeleteResult, error)
+	Delete(syncContext ...bool) (*agentbay.DeleteResult, error)
 
 	// SetLabels sets the labels for this session
 	SetLabels(labels string) (*agentbay.LabelResult, error)

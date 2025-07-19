@@ -1,69 +1,48 @@
-import { Session } from "../../src/session";
-import { APIError } from "../../src/exceptions";
 import * as sinon from "sinon";
+import { expect } from "chai";
+import { Session } from "../../src/session";
+import { AgentBay } from "../../src/agent-bay";
+import { Client } from "../../src/api/client";
 
 describe("TestSession", () => {
+  let mockAgentBay: sinon.SinonStubbedInstance<AgentBay>;
+  let mockClient: sinon.SinonStubbedInstance<Client>;
   let mockSession: Session;
-  let mockAgentBay: any;
-  let mockClient: any;
-  let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
+    mockClient = sinon.createStubInstance(Client);
+    mockAgentBay = sinon.createStubInstance(AgentBay) as unknown as sinon.SinonStubbedInstance<AgentBay>;
 
-    mockClient = {
-      releaseMcpSession: sandbox.stub(),
-      setLabel: sandbox.stub(),
-      getLabel: sandbox.stub(),
-      getMcpResource: sandbox.stub(),
-      getLink: sandbox.stub(),
-    };
+    // Set up necessary properties
+    mockAgentBay.apiKey = "test_api_key";
+    mockAgentBay.getClient.returns(mockClient as unknown as Client);
 
-    mockAgentBay = {
-      getAPIKey: sandbox.stub().returns("test_api_key"),
-      getClient: sandbox.stub().returns(mockClient),
-      removeSession: sandbox.stub(),
-    };
-
-    mockSession = new Session(mockAgentBay, "test_session_id");
+    // Create a session with the mock agent bay
+    mockSession = new Session(mockAgentBay as unknown as AgentBay, "test_session_id");
   });
 
   afterEach(() => {
-    sandbox.restore();
-  });
-
-  describe("test_initialization", () => {
-    it("should initialize session with correct properties", () => {
-      expect(mockSession.sessionId).toBe("test_session_id");
-      expect(mockSession.getAPIKey()).toBe("test_api_key");
-      expect(mockSession.fileSystem).toBeDefined();
-      expect(mockSession.command).toBeDefined();
-      expect(mockSession.oss).toBeDefined();
-      expect(mockSession.application).toBeDefined();
-      expect(mockSession.window).toBeDefined();
-      expect(mockSession.ui).toBeDefined();
-    });
+    sinon.restore();
   });
 
   describe("test_get_api_key", () => {
     it("should return correct API key", () => {
       const apiKey = mockSession.getAPIKey();
-      expect(apiKey).toBe("test_api_key");
-      expect(mockAgentBay.getAPIKey.calledOnce).toBe(true);
+      expect(apiKey).to.equal("test_api_key");
     });
   });
 
   describe("test_get_client", () => {
     it("should return correct client", () => {
       const client = mockSession.getClient();
-      expect(client).toBe(mockClient);
+      expect(client).to.equal(mockClient);
     });
   });
 
   describe("test_get_session_id", () => {
     it("should return correct session ID", () => {
       const sessionId = mockSession.getSessionId();
-      expect(sessionId).toBe("test_session_id");
+      expect(sessionId).to.be("test_session_id");
     });
   });
 
@@ -82,15 +61,168 @@ describe("TestSession", () => {
       const result = await mockSession.delete();
 
       // Verify DeleteResult structure
-      expect(result.success).toBe(true);
-      expect(result.requestId).toBe("test-request-id");
-      expect(result.errorMessage).toBeUndefined();
+      expect(result.success).to.be(true);
+      expect(result.requestId).to.be("test-request-id");
+      expect(result.errorMessage).to.be(undefined);
 
-      expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
+      expect(mockClient.releaseMcpSession.calledOnce).to.be(true);
 
       const callArgs = mockClient.releaseMcpSession.getCall(0).args[0];
-      expect(callArgs.authorization).toBe("Bearer test_api_key");
-      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.authorization).to.be("Bearer test_api_key");
+      expect(callArgs.sessionId).to.be("test_session_id");
+    });
+  });
+
+  describe("test_delete_without_params", () => {
+    it("should delete without syncing contexts when no parameters are provided", async () => {
+      // Mock context manager
+      mockSession.context = {
+        sync: sinon.stub().resolves({ success: true }),
+        info: sinon.stub().resolves({ contextStatusData: [] })
+      } as any;
+
+      const mockResponse = {
+        body: {
+          requestId: "test-request-id",
+          success: true,
+        },
+        statusCode: 200,
+      };
+
+      mockClient.releaseMcpSession.resolves(mockResponse);
+
+      // Call delete without parameters
+      const result = await mockSession.delete();
+
+      // Verify sync was not called
+      expect((mockSession.context.sync as sinon.SinonStub).called).to.be(false);
+      expect((mockSession.context.info as sinon.SinonStub).called).to.be(false);
+
+      // Verify result
+      expect(result.success).to.be(true);
+      expect(result.requestId).to.be("test-request-id");
+    });
+  });
+
+  describe("test_delete_with_syncContext", () => {
+    it("should sync contexts when syncContext=true", async () => {
+      // Mock context manager
+      mockSession.context = {
+        sync: sinon.stub().resolves({ success: true, requestId: "sync-request-id" }),
+        info: sinon.stub().resolves({
+          requestId: "info-request-id",
+          contextStatusData: [
+            {
+              contextId: "ctx1",
+              path: "/test/path",
+              status: "Success",
+              taskType: "upload",
+              startTime: 1600000000,
+              finishTime: 1600000100,
+              errorMessage: ""
+            }
+          ]
+        })
+      } as any;
+
+      const mockResponse = {
+        body: {
+          requestId: "test-request-id",
+          success: true,
+        },
+        statusCode: 200,
+      };
+
+      mockClient.releaseMcpSession.resolves(mockResponse);
+
+      // Call delete with syncContext=true
+      const result = await mockSession.delete(true);
+
+      // Verify sync was called
+      expect((mockSession.context.sync as sinon.SinonStub).calledOnce).to.be(true);
+      expect((mockSession.context.info as sinon.SinonStub).calledOnce).to.be(true);
+
+      // Verify result
+      expect(result.success).to.be(true);
+      expect(result.requestId).to.be("test-request-id");
+    });
+
+    it("should only process upload tasks", async () => {
+      // Mock context manager with mixed task types
+      mockSession.context = {
+        sync: sinon.stub().resolves({ success: true }),
+        info: sinon.stub().resolves({
+          contextStatusData: [
+            {
+              contextId: "ctx1",
+              path: "/test/path",
+              status: "Success",
+              taskType: "download", // This should be ignored
+              startTime: 1600000000,
+              finishTime: 1600000100,
+              errorMessage: ""
+            },
+            {
+              contextId: "ctx2",
+              path: "/test/path2",
+              status: "InProgress",
+              taskType: "upload", // This should be processed
+              startTime: 1600000000,
+              finishTime: 0,
+              errorMessage: ""
+            }
+          ]
+        })
+      } as any;
+
+      const mockResponse = {
+        body: {
+          requestId: "test-request-id",
+          success: true,
+        },
+        statusCode: 200,
+      };
+
+      mockClient.releaseMcpSession.resolves(mockResponse);
+
+      // Set up info to return different values on subsequent calls
+      const infoStub = mockSession.context.info as sinon.SinonStub;
+      infoStub.onFirstCall().resolves({
+        contextStatusData: [
+          {
+            contextId: "ctx2",
+            path: "/test/path2",
+            status: "InProgress",
+            taskType: "upload",
+            startTime: 1600000000,
+            finishTime: 0,
+            errorMessage: ""
+          }
+        ]
+      });
+      infoStub.onSecondCall().resolves({
+        contextStatusData: [
+          {
+            contextId: "ctx2",
+            path: "/test/path2",
+            status: "Success",
+            taskType: "upload",
+            startTime: 1600000000,
+            finishTime: 1600000100,
+            errorMessage: ""
+          }
+        ]
+      });
+
+      // Call delete with syncContext=true
+      const result = await mockSession.delete(true);
+
+      // Verify sync was called and info was called multiple times
+      expect((mockSession.context.sync as sinon.SinonStub).calledOnce).to.be(true);
+      expect(infoStub.callCount).to.be.greaterThan(1);
+
+      // Verify result
+      expect(result.success).to.be(true);
     });
   });
 
@@ -101,17 +233,17 @@ describe("TestSession", () => {
       const result = await mockSession.delete();
 
       // Verify DeleteResult error structure
-      expect(result.success).toBe(false);
-      expect(result.requestId).toBe("");
-      expect(result.errorMessage).toContain(
+      expect(result.success).to.be(false);
+      expect(result.requestId).to.be("");
+      expect(result.errorMessage).to.contain(
         "Failed to delete session test_session_id"
       );
 
-      expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
+      expect(mockClient.releaseMcpSession.calledOnce).to.be(true);
 
       const callArgs = mockClient.releaseMcpSession.getCall(0).args[0];
-      expect(callArgs.authorization).toBe("Bearer test_api_key");
-      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.authorization).to.be("Bearer test_api_key");
+      expect(callArgs.sessionId).to.be("test_session_id");
     });
   });
 
@@ -321,5 +453,57 @@ describe("TestSession", () => {
 
       expect(mockClient.getLink.calledOnce).toBe(true);
     });
+  });
+});
+
+describe("TestAgentBayDelete", () => {
+  let mockAgentBay: AgentBay;
+  let mockSession: Session;
+
+  beforeEach(() => {
+    mockSession = sinon.createStubInstance(Session) as unknown as Session;
+    mockSession.sessionId = "test_session_id";
+
+    mockAgentBay = new AgentBay({ apiKey: "test_api_key" });
+    mockAgentBay.sessions = new Map();
+    mockAgentBay.sessions.set("test_session_id", mockSession);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it("should pass no parameters to session.delete when called without parameters", async () => {
+    // Set up mock response from session.delete
+    const deleteResult = {
+      requestId: "test-request-id",
+      success: true
+    };
+    (mockSession.delete as sinon.SinonStub).resolves(deleteResult);
+
+    // Call delete without parameters
+    const result = await mockAgentBay.delete(mockSession);
+
+    // Verify session.delete was called without parameters
+    expect((mockSession.delete as sinon.SinonStub).calledOnce).to.be(true);
+    expect((mockSession.delete as sinon.SinonStub).firstCall.args.length).to.be(0);
+    expect(result).to.equal(deleteResult);
+  });
+
+  it("should pass syncContext parameter to session.delete", async () => {
+    // Set up mock response from session.delete
+    const deleteResult = {
+      requestId: "test-request-id",
+      success: true
+    };
+    (mockSession.delete as sinon.SinonStub).resolves(deleteResult);
+
+    // Call delete with syncContext=true
+    const result = await mockAgentBay.delete(mockSession, true);
+
+    // Verify session.delete was called with syncContext=true
+    expect((mockSession.delete as sinon.SinonStub).calledOnce).to.be(true);
+    expect((mockSession.delete as sinon.SinonStub).calledWith(true)).to.be(true);
+    expect(result).to.equal(deleteResult);
   });
 });

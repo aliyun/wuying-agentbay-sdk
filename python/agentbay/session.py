@@ -83,14 +83,78 @@ class Session:
         """Return the session_id for this session."""
         return self.session_id
 
-    def delete(self) -> DeleteResult:
+    def delete(self, sync_context: bool = False) -> DeleteResult:
         """
         Delete this session.
+
+        Args:
+            sync_context (bool): Whether to sync context data (trigger file uploads) 
+                before deleting the session. Defaults to False.
 
         Returns:
             DeleteResult: Result indicating success or failure and request ID.
         """
         try:
+            # If sync_context is True, trigger file uploads first
+            if sync_context:
+                print("Triggering context synchronization before session deletion...")
+
+                # Trigger file upload
+                try:
+                    sync_result = self.context.sync()
+                    if not sync_result.success:
+                        print("Warning: Context sync operation returned failure status")
+                except Exception as e:
+                    print(f"Warning: Failed to trigger context sync: {e}")
+                    # Continue with deletion even if sync fails
+
+                # Wait for uploads to complete
+                max_retries = 150  # Maximum number of retries
+                retry_interval = 2  # Seconds to wait between retries
+
+                import time
+                for retry in range(max_retries):
+                    try:
+                        # Get context status data
+                        info_result = self.context.info()
+
+                        # Check if all upload context items have status "Success" or "Failed"
+                        all_completed = True
+                        has_failure = False
+                        has_uploads = False
+
+                        for item in info_result.context_status_data:
+                            # We only care about upload tasks
+                            if item.task_type != "upload":
+                                continue
+
+                            has_uploads = True
+                            print(f"Upload context {item.context_id} status: {item.status}, path: {item.path}")
+                            
+                            if item.status != "Success" and item.status != "Failed":
+                                all_completed = False
+                                break
+                            
+                            if item.status == "Failed":
+                                has_failure = True
+                                print(f"Upload failed for context {item.context_id}: {item.error_message}")
+                        
+                        if all_completed or not has_uploads:
+                            if has_failure:
+                                print("Context upload completed with failures")
+                            elif has_uploads:
+                                print("Context upload completed successfully")
+                            else:
+                                print("No upload tasks found")
+                            break
+                        
+                        print(f"Waiting for context upload to complete, attempt {retry+1}/{max_retries}")
+                        time.sleep(retry_interval)
+                    except Exception as e:
+                        print(f"Error checking context status on attempt {retry+1}: {e}")
+                        time.sleep(retry_interval)
+
+            # Proceed with session deletion
             request = ReleaseMcpSessionRequest(
                 authorization=f"Bearer {self.get_api_key()}",
                 session_id=self.session_id,

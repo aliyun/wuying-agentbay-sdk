@@ -122,6 +122,9 @@ export class AgentBay {
         request.imageId = params.imageId;
       }
 
+      // Flag to indicate if we need to wait for context synchronization
+      let hasPersistenceData = false;
+
       // Add context sync configurations if provided
       if (params.contextSync && params.contextSync.length > 0) {
         const persistenceDataList: any[] = [];
@@ -139,6 +142,7 @@ export class AgentBay {
           persistenceDataList.push(persistenceItem);
         }
         request.persistenceDataList = persistenceDataList;
+        hasPersistenceData = persistenceDataList.length > 0;
       }
 
       // Log API request
@@ -215,6 +219,55 @@ export class AgentBay {
       }
 
       this.sessions.set(session.sessionId, session);
+
+      // If we have persistence data, wait for context synchronization
+      if (hasPersistenceData) {
+        log("Waiting for context synchronization to complete...");
+
+        // Wait for context synchronization to complete
+        const maxRetries = 150; // Maximum number of retries
+        const retryInterval = 2000; // Milliseconds to wait between retries
+
+        for (let retry = 0; retry < maxRetries; retry++) {
+          try {
+            // Get context status data
+            const infoResult = await session.context.info();
+
+            // Check if all context items have status "Success" or "Failed"
+            let allCompleted = true;
+            let hasFailure = false;
+
+            for (const item of infoResult.contextStatusData) {
+              log(`Context ${item.contextId} status: ${item.status}, path: ${item.path}`);
+
+              if (item.status !== "Success" && item.status !== "Failed") {
+                allCompleted = false;
+                break;
+              }
+              
+              if (item.status === "Failed") {
+                hasFailure = true;
+                logError(`Context synchronization failed for ${item.contextId}: ${item.errorMessage}`);
+              }
+            }
+
+            if (allCompleted || infoResult.contextStatusData.length === 0) {
+              if (hasFailure) {
+                log("Context synchronization completed with failures");
+              } else {
+                log("Context synchronization completed successfully");
+              }
+              break;
+            }
+
+            log(`Waiting for context synchronization, attempt ${retry+1}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+          } catch (error) {
+            logError(`Error checking context status on attempt ${retry+1}: ${error}`);
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+          }
+        }
+      }
 
       // Return SessionResult with request ID
       return {
@@ -360,12 +413,13 @@ export class AgentBay {
    * Delete a session by session object.
    *
    * @param session - The session to delete.
+   * @param syncContext - Whether to sync context data (trigger file uploads) before deleting the session. Defaults to false.
    * @returns DeleteResult indicating success or failure and request ID
    */
-  async delete(session: Session): Promise<DeleteResult> {
+  async delete(session: Session, syncContext = false): Promise<DeleteResult> {
     try {
       // Delete the session and get the result
-      const deleteResult = await session.delete();
+      const deleteResult = await session.delete(syncContext);
 
       this.sessions.delete(session.sessionId);
 

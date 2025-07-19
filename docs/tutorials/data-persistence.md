@@ -248,7 +248,7 @@ import { SyncPolicy, UploadPolicy, DownloadPolicy } from 'wuying-agentbay-sdk';
 // Create a custom sync policy
 const policy = new SyncPolicy({
   uploadPolicy: new UploadPolicy({
-    autoUpload: false,
+    autoUpload: true,
     uploadStrategy: "BeforeResourceRelease",
     period: 30  // Upload every 30 seconds
   }),
@@ -272,7 +272,7 @@ const contextSync = new ContextSync({
 // Create a custom sync policy
 policy := agentbay.SyncPolicy{
     UploadPolicy: &agentbay.UploadPolicy{
-        AutoUpload:     false,
+        AutoUpload:     true,
         UploadStrategy: agentbay.UploadBeforeResourceRelease,
         Period:         30,  // Upload every 30 seconds
     },

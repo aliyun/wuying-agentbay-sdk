@@ -164,7 +164,7 @@ func main() {
 	// Create a custom policy for the builder example
 	builderPolicy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     false,
+			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{

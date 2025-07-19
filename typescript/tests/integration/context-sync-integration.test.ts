@@ -235,7 +235,7 @@ describe("ContextSyncIntegration", () => {
           path: syncPath,
           policy: {
             uploadPolicy: {
-              autoUpload: false,
+              autoUpload: true,
               uploadStrategy: "beforeResourceRelease"
             },
             downloadPolicy: {
@@ -344,7 +344,7 @@ describe("ContextSyncIntegration", () => {
           path: syncPath,
           policy: {
             uploadPolicy: {
-              autoUpload: false,
+              autoUpload: true,
               uploadStrategy: "beforeResourceRelease"
             },
             downloadPolicy: {
