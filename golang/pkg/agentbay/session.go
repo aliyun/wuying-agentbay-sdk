@@ -2,6 +2,7 @@ package agentbay
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -125,7 +126,77 @@ func (s *Session) GetSessionId() string {
 }
 
 // Delete deletes this session.
-func (s *Session) Delete() (*DeleteResult, error) {
+func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
+	shouldSync := len(syncContext) > 0 && syncContext[0]
+
+	// If syncContext is true, trigger file uploads first
+	if shouldSync {
+		fmt.Println("Triggering context synchronization before session deletion...")
+
+		// Trigger file upload
+		syncResult, err := s.Context.Sync()
+		if err != nil {
+			fmt.Printf("Warning: Failed to trigger context sync: %v\n", err)
+			// Continue with deletion even if sync fails
+		} else if !syncResult.Success {
+			fmt.Println("Warning: Context sync operation returned failure status")
+			// Continue with deletion even if sync fails
+		}
+
+		// Wait for uploads to complete
+		const maxRetries = 150  // Maximum number of retries
+		const retryInterval = 2 // Seconds to wait between retries
+
+		for retry := 0; retry < maxRetries; retry++ {
+			// Get context status data
+			infoResult, err := s.Context.Info()
+			if err != nil {
+				fmt.Printf("Error getting context info on attempt %d: %v\n", retry+1, err)
+				time.Sleep(time.Duration(retryInterval) * time.Second)
+				continue
+			}
+
+			// Check if all upload context items have status "Success" or "Failed"
+			allCompleted := true
+			hasFailure := false
+			hasUploads := false
+
+			for _, item := range infoResult.ContextStatusData {
+				// We only care about upload tasks
+				if item.TaskType != "upload" {
+					continue
+				}
+
+				hasUploads = true
+				fmt.Printf("Upload context %s status: %s, path: %s\n", item.ContextId, item.Status, item.Path)
+
+				if item.Status != "Success" && item.Status != "Failed" {
+					allCompleted = false
+					break
+				}
+
+				if item.Status == "Failed" {
+					hasFailure = true
+					fmt.Printf("Upload failed for context %s: %s\n", item.ContextId, item.ErrorMessage)
+				}
+			}
+
+			if allCompleted || !hasUploads {
+				if hasFailure {
+					fmt.Println("Context upload completed with failures")
+				} else if hasUploads {
+					fmt.Println("Context upload completed successfully")
+				} else {
+					fmt.Println("No upload tasks found")
+				}
+				break
+			}
+
+			fmt.Printf("Waiting for context upload to complete, attempt %d/%d\n", retry+1, maxRetries)
+			time.Sleep(time.Duration(retryInterval) * time.Second)
+		}
+	}
+
 	releaseSessionRequest := &mcp.ReleaseMcpSessionRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
 		SessionId:     tea.String(s.SessionID),

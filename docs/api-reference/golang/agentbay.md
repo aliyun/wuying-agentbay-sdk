@@ -43,6 +43,12 @@ Create(params *CreateSessionParams) (*SessionResult, error)
 - `*SessionResult`: A result object containing the new Session instance and RequestID.
 - `error`: An error if the session creation fails.
 
+**Behavior:**
+- When `params` includes valid `PersistenceDataList`, after creating the session, the API will check `session.Context.Info()` to retrieve ContextStatusData.
+- It will continuously monitor all data items' Status in ContextStatusData until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The Create operation only returns after context status checking completes.
+
 **Example:**
 ```go
 package main
@@ -90,9 +96,9 @@ func main() {
 	// RECOMMENDED: Create a session with context synchronization
 	policy := agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     false,
+			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-			Period:         30,
+			Period:         15,  // 15 minutes
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     true,
@@ -243,15 +249,23 @@ Deletes a session from the AgentBay cloud environment.
 
 
 ```go
-Delete(session *Session) (*DeleteResult, error)
+Delete(session *Session, syncContext ...bool) (*DeleteResult, error)
 ```
 
 **Parameters:**
 - `session` (*Session): The session to delete.
+- `syncContext` (bool, optional): If true, the API will trigger a file upload via `session.Context.Sync()` before actually releasing the session. Default is false.
 
 **Returns:**
 - `*DeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the session deletion fails.
+
+**Behavior:**
+- When `syncContext` is true, the API will first call `session.Context.Sync()` to trigger file upload.
+- It will then check `session.Context.Info()` to retrieve ContextStatusData and monitor all data items' Status.
+- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The session deletion only proceeds after context sync status checking completes.
 
 **Example:**
 ```go
@@ -284,14 +298,14 @@ func main() {
 	
 	// Use the session for operations...
 	
-	// Delete the session when done
-	deleteResult, err := client.Delete(session)
+	// Delete the session with context synchronization
+	deleteResult, err := client.Delete(session, true)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 		os.Exit(1)
 	}
 	
-	fmt.Println("Session deleted successfully")
+	fmt.Println("Session deleted successfully with synchronized context")
 	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
 }
 ```

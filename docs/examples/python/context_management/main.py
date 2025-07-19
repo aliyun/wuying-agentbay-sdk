@@ -62,6 +62,8 @@ def main():
             session = session_result.session
             print(f"Session created with ID: {session.session_id}")
             print(f"Request ID: {session_result.request_id}")
+            print("Note: The create() method automatically monitored the context status")
+            print("and only returned after all context operations were complete or reached maximum retries.")
         except AgentBayError as e:
             print(f"Error creating session: {e}")
             return
@@ -82,13 +84,19 @@ def main():
         # Clean up
         print("\nCleaning up...")
 
-        # Delete the session
+        # Delete the session with context synchronization
         try:
             if session:
-                delete_result = agent_bay.delete(session)
+                print("Deleting the session with context synchronization...")
+                delete_result = agent_bay.delete(session, sync_context=True)
                 print(f"Session deletion request ID: {delete_result.request_id}")
                 print(f"Session deletion success: {delete_result.success}")
+                print("Note: The delete() method synchronized the context before session deletion")
+                print("and monitored all context operations until completion.")
                 session = None
+                
+                # Alternative method using session's delete method:
+                # delete_result = session.delete(sync_context=True)
         except AgentBayError as e:
             print(f"Error deleting session: {e}")
 

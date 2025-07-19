@@ -24,11 +24,21 @@ context  // The ContextManager instance for this session
 Deletes this session.
 
 ```typescript
-delete(): Promise<DeleteResult>
+delete(syncContext?: boolean): Promise<DeleteResult>
 ```
+
+**Parameters:**
+- `syncContext` (boolean, optional): If true, the API will trigger a file upload via `this.context.sync` before actually releasing the session. Default is false.
 
 **Returns:**
 - `Promise<DeleteResult>`: A promise that resolves to a result object containing success status, request ID, and error message if any.
+
+**Behavior:**
+- When `syncContext` is true, the API will first call `context.sync` to trigger file upload.
+- It will then check `context.info` to retrieve ContextStatusData and monitor all data items' Status.
+- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The session deletion only proceeds after context sync status checking completes.
 
 **Example:**
 ```typescript
@@ -47,10 +57,10 @@ async function createAndDeleteSession() {
       
       // Use the session...
       
-      // Delete the session when done
-      const deleteResult = await session.delete();
+      // Delete the session with context synchronization
+      const deleteResult = await session.delete(true);
       if (deleteResult.success) {
-        console.log('Session deleted successfully');
+        console.log('Session deleted successfully with synchronized context');
       } else {
         console.log(`Failed to delete session: ${deleteResult.errorMessage}`);
       }

@@ -29,7 +29,7 @@ type UploadPolicy struct {
 // NewUploadPolicy creates a new upload policy with default values
 func NewUploadPolicy() *UploadPolicy {
 	return &UploadPolicy{
-		AutoUpload:     false,
+		AutoUpload:     true,
 		UploadStrategy: UploadBeforeResourceRelease,
 		Period:         30, // Default to 30 minutes
 	}

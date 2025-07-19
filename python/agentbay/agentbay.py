@@ -83,6 +83,10 @@ class AgentBay:
             # Add context_id if provided
             if params.context_id:
                 request.context_id = params.context_id
+
+            # Flag to indicate if we need to wait for context synchronization
+            has_persistence_data = False
+
             # Add context_syncs if provided
             if hasattr(params, "context_syncs") and params.context_syncs:
                 from agentbay.api.models import (
@@ -124,6 +128,7 @@ class AgentBay:
                         )
                     )
                 request.persistence_data_list = persistence_data_list
+                has_persistence_data = len(persistence_data_list) > 0
 
             # Add labels if provided
             if params.labels:
@@ -209,6 +214,44 @@ class AgentBay:
 
             with self._lock:
                 self._sessions[session_id] = session
+
+            # If we have persistence data, wait for context synchronization
+            if has_persistence_data:
+                print("Waiting for context synchronization to complete...")
+                
+                # Wait for context synchronization to complete
+                max_retries = 150  # Maximum number of retries
+                retry_interval = 2  # Seconds to wait between retries
+                
+                import time
+                for retry in range(max_retries):
+                    # Get context status data
+                    info_result = session.context.info()
+                    
+                    # Check if all context items have status "Success" or "Failed"
+                    all_completed = True
+                    has_failure = False
+                    
+                    for item in info_result.context_status_data:
+                        print(f"Context {item.context_id} status: {item.status}, path: {item.path}")
+                        
+                        if item.status != "Success" and item.status != "Failed":
+                            all_completed = False
+                            break
+                        
+                        if item.status == "Failed":
+                            has_failure = True
+                            print(f"Context synchronization failed for {item.context_id}: {item.error_message}")
+                    
+                    if all_completed or not info_result.context_status_data:
+                        if has_failure:
+                            print("Context synchronization completed with failures")
+                        else:
+                            print("Context synchronization completed successfully")
+                        break
+                    
+                    print(f"Waiting for context synchronization, attempt {retry+1}/{max_retries}")
+                    time.sleep(retry_interval)
 
             # Return SessionResult with request ID
             return SessionResult(request_id=request_id, success=True, session=session)
@@ -363,19 +406,21 @@ class AgentBay:
                 error_message=f"Failed to list sessions by labels: {e}",
             )
 
-    def delete(self, session: Session) -> DeleteResult:
+    def delete(self, session: Session, sync_context: bool = False) -> DeleteResult:
         """
         Delete a session by session object.
 
         Args:
             session (Session): The session to delete.
+            sync_context (bool): Whether to sync context data (trigger file uploads) 
+                before deleting the session. Defaults to False.
 
         Returns:
             DeleteResult: Result indicating success or failure and request ID.
         """
         try:
             # Delete the session and get the result
-            delete_result = session.delete()
+            delete_result = session.delete(sync_context=sync_context)
 
             with self._lock:
                 self._sessions.pop(session.session_id, None)
