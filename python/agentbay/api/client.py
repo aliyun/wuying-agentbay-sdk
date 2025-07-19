@@ -68,13 +68,7 @@ class Client(OpenApiClient):
         if not DaraCore.is_null(endpoint_map) and not DaraCore.is_null(
             endpoint_map.get(region_id)
         ):
-        if not DaraCore.is_null(endpoint_map) and not DaraCore.is_null(
-            endpoint_map.get(region_id)
-        ):
             return endpoint_map.get(region_id)
-        return Utils.get_endpoint_rules(
-            product_id, region_id, endpoint_rule, network, suffix
-        )
         return Utils.get_endpoint_rules(
             product_id, region_id, endpoint_rule, network, suffix
         )
@@ -88,28 +82,19 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.args):
             body["Args"] = request.args
-            body["Args"] = request.args
         if not DaraCore.is_null(request.authorization):
-            body["Authorization"] = request.authorization
             body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
-            body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.name):
             body["Name"] = request.name
-            body["Name"] = request.name
         if not DaraCore.is_null(request.server):
-            body["Server"] = request.server
             body["Server"] = request.server
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         if not DaraCore.is_null(request.tool):
-            body["Tool"] = request.tool
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Tool"] = request.tool
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -122,18 +107,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="CallMcpTool",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.CallMcpToolResponse(), self.call_api(params, req, runtime)
             main_models.CallMcpToolResponse(), self.call_api(params, req, runtime)
         )
 
@@ -146,28 +121,19 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.args):
             body["Args"] = request.args
-            body["Args"] = request.args
         if not DaraCore.is_null(request.authorization):
-            body["Authorization"] = request.authorization
             body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
-            body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.name):
             body["Name"] = request.name
-            body["Name"] = request.name
         if not DaraCore.is_null(request.server):
-            body["Server"] = request.server
             body["Server"] = request.server
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         if not DaraCore.is_null(request.tool):
-            body["Tool"] = request.tool
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Tool"] = request.tool
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -180,19 +146,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="CallMcpTool",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.CallMcpToolResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -224,33 +180,20 @@ class Client(OpenApiClient):
                     tmp_req.persistence_data_list, "PersistenceDataList", "json"
                 )
             )
-            request.persistence_data_list_shrink = (
-                Utils.array_to_string_with_specified_style(
-                    tmp_req.persistence_data_list, "PersistenceDataList", "json"
-                )
-            )
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.context_id):
-            body["ContextId"] = request.context_id
             body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
-            body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
-            body["Labels"] = request.labels
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
-            body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -263,18 +206,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="CreateMcpSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.CreateMcpSessionResponse(), self.call_api(params, req, runtime)
             main_models.CreateMcpSessionResponse(), self.call_api(params, req, runtime)
         )
 
@@ -292,33 +225,20 @@ class Client(OpenApiClient):
                     tmp_req.persistence_data_list, "PersistenceDataList", "json"
                 )
             )
-            request.persistence_data_list_shrink = (
-                Utils.array_to_string_with_specified_style(
-                    tmp_req.persistence_data_list, "PersistenceDataList", "json"
-                )
-            )
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.context_id):
-            body["ContextId"] = request.context_id
             body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
-            body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
-            body["Labels"] = request.labels
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
-            body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -331,19 +251,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="CreateMcpSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.CreateMcpSessionResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -370,10 +280,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.id):
-            body["Id"] = request.id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Id"] = request.id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -386,18 +293,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="DeleteContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.DeleteContextResponse(), self.call_api(params, req, runtime)
             main_models.DeleteContextResponse(), self.call_api(params, req, runtime)
         )
 
@@ -410,10 +307,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.id):
-            body["Id"] = request.id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Id"] = request.id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -426,19 +320,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="DeleteContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.DeleteContextResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -465,13 +349,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.allow_create):
             body["AllowCreate"] = request.allow_create
-            body["AllowCreate"] = request.allow_create
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.name):
-            body["Name"] = request.name
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Name"] = request.name
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -484,18 +364,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetContextResponse(), self.call_api(params, req, runtime)
             main_models.GetContextResponse(), self.call_api(params, req, runtime)
         )
 
@@ -508,13 +378,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.allow_create):
             body["AllowCreate"] = request.allow_create
-            body["AllowCreate"] = request.allow_create
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.name):
-            body["Name"] = request.name
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Name"] = request.name
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -527,19 +393,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.GetContextResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -566,19 +422,13 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.context_id):
-            body["ContextId"] = request.context_id
             body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.path):
             body["Path"] = request.path
-            body["Path"] = request.path
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         if not DaraCore.is_null(request.task_type):
-            body["TaskType"] = request.task_type
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["TaskType"] = request.task_type
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -591,18 +441,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetContextInfo",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetContextInfoResponse(), self.call_api(params, req, runtime)
             main_models.GetContextInfoResponse(), self.call_api(params, req, runtime)
         )
 
@@ -615,19 +455,13 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.context_id):
-            body["ContextId"] = request.context_id
             body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.path):
             body["Path"] = request.path
-            body["Path"] = request.path
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         if not DaraCore.is_null(request.task_type):
-            body["TaskType"] = request.task_type
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["TaskType"] = request.task_type
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -640,19 +474,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetContextInfo",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.GetContextInfoResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -679,16 +503,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.max_results):
-            body["MaxResults"] = request.max_results
             body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
             body["NextToken"] = request.next_token
-            body["NextToken"] = request.next_token
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -701,18 +520,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetLabel",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetLabelResponse(), self.call_api(params, req, runtime)
             main_models.GetLabelResponse(), self.call_api(params, req, runtime)
         )
 
@@ -725,16 +534,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.max_results):
-            body["MaxResults"] = request.max_results
             body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
             body["NextToken"] = request.next_token
-            body["NextToken"] = request.next_token
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -747,19 +551,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetLabel",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.GetLabelResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -786,16 +580,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.port):
-            body["Port"] = request.port
             body["Port"] = request.port
         if not DaraCore.is_null(request.protocol_type):
             body["ProtocolType"] = request.protocol_type
-            body["ProtocolType"] = request.protocol_type
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -808,18 +597,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetLink",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.GetLinkResponse(), self.call_api(params, req, runtime)
             main_models.GetLinkResponse(), self.call_api(params, req, runtime)
         )
 
@@ -832,16 +611,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.port):
-            body["Port"] = request.port
             body["Port"] = request.port
         if not DaraCore.is_null(request.protocol_type):
             body["ProtocolType"] = request.protocol_type
-            body["ProtocolType"] = request.protocol_type
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -854,19 +628,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="GetLink",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.GetLinkResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -961,7 +725,6 @@ class Client(OpenApiClient):
         request.validate()
         body = {}
         if not DaraCore.is_null(request.authorization):
-            body["Authorization"] = request.authorization
             body['Authorization'] = request.authorization
         if not DaraCore.is_null(request.persistent_path):
             body['PersistentPath'] = request.persistent_path
@@ -1039,13 +802,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.max_results):
             body["MaxResults"] = request.max_results
-            body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
-            body["NextToken"] = request.next_token
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["NextToken"] = request.next_token
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1058,18 +817,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListContexts",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ListContextsResponse(), self.call_api(params, req, runtime)
             main_models.ListContextsResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1082,13 +831,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.max_results):
             body["MaxResults"] = request.max_results
-            body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
-            body["NextToken"] = request.next_token
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["NextToken"] = request.next_token
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1101,19 +846,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListContexts",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.ListContextsResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1140,10 +875,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["ImageId"] = request.image_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1156,18 +888,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListMcpTools",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ListMcpToolsResponse(), self.call_api(params, req, runtime)
             main_models.ListMcpToolsResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1180,10 +902,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.image_id):
-            body["ImageId"] = request.image_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["ImageId"] = request.image_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1196,19 +915,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListMcpTools",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.ListMcpToolsResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1235,16 +944,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.labels):
-            body["Labels"] = request.labels
             body["Labels"] = request.labels
         if not DaraCore.is_null(request.max_results):
             body["MaxResults"] = request.max_results
-            body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
-            body["NextToken"] = request.next_token
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["NextToken"] = request.next_token
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1257,18 +961,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ListSessionResponse(), self.call_api(params, req, runtime)
             main_models.ListSessionResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1281,16 +975,11 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.labels):
-            body["Labels"] = request.labels
             body["Labels"] = request.labels
         if not DaraCore.is_null(request.max_results):
             body["MaxResults"] = request.max_results
-            body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
-            body["NextToken"] = request.next_token
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["NextToken"] = request.next_token
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1303,19 +992,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ListSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.ListSessionResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1342,13 +1021,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.id):
             body["Id"] = request.id
-            body["Id"] = request.id
         if not DaraCore.is_null(request.name):
-            body["Name"] = request.name
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Name"] = request.name
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1361,18 +1036,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ModifyContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ModifyContextResponse(), self.call_api(params, req, runtime)
             main_models.ModifyContextResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1385,13 +1050,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.id):
             body["Id"] = request.id
-            body["Id"] = request.id
         if not DaraCore.is_null(request.name):
-            body["Name"] = request.name
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["Name"] = request.name
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1404,19 +1065,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ModifyContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.ModifyContextResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1443,10 +1094,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1459,18 +1107,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ReleaseMcpSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.ReleaseMcpSessionResponse(), self.call_api(params, req, runtime)
             main_models.ReleaseMcpSessionResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1483,10 +1121,7 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1499,19 +1134,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="ReleaseMcpSession",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.ReleaseMcpSessionResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1538,13 +1163,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
-            body["Labels"] = request.labels
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1557,18 +1178,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="SetLabel",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.SetLabelResponse(), self.call_api(params, req, runtime)
             main_models.SetLabelResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1581,13 +1192,9 @@ class Client(OpenApiClient):
         body = {}
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
-            body["Authorization"] = request.authorization
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
-            body["Labels"] = request.labels
         if not DaraCore.is_null(request.session_id):
-            body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
             body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
@@ -1600,19 +1207,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="SetLabel",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.SetLabelResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 
@@ -1639,22 +1236,16 @@ class Client(OpenApiClient):
         query = {}
         if not DaraCore.is_null(request.authorization):
             query["Authorization"] = request.authorization
-            query["Authorization"] = request.authorization
         body = {}
         if not DaraCore.is_null(request.context_id):
             body["ContextId"] = request.context_id
-            body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.mode):
-            body["Mode"] = request.mode
             body["Mode"] = request.mode
         if not DaraCore.is_null(request.path):
             body["Path"] = request.path
-            body["Path"] = request.path
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(
-            query=Utils.query(query), body=Utils.parse_to_map(body)
             query=Utils.query(query), body=Utils.parse_to_map(body)
         )
         params = open_api_util_models.Params(
@@ -1667,18 +1258,8 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="SyncContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
-            main_models.SyncContextResponse(), self.call_api(params, req, runtime)
             main_models.SyncContextResponse(), self.call_api(params, req, runtime)
         )
 
@@ -1691,22 +1272,16 @@ class Client(OpenApiClient):
         query = {}
         if not DaraCore.is_null(request.authorization):
             query["Authorization"] = request.authorization
-            query["Authorization"] = request.authorization
         body = {}
         if not DaraCore.is_null(request.context_id):
             body["ContextId"] = request.context_id
-            body["ContextId"] = request.context_id
         if not DaraCore.is_null(request.mode):
-            body["Mode"] = request.mode
             body["Mode"] = request.mode
         if not DaraCore.is_null(request.path):
             body["Path"] = request.path
-            body["Path"] = request.path
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-            body["SessionId"] = request.session_id
         req = open_api_util_models.OpenApiRequest(
-            query=Utils.query(query), body=Utils.parse_to_map(body)
             query=Utils.query(query), body=Utils.parse_to_map(body)
         )
         params = open_api_util_models.Params(
@@ -1719,19 +1294,9 @@ class Client(OpenApiClient):
             style="RPC",
             req_body_type="formData",
             body_type="json",
-            action="SyncContext",
-            version="2025-05-06",
-            protocol="HTTPS",
-            pathname="/",
-            method="POST",
-            auth_type="Anonymous",
-            style="RPC",
-            req_body_type="formData",
-            body_type="json",
         )
         return DaraCore.from_map(
             main_models.SyncContextResponse(),
-            await self.call_api_async(params, req, runtime),
             await self.call_api_async(params, req, runtime),
         )
 

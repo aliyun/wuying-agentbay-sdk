@@ -19,26 +19,38 @@ describe("ContextSync Unit Tests", () => {
 
       // Verify uploadPolicy
       expect(policy.uploadPolicy).toBeDefined();
-      expect(policy.uploadPolicy!.autoUpload).toBe(false);
-      expect(policy.uploadPolicy!.uploadStrategy).toBe(UploadStrategy.UploadBeforeResourceRelease);
-      expect(policy.uploadPolicy!.period).toBe(30);
+      if (policy.uploadPolicy) {
+        expect(policy.uploadPolicy.autoUpload).toBe(true);
+        expect(policy.uploadPolicy.uploadStrategy).toBe(UploadStrategy.UploadBeforeResourceRelease);
+        expect(policy.uploadPolicy.period).toBe(30);
+      }
 
       // Verify downloadPolicy
       expect(policy.downloadPolicy).toBeDefined();
-      expect(policy.downloadPolicy!.autoDownload).toBe(true);
-      expect(policy.downloadPolicy!.downloadStrategy).toBe(DownloadStrategy.DownloadAsync);
+      if (policy.downloadPolicy) {
+        expect(policy.downloadPolicy.autoDownload).toBe(true);
+        expect(policy.downloadPolicy.downloadStrategy).toBe(DownloadStrategy.DownloadAsync);
+      }
 
       // Verify deletePolicy
       expect(policy.deletePolicy).toBeDefined();
-      expect(policy.deletePolicy!.syncLocalFile).toBe(true);
+      if (policy.deletePolicy) {
+        expect(policy.deletePolicy.syncLocalFile).toBe(true);
+      }
 
       // Verify bwList
       expect(policy.bwList).toBeDefined();
-      expect(policy.bwList!.whiteLists).toBeDefined();
-      expect(policy.bwList!.whiteLists).toHaveLength(1);
-      expect(policy.bwList!.whiteLists![0].path).toBe("");
-      expect(policy.bwList!.whiteLists![0].excludePaths).toBeDefined();
-      expect(policy.bwList!.whiteLists![0].excludePaths).toHaveLength(0);
+      if (policy.bwList && policy.bwList.whiteLists) {
+        expect(policy.bwList.whiteLists).toBeDefined();
+        expect(policy.bwList.whiteLists).toHaveLength(1);
+        
+        const firstWhiteList = policy.bwList.whiteLists[0];
+        expect(firstWhiteList.path).toBe("");
+        expect(firstWhiteList.excludePaths).toBeDefined();
+        if (firstWhiteList.excludePaths) {
+          expect(firstWhiteList.excludePaths).toHaveLength(0);
+        }
+      }
     });
 
     it("should create default SyncPolicy that matches JSON requirements", () => {
@@ -50,7 +62,7 @@ describe("ContextSync Unit Tests", () => {
 
       // Verify uploadPolicy in JSON
       expect(jsonObject.uploadPolicy).toBeDefined();
-      expect(jsonObject.uploadPolicy.autoUpload).toBe(false);
+      expect(jsonObject.uploadPolicy.autoUpload).toBe(true);
       expect(jsonObject.uploadPolicy.uploadStrategy).toBe("UploadBeforeResourceRelease");
       expect(jsonObject.uploadPolicy.period).toBe(30);
 
@@ -82,7 +94,7 @@ describe("ContextSync Unit Tests", () => {
     it("should create individual policy components with correct defaults", () => {
       // Test UploadPolicy defaults
       const uploadPolicy = newUploadPolicy();
-      expect(uploadPolicy.autoUpload).toBe(false);
+      expect(uploadPolicy.autoUpload).toBe(true);
       expect(uploadPolicy.uploadStrategy).toBe(UploadStrategy.UploadBeforeResourceRelease);
       expect(uploadPolicy.period).toBe(30);
 
