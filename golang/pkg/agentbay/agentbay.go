@@ -131,8 +131,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	hasPersistenceData := false
 
 	// Add context sync configurations if provided
+	var persistenceDataList []*mcp.CreateMcpSessionRequestPersistenceDataList
+
 	if len(params.ContextSync) > 0 {
-		var persistenceDataList []*mcp.CreateMcpSessionRequestPersistenceDataList
 		for _, contextSync := range params.ContextSync {
 			persistenceItem := &mcp.CreateMcpSessionRequestPersistenceDataList{
 				ContextId: tea.String(contextSync.ContextID),
@@ -150,8 +151,34 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 			persistenceDataList = append(persistenceDataList, persistenceItem)
 		}
+	}
+
+	// Add BrowserContext as a ContextSync if provided
+	if params.BrowserContext != nil {
+		// Create a new SyncPolicy with default values
+		policy := NewSyncPolicy()
+		// Set the autoUpload value from BrowserContext
+		policy.UploadPolicy.AutoUpload = params.BrowserContext.AutoUpload
+
+		// Create a new ContextSync object
+		browserContextSync := &mcp.CreateMcpSessionRequestPersistenceDataList{
+			ContextId: tea.String(params.BrowserContext.ContextID),
+			Path:      tea.String("/tmp/browser-data"), // Using a constant path for now
+		}
+
+		// Convert policy to JSON string
+		policyJSON, err := json.Marshal(policy)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal browser context sync policy to JSON: %v", err)
+		}
+		browserContextSync.Policy = tea.String(string(policyJSON))
+
+		persistenceDataList = append(persistenceDataList, browserContextSync)
+	}
+
+	if len(persistenceDataList) > 0 {
 		createSessionRequest.PersistenceDataList = persistenceDataList
-		hasPersistenceData = len(persistenceDataList) > 0
+		hasPersistenceData = true
 	}
 
 	// Log API request
