@@ -290,6 +290,54 @@ contextSync := agentbay.NewContextSync(
 )
 ```
 
+## Manual Synchronization and Status Monitoring
+
+### Manual Context Synchronization
+
+You can manually trigger context synchronization at any time:
+
+```python
+# Trigger synchronization for a context at a specific path
+sync_result = session.context.syncContext("context_id", "/mnt/data")
+```
+
+### Monitoring Context Operations during Session Lifecycle
+
+When creating a session with valid `persistence_data_list` or context synchronization, the SDK automatically monitors context operations:
+
+```python
+# When creating a session with context synchronization
+params = CreateSessionParams(context_syncs=[context_sync])
+session_result = agent_bay.create(params)
+# The create() call will only return after all context operations are complete
+# (Success or Failed) or after maximum retry attempts (150 times with 2-second intervals)
+```
+
+When you need to ensure all file changes are properly synchronized before deleting a session, use the `sync_context` parameter:
+
+```python
+# Delete the session with context synchronization
+delete_result = agent_bay.delete(session, sync_context=True)
+# This will:
+# 1. Trigger context.sync() to upload changes
+# 2. Monitor all context operations until complete
+# 3. Only release the session after synchronization is done
+```
+
+```typescript
+// TypeScript - Delete with sync
+const deleteResult = await agentBay.delete(session, true);
+// Or using session's method
+const deleteResult = await session.delete(true);
+```
+
+```go
+// Go - Delete with sync
+deleteResult, err := client.Delete(session, true)
+// Or using session's method
+deleteResult, err := session.Delete(true)
+```
+
 ## Best Practices
 
 1. **Use Multiple Contexts**: For complex applications, use multiple contexts to separate different types of data (e.g., code, configuration, user data).
@@ -301,6 +349,8 @@ contextSync := agentbay.NewContextSync(
    - For large datasets, consider manual synchronization to avoid performance issues.
 
 4. **Clean Up Unused Contexts**: Delete contexts that are no longer needed to free up resources.
+
+5. **Ensure Proper Synchronization**: For important data changes, use `sync_context=True` when deleting sessions to ensure all changes are properly uploaded before session termination.
 
 ## Related Resources
 
