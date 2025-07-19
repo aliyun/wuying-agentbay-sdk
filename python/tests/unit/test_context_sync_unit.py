@@ -34,8 +34,8 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertEqual(basic_sync.path, "/home/wuying")
         self.assertIsNotNone(basic_sync.policy)
 
-        # Verify default policy values - auto_upload defaults to False
-        self.assertFalse(basic_sync.policy.upload_policy.auto_upload)
+        # Verify default policy values - auto_upload defaults to True
+        self.assertTrue(basic_sync.policy.upload_policy.auto_upload)
         self.assertEqual(
             basic_sync.policy.upload_policy.upload_strategy,
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,

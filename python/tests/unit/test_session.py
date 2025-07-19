@@ -190,8 +190,8 @@ class TestAgentBayDelete(unittest.TestCase):
         # Call delete method without parameters
         result = self.agent_bay.delete(self.session)
 
-        # Verify session.delete was called without parameters
-        self.session.delete.assert_called_once_with()
+        # Verify session.delete was called with default sync_context=False
+        self.session.delete.assert_called_once_with(sync_context=False)
         self.assertEqual(result, delete_result)
 
     def test_delete_with_sync_context(self):

@@ -1,7 +1,7 @@
 import { $OpenApiUtil } from "@alicloud/openapi-core";
 import "dotenv/config";
 import * as $_client from "./api";
-import { ListSessionRequest } from "./api/models/model";
+import { ListSessionRequest, CreateMcpSessionRequestPersistenceDataList } from "./api/models/model";
 import { Client } from "./api/client";
 
 import { loadConfig, Config } from "./config";
@@ -127,12 +127,12 @@ export class AgentBay {
 
       // Add context sync configurations if provided
       if (params.contextSync && params.contextSync.length > 0) {
-        const persistenceDataList: any[] = [];
+        const persistenceDataList: CreateMcpSessionRequestPersistenceDataList[] = [];
         for (const contextSync of params.contextSync) {
-          const persistenceItem: any = {
+          const persistenceItem = new CreateMcpSessionRequestPersistenceDataList({
             contextId: contextSync.contextId,
             path: contextSync.path,
-          };
+          });
 
           // Convert policy to JSON string if provided
           if (contextSync.policy) {
@@ -162,7 +162,7 @@ export class AgentBay {
         request.persistenceDataList.length > 0
       ) {
         requestLog += `PersistenceDataList=${request.persistenceDataList.length} items, `;
-        request.persistenceDataList.forEach((pd: any, i: number) => {
+        request.persistenceDataList.forEach((pd: CreateMcpSessionRequestPersistenceDataList, i: number) => {
           requestLog += `Item${i}[ContextId=${pd.contextId}, Path=${pd.path}`;
           if (pd.policy) {
             requestLog += `, Policy=${pd.policy}`;

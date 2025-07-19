@@ -152,7 +152,7 @@ class TestContextSync(unittest.TestCase):
         """Test individual policy components with default values"""
         # Test UploadPolicy defaults
         upload_policy = UploadPolicy.default()
-        self.assertFalse(upload_policy.auto_upload)  # Default is False
+        self.assertTrue(upload_policy.auto_upload)  # Default is True
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )

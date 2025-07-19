@@ -32,6 +32,7 @@ class TestDeleteIntegration(unittest.TestCase):
         print("创建用于无参数删除测试的会话...")
         result = self.agent_bay.create()
         self.assertTrue(result.success)
+        self.assertIsNotNone(result.session)
         session = result.session
         print(f"会话创建成功，ID: {session.session_id}")
 
@@ -42,13 +43,20 @@ class TestDeleteIntegration(unittest.TestCase):
         print(f"会话删除成功 (RequestID: {delete_result.request_id})")
 
         # 验证会话已被删除
-        sessions = self.agent_bay.list()
-        for s in sessions:
-            self.assertNotEqual(
-                s.session_id,
-                session.session_id,
-                f"会话 ID {session.session_id} 在删除后仍然存在",
-            )
+        # 等待一段时间确保删除操作完成
+        time.sleep(2)
+        
+        # 使用 list_by_labels 从服务器获取最新会话列表
+        list_result = self.agent_bay.list_by_labels()
+        self.assertTrue(list_result.success)
+        
+        # 检查会话是否已被删除
+        session_ids = [s.session_id for s in list_result.sessions]
+        self.assertNotIn(
+            session.session_id,
+            session_ids,
+            f"会话 ID {session.session_id} 在删除后仍然存在",
+        )
 
     def test_delete_with_sync_context(self):
         """测试带sync_context参数删除会话的功能"""
@@ -57,6 +65,7 @@ class TestDeleteIntegration(unittest.TestCase):
         print(f"创建上下文: {context_name}...")
         context_result = self.agent_bay.context.create(context_name)
         self.assertTrue(context_result.success)
+        self.assertIsNotNone(context_result.context)
         context = context_result.context
         print(f"上下文创建成功，ID: {context.id}")
 
@@ -77,6 +86,7 @@ class TestDeleteIntegration(unittest.TestCase):
         print("创建带上下文的会话...")
         result = self.agent_bay.create(params)
         self.assertTrue(result.success)
+        self.assertIsNotNone(result.session)
         session = result.session
         print(f"会话创建成功，ID: {session.session_id}")
 
@@ -95,17 +105,24 @@ class TestDeleteIntegration(unittest.TestCase):
         print(f"会话删除成功 (RequestID: {delete_result.request_id})")
 
         # 验证会话已被删除
-        sessions = self.agent_bay.list()
-        for s in sessions:
-            self.assertNotEqual(
-                s.session_id,
-                session.session_id,
-                f"会话 ID {session.session_id} 在删除后仍然存在",
-            )
+        # 等待一段时间确保删除操作完成
+        time.sleep(2)
+        
+        # 使用 list_by_labels 从服务器获取最新会话列表
+        list_result = self.agent_bay.list_by_labels()
+        self.assertTrue(list_result.success)
+        
+        # 检查会话是否已被删除
+        session_ids = [s.session_id for s in list_result.sessions]
+        self.assertNotIn(
+            session.session_id,
+            session_ids,
+            f"会话 ID {session.session_id} 在删除后仍然存在",
+        )
 
         # 清理上下文
         try:
-            delete_context_result = self.agent_bay.context.delete(context.id)
+            delete_context_result = self.agent_bay.context.delete(context)
             if delete_context_result.success:
                 print(f"上下文 {context.id} 已删除")
             else:
@@ -120,6 +137,7 @@ class TestDeleteIntegration(unittest.TestCase):
         print(f"创建上下文: {context_name}...")
         context_result = self.agent_bay.context.create(context_name)
         self.assertTrue(context_result.success)
+        self.assertIsNotNone(context_result.context)
         context = context_result.context
         print(f"上下文创建成功，ID: {context.id}")
 
@@ -140,6 +158,7 @@ class TestDeleteIntegration(unittest.TestCase):
         print("创建带上下文的会话...")
         result = self.agent_bay.create(params)
         self.assertTrue(result.success)
+        self.assertIsNotNone(result.session)
         session = result.session
         print(f"会话创建成功，ID: {session.session_id}")
 
@@ -158,17 +177,24 @@ class TestDeleteIntegration(unittest.TestCase):
         print(f"会话删除成功 (RequestID: {delete_result.request_id})")
 
         # 验证会话已被删除
-        sessions = self.agent_bay.list()
-        for s in sessions:
-            self.assertNotEqual(
-                s.session_id,
-                session.session_id,
-                f"会话 ID {session.session_id} 在删除后仍然存在",
-            )
+        # 等待一段时间确保删除操作完成
+        time.sleep(2)
+        
+        # 使用 list_by_labels 从服务器获取最新会话列表
+        list_result = self.agent_bay.list_by_labels()
+        self.assertTrue(list_result.success)
+        
+        # 检查会话是否已被删除
+        session_ids = [s.session_id for s in list_result.sessions]
+        self.assertNotIn(
+            session.session_id,
+            session_ids,
+            f"会话 ID {session.session_id} 在删除后仍然存在",
+        )
 
         # 清理上下文
         try:
-            delete_context_result = self.agent_bay.context.delete(context.id)
+            delete_context_result = self.agent_bay.context.delete(context)
             if delete_context_result.success:
                 print(f"上下文 {context.id} 已删除")
             else:
@@ -178,4 +204,4 @@ class TestDeleteIntegration(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()
