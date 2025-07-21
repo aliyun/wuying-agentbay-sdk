@@ -6,8 +6,9 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
-	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	openapiutil "github.com/alibabacloud-go/darabonba-openapi/v2/utils"
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
@@ -47,31 +48,41 @@ func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error) {
 		}
 	}
 
-	// Apply options
+	// Apply options safely
 	config_option := &AgentBayConfig{}
-	for _, opt := range opts {
-		opt(config_option)
+	if opts != nil {
+		for _, opt := range opts {
+			if opt != nil {
+				opt(config_option)
+			}
+		}
 	}
-	fmt.Println("Config:", config_option.cfg)
-	// Load configuration
-	config := LoadConfig(config_option.cfg)
 
-	apiConfig := &openapi.Config{
-		RegionId: tea.String(config.RegionID),
-		Endpoint: tea.String(config.Endpoint),
+	// Load configuration
+	config := DefaultConfig()
+	if config_option.cfg != nil {
+		config = *config_option.cfg
 	}
-	apiConfig.ReadTimeout = tea.Int(config.TimeoutMs)
-	apiConfig.ConnectTimeout = tea.Int(config.TimeoutMs)
+
+	// Create API client
+	apiConfig := &openapiutil.Config{
+		RegionId:       tea.String(config.RegionID),
+		Endpoint:       tea.String(config.Endpoint),
+		ReadTimeout:    tea.Int(config.TimeoutMs),
+		ConnectTimeout: tea.Int(config.TimeoutMs),
+	}
 
 	client, err := mcp.NewClient(apiConfig)
 	if err != nil {
-		return nil, fmt.Errorf("create openapi client fails")
+		return nil, fmt.Errorf("create openapi client fails: %v", err)
 	}
 
+	// Create AgentBay instance
 	agentBay := &AgentBay{
 		APIKey:   apiKey,
 		RegionId: config.RegionID,
 		Client:   client,
+		Context:  nil, // Will be initialized after creation
 	}
 
 	// Initialize context service
@@ -116,6 +127,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		createSessionRequest.Labels = tea.String(labelsJSON)
 	}
 
+	// Flag to indicate if we need to wait for context synchronization
+	hasPersistenceData := false
+
 	// Add context sync configurations if provided
 	if len(params.ContextSync) > 0 {
 		var persistenceDataList []*mcp.CreateMcpSessionRequestPersistenceDataList
@@ -137,6 +151,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 			persistenceDataList = append(persistenceDataList, persistenceItem)
 		}
 		createSessionRequest.PersistenceDataList = persistenceDataList
+		hasPersistenceData = len(persistenceDataList) > 0
 	}
 
 	// Log API request
@@ -214,6 +229,55 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 
 	a.Sessions.Store(session.SessionID, *session)
+
+	// If we have persistence data, wait for context synchronization
+	if hasPersistenceData {
+		fmt.Println("Waiting for context synchronization to complete...")
+
+		// Wait for context synchronization to complete
+		const maxRetries = 150  // Maximum number of retries
+		const retryInterval = 2 // Seconds to wait between retries
+
+		for retry := 0; retry < maxRetries; retry++ {
+			// Get context status data
+			infoResult, err := session.Context.Info()
+			if err != nil {
+				fmt.Printf("Error getting context info on attempt %d: %v\n", retry+1, err)
+				time.Sleep(time.Duration(retryInterval) * time.Second)
+				continue
+			}
+
+			// Check if all context items have status "Success" or "Failed"
+			allCompleted := true
+			hasFailure := false
+
+			for _, item := range infoResult.ContextStatusData {
+				fmt.Printf("Context %s status: %s, path: %s\n", item.ContextId, item.Status, item.Path)
+
+				if item.Status != "Success" && item.Status != "Failed" {
+					allCompleted = false
+					break
+				}
+
+				if item.Status == "Failed" {
+					hasFailure = true
+					fmt.Printf("Context synchronization failed for %s: %s\n", item.ContextId, item.ErrorMessage)
+				}
+			}
+
+			if allCompleted || len(infoResult.ContextStatusData) == 0 {
+				if hasFailure {
+					fmt.Println("Context synchronization completed with failures")
+				} else {
+					fmt.Println("Context synchronization completed successfully")
+				}
+				break
+			}
+
+			fmt.Printf("Waiting for context synchronization, attempt %d/%d\n", retry+1, maxRetries)
+			time.Sleep(time.Duration(retryInterval) * time.Second)
+		}
+	}
 
 	// Return result with RequestID
 	return &SessionResult{
@@ -348,8 +412,8 @@ func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, 
 }
 
 // Delete deletes a session by ID.
-func (a *AgentBay) Delete(session *Session) (*DeleteResult, error) {
-	result, err := session.Delete()
+func (a *AgentBay) Delete(session *Session, syncContext ...bool) (*DeleteResult, error) {
+	result, err := session.Delete(syncContext...)
 	if err == nil {
 		a.Sessions.Delete(session.SessionID)
 	}

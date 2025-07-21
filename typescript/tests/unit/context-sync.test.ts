@@ -1,9 +1,9 @@
-import { 
-  ContextSync, 
-  SyncPolicy, 
-  newSyncPolicy, 
-  newUploadPolicy, 
-  newDownloadPolicy, 
+import {
+  ContextSync,
+  SyncPolicy,
+  newSyncPolicy,
+  newUploadPolicy,
+  newDownloadPolicy,
   newDeletePolicy,
   UploadStrategy,
   DownloadStrategy
@@ -118,4 +118,4 @@ describe("ContextSync Unit Tests", () => {
       expect(contextSync.policy).toBe(policy);
     });
   });
-}); 
+});

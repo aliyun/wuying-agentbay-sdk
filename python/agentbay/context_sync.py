@@ -26,7 +26,7 @@ class UploadPolicy:
         period: Defines the upload period in minutes (for periodic upload)
     """
 
-    auto_upload: bool = False
+    auto_upload: bool = True
     upload_strategy: UploadStrategy = UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
     period: Optional[int] = 30  # Default to 30 minutes
 

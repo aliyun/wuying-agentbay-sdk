@@ -82,7 +82,7 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	// Create a custom policy
 	policy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     false,
+			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 			Period:         15,
 		},
@@ -112,7 +112,7 @@ func TestContextSyncWithPolicy(t *testing.T) {
 
 	// Verify upload policy
 	assert.NotNil(t, sync.Policy.UploadPolicy)
-	assert.False(t, sync.Policy.UploadPolicy.AutoUpload)
+	assert.True(t, sync.Policy.UploadPolicy.AutoUpload)
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, sync.Policy.UploadPolicy.UploadStrategy)
 	assert.Equal(t, 15, sync.Policy.UploadPolicy.Period)
 

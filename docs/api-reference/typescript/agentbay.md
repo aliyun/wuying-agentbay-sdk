@@ -42,6 +42,12 @@ create(params?: CreateSessionParams): Promise<SessionResult>
 **Returns:**
 - `Promise<SessionResult>`: A promise that resolves to a result object containing the new Session instance, success status, request ID, and error message if any.
 
+**Behavior:**
+- When `params` includes valid `PersistenceDataList`, after creating the session, the API will check `session.context.info` to retrieve ContextStatusData.
+- It will continuously monitor all data items' Status in ContextStatusData until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The Create operation only returns after context status checking completes.
+
 **Throws:**
 - `Error`: If the session creation fails.
 
@@ -194,14 +200,22 @@ listSessionsByLabels();
 
 
 ```typescript
-delete(session: Session): Promise<DeleteResult>
+delete(session: Session, syncContext?: boolean): Promise<DeleteResult>
 ```
 
 **Parameters:**
 - `session` (Session): The session to delete.
+- `syncContext` (boolean, optional): If true, the API will trigger a file upload via `session.context.sync` before actually releasing the session. Default is false.
 
 **Returns:**
 - `Promise<DeleteResult>`: A promise that resolves to a result object containing success status, request ID, and error message if any.
+
+**Behavior:**
+- When `syncContext` is true, the API will first call `session.context.sync` to trigger file upload.
+- It will then check `session.context.info` to retrieve ContextStatusData and monitor all data items' Status.
+- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The session deletion only proceeds after context sync status checking completes.
 
 **Throws:**
 - `Error`: If the session deletion fails.
