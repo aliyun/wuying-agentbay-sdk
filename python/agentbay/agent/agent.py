@@ -71,7 +71,7 @@ class Agent(BaseService):
             e (Exception): The exception to convert.
 
         Returns:
-            CommandError: The converted exception.
+            AgentError: The converted exception.
         """
         if isinstance(e, AgentError):
             return e
