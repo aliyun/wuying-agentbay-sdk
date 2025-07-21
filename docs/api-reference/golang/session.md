@@ -23,12 +23,22 @@ Context  // The ContextManager instance for this session
 Deletes this session.
 
 ```go
-Delete() (*DeleteResult, error)
+Delete(syncContext ...bool) (*DeleteResult, error)
 ```
+
+**Parameters:**
+- `syncContext` (bool, optional): If true, the API will trigger a file upload via `Context.Sync()` before actually releasing the session. Default is false.
 
 **Returns:**
 - `*DeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the session deletion fails.
+
+**Behavior:**
+- When `syncContext` is true, the API will first call `Context.Sync()` to trigger file upload.
+- It will then check `Context.Info()` to retrieve ContextStatusData and monitor all data items' Status.
+- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The session deletion only proceeds after context sync status checking completes.
 
 **Example:**
 ```go
@@ -61,14 +71,14 @@ func main() {
 	
 	// Use the session...
 	
-	// Delete the session when done
-	deleteResult, err := session.Delete()
+	// Delete the session with context synchronization
+	deleteResult, err := session.Delete(true)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 		os.Exit(1)
 	}
 	
-	fmt.Println("Session deleted successfully")
+	fmt.Println("Session deleted successfully with synchronized context")
 	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
 }
 ```

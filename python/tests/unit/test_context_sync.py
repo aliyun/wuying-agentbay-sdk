@@ -47,7 +47,7 @@ class TestContextSync(unittest.TestCase):
         self.assertIsNotNone(policy.upload_policy)
         upload_policy = policy.upload_policy
         assert upload_policy is not None  # type: ignore
-        self.assertFalse(upload_policy.auto_upload)  # Default is False
+        self.assertTrue(upload_policy.auto_upload)  # Default is True
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
@@ -117,7 +117,7 @@ class TestContextSync(unittest.TestCase):
 
         # Verify uploadPolicy in JSON
         self.assertIn("uploadPolicy", json_object)
-        self.assertFalse(json_object["uploadPolicy"]["autoUpload"])  # Default is False
+        self.assertTrue(json_object["uploadPolicy"]["autoUpload"])  # Default is True
         self.assertEqual(
             json_object["uploadPolicy"]["uploadStrategy"], "UploadBeforeResourceRelease"
         )
@@ -152,7 +152,7 @@ class TestContextSync(unittest.TestCase):
         """Test individual policy components with default values"""
         # Test UploadPolicy defaults
         upload_policy = UploadPolicy.default()
-        self.assertFalse(upload_policy.auto_upload)  # Default is False
+        self.assertTrue(upload_policy.auto_upload)  # Default is True
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )

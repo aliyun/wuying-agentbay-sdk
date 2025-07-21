@@ -1,15 +1,17 @@
 import unittest
 from unittest.mock import MagicMock, patch
-
-from agentbay.model import DeleteResult
-from agentbay.session import Session
-
+from agentbay.session import Session, DeleteResult
 
 class DummyAgentBay:
     def __init__(self):
-        self.api_key = "test_api_key"
         self.client = MagicMock()
+        self.api_key = "test_api_key"
 
+    def get_api_key(self):
+        return self.api_key
+
+    def get_client(self):
+        return self.client
 
 class TestSession(unittest.TestCase):
     def setUp(self):
@@ -62,6 +64,87 @@ class TestSession(unittest.TestCase):
 
     @patch("agentbay.session.extract_request_id")
     @patch("agentbay.session.ReleaseMcpSessionRequest")
+    def test_delete_without_params(
+        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+    ):
+        # Test default behavior when no parameters are provided
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockReleaseMcpSessionRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-123"
+        self.agent_bay.client.release_mcp_session.return_value = mock_response
+
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {"Data": {"IsError": False}, "Success": True}
+        }
+
+        # Set up context mock object
+        self.session.context = MagicMock()
+
+        # Call delete method without parameters
+        result = self.session.delete()
+        self.assertIsInstance(result, DeleteResult)
+        self.assertTrue(result.success)
+
+        # Verify sync was not called
+        self.session.context.sync.assert_not_called()
+
+        # Verify API call is correct
+        MockReleaseMcpSessionRequest.assert_called_once_with(
+            authorization="Bearer test_api_key", session_id="test_session_id"
+        )
+        self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.ReleaseMcpSessionRequest")
+    def test_delete_with_sync_context(
+        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+    ):
+        # Test behavior when sync_context=True
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockReleaseMcpSessionRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-123"
+        self.agent_bay.client.release_mcp_session.return_value = mock_response
+
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {"Data": {"IsError": False}, "Success": True}
+        }
+
+        # Set up context mock object
+        self.session.context = MagicMock()
+
+        # Mock context.sync return value
+        sync_result = MagicMock()
+        sync_result.success = True
+        self.session.context.sync.return_value = sync_result
+
+        # Mock context.info return value
+        info_result = MagicMock()
+        info_result.context_status_data = [
+            MagicMock(status="Success", task_type="upload", context_id="ctx1")
+        ]
+        self.session.context.info.return_value = info_result
+
+        # Call delete method with sync_context=True
+        result = self.session.delete(sync_context=True)
+        self.assertIsInstance(result, DeleteResult)
+        self.assertTrue(result.success)
+
+        # Verify sync and info were called
+        self.session.context.sync.assert_called_once()
+        self.session.context.info.assert_called_once()
+
+        # Verify API call is correct
+        MockReleaseMcpSessionRequest.assert_called_once_with(
+            authorization="Bearer test_api_key", session_id="test_session_id"
+        )
+        self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.ReleaseMcpSessionRequest")
     def test_delete_failure(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -82,6 +165,52 @@ class TestSession(unittest.TestCase):
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
+
+
+class TestAgentBayDelete(unittest.TestCase):
+    def setUp(self):
+        self.agent_bay = DummyAgentBay()
+        self.session = MagicMock()
+        self.session.session_id = "test_session_id"
+        # Add _lock mock
+        self.agent_bay._lock = MagicMock()
+        self.agent_bay._sessions = {"test_session_id": self.session}
+
+    def test_delete_without_params(self):
+        # Test AgentBay.delete without parameters
+        # Mock session.delete return value
+        delete_result = DeleteResult(request_id="request-123", success=True)
+        self.session.delete.return_value = delete_result
+
+        # Import AgentBay class
+        from agentbay import AgentBay
+        # Monkey patch AgentBay instance
+        self.agent_bay.__class__ = AgentBay
+
+        # Call delete method without parameters
+        result = self.agent_bay.delete(self.session)
+
+        # Verify session.delete was called with default sync_context=False
+        self.session.delete.assert_called_once_with(sync_context=False)
+        self.assertEqual(result, delete_result)
+
+    def test_delete_with_sync_context(self):
+        # Test AgentBay.delete with sync_context=True
+        # Mock session.delete return value
+        delete_result = DeleteResult(request_id="request-456", success=True)
+        self.session.delete.return_value = delete_result
+
+        # Import AgentBay class
+        from agentbay import AgentBay
+        # Monkey patch AgentBay instance
+        self.agent_bay.__class__ = AgentBay
+
+        # Call delete method with sync_context=True
+        result = self.agent_bay.delete(self.session, sync_context=True)
+
+        # Verify session.delete was called with sync_context=True
+        self.session.delete.assert_called_once_with(sync_context=True)
+        self.assertEqual(result, delete_result)
 
 
 if __name__ == "__main__":

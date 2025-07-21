@@ -12,7 +12,7 @@ type AgentBayInterface interface {
 	Create(params *agentbay.CreateSessionParams) (*agentbay.SessionResult, error)
 
 	// Delete deletes a session
-	Delete(session *agentbay.Session) (*agentbay.DeleteResult, error)
+	Delete(session *agentbay.Session, syncContext ...bool) (*agentbay.DeleteResult, error)
 
 	// List lists all sessions
 	List() (*agentbay.SessionListResult, error)

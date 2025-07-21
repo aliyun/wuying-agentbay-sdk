@@ -42,6 +42,12 @@ create(params: Optional[CreateSessionParams] = None) -> SessionResult
 **Returns:**
 - `SessionResult`: A result object containing the new Session instance, success status, request ID, and error message if any.
 
+**Behavior:**
+- When `params` includes valid `persistence_data_list`, after creating the session, the API will check `session.context.info` to retrieve ContextStatusData.
+- It will continuously monitor all data items' Status in ContextStatusData until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The create operation only returns after context status checking completes.
+
 **Raises:**
 - `AgentBayError`: If the session creation fails due to API errors or other issues.
 
@@ -164,14 +170,22 @@ if result.success:
 
 
 ```python
-delete(session: Session) -> DeleteResult
+delete(session: Session, sync_context: bool = False) -> DeleteResult
 ```
 
 **Parameters:**
 - `session` (Session): The session to delete.
+- `sync_context` (bool, optional): If True, the API will trigger a file upload via `session.context.sync` before actually releasing the session. Default is False.
 
 **Returns:**
 - `DeleteResult`: A result object containing success status, request ID, and error message if any.
+
+**Behavior:**
+- When `sync_context` is True, the API will first call `session.context.sync` to trigger file upload.
+- It will then check `session.context.info` to retrieve ContextStatusData and monitor all data items' Status.
+- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status items will have their error messages printed.
+- The session deletion only proceeds after context sync status checking completes.
 
 **Raises:**
 - `AgentBayError`: If the session deletion fails.

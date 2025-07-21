@@ -23,9 +23,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	var session *agentbay.Session
+	var linuxSession *agentbay.Session
+
 	// Create a new session with default parameters
 	fmt.Println("\nCreating a new session...")
-	params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+	params := agentbay.NewCreateSessionParams().WithImageId("browser_latest")
 	result, err := ab.Create(params)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
@@ -35,7 +38,7 @@ func main() {
 		result.Session.SessionID, result.RequestID)
 
 	// Store session for convenience
-	session := result.Session
+	session = result.Session
 
 	// List Sessions
 	fmt.Println("\nList sessions...")
@@ -94,6 +97,55 @@ func main() {
 			fileResult.Content, fileResult.RequestID)
 	}
 
+	// Get session link (no parameters)
+	fmt.Println("\nGetting session link...")
+	linkResult, err := session.GetLink(nil, nil)
+	if err != nil {
+		fmt.Printf("Error getting session link: %v\n", err)
+	} else {
+		fmt.Printf("Session link: %s (RequestID: %s)\n",
+			linkResult.Link, linkResult.RequestID)
+	}
+	// Test GetLink with port 8080
+	fmt.Println("\nTesting GetLink with port 8080...")
+	var port8080 int32 = 8080
+	linkResultPort8080, err := session.GetLink(nil, &port8080)
+	if err != nil {
+		fmt.Printf("Error getting link with port 8080: %v\n", err)
+	} else {
+		fmt.Printf("Link with port 8080: %s (RequestID: %s)\n",
+			linkResultPort8080.Link, linkResultPort8080.RequestID)
+	}
+
+	// Create a new Linux session for testing GetLink with parameters
+	fmt.Println("\n=== Testing Linux Session with GetLink parameters ===")
+	linuxParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	fmt.Println("Creating a linux_latest session...")
+	linuxResult, err := ab.Create(linuxParams)
+	if err != nil {
+		fmt.Printf("Error creating Linux session: %v\n", err)
+	} else {
+		fmt.Printf("Linux session created with ID: %s (RequestID: %s)\n",
+			linuxResult.Session.SessionID, linuxResult.RequestID)
+
+		// Store Linux session for convenience
+		linuxSession = linuxResult.Session
+
+		// Test GetLink with parameters (protocol_type="https", port=443)
+		fmt.Println("\nTesting GetLink with parameters (https, 443)...")
+		httpsProtocol := "https"
+		var httpsPort int32 = 443
+		linkResultWithParams, err := linuxSession.GetLink(&httpsProtocol, &httpsPort)
+		if err != nil {
+			fmt.Printf("Error getting link with params: %v\n", err)
+		} else {
+			fmt.Printf("Link with params: %s (RequestID: %s)\n",
+				linkResultWithParams.Link, linkResultWithParams.RequestID)
+		}
+
+
+	}
+
 	// Get context information
 	fmt.Println("\nGetting context information...")
 	contextResult, err := ab.Context.List()
@@ -104,15 +156,27 @@ func main() {
 			len(contextResult.Contexts), contextResult.RequestID)
 	}
 
-	// Delete the session
-	fmt.Println("\nDeleting the session...")
+	// Delete the browser session
+	fmt.Println("\nDeleting the browser session...")
 	deleteResult, err := ab.Delete(session)
 	if err != nil {
-		fmt.Printf("Error deleting session: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("Error deleting browser session: %v\n", err)
+	} else {
+		fmt.Printf("Browser session deleted successfully (RequestID: %s)\n",
+			deleteResult.RequestID)
 	}
-	fmt.Printf("Session deleted successfully (RequestID: %s)\n",
-		deleteResult.RequestID)
+
+	// Delete the Linux session if it was created
+	if linuxSession != nil {
+		fmt.Println("\nDeleting the Linux session...")
+		linuxDeleteResult, err := ab.Delete(linuxSession)
+		if err != nil {
+			fmt.Printf("Error deleting Linux session: %v\n", err)
+		} else {
+			fmt.Printf("Linux session deleted successfully (RequestID: %s)\n",
+				linuxDeleteResult.RequestID)
+		}
+	}
 
 	// List Sessions
 	fmt.Println("\nList sessions...")

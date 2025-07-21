@@ -140,10 +140,81 @@ export class Session {
   /**
    * Delete this session.
    *
+   * @param syncContext - Whether to sync context data (trigger file uploads) before deleting the session. Defaults to false.
    * @returns DeleteResult indicating success or failure and request ID
    */
-  async delete(): Promise<DeleteResult> {
+  async delete(syncContext = false): Promise<DeleteResult> {
     try {
+      // If syncContext is true, trigger file uploads first
+      if (syncContext) {
+        log("Triggering context synchronization before session deletion...");
+
+        // Trigger file upload
+        try {
+          const syncResult = await this.context.sync();
+          if (!syncResult.success) {
+            log("Warning: Context sync operation returned failure status");
+          }
+        } catch (error) {
+          logError("Warning: Failed to trigger context sync:", error);
+          // Continue with deletion even if sync fails
+        }
+
+        // Wait for uploads to complete
+        const maxRetries = 150; // Maximum number of retries
+        const retryInterval = 2000; // Milliseconds to wait between retries
+
+        for (let retry = 0; retry < maxRetries; retry++) {
+          try {
+            // Get context status data
+            const infoResult = await this.context.info();
+
+            // Check if all upload context items have status "Success" or "Failed"
+            let allCompleted = true;
+            let hasFailure = false;
+            let hasUploads = false;
+
+            for (const item of infoResult.contextStatusData) {
+              // We only care about upload tasks
+              if (item.taskType !== "upload") {
+                continue;
+              }
+
+              hasUploads = true;
+              log(`Upload context ${item.contextId} status: ${item.status}, path: ${item.path}`);
+
+              if (item.status !== "Success" && item.status !== "Failed") {
+                allCompleted = false;
+                break;
+              }
+              
+              if (item.status === "Failed") {
+                hasFailure = true;
+                logError(`Upload failed for context ${item.contextId}: ${item.errorMessage}`);
+              }
+            }
+
+            if (allCompleted || !hasUploads) {
+              if (hasFailure) {
+                log("Context upload completed with failures");
+              } else if (hasUploads) {
+                log("Context upload completed successfully");
+              } else {
+                log("No upload tasks found");
+              }
+              break;
+            }
+
+            log(`Waiting for context upload to complete, attempt ${retry+1}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+          } catch (error) {
+            logError(`Error checking context status on attempt ${retry+1}:`, error);
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+          }
+        }
+      }
+
+      // Proceed with session deletion
       const request = new ReleaseMcpSessionRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId,

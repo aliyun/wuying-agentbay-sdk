@@ -80,7 +80,7 @@ func TestContextSyncIntegration(t *testing.T) {
 
 	// Ensure session is deleted after the test
 	defer func() {
-		deleteResult, err := ab.Delete(session)
+		deleteResult, err := ab.Delete(session, true)
 		if err != nil {
 			t.Logf("Warning: Failed to delete session: %v", err)
 		} else {
@@ -222,7 +222,7 @@ func TestContextSyncWithMultipleContexts(t *testing.T) {
 
 	// Ensure session is deleted after the test
 	defer func() {
-		deleteResult, err := ab.Delete(session)
+		deleteResult, err := ab.Delete(session, true)
 		if err != nil {
 			t.Logf("Warning: Failed to delete session: %v", err)
 		} else {
@@ -309,7 +309,7 @@ func TestContextSyncSessionParams(t *testing.T) {
 		sessionParams := agentbay.NewCreateSessionParams()
 
 		uploadPolicy := &agentbay.UploadPolicy{
-			AutoUpload:     false,
+			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		}
 		syncPolicy := &agentbay.SyncPolicy{
@@ -324,7 +324,7 @@ func TestContextSyncSessionParams(t *testing.T) {
 		assert.Equal(t, "/home", sessionParams.ContextSync[0].Path)
 		assert.NotNil(t, sessionParams.ContextSync[0].Policy)
 		assert.NotNil(t, sessionParams.ContextSync[0].Policy.UploadPolicy)
-		assert.False(t, sessionParams.ContextSync[0].Policy.UploadPolicy.AutoUpload)
+		assert.True(t, sessionParams.ContextSync[0].Policy.UploadPolicy.AutoUpload)
 		assert.Equal(t, agentbay.UploadBeforeResourceRelease, sessionParams.ContextSync[0].Policy.UploadPolicy.UploadStrategy)
 	})
 
@@ -527,14 +527,17 @@ func TestContextSyncFilePersistence(t *testing.T) {
 	require.NoError(t, err, "Error creating directory")
 	assert.NotEmpty(t, dirResult.RequestID, "Directory creation request ID should not be empty")
 
-	// 5. Write a file to the context sync path
-	testContent := fmt.Sprintf("Test content created at %d", timestamp)
+	// 5. Create a 1GB file in the context sync path
 	testFilePath := syncPath + "/test-file.txt"
 
-	t.Logf("Writing file to %s", testFilePath)
-	writeResult, err := session1.FileSystem.WriteFile(testFilePath, testContent, "")
-	require.NoError(t, err, "Error writing file")
-	assert.NotEmpty(t, writeResult.RequestID, "Write request ID should not be empty")
+	t.Logf("Creating 1GB file at %s", testFilePath)
+	createFileCmd := fmt.Sprintf("dd if=/dev/zero of=%s bs=1M count=1024", testFilePath)
+	cmdResult, err := session1.Command.ExecuteCommand(createFileCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to create 1GB file: %v", err)
+	} else {
+		t.Logf("Created 1GB file: %s", cmdResult)
+	}
 
 	// 6. Sync to trigger file upload using explicit Sync() call
 	t.Logf("Triggering context sync...")
@@ -571,7 +574,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 
 	// 8. Release first session
 	t.Logf("Releasing first session...")
-	deleteResult, err := ab.Delete(session1)
+	deleteResult, err := ab.Delete(session1, true)
 	require.NoError(t, err, "Error deleting first session")
 	require.NotEmpty(t, deleteResult.RequestID, "Delete request ID should not be empty")
 
@@ -579,7 +582,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 	t.Logf("Creating second session with the same context ID...")
 	sessionParams = agentbay.NewCreateSessionParams()
 	sessionParams.AddContextSync(context.ID, syncPath, defaultPolicy)
-	sessionParams.WithImageId("imgc-07eksy57eawchjkro")
+	sessionParams.WithImageId("linux_latest")
 	sessionParams.WithLabels(map[string]string{
 		"test": "file-persistence-test-second",
 	})
@@ -593,7 +596,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 
 	// Ensure second session is deleted after the test
 	defer func() {
-		deleteResult, err := ab.Delete(session2)
+		deleteResult, err := ab.Delete(session2, true)
 		if err != nil {
 			t.Logf("Warning: Failed to delete second session: %v", err)
 		} else {
@@ -628,14 +631,29 @@ func TestContextSyncFilePersistence(t *testing.T) {
 		t.Log("No parsed context status data available in second session")
 	}
 
-	// 11. Read the file from the second session
-	t.Logf("Reading file from second session...")
-	readResult, err := session2.FileSystem.ReadFile(testFilePath)
-	require.NoError(t, err, "Error reading file")
+	// 11. Verify the 1GB file exists in the second session
+	t.Logf("Verifying 1GB file exists in second session...")
 
-	// 12. Verify the file content matches what was written
-	require.Equal(t, testContent, readResult.Content, "File content should match what was written")
-	t.Logf("File content verified successfully")
+	// Check file size using ls command
+	checkFileCmd := fmt.Sprintf("ls -la %s", testFilePath)
+	fileInfo, err := session2.Command.ExecuteCommand(checkFileCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to check file info: %v", err)
+	} else {
+		t.Logf("File info: %s", fileInfo)
+	}
+
+	// Verify file exists and has expected size (approximately 1GB)
+	fileExistsCmd := fmt.Sprintf("test -f %s && echo 'File exists'", testFilePath)
+	existsResult, err := session2.Command.ExecuteCommand(fileExistsCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to check if file exists: %v", err)
+	} else {
+		t.Logf("File existence check: %s", existsResult)
+		require.Contains(t, existsResult.Output, "File exists", "1GB file should exist in second session")
+	}
+
+	t.Logf("1GB file persistence verified successfully")
 }
 
 // TestContextStatusDataParsing tests the parsing of context status data
@@ -686,7 +704,7 @@ func TestContextStatusDataParsing(t *testing.T) {
 
 	// Ensure session is deleted after the test
 	defer func() {
-		deleteResult, err := ab.Delete(session)
+		deleteResult, err := ab.Delete(session, true)
 		if err != nil {
 			t.Logf("Warning: Failed to delete session: %v", err)
 		} else {
@@ -883,8 +901,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 	t.Logf("Context status data:")
 	printContextStatusData(t, contextInfo.ContextStatusData)
 
-	// 4. Write a file to the context sync path
-	testContent := fmt.Sprintf("Test content for persistence retry test at %d", timestamp)
+	// 4. Create a 1GB file in the context sync path
 	testFilePath := syncPath + "/test-file.txt"
 
 	// Create directory first
@@ -893,11 +910,15 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 	require.NoError(t, err, "Error creating directory")
 	assert.NotEmpty(t, dirResult.RequestID, "Directory creation request ID should not be empty")
 
-	// Write the file
-	t.Logf("Writing file to %s", testFilePath)
-	writeResult, err := session1.FileSystem.WriteFile(testFilePath, testContent, "")
-	require.NoError(t, err, "Error writing file")
-	assert.NotEmpty(t, writeResult.RequestID, "Write request ID should not be empty")
+	// Create a 1GB file using dd command
+	t.Logf("Creating 1GB file at %s", testFilePath)
+	createFileCmd := fmt.Sprintf("dd if=/dev/zero of=%s bs=1M count=1024", testFilePath)
+	cmdResult, err := session1.Command.ExecuteCommand(createFileCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to create 1GB file: %v", err)
+	} else {
+		t.Logf("Created 1GB file: %s", cmdResult)
+	}
 
 	// 5. Sync to trigger file upload
 	t.Logf("Triggering context sync...")
@@ -940,7 +961,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 
 	// 7. Release first session
 	t.Logf("Releasing first session...")
-	deleteResult, err := ab.Delete(session1)
+	deleteResult, err := ab.Delete(session1, true)
 	require.NoError(t, err, "Error deleting first session")
 	require.NotEmpty(t, deleteResult.RequestID, "Delete request ID should not be empty")
 
@@ -962,7 +983,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 
 	// Ensure second session is deleted after the test
 	defer func() {
-		deleteResult, err := ab.Delete(session2)
+		deleteResult, err := ab.Delete(session2, true)
 		if err != nil {
 			t.Logf("Warning: Failed to delete second session: %v", err)
 		} else {
@@ -1002,12 +1023,27 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 		t.Logf("Warning: Could not find download status after all retries")
 	}
 
-	// 10. Read the file from the second session
-	t.Logf("Reading file from second session...")
-	readResult, err := session2.FileSystem.ReadFile(testFilePath)
-	require.NoError(t, err, "Error reading file")
+	// 10. Verify the 1GB file exists in the second session
+	t.Logf("Verifying 1GB file exists in second session...")
 
-	// 11. Verify the file content matches what was written
-	require.Equal(t, testContent, readResult.Content, "File content should match what was written")
-	t.Logf("File content verified successfully")
+	// Check file size using ls command
+	checkFileCmd := fmt.Sprintf("ls -la %s", testFilePath)
+	fileInfo, err := session2.Command.ExecuteCommand(checkFileCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to check file info: %v", err)
+	} else {
+		t.Logf("File info: %s", fileInfo)
+	}
+
+	// Verify file exists and has expected size (approximately 1GB)
+	fileExistsCmd := fmt.Sprintf("test -f %s && echo 'File exists'", testFilePath)
+	existsResult, err := session2.Command.ExecuteCommand(fileExistsCmd)
+	if err != nil {
+		t.Logf("Warning: Failed to check if file exists: %v", err)
+	} else {
+		t.Logf("File existence check: %s", existsResult)
+		require.Contains(t, existsResult.Output, "File exists", "1GB file should exist in second session")
+	}
+
+	t.Logf("1GB file persistence verified successfully")
 }

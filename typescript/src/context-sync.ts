@@ -67,7 +67,7 @@ export class ContextSync {
 // NewUploadPolicy creates a new upload policy with default values
 export function newUploadPolicy(): UploadPolicy {
   return {
-    autoUpload: false,
+    autoUpload: true,
     uploadStrategy: UploadStrategy.UploadBeforeResourceRelease,
     period: 30, // Default to 30 minutes
   };

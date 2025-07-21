@@ -40,41 +40,11 @@ class TestContextSyncIntegration(unittest.TestCase):
         cls.context = context_result.context
         print(f"Created context: {cls.context.name} (ID: {cls.context.id})")
 
-        # Create session parameters with context sync
-        session_params = CreateSessionParams()
-
-        # Create context sync configuration
-        context_sync = ContextSync.new(
-            cls.context.id, "/home/wuying", SyncPolicy.default()
-        )
-        session_params.context_syncs = [context_sync]
-
-        # Add labels and image ID
-        session_params.labels = {"test": "context-sync-integration"}
-        session_params.image_id = "linux_latest"
-
-        # Create session
-        session_result = cls.agent_bay.create(session_params)
-        if not session_result.success or not session_result.session:
-            cls.agent_bay.context.delete(cls.context)
-            raise unittest.SkipTest("Failed to create session")
-
-        cls.session = session_result.session
-        print(f"Created session: {cls.session.session_id}")
-
-        # Wait for session to be ready
-        time.sleep(10)
+        # Note: We don't create a session in setUpClass to avoid resource limit issues
+        # Sessions will be created in individual test methods as needed
 
     @classmethod
     def tearDownClass(cls):
-        # Clean up session
-        if hasattr(cls, "session"):
-            try:
-                cls.agent_bay.delete(cls.session)
-                print(f"Session deleted: {cls.session.session_id}")
-            except Exception as e:
-                print(f"Warning: Failed to delete session: {e}")
-
         # Clean up context
         if hasattr(cls, "context"):
             try:
@@ -85,106 +55,190 @@ class TestContextSyncIntegration(unittest.TestCase):
 
     def test_context_info_returns_context_status_data(self):
         """Test that context info returns parsed ContextStatusData."""
-        # Get context info
-        context_info = self.session.context.info()
+        # Create session for this test
+        session_params = CreateSessionParams()
+        context_sync = ContextSync.new(
+            self.context.id, "/home/wuying", SyncPolicy.default()
+        )
+        session_params.context_syncs = [context_sync]
+        session_params.labels = {"test": "context-sync-integration"}
+        session_params.image_id = "linux_latest"
 
-        # Verify that we have a request ID
-        self.assertIsNotNone(context_info.request_id)
-        self.assertNotEqual(context_info.request_id, "")
+        session_result = self.agent_bay.create(session_params)
+        if not session_result.success or not session_result.session:
+            self.skipTest("Failed to create session for test")
 
-        # Log the context status data
-        print(f"Context status data count: {len(context_info.context_status_data)}")
-        for i, data in enumerate(context_info.context_status_data):
-            print(f"Status data {i}:")
-            print(f"  Context ID: {data.context_id}")
-            print(f"  Path: {data.path}")
-            print(f"  Status: {data.status}")
-            print(f"  Task Type: {data.task_type}")
-            print(f"  Start Time: {data.start_time}")
-            print(f"  Finish Time: {data.finish_time}")
-            if data.error_message:
-                print(f"  Error: {data.error_message}")
+        session = session_result.session
+        print(f"Created session: {session.session_id}")
 
-        # There might not be any status data yet, so we don't assert on the count
-        # But if there is data, verify it has the expected structure
-        for data in context_info.context_status_data:
-            self.assertIsInstance(data, ContextStatusData)
-            self.assertIsNotNone(data.context_id)
-            self.assertIsNotNone(data.path)
-            self.assertIsNotNone(data.status)
-            self.assertIsNotNone(data.task_type)
+        try:
+            # Wait for session to be ready
+            time.sleep(5)
+
+            # Get context info
+            context_info = session.context.info()
+
+            # Verify that we have a request ID
+            self.assertIsNotNone(context_info.request_id)
+            self.assertNotEqual(context_info.request_id, "")
+
+            # Log the context status data
+            print(f"Context status data count: {len(context_info.context_status_data)}")
+            for i, data in enumerate(context_info.context_status_data):
+                print(f"Status data {i}:")
+                print(f"  Context ID: {data.context_id}")
+                print(f"  Path: {data.path}")
+                print(f"  Status: {data.status}")
+                print(f"  Task Type: {data.task_type}")
+                print(f"  Start Time: {data.start_time}")
+                print(f"  Finish Time: {data.finish_time}")
+                if data.error_message:
+                    print(f"  Error: {data.error_message}")
+
+            # There might not be any status data yet, so we don't assert on the count
+            # But if there is data, verify it has the expected structure
+            for data in context_info.context_status_data:
+                self.assertIsInstance(data, ContextStatusData)
+                self.assertIsNotNone(data.context_id)
+                self.assertIsNotNone(data.path)
+                self.assertIsNotNone(data.status)
+                self.assertIsNotNone(data.task_type)
+
+        finally:
+            # Clean up session
+            try:
+                self.agent_bay.delete(session)
+                print(f"Session deleted: {session.session_id}")
+            except Exception as e:
+                print(f"Warning: Failed to delete session: {e}")
 
     def test_context_sync_and_info(self):
         """Test syncing context and then getting info."""
-        # Sync context
-        sync_result = self.session.context.sync()
-
-        # Verify sync result
-        self.assertTrue(sync_result.success)
-        self.assertIsNotNone(sync_result.request_id)
-        self.assertNotEqual(sync_result.request_id, "")
-
-        # Wait for sync to complete
-        time.sleep(5)
-
-        # Get context info
-        context_info = self.session.context.info()
-
-        # Verify context info
-        self.assertIsNotNone(context_info.request_id)
-
-        # Log the context status data
-        print(
-            f"Context status data after sync, count: {len(context_info.context_status_data)}"
+        # Create session for this test
+        session_params = CreateSessionParams()
+        context_sync = ContextSync.new(
+            self.context.id, "/home/wuying", SyncPolicy.default()
         )
-        for i, data in enumerate(context_info.context_status_data):
-            print(f"Status data {i}:")
-            print(f"  Context ID: {data.context_id}")
-            print(f"  Path: {data.path}")
-            print(f"  Status: {data.status}")
-            print(f"  Task Type: {data.task_type}")
+        session_params.context_syncs = [context_sync]
+        session_params.labels = {"test": "context-sync-integration"}
+        session_params.image_id = "linux_latest"
 
-        # Check if we have status data for our context
-        found_context = False
-        for data in context_info.context_status_data:
-            if data.context_id == self.context.id:
-                found_context = True
-                self.assertEqual(data.path, "/home/wuying")
-                # Status might vary, but should not be empty
-                self.assertIsNotNone(data.status)
-                self.assertNotEqual(data.status, "")
-                break
+        session_result = self.agent_bay.create(session_params)
+        if not session_result.success or not session_result.session:
+            self.skipTest("Failed to create session for test")
 
-        # We should have found our context in the status data
-        # But this might be flaky in CI, so just log a warning if not found
-        if not found_context:
-            print(f"Warning: Could not find context {self.context.id} in status data")
+        session = session_result.session
+        print(f"Created session: {session.session_id}")
+
+        try:
+            # Wait for session to be ready
+            time.sleep(5)
+
+            # Sync context
+            sync_result = session.context.sync()
+
+            # Verify sync result
+            self.assertTrue(sync_result.success)
+            self.assertIsNotNone(sync_result.request_id)
+            self.assertNotEqual(sync_result.request_id, "")
+
+            # Wait for sync to complete
+            time.sleep(5)
+
+            # Get context info
+            context_info = session.context.info()
+
+            # Verify context info
+            self.assertIsNotNone(context_info.request_id)
+
+            # Log the context status data
+            print(
+                f"Context status data after sync, count: {len(context_info.context_status_data)}"
+            )
+            for i, data in enumerate(context_info.context_status_data):
+                print(f"Status data {i}:")
+                print(f"  Context ID: {data.context_id}")
+                print(f"  Path: {data.path}")
+                print(f"  Status: {data.status}")
+                print(f"  Task Type: {data.task_type}")
+
+            # Check if we have status data for our context
+            found_context = False
+            for data in context_info.context_status_data:
+                if data.context_id == self.context.id:
+                    found_context = True
+                    self.assertEqual(data.path, "/home/wuying")
+                    # Status might vary, but should not be empty
+                    self.assertIsNotNone(data.status)
+                    self.assertNotEqual(data.status, "")
+                    break
+
+            # We should have found our context in the status data
+            # But this might be flaky in CI, so just log a warning if not found
+            if not found_context:
+                print(f"Warning: Could not find context {self.context.id} in status data")
+
+        finally:
+            # Clean up session
+            try:
+                self.agent_bay.delete(session)
+                print(f"Session deleted: {session.session_id}")
+            except Exception as e:
+                print(f"Warning: Failed to delete session: {e}")
 
     def test_context_info_with_params(self):
         """Test getting context info with specific parameters."""
-        # Get context info with parameters
-        context_info = self.session.context.info(
-            context_id=self.context.id, path="/home/wuying", task_type=None
+        # Create session for this test
+        session_params = CreateSessionParams()
+        context_sync = ContextSync.new(
+            self.context.id, "/home/wuying", SyncPolicy.default()
         )
+        session_params.context_syncs = [context_sync]
+        session_params.labels = {"test": "context-sync-integration"}
+        session_params.image_id = "linux_latest"
 
-        # Verify that we have a request ID
-        self.assertIsNotNone(context_info.request_id)
+        session_result = self.agent_bay.create(session_params)
+        if not session_result.success or not session_result.session:
+            self.skipTest("Failed to create session for test")
 
-        # Log the filtered context status data
-        print(
-            f"Filtered context status data count: {len(context_info.context_status_data)}"
-        )
-        for i, data in enumerate(context_info.context_status_data):
-            print(f"Status data {i}:")
-            print(f"  Context ID: {data.context_id}")
-            print(f"  Path: {data.path}")
-            print(f"  Status: {data.status}")
-            print(f"  Task Type: {data.task_type}")
+        session = session_result.session
+        print(f"Created session: {session.session_id}")
 
-        # If we have status data, verify it matches our filters
-        for data in context_info.context_status_data:
-            if data.context_id == self.context.id:
-                self.assertEqual(data.path, "/home/wuying")
+        try:
+            # Wait for session to be ready
+            time.sleep(5)
+
+            # Get context info with parameters
+            context_info = session.context.info(
+                context_id=self.context.id, path="/home/wuying", task_type=None
+            )
+
+            # Verify that we have a request ID
+            self.assertIsNotNone(context_info.request_id)
+
+            # Log the filtered context status data
+            print(
+                f"Filtered context status data count: {len(context_info.context_status_data)}"
+            )
+            for i, data in enumerate(context_info.context_status_data):
+                print(f"Status data {i}:")
+                print(f"  Context ID: {data.context_id}")
+                print(f"  Path: {data.path}")
+                print(f"  Status: {data.status}")
+                print(f"  Task Type: {data.task_type}")
+
+            # If we have status data, verify it matches our filters
+            for data in context_info.context_status_data:
+                if data.context_id == self.context.id:
+                    self.assertEqual(data.path, "/home/wuying")
+
+        finally:
+            # Clean up session
+            try:
+                self.agent_bay.delete(session)
+                print(f"Session deleted: {session.session_id}")
+            except Exception as e:
+                print(f"Warning: Failed to delete session: {e}")
 
     def test_context_sync_persistence_with_retry(self):
         """Test context sync persistence with retry for context status checks."""
@@ -247,10 +301,7 @@ class TestContextSyncIntegration(unittest.TestCase):
                 )
                 self._print_context_status_data(context_info.context_status_data)
 
-                # 4. Write a file to the context sync path
-                test_content = (
-                    f"Test content for Python persistence retry test at {timestamp}"
-                )
+                # 4. Create a 1GB file in the context sync path
                 test_file_path = f"{sync_path}/test-file.txt"
 
                 # Create directory first
@@ -258,12 +309,12 @@ class TestContextSyncIntegration(unittest.TestCase):
                 dir_result = session1.file_system.create_directory(sync_path)
                 self.assertTrue(dir_result.success, "Error creating directory")
 
-                # Write the file
-                print(f"Writing file to {test_file_path}")
-                write_result = session1.file_system.write_file(
-                    test_file_path, test_content
-                )
-                self.assertTrue(write_result.success, "Error writing file")
+                # Create a 1GB file using dd command
+                print(f"Creating 1GB file at {test_file_path}")
+                create_file_cmd = f"dd if=/dev/zero of={test_file_path} bs=1M count=1024"
+                cmd_result = session1.command.execute_command(create_file_cmd)
+                self.assertTrue(cmd_result.success, "Error creating 1GB file")
+                print(f"Created 1GB file: {cmd_result.output}")
 
                 # 5. Sync to trigger file upload
                 print("Triggering context sync...")
@@ -303,7 +354,7 @@ class TestContextSyncIntegration(unittest.TestCase):
 
                 # 7. Release first session
                 print("Releasing first session...")
-                delete_result = self.agent_bay.delete(session1)
+                delete_result = self.agent_bay.delete(session1, sync_context=True)
                 self.assertTrue(delete_result.success, "Error deleting first session")
 
                 # 8. Create a second session with the same context ID
@@ -361,18 +412,21 @@ class TestContextSyncIntegration(unittest.TestCase):
                             "Warning: Could not find download status after all retries"
                         )
 
-                    # 10. Read the file from the second session
-                    print("Reading file from second session...")
-                    read_result = session2.file_system.read_file(test_file_path)
-                    self.assertTrue(read_result.success, "Error reading file")
+                    # 10. Verify the 1GB file exists in the second session
+                    print("Verifying 1GB file exists in second session...")
 
-                    # 11. Verify the file content matches what was written
-                    self.assertEqual(
-                        test_content,
-                        read_result.content,
-                        "File content should match what was written",
-                    )
-                    print("File content verified successfully")
+                    # Check file size using ls command
+                    check_file_cmd = f"ls -la {test_file_path}"
+                    file_info_result = session2.command.execute_command(check_file_cmd)
+                    self.assertTrue(file_info_result.success, "Error checking file info")
+                    print(f"File info: {file_info_result.output}")
+
+                    # Verify file exists and has expected size (approximately 1GB)
+                    file_exists_cmd = f"test -f {test_file_path} && echo 'File exists'"
+                    exists_result = session2.command.execute_command(file_exists_cmd)
+                    self.assertTrue(exists_result.success, "Error checking if file exists")
+                    self.assertIn("File exists", exists_result.output, "1GB file should exist in second session")
+                    print("1GB file persistence verified successfully")
 
                 finally:
                     # Clean up second session

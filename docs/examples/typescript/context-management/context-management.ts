@@ -60,6 +60,7 @@ async function main() {
     log(`Session created with ID: ${sessionResult.session.sessionId} (RequestID: ${sessionResult.requestId})`);
     log('Note: The create() method automatically monitored the context status');
     log('and only returned after all context operations were complete or reached maximum retries.');
+
     const session = sessionResult.session;
 
     // Example 4: Update the context
@@ -79,13 +80,14 @@ async function main() {
     // Clean up
     log('\nCleaning up...');
 
-    // Delete the session
+    // Delete the session with context synchronization
     try {
       log('Deleting the session with context synchronization...');
       const deleteSessionResult = await agentBay.delete(session, true); // Using syncContext=true
       log(`Session deleted successfully with context synchronization (RequestID: ${deleteSessionResult.requestId})`);
       log('Note: The delete() method synchronized the context before session deletion');
       log('and monitored all context operations until completion.');
+
 
       // Alternative method using session's delete method:
       // const deleteSessionResult = await session.delete(true);

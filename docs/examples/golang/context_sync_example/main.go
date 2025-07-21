@@ -130,6 +130,8 @@ func main() {
 	session := sessionResult.Session
 	fmt.Printf("Session created with ID: %s\n", session.SessionID)
 	fmt.Printf("Session creation RequestID: %s\n", sessionResult.RequestID)
+	fmt.Println("Note: The Create() method automatically monitored the context status")
+	fmt.Println("and only returned after all context operations were complete or reached maximum retries.")
 
 	// Example 6: Use context manager from session
 	fmt.Println("\nExample 6: Using context manager from session...")
@@ -164,7 +166,7 @@ func main() {
 	// Create a custom policy for the builder example
 	builderPolicy := &agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{
-			AutoUpload:     false,
+			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
@@ -190,13 +192,19 @@ func main() {
 	// Clean up
 	fmt.Println("\nCleaning up...")
 
-	// Delete the session
-	deleteResult, err := ab.Delete(session)
+	// Delete the session with context synchronization
+	fmt.Println("Deleting the session with context synchronization...")
+	deleteResult, err := ab.Delete(session, true) // Using syncContext=true
 	if err != nil {
 		log.Printf("Error deleting session: %v", err)
 	} else {
-		fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
+		fmt.Printf("Session deleted successfully with context synchronization (RequestID: %s)\n", deleteResult.RequestID)
+		fmt.Println("Note: The Delete() method synchronized the context before session deletion")
+		fmt.Println("and monitored all context operations until completion.")
 	}
+
+	// Alternative method using Session's Delete method:
+	// deleteResult, err := session.Delete(true)
 
 	// Delete the context
 	deleteContextResult, err := ab.Context.Delete(context)
