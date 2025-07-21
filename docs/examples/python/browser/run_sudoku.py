@@ -7,32 +7,22 @@ This example shows how to use PageUseAgent to run sudoku game, including:
 """
 
 import os
-from pydoc import doc
-import time
 import asyncio
-from typing import List, Literal, Optional, Tuple, Deque
-from collections import deque
+from typing import List
 
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 from agentbay.browser.browser import BrowserOption
-from agentbay.browser.browser_agent import ExtractOptions, ActOptions, BrowserError
-
-from sudoku_solver import SudokuSolver
+from agentbay.browser.browser_agent import ExtractOptions, ActOptions
 
 from playwright.async_api import async_playwright
 from pydantic import BaseModel, Field
 
-class DummySchema(BaseModel):
-    title: str
-
 class SudokuBoard(BaseModel):
     board: List[List[int]] = Field(..., description="9x9 sudoku board, 0 for empty")
 
-
 class SudokuSolution(BaseModel):
     solution: List[List[int]] = Field(..., description="9x9 solved sudoku board")
-
 
 def format_board_for_llm(board: List[List[int]]) -> str:
     return "\n".join(["  [" + ", ".join(map(str, row)) + "]" for row in board])
@@ -93,33 +83,34 @@ async def main():
                     original_board = [row[:] for row in board]
 
                     # 2. Solve the sudoku
-                    print("🧠 Solving sudoku...")
-                    solver = SudokuSolver(board)
-                    if solver.solve():
-                        solution = solver.get_solution_board()
-                        filled_cells = solver.get_filled_cells()
-                        print(
-                            "Solved Board:\n"
-                            + "\n".join([" ".join(map(str, row)) for row in solution])
+                    success, solution_objs = await session.browser.agent.extract_async(
+                        page,
+                        ExtractOptions(
+                            instruction=
+                            "You are an expert sudoku solver. Given the following sudoku board as a 9x9 array (0 means empty), solve the sudoku and return the completed 9x9 array as 'solution'.\n\n"
+                            "Sudoku rules:\n"
+                            "- Each row must contain the digits 1-9 with no repeats.\n"
+                            "- Each column must contain the digits 1-9 with no repeats.\n"
+                            "- Each of the nine 3x3 subgrids must contain the digits 1-9 with no repeats.\n"
+                            "- Only fill in the cells that are 0.\n"
+                            "- The solution must be unique and valid.\n\n"
+                            f"board = [\n{format_board_for_llm(board)}\n]\n\n"
+                            "Return:\n{\n  solution: number[][] // 9x9, all filled, valid sudoku\n}",
+                            schema=SudokuSolution
                         )
-                        print(f"Number of cells to fill: {len(filled_cells)}")
-                    else:
-                        print(
-                            "No solution found for this Sudoku puzzle by the local algorithm."
-                        )
-                        return
+                    )
+                    solution = solution_objs[0].solution
+                    print("Solved Board:\n" + "\n".join([" ".join(map(str, row)) for row in solution]))
 
                     # 3. Fill the solution (only first row for demo)
-                    for r, c, value_to_fill in filled_cells:
-                        input_id = f"f{c}{r}"
-                        print(
-                            f"Type '{value_to_fill}' into the cell with id '{input_id}' at ({r},{c})"
-                        )
-                        options = ActOptions(
-                            action=f"Type '{value_to_fill}' into the cell with id '{input_id}'"
-                        )
-                        await session.browser.agent.act_async(page, options)
-                        await asyncio.sleep(10)
+                    for row in range(1):
+                        for col in range(9):
+                            if original_board[row][col] == 0:
+                                input_id = f"f{col}{row}"
+                                print(f"Type '{solution[row][col]}' into the cell with id '{input_id}'")
+                                # Use the new act method for natural language action
+                                await session.browser.agent.act_async(page, ActOptions(action=f"Type '{solution[row][col]}' into the cell with id '{input_id}'"))
+                                await asyncio.sleep(0.5)
 
                     print("✅ Finished! The board has been solved and filled in the browser.")
 
