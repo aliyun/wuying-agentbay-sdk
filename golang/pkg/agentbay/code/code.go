@@ -1,4 +1,4 @@
-package command
+package code
 
 import (
 	"encoding/json"
@@ -10,14 +10,14 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
-// CommandResult represents the result of a command execution
-type CommandResult struct {
+// CodeResult represents the result of a code execution
+type CodeResult struct {
 	models.ApiResponse // Embedded ApiResponse
 	Output             string
 }
 
-// Command handles command execution operations in the AgentBay cloud environment.
-type Command struct {
+// Code handles code execution operations in the AgentBay cloud environment.
+type Code struct {
 	Session interface {
 		GetAPIKey() string
 		GetClient() *mcp.Client
@@ -25,13 +25,13 @@ type Command struct {
 	}
 }
 
-// NewCommand creates a new Command instance
-func NewCommand(session interface {
+// NewCode creates a new Code instance
+func NewCode(session interface {
 	GetAPIKey() string
 	GetClient() *mcp.Client
 	GetSessionId() string
-}) *Command {
-	return &Command{
+}) *Code {
+	return &Code{
 		Session: session,
 	}
 }
@@ -47,7 +47,7 @@ type callMcpToolResult struct {
 }
 
 // callMcpTool calls the MCP tool and checks for errors in the response
-func (c *Command) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
+func (c *Code) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -153,29 +153,35 @@ func (c *Command) callMcpTool(toolName string, args interface{}, defaultErrorMsg
 	return result, nil
 }
 
-// ExecuteCommand executes a command in the cloud environment with a specified timeout.
-// If timeoutMs is not provided or is 0, the default timeout of 1000ms will be used.
-func (c *Command) ExecuteCommand(command string, timeoutMs ...int) (*CommandResult, error) {
+// RunCode executes code in the specified language with a timeout.
+// If timeoutS is not provided or is 0, the default timeout of 300 seconds will be used.
+func (c *Code) RunCode(code string, language string, timeoutS ...int) (*CodeResult, error) {
 	// Set default timeout if not provided
-	timeout := 1000
-	if len(timeoutMs) > 0 && timeoutMs[0] > 0 {
-		timeout = timeoutMs[0]
+	timeout := 300
+	if len(timeoutS) > 0 && timeoutS[0] > 0 {
+		timeout = timeoutS[0]
 	}
 
-	// Prepare arguments for the shell tool
+	// Validate language
+	if language != "python" && language != "javascript" {
+		return nil, fmt.Errorf("unsupported language: %s. Supported languages are 'python' and 'javascript'", language)
+	}
+
+	// Prepare arguments for the run_code tool
 	args := map[string]interface{}{
-		"command":    command,
-		"timeout_ms": timeout,
+		"code":      code,
+		"language":  language,
+		"timeout_s": timeout,
 	}
 
 	// Use the enhanced helper method to call MCP tool and check for errors
-	mcpResult, err := c.callMcpTool("shell", args, "error executing command")
+	mcpResult, err := c.callMcpTool("run_code", args, "error executing code")
 	if err != nil {
 		return nil, err
 	}
 
 	// Return result with RequestID
-	return &CommandResult{
+	return &CodeResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: mcpResult.RequestID,
 		},

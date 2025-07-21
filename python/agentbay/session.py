@@ -10,6 +10,7 @@ from agentbay.api.models import (
     SetLabelRequest,
 )
 from agentbay.application import ApplicationManager
+from agentbay.code import Code
 from agentbay.command import Command
 from agentbay.exceptions import SessionError
 from agentbay.filesystem import FileSystem
@@ -61,9 +62,10 @@ class Session:
         self.session_id = session_id
         self.resource_url = ""
 
-        # Initialize file system, command handlers
+        # Initialize file system, command and code handlers
         self.file_system = FileSystem(self)
         self.command = Command(self)
+        self.code = Code(self)
         self.oss = Oss(self)
 
         # Initialize application and window managers

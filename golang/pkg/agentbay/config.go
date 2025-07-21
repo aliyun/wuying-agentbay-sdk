@@ -44,7 +44,7 @@ func LoadConfig(cfg *Config) Config {
 	} else {
 		envPath = workingDir + "/.env"
 	}
-	
+
 	err = godotenv.Load(envPath)
 	if err != nil {
 		fmt.Printf("Warning: Failed to load .env file: %v\n", err)

@@ -7,6 +7,7 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/code"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
@@ -72,9 +73,10 @@ type Session struct {
 	SessionID   string
 	ResourceUrl string
 
-	// File and command handlers
+	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
 	Command    *command.Command
+	Code       *code.Code
 	Oss        *oss.OSSManager
 
 	// UI, application and window management
@@ -93,9 +95,10 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 		SessionID: sessionID,
 	}
 
-	// Initialize filesystem and command handlers
+	// Initialize filesystem, command and code handlers
 	session.FileSystem = filesystem.NewFileSystem(session)
 	session.Command = command.NewCommand(session)
+	session.Code = code.NewCode(session)
 	session.Oss = oss.NewOss(session)
 
 	// Initialize UI

@@ -206,8 +206,6 @@ func TestApplicationMobile_StartApp_WithActivity(t *testing.T) {
 		t.Logf("Starting mobile app with activity: %s", appActivity)
 		t.Logf("Start command: %s", startCmd)
 
-
-
 		processResult, err := session.Application.StartApp(startCmd, "", appActivity)
 		if err != nil {
 			t.Logf("Note: Mobile app with activity test (expected in mobile environment): %v", err)

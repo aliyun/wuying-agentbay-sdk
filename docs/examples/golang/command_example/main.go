@@ -81,7 +81,7 @@ print("Working with numbers in Python:")
 for i in range(1, 6):
     print(f"{i} squared is {i*i}")
 `
-	codeResult, err := session.Command.RunCode(pythonCode, "python")
+	codeResult, err := session.Code.RunCode(pythonCode, "python")
 	if err != nil {
 		fmt.Printf("Error running Python code: %v\n", err)
 	} else {
@@ -106,7 +106,7 @@ const sum = numbers.reduce((total, n) => total + n, 0);
 console.log("Sum of array:", sum);
 `
 	timeoutS := 10 // 10 seconds timeout
-	codeResult, err = session.Command.RunCode(jsCode, "javascript", timeoutS)
+	codeResult, err = session.Code.RunCode(jsCode, "javascript", timeoutS)
 	if err != nil {
 		fmt.Printf("Error running JavaScript code: %v\n", err)
 	} else {

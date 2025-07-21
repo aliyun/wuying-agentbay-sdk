@@ -77,7 +77,7 @@ def main():
         file_result = session.file_system.read_file("/path/to/file.txt")
         
         # Run code
-        code_result = session.command.run_code("print('Hello, World!')", "python")
+        code_result = session.code.run_code("print('Hello, World!')", "python")
         
         # Application management
         apps_result = session.application.get_installed_apps(

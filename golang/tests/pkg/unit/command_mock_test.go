@@ -53,28 +53,6 @@ func TestCommand_ExecuteCommandWithTimeout_WithMockClient(t *testing.T) {
 	assert.Equal(t, "Command executed with timeout", result.Output)
 }
 
-func TestCommand_RunCode_WithMockClient(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// Create mock Command
-	mockCmd := mock.NewMockCommandInterface(ctrl)
-
-	// Set expected behavior
-	expectedResult := &command.CommandResult{
-		Output: "Code executed successfully",
-	}
-	mockCmd.EXPECT().RunCode("print('hello')", "python").Return(expectedResult, nil)
-
-	// Test RunCode method call
-	result, err := mockCmd.RunCode("print('hello')", "python")
-
-	// Verify call success
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, "Code executed successfully", result.Output)
-}
-
 func TestCommand_Error_WithMockClient(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

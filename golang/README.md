@@ -96,7 +96,7 @@ func main() {
 	}
 	
 	// Run code
-	codeResult, err := session.Session.Command.RunCode("print('Hello, World!')", "python")
+	codeResult, err := session.Session.Code.RunCode("print('Hello, World!')", "python")
 	if err != nil {
 		fmt.Printf("Error running code: %v\n", err)
 	}

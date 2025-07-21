@@ -67,53 +67,6 @@ class TestCommandIntegration(unittest.TestCase):
         self.assertNotEqual(result.error_message, "")
         self.assertEqual(result.output, "")
 
-    def test_run_code_python_success(self):
-        """
-        Test running Python code successfully.
-        """
-        code = """
-print("Hello, world!")
-x = 1 + 1
-print(x)
-"""
-        result = self.command.run_code(code, "python")
-        print(f"Run code result: {result.result}")
-        self.assertTrue(result.success)
-        self.assertIn("Hello, world!", result.result)
-        self.assertIn("2", result.result)
-        self.assertNotEqual(result.request_id, "")
-        self.assertEqual(result.error_message, "")
-
-    def test_run_code_javascript_success(self):
-        """
-        Test running JavaScript code successfully.
-        """
-        code = """
-console.log("Hello, world!");
-let x = 1 + 1;
-console.log(x);
-"""
-        result = self.command.run_code(code, "javascript")
-        print(f"Run code result: {result.result}")
-        self.assertTrue(result.success)
-        self.assertIn("Hello, world!", result.result)
-        self.assertIn("2", result.result)
-        self.assertNotEqual(result.request_id, "")
-        self.assertEqual(result.error_message, "")
-
-    def test_run_code_unsupported_language(self):
-        """
-        Test running code with an unsupported language.
-        """
-        code = "print('Hello, world!')"
-        language = "ruby"  # Unsupported language
-        result = self.command.run_code(code, language)
-        print(f"Unsupported language result: {result}")
-        self.assertFalse(result.success)
-        self.assertEqual(result.request_id, "")
-        self.assertIn("Unsupported language", result.error_message)
-        self.assertEqual(result.result, "")
-
 
 if __name__ == "__main__":
     unittest.main()

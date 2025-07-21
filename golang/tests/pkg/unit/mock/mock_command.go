@@ -54,22 +54,4 @@ func (mr *MockCommandInterfaceMockRecorder) ExecuteCommand(arg0 interface{}, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteCommand", reflect.TypeOf((*MockCommandInterface)(nil).ExecuteCommand), varargs...)
 }
 
-// RunCode mocks base method.
-func (m *MockCommandInterface) RunCode(arg0, arg1 string, arg2 ...int) (*command.CommandResult, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1}
-	for _, a := range arg2 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "RunCode", varargs...)
-	ret0, _ := ret[0].(*command.CommandResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
 
-// RunCode indicates an expected call of RunCode.
-func (mr *MockCommandInterfaceMockRecorder) RunCode(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1}, arg2...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCode", reflect.TypeOf((*MockCommandInterface)(nil).RunCode), varargs...)
-}

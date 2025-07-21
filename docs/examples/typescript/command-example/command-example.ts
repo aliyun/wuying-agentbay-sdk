@@ -72,7 +72,7 @@ print("Working with numbers in Python:")
 for i in range(1, 6):
     print(f"{i} squared is {i*i}")
 `;
-      const pythonResponse = await session.command.runCode(pythonCode, "python");
+      const pythonResponse = await session.code.runCode(pythonCode, "python");
       log(`Python code output:\n${pythonResponse.result}`);
       log(`Run Python Code RequestId: ${pythonResponse.requestId}`);
 
@@ -104,7 +104,7 @@ const sum = numbers.reduce((total, n) => total + n, 0);
 log("Sum of array:", sum);
 `;
       const timeoutS = 10; // 10 seconds timeout
-      const jsResponse = await session.command.runCode(jsCode, "javascript", timeoutS);
+      const jsResponse = await session.code.runCode(jsCode, "javascript", timeoutS);
       log(`JavaScript code output:\n${jsResponse.result}`);
       log(`Run JavaScript Code RequestId: ${jsResponse.requestId}`);
     } catch (error) {

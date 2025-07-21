@@ -145,7 +145,7 @@ AGENTBAY_TIMEOUT_MS=10000
 	assert.Equal(t, 10000, result.TimeoutMs)
 
 	// 4. when no env vars are set, default config should be used
-	os.Remove(envFilePath) 
+	os.Remove(envFilePath)
 	os.Unsetenv("AGENTBAY_REGION_ID")
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")

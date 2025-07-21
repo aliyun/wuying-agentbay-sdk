@@ -39,7 +39,7 @@ print(f"Random numbers: {random_numbers}")
 """
 
 # Execute Python code
-result = session.command.run_code(code, "python")
+result = session.code.run_code(code, "python")
 if result.success:
     print(f"Code execution result:\n{result.result}")
 else:
@@ -82,7 +82,7 @@ print(f"Random numbers: {random_numbers}")
     `;
     
     // Execute Python code
-    const result = await session.command.runCode(code, 'python');
+    const result = await session.code.runCode(code, 'python');
     console.log(`Code execution result:\n${result.result}`);
     
     // Delete the session
@@ -143,7 +143,7 @@ print(f"Random numbers: {random_numbers}")
   `
 
   // Execute Python code
-  codeResult, err := session.Command.RunCode(code, "python")
+  codeResult, err := session.Code.RunCode(code, "python")
   if err != nil {
     fmt.Printf("Error executing code: %v\n", err)
     os.Exit(1)
@@ -188,7 +188,7 @@ console.log(`Average: ${average}`);
 """
 
 # Execute JavaScript code
-result = session.command.run_code(code, "javascript")
+result = session.code.run_code(code, "javascript")
 if result.success:
     print(f"Code execution result:\n{result.result}")
 else:
@@ -227,7 +227,7 @@ async function executeJavaScriptCode() {
     `;
     
     // Execute JavaScript code
-    const result = await session.command.runCode(code, 'javascript');
+    const result = await session.code.runCode(code, 'javascript');
     console.log(`Code execution result:\n${result.result}`);
     
     // Delete the session
@@ -246,7 +246,7 @@ For code that might take longer to run, you can set a timeout parameter:
 
 ```python
 # Set a 300-second timeout for code execution
-result = session.command.run_code(code, "python", timeout_s=300)
+result = session.code.run_code(code, "python", timeout_s=300)
 print(f"Code execution result:\n{result.result}")
 ```
 

@@ -85,7 +85,7 @@ async function main() {
   const commandResponse = await session.command.executeCommand('ls -la');
   
   // Run code
-  const codeResponse = await session.command.runCode('print("Hello World")', 'python');
+  const codeResponse = await session.code.runCode('print("Hello World")', 'python');
   
   // File operations
   const fileContent = await session.fileSystem.readFile('/etc/hosts');

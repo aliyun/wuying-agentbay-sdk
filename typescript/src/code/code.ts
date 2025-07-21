@@ -5,7 +5,7 @@ import { CallMcpToolRequest } from "../api/models/model";
 import { log, logError } from "../utils/logger";
 import {
   extractRequestId,
-  CommandResult,
+  CodeExecutionResult,
 } from "../types/api-response";
 
 import * as $_client from "../api";
@@ -24,17 +24,17 @@ interface CallMcpToolResult {
 }
 
 /**
- * Handles command execution operations in the AgentBay cloud environment.
+ * Handles code execution operations in the AgentBay cloud environment.
  */
-export class Command {
+export class Code {
   private session: Session;
   private client!: $_client.Client;
   private baseUrl!: string;
 
   /**
-   * Initialize a Command object.
+   * Initialize a Code object.
    *
-   * @param session - The Session instance that this Command belongs to.
+   * @param session - The Session instance that this Code belongs to.
    */
   constructor(session: Session) {
     this.session = session;
@@ -138,43 +138,54 @@ export class Command {
   }
 
   /**
-   * Execute a command in the cloud environment with a specified timeout.
-   * Corresponds to Python's execute_command() method
+   * Execute code in the specified language with a timeout.
+   * Corresponds to Python's run_code() method
    *
-   * @param command - The command to execute.
-   * @param timeoutMs - The timeout for the command execution in milliseconds. Default is 1000ms.
-   * @returns CommandResult with command output and requestId
+   * @param code - The code to execute.
+   * @param language - The programming language of the code. Must be either 'python' or 'javascript'.
+   * @param timeoutS - The timeout for the code execution in seconds. Default is 300s.
+   * @returns CodeExecutionResult with code execution output and requestId
+   * @throws Error if an unsupported language is specified.
    */
-  async executeCommand(
-    command: string,
-    timeoutMs = 1000
-  ): Promise<CommandResult> {
+  async runCode(
+    code: string,
+    language: string,
+    timeoutS = 300
+  ): Promise<CodeExecutionResult> {
     try {
+      // Validate language
+      if (language !== "python" && language !== "javascript") {
+        return {
+          requestId: "",
+          success: false,
+          result: "",
+          errorMessage: `Unsupported language: ${language}. Supported languages are 'python' and 'javascript'`,
+        };
+      }
+
       const args = {
-        command,
-        timeout_ms: timeoutMs,
+        code,
+        language,
+        timeout_s: timeoutS,
       };
 
       const result = await this.callMcpTool(
-        "shell",
+        "run_code",
         args,
-        "Failed to execute command"
+        "Failed to execute code"
       );
-
       return {
         requestId: result.requestId || "",
         success: true,
-        output: result.textContent || "",
+        result: result.textContent || "",
       };
     } catch (error) {
       return {
         requestId: "",
         success: false,
-        output: "",
-        errorMessage: `Failed to execute command: ${error}`,
+        result: "",
+        errorMessage: `Failed to run code: ${error}`,
       };
     }
   }
-
-
-}
+} 

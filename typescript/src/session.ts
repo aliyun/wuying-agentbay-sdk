@@ -8,6 +8,7 @@ import {
   SetLabelRequest,
 } from "./api/models/model";
 import { Application } from "./application";
+import { Code } from "./code";
 import { Command } from "./command";
 import { ContextManager, newContextManager } from "./context-manager";
 import { APIError } from "./exceptions";
@@ -78,9 +79,10 @@ export class Session {
   public sessionId: string;
   public resourceUrl = "";
 
-  // File, command, and oss handlers (matching Python naming)
+  // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
   public command: Command;
+  public code: Code;
   public oss: Oss;
 
   // Application, window, and UI management (matching Python naming)
@@ -102,9 +104,10 @@ export class Session {
     this.sessionId = sessionId;
     this.resourceUrl = "";
 
-    // Initialize file system, command handlers (matching Python naming)
+    // Initialize file system, command and code handlers (matching Python naming)
     this.fileSystem = new FileSystem(this);
     this.command = new Command(this);
+    this.code = new Code(this);
     this.oss = new Oss(this);
 
     // Initialize application and window managers (matching Python naming)
