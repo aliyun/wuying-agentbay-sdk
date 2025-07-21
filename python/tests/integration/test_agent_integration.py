@@ -53,7 +53,7 @@ class TestAgentIntegration(unittest.TestCase):
             max_try_times = 10
             print("we will  for 200 * 3 seconds to finish.")
 
-        result = self.agent.flux_execute_task(task, int(max_try_times))
+        result = self.agent.execute_task(task, int(max_try_times))
         self.assertTrue(result.success)
         self.assertNotEqual(result.request_id, "")
         self.assertEqual(result.error_message, "")

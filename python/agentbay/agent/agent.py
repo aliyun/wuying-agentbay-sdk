@@ -1,4 +1,4 @@
-from agentbay.exceptions import AgentError
+from agentbay.exceptions import AgentError, AgentBayError
 from agentbay.api.base_service import BaseService
 from agentbay.model import ApiResponse
 import time, json
@@ -63,7 +63,23 @@ class Agent(BaseService):
     def __init__(self, session):
         self.session = session
 
-    def flux_execute_task(self, task: str, max_try_times: int) -> ExecutionResult:
+    def _handle_error(self, e):
+        """
+        Convert AgentBayError to AgentError for compatibility.
+
+        Args:
+            e (Exception): The exception to convert.
+
+        Returns:
+            CommandError: The converted exception.
+        """
+        if isinstance(e, AgentError):
+            return e
+        if isinstance(e, AgentBayError):
+            return AgentError(str(e))
+        return e
+
+    def execute_task(self, task: str, max_try_times: int) -> ExecutionResult:
         """
         To execute a specific task described in the humman language.
 
@@ -82,7 +98,7 @@ class Agent(BaseService):
                 task_id = content["task_id"]
                 tried_time: int = 0
                 while tried_time < max_try_times:
-                    query = self.flux_get_task_status(task_id)
+                    query = self.get_task_status(task_id)
                     content = json.loads(query.output)
                     task_status = content["status"]
                     if task_status == "finished":
@@ -110,6 +126,8 @@ class Agent(BaseService):
                             task_status=task_status,
                         )
                     print(f"Task {task_id} is still running, please wait for a while.")
+                    # keep waiting unit timeout if the status is running
+                    # task_status {running, finished, failed, unsupported}
                     time.sleep(3)
                     tried_time += 1
             else:
@@ -132,7 +150,7 @@ class Agent(BaseService):
                 task_id="",
             )
 
-    def flux_get_task_status(self, task_id: str) -> QueryResult:
+    def get_task_status(self, task_id: str) -> QueryResult:
         """
         Get the status of the task with the given task_id.
         Args:
@@ -165,7 +183,7 @@ class Agent(BaseService):
                 error_message=f"Failed to terminate: {e}",
             )
 
-    def flux_terminate_task(self, task_id: str) -> ExecutionResult:
+    def terminate_task(self, task_id: str) -> ExecutionResult:
         """
         Terminate a task  with a specified task_id.
 
