@@ -1,6 +1,4 @@
-import { AgentBay } from '../../src';
-import { log, logError } from '../../src/utils/logger';
-import { getTestApiKey } from '../../tests/utils/test-helpers';
+import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
 
 // Define test path prefix
 const TestPathPrefix = '/tmp';
@@ -15,7 +13,10 @@ interface FileEntry {
 
 async function main() {
   // Get API key from environment variable or use default value for testing
-  const apiKey = getTestApiKey();
+  const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+  if (!process.env.AGENTBAY_API_KEY) {
+    log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+  }
 
   // Initialize the AgentBay client
   const agentBay = new AgentBay({ apiKey });

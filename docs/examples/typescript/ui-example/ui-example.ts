@@ -1,6 +1,4 @@
-import { AgentBay } from '../../src';
-import { log, logError } from '../../src/utils/logger';
-import { getTestApiKey } from '../../tests/utils/test-helpers';
+import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
 import * as fs from 'fs';
 
 // Helper function to parse bounds from a bounds string like "[0,100][200,300]"
@@ -39,7 +37,10 @@ function parseBounds(boundsStr: string): { x1: number, y1: number, x2: number, y
 
 async function main() {
   // Get API key from environment variable or use default value for testing
-  const apiKey = getTestApiKey();
+   const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+  if (!process.env.AGENTBAY_API_KEY) {
+    log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+  }
 
   // Initialize the AgentBay client
   const agentBay = new AgentBay({ apiKey });

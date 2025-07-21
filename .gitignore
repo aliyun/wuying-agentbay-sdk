@@ -38,6 +38,7 @@ dist/
 coverage/
 .nyc_output/
 *.tsbuildinfo
+tsconfig.json
 
 # Golang
 *.exe

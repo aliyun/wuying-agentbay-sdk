@@ -1,11 +1,11 @@
-import { AgentBay, ListSessionParams } from '../src';
-import { log, logError } from '../src/utils/logger';
-import { getTestApiKey } from '../tests/utils/test-helpers';
+import { AgentBay, ListSessionParams, logError,log } from 'wuying-agentbay-sdk';
 async function main() {
   try {
     // Use the test API key function from test-helpers
-    const apiKey = getTestApiKey();
-    log('Using test API key for demonstration purposes.');
+    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+  if (!process.env.AGENTBAY_API_KEY) {
+    log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+  }
 
     // Initialize the AgentBay client
     const agentBay = new AgentBay({ apiKey });
