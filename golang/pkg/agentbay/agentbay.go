@@ -58,11 +58,9 @@ func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error) {
 		}
 	}
 
-	// Load configuration
-	config := DefaultConfig()
-	if config_option.cfg != nil {
-		config = *config_option.cfg
-	}
+	// Load configuration using LoadConfig function
+	// This will load from environment variables, .env file, or use defaults
+	config := LoadConfig(config_option.cfg)
 
 	// Create API client
 	apiConfig := &openapiutil.Config{
