@@ -103,7 +103,7 @@ async def main():
                     print("Solved Board:\n" + "\n".join([" ".join(map(str, row)) for row in solution]))
 
                     # 3. Fill the solution (only first row for demo)
-                    for row in range(1):
+                    for row in range(9):
                         for col in range(9):
                             if original_board[row][col] == 0:
                                 input_id = f"f{col}{row}"
