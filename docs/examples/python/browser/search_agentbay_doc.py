@@ -52,15 +52,21 @@ async def main():
                 await page.goto("https://www.aliyun.com")
                 print("page.title() =", await page.title())
 
+                await page.wait_for_timeout(3000)
+
                 # Step 3: Search for the keyword
                 search_input = await page.wait_for_selector("//input[contains(@class, 'search-input')]")
                 await search_input.click()
                 await search_input.fill("Agentbay帮助文档")
                 await page.keyboard.press("Enter")
 
+                await page.wait_for_timeout(3000)
+
                 # Step 4: Get the search results
                 await page.wait_for_selector("//a[contains(@class, 'search-result-title')]")
                 search_results = await page.locator("//a[contains(@class, 'search-result-title')]").all()
+
+                await page.wait_for_timeout(3000)
 
                 # Step 5: Click the search result
                 for result in search_results:
@@ -69,6 +75,8 @@ async def main():
                     if "无影AgentBay" == text:
                         await result.click()
                         break
+
+                await page.wait_for_timeout(3000)
 
                 # Step 6: Click the helper button
                 await page.wait_for_selector("a >> text=帮助文档")
