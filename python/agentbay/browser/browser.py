@@ -33,10 +33,6 @@ class Browser:
         if self.is_initialized():
             return True
         try:
-            # TODO: remove this after the display issue is fixed
-            self.session.command.execute_command("xrandr --output ASP-DUMMY-0 --mode 1024x768")
-            time.sleep(1)
-
             request = InitBrowserRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
@@ -70,10 +66,6 @@ class Browser:
         if self.is_initialized():
             return True
         try:
-            # TODO: remove this after the display issue is fixed
-            self.session.command.execute_command("xrandr --output ASP-DUMMY-0 --mode 1024x768")
-            await asyncio.sleep(1)
-
             request = InitBrowserRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
