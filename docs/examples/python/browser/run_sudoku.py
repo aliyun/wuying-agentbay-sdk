@@ -103,13 +103,15 @@ async def main():
                     print("Solved Board:\n" + "\n".join([" ".join(map(str, row)) for row in solution]))
 
                     # 3. Fill the solution (only first row for demo)
-                    for row in range(1):
+                    for row in range(9):
                         for col in range(9):
                             if original_board[row][col] == 0:
                                 input_id = f"f{col}{row}"
                                 print(f"Type '{solution[row][col]}' into the cell with id '{input_id}'")
                                 # Use the new act method for natural language action
-                                await session.browser.agent.act_async(page, ActOptions(action=f"Type '{solution[row][col]}' into the cell with id '{input_id}'"))
+                                await session.browser.agent.act_async(page, 
+                                    ActOptions(action=f"Enter '{solution[row][col]}' into the input element where the attribute id is exactly '{input_id}' (for example, if id='f53', you must match the full string 'f53', not just the number 53; do not split or extract numbers from the id)")
+                                )
                                 await asyncio.sleep(0.5)
 
                     print("✅ Finished! The board has been solved and filled in the browser.")
