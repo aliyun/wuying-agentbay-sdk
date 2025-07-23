@@ -225,6 +225,13 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	// Create a new Session using the NewSession function from session.go
 	session := NewSession(a, *response.Body.Data.SessionId)
 
+	// Set ImageId from params, or use default
+	if params.ImageId != "" {
+		session.ImageId = params.ImageId
+	} else {
+		session.ImageId = "linux_latest"
+	}
+
 	// Set the ResourceUrl field from the response data if present
 	if response.Body.Data.ResourceUrl != nil {
 		session.ResourceUrl = *response.Body.Data.ResourceUrl
@@ -394,6 +401,8 @@ func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, 
 			for _, sessionData := range response.Body.Data {
 				if sessionData.SessionId != nil {
 					session := NewSession(a, *sessionData.SessionId)
+					// Use default ImageId for sessions retrieved from API
+					session.ImageId = "linux_latest"
 					sessions = append(sessions, *session)
 					// Also store in the local cache
 					a.Sessions.Store(*sessionData.SessionId, *session)

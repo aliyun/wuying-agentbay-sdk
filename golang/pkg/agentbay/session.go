@@ -1,6 +1,7 @@
 package agentbay
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -55,6 +56,21 @@ type DeleteResult struct {
 	Success bool
 }
 
+// McpTool represents an MCP tool with complete information
+type McpTool struct {
+	Name        string                 `json:"name"`        // Tool name
+	Description string                 `json:"description"` // Tool description
+	InputSchema map[string]interface{} `json:"inputSchema"` // Input parameter schema
+	Server      string                 `json:"server"`      // Server name that provides this tool
+	Tool        string                 `json:"tool"`        // Tool identifier
+}
+
+// McpToolsResult wraps MCP tools list and RequestID
+type McpToolsResult struct {
+	models.ApiResponse
+	Tools []McpTool
+}
+
 // SessionInfo contains information about a session.
 type SessionInfo struct {
 	SessionId            string
@@ -72,6 +88,7 @@ type Session struct {
 	AgentBay    *AgentBay
 	SessionID   string
 	ResourceUrl string
+	ImageId     string // ImageId used when creating this session
 
 	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
@@ -86,6 +103,9 @@ type Session struct {
 
 	// Context management
 	Context *ContextManager
+
+	// MCP tools available for this session
+	McpTools []McpTool
 }
 
 // NewSession creates a new Session object.
@@ -457,4 +477,84 @@ func (s *Session) Info() (*InfoResult, error) {
 	}
 
 	return nil, fmt.Errorf("failed to get session info: empty response data")
+}
+
+// ListMcpTools lists MCP tools available for this session.
+// It uses the ImageId from the session creation, or "linux_latest" as default.
+func (s *Session) ListMcpTools() (*McpToolsResult, error) {
+	// Use session's ImageId, or default to "linux_latest" if empty
+	imageId := s.ImageId
+	if imageId == "" {
+		imageId = "linux_latest"
+	}
+
+	listMcpToolsRequest := &mcp.ListMcpToolsRequest{
+		Authorization: tea.String("Bearer " + s.GetAPIKey()),
+		ImageId:       tea.String(imageId),
+	}
+
+	// Log API request
+	fmt.Println("API Call: ListMcpTools")
+	fmt.Printf("Request: ImageId=%s\n", *listMcpToolsRequest.ImageId)
+
+	response, err := s.GetClient().ListMcpTools(listMcpToolsRequest)
+
+	// Log API response
+	if err != nil {
+		fmt.Println("Error calling ListMcpTools:", err)
+		return nil, err
+	}
+
+	// Extract RequestID
+	requestID := models.ExtractRequestID(response)
+
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from ListMcpTools:", response.Body)
+	}
+
+	// Parse the response data
+	var tools []McpTool
+	if response != nil && response.Body != nil && response.Body.Data != nil {
+		// The Data field is a JSON string, so we need to unmarshal it
+		var toolsData []map[string]interface{}
+		if err := json.Unmarshal([]byte(*response.Body.Data), &toolsData); err != nil {
+			fmt.Printf("Error unmarshaling tools data: %v\n", err)
+			return &McpToolsResult{
+				ApiResponse: models.ApiResponse{
+					RequestID: requestID,
+				},
+				Tools: []McpTool{},
+			}, nil
+		}
+
+		// Convert the parsed data to McpTool structs
+		for _, toolData := range toolsData {
+			tool := McpTool{}
+			if name, ok := toolData["name"].(string); ok {
+				tool.Name = name
+			}
+			if description, ok := toolData["description"].(string); ok {
+				tool.Description = description
+			}
+			if inputSchema, ok := toolData["inputSchema"].(map[string]interface{}); ok {
+				tool.InputSchema = inputSchema
+			}
+			if server, ok := toolData["server"].(string); ok {
+				tool.Server = server
+			}
+			if toolIdentifier, ok := toolData["tool"].(string); ok {
+				tool.Tool = toolIdentifier
+			}
+			tools = append(tools, tool)
+		}
+	}
+
+	s.McpTools = tools // Update the session's McpTools field
+
+	return &McpToolsResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: requestID,
+		},
+		Tools: tools,
+	}, nil
 }
