@@ -2,13 +2,9 @@
 
 The `ContextManager` class provides functionality for managing contexts within a session. It enables you to interact with the contexts that are synchronized to the session, including reading and writing data, and managing file operations.
 
-## Properties
+## Overview
 
-###
-
-```python
-session  # The Session instance that this ContextManager belongs to
-```
+The `ContextManager` is accessed through a session instance and provides functionality for managing contexts within that session.
 
 ## Methods
 

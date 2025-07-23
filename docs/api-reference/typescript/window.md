@@ -2,15 +2,9 @@
 
 The Window class provides methods for managing windows in the AgentBay cloud environment, including listing windows, getting the active window, and manipulating window states.
 
-## Class Properties
+## Overview
 
-###
-
-```python
-class Window:
-    def __init__(self, session):
-        self.session = session
-```
+The Window class is accessed through a session instance and provides methods for window management in the cloud environment.
 
 ## Data Types
 

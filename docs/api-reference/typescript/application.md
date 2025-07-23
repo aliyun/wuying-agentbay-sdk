@@ -2,15 +2,9 @@
 
 The Application class provides methods for managing applications in the AgentBay cloud environment, including listing installed applications, starting applications, and stopping running processes.
 
-## Class Properties
+## Overview
 
-###
-
-```python
-class Application:
-    def __init__(self, session):
-        self.session = session
-```
+The Application class is accessed through a session instance and provides methods for application management in the cloud environment.
 
 ## Data Types
 

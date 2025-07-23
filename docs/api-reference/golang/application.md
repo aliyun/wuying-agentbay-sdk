@@ -2,15 +2,9 @@
 
 The Application class provides methods for managing applications in the AgentBay cloud environment, including listing installed applications, starting applications, and stopping running processes.
 
-## Class Properties
+## Overview
 
-###
-
-```python
-class Application:
-    def __init__(self, session):
-        self.session = session
-```
+The Application class is accessed through a session instance and provides methods for application management in the cloud environment.
 
 ## Data Types
 
@@ -161,34 +155,65 @@ type Process struct {
 
 ## Usage Examples
 
-###
+### Application Management
 
-```python
-# Create a session
-session = agent_bay.create()
+```go
+package main
 
-# Get installed applications
-apps = session.application.get_installed_apps(
-    include_system_apps=True,
-    include_store_apps=False,
-    include_desktop_apps=True
+import (
+    "fmt"
+    "log"
 )
-for app in apps:
-    print(f"Application: {app.name}")
 
-# Start an application
-processes = session.application.start_app("/usr/bin/google-chrome-stable")
-for process in processes:
-    print(f"Started process: {process.pname} (PID: {process.pid})")
+func main() {
+    // Create a session
+    agentBay := agentbay.NewAgentBay("your-api-key")
+    sessionResult, err := agentBay.Create(nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    session := sessionResult.Session
 
-# List visible applications
-visible_apps = session.application.list_visible_apps()
-for app in visible_apps:
-    print(f"Visible application: {app.pname} (PID: {app.pid})")
+    // Get installed applications
+    appsResult, err := session.Application.GetInstalledApps(true, false, true)
+    if err != nil {
+        log.Printf("Error getting installed apps: %v", err)
+    } else {
+        for _, app := range appsResult.Applications {
+            fmt.Printf("Application: %s\n", app.Name)
+        }
+    }
 
-# Stop an application by PID
-success = session.application.stop_app_by_pid(processes[0].pid)
-print(f"Application stopped: {success}")
+    // Start an application
+    processesResult, err := session.Application.StartApp("/usr/bin/google-chrome-stable")
+    if err != nil {
+        log.Printf("Error starting app: %v", err)
+    } else {
+        for _, process := range processesResult.Processes {
+            fmt.Printf("Started process: %s (PID: %d)\n", process.PName, process.PID)
+        }
+    }
+
+    // List visible applications
+    visibleResult, err := session.Application.ListVisibleApps()
+    if err != nil {
+        log.Printf("Error listing visible apps: %v", err)
+    } else {
+        for _, app := range visibleResult.Processes {
+            fmt.Printf("Visible application: %s (PID: %d)\n", app.PName, app.PID)
+        }
+    }
+
+    // Stop an application by PID
+    if len(processesResult.Processes) > 0 {
+        success, err := session.Application.StopAppByPID(processesResult.Processes[0].PID)
+        if err != nil {
+            log.Printf("Error stopping app: %v", err)
+        } else {
+            fmt.Printf("Application stopped: %s\n", success)
+        }
+    }
+}
 ```
 
 ## Related Resources
