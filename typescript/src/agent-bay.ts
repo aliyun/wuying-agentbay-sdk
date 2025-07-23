@@ -4,7 +4,7 @@ import * as $_client from "./api";
 import { ListSessionRequest, CreateMcpSessionRequestPersistenceDataList } from "./api/models/model";
 import { Client } from "./api/client";
 
-import { loadConfig, Config } from "./config";
+import { loadConfig, Config, BROWSER_DATA_PATH } from "./config";
 import { ContextService } from "./context";
 import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
@@ -156,7 +156,7 @@ export class AgentBay {
         // Create browser context sync item
         const browserContextSync = new CreateMcpSessionRequestPersistenceDataList({
           contextId: params.browserContext.contextId,
-          path: "/tmp/browser-data", // Using a constant path for browser data
+          path: BROWSER_DATA_PATH, // Using a constant path for browser data
           policy: JSON.stringify(syncPolicy)
         });
 

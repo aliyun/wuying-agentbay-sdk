@@ -4,6 +4,7 @@ import time
 from agentbay.api.models import InitBrowserRequest
 from agentbay.browser.browser_agent import BrowserAgent
 from agentbay.exceptions import BrowserError
+from agentbay.config import BROWSER_DATA_PATH
 
 if TYPE_CHECKING:
     from agentbay.session import Session
@@ -36,7 +37,7 @@ class Browser:
             request = InitBrowserRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
-                persistent_path=None,
+                persistent_path=BROWSER_DATA_PATH,
             )
             response = self.session.get_client().init_browser(request)
             
@@ -69,7 +70,7 @@ class Browser:
             request = InitBrowserRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
-                persistent_path=None,
+                persistent_path=BROWSER_DATA_PATH,
             )
             response = await self.session.get_client().init_browser_async(request)
             print(f"Response from init_browser: {response}")

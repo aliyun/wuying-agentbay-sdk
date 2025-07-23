@@ -21,6 +21,7 @@ from agentbay.session import Session
 from agentbay.session_params import CreateSessionParams, ListSessionParams
 from typing import Optional
 from agentbay.context_sync import ContextSync
+from agentbay.config import BROWSER_DATA_PATH
 
 
 class Config:
@@ -158,7 +159,7 @@ class AgentBay:
                 # Create browser context sync item
                 browser_context_sync = CreateMcpSessionRequestPersistenceDataList(
                     context_id=params.browser_context.context_id,
-                    path="/tmp/browser-data",  # Using a constant path for browser data
+                    path=BROWSER_DATA_PATH,  # Using a constant path for browser data
                     policy=policy_json
                 )
 

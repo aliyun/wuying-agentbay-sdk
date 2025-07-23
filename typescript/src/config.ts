@@ -9,6 +9,11 @@ interface Config {
 }
 
 /**
+ * Browser data path constant
+ */
+export const BROWSER_DATA_PATH = "/tmp/agentbay_browser";
+
+/**
  * Returns the default configuration
  */
 export function defaultConfig(): Config {

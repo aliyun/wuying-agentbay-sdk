@@ -14,6 +14,10 @@ def default_config() -> Dict[str, Any]:
     }
 
 
+# Browser data path constant
+BROWSER_DATA_PATH = "/tmp/agentbay_browser"
+
+
 """
 The SDK uses the following precedence order for configuration (highest to lowest):
 1. Explicitly passed configuration in code.
