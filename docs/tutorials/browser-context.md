@@ -2,6 +2,8 @@
 
 This tutorial explains how to use AgentBay's Browser Context feature to persist browser data across sessions.
 
+**Note**: BrowserContext is currently only available in Python and TypeScript SDKs. It is not supported in the Golang SDK.
+
 ## Overview
 
 The Browser Context feature allows you to synchronize browser data (such as cookies, local storage, and other browser state) across multiple sessions. This is particularly useful for:
@@ -15,53 +17,6 @@ The Browser Context feature allows you to synchronize browser data (such as cook
 ### Creating a Session with Browser Context
 
 When creating a session, you can specify a Browser Context configuration that defines how browser data should be synchronized.
-
-#### Golang
-
-```go
-package main
-
-import (
-	"fmt"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key")
-	if err != nil {
-		fmt.Printf("Error initializing AgentBay client: %v\n", err)
-		return
-	}
-	
-	// Get or create a persistent context for browser data
-	contextResult, err := client.Context.Get("my-browser-context", true)
-	if err != nil {
-		fmt.Printf("Error getting context: %v\n", err)
-		return
-	}
-	
-	// Create a Browser Context configuration
-	browserContext := &agentbay.BrowserContext{
-		ContextID:  contextResult.Context.ID,
-		AutoUpload: true, // Automatically upload browser data when session ends
-	}
-	
-	// Create session parameters with the Browser Context
-	params := agentbay.NewCreateSessionParams().
-		WithBrowserContext(browserContext)
-	
-	// Create a session with Browser Context
-	result, err := client.Create(params)
-	if err != nil {
-		fmt.Printf("Error creating session: %v\n", err)
-		return
-	}
-	
-	session := result.Session
-	fmt.Printf("Session created with ID: %s and Browser Context\n", session.SessionID)
-}
-```
 
 #### Python
 
@@ -158,15 +113,36 @@ While you can achieve similar results using general Context Synchronization, Bro
 
 ### BrowserContext Structure
 
-| Field | Type | Description |
-|-------|------|-------------|
-| ContextID | string | ID of the browser context to bind to the session |
-| AutoUpload | bool | Whether to automatically upload browser data when the session ends |
-
-### WithBrowserContext Method
-
-```go
-func (p *CreateSessionParams) WithBrowserContext(browserContext *BrowserContext) *CreateSessionParams
+#### Python
+```python
+class BrowserContext:
+    def __init__(self, context_id: str, auto_upload: bool = True):
+        pass
 ```
 
-This method allows you to set the Browser Context for session parameters using a fluent interface pattern.
+| Field | Type | Description |
+|-------|------|-------------|
+| context_id | str | ID of the browser context to bind to the session |
+| auto_upload | bool | Whether to automatically upload browser data when session ends |
+
+#### TypeScript
+```typescript
+interface BrowserContext {
+  contextId: string;
+  autoUpload: boolean;
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| contextId | string | ID of the browser context to bind to the session |
+| autoUpload | boolean | Whether to automatically upload browser data when session ends |
+
+### Session Parameter Methods
+
+#### Python
+- `CreateSessionParams.browser_context`: Set the browser context configuration
+
+#### TypeScript
+- `CreateSessionParams.browserContext`: Set the browser context configuration
+- `CreateSessionParams.withBrowserContext(browserContext)`: Fluent method to set browser context

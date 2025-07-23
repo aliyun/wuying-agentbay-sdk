@@ -4,14 +4,6 @@ import (
 	"encoding/json"
 )
 
-// BrowserContext defines browser context configuration for session
-type BrowserContext struct {
-	// ContextID is the ID of the browser context to bind to the session
-	ContextID string
-	// AutoUpload determines if browser data should be automatically uploaded
-	AutoUpload bool
-}
-
 // CreateSessionParams provides a way to configure the parameters for creating a new session
 // in the AgentBay cloud environment.
 type CreateSessionParams struct {
@@ -42,9 +34,6 @@ type CreateSessionParams struct {
 	// ContextSync is a list of context synchronization configurations.
 	// These configurations define how contexts should be synchronized and mounted.
 	ContextSync []*ContextSync
-
-	// BrowserContext is an optional configuration for browser data synchronization.
-	BrowserContext *BrowserContext
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -70,12 +59,6 @@ func (p *CreateSessionParams) WithContextID(contextID string) *CreateSessionPara
 // WithImageId sets the image ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithImageId(imageId string) *CreateSessionParams {
 	p.ImageId = imageId
-	return p
-}
-
-// WithBrowserContext sets the browser context for the session parameters and returns the updated parameters.
-func (p *CreateSessionParams) WithBrowserContext(browserContext *BrowserContext) *CreateSessionParams {
-	p.BrowserContext = browserContext
 	return p
 }
 

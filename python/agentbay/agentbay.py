@@ -63,6 +63,32 @@ class AgentBay:
         # Initialize context service
         self.context = ContextService(self)
 
+    def _safe_serialize(self, obj):
+        """
+        Helper function to serialize objects to JSON-compatible format.
+        
+        Args:
+            obj: The object to serialize.
+            
+        Returns:
+            JSON-serializable representation of the object.
+        """
+        try:
+            if isinstance(obj, Enum):
+                return obj.value
+            elif hasattr(obj, "__dict__") and callable(obj.__dict__):
+                return obj.__dict__()
+            elif hasattr(obj, "__dict__"):
+                return obj.__dict__
+            elif hasattr(obj, "to_map"):
+                return obj.to_map()
+            elif hasattr(obj, "to_dict"):
+                return obj.to_dict()
+            else:
+                return str(obj)
+        except:
+            return str(obj)
+
     def create(self, params: Optional[CreateSessionParams] = None) -> SessionResult:
         """
         Create a new session in the AgentBay cloud environment.
@@ -97,30 +123,11 @@ class AgentBay:
                 for cs in params.context_syncs:
                     policy_json = None
                     if cs.policy is not None:
-                        # policy 需序列化为 JSON 字符串
+                        # Serialize policy to JSON string
                         import json as _json
 
-                        def safe_serialize(obj):
-                            try:
-                                if isinstance(obj, Enum):
-                                    return obj.value
-                                elif hasattr(obj, "__dict__") and callable(
-                                    obj.__dict__
-                                ):
-                                    return obj.__dict__()
-                                elif hasattr(obj, "__dict__"):
-                                    return obj.__dict__
-                                elif hasattr(obj, "to_map"):
-                                    return obj.to_map()
-                                elif hasattr(obj, "to_dict"):
-                                    return obj.to_dict()
-                                else:
-                                    return str(obj)
-                            except:
-                                return str(obj)
-
                         policy_json = _json.dumps(
-                            cs.policy, default=safe_serialize, ensure_ascii=False
+                            cs.policy, default=self._safe_serialize, ensure_ascii=False
                         )
                     persistence_data_list.append(
                         CreateMcpSessionRequestPersistenceDataList(
@@ -129,6 +136,37 @@ class AgentBay:
                     )
                 request.persistence_data_list = persistence_data_list
                 has_persistence_data = len(persistence_data_list) > 0
+
+            # Add BrowserContext as a ContextSync if provided
+            if hasattr(params, "browser_context") and params.browser_context:
+                from agentbay.api.models import (
+                    CreateMcpSessionRequestPersistenceDataList,
+                )
+                from agentbay.context_sync import SyncPolicy, UploadPolicy
+
+                # Create a new SyncPolicy with default values for browser context
+                upload_policy = UploadPolicy(auto_upload=params.browser_context.auto_upload)
+                sync_policy = SyncPolicy(upload_policy=upload_policy)
+
+                # Serialize policy to JSON string
+                import json as _json
+
+                policy_json = _json.dumps(
+                    sync_policy, default=self._safe_serialize, ensure_ascii=False
+                )
+
+                # Create browser context sync item
+                browser_context_sync = CreateMcpSessionRequestPersistenceDataList(
+                    context_id=params.browser_context.context_id,
+                    path="/tmp/browser-data",  # Using a constant path for browser data
+                    policy=policy_json
+                )
+
+                # Add to persistence data list or create new one if not exists
+                if not hasattr(request, 'persistence_data_list') or request.persistence_data_list is None:
+                    request.persistence_data_list = []
+                request.persistence_data_list.append(browser_context_sync)
+                has_persistence_data = True
 
             # Add labels if provided
             if params.labels:

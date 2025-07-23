@@ -1,6 +1,16 @@
 import { ContextSync, SyncPolicy } from "./context-sync";
 
 /**
+ * Browser context configuration for session.
+ */
+export interface BrowserContext {
+  /** ID of the browser context to bind to the session */
+  contextId: string;
+  /** Whether to automatically upload browser data when the session ends */
+  autoUpload: boolean;
+}
+
+/**
  * Configuration interface for CreateSessionParams
  */
 export interface CreateSessionParamsConfig {
@@ -12,6 +22,8 @@ export interface CreateSessionParamsConfig {
   contextId?: string;
   imageId?: string;
   contextSync: ContextSync[];
+  /** Optional configuration for browser data synchronization */
+  browserContext?: BrowserContext;
 }
 
 /**
@@ -51,6 +63,9 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   public contextSync: ContextSync[];
 
+  /** Optional configuration for browser data synchronization. */
+  public browserContext?: BrowserContext;
+
   constructor() {
     this.labels = {};
     this.contextSync = [];
@@ -77,6 +92,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   withImageId(imageId: string): CreateSessionParams {
     this.imageId = imageId;
+    return this;
+  }
+
+  /**
+   * WithBrowserContext sets the browser context for the session parameters and returns the updated parameters.
+   */
+  withBrowserContext(browserContext: BrowserContext): CreateSessionParams {
+    this.browserContext = browserContext;
     return this;
   }
 
@@ -138,6 +161,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
       contextId: this.contextId,
       imageId: this.imageId,
       contextSync: this.contextSync,
+      browserContext: this.browserContext,
     };
   }
 
@@ -150,6 +174,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     params.contextId = config.contextId;
     params.imageId = config.imageId;
     params.contextSync = config.contextSync || [];
+    params.browserContext = config.browserContext;
     return params;
   }
 }

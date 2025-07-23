@@ -2,6 +2,27 @@ from typing import Dict, Optional, List
 from agentbay.context_sync import ContextSync
 
 
+class BrowserContext:
+    """
+    Browser context configuration for session.
+    
+    Attributes:
+        context_id (str): ID of the browser context to bind to the session
+        auto_upload (bool): Whether to automatically upload browser data when session ends
+    """
+    
+    def __init__(self, context_id: str, auto_upload: bool = True):
+        """
+        Initialize BrowserContext.
+        
+        Args:
+            context_id (str): ID of the browser context to bind to the session
+            auto_upload (bool): Whether to automatically upload browser data when session ends
+        """
+        self.context_id = context_id
+        self.auto_upload = auto_upload
+
+
 class CreateSessionParams:
     """
     Parameters for creating a new session in the AgentBay cloud environment.
@@ -16,6 +37,7 @@ class CreateSessionParams:
             Please use context_syncs instead for more flexible and powerful data persistence.
         context_syncs (Optional[List[ContextSync]]): List of context synchronization
             configurations that define how contexts should be synchronized and mounted.
+        browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.
     """
 
     def __init__(
@@ -24,6 +46,7 @@ class CreateSessionParams:
         context_id: Optional[str] = None,  # Deprecated: Use context_syncs instead
         image_id: Optional[str] = None,
         context_syncs: Optional[List[ContextSync]] = None,
+        browser_context: Optional[BrowserContext] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -39,11 +62,14 @@ class CreateSessionParams:
                 Defaults to None.
             context_syncs (Optional[List[ContextSync]], optional): List of context
                 synchronization configurations. Defaults to None.
+            browser_context (Optional[BrowserContext], optional): Browser context configuration.
+                Defaults to None.
         """
         self.labels = labels or {}
         self.context_id = context_id
         self.image_id = image_id
         self.context_syncs = context_syncs or []
+        self.browser_context = browser_context
 
 
 class ListSessionParams:

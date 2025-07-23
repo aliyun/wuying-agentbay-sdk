@@ -9,6 +9,7 @@ import { ContextService } from "./context";
 import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
+import { BrowserContext } from "./session-params";
 
 import {
   DeleteResult,
@@ -29,6 +30,7 @@ export interface CreateSessionParams {
   labels?: Record<string, string>;
   imageId?: string;
   contextSync?: ContextSync[];
+  browserContext?: BrowserContext;
 }
 
 /**
@@ -97,12 +99,8 @@ export class AgentBay {
    * @param params - Optional parameters for creating the session
    * @returns SessionResult containing the created session and request ID
    */
-  async create(params?: CreateSessionParams): Promise<SessionResult> {
+  async create(params: CreateSessionParams = {}): Promise<SessionResult> {
     try {
-      if (!params) {
-        params = {};
-      }
-
       const request = new $_client.CreateMcpSessionRequest({
         authorization: "Bearer " + this.apiKey,
       });
@@ -143,6 +141,31 @@ export class AgentBay {
         }
         request.persistenceDataList = persistenceDataList;
         hasPersistenceData = persistenceDataList.length > 0;
+      }
+
+      // Add BrowserContext as a ContextSync if provided
+      if (params.browserContext) {
+        // Create a simple sync policy for browser context
+        const syncPolicy = {
+          uploadPolicy: { autoUpload: params.browserContext.autoUpload },
+          downloadPolicy: null,
+          deletePolicy: null,
+          bwList: null
+        };
+
+        // Create browser context sync item
+        const browserContextSync = new CreateMcpSessionRequestPersistenceDataList({
+          contextId: params.browserContext.contextId,
+          path: "/tmp/browser-data", // Using a constant path for browser data
+          policy: JSON.stringify(syncPolicy)
+        });
+
+        // Add to persistence data list or create new one if not exists
+        if (!request.persistenceDataList) {
+          request.persistenceDataList = [];
+        }
+        request.persistenceDataList.push(browserContextSync);
+        hasPersistenceData = true;
       }
 
       // Log API request
