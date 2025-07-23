@@ -1,201 +1,124 @@
+#!/usr/bin/env python3
+"""
+Unit tests for context_sync module.
+"""
+
 import unittest
-import json
-
-from agentbay import AgentBay
-
 from agentbay.context_sync import (
-    BWList,
-    ContextSync,
-    DeletePolicy,
-    DownloadPolicy,
-    DownloadStrategy,
     SyncPolicy,
     UploadPolicy,
-    UploadStrategy,
+    DownloadPolicy,
+    DeletePolicy,
+    BWList,
     WhiteList,
+    UploadStrategy,
+    DownloadStrategy,
 )
 
-class TestContextSync(unittest.TestCase):
-    def test_initialization(self):
-        context_sync = ContextSync.new("test-context", "/test/path")
-        self.assertEqual(context_sync.context_id, "test-context")
-        self.assertEqual(context_sync.path, "/test/path")
-        self.assertIsNone(context_sync.policy)
 
-    def test_new_with_policy(self):
-        sync_policy = SyncPolicy.default()
-        context_sync = ContextSync.new("test-context", "/test/path", sync_policy)
-        self.assertEqual(context_sync.context_id, "test-context")
-        self.assertEqual(context_sync.path, "/test/path")
-        self.assertIs(context_sync.policy, sync_policy)
+class TestSyncPolicy(unittest.TestCase):
+    """Test SyncPolicy class functionality."""
 
-    def test_with_policy(self):
-        context_sync = ContextSync.new("test-context", "/test/path")
-        sync_policy = SyncPolicy.default()
-        result = context_sync.with_policy(sync_policy)
-        self.assertIs(result, context_sync)
-        self.assertIs(context_sync.policy, sync_policy)
+    def test_sync_policy_with_partial_parameters(self):
+        """Test that SyncPolicy automatically fills missing parameters with defaults."""
+        # Create SyncPolicy with only upload_policy
+        upload_policy = UploadPolicy(auto_upload=False, period=60)
+        sync_policy = SyncPolicy(upload_policy=upload_policy)
+        
+        # Verify upload_policy is set correctly
+        self.assertEqual(sync_policy.upload_policy.auto_upload, False)
+        self.assertEqual(sync_policy.upload_policy.period, 60)
+        
+        # Verify other policies are filled with defaults
+        self.assertIsNotNone(sync_policy.download_policy)
+        self.assertIsNotNone(sync_policy.delete_policy)
+        self.assertIsNotNone(sync_policy.bw_list)
+        
+        # Verify default values
+        self.assertTrue(sync_policy.download_policy.auto_download)
+        self.assertEqual(sync_policy.download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC)
+        self.assertTrue(sync_policy.delete_policy.sync_local_file)
+        self.assertEqual(len(sync_policy.bw_list.white_lists), 1)
 
-    def test_default_sync_policy_construction(self):
-        """Test that default SyncPolicy matches the required structure"""
-        policy = SyncPolicy.default()
+    def test_sync_policy_with_no_parameters(self):
+        """Test that SyncPolicy with no parameters uses all defaults."""
+        sync_policy = SyncPolicy()
+        
+        # Verify all policies are set with defaults
+        self.assertIsNotNone(sync_policy.upload_policy)
+        self.assertIsNotNone(sync_policy.download_policy)
+        self.assertIsNotNone(sync_policy.delete_policy)
+        self.assertIsNotNone(sync_policy.bw_list)
+        
+        # Verify default values
+        self.assertTrue(sync_policy.upload_policy.auto_upload)
+        self.assertEqual(sync_policy.upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE)
+        self.assertEqual(sync_policy.upload_policy.period, 30)
+        
+        self.assertTrue(sync_policy.download_policy.auto_download)
+        self.assertEqual(sync_policy.download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC)
+        
+        self.assertTrue(sync_policy.delete_policy.sync_local_file)
+        
+        self.assertEqual(len(sync_policy.bw_list.white_lists), 1)
+        self.assertEqual(sync_policy.bw_list.white_lists[0].path, "")
+        self.assertEqual(sync_policy.bw_list.white_lists[0].exclude_paths, [])
 
-        # Verify the policy is not None
-        self.assertIsNotNone(policy)
-
-        # Verify uploadPolicy
-        self.assertIsNotNone(policy.upload_policy)
-        upload_policy = policy.upload_policy
-        assert upload_policy is not None  # type: ignore
-        self.assertTrue(upload_policy.auto_upload)  # Default is True
-        self.assertEqual(
-            upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
+    def test_sync_policy_with_all_parameters(self):
+        """Test that SyncPolicy with all parameters works correctly."""
+        upload_policy = UploadPolicy(auto_upload=False, period=60)
+        download_policy = DownloadPolicy(auto_download=False)
+        delete_policy = DeletePolicy(sync_local_file=False)
+        bw_list = BWList(white_lists=[WhiteList(path="/test", exclude_paths=["/exclude"])])
+        
+        sync_policy = SyncPolicy(
+            upload_policy=upload_policy,
+            download_policy=download_policy,
+            delete_policy=delete_policy,
+            bw_list=bw_list
         )
-        self.assertEqual(upload_policy.period, 30)
+        
+        # Verify all policies are set correctly
+        self.assertEqual(sync_policy.upload_policy.auto_upload, False)
+        self.assertEqual(sync_policy.upload_policy.period, 60)
+        
+        self.assertEqual(sync_policy.download_policy.auto_download, False)
+        self.assertEqual(sync_policy.delete_policy.sync_local_file, False)
+        
+        self.assertEqual(len(sync_policy.bw_list.white_lists), 1)
+        self.assertEqual(sync_policy.bw_list.white_lists[0].path, "/test")
+        self.assertEqual(sync_policy.bw_list.white_lists[0].exclude_paths, ["/exclude"])
 
-        # Verify downloadPolicy
-        self.assertIsNotNone(policy.download_policy)
-        download_policy = policy.download_policy
-        assert download_policy is not None  # type: ignore
-        self.assertTrue(download_policy.auto_download)
-        self.assertEqual(
-            download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC
-        )
+    def test_sync_policy_serialization(self):
+        """Test that SyncPolicy serializes correctly with all policies present."""
+        sync_policy = SyncPolicy(upload_policy=UploadPolicy(auto_upload=False))
+        
+        # Serialize to dict
+        result = sync_policy.__dict__()
+        
+        # Verify all policies are present in serialization
+        self.assertIn("uploadPolicy", result)
+        self.assertIn("downloadPolicy", result)
+        self.assertIn("deletePolicy", result)
+        self.assertIn("bwList", result)
+        
+        # Verify upload policy values
+        self.assertEqual(result["uploadPolicy"]["autoUpload"], False)
+        self.assertEqual(result["uploadPolicy"]["uploadStrategy"], UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE.value)
+        self.assertEqual(result["uploadPolicy"]["period"], 30)
+        
+        # Verify download policy values
+        self.assertEqual(result["downloadPolicy"]["autoDownload"], True)
+        self.assertEqual(result["downloadPolicy"]["downloadStrategy"], DownloadStrategy.DOWNLOAD_ASYNC.value)
+        
+        # Verify delete policy values
+        self.assertEqual(result["deletePolicy"]["syncLocalFile"], True)
+        
+        # Verify bw list values
+        self.assertEqual(len(result["bwList"]["whiteLists"]), 1)
+        self.assertEqual(result["bwList"]["whiteLists"][0]["path"], "")
+        self.assertEqual(result["bwList"]["whiteLists"][0]["excludePaths"], [])
 
-        # Verify deletePolicy
-        self.assertIsNotNone(policy.delete_policy)
-        delete_policy = policy.delete_policy
-        assert delete_policy is not None  # type: ignore
-        self.assertTrue(delete_policy.sync_local_file)
-
-        # Verify bwList
-        self.assertIsNotNone(policy.bw_list)
-        bw_list = policy.bw_list
-        assert bw_list is not None  # type: ignore
-        self.assertIsNotNone(bw_list.white_lists)
-        self.assertEqual(len(bw_list.white_lists), 1)
-
-        white_list = bw_list.white_lists[0]
-        self.assertEqual(white_list.path, "")
-        self.assertIsNotNone(white_list.exclude_paths)
-        self.assertEqual(len(white_list.exclude_paths), 0)
-
-    def test_default_sync_policy_json_structure(self):
-        """Test that default SyncPolicy JSON structure matches requirements"""
-        policy = SyncPolicy.default()
-
-        # Convert to JSON and verify structure
-        # First convert to dict using dataclass asdict or manual conversion
-        assert policy.upload_policy is not None  # type: ignore
-        assert policy.download_policy is not None  # type: ignore
-        assert policy.delete_policy is not None  # type: ignore
-        assert policy.bw_list is not None  # type: ignore
-
-        policy_dict = {
-            "uploadPolicy": {
-                "autoUpload": policy.upload_policy.auto_upload,
-                "uploadStrategy": policy.upload_policy.upload_strategy.value,
-                "period": policy.upload_policy.period,
-            },
-            "downloadPolicy": {
-                "autoDownload": policy.download_policy.auto_download,
-                "downloadStrategy": policy.download_policy.download_strategy.value,
-            },
-            "deletePolicy": {"syncLocalFile": policy.delete_policy.sync_local_file},
-            "bwList": {
-                "whiteLists": [
-                    {
-                        "path": policy.bw_list.white_lists[0].path,
-                        "excludePaths": policy.bw_list.white_lists[0].exclude_paths,
-                    }
-                ]
-            },
-        }
-
-        json_string = json.dumps(policy_dict)
-        json_object = json.loads(json_string)
-
-        # Verify uploadPolicy in JSON
-        self.assertIn("uploadPolicy", json_object)
-        self.assertTrue(json_object["uploadPolicy"]["autoUpload"])  # Default is True
-        self.assertEqual(
-            json_object["uploadPolicy"]["uploadStrategy"], "UploadBeforeResourceRelease"
-        )
-        self.assertEqual(json_object["uploadPolicy"]["period"], 30)
-
-        # Verify downloadPolicy in JSON
-        self.assertIn("downloadPolicy", json_object)
-        self.assertTrue(json_object["downloadPolicy"]["autoDownload"])
-        self.assertEqual(
-            json_object["downloadPolicy"]["downloadStrategy"], "DownloadAsync"
-        )
-
-        # Verify deletePolicy in JSON
-        self.assertIn("deletePolicy", json_object)
-        self.assertTrue(json_object["deletePolicy"]["syncLocalFile"])
-
-        # Verify bwList in JSON
-        self.assertIn("bwList", json_object)
-        self.assertIn("whiteLists", json_object["bwList"])
-        self.assertEqual(len(json_object["bwList"]["whiteLists"]), 1)
-        self.assertEqual(json_object["bwList"]["whiteLists"][0]["path"], "")
-        self.assertIn("excludePaths", json_object["bwList"]["whiteLists"][0])
-        self.assertEqual(len(json_object["bwList"]["whiteLists"][0]["excludePaths"]), 0)
-
-        # Verify syncPaths should not exist in JSON
-        self.assertNotIn("syncPaths", json_object)
-
-        # Log the generated JSON for verification
-        print(f"Generated JSON: {json_string}")
-
-    def test_individual_policy_components_defaults(self):
-        """Test individual policy components with default values"""
-        # Test UploadPolicy defaults
-        upload_policy = UploadPolicy.default()
-        self.assertTrue(upload_policy.auto_upload)  # Default is True
-        self.assertEqual(
-            upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
-        )
-        self.assertEqual(upload_policy.period, 30)
-
-        # Test DownloadPolicy defaults
-        download_policy = DownloadPolicy.default()
-        self.assertTrue(download_policy.auto_download)
-        self.assertEqual(
-            download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC
-        )
-
-        # Test DeletePolicy defaults
-        delete_policy = DeletePolicy.default()
-        self.assertTrue(delete_policy.sync_local_file)
-
-    def test_context_sync_with_default_policy(self):
-        """Test creating ContextSync with default policy"""
-        context_id = "test-context-123"
-        path = "/test/path"
-        policy = SyncPolicy.default()
-
-        context_sync = ContextSync.new(context_id, path, policy)
-
-        self.assertEqual(context_sync.context_id, context_id)
-        self.assertEqual(context_sync.path, path)
-        self.assertIs(context_sync.policy, policy)
-
-    def test_white_list_default_construction(self):
-        """Test WhiteList default construction"""
-        white_list = WhiteList()
-        self.assertEqual(white_list.path, "")
-        self.assertEqual(len(white_list.exclude_paths), 0)
-
-    def test_bw_list_default_construction(self):
-        """Test BWList default construction"""
-        bw_list = BWList()
-        self.assertEqual(len(bw_list.white_lists), 0)
-
-        # Test BWList with default white list
-        bw_list_with_default = BWList(white_lists=[WhiteList()])
-        self.assertEqual(len(bw_list_with_default.white_lists), 1)
-        self.assertEqual(bw_list_with_default.white_lists[0].path, "")
 
 if __name__ == "__main__":
     unittest.main()

@@ -45,6 +45,56 @@ export interface SyncPolicy {
   bwList?: BWList;
 }
 
+// SyncPolicyImpl provides a class-based implementation with default value handling
+export class SyncPolicyImpl implements SyncPolicy {
+  uploadPolicy?: UploadPolicy;
+  downloadPolicy?: DownloadPolicy;
+  deletePolicy?: DeletePolicy;
+  bwList?: BWList;
+
+  constructor(policy?: Partial<SyncPolicy>) {
+    if (policy) {
+      this.uploadPolicy = policy.uploadPolicy;
+      this.downloadPolicy = policy.downloadPolicy;
+      this.deletePolicy = policy.deletePolicy;
+      this.bwList = policy.bwList;
+    }
+    this.ensureDefaults();
+  }
+
+  private ensureDefaults(): void {
+    if (!this.uploadPolicy) {
+      this.uploadPolicy = newUploadPolicy();
+    }
+    if (!this.downloadPolicy) {
+      this.downloadPolicy = newDownloadPolicy();
+    }
+    if (!this.deletePolicy) {
+      this.deletePolicy = newDeletePolicy();
+    }
+    if (!this.bwList) {
+      this.bwList = {
+        whiteLists: [
+          {
+            path: "",
+            excludePaths: [],
+          },
+        ],
+      };
+    }
+  }
+
+  toJSON(): SyncPolicy {
+    this.ensureDefaults();
+    return {
+      uploadPolicy: this.uploadPolicy,
+      downloadPolicy: this.downloadPolicy,
+      deletePolicy: this.deletePolicy,
+      bwList: this.bwList,
+    };
+  }
+}
+
 // ContextSync defines the context synchronization configuration
 export class ContextSync {
   contextId: string;
@@ -103,6 +153,11 @@ export function newSyncPolicy(): SyncPolicy {
       ],
     },
   };
+}
+
+// NewSyncPolicyWithDefaults creates a new sync policy with partial parameters and fills defaults
+export function newSyncPolicyWithDefaults(policy?: Partial<SyncPolicy>): SyncPolicy {
+  return new SyncPolicyImpl(policy).toJSON();
 }
 
 // NewContextSync creates a new context sync configuration

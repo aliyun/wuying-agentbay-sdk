@@ -1,5 +1,7 @@
 package agentbay
 
+import "encoding/json"
+
 // UploadStrategy defines the upload strategy for context synchronization
 type UploadStrategy string
 
@@ -105,6 +107,38 @@ func NewSyncPolicy() *SyncPolicy {
 			},
 		},
 	}
+}
+
+// ensureDefaults ensures all policy fields have default values if not provided
+func (sp *SyncPolicy) ensureDefaults() {
+	if sp.UploadPolicy == nil {
+		sp.UploadPolicy = NewUploadPolicy()
+	}
+	if sp.DownloadPolicy == nil {
+		sp.DownloadPolicy = NewDownloadPolicy()
+	}
+	if sp.DeletePolicy == nil {
+		sp.DeletePolicy = NewDeletePolicy()
+	}
+	if sp.BWList == nil {
+		sp.BWList = &BWList{
+			WhiteLists: []*WhiteList{
+				{
+					Path:         "",
+					ExcludePaths: []string{},
+				},
+			},
+		}
+	}
+}
+
+// MarshalJSON ensures all fields have default values before marshaling
+func (sp *SyncPolicy) MarshalJSON() ([]byte, error) {
+	sp.ensureDefaults()
+
+	// Create a temporary struct to avoid infinite recursion
+	type SyncPolicyAlias SyncPolicy
+	return json.Marshal((*SyncPolicyAlias)(sp))
 }
 
 // ContextSync defines the context synchronization configuration

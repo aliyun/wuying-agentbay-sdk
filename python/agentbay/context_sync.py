@@ -145,6 +145,17 @@ class SyncPolicy:
     delete_policy: Optional[DeletePolicy] = None
     bw_list: Optional[BWList] = None
 
+    def __post_init__(self):
+        """Post-initialization to ensure all policies have default values if not provided"""
+        if self.upload_policy is None:
+            self.upload_policy = UploadPolicy.default()
+        if self.download_policy is None:
+            self.download_policy = DownloadPolicy.default()
+        if self.delete_policy is None:
+            self.delete_policy = DeletePolicy.default()
+        if self.bw_list is None:
+            self.bw_list = BWList(white_lists=[WhiteList(path="", exclude_paths=[])])
+
     @classmethod
     def default(cls):
         """Creates a new sync policy with default values"""
