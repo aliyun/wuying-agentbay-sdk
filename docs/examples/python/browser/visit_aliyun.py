@@ -48,10 +48,24 @@ async def main():
                 page = await browser.new_page()
                 await page.goto("https://www.aliyun.com")
                 print("page.title() =", await page.title())
+            
+                await page.wait_for_timeout(5000)
+
+                #修改页面字体为微软雅黑
+                await page.evaluate("""
+                    document.body.style.fontFamily = 'Georgia, 'Times New Roman', Times, serif';
+                """)
+          
+                await page.wait_for_timeout(5000)
+            
+                #放大页面内容至200%
+                await page.evaluate("""
+                    document.body.style.transform = 'scale(2)';
+                    document.body.style.transformOrigin = 'top left';
+                """)
+            
                 await page.wait_for_timeout(10000)
                 await browser.close()
-        else:
-            print("Failed to initialize browser")
 
 if __name__ == "__main__":
     asyncio.run(main())

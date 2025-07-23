@@ -93,6 +93,7 @@ async def main():
 
                     last_transposed_grid = None
                     transposed_grid_not_changed_times = 0
+                    last_move_history = []
 
                     while True:
                         print("🔄 Game loop iteration...")
@@ -130,25 +131,33 @@ async def main():
                                 transposed_grid_not_changed_times += 1
                             else:
                                 transposed_grid_not_changed_times = 0
+                                last_move_history = []
                             last_transposed_grid = transposed_grid
 
+                            instruction_str = f"""
+                            Based on the current game state:
+                            - Score: {gameState.score}
+                            - Highest tile: {gameState.highestTile}
+                            - Grid: This is a 4x4 matrix ordered by row (top to bottom) and column (left to right). The rows are stacked vertically, and tiles can move vertically between rows or horizontally between columns:{grid_instruction}
+                            What is the best move (up/down/left/right)? Consider:
+                            1. Keeping high value tiles in corners (bottom left, bottom right, top left, top right)
+                            2. Maintaining a clear path to merge tiles
+                            3. Avoiding moves that could block merges
+                            4. Avoiding moves that merge no blocks as possible
+                            5. Only adjacent tiles of the same value can merge
+                            6. Making a move will move all tiles in that direction until they hit a tile of a different value or the edge of the board
+                            7. Tiles cannot move past the edge of the board
+                            8. Each move must move at least one tile
+                            """
+
+                            if transposed_grid_not_changed_times >= 1:
+                                instruction_str += f"""
+                                9. Do not generate move value in {last_move_history}
+                                10. If last move value {last_move_history[-1]} moves up or down, then generate move value with left or right direction, otherwise generate move value with up or down direction
+                                """
+
                             next_move_options = ExtractOptions(
-                                instruction=
-                                f"""B
-                                ased on the current game state:
-                                - Score: {gameState.score}
-                                - Highest tile: {gameState.highestTile}
-                                - Grid: This is a 4x4 matrix ordered by row (top to bottom) and column (left to right). The rows are stacked vertically, and tiles can move vertically between rows or horizontally between columns:{grid_instruction}
-                                What is the best move (up/down/left/right)? Consider:
-                                1. Keeping high value tiles in corners (bottom left, bottom right, top left, top right)
-                                2. Maintaining a clear path to merge tiles
-                                3. Avoiding moves that could block merges
-                                4. Avoiding moves that merge no blocks as possible
-                                5. Only adjacent tiles of the same value can merge
-                                6. Making a move will move all tiles in that direction until they hit a tile of a different value or the edge of the board
-                                7. Tiles cannot move past the edge of the board
-                                8. Each move must move at least one tile
-                                """,
+                                instruction=instruction_str,
                                 schema=MoveAnalysis
                             )
                             success, next_move = await session.browser.agent.extract_async(page, next_move_options)
@@ -157,13 +166,7 @@ async def main():
                             else:
                                 print("❌ Failed to extract next move, retry observing")
                                 continue
-
-                            if transposed_grid_not_changed_times >= 3:
-                                # Randomly select a move that is not current move
-                                all_moves = [0, 1, 2, 3, 4]
-                                all_moves.remove(selected_move if selected_move is not None else 4)
-                                selected_move = random.choice(all_moves)
-                                print(f"🔄 Game loop iteration... (transposed_grid_not_changed_times > 5) selected_move: {selected_move}")
+                            last_move_history.append(selected_move)
 
                             move_key = {
                                 0: "ArrowUp",
