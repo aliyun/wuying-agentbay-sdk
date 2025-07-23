@@ -51,14 +51,14 @@ async def main():
             
                 await page.wait_for_timeout(5000)
 
-                #修改页面字体为微软雅黑
+                # Modify page font to Georgia, 'Times New Roman', Times, serif
                 await page.evaluate("""
                     document.body.style.fontFamily = 'Georgia, 'Times New Roman', Times, serif';
                 """)
           
                 await page.wait_for_timeout(5000)
             
-                #放大页面内容至200%
+                # Scale page content to 200%
                 await page.evaluate("""
                     document.body.style.transform = 'scale(2)';
                     document.body.style.transformOrigin = 'top left';
