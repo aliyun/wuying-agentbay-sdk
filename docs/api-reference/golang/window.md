@@ -2,15 +2,9 @@
 
 The Window class provides methods for managing windows in the AgentBay cloud environment, including listing windows, getting the active window, and manipulating window states.
 
-## Class Properties
+## Overview
 
-###
-
-```python
-class Window:
-    def __init__(self, session):
-        self.session = session
-```
+The Window class is accessed through a session instance and provides methods for window management in the cloud environment.
 
 ## Data Types
 
@@ -174,40 +168,82 @@ func (wm *WindowManager) FocusMode(on bool) error
 
 ## Usage Examples
 
-###
+### Window Management
 
-```python
-# Create a session
-session = agent_bay.create()
+```go
+package main
 
-# List root windows
-root_windows = session.window.list_root_windows()
-for window in root_windows:
-    print(f"Window: {window.title} (ID: {window.window_id}, Process: {window.pname}, PID: {window.pid})")
+import (
+    "fmt"
+    "log"
+)
 
-# Get active window
-active_window = session.window.get_active_window()
-print(f"Active window: {active_window.title} (ID: {active_window.window_id})")
+func main() {
+    // Create a session
+    agentBay := agentbay.NewAgentBay("your-api-key")
+    sessionResult, err := agentBay.Create(nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    session := sessionResult.Session
 
-# Manipulate windows
-if root_windows:
-    window_id = root_windows[0].window_id
-    
-    # Maximize window
-    session.window.maximize_window(window_id)
-    print("Window maximized")
-    
-    # Restore window
-    session.window.restore_window(window_id)
-    print("Window restored")
-    
-    # Resize window
-    session.window.resize_window(window_id, 800, 600)
-    print("Window resized")
-    
-    # Activate window
-    session.window.activate_window(window_id)
-    print("Window activated")
+    // List root windows
+    windowsResult, err := session.Window.ListRootWindows(3000)
+    if err != nil {
+        log.Printf("Error listing windows: %v", err)
+    } else {
+        for _, window := range windowsResult.Windows {
+            fmt.Printf("Window: %s (ID: %d, Process: %s, PID: %d)\n", 
+                window.Title, window.WindowID, window.PName, window.PID)
+        }
+    }
+
+    // Get active window
+    activeResult, err := session.Window.GetActiveWindow(3000)
+    if err != nil {
+        log.Printf("Error getting active window: %v", err)
+    } else {
+        fmt.Printf("Active window: %s (ID: %d)\n", 
+            activeResult.Window.Title, activeResult.Window.WindowID)
+    }
+
+    // Manipulate windows
+    if len(windowsResult.Windows) > 0 {
+        windowID := windowsResult.Windows[0].WindowID
+        
+        // Maximize window
+        err = session.Window.MaximizeWindow(windowID)
+        if err != nil {
+            log.Printf("Error maximizing window: %v", err)
+        } else {
+            fmt.Println("Window maximized")
+        }
+        
+        // Restore window
+        err = session.Window.RestoreWindow(windowID)
+        if err != nil {
+            log.Printf("Error restoring window: %v", err)
+        } else {
+            fmt.Println("Window restored")
+        }
+        
+        // Resize window
+        err = session.Window.ResizeWindow(windowID, 800, 600)
+        if err != nil {
+            log.Printf("Error resizing window: %v", err)
+        } else {
+            fmt.Println("Window resized")
+        }
+        
+        // Activate window
+        err = session.Window.ActivateWindow(windowID)
+        if err != nil {
+            log.Printf("Error activating window: %v", err)
+        } else {
+            fmt.Println("Window activated")
+        }
+    }
+}
 ```
 
 ## Related Resources

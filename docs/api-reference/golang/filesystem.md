@@ -204,36 +204,82 @@ WriteLargeFile(path, content string, chunkSize int) (bool, error)
 
 ## Usage Examples
 
-###
+### Basic File Operations
 
-```python
-# Create a session
-session = agent_bay.create()
+```go
+package main
 
-# Read a file
-content = session.filesystem.read_file("/etc/hosts")
-print(f"File content: {content}")
+import (
+    "fmt"
+    "log"
+)
 
-# Create a directory
-session.filesystem.create_directory('/tmp/test')
+func main() {
+    // Create a session
+    agentBay := agentbay.NewAgentBay("your-api-key")
+    sessionResult, err := agentBay.Create(nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    session := sessionResult.Session
 
-# Write a file
-session.filesystem.write_file('/tmp/test/example.txt', 'Hello, world!')
+    // Read a file
+    readResult, err := session.FileSystem.ReadFile("/etc/hosts")
+    if err != nil {
+        log.Printf("Error reading file: %v", err)
+    } else {
+        fmt.Printf("File content: %s\n", readResult.Content)
+    }
 
-# Edit a file
-session.filesystem.edit_file('/tmp/test/example.txt', [
-    {'oldText': 'Hello', 'newText': 'Hi'}
-])
+    // Create a directory
+    success, err := session.FileSystem.CreateDirectory("/tmp/test")
+    if err != nil {
+        log.Printf("Error creating directory: %v", err)
+    } else {
+        fmt.Printf("Directory created: %t\n", success)
+    }
 
-# Get file info
-file_info = session.filesystem.get_file_info('/tmp/test/example.txt')
-print(f"File size: {file_info['size']}")
+    // Write a file
+    writeResult, err := session.FileSystem.WriteFile("/tmp/test/example.txt", "Hello, world!", "overwrite")
+    if err != nil {
+        log.Printf("Error writing file: %v", err)
+    } else {
+        fmt.Printf("File written successfully: %t\n", writeResult.Success)
+    }
 
-# List directory
-entries = session.filesystem.list_directory('/tmp/test')
-for entry in entries:
-    entry_type = "Directory" if entry["isDirectory"] else "File"
-    print(f"{entry_type}: {entry['name']}")
+    // Edit a file
+    edits := []map[string]string{
+        {"oldText": "Hello", "newText": "Hi"},
+    }
+    success, err = session.FileSystem.EditFile("/tmp/test/example.txt", edits, false)
+    if err != nil {
+        log.Printf("Error editing file: %v", err)
+    } else {
+        fmt.Printf("File edited successfully: %t\n", success)
+    }
+
+    // Get file info
+    fileInfo, err := session.FileSystem.GetFileInfo("/tmp/test/example.txt")
+    if err != nil {
+        log.Printf("Error getting file info: %v", err)
+    } else {
+        fmt.Printf("File info: %s\n", fileInfo)
+    }
+
+    // List directory
+    listResult, err := session.FileSystem.ListDirectory("/tmp/test")
+    if err != nil {
+        log.Printf("Error listing directory: %v", err)
+    } else {
+        for _, entry := range listResult.Entries {
+            entryType := "Directory"
+            if !entry.IsDirectory {
+                entryType = "File"
+            }
+            fmt.Printf("%s: %s\n", entryType, entry.Name)
+        }
+    }
+}
 ```
 
 ## Related Resources

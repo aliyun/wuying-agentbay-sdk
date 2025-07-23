@@ -4,26 +4,26 @@ The `AgentBay` class is the main entry point for interacting with the AgentBay c
 
 ## Constructor
 
-###
+### new AgentBay()
 
-```python
-AgentBay(api_key=None, cfg=None)
+```typescript
+constructor(config: AgentBayConfig)
 ```
 
 **Parameters:**
-- `api_key` (str, optional): The API key for authentication. If not provided, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
-- `cfg` (Config, optional): Configuration object containing region_id, endpoint, and timeout_ms. If not provided, default configuration is used.
+- `config` (AgentBayConfig): Configuration object containing the API key and optional settings.
+  - `apiKey` (string): The API key for authentication. If not provided, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
+  - `regionId` (string, optional): The region ID for the service.
+  - `endpoint` (string, optional): The service endpoint.
+  - `timeoutMs` (number, optional): Request timeout in milliseconds.
 
-**Raises:**
-- `ValueError`: If no API key is provided and `AGENTBAY_API_KEY` environment variable is not set.
+**Throws:**
+- `Error`: If no API key is provided and `AGENTBAY_API_KEY` environment variable is not set.
 
 ## Properties
 
-###
+### context
 
-```python
-context
-```
 A `ContextService` instance for managing persistent contexts. See the [Context API Reference](context.md) for more details.
 
 ## Methods

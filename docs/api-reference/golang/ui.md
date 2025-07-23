@@ -178,50 +178,98 @@ Screenshot() (*UIResult, error)
 
 ## UI Element Structure
 
-UI elements returned by `getClickableUIElements` and `getAllUIElements` have the following structure:
+UI elements returned by `GetClickableUIElements` and `GetAllUIElements` have the following structure:
 
-```typescript
-interface UIElement {
-  bounds: string;
-  className: string;
-  text: string;
-  type: string;
-  resourceId: string;
-  index: number;
-  isParent: boolean;
-  children: UIElement[];
+```go
+type UIElement struct {
+    Bounds      string      `json:"bounds"`
+    ClassName   string      `json:"className"`
+    Text        string      `json:"text"`
+    Type        string      `json:"type"`
+    ResourceID  string      `json:"resourceId"`
+    Index       int         `json:"index"`
+    IsParent    bool        `json:"isParent"`
+    Children    []UIElement `json:"children"`
 }
 ```
 
 ## Usage Examples
 
-###
+### UI Interactions
 
-```python
-# Take a screenshot
-screenshot = session.ui.screenshot()
-print(f"Screenshot data length: {len(screenshot)} characters")
+```go
+package main
 
-# Get all UI elements
-elements = session.ui.get_all_ui_elements()
-print(f"Retrieved {len(elements)} UI elements")
+import (
+    "fmt"
+    "log"
+)
 
-# Get clickable UI elements
-clickable_elements = session.ui.get_clickable_ui_elements()
-print(f"Retrieved {len(clickable_elements)} clickable UI elements")
+func main() {
+    // Create a session
+    agentBay := agentbay.NewAgentBay("your-api-key")
+    sessionResult, err := agentBay.Create(nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    session := sessionResult.Session
 
-# Send a key press
-result = session.ui.send_key(KeyCode.HOME)
-print(f"Send key result: {result}")
+    // Take a screenshot
+    screenshotResult, err := session.UI.Screenshot()
+    if err != nil {
+        log.Printf("Error taking screenshot: %v", err)
+    } else {
+        fmt.Printf("Screenshot taken successfully: %t\n", screenshotResult.Success)
+    }
 
-# Input text
-session.ui.input_text("Hello, world!")
+    // Get all UI elements
+    elementsResult, err := session.UI.GetAllUIElements(2000)
+    if err != nil {
+        log.Printf("Error getting UI elements: %v", err)
+    } else {
+        fmt.Printf("Retrieved %d UI elements\n", len(elementsResult.Elements))
+    }
 
-# Perform a swipe gesture
-session.ui.swipe(100, 500, 100, 100, 500)
+    // Get clickable UI elements
+    clickableResult, err := session.UI.GetClickableUIElements(2000)
+    if err != nil {
+        log.Printf("Error getting clickable elements: %v", err)
+    } else {
+        fmt.Printf("Retrieved %d clickable UI elements\n", len(clickableResult.Elements))
+    }
 
-# Click on the screen
-session.ui.click(200, 300)
+    // Send a key press
+    keyResult, err := session.UI.SendKey(3) // HOME key
+    if err != nil {
+        log.Printf("Error sending key: %v", err)
+    } else {
+        fmt.Printf("Key sent successfully: %t\n", keyResult.Success)
+    }
+
+    // Input text
+    inputResult, err := session.UI.InputText("Hello, world!")
+    if err != nil {
+        log.Printf("Error inputting text: %v", err)
+    } else {
+        fmt.Printf("Text input successfully: %t\n", inputResult.Success)
+    }
+
+    // Perform a swipe gesture
+    swipeResult, err := session.UI.Swipe(100, 500, 100, 100, 500)
+    if err != nil {
+        log.Printf("Error performing swipe: %v", err)
+    } else {
+        fmt.Printf("Swipe performed successfully: %t\n", swipeResult.Success)
+    }
+
+    // Click on the screen
+    clickResult, err := session.UI.Click(200, 300, "left")
+    if err != nil {
+        log.Printf("Error clicking: %v", err)
+    } else {
+        fmt.Printf("Click performed successfully: %t\n", clickResult.Success)
+    }
+}
 ```
 
 ## Related Resources
