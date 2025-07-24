@@ -31,6 +31,7 @@ export interface CreateSessionParams {
   imageId?: string;
   contextSync?: ContextSync[];
   browserContext?: BrowserContext;
+  isVpc?: boolean;
 }
 
 /**
@@ -119,6 +120,9 @@ export class AgentBay {
       if (params.imageId) {
         request.imageId = params.imageId;
       }
+
+      // Add VPC resource if specified
+      request.vpcResource = params.isVpc || false;
 
       // Flag to indicate if we need to wait for context synchronization
       let hasPersistenceData = false;
@@ -239,6 +243,15 @@ export class AgentBay {
       const session = new Session(this, sessionId);
       if (resourceUrl) {
         session.resourceUrl = resourceUrl;
+      }
+
+      // Set VPC-related information from response
+      session.isVpc = params.isVpc || false;
+      if (data.networkInterfaceIp) {
+        session.networkInterfaceIp = data.networkInterfaceIp;
+      }
+      if (data.httpPort) {
+        session.httpPort = data.httpPort;
       }
 
       this.sessions.set(session.sessionId, session);

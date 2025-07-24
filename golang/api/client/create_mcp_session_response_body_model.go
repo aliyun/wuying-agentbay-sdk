@@ -99,12 +99,15 @@ func (s *CreateMcpSessionResponseBody) Validate() error {
 }
 
 type CreateMcpSessionResponseBodyData struct {
-	AppInstanceId *string `json:"AppInstanceId,omitempty" xml:"AppInstanceId,omitempty"`
-	ErrMsg        *string `json:"ErrMsg,omitempty" xml:"ErrMsg,omitempty"`
-	ResourceId    *string `json:"ResourceId,omitempty" xml:"ResourceId,omitempty"`
-	ResourceUrl   *string `json:"ResourceUrl,omitempty" xml:"ResourceUrl,omitempty"`
-	SessionId     *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
-	Success       *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
+	AppInstanceId      *string `json:"AppInstanceId,omitempty" xml:"AppInstanceId,omitempty"`
+	ErrMsg             *string `json:"ErrMsg,omitempty" xml:"ErrMsg,omitempty"`
+	HttpPort           *string `json:"HttpPort,omitempty" xml:"HttpPort,omitempty"`
+	NetworkInterfaceIp *string `json:"NetworkInterfaceIp,omitempty" xml:"NetworkInterfaceIp,omitempty"`
+	ResourceId         *string `json:"ResourceId,omitempty" xml:"ResourceId,omitempty"`
+	ResourceUrl        *string `json:"ResourceUrl,omitempty" xml:"ResourceUrl,omitempty"`
+	SessionId          *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	Success            *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
+	VpcResource        *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
 }
 
 func (s CreateMcpSessionResponseBodyData) String() string {
@@ -139,6 +142,18 @@ func (s *CreateMcpSessionResponseBodyData) GetSuccess() *bool {
 	return s.Success
 }
 
+func (s *CreateMcpSessionResponseBodyData) GetHttpPort() *string {
+	return s.HttpPort
+}
+
+func (s *CreateMcpSessionResponseBodyData) GetNetworkInterfaceIp() *string {
+	return s.NetworkInterfaceIp
+}
+
+func (s *CreateMcpSessionResponseBodyData) GetVpcResource() *bool {
+	return s.VpcResource
+}
+
 func (s *CreateMcpSessionResponseBodyData) SetAppInstanceId(v string) *CreateMcpSessionResponseBodyData {
 	s.AppInstanceId = &v
 	return s
@@ -166,6 +181,21 @@ func (s *CreateMcpSessionResponseBodyData) SetSessionId(v string) *CreateMcpSess
 
 func (s *CreateMcpSessionResponseBodyData) SetSuccess(v bool) *CreateMcpSessionResponseBodyData {
 	s.Success = &v
+	return s
+}
+
+func (s *CreateMcpSessionResponseBodyData) SetHttpPort(v string) *CreateMcpSessionResponseBodyData {
+	s.HttpPort = &v
+	return s
+}
+
+func (s *CreateMcpSessionResponseBodyData) SetNetworkInterfaceIp(v string) *CreateMcpSessionResponseBodyData {
+	s.NetworkInterfaceIp = &v
+	return s
+}
+
+func (s *CreateMcpSessionResponseBodyData) SetVpcResource(v bool) *CreateMcpSessionResponseBodyData {
+	s.VpcResource = &v
 	return s
 }
 

@@ -179,6 +179,10 @@ export class Client extends OpenApi {
       body["SessionId"] = request.sessionId;
     }
 
+    if (!$dara.isNull(request.vpcResource)) {
+      body["VpcResource"] = request.vpcResource;
+    }
+
     const req = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),
     });

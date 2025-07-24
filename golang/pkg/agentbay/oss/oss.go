@@ -1,11 +1,8 @@
 package oss
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
-	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
@@ -28,7 +25,7 @@ type EnvInitResult struct {
 	Result string
 }
 
-// OSSManager handles object storage operations in the AgentBay cloud environment.
+// OSSManager handles OSS operations in the AgentBay cloud environment.
 type OSSManager struct {
 	Session interface {
 		GetAPIKey() string
@@ -37,133 +34,32 @@ type OSSManager struct {
 	}
 }
 
-// callMcpToolResult represents the result of a CallMcpTool operation
-type callMcpToolResult struct {
-	Data        map[string]interface{}
-	Content     []map[string]interface{}
-	TextContent string // Extracted text field content
-	IsError     bool
-	ErrorMsg    string
-	StatusCode  int32
-	RequestID   string // Added field to store request ID
+// callMcpToolHelper is a helper that calls the session's CallMcpTool method
+func (o *OSSManager) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (interface{}, error) {
+	// Type assertion to access Session's CallMcpTool method
+	if sessionWithCallTool, ok := o.Session.(interface {
+		CallMcpTool(toolName string, args interface{}, defaultErrorMsg string) (interface{}, error)
+	}); ok {
+		return sessionWithCallTool.CallMcpTool(toolName, args, defaultErrorMsg)
+	}
+	return nil, fmt.Errorf("session does not support CallMcpTool method")
 }
 
-// callMcpTool calls the MCP tool and checks for errors in the response
-func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
-	// Marshal arguments to JSON
-	argsJSON, err := json.Marshal(args)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal args: %w", err)
-	}
-
-	// Create the request
-	callToolRequest := &mcp.CallMcpToolRequest{
-		Authorization: tea.String("Bearer " + o.Session.GetAPIKey()),
-		SessionId:     tea.String(o.Session.GetSessionId()),
-		Name:          tea.String(toolName),
-		Args:          tea.String(string(argsJSON)),
-	}
-
-	// Log API request
-	fmt.Println("API Call: CallMcpTool -", toolName)
-	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
-
-	// Call the MCP tool
-	response, err := o.Session.GetClient().CallMcpTool(callToolRequest)
-
-	// Log API response
-	if err != nil {
-		fmt.Println("Error calling CallMcpTool -", toolName, ":", err)
-		return nil, fmt.Errorf("failed to call %s: %w", toolName, err)
-	}
-	if response != nil && response.Body != nil {
-		fmt.Println("Response from CallMcpTool -", toolName, ":", response.Body)
-	}
-
-	// Extract data from response
-	data, ok := response.Body.Data.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid response data format")
-	}
-
-	// Extract RequestID
-	var requestID string
-	if response != nil && response.Body != nil && response.Body.RequestId != nil {
-		requestID = *response.Body.RequestId
-	}
-
-	// Create result object
-	result := &callMcpToolResult{
-		Data:       data,
-		StatusCode: *response.StatusCode,
-		RequestID:  requestID, // Add RequestID
-	}
-
-	// Check if there's an error in the response
-	isError, ok := data["isError"].(bool)
-	if ok && isError {
-		result.IsError = true
-
-		// Try to extract the error message from the content field
-		//nolint:govet
-		contentArray, ok := data["content"].([]interface{})
-		if ok && len(contentArray) > 0 {
-			// Convert content array to a more usable format
-			result.Content = make([]map[string]interface{}, 0, len(contentArray))
-			for _, item := range contentArray {
-				//nolint:govet
-				contentItem, ok := item.(map[string]interface{})
-				if !ok {
-					continue
-				}
-				result.Content = append(result.Content, contentItem)
-			}
-
-			// Extract error message from the first content item
-			if len(result.Content) > 0 {
-				//nolint:govet
-				text, ok := result.Content[0]["text"].(string)
-				if ok {
-					result.ErrorMsg = text
-					return result, fmt.Errorf("%s", text)
-				}
-			}
+// Helper function to extract common result fields from CallMcpTool result
+func (o *OSSManager) extractCallResult(result interface{}) (string, string, map[string]interface{}, error) {
+	if callResult, ok := result.(interface {
+		GetRequestID() string
+		GetTextContent() string
+		GetData() map[string]interface{}
+		GetIsError() bool
+		GetErrorMsg() string
+	}); ok {
+		if callResult.GetIsError() {
+			return "", "", nil, fmt.Errorf(callResult.GetErrorMsg())
 		}
-		return result, fmt.Errorf("%s", defaultErrorMsg)
+		return callResult.GetRequestID(), callResult.GetTextContent(), callResult.GetData(), nil
 	}
-
-	// Extract content array if it exists
-	//nolint:govet
-	contentArray, ok := data["content"].([]interface{})
-	if ok {
-		result.Content = make([]map[string]interface{}, 0, len(contentArray))
-		for _, item := range contentArray {
-			//nolint:govet
-			contentItem, ok := item.(map[string]interface{})
-			if !ok {
-				continue
-			}
-			result.Content = append(result.Content, contentItem)
-		}
-
-		// Extract text content from the content items
-		var textBuilder strings.Builder
-		for i, item := range result.Content {
-			//nolint:govet
-			text, ok := item["text"].(string)
-			if !ok {
-				continue
-			}
-
-			if i > 0 {
-				textBuilder.WriteString("\n")
-			}
-			textBuilder.WriteString(text)
-		}
-		result.TextContent = textBuilder.String()
-	}
-
-	return result, nil
+	return "", "", nil, fmt.Errorf("invalid result type from CallMcpTool")
 }
 
 // NewOss creates a new Oss object.
@@ -177,9 +73,8 @@ func NewOss(session interface {
 	}
 }
 
-// EnvInit creates and initializes OSS environment variables with the specified credentials.
+// EnvInit initializes the OSS environment.
 func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (*EnvInitResult, error) {
-	// Prepare arguments for the oss_env_init tool
 	args := map[string]interface{}{
 		"access_key_id":     accessKeyId,
 		"access_key_secret": accessKeySecret,
@@ -194,18 +89,23 @@ func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoi
 		args["region"] = region
 	}
 
-	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpTool("oss_env_init", args, "error initializing OSS environment")
+	// Use the session's CallMcpTool method
+	result, err := o.callMcpToolHelper("oss_env_init", args, "error initializing OSS environment")
 	if err != nil {
 		return nil, err
 	}
 
-	// Return result with RequestID
+	// Extract result fields using helper
+	requestID, textContent, _, err := o.extractCallResult(result)
+	if err != nil {
+		return nil, err
+	}
+
 	return &EnvInitResult{
 		ApiResponse: models.ApiResponse{
-			RequestID: mcpResult.RequestID,
+			RequestID: requestID,
 		},
-		Result: mcpResult.TextContent,
+		Result: textContent,
 	}, nil
 }
 
@@ -219,7 +119,7 @@ func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) 
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpTool("oss_upload", args, "error uploading to OSS")
+	mcpResult, err := o.callMcpToolHelper("oss_upload", args, "error uploading to OSS")
 	if err != nil {
 		return nil, err
 	}
@@ -227,9 +127,13 @@ func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) 
 	// Return the result with RequestID
 	return &UploadResult{
 		ApiResponse: models.ApiResponse{
-			RequestID: mcpResult.RequestID,
+			RequestID: mcpResult.(interface {
+				GetRequestID() string
+			}).GetRequestID(),
 		},
-		URL: mcpResult.TextContent,
+		URL: mcpResult.(interface {
+			GetTextContent() string
+		}).GetTextContent(),
 	}, nil
 }
 
@@ -242,7 +146,7 @@ func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpTool("oss_upload_annon", args, "error uploading anonymously")
+	mcpResult, err := o.callMcpToolHelper("oss_upload_annon", args, "error uploading anonymously")
 	if err != nil {
 		return nil, err
 	}
@@ -250,9 +154,13 @@ func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 	// Return the result with RequestID
 	return &UploadResult{
 		ApiResponse: models.ApiResponse{
-			RequestID: mcpResult.RequestID,
+			RequestID: mcpResult.(interface {
+				GetRequestID() string
+			}).GetRequestID(),
 		},
-		URL: mcpResult.TextContent,
+		URL: mcpResult.(interface {
+			GetTextContent() string
+		}).GetTextContent(),
 	}, nil
 }
 
@@ -266,7 +174,7 @@ func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, err
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpTool("oss_download", args, "error downloading from OSS")
+	mcpResult, err := o.callMcpToolHelper("oss_download", args, "error downloading from OSS")
 	if err != nil {
 		return nil, err
 	}
@@ -274,9 +182,13 @@ func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, err
 	// Return the result with RequestID
 	return &DownloadResult{
 		ApiResponse: models.ApiResponse{
-			RequestID: mcpResult.RequestID,
+			RequestID: mcpResult.(interface {
+				GetRequestID() string
+			}).GetRequestID(),
 		},
-		LocalPath: mcpResult.TextContent,
+		LocalPath: mcpResult.(interface {
+			GetTextContent() string
+		}).GetTextContent(),
 	}, nil
 }
 
@@ -289,7 +201,7 @@ func (o *OSSManager) DownloadAnonymous(url, path string) (*DownloadResult, error
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpTool("oss_download_annon", args, "error downloading anonymously")
+	mcpResult, err := o.callMcpToolHelper("oss_download_annon", args, "error downloading anonymously")
 	if err != nil {
 		return nil, err
 	}
@@ -297,8 +209,12 @@ func (o *OSSManager) DownloadAnonymous(url, path string) (*DownloadResult, error
 	// Return the result with RequestID
 	return &DownloadResult{
 		ApiResponse: models.ApiResponse{
-			RequestID: mcpResult.RequestID,
+			RequestID: mcpResult.(interface {
+				GetRequestID() string
+			}).GetRequestID(),
 		},
-		LocalPath: mcpResult.TextContent,
+		LocalPath: mcpResult.(interface {
+			GetTextContent() string
+		}).GetTextContent(),
 	}, nil
 }

@@ -5,18 +5,24 @@ import * as $dara from '@darabonba/typescript';
 export class CreateMcpSessionResponseBodyData extends $dara.Model {
   appInstanceId?: string;
   errMsg?: string;
+  httpPort?: string;
+  networkInterfaceIp?: string;
   resourceId?: string;
   resourceUrl?: string;
   sessionId?: string;
   success?: boolean;
+  vpcResource?: boolean;
   static names(): { [key: string]: string } {
     return {
       appInstanceId: 'AppInstanceId',
       errMsg: 'ErrMsg',
+      httpPort: 'HttpPort',
+      networkInterfaceIp: 'NetworkInterfaceIp',
       resourceId: 'ResourceId',
       resourceUrl: 'ResourceUrl',
       sessionId: 'SessionId',
       success: 'Success',
+      vpcResource: 'VpcResource',
     };
   }
 
@@ -24,10 +30,13 @@ export class CreateMcpSessionResponseBodyData extends $dara.Model {
     return {
       appInstanceId: 'string',
       errMsg: 'string',
+      httpPort: 'string',
+      networkInterfaceIp: 'string',
       resourceId: 'string',
       resourceUrl: 'string',
       sessionId: 'string',
       success: 'boolean',
+      vpcResource: 'boolean',
     };
   }
 

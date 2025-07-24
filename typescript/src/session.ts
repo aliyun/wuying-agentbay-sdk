@@ -79,6 +79,11 @@ export class Session {
   public sessionId: string;
   public resourceUrl = "";
 
+  // VPC-related information
+  public isVpc = false; // Whether this session uses VPC resources
+  public networkInterfaceIp = ""; // Network interface IP for VPC sessions
+  public httpPort = ""; // HTTP port for VPC sessions
+
   // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
   public command: Command;

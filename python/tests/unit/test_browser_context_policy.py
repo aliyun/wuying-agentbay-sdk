@@ -42,7 +42,7 @@ def test_browser_context_policy():
         # Create BWList with white lists for browser data paths
         white_lists = [
             WhiteList(path="/Local State", exclude_paths=[]),
-            WhiteList(path="/Default/Cookie", exclude_paths=[]),
+            WhiteList(path="/Default/Cookies", exclude_paths=[]),
             WhiteList(path="/Default/Cookies-journal", exclude_paths=[])
         ]
         bw_list = BWList(white_lists=white_lists)

@@ -23,6 +23,8 @@ type iCreateMcpSessionShrinkRequest interface {
 	GetPersistenceDataListShrink() *string
 	SetSessionId(v string) *CreateMcpSessionShrinkRequest
 	GetSessionId() *string
+	SetVpcResource(v bool) *CreateMcpSessionShrinkRequest
+	GetVpcResource() *bool
 }
 
 type CreateMcpSessionShrinkRequest struct {
@@ -33,6 +35,7 @@ type CreateMcpSessionShrinkRequest struct {
 	Labels                    *string `json:"Labels,omitempty" xml:"Labels,omitempty"`
 	PersistenceDataListShrink *string `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty"`
 	SessionId                 *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	VpcResource               *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
 }
 
 func (s CreateMcpSessionShrinkRequest) String() string {
@@ -71,6 +74,10 @@ func (s *CreateMcpSessionShrinkRequest) GetSessionId() *string {
 	return s.SessionId
 }
 
+func (s *CreateMcpSessionShrinkRequest) GetVpcResource() *bool {
+	return s.VpcResource
+}
+
 func (s *CreateMcpSessionShrinkRequest) SetAuthorization(v string) *CreateMcpSessionShrinkRequest {
 	s.Authorization = &v
 	return s
@@ -103,6 +110,11 @@ func (s *CreateMcpSessionShrinkRequest) SetPersistenceDataListShrink(v string) *
 
 func (s *CreateMcpSessionShrinkRequest) SetSessionId(v string) *CreateMcpSessionShrinkRequest {
 	s.SessionId = &v
+	return s
+}
+
+func (s *CreateMcpSessionShrinkRequest) SetVpcResource(v bool) *CreateMcpSessionShrinkRequest {
+	s.VpcResource = &v
 	return s
 }
 

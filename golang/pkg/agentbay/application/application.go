@@ -59,8 +59,8 @@ type ApplicationManager struct {
 	}
 }
 
-// callMcpToolResult represents the result of a CallMcpTool operation
-type callMcpToolResult struct {
+// callMcpToolHelperResult represents the result of a CallMcpTool operation
+type callMcpToolHelperResult struct {
 	Data        map[string]interface{}
 	Content     []map[string]interface{}
 	TextContent string
@@ -70,8 +70,8 @@ type callMcpToolResult struct {
 	RequestID   string
 }
 
-// callMcpTool calls the MCP tool and checks for errors in the response
-func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
+// callMcpToolHelper calls the MCP tool and checks for errors in the response
+func (am *ApplicationManager) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolHelperResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -115,7 +115,7 @@ func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, def
 	}
 
 	// Create result object
-	result := &callMcpToolResult{
+	result := &callMcpToolHelperResult{
 		Data:       data,
 		StatusCode: *response.StatusCode,
 		RequestID:  requestID,
@@ -228,7 +228,7 @@ func (am *ApplicationManager) GetInstalledApps(startMenu bool, desktop bool, ign
 	}
 
 	// Use enhanced helper method to call MCP tool and check for errors
-	mcpResult, err := am.callMcpTool("get_installed_apps", args, "error getting installed apps")
+	mcpResult, err := am.callMcpToolHelper("get_installed_apps", args, "error getting installed apps")
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +270,7 @@ func (am *ApplicationManager) StartApp(startCmd string, workDirectory string, ac
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpTool("start_app", args, "error starting app")
+	mcpResult, err := am.callMcpToolHelper("start_app", args, "error starting app")
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +296,7 @@ func (am *ApplicationManager) StopAppByPName(pname string) (*AppOperationResult,
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpTool("stop_app_by_pname", args, "error stopping app by process name")
+	mcpResult, err := am.callMcpToolHelper("stop_app_by_pname", args, "error stopping app by process name")
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func (am *ApplicationManager) StopAppByPID(pid int) (*AppOperationResult, error)
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpTool("stop_app_by_pid", args, "error stopping app by PID")
+	mcpResult, err := am.callMcpToolHelper("stop_app_by_pid", args, "error stopping app by PID")
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +336,7 @@ func (am *ApplicationManager) StopAppByCmd(stopCmd string) (*AppOperationResult,
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpTool("stop_app_by_cmd", args, "error stopping app by command")
+	mcpResult, err := am.callMcpToolHelper("stop_app_by_cmd", args, "error stopping app by command")
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +352,7 @@ func (am *ApplicationManager) StopAppByCmd(stopCmd string) (*AppOperationResult,
 // ListVisibleApps returns a list of currently visible applications.
 func (am *ApplicationManager) ListVisibleApps() (*ProcessListResult, error) {
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpTool("list_visible_apps", nil, "error listing visible apps")
+	mcpResult, err := am.callMcpToolHelper("list_visible_apps", nil, "error listing visible apps")
 	if err != nil {
 		return nil, err
 	}
