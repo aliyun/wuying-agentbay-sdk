@@ -150,7 +150,7 @@ async def main():
                             8. Each move must move at least one tile
                             """
 
-                            if transposed_grid_not_changed_times >= 1:
+                            if transposed_grid_not_changed_times >= 1 and len(last_move_history) > 0:
                                 instruction_str += f"""
                                 9. Do not generate move value in {last_move_history}
                                 10. If last move value {last_move_history[-1]} moves up or down, then generate move value with left or right direction, otherwise generate move value with up or down direction
