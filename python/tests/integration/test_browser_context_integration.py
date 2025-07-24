@@ -54,7 +54,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
         # Clean up context
         if hasattr(cls, "context"):
             try:
-                cls.agent_bay.context.delete(cls.context)
+                # cls.agent_bay.context.delete(cls.context)
                 print(f"Context deleted: {cls.context.id}")
             except Exception as e:
                 print(f"Warning: Failed to delete context: {e}")
@@ -64,7 +64,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
         # Test data
         test_cookie_name = "test_cookie"
         test_cookie_value = f"test_value_{int(time.time())}"
-        test_url = "https://www.example.com"
+        test_url = "https://www.aliyun.com"
 
         # Step 1 & 2: Create ContextId and create session with BrowserContext
         print(f"Step 1-2: Creating session with browser context ID: {self.context.id}")
@@ -113,7 +113,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
                 await context.add_cookies([{
                     'name': test_cookie_name,
                     'value': test_cookie_value,
-                    'domain': '.example.com',
+                    'domain': '.aliyun.com',
                     'path': '/',
                 }])
                 print(f"Added cookie: {test_cookie_name}={test_cookie_value}")
@@ -125,6 +125,15 @@ class TestBrowserContextIntegration(unittest.TestCase):
                 
                 await browser.close()
                 print("First session browser operations completed")
+                
+                # Step 4.5: Check /tmp/agentbay_browser directory contents after writing cookies
+                print("Step 4.5: Checking /tmp/agentbay_browser directory contents after writing cookies...")
+                ls_result = session1.command.execute_command("ls -l /tmp/agentbay_browser/Default/")
+                if ls_result.success:
+                    print(f"First session /tmp/agentbay_browser contents:\n{ls_result.output}")
+                    print(f"First session ls command RequestID: {ls_result.request_id}")
+                else:
+                    print(f"Failed to list /tmp/agentbay_browser in first session: {ls_result.error_message}")
 
         # Run first session operations
         asyncio.run(first_session_operations())
@@ -161,6 +170,15 @@ class TestBrowserContextIntegration(unittest.TestCase):
             endpoint_url = session2.browser.get_endpoint_url()
             self.assertIsNotNone(endpoint_url, "Endpoint URL should not be None")
             print(f"Second session browser endpoint URL: {endpoint_url}")
+            
+            # Step 7.5: Check /tmp/agentbay_browser directory contents before reading cookies
+            print("Step 7.5: Checking /tmp/agentbay_browser directory contents before reading cookies...")
+            ls_result2 = session2.command.execute_command("ls -l /tmp/agentbay_browser/Default/")
+            if ls_result2.success:
+                print(f"Second session /tmp/agentbay_browser contents:\n{ls_result2.output}")
+                print(f"Second session ls command RequestID: {ls_result2.request_id}")
+            else:
+                print(f"Failed to list /tmp/agentbay_browser in second session: {ls_result2.error_message}")
             
             # Connect with playwright and check cookies
             async with async_playwright() as p:

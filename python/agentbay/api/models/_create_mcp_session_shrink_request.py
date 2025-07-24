@@ -2,18 +2,20 @@
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
 from darabonba.model import DaraModel 
+from typing import Optional
 
 
 class CreateMcpSessionShrinkRequest(DaraModel):
     def __init__(
         self,
-        authorization: str = None,
-        context_id: str = None,
-        external_user_id: str = None,
-        image_id: str = None,
-        labels: str = None,
-        persistence_data_list_shrink: str = None,
-        session_id: str = None,
+        authorization: Optional[str] = None,
+        context_id: Optional[str] = None,
+        external_user_id: Optional[str] = None,
+        image_id: Optional[str] = None,
+        labels: Optional[str] = None,
+        persistence_data_list_shrink: Optional[str] = None,
+        session_id: Optional[str] = None,
+        vpc_resource: Optional[bool] = None,
     ):
         self.authorization = authorization
         self.context_id = context_id
@@ -22,6 +24,7 @@ class CreateMcpSessionShrinkRequest(DaraModel):
         self.labels = labels
         self.persistence_data_list_shrink = persistence_data_list_shrink
         self.session_id = session_id
+        self.vpc_resource = vpc_resource
 
     def validate(self):
         pass
@@ -52,9 +55,12 @@ class CreateMcpSessionShrinkRequest(DaraModel):
         if self.session_id is not None:
             result['SessionId'] = self.session_id
 
+        if self.vpc_resource is not None:
+            result['VpcResource'] = self.vpc_resource
+
         return result
 
-    def from_map(self, m: dict = None):
+    def from_map(self, m: Optional[dict] = None):
         m = m or dict()
         if m.get('Authorization') is not None:
             self.authorization = m.get('Authorization')
@@ -76,6 +82,9 @@ class CreateMcpSessionShrinkRequest(DaraModel):
 
         if m.get('SessionId') is not None:
             self.session_id = m.get('SessionId')
+
+        if m.get('VpcResource') is not None:
+            self.vpc_resource = m.get('VpcResource')
 
         return self
 

@@ -62,6 +62,11 @@ class Session:
         self.session_id = session_id
         self.resource_url = ""
 
+        # VPC-related information
+        self.is_vpc = False  # Whether this session uses VPC resources
+        self.network_interface_ip = ""  # Network interface IP for VPC sessions
+        self.http_port = ""  # HTTP port for VPC sessions
+
         # Initialize file system, command and code handlers
         self.file_system = FileSystem(self)
         self.command = Command(self)

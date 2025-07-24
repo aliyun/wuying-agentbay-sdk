@@ -38,6 +38,7 @@ class CreateSessionParams:
         context_syncs (Optional[List[ContextSync]]): List of context synchronization
             configurations that define how contexts should be synchronized and mounted.
         browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.
+        is_vpc (Optional[bool]): Whether to create a VPC-based session. Defaults to False.
     """
 
     def __init__(
@@ -47,6 +48,7 @@ class CreateSessionParams:
         image_id: Optional[str] = None,
         context_syncs: Optional[List[ContextSync]] = None,
         browser_context: Optional[BrowserContext] = None,
+        is_vpc: Optional[bool] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -64,12 +66,15 @@ class CreateSessionParams:
                 synchronization configurations. Defaults to None.
             browser_context (Optional[BrowserContext], optional): Browser context configuration.
                 Defaults to None.
+            is_vpc (Optional[bool], optional): Whether to create a VPC-based session.
+                Defaults to False.
         """
         self.labels = labels or {}
         self.context_id = context_id
         self.image_id = image_id
         self.context_syncs = context_syncs or []
         self.browser_context = browser_context
+        self.is_vpc = is_vpc if is_vpc is not None else False
 
 
 class ListSessionParams:

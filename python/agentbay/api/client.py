@@ -195,6 +195,8 @@ class Client(OpenApiClient):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
+        if not DaraCore.is_null(request.vpc_resource):
+            body["VpcResource"] = request.vpc_resource
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
             action="CreateMcpSession",
@@ -240,6 +242,8 @@ class Client(OpenApiClient):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
+        if not DaraCore.is_null(request.vpc_resource):
+            body["VpcResource"] = request.vpc_resource
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
             action="CreateMcpSession",
