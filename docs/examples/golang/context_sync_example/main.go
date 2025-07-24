@@ -41,7 +41,7 @@ func main() {
 	// Example 2: Creating a basic context sync configuration
 	fmt.Println("\nExample 2: Creating a basic context sync configuration...")
 	basicPolicy := agentbay.NewSyncPolicy()
-	basicSync := agentbay.NewContextSync(context.ID, "/home/wuying", basicPolicy)
+	basicSync := agentbay.NewContextSync(context.ID, "/tmp", basicPolicy)
 	fmt.Printf("Basic sync - ContextID: %s, Path: %s\n", basicSync.ContextID, basicSync.Path)
 
 	// Example 3: Create an advanced context sync configuration with policies
@@ -67,8 +67,8 @@ func main() {
 
 	// Create white list
 	whiteList := &agentbay.WhiteList{
-		Path:         "/home/wuying/important",
-		ExcludePaths: []string{"/home/wuying/important/temp", "/home/wuying/important/logs"},
+		Path:         "/important",               // Relative directory  /home/wuying/important
+		ExcludePaths: []string{"/temp", "/logs"}, // Relative directory /home/wuying/important/temp,/home/wuying/important/logs
 	}
 
 	// Create BW list
@@ -85,7 +85,7 @@ func main() {
 	}
 
 	// Create advanced sync configuration
-	advancedSync := agentbay.NewContextSync(context.ID, "/data", syncPolicy)
+	advancedSync := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
 
 	fmt.Printf("Advanced sync - ContextID: %s, Path: %s\n", advancedSync.ContextID, advancedSync.Path)
 	fmt.Printf("  - Upload: Auto=%t, Strategy=%s, Period=%d\n",
@@ -105,7 +105,7 @@ func main() {
 	sessionParams := agentbay.NewCreateSessionParams()
 
 	// Method 1: Add context sync using AddContextSync
-	sessionParams.AddContextSync(context.ID, "/data", syncPolicy)
+	sessionParams.AddContextSync(context.ID, "/var", basicPolicy)
 
 	// Method 2: Add context sync using AddContextSyncConfig
 	sessionParams.AddContextSyncConfig(basicSync)
@@ -176,8 +176,8 @@ func main() {
 		BWList: &agentbay.BWList{
 			WhiteLists: []*agentbay.WhiteList{
 				{
-					Path:         "/workspace/src",
-					ExcludePaths: []string{"/workspace/src/node_modules"},
+					Path:         "/src",                    // Relative directory /workspace/src
+					ExcludePaths: []string{"/node_modules"}, // Relative directory /workspace/src/node_modules
 				},
 			},
 		},
