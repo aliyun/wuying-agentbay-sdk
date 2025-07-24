@@ -69,19 +69,25 @@ async def main():
                 await page.wait_for_timeout(3000)
 
                 # Step 5: Click the search result
+                agentbay_link = None
                 for result in search_results:
                     text = await result.text_content()
                     print("result =", text)
                     if "无影AgentBay" == text:
-                        await result.click()
+                        agentbay_link = result
                         break
 
                 await page.wait_for_timeout(3000)
 
                 # Step 6: Click the helper button
-                await page.wait_for_selector("a >> text=帮助文档")
-                helper_link = page.locator("a >> text=帮助文档").first
-                await helper_link.click()
+                async with page.context.expect_page() as new_page_info:
+                    await agentbay_link.click()
+                    new_page = await new_page_info.value
+                    await new_page.wait_for_load_state("domcontentloaded")
+                    await new_page.wait_for_selector("a[href*='agentbay-document-index']")
+                    helper_link = new_page.locator("a[href*='agentbay-document-index']").first
+                    print("helper_link =", await helper_link.text_content())
+                    await helper_link.click()
 
                 await page.wait_for_timeout(10000)
 
