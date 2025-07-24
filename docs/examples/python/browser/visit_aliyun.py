@@ -51,9 +51,9 @@ async def main():
             
                 await page.wait_for_timeout(5000)
 
-                # Modify page font to Georgia, 'Times New Roman', Times, serif
+                # Modify page font to Microsoft YaHei
                 await page.evaluate("""
-                    document.body.style.fontFamily = 'Georgia, 'Times New Roman', Times, serif';
+                    document.body.style.fontFamily = 'Microsoft YaHei';
                 """)
           
                 await page.wait_for_timeout(5000)
