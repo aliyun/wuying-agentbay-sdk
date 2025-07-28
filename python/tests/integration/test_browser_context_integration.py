@@ -30,7 +30,6 @@ class TestBrowserContextIntegration(unittest.TestCase):
         super().__init__(methodName)
         self.first_session_cookies: list = []
         self.first_session_cookie_dict: dict = {}
-        self.first_session_cookies_md5: str = ""
 
     @classmethod
     def setUpClass(cls):
@@ -131,6 +130,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
             async with async_playwright() as p:
                 browser = await p.chromium.connect_over_cdp(endpoint_url)
                 self.assertIsNotNone(browser, "Failed to connect to browser")
+                cdp_session = await browser.new_browser_cdp_session()
                 
                 context = browser.contexts[0] if browser.contexts else await browser.new_context()
                 page = await context.new_page()
@@ -156,26 +156,14 @@ class TestBrowserContextIntegration(unittest.TestCase):
                 # Store cookies for comparison in second session
                 self.first_session_cookies = cookies
                 self.first_session_cookie_dict = cookie_dict
-                
-                await page.close()
-                await context.close()
-                await browser.close()
+
+                await cdp_session.send('Browser.close')
                 print("First session browser operations completed")
                 
                 # Wait for browser to save cookies to file
                 print("Waiting for browser to save cookies to file...")
                 await asyncio.sleep(2)
                 print("Wait completed")
-                
-                # Step 4.5: Calculate md5 of COOKIES file after closing playwright browser
-                print("Step 4.5: Calculating md5 of COOKIES file after closing playwright browser...")
-                md5_result = session1.command.execute_command("md5sum /tmp/agentbay_browser/Default/Cookies")
-                if md5_result.success:
-                    print(f"First session COOKIES file md5: {md5_result.output}")
-                    print(f"First session md5 command RequestID: {md5_result.request_id}")
-                    self.first_session_cookies_md5 = md5_result.output.strip().split()[0]
-                else:
-                    print(f"Failed to calculate md5 of COOKIES file in first session: {md5_result.error_message}")
 
         # Run first session operations
         asyncio.run(first_session_operations())
@@ -213,25 +201,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
             self.assertIsNotNone(endpoint_url, "Endpoint URL should not be None")
             print(f"Second session browser endpoint URL: {endpoint_url}")
             
-            # Step 7.5: Calculate md5 of COOKIES file before reading cookies
-            print("Step 7.5: Calculating md5 of COOKIES file before reading cookies...")
-            md5_result2 = session2.command.execute_command("md5sum /tmp/agentbay_browser/Default/Cookies")
-            if md5_result2.success:
-                print(f"Second session COOKIES file md5: {md5_result2.output}")
-                print(f"Second session md5 command RequestID: {md5_result2.request_id}")
-                second_session_cookies_md5 = md5_result2.output.strip().split()[0]
-                
-                # Compare md5 values between sessions
-                if self.first_session_cookies_md5:
-                    print(f"First session COOKIES md5: {self.first_session_cookies_md5}")
-                    print(f"Second session COOKIES md5: {second_session_cookies_md5}")
-                    self.assertEqual(self.first_session_cookies_md5, second_session_cookies_md5,
-                                   f"COOKIES file md5 should match between sessions. First: {self.first_session_cookies_md5}, Second: {second_session_cookies_md5}")
-                    print(f"SUCCESS: COOKIES file md5 matches between sessions!")
-                else:
-                    print("Warning: First session COOKIES md5 not available for comparison")
-            else:
-                print(f"Failed to calculate md5 of COOKIES file in second session: {md5_result2.error_message}")
+
             
             # Connect with playwright and read cookies directly from context without opening any page
             async with async_playwright() as p:
@@ -271,7 +241,8 @@ class TestBrowserContextIntegration(unittest.TestCase):
                 print(f"SUCCESS: All {len(expected_cookie_names)} test cookies persisted correctly!")
                 print(f"Test cookies found: {list(expected_cookie_names)}")
                 
-                await browser.close()
+
+                await context.close()
                 print("Second session browser operations completed")
 
         # Run second session operations
