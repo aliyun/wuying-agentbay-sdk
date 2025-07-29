@@ -235,8 +235,8 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.fs.write_file(search_file3_path, file3_content, "overwrite")
 
         # Search for files
-        search_pattern = "SEARCHABLE_PATTERN"
-        exclude_patterns = ["ignored_pattern"]
+        search_pattern = ""
+        exclude_patterns = ["SEARCHABLE_PATTERN"]
         result = self.fs.search_files(
             test_subdir_path, search_pattern, exclude_patterns
         )
@@ -244,9 +244,8 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.assertTrue(result.success)
 
         matches = result.matches
-        self.assertEqual(len(matches), 2)
-        self.assertTrue(any(search_file1_path in match for match in matches))
-        self.assertTrue(any(search_file3_path in match for match in matches))
+        self.assertEqual(len(matches), 1)
+        self.assertTrue(any(search_file2_path in match for match in matches))
 
     def test_write_large_file_and_read_large_file(self):
         """

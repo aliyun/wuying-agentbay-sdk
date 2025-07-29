@@ -455,8 +455,8 @@ class FileSystem(BaseService):
 
         Args:
             path: The path of the file to read.
-            offset: The offset from which to start reading.
-            length: The number of characters to read. If 0, read the entire file.
+            offset: Byte offset to start reading from (0-based).
+            length: Number of bytes to read. If 0, reads the entire file from offset.
 
         Returns:
             FileContentResult: Result object containing file content and error message
@@ -625,7 +625,7 @@ class FileSystem(BaseService):
         """
         args = {"path": path, "pattern": pattern}
         if exclude_patterns:
-            args["exclude_patterns"] = exclude_patterns
+            args["excludePatterns"] = exclude_patterns
 
         try:
             result = self._call_mcp_tool("search_files", args)

@@ -549,8 +549,8 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 
 		fmt.Println("Searching files in subdirectory...")
 		// Search for files with names containing the pattern
-		searchPattern := "SEARCHABLE_PATTERN"
-		excludePatterns := []string{"ignored_pattern"}
+		searchPattern := ""
+		excludePatterns := []string{"SEARCHABLE_PATTERN"}
 		searchResults, err := session.FileSystem.SearchFiles(testSubdirPath, searchPattern, excludePatterns)
 		if err != nil {
 			t.Errorf("Search files failed: %v", err)
@@ -580,16 +580,15 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 				}
 			}
 
-			// Verify we found the expected number of results (should be 2 files)
-			if len(results) != 2 {
-				t.Errorf("Unexpected number of search results. Expected: 2, Got: %d", len(results))
+			// Verify we found the expected number of results (should be 1 files)
+			if len(results) != 1 {
+				t.Errorf("Unexpected number of search results. Expected: 1, Got: %d", len(results))
 			} else {
 				t.Log("Search found the expected number of results")
 			}
 
 			// Verify the search results contain the expected files
-			foundFile1 := false
-			foundFile3 := false
+			foundFile2 := false
 
 			for _, result := range results {
 				path := result["path"]
@@ -599,24 +598,19 @@ func TestFileSystem_SearchFiles(t *testing.T) {
 				normalizedPath = strings.ReplaceAll(normalizedPath, "\\", "/")
 
 				// Log the paths for debugging
-				t.Logf("Comparing result path: %s with expected paths: %s and %s",
-					normalizedPath, searchFile1Path, searchFile3Path)
+				t.Logf("Comparing result path: %s with expected paths: %s",
+					normalizedPath, searchFile2Path)
 
-				if normalizedPath == searchFile1Path {
-					foundFile1 = true
-				} else if normalizedPath == searchFile3Path {
-					foundFile3 = true
+				if normalizedPath == searchFile2Path {
+					foundFile2 = true
 				}
 			}
 
-			if !foundFile1 {
+			if !foundFile2 {
 				t.Errorf("Search results missing file 1")
 			}
-			if !foundFile3 {
-				t.Errorf("Search results missing file 3")
-			}
 
-			if foundFile1 && foundFile3 {
+			if foundFile2 {
 				t.Log("Search results contain the expected files")
 			}
 		}
