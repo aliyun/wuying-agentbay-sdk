@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -161,28 +160,25 @@ func (fs *FileSystem) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string)
 		return nil, fmt.Errorf("server not found for tool: %s", toolName)
 	}
 
-	// Construct VPC URL
-	url := fmt.Sprintf("http://%s:%s/callTool", fs.Session.NetworkInterfaceIp(), fs.Session.HttpPort())
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", fs.Session.NetworkInterfaceIp(), fs.Session.HttpPort())
 
-	// Prepare request body
-	requestBody := map[string]interface{}{
-		"server": server,
-		"tool":   toolName,
-		"args":   argsJSON,
-		"apikey": fs.Session.GetAPIKey(),
-	}
-
-	bodyJSON, err := json.Marshal(requestBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal VPC request body: %w", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	// Create URL with query parameters
+	req, err := http.NewRequest("GET", baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VPC HTTP request: %w", err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+
+	// Add query parameters
+	q := req.URL.Query()
+	q.Add("server", server)
+	q.Add("tool", toolName)
+	q.Add("args", argsJSON)
+	q.Add("apiKey", fs.Session.GetAPIKey())
+	req.URL.RawQuery = q.Encode()
+
+	// Set content type header
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send HTTP request
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -208,10 +204,34 @@ func (fs *FileSystem) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string)
 		RequestID:  "", // VPC requests don't have traditional request IDs
 	}
 
+	// Extract the actual result from the nested VPC response structure
+	var actualResult map[string]interface{}
+
+	// Check if data field is a string (JSON) or a map
+	if dataStr, ok := responseData["data"].(string); ok {
+		var dataMap map[string]interface{}
+		if err := json.Unmarshal([]byte(dataStr), &dataMap); err != nil {
+			// If JSON parsing fails, continue with fallback
+		} else {
+			if resultData, ok := dataMap["result"].(map[string]interface{}); ok {
+				actualResult = resultData
+			}
+		}
+	} else if data, ok := responseData["data"].(map[string]interface{}); ok {
+		if resultData, ok := data["result"].(map[string]interface{}); ok {
+			actualResult = resultData
+		}
+	}
+
+	// If we couldn't find the nested result, use the top-level response
+	if actualResult == nil {
+		actualResult = responseData
+	}
+
 	// Check if there's an error in the VPC response
-	if isError, ok := responseData["isError"].(bool); ok && isError {
+	if isError, ok := actualResult["isError"].(bool); ok && isError {
 		result.IsError = true
-		if errMsg, ok := responseData["error"].(string); ok {
+		if errMsg, ok := actualResult["error"].(string); ok {
 			result.ErrorMsg = errMsg
 			return result, fmt.Errorf("%s", errMsg)
 		}
@@ -219,11 +239,17 @@ func (fs *FileSystem) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string)
 	}
 
 	// Extract content array if it exists for VPC response
-	if contentArray, ok := responseData["content"].([]interface{}); ok {
+	if contentArray, ok := actualResult["content"].([]interface{}); ok {
 		result.Content = make([]map[string]interface{}, len(contentArray))
 		for i, item := range contentArray {
 			if contentItem, ok := item.(map[string]interface{}); ok {
 				result.Content[i] = contentItem
+				// Extract text content from the first text item
+				if i == 0 && result.TextContent == "" {
+					if text, ok := contentItem["text"].(string); ok {
+						result.TextContent = text
+					}
+				}
 			}
 		}
 	}
@@ -321,40 +347,12 @@ func (fs *FileSystem) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string)
 	return result, nil
 }
 
-// callMcpToolHelper is a helper that calls the local CallMcpTool method
-func (fs *FileSystem) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
-	return fs.CallMcpTool(toolName, args, defaultErrorMsg)
-}
-
 // Helper function to extract common result fields from CallMcpTool result
 func (fs *FileSystem) extractCallResult(result *CallMcpToolResult) (string, string, map[string]interface{}, error) {
 	if result.GetIsError() {
 		return "", "", nil, fmt.Errorf(result.GetErrorMsg())
 	}
 	return result.GetRequestID(), result.GetTextContent(), result.GetData(), nil
-}
-
-// Helper function to check if a tool name is a file operation
-func isFileOperation(toolName string) bool {
-	fileOperations := []string{
-		"read_file", "write_file", "read_multiple_files", "read_large_file", "write_large_file",
-		"edit_file", "get_file_info", "search_files",
-	}
-	for _, op := range fileOperations {
-		if op == toolName {
-			return true
-		}
-	}
-	return false
-}
-
-// Helper function to truncate content for logging
-func truncateContentForLogging(jsonArgs string) string {
-	const maxLength = 200
-	if len(jsonArgs) <= maxLength {
-		return jsonArgs
-	}
-	return jsonArgs[:maxLength] + "... (truncated)"
 }
 
 // Helper function to parse file info from string
@@ -404,7 +402,7 @@ func (fs *FileSystem) CreateDirectory(path string) (*FileDirectoryResult, error)
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("create_directory", args, "error creating directory")
+	result, err := fs.CallMcpTool("create_directory", args, "error creating directory")
 	if err != nil {
 		return nil, err
 	}
@@ -446,7 +444,7 @@ func (fs *FileSystem) EditFile(path string, edits []map[string]string, dryRun bo
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("edit_file", args, "error editing file")
+	result, err := fs.CallMcpTool("edit_file", args, "error editing file")
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +476,7 @@ func (fs *FileSystem) GetFileInfo(path string) (*FileInfoResult, error) {
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("get_file_info", args, "error getting file info")
+	result, err := fs.CallMcpTool("get_file_info", args, "error getting file info")
 	if err != nil {
 		// Check if it's a "file not found" error
 		if strings.Contains(err.Error(), "No such file or directory") {
@@ -519,7 +517,7 @@ func (fs *FileSystem) ListDirectory(path string) (*DirectoryListResult, error) {
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("list_directory", args, "error listing directory")
+	result, err := fs.CallMcpTool("list_directory", args, "error listing directory")
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +556,7 @@ func (fs *FileSystem) MoveFile(source, destination string) (*FileWriteResult, er
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("move_file", args, "error moving file")
+	result, err := fs.CallMcpTool("move_file", args, "error moving file")
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +605,7 @@ func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (*FileReadRes
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("read_file", args, "error reading file")
+	result, err := fs.CallMcpTool("read_file", args, "error reading file")
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +637,7 @@ func (fs *FileSystem) ReadMultipleFiles(paths []string) (map[string]string, erro
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("read_multiple_files", args, "error reading multiple files")
+	result, err := fs.CallMcpTool("read_multiple_files", args, "error reading multiple files")
 	if err != nil {
 		return nil, err
 	}
@@ -688,7 +686,7 @@ func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("search_files", args, "error searching files")
+	result, err := fs.CallMcpTool("search_files", args, "error searching files")
 	if err != nil {
 		return nil, err
 	}
@@ -735,7 +733,7 @@ func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteRe
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("write_file", args, "error writing file")
+	result, err := fs.CallMcpTool("write_file", args, "error writing file")
 	if err != nil {
 		return nil, err
 	}
@@ -769,7 +767,7 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("read_large_file", args, "error reading large file")
+	result, err := fs.CallMcpTool("read_large_file", args, "error reading large file")
 	if err != nil {
 		return nil, err
 	}
@@ -805,7 +803,7 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (*File
 	}
 
 	// Use the session's CallMcpTool method
-	result, err := fs.callMcpToolHelper("write_large_file", args, "error writing large file")
+	result, err := fs.CallMcpTool("write_large_file", args, "error writing large file")
 	if err != nil {
 		return nil, err
 	}

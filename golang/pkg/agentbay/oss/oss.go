@@ -1,7 +1,6 @@
 package oss
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -91,7 +90,7 @@ type OSSManager struct {
 }
 
 // CallMcpTool calls the MCP tool and handles both VPC and non-VPC scenarios
-func (o *OSSManager) CallMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
+func (o *OSSManager) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -119,28 +118,25 @@ func (o *OSSManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) 
 		return nil, fmt.Errorf("server not found for tool: %s", toolName)
 	}
 
-	// Construct VPC URL
-	url := fmt.Sprintf("http://%s:%s/callTool", o.Session.NetworkInterfaceIp(), o.Session.HttpPort())
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", o.Session.NetworkInterfaceIp(), o.Session.HttpPort())
 
-	// Prepare request body
-	requestBody := map[string]interface{}{
-		"server": server,
-		"tool":   toolName,
-		"args":   argsJSON,
-		"apikey": o.Session.GetAPIKey(),
-	}
-
-	bodyJSON, err := json.Marshal(requestBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal VPC request body: %w", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	// Create URL with query parameters
+	req, err := http.NewRequest("GET", baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VPC HTTP request: %w", err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+
+	// Add query parameters
+	q := req.URL.Query()
+	q.Add("server", server)
+	q.Add("tool", toolName)
+	q.Add("args", argsJSON)
+	q.Add("apiKey", o.Session.GetAPIKey())
+	req.URL.RawQuery = q.Encode()
+
+	// Set content type header
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send HTTP request
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -166,10 +162,28 @@ func (o *OSSManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) 
 		RequestID:  "", // VPC requests don't have traditional request IDs
 	}
 
+	// Extract the actual result from the nested VPC response structure
+	var actualResult map[string]interface{}
+	if dataStr, ok := responseData["data"].(string); ok {
+		var dataMap map[string]interface{}
+		if err := json.Unmarshal([]byte(dataStr), &dataMap); err == nil {
+			if resultData, ok := dataMap["result"].(map[string]interface{}); ok {
+				actualResult = resultData
+			}
+		}
+	} else if data, ok := responseData["data"].(map[string]interface{}); ok {
+		if resultData, ok := data["result"].(map[string]interface{}); ok {
+			actualResult = resultData
+		}
+	}
+	if actualResult == nil {
+		actualResult = responseData
+	}
+
 	// Check if there's an error in the VPC response
-	if isError, ok := responseData["isError"].(bool); ok && isError {
+	if isError, ok := actualResult["isError"].(bool); ok && isError {
 		result.IsError = true
-		if errMsg, ok := responseData["error"].(string); ok {
+		if errMsg, ok := actualResult["error"].(string); ok {
 			result.ErrorMsg = errMsg
 			return result, fmt.Errorf("%s", errMsg)
 		}
@@ -177,11 +191,16 @@ func (o *OSSManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) 
 	}
 
 	// Extract content array if it exists for VPC response
-	if contentArray, ok := responseData["content"].([]interface{}); ok {
+	if contentArray, ok := actualResult["content"].([]interface{}); ok {
 		result.Content = make([]map[string]interface{}, len(contentArray))
 		for i, item := range contentArray {
 			if contentItem, ok := item.(map[string]interface{}); ok {
 				result.Content[i] = contentItem
+				if i == 0 && result.TextContent == "" {
+					if text, ok := contentItem["text"].(string); ok {
+						result.TextContent = text
+					}
+				}
 			}
 		}
 	}
@@ -279,11 +298,6 @@ func (o *OSSManager) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) 
 	return result, nil
 }
 
-// callMcpToolHelper is a helper that calls the local CallMcpTool method
-func (o *OSSManager) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
-	return o.CallMcpTool(toolName, args, defaultErrorMsg)
-}
-
 // Helper function to extract common result fields from CallMcpTool result
 func (o *OSSManager) extractCallResult(result *CallMcpToolResult) (string, string, map[string]interface{}, error) {
 	if result.GetIsError() {
@@ -324,7 +338,7 @@ func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoi
 	}
 
 	// Use the local CallMcpTool method
-	result, err := o.callMcpToolHelper("oss_env_init", args, "error initializing OSS environment")
+	result, err := o.callMcpTool("oss_env_init", args, "error initializing OSS environment")
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +367,7 @@ func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) 
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpToolHelper("oss_upload", args, "error uploading to OSS")
+	mcpResult, err := o.callMcpTool("oss_upload", args, "error uploading to OSS")
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +390,7 @@ func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpToolHelper("oss_upload_annon", args, "error uploading anonymously")
+	mcpResult, err := o.callMcpTool("oss_upload_annon", args, "error uploading anonymously")
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +414,7 @@ func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, err
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpToolHelper("oss_download", args, "error downloading from OSS")
+	mcpResult, err := o.callMcpTool("oss_download", args, "error downloading from OSS")
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +437,7 @@ func (o *OSSManager) DownloadAnonymous(url, path string) (*DownloadResult, error
 	}
 
 	// Use the helper method to call MCP tool and check for errors
-	mcpResult, err := o.callMcpToolHelper("oss_download_annon", args, "error downloading anonymously")
+	mcpResult, err := o.callMcpTool("oss_download_annon", args, "error downloading anonymously")
 	if err != nil {
 		return nil, err
 	}

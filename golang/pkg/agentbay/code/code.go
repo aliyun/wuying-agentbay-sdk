@@ -1,7 +1,6 @@
 package code
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -94,7 +93,7 @@ func NewCode(session interface {
 }
 
 // CallMcpTool calls the MCP tool and handles both VPC and non-VPC scenarios
-func (c *Code) CallMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
+func (c *Code) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -122,28 +121,25 @@ func (c *Code) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) (*Call
 		return nil, fmt.Errorf("server not found for tool: %s", toolName)
 	}
 
-	// Construct VPC URL
-	url := fmt.Sprintf("http://%s:%s/callTool", c.Session.NetworkInterfaceIp(), c.Session.HttpPort())
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", c.Session.NetworkInterfaceIp(), c.Session.HttpPort())
 
-	// Prepare request body
-	requestBody := map[string]interface{}{
-		"server": server,
-		"tool":   toolName,
-		"args":   argsJSON,
-		"apikey": c.Session.GetAPIKey(),
-	}
-
-	bodyJSON, err := json.Marshal(requestBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal VPC request body: %w", err)
-	}
-
-	// Create HTTP request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bodyJSON))
+	// Create URL with query parameters
+	req, err := http.NewRequest("GET", baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create VPC HTTP request: %w", err)
 	}
-	req.Header.Set("Content-Type", "application/json")
+
+	// Add query parameters
+	q := req.URL.Query()
+	q.Add("server", server)
+	q.Add("tool", toolName)
+	q.Add("args", argsJSON)
+	q.Add("apiKey", c.Session.GetAPIKey())
+	req.URL.RawQuery = q.Encode()
+
+	// Set content type header
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Send HTTP request
 	client := &http.Client{Timeout: 30 * time.Second}
@@ -169,10 +165,28 @@ func (c *Code) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) (*Call
 		RequestID:  "", // VPC requests don't have traditional request IDs
 	}
 
+	// Extract the actual result from the nested VPC response structure
+	var actualResult map[string]interface{}
+	if dataStr, ok := responseData["data"].(string); ok {
+		var dataMap map[string]interface{}
+		if err := json.Unmarshal([]byte(dataStr), &dataMap); err == nil {
+			if resultData, ok := dataMap["result"].(map[string]interface{}); ok {
+				actualResult = resultData
+			}
+		}
+	} else if data, ok := responseData["data"].(map[string]interface{}); ok {
+		if resultData, ok := data["result"].(map[string]interface{}); ok {
+			actualResult = resultData
+		}
+	}
+	if actualResult == nil {
+		actualResult = responseData
+	}
+
 	// Check if there's an error in the VPC response
-	if isError, ok := responseData["isError"].(bool); ok && isError {
+	if isError, ok := actualResult["isError"].(bool); ok && isError {
 		result.IsError = true
-		if errMsg, ok := responseData["error"].(string); ok {
+		if errMsg, ok := actualResult["error"].(string); ok {
 			result.ErrorMsg = errMsg
 			return result, fmt.Errorf("%s", errMsg)
 		}
@@ -180,11 +194,16 @@ func (c *Code) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) (*Call
 	}
 
 	// Extract content array if it exists for VPC response
-	if contentArray, ok := responseData["content"].([]interface{}); ok {
+	if contentArray, ok := actualResult["content"].([]interface{}); ok {
 		result.Content = make([]map[string]interface{}, len(contentArray))
 		for i, item := range contentArray {
 			if contentItem, ok := item.(map[string]interface{}); ok {
 				result.Content[i] = contentItem
+				if i == 0 && result.TextContent == "" {
+					if text, ok := contentItem["text"].(string); ok {
+						result.TextContent = text
+					}
+				}
 			}
 		}
 	}
@@ -282,11 +301,6 @@ func (c *Code) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) (*Call
 	return result, nil
 }
 
-// callMcpToolHelper is a helper that calls the local CallMcpTool method
-func (c *Code) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (*CallMcpToolResult, error) {
-	return c.CallMcpTool(toolName, args, defaultErrorMsg)
-}
-
 // Helper function to extract common result fields from CallMcpTool result
 func (c *Code) extractCallResult(result *CallMcpToolResult) (string, string, map[string]interface{}, error) {
 	if result.GetIsError() {
@@ -315,7 +329,7 @@ func (c *Code) RunCode(code string, language string, timeoutS ...int) (*CodeResu
 	}
 
 	// Use the local CallMcpTool method
-	result, err := c.callMcpToolHelper("run_code", args, "error executing code")
+	result, err := c.callMcpTool("run_code", args, "error executing code")
 	if err != nil {
 		return nil, err
 	}

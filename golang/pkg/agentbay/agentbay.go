@@ -248,6 +248,19 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 	a.Sessions.Store(session.SessionID, *session)
 
+	// For VPC sessions, automatically fetch MCP tools information
+	if params.IsVpc {
+		fmt.Println("VPC session detected, automatically fetching MCP tools...")
+		toolsResult, err := session.ListMcpTools()
+		if err != nil {
+			fmt.Printf("Warning: Failed to fetch MCP tools for VPC session: %v\n", err)
+			// Continue with session creation even if tools fetch fails
+		} else {
+			fmt.Printf("Successfully fetched %d MCP tools for VPC session (RequestID: %s)\n",
+				len(toolsResult.Tools), toolsResult.RequestID)
+		}
+	}
+
 	// If we have persistence data, wait for context synchronization
 	if hasPersistenceData {
 		fmt.Println("Waiting for context synchronization to complete...")

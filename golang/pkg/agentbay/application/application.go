@@ -3,7 +3,9 @@ package application
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -56,6 +58,10 @@ type ApplicationManager struct {
 		GetAPIKey() string
 		GetClient() *mcp.Client
 		GetSessionId() string
+		IsVpc() bool
+		NetworkInterfaceIp() string
+		HttpPort() string
+		FindServerForTool(toolName string) string
 	}
 }
 
@@ -70,20 +76,133 @@ type callMcpToolHelperResult struct {
 	RequestID   string
 }
 
-// callMcpToolHelper calls the MCP tool and checks for errors in the response
-func (am *ApplicationManager) callMcpToolHelper(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolHelperResult, error) {
+// callMcpTool calls the MCP tool and checks for errors in the response
+func (am *ApplicationManager) callMcpTool(toolName string, args interface{}, defaultErrorMsg string) (*callMcpToolHelperResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal args: %w", err)
 	}
 
+	// Check if this is a VPC session
+	if am.Session.IsVpc() {
+		return am.callMcpToolVPC(toolName, string(argsJSON), defaultErrorMsg)
+	}
+
+	// Non-VPC mode: use traditional API call
+	return am.callMcpToolAPI(toolName, string(argsJSON), defaultErrorMsg)
+}
+
+// callMcpToolVPC handles VPC-based MCP tool calls
+func (am *ApplicationManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) (*callMcpToolHelperResult, error) {
+	// VPC mode: Use HTTP request to the VPC endpoint
+	fmt.Println("API Call: CallMcpTool (VPC) -", toolName)
+	fmt.Printf("Request: Args=%s\n", argsJSON)
+
+	// Find server for this tool
+	server := am.Session.FindServerForTool(toolName)
+	if server == "" {
+		return nil, fmt.Errorf("server not found for tool: %s", toolName)
+	}
+
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", am.Session.NetworkInterfaceIp(), am.Session.HttpPort())
+
+	// Create URL with query parameters
+	req, err := http.NewRequest("GET", baseURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create VPC HTTP request: %w", err)
+	}
+
+	// Add query parameters
+	q := req.URL.Query()
+	q.Add("server", server)
+	q.Add("tool", toolName)
+	q.Add("args", argsJSON)
+	q.Add("apiKey", am.Session.GetAPIKey())
+	req.URL.RawQuery = q.Encode()
+
+	// Set content type header
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Send HTTP request
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", err)
+		return nil, fmt.Errorf("failed to call VPC %s: %w", toolName, err)
+	}
+	defer resp.Body.Close()
+
+	// Parse response
+	var responseData map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
+		return nil, fmt.Errorf("failed to decode VPC response: %w", err)
+	}
+
+	fmt.Println("Response from VPC CallMcpTool -", toolName, ":", responseData)
+
+	// Create result object for VPC response
+	result := &callMcpToolHelperResult{
+		Data:       responseData,
+		StatusCode: int32(resp.StatusCode),
+		RequestID:  "", // VPC requests don't have traditional request IDs
+	}
+
+	// Extract the actual result from the nested VPC response structure
+	var actualResult map[string]interface{}
+	if dataStr, ok := responseData["data"].(string); ok {
+		var dataMap map[string]interface{}
+		if err := json.Unmarshal([]byte(dataStr), &dataMap); err == nil {
+			if resultData, ok := dataMap["result"].(map[string]interface{}); ok {
+				actualResult = resultData
+			}
+		}
+	} else if data, ok := responseData["data"].(map[string]interface{}); ok {
+		if resultData, ok := data["result"].(map[string]interface{}); ok {
+			actualResult = resultData
+		}
+	}
+	if actualResult == nil {
+		actualResult = responseData
+	}
+
+	// Check if there's an error in the VPC response
+	if isError, ok := actualResult["isError"].(bool); ok && isError {
+		result.IsError = true
+		if errMsg, ok := actualResult["error"].(string); ok {
+			result.ErrorMsg = errMsg
+			return result, fmt.Errorf("%s", errMsg)
+		}
+		return result, fmt.Errorf("%s", defaultErrorMsg)
+	}
+
+	// Extract content array if it exists for VPC response
+	if contentArray, ok := actualResult["content"].([]interface{}); ok {
+		result.Content = make([]map[string]interface{}, len(contentArray))
+		for i, item := range contentArray {
+			if contentItem, ok := item.(map[string]interface{}); ok {
+				result.Content[i] = contentItem
+				if i == 0 && result.TextContent == "" {
+					if text, ok := contentItem["text"].(string); ok {
+						result.TextContent = text
+					}
+				}
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// callMcpToolAPI handles traditional API-based MCP tool calls
+func (am *ApplicationManager) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) (*callMcpToolHelperResult, error) {
 	// Create the request
 	callToolRequest := &mcp.CallMcpToolRequest{
 		Authorization: tea.String("Bearer " + am.Session.GetAPIKey()),
 		SessionId:     tea.String(am.Session.GetSessionId()),
 		Name:          tea.String(toolName),
-		Args:          tea.String(string(argsJSON)),
+		Args:          tea.String(argsJSON),
 	}
 
 	// Log API request
@@ -127,27 +246,16 @@ func (am *ApplicationManager) callMcpToolHelper(toolName string, args interface{
 	if ok && isError {
 		result.IsError = true
 
-		// Try to extract the error message from the content field
-		//nolint:govet
-		contentArray, ok := data["content"].([]interface{})
-		if ok && len(contentArray) > 0 {
-			// Convert content array to a more usable format
-			result.Content = make([]map[string]interface{}, 0, len(contentArray))
-			for _, item := range contentArray {
-				contentItem, ok := item.(map[string]interface{})
-				if !ok {
-					continue
-				}
-				result.Content = append(result.Content, contentItem)
-			}
-
-			// Extract error message from the first content item
-			if len(result.Content) > 0 {
-				//nolint:govet
-				text, ok := result.Content[0]["text"].(string)
-				if ok {
-					result.ErrorMsg = text
-					return result, fmt.Errorf("%s", text)
+		// Try to extract the error message from the response
+		if errContent, exists := data["content"]; exists {
+			if contentArray, isArray := errContent.([]interface{}); isArray && len(contentArray) > 0 {
+				if firstContent, isMap := contentArray[0].(map[string]interface{}); isMap {
+					if text, exists := firstContent["text"]; exists {
+						if textStr, isStr := text.(string); isStr {
+							result.ErrorMsg = textStr
+							return result, fmt.Errorf("%s", textStr)
+						}
+					}
 				}
 			}
 		}
@@ -155,34 +263,25 @@ func (am *ApplicationManager) callMcpToolHelper(toolName string, args interface{
 	}
 
 	// Extract content array if it exists
-	//nolint:govet
-	contentArray, ok := data["content"].([]interface{})
-	if ok {
-		result.Content = make([]map[string]interface{}, 0, len(contentArray))
-		for _, item := range contentArray {
-			//nolint:govet
-			contentItem, ok := item.(map[string]interface{})
-			if !ok {
-				continue
+	if contentArray, ok := data["content"].([]interface{}); ok {
+		result.Content = make([]map[string]interface{}, len(contentArray))
+		var textParts []string
+
+		for i, item := range contentArray {
+			if contentItem, ok := item.(map[string]interface{}); ok {
+				result.Content[i] = contentItem
+
+				// Extract text for TextContent field
+				if text, ok := contentItem["text"].(string); ok {
+					textParts = append(textParts, text)
+				}
 			}
-			result.Content = append(result.Content, contentItem)
 		}
 
-		// Extract text content from the content items
-		var textBuilder strings.Builder
-		for _, item := range result.Content {
-			//nolint:govet
-			text, ok := item["text"].(string)
-			if !ok {
-				continue
-			}
-
-			if textBuilder.Len() > 0 {
-				textBuilder.WriteString("\n")
-			}
-			textBuilder.WriteString(text)
+		// Join all text parts
+		if len(textParts) > 0 {
+			result.TextContent = strings.Join(textParts, "\n")
 		}
-		result.TextContent = textBuilder.String()
 	}
 
 	return result, nil
@@ -213,6 +312,10 @@ func NewApplicationManager(session interface {
 	GetAPIKey() string
 	GetClient() *mcp.Client
 	GetSessionId() string
+	IsVpc() bool
+	NetworkInterfaceIp() string
+	HttpPort() string
+	FindServerForTool(toolName string) string
 }) *ApplicationManager {
 	return &ApplicationManager{
 		Session: session,
@@ -228,7 +331,7 @@ func (am *ApplicationManager) GetInstalledApps(startMenu bool, desktop bool, ign
 	}
 
 	// Use enhanced helper method to call MCP tool and check for errors
-	mcpResult, err := am.callMcpToolHelper("get_installed_apps", args, "error getting installed apps")
+	mcpResult, err := am.callMcpTool("get_installed_apps", args, "error getting installed apps")
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +373,7 @@ func (am *ApplicationManager) StartApp(startCmd string, workDirectory string, ac
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpToolHelper("start_app", args, "error starting app")
+	mcpResult, err := am.callMcpTool("start_app", args, "error starting app")
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +399,7 @@ func (am *ApplicationManager) StopAppByPName(pname string) (*AppOperationResult,
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpToolHelper("stop_app_by_pname", args, "error stopping app by process name")
+	mcpResult, err := am.callMcpTool("stop_app_by_pname", args, "error stopping app by process name")
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +419,7 @@ func (am *ApplicationManager) StopAppByPID(pid int) (*AppOperationResult, error)
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpToolHelper("stop_app_by_pid", args, "error stopping app by PID")
+	mcpResult, err := am.callMcpTool("stop_app_by_pid", args, "error stopping app by PID")
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +439,7 @@ func (am *ApplicationManager) StopAppByCmd(stopCmd string) (*AppOperationResult,
 	}
 
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpToolHelper("stop_app_by_cmd", args, "error stopping app by command")
+	mcpResult, err := am.callMcpTool("stop_app_by_cmd", args, "error stopping app by command")
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +455,7 @@ func (am *ApplicationManager) StopAppByCmd(stopCmd string) (*AppOperationResult,
 // ListVisibleApps returns a list of currently visible applications.
 func (am *ApplicationManager) ListVisibleApps() (*ProcessListResult, error) {
 	// 使用增强的辅助方法调用MCP工具并检查错误
-	mcpResult, err := am.callMcpToolHelper("list_visible_apps", nil, "error listing visible apps")
+	mcpResult, err := am.callMcpTool("list_visible_apps", nil, "error listing visible apps")
 	if err != nil {
 		return nil, err
 	}
