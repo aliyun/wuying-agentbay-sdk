@@ -5,7 +5,10 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      tsconfig: 'tsconfig.json'
+      tsconfig: 'tsconfig.json',
+      diagnostics: {
+        ignoreCodes: [151001]
+      }
     }]
   },
   transformIgnorePatterns: [
@@ -22,5 +25,10 @@ module.exports = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/dist/'
-  ]
+  ],
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.json'
+    }
+  }
 };

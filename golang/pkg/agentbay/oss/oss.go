@@ -10,6 +10,7 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/utils"
 )
 
 // UploadResult wraps upload result and RequestID
@@ -142,7 +143,8 @@ func (o *OSSManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", err)
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
 		return nil, fmt.Errorf("failed to call VPC %s: %w", toolName, err)
 	}
 	defer resp.Body.Close()
@@ -227,7 +229,8 @@ func (o *OSSManager) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) 
 
 	// Log API response
 	if err != nil {
-		fmt.Println("Error calling CallMcpTool -", toolName, ":", err)
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling CallMcpTool -", toolName, ":", sanitizedErr)
 		return nil, fmt.Errorf("failed to call %s: %w", toolName, err)
 	}
 	if response != nil && response.Body != nil {

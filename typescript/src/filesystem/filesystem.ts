@@ -12,6 +12,7 @@ import {
   MultipleFileContentResult,
   FileSearchResult,
 } from "../types/api-response";
+import fetch from "node-fetch";
 
 // Default chunk size for large file operations (60KB)
 const DEFAULT_CHUNK_SIZE = 60 * 1024;
@@ -233,7 +234,7 @@ export class FileSystem {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        signal: AbortSignal.timeout(30000) // 30 second timeout
+        timeout: 30000 // 30 second timeout
       });
 
       if (!response.ok) {
@@ -241,11 +242,12 @@ export class FileSystem {
       }
 
       // Parse response
-      const responseData = await response.json();
+      const responseData = await response.json() as any;
       
       // Log response differently based on operation type
       if (isFileOperation(toolName)) {
         log(`Response from VPC CallMcpTool - ${toolName} - status: ${response.status}`);
+        log(`Response data:`, responseData);
       } else {
         log(`Response from VPC CallMcpTool - ${toolName}:`, responseData);
       }
@@ -260,7 +262,7 @@ export class FileSystem {
 
       // Extract the actual result from the nested VPC response structure
       let actualResult: any = responseData;
-      if (typeof responseData.data === 'string') {
+      if (responseData && typeof responseData.data === 'string') {
         try {
           const dataMap = JSON.parse(responseData.data);
           if (dataMap.result) {
@@ -269,17 +271,72 @@ export class FileSystem {
         } catch (error) {
           // Keep original responseData if parsing fails
         }
-      } else if (responseData.data && typeof responseData.data === 'object') {
+      } else if (responseData && responseData.data && typeof responseData.data === 'object') {
         actualResult = responseData.data;
       }
 
       result.data = actualResult;
+
+      // Extract content array and textContent from VPC response
+      if (Array.isArray(actualResult.content)) {
+        result.content = actualResult.content;
+
+        // Extract textContent from content items
+        if (result.content && result.content.length > 0) {
+          const textParts: string[] = [];
+          for (const item of result.content) {
+            if (
+              item &&
+              typeof item === "object" &&
+              item.text &&
+              typeof item.text === "string"
+            ) {
+              textParts.push(item.text);
+            }
+          }
+          result.textContent = textParts.join("\n");
+        }
+      }
+
       return result;
 
     } catch (error) {
-      logError(`Error calling VPC CallMcpTool - ${toolName}:`, error);
+      const sanitizedError = this.sanitizeError(error);
+      logError(`Error calling VPC CallMcpTool - ${toolName}:`, sanitizedError);
       throw new Error(`failed to call VPC ${toolName}: ${error}`);
     }
+  }
+
+  /**
+   * Sanitizes error messages to remove sensitive information like API keys.
+   *
+   * @param error - The error to sanitize
+   * @returns The sanitized error
+   */
+  private sanitizeError(error: any): any {
+    if (!error) {
+      return error;
+    }
+
+    const errorStr = String(error);
+    
+    // Remove API key from URLs
+    // Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    let sanitized = errorStr.replace(/apiKey=akm-[a-f0-9-]+/g, 'apiKey=***REDACTED***');
+    
+    // Remove API key from Bearer tokens
+    // Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/Bearer akm-[a-f0-9-]+/g, 'Bearer ***REDACTED***');
+    
+    // Remove API key from query parameters
+    // Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/&apiKey=akm-[a-f0-9-]+/g, '&apiKey=***REDACTED***');
+    
+    // Remove API key from URL paths
+    // Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/\/callTool\?apiKey=akm-[a-f0-9-]+/g, '/callTool?apiKey=***REDACTED***');
+    
+    return sanitized;
   }
 
   /**
@@ -433,7 +490,8 @@ export class FileSystem {
 
       return result;
     } catch (error) {
-      logError(`Error calling CallMcpTool - ${toolName}:`, error);
+      const sanitizedError = this.sanitizeError(error);
+      logError(`Error calling CallMcpTool - ${toolName}:`, sanitizedError);
       throw new APIError(`Failed to call ${toolName}: ${error}`);
     }
   }

@@ -245,6 +245,15 @@ class AgentBay:
                     "'Data' field is not a dictionary",
                 )
 
+            # Check if the session creation was successful
+            if data.get("Success") is False:
+                error_msg = data.get("ErrMsg", "Session creation failed")
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message=error_msg,
+                )
+
             session_id = data.get("SessionId")
             if not session_id:
                 return SessionResult(

@@ -64,6 +64,38 @@ export class UI {
   }
 
   /**
+   * Sanitizes error messages to remove sensitive information like API keys.
+   *
+   * @param error - The error to sanitize
+   * @returns The sanitized error
+   */
+  private sanitizeError(error: any): any {
+    if (!error) {
+      return error;
+    }
+
+    const errorStr = String(error);
+    
+    // Remove API key from URLs
+    // Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    let sanitized = errorStr.replace(/apiKey=akm-[a-f0-9-]+/g, 'apiKey=***REDACTED***');
+    
+    // Remove API key from Bearer tokens
+    // Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/Bearer akm-[a-f0-9-]+/g, 'Bearer ***REDACTED***');
+    
+    // Remove API key from query parameters
+    // Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/&apiKey=akm-[a-f0-9-]+/g, '&apiKey=***REDACTED***');
+    
+    // Remove API key from URL paths
+    // Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    sanitized = sanitized.replace(/\/callTool\?apiKey=akm-[a-f0-9-]+/g, '/callTool?apiKey=***REDACTED***');
+    
+    return sanitized;
+  }
+
+  /**
    * Helper method to call MCP tools and handle common response processing
    *
    * @param toolName - Name of the MCP tool to call
@@ -155,7 +187,8 @@ export class UI {
 
       return result;
     } catch (error) {
-      logError(`Error calling CallMcpTool - ${toolName}:`, error);
+      const sanitizedError = this.sanitizeError(error);
+      logError(`Error calling CallMcpTool - ${toolName}:`, sanitizedError);
       throw new APIError(`Failed to call ${toolName}: ${error}`);
     }
   }

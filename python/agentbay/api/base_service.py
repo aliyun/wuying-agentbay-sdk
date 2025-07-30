@@ -100,6 +100,16 @@ class BaseService:
             if actual_result is None:
                 actual_result = response_data
             
+            # For VPC responses, we need to parse the content similar to non-VPC mode
+            # The actual_result contains the parsed response structure
+            if isinstance(actual_result, dict) and "content" in actual_result:
+                # Extract text from content array
+                content = actual_result.get("content", [])
+                if content and isinstance(content, list) and len(content) > 0:
+                    content_item = content[0]
+                    if isinstance(content_item, dict) and "text" in content_item:
+                        actual_result = content_item["text"]
+            
             return OperationResult(
                 request_id="",  # VPC requests don't have traditional request IDs
                 success=True,
@@ -107,7 +117,8 @@ class BaseService:
             )
             
         except requests.RequestException as e:
-            print(f"Error calling VPC CallMcpTool - {tool_name}: {e}")
+            sanitized_error = self._sanitize_error(str(e))
+            print(f"Error calling VPC CallMcpTool - {tool_name}: {sanitized_error}")
             return OperationResult(
                 request_id="",
                 success=False,
@@ -184,6 +195,43 @@ class BaseService:
                 success=False,
                 error_message=f"Failed to call MCP tool {name}: {handled_error}",
             )
+
+    def _sanitize_error(self, error_str: str) -> str:
+        """
+        Sanitizes error messages to remove sensitive information like API keys.
+        
+        Args:
+            error_str (str): The error string to sanitize.
+            
+        Returns:
+            str: The sanitized error string.
+        """
+        import re
+        
+        if not error_str:
+            return error_str
+        
+        # Remove API key from URLs
+        # Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        api_key_pattern = re.compile(r'apiKey=akm-[a-f0-9-]+')
+        error_str = api_key_pattern.sub('apiKey=***REDACTED***', error_str)
+        
+        # Remove API key from Bearer tokens
+        # Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        bearer_pattern = re.compile(r'Bearer akm-[a-f0-9-]+')
+        error_str = bearer_pattern.sub('Bearer ***REDACTED***', error_str)
+        
+        # Remove API key from query parameters
+        # Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        query_pattern = re.compile(r'&apiKey=akm-[a-f0-9-]+')
+        error_str = query_pattern.sub('&apiKey=***REDACTED***', error_str)
+        
+        # Remove API key from URL paths
+        # Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        url_pattern = re.compile(r'/callTool\?apiKey=akm-[a-f0-9-]+')
+        error_str = url_pattern.sub('/callTool?apiKey=***REDACTED***', error_str)
+        
+        return error_str
 
     def _parse_response_body(
         self, body: Dict[str, Any], parse_json: bool = False
