@@ -694,8 +694,8 @@ export class FileSystem {
    * Corresponds to Python's read_file() method
    *
    * @param path - Path to the file to read.
-   * @param offset - Optional: Line offset to start reading from.
-   * @param length - Optional: Number of lines to read. If 0, reads the entire file.
+   * @param offset - Optional: Byte offset to start reading from (0-based).
+   * @param length - Optional: Number of bytes to read. If 0, reads the entire file from offset.
    * @returns FileContentResult with file content and requestId
    */
   async readFile(
@@ -845,7 +845,7 @@ export class FileSystem {
       };
 
       if (excludePatterns.length > 0) {
-        args.exclude_patterns = excludePatterns;
+        args.excludePatterns = excludePatterns;
       }
 
       const result = await this.callMcpTool(

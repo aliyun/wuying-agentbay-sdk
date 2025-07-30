@@ -584,8 +584,8 @@ func (fs *FileSystem) MoveFile(source, destination string) (*FileWriteResult, er
 //
 //	{
 //	  "path": "file/path/to/read",
-//	  "offset": 0,  // Optional: Starting offset for reading
-//	  "length": 0   // Optional: Number of bytes to read (0 means read all)
+//	  "offset": 0,  // Optional: Byte offset to start reading from (0-based).
+//	  "length": 0   //  Optional: Number of bytes to read. If 0, reads the entire file from offset.
 //	}
 func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (*FileReadResult, error) {
 	// Handle optional parameters for backward compatibility
