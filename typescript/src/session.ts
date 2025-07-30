@@ -4,6 +4,7 @@ import {
   GetLabelRequest,
   GetLinkRequest,
   GetMcpResourceRequest,
+  ListMcpToolsRequest,
   ReleaseMcpSessionRequest,
   SetLabelRequest,
 } from "./api/models/model";
@@ -22,6 +23,24 @@ import {
 import { UI } from "./ui";
 import { log, logError } from "./utils/logger";
 import { WindowManager } from "./window";
+
+/**
+ * Represents an MCP tool with complete information.
+ */
+export interface McpTool {
+  name: string;
+  description: string;
+  inputSchema: Record<string, any>;
+  server: string;
+  tool: string;
+}
+
+/**
+ * Result containing MCP tools list and request ID.
+ */
+export interface McpToolsResult extends OperationResult {
+  tools: McpTool[];
+}
 
 /**
  * Contains information about a session.
@@ -98,6 +117,9 @@ export class Session {
   // Context management (matching Go version)
   public context: ContextManager;
 
+  // MCP tools available for this session
+  public mcpTools: McpTool[] = [];
+
   /**
    * Initialize a Session object.
    *
@@ -143,6 +165,39 @@ export class Session {
    */
   getSessionId(): string {
     return this.sessionId;
+  }
+
+  /**
+   * Return whether this session uses VPC resources.
+   */
+  isVpcEnabled(): boolean {
+    return this.isVpc;
+  }
+
+  /**
+   * Return the network interface IP for VPC sessions.
+   */
+  getNetworkInterfaceIp(): string {
+    return this.networkInterfaceIp;
+  }
+
+  /**
+   * Return the HTTP port for VPC sessions.
+   */
+  getHttpPort(): string {
+    return this.httpPort;
+  }
+
+  /**
+   * Find the server that provides the given tool.
+   */
+  findServerForTool(toolName: string): string {
+    for (const tool of this.mcpTools) {
+      if (tool.name === toolName) {
+        return tool.server;
+      }
+    }
+    return "";
   }
 
   /**
@@ -538,5 +593,63 @@ export class Session {
       }
       throw new Error(`Failed to get link asynchronously: ${error}`);
     }
+  }
+
+  /**
+   * List MCP tools available for this session.
+   * 
+   * @param imageId Optional image ID, defaults to session's imageId or "linux_latest"
+   * @returns McpToolsResult containing tools list and request ID
+   */
+  async listMcpTools(imageId?: string): Promise<McpToolsResult> {
+    // Use provided imageId, session's imageId, or default
+    if (!imageId) {
+      imageId = (this as any).imageId || "linux_latest";
+    }
+
+    const request = new ListMcpToolsRequest({
+      authorization: `Bearer ${this.getAPIKey()}`,
+      imageId: imageId,
+    });
+
+    log("API Call: ListMcpTools");
+    log(`Request: ImageId=${imageId}`);
+
+    const response = await this.getClient().listMcpTools(request);
+
+    // Extract request ID
+    const requestId = extractRequestId(response) || "";
+
+    if (response && response.body) {
+      log("Response from ListMcpTools:", response.body);
+    }
+
+    // Parse the response data
+    const tools: McpTool[] = [];
+    if (response && response.body && response.body.data) {
+      try {
+        const toolsData = JSON.parse(response.body.data as string);
+        for (const toolData of toolsData) {
+          const tool: McpTool = {
+            name: toolData.name || "",
+            description: toolData.description || "",
+            inputSchema: toolData.inputSchema || {},
+            server: toolData.server || "",
+            tool: toolData.tool || "",
+          };
+          tools.push(tool);
+        }
+      } catch (error) {
+        logError(`Error unmarshaling tools data: ${error}`);
+      }
+    }
+
+    this.mcpTools = tools; // Update the session's mcpTools field
+
+    return {
+      requestId,
+      success: true,
+      tools,
+    };
   }
 }

@@ -1,527 +1,737 @@
-# VPC 功能迁移方案：从 Golang 到 Python 和 TypeScript
+# VPC功能迁移方案
 
 ## 概述
 
-本文档详细描述了如何将 Golang 中的 VPC（Virtual Private Cloud）相关功能迁移到 Python 和 TypeScript SDK 中。主要包括两个方面：
+本文档详细描述了将Golang模块中新增的VPC（Virtual Private Cloud）功能迁移到Python和TypeScript SDK的完整方案。VPC功能使用户能够在VPC环境中创建session，并通过HTTP直接调用MCP工具。
 
-1. **代码逻辑迁移**：将 VPC 场景下的 MCP 工具调用逻辑从 Golang 迁移到 Python 和 TypeScript
-2. **测试用例迁移**：根据实际的 VPC 环境工具可用性更新测试用例
+## 功能分析
+
+### Golang中的VPC功能（已实现）
+
+#### 1. 创建VPC Session参数
+- `CreateSessionParams` 结构体中的 `IsVpc bool` 参数
+- `WithIsVpc(bool)` 方法用于设置VPC标志  
+- API调用时设置 `VpcResource` 参数
+
+#### 2. VPC Session属性
+- `IsVpcEnabled bool` - 是否启用VPC
+- `NetworkInterfaceIP string` - VPC网络接口IP
+- `HttpPortNumber string` - VPC HTTP端口
+- 相关方法：`IsVpc()`, `NetworkInterfaceIp()`, `HttpPort()`
+
+#### 3. VPC环境下调用MCP工具
+- 所有模块（Application, FileSystem, Window, OSS, Command, UI等）都有 `callMcpToolVPC` 方法
+- 使用HTTP GET请求到VPC endpoint: `http://{NetworkInterfaceIP}:{HttpPort}/callTool`
+- 请求参数通过Query Parameters传递：server, tool, args, apiKey
+- 通过 `FindServerForTool(toolName)` 查找工具对应的服务器
+
+#### 4. 获取MCP工具列表
+- `ListMcpTools()` 方法获取可用工具列表
+- 返回 `McpToolsResult` 包含工具信息（name, description, inputSchema, server, tool）
+- VPC session创建时自动获取MCP tools信息
+- 存储在 `McpTools []McpTool` 字段中
 
 ## 当前状态分析
 
-### Golang 中已实现的 VPC 功能
+### Python SDK现状
+✅ **已实现**：
+- `CreateSessionParams` 中的 `is_vpc: Optional[bool]` 参数
+- Session中的基础VPC属性：`is_vpc`, `network_interface_ip`, `http_port`
+- 在 `agentbay.create()` 中设置 `request.vpc_resource = params.is_vpc`
 
-1. **VPC 工具验证机制**：每个模块都有 `isToolAvailableInVPC` 方法来验证工具在 VPC 环境中的可用性
-2. **VPC 调用逻辑**：在 `callMcpToolVPC` 方法中实现了 VPC 环境下的 HTTP 调用
-3. **测试用例更新**：根据实际的 tool list 更新了测试用例，跳过不可用的工具测试
+❌ **缺失功能**：
+- VPC相关的便捷方法
+- VPC模式下的MCP tool调用机制
+- 获取MCP tool list功能
+- VPC session创建时自动获取工具列表
 
-### Python 和 TypeScript 中的现状
+### TypeScript SDK现状
+✅ **已实现**：
+- `CreateSessionParams` 接口和类中的 `isVpc?: boolean` 参数
+- Session中的基础VPC属性：`isVpc`, `networkInterfaceIp`, `httpPort`
+- 在 `agentbay.create()` 中设置 `request.vpcResource = params.isVpc || false`
 
-1. **基础 VPC 支持**：两种语言都已支持 VPC 会话创建（`isVpc` 参数）
-2. **缺少 VPC 调用逻辑**：目前的 `_call_mcp_tool`（Python）和 `callMcpTool`（TypeScript）方法只支持标准 API 调用
-3. **缺少 VPC 测试**：没有针对 VPC 环境的专门测试用例
+❌ **缺失功能**：
+- VPC相关的便捷方法
+- VPC模式下的MCP tool调用机制
+- 获取MCP tool list功能
+- VPC session创建时自动获取工具列表
 
-## 迁移计划
+## 迁移方案
 
-### 阶段 1：代码逻辑迁移
+### 第一阶段：核心数据结构
 
-#### 1.1 Python 迁移
+#### Python
 
-**目标文件：**
-- `python/agentbay/api/base_service.py`
-- `python/agentbay/code/code.py`
-- `python/agentbay/oss/oss.py`
-- `python/agentbay/filesystem/filesystem.py`
-- `python/agentbay/command/command.py`
-- 其他使用 `_call_mcp_tool` 的模块
-
-**修改内容：**
-
-1. **更新 BaseService 类**
-   ```python
-   # 在 python/agentbay/api/base_service.py 中添加
-   
-   import requests
-   import urllib.parse
-   
-   def _call_mcp_tool_vpc(self, name: str, args: Dict[str, Any]) -> OperationResult:
-       """
-       Internal helper to call MCP tool in VPC environment.
-       """
-       try:
-           args_json = json.dumps(args, ensure_ascii=False)
-           
-           # Find server for this tool
-           server = self.session.find_server_for_tool(name)
-           if not server:
-               raise AgentBayError(f"server not found for tool: {name}")
-           
-           # Validate tool availability in VPC
-           if not self._is_tool_available_in_vpc(name):
-               raise AgentBayError(f"tool {name} is not available in VPC environment")
-           
-           # Construct VPC URL
-           base_url = f"http://{self.session.network_interface_ip}:{self.session.http_port}/callTool"
-           
-           # Prepare query parameters
-           params = {
-               'server': server,
-               'tool': name,
-               'args': args_json,
-               'apiKey': self.session.get_api_key()
-           }
-           
-           # Send HTTP request
-           response = requests.get(base_url, params=params, timeout=30)
-           response.raise_for_status()
-           
-           response_data = response.json()
-           
-           # Process VPC response (similar to Golang logic)
-           # ... (详细实现参考 Golang 代码)
-           
-       except Exception as e:
-           # Error handling
-           pass
-   
-   def _is_tool_available_in_vpc(self, tool_name: str) -> bool:
-       """
-       Check if a tool is available in VPC environment.
-       Subclasses should override this method.
-       """
-       return True  # Default implementation
-   
-   def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> OperationResult:
-       """
-       Updated to support both VPC and non-VPC calls.
-       """
-       if self.session.is_vpc:
-           return self._call_mcp_tool_vpc(name, args)
-       else:
-           # Existing non-VPC implementation
-           return self._call_mcp_tool_standard(name, args)
-   ```
-
-2. **为每个模块添加工具验证**
-   ```python
-   # 在各个模块中重写 _is_tool_available_in_vpc 方法
-   
-   # code/code.py
-   def _is_tool_available_in_vpc(self, tool_name: str) -> bool:
-       vpc_available_tools = {
-           "run_code": False,  # 根据 tool list，run_code 不可用
-       }
-       return vpc_available_tools.get(tool_name, False)
-   
-   # filesystem/filesystem.py
-   def _is_tool_available_in_vpc(self, tool_name: str) -> bool:
-       vpc_available_tools = {
-           "create_directory": True,
-           "edit_file": True,
-           "get_file_info": True,
-           "read_file": True,
-           "read_multiple_files": True,
-           "list_directory": True,
-           "move_file": True,
-           "search_files": True,
-           "write_file": True,
-       }
-       return vpc_available_tools.get(tool_name, False)
-   
-   # command/command.py
-   def _is_tool_available_in_vpc(self, tool_name: str) -> bool:
-       vpc_available_tools = {
-           "shell": True,
-       }
-       return vpc_available_tools.get(tool_name, False)
-   
-   # oss/oss.py
-   def _is_tool_available_in_vpc(self, tool_name: str) -> bool:
-       vpc_available_tools = {
-           "oss_env_init": False,      # 根据 tool list，OSS 工具不可用
-           "oss_upload": False,
-           "oss_upload_annon": False,
-           "oss_download": False,
-           "oss_download_annon": False,
-       }
-       return vpc_available_tools.get(tool_name, False)
-   ```
-
-3. **更新 Session 类**
-   ```python
-   # 在 python/agentbay/session.py 中添加
-   
-   def find_server_for_tool(self, tool_name: str) -> str:
-       """
-       Find the server that provides the given tool.
-       """
-       for tool in self.mcp_tools:
-           if tool.get('name') == tool_name:
-               return tool.get('server', '')
-       return ''
-   ```
-
-#### 1.2 TypeScript 迁移
-
-**目标文件：**
-- `typescript/src/code/code.ts`
-- `typescript/src/oss/oss.ts`
-- `typescript/src/filesystem/filesystem.ts`
-- `typescript/src/command/command.ts`
-- 其他使用 `callMcpTool` 的模块
-
-**修改内容：**
-
-1. **更新各个模块的 callMcpTool 方法**
-   ```typescript
-   // 在各个模块中更新 callMcpTool 方法
-   
-   private async callMcpTool(
-     toolName: string,
-     args: Record<string, any>,
-     defaultErrorMsg: string
-   ): Promise<CallMcpToolResult> {
-     // Check if this is a VPC session
-     if (this.session.isVpc) {
-       return this.callMcpToolVPC(toolName, args, defaultErrorMsg);
-     }
-     
-     // Non-VPC mode: use existing implementation
-     return this.callMcpToolStandard(toolName, args, defaultErrorMsg);
-   }
-   
-   private async callMcpToolVPC(
-     toolName: string,
-     args: Record<string, any>,
-     defaultErrorMsg: string
-   ): Promise<CallMcpToolResult> {
-     try {
-       const argsJSON = JSON.stringify(args);
-       
-       // Find server for this tool
-       const server = this.session.findServerForTool(toolName);
-       if (!server) {
-         throw new Error(`server not found for tool: ${toolName}`);
-       }
-       
-       // Validate tool availability in VPC
-       if (!this.isToolAvailableInVPC(toolName)) {
-         throw new Error(`tool ${toolName} is not available in VPC environment`);
-       }
-       
-       // Construct VPC URL
-       const baseURL = `http://${this.session.networkInterfaceIp}:${this.session.httpPort}/callTool`;
-       
-       // Prepare query parameters
-       const params = new URLSearchParams({
-         server,
-         tool: toolName,
-         args: argsJSON,
-         apiKey: this.session.getAPIKey()
-       });
-       
-       // Send HTTP request
-       const response = await fetch(`${baseURL}?${params}`, {
-         method: 'GET',
-         headers: {
-           'Content-Type': 'application/x-www-form-urlencoded'
-         },
-         signal: AbortSignal.timeout(30000)
-       });
-       
-       if (!response.ok) {
-         throw new Error(`VPC call failed: ${response.statusText}`);
-       }
-       
-       const responseData = await response.json();
-       
-       // Process VPC response (similar to Golang logic)
-       // ... (详细实现参考 Golang 代码)
-       
-     } catch (error) {
-       // Error handling
-       throw new APIError(`Failed to call VPC ${toolName}: ${error.message}`);
-     }
-   }
-   
-   private isToolAvailableInVPC(toolName: string): boolean {
-     // Each module should override this method
-     return true;
-   }
-   ```
-
-2. **为每个模块添加工具验证**
-   ```typescript
-   // code/code.ts
-   private isToolAvailableInVPC(toolName: string): boolean {
-     const vpcAvailableTools: Record<string, boolean> = {
-       run_code: false, // 根据 tool list，run_code 不可用
-     };
-     return vpcAvailableTools[toolName] || false;
-   }
-   
-   // filesystem/filesystem.ts
-   private isToolAvailableInVPC(toolName: string): boolean {
-     const vpcAvailableTools: Record<string, boolean> = {
-       create_directory: true,
-       edit_file: true,
-       get_file_info: true,
-       read_file: true,
-       read_multiple_files: true,
-       list_directory: true,
-       move_file: true,
-       search_files: true,
-       write_file: true,
-     };
-     return vpcAvailableTools[toolName] || false;
-   }
-   
-   // command/command.ts
-   private isToolAvailableInVPC(toolName: string): boolean {
-     const vpcAvailableTools: Record<string, boolean> = {
-       shell: true,
-     };
-     return vpcAvailableTools[toolName] || false;
-   }
-   
-   // oss/oss.ts
-   private isToolAvailableInVPC(toolName: string): boolean {
-     const vpcAvailableTools: Record<string, boolean> = {
-       oss_env_init: false,      // 根据 tool list，OSS 工具不可用
-       oss_upload: false,
-       oss_upload_annon: false,
-       oss_download: false,
-       oss_download_annon: false,
-     };
-     return vpcAvailableTools[toolName] || false;
-   }
-   ```
-
-3. **更新 Session 类**
-   ```typescript
-   // 在 typescript/src/session.ts 中添加
-   
-   public findServerForTool(toolName: string): string {
-     for (const tool of this.mcpTools) {
-       if (tool.name === toolName) {
-         return tool.server || '';
-       }
-     }
-     return '';
-   }
-   ```
-
-### 阶段 2：测试用例迁移
-
-#### 2.1 Python 测试迁移
-
-**创建新文件：** `python/tests/integration/test_vpc_session_integration.py`
-
-**内容结构：**
+1. **扩展Session类** (`python/agentbay/session.py`)
 ```python
-import pytest
-from agentbay import AgentBay, CreateSessionParams
+class Session:
+    def __init__(self, agent_bay: "AgentBay", session_id: str):
+        # ... 现有代码 ...
+        # MCP tools available for this session
+        self.mcp_tools = []  # List[McpTool]
 
-class TestVpcSessionIntegration:
-    """VPC session integration tests based on actual tool availability."""
-    
-    def test_vpc_session_basic_tools(self):
-        """Test VPC session creation and basic available tools."""
-        # 只测试 FileSystem 和 Command 模块
-        pass
-    
-    @pytest.mark.skip(reason="Code module (run_code) is not available in VPC environment according to tool list")
-    def test_vpc_session_code_operations(self):
-        """Code operations are not available in VPC."""
-        pass
-    
-    @pytest.mark.skip(reason="UI module is not available in VPC environment according to tool list")
-    def test_vpc_session_ui_operations(self):
-        """UI operations are not available in VPC."""
-        pass
-    
-    @pytest.mark.skip(reason="Application module is not available in VPC environment according to tool list")
-    def test_vpc_session_application_operations(self):
-        """Application operations are not available in VPC."""
-        pass
-    
-    @pytest.mark.skip(reason="Window module is not available in VPC environment according to tool list")
-    def test_vpc_session_window_operations(self):
-        """Window operations are not available in VPC."""
-        pass
-    
-    @pytest.mark.skip(reason="OSS module is not available in VPC environment according to tool list")
-    def test_vpc_session_oss_operations(self):
-        """OSS operations are not available in VPC."""
-        pass
-    
-    def test_vpc_session_system_tools(self):
-        """Test system-level tools available in VPC environment."""
-        # 测试 get_resource, system_screenshot, release_resource
-        pass
-    
-    def test_vpc_session_browser_tools(self):
-        """Test browser-related tools available in VPC environment."""
-        # 测试 cdp, pageuse-mcp-server, playwright 工具
-        pass
-    
-    def test_vpc_session_comprehensive(self):
-        """Test all VPC-enabled modules in a single session."""
-        # 只测试可用的模块：FileSystem, Command, SystemTools
-        pass
+    def is_vpc(self) -> bool:
+        """Return whether this session uses VPC resources."""
+        return self.is_vpc
+
+    def network_interface_ip(self) -> str:
+        """Return the network interface IP for VPC sessions."""
+        return self.network_interface_ip
+
+    def http_port(self) -> str:
+        """Return the HTTP port for VPC sessions."""
+        return self.http_port
+
+    def find_server_for_tool(self, tool_name: str) -> str:
+        """Find the server that provides the given tool."""
+        for tool in self.mcp_tools:
+            if tool.name == tool_name:
+                return tool.server
+        return ""
 ```
 
-#### 2.2 TypeScript 测试迁移
+2. **创建McpTool数据类** (`python/agentbay/models/mcp_tool.py`)
+```python
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
 
-**创建新文件：** `typescript/tests/integration/vpc-session-integration.test.ts`
+@dataclass
+class McpTool:
+    name: str
+    description: str
+    input_schema: Dict[str, Any]
+    server: str
+    tool: str
 
-**内容结构：**
+    def get_name(self) -> str:
+        return self.name
+
+    def get_server(self) -> str:
+        return self.server
+```
+
+3. **创建McpToolsResult类** (`python/agentbay/models/response.py`)
+```python
+from .api_response import ApiResponse
+from .mcp_tool import McpTool
+from typing import List
+
+class McpToolsResult(ApiResponse):
+    def __init__(self, request_id: str = "", tools: List[McpTool] = None):
+        super().__init__(request_id)
+        self.tools = tools or []
+```
+
+#### TypeScript
+
+1. **扩展Session类** (`typescript/src/session.ts`)
 ```typescript
-import { AgentBay, CreateSessionParams } from '../../src';
+export interface McpTool {
+  name: string;
+  description: string;
+  inputSchema: Record<string, any>;
+  server: string;
+  tool: string;
+}
 
-describe('VPC Session Integration Tests', () => {
-  describe('Basic VPC Tools', () => {
-    it('should create VPC session and test basic available tools', async () => {
-      // 只测试 FileSystem 和 Command 模块
-    });
+export interface McpToolsResult extends ApiResponse {
+  tools: McpTool[];
+}
+
+export class Session {
+  // ... 现有属性 ...
+  // MCP tools available for this session
+  public mcpTools: McpTool[] = [];
+
+  // ... 现有构造函数 ...
+
+  /**
+   * Return whether this session uses VPC resources.
+   */
+  isVpcEnabled(): boolean {
+    return this.isVpc;
+  }
+
+  /**
+   * Return the network interface IP for VPC sessions.
+   */
+  getNetworkInterfaceIp(): string {
+    return this.networkInterfaceIp;
+  }
+
+  /**
+   * Return the HTTP port for VPC sessions.
+   */
+  getHttpPort(): string {
+    return this.httpPort;
+  }
+
+  /**
+   * Find the server that provides the given tool.
+   */
+  findServerForTool(toolName: string): string {
+    for (const tool of this.mcpTools) {
+      if (tool.name === toolName) {
+        return tool.server;
+      }
+    }
+    return "";
+  }
+}
+```
+
+### 第二阶段：ListMcpTools功能
+
+#### Python
+
+1. **在Session类中添加ListMcpTools方法** (`python/agentbay/session.py`)
+```python
+def list_mcp_tools(self, image_id: Optional[str] = None) -> McpToolsResult:
+    """
+    List MCP tools available for this session.
+    
+    Args:
+        image_id: Optional image ID, defaults to session's image_id or "linux_latest"
+    
+    Returns:
+        McpToolsResult: Result containing tools list and request ID
+    """
+    from agentbay.api.models import ListMcpToolsRequest
+    from agentbay.models.response import McpToolsResult
+    from agentbay.models.mcp_tool import McpTool
+    import json
+    
+    # Use provided image_id, session's image_id, or default
+    if image_id is None:
+        image_id = getattr(self, 'image_id', '') or "linux_latest"
+    
+    request = ListMcpToolsRequest(
+        authorization=f"Bearer {self.get_api_key()}",
+        image_id=image_id
+    )
+    
+    print("API Call: ListMcpTools")
+    print(f"Request: ImageId={image_id}")
+    
+    response = self.get_client().list_mcp_tools(request)
+    
+    # Extract request ID
+    request_id = extract_request_id(response)
+    
+    if response and response.body:
+        print("Response from ListMcpTools:", response.body)
+    
+    # Parse the response data
+    tools = []
+    if response and response.body and response.body.data:
+        # The Data field is a JSON string, so we need to unmarshal it
+        try:
+            tools_data = json.loads(response.body.data)
+            for tool_data in tools_data:
+                tool = McpTool(
+                    name=tool_data.get('name', ''),
+                    description=tool_data.get('description', ''),
+                    input_schema=tool_data.get('inputSchema', {}),
+                    server=tool_data.get('server', ''),
+                    tool=tool_data.get('tool', '')
+                )
+                tools.append(tool)
+        except json.JSONDecodeError as e:
+            print(f"Error unmarshaling tools data: {e}")
+    
+    self.mcp_tools = tools  # Update the session's mcp_tools field
+    
+    return McpToolsResult(request_id=request_id, tools=tools)
+```
+
+#### TypeScript
+
+1. **在Session类中添加ListMcpTools方法** (`typescript/src/session.ts`)
+```typescript
+import { ListMcpToolsRequest } from "./api/models";
+
+/**
+ * List MCP tools available for this session.
+ * 
+ * @param imageId Optional image ID, defaults to session's imageId or "linux_latest"
+ * @returns McpToolsResult containing tools list and request ID
+ */
+async listMcpTools(imageId?: string): Promise<McpToolsResult> {
+  // Use provided imageId, session's imageId, or default
+  if (!imageId) {
+    imageId = this.imageId || "linux_latest";
+  }
+
+  const request = new ListMcpToolsRequest({
+    authorization: `Bearer ${this.getAPIKey()}`,
+    imageId: imageId,
   });
 
-  describe('Unavailable Tools', () => {
-    it.skip('Code operations are not available in VPC', () => {
-      // Code module (run_code) is not available in VPC environment according to tool list
+  log("API Call: ListMcpTools");
+  log(`Request: ImageId=${imageId}`);
+
+  const response = await this.getClient().listMcpTools(request);
+
+  // Extract request ID
+  const requestId = extractRequestId(response) || "";
+
+  if (response && response.body) {
+    log("Response from ListMcpTools:", response.body);
+  }
+
+  // Parse the response data
+  const tools: McpTool[] = [];
+  if (response && response.body && response.body.data) {
+    try {
+      const toolsData = JSON.parse(response.body.data as string);
+      for (const toolData of toolsData) {
+        const tool: McpTool = {
+          name: toolData.name || "",
+          description: toolData.description || "",
+          inputSchema: toolData.inputSchema || {},
+          server: toolData.server || "",
+          tool: toolData.tool || "",
+        };
+        tools.push(tool);
+      }
+    } catch (error) {
+      logError(`Error unmarshaling tools data: ${error}`);
+    }
+  }
+
+  this.mcpTools = tools; // Update the session's mcpTools field
+
+  return {
+    requestId,
+    tools,
+  };
+}
+```
+
+### 第三阶段：VPC模式MCP工具调用
+
+#### Python
+
+1. **扩展BaseService类** (`python/agentbay/api/base_service.py`)
+```python
+import requests
+import json
+from typing import Dict, Any
+
+class BaseService:
+    # ... 现有代码 ...
+    
+    def _call_mcp_tool_vpc(self, tool_name: str, args_json: str, default_error_msg: str) -> OperationResult:
+        """
+        Handle VPC-based MCP tool calls using HTTP requests.
+        
+        Args:
+            tool_name: Name of the tool to call
+            args_json: JSON string of arguments
+            default_error_msg: Default error message
+            
+        Returns:
+            OperationResult: The response from the tool
+        """
+        print(f"API Call: CallMcpTool (VPC) - {tool_name}")
+        print(f"Request: Args={args_json}")
+        
+        # Find server for this tool
+        server = self.session.find_server_for_tool(tool_name)
+        if not server:
+            return OperationResult(
+                request_id="",
+                success=False,
+                error_message=f"server not found for tool: {tool_name}"
+            )
+        
+        # Construct VPC URL with query parameters
+        base_url = f"http://{self.session.network_interface_ip()}:{self.session.http_port()}/callTool"
+        
+        # Prepare query parameters
+        params = {
+            'server': server,
+            'tool': tool_name,
+            'args': args_json,
+            'apiKey': self.session.get_api_key()
+        }
+        
+        # Set headers
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        try:
+            # Send HTTP request
+            response = requests.get(base_url, params=params, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            # Parse response
+            response_data = response.json()
+            print(f"Response from VPC CallMcpTool - {tool_name}:", response_data)
+            
+            # Extract the actual result from the nested VPC response structure
+            actual_result = None
+            if isinstance(response_data.get("data"), str):
+                try:
+                    data_map = json.loads(response_data["data"])
+                    if "result" in data_map:
+                        actual_result = data_map["result"]
+                except json.JSONDecodeError:
+                    pass
+            elif isinstance(response_data.get("data"), dict):
+                actual_result = response_data["data"]
+            
+            if actual_result is None:
+                actual_result = response_data
+            
+            return OperationResult(
+                request_id="",  # VPC requests don't have traditional request IDs
+                success=True,
+                data=actual_result
+            )
+            
+        except requests.RequestException as e:
+            print(f"Error calling VPC CallMcpTool - {tool_name}: {e}")
+            return OperationResult(
+                request_id="",
+                success=False,
+                error_message=f"failed to call VPC {tool_name}: {e}"
+            )
+    
+    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> OperationResult:
+        """
+        Internal helper to call MCP tool and handle errors.
+        
+        Args:
+            name: The name of the tool to call.
+            args: The arguments to pass to the tool.
+            
+        Returns:
+            OperationResult: The response from the tool with request ID.
+        """
+        try:
+            args_json = json.dumps(args, ensure_ascii=False)
+            
+            # Check if this is a VPC session
+            if self.session.is_vpc():
+                return self._call_mcp_tool_vpc(name, args_json, f"Failed to call {name}")
+            
+            # Non-VPC mode: use traditional API call
+            # ... 现有的API调用代码 ...
+```
+
+#### TypeScript
+
+1. **扩展各个模块类** (例如：`typescript/src/command/command.ts`)
+```typescript
+/**
+ * Helper method to call MCP tools and handle both VPC and non-VPC scenarios
+ */
+private async callMcpTool(
+  toolName: string,
+  args: Record<string, any>,
+  defaultErrorMsg: string
+): Promise<CallMcpToolResult> {
+  try {
+    const argsJSON = JSON.stringify(args);
+    
+    // Check if this is a VPC session
+    if (this.session.isVpcEnabled()) {
+      return await this.callMcpToolVPC(toolName, argsJSON, defaultErrorMsg);
+    }
+
+    // Non-VPC mode: use traditional API call
+    const callToolRequest = new CallMcpToolRequest({
+      authorization: `Bearer ${this.session.getAPIKey()}`,
+      sessionId: this.session.getSessionId(),
+      name: toolName,
+      args: argsJSON,
     });
 
-    it.skip('UI operations are not available in VPC', () => {
-      // UI module is not available in VPC environment according to tool list
-    });
+    // ... 现有的API调用代码 ...
+  } catch (error) {
+    // ... 错误处理 ...
+  }
+}
 
-    it.skip('Application operations are not available in VPC', () => {
-      // Application module is not available in VPC environment according to tool list
-    });
+/**
+ * Handle VPC-based MCP tool calls using HTTP requests.
+ */
+private async callMcpToolVPC(
+  toolName: string,
+  argsJSON: string,
+  defaultErrorMsg: string
+): Promise<CallMcpToolResult> {
+  log(`API Call: CallMcpTool (VPC) - ${toolName}`);
+  log(`Request: Args=${argsJSON}`);
 
-    it.skip('Window operations are not available in VPC', () => {
-      // Window module is not available in VPC environment according to tool list
-    });
+  // Find server for this tool
+  const server = this.session.findServerForTool(toolName);
+  if (!server) {
+    throw new Error(`server not found for tool: ${toolName}`);
+  }
 
-    it.skip('OSS operations are not available in VPC', () => {
-      // OSS module is not available in VPC environment according to tool list
-    });
+  // Construct VPC URL with query parameters
+  const baseURL = `http://${this.session.getNetworkInterfaceIp()}:${this.session.getHttpPort()}/callTool`;
+
+  // Prepare query parameters
+  const params = new URLSearchParams({
+    server: server,
+    tool: toolName,
+    args: argsJSON,
+    apiKey: this.session.getAPIKey()
   });
 
-  describe('Available VPC Tools', () => {
-    it('should test system-level tools', async () => {
-      // 测试 get_resource, system_screenshot, release_resource
+  const url = `${baseURL}?${params.toString()}`;
+
+  try {
+    // Send HTTP request
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      signal: AbortSignal.timeout(30000) // 30 second timeout
     });
 
-    it('should test browser-related tools', async () => {
-      // 测试 cdp, pageuse-mcp-server, playwright 工具
-    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Parse response
+    const responseData = await response.json();
+    log(`Response from VPC CallMcpTool - ${toolName}:`, responseData);
+
+    // Create result object for VPC response
+    const result: CallMcpToolResult = {
+      data: responseData,
+      statusCode: response.status,
+      isError: false,
+      requestId: "", // VPC requests don't have traditional request IDs
+    };
+
+    // Extract the actual result from the nested VPC response structure
+    let actualResult: any = responseData;
+    if (typeof responseData.data === 'string') {
+      try {
+        const dataMap = JSON.parse(responseData.data);
+        if (dataMap.result) {
+          actualResult = dataMap.result;
+        }
+      } catch (error) {
+        // Keep original responseData if parsing fails
+      }
+    } else if (responseData.data && typeof responseData.data === 'object') {
+      actualResult = responseData.data;
+    }
+
+    result.data = actualResult;
+    return result;
+
+  } catch (error) {
+    logError(`Error calling VPC CallMcpTool - ${toolName}:`, error);
+    throw new Error(`failed to call VPC ${toolName}: ${error}`);
+  }
+}
+```
+
+### 第四阶段：Session创建时自动获取工具列表
+
+#### Python
+
+在 `python/agentbay/agentbay.py` 的 `create` 方法中添加：
+```python
+# Create Session object
+session = Session(self, session_id)
+if resource_url is not None:
+    session.resource_url = resource_url
+
+# Set VPC-related information from response
+session.is_vpc = params.is_vpc
+if data.get("NetworkInterfaceIp"):
+    session.network_interface_ip = data["NetworkInterfaceIp"]
+if data.get("HttpPort"):
+    session.http_port = data["HttpPort"]
+
+# Store image_id used for this session
+session.image_id = params.image_id
+
+with self._lock:
+    self._sessions[session_id] = session
+
+# For VPC sessions, automatically fetch MCP tools information
+if params.is_vpc:
+    print("VPC session detected, automatically fetching MCP tools...")
+    try:
+        tools_result = session.list_mcp_tools()
+        print(f"Successfully fetched {len(tools_result.tools)} MCP tools for VPC session (RequestID: {tools_result.request_id})")
+    except Exception as e:
+        print(f"Warning: Failed to fetch MCP tools for VPC session: {e}")
+        # Continue with session creation even if tools fetch fails
+```
+
+#### TypeScript
+
+在 `typescript/src/agent-bay.ts` 的 `create` 方法中添加：
+```typescript
+// Create Session object
+const session = new Session(this, sessionId);
+if (resourceUrl) {
+  session.resourceUrl = resourceUrl;
+}
+
+// Set VPC-related information from response
+session.isVpc = params.isVpc || false;
+if (data.NetworkInterfaceIp) {
+  session.networkInterfaceIp = data.NetworkInterfaceIp;
+}
+if (data.HttpPort) {
+  session.httpPort = data.HttpPort;
+}
+
+// Store imageId used for this session
+session.imageId = params.imageId;
+
+this.sessions.set(sessionId, session);
+
+// For VPC sessions, automatically fetch MCP tools information
+if (params.isVpc) {
+  log("VPC session detected, automatically fetching MCP tools...");
+  try {
+    const toolsResult = await session.listMcpTools();
+    log(`Successfully fetched ${toolsResult.tools.length} MCP tools for VPC session (RequestID: ${toolsResult.requestId})`);
+  } catch (error) {
+    logError(`Warning: Failed to fetch MCP tools for VPC session: ${error}`);
+    // Continue with session creation even if tools fetch fails
+  }
+}
+```
+
+## 测试方案
+
+### 1. 单元测试
+
+#### Python测试 (`python/tests/unit/test_vpc_session.py`)
+```python
+import pytest
+from unittest.mock import Mock, patch
+from agentbay import AgentBay, CreateSessionParams
+from agentbay.models.mcp_tool import McpTool
+
+class TestVPCSession:
+    def test_vpc_session_creation(self):
+        """Test VPC session creation with proper parameters."""
+        # ... 测试代码 ...
+    
+    def test_list_mcp_tools(self):
+        """Test listing MCP tools for VPC session."""
+        # ... 测试代码 ...
+    
+    def test_vpc_tool_calling(self):
+        """Test calling MCP tools in VPC mode."""
+        # ... 测试代码 ...
+```
+
+#### TypeScript测试 (`typescript/tests/unit/vpc-session.test.ts`)
+```typescript
+import { AgentBay, CreateSessionParams } from "../src";
+
+describe("VPC Session", () => {
+  test("should create VPC session with proper parameters", async () => {
+    // ... 测试代码 ...
   });
-
-  describe('Comprehensive VPC Test', () => {
-    it('should test all VPC-enabled modules', async () => {
-      // 只测试可用的模块：FileSystem, Command, SystemTools
-    });
+  
+  test("should list MCP tools for VPC session", async () => {
+    // ... 测试代码 ...
+  });
+  
+  test("should call MCP tools in VPC mode", async () => {
+    // ... 测试代码 ...
   });
 });
 ```
 
-### 阶段 3：工具可用性配置
+### 2. 集成测试
 
-根据实际的 tool list，各模块中工具的可用性配置如下：
+基于现有的 `golang/tests/pkg/integration/vpc_session_integration_test.go`，创建对应的Python和TypeScript集成测试。
 
-#### 可用的工具和服务器：
+#### Python集成测试 (`python/tests/integration/test_vpc_session_integration.py`)
+```python
+import pytest
+from agentbay import AgentBay, CreateSessionParams
 
-1. **mcp-server**
-   - `get_resource`
-   - `system_screenshot`
-   - `release_resource`
+class TestVPCSessionIntegration:
+    @pytest.mark.integration
+    def test_vpc_session_basic_tools(self):
+        """Test VPC session creation and basic tool functionality."""
+        # 创建VPC session
+        # 测试Command和FileSystem功能
+        # 验证工具列表获取
+        # ... 测试代码 ...
+```
 
-2. **cdp**
-   - `stopChrome`
-   - `startChromeByCdp`
+#### TypeScript集成测试 (`typescript/tests/integration/vpc-session-integration.test.ts`)
+```typescript
+import { AgentBay, CreateSessionParams } from "../../src";
 
-3. **filesystem**
-   - `create_directory`
-   - `edit_file`
-   - `get_file_info`
-   - `read_file`
-   - `read_multiple_files`
-   - `list_directory`
-   - `move_file`
-   - `search_files`
-   - `write_file`
+describe("VPC Session Integration", () => {
+  test("should support VPC session basic tools", async () => {
+    // 创建VPC session
+    // 测试Command和FileSystem功能
+    // 验证工具列表获取
+    // ... 测试代码 ...
+  });
+});
+```
 
-4. **pageuse-mcp-server**
-   - `page_use_navigate`
-   - `page_use_act`
-   - `page_use_observe`
-   - `page_use_extract`
-   - `page_use_screenshot`
+## 实施计划
 
-5. **playwright**
-   - 多个浏览器自动化工具
+### 第一周：核心数据结构
+- [ ] Python: 扩展Session类，添加VPC相关方法
+- [ ] Python: 创建McpTool和McpToolsResult数据类
+- [ ] TypeScript: 扩展Session类，添加VPC相关方法和接口
+- [ ] 编写基础单元测试
 
-6. **shell**
-   - `shell`
+### 第二周：ListMcpTools功能
+- [ ] Python: 实现Session.list_mcp_tools()方法
+- [ ] TypeScript: 实现Session.listMcpTools()方法
+- [ ] 确保API模型包含ListMcpToolsRequest和相关响应类型
+- [ ] 编写功能测试
 
-#### 不可用的工具：
+### 第三周：VPC模式MCP工具调用
+- [ ] Python: 扩展BaseService，实现VPC模式调用
+- [ ] TypeScript: 在各模块中实现VPC模式调用
+- [ ] 处理HTTP请求和响应解析
+- [ ] 编写VPC调用测试
 
-1. **Code 模块**：`run_code` 工具不在 tool list 中
-2. **OSS 模块**：所有 OSS 相关工具不在 tool list 中
-3. **UI 模块**：UI 相关工具不在 tool list 中
-4. **Application 模块**：应用管理工具不在 tool list 中
-5. **Window 模块**：窗口管理工具不在 tool list 中
+### 第四周：集成和优化
+- [ ] 在session创建时自动获取工具列表
+- [ ] 编写完整的集成测试
+- [ ] 性能优化和错误处理完善
+- [ ] 文档更新
 
-## 实施步骤
+### 第五周：测试和发布
+- [ ] 全面测试（单元测试、集成测试）
+- [ ] 代码审查和质量检查
+- [ ] 更新API文档和示例
+- [ ] 准备发布
 
-### 第一步：准备工作
-1. 备份现有代码
-2. 创建特性分支
-3. 设置开发环境
+## 风险评估与缓解
 
-### 第二步：代码迁移
-1. 按照上述方案修改 Python 代码
-2. 按照上述方案修改 TypeScript 代码
-3. 运行单元测试确保现有功能不受影响
+### 风险点
+1. **HTTP请求超时**: VPC环境下的网络延迟可能导致请求超时
+2. **工具服务器映射**: 工具名称与服务器的映射关系可能出错
+3. **响应格式差异**: VPC模式的响应格式可能与标准API不同
+4. **向后兼容性**: 现有代码的兼容性问题
 
-### 第三步：测试迁移
-1. 创建 VPC 集成测试文件
-2. 实现测试用例
-3. 验证测试用例的正确性
+### 缓解措施
+1. **设置合理的超时时间**: 默认30秒，可配置
+2. **完善错误处理**: 详细的错误日志和异常处理
+3. **充分测试**: 覆盖各种场景的测试用例
+4. **渐进式部署**: 通过特性开关控制新功能启用
 
-### 第四步：验证和测试
-1. 在 VPC 环境中运行测试
-2. 验证工具可用性检查是否正确
-3. 确保错误处理机制正常工作
+## 结论
 
-### 第五步：文档更新
-1. 更新 API 文档
-2. 更新使用示例
-3. 添加 VPC 使用说明
-
-## 注意事项
-
-1. **向后兼容性**：确保修改不影响现有的非 VPC 功能
-2. **错误处理**：为 VPC 环境添加适当的错误处理和日志记录
-3. **性能考虑**：VPC 调用可能有不同的延迟特性
-4. **测试覆盖**：确保新增的 VPC 功能有充分的测试覆盖
-5. **配置管理**：工具可用性配置应该易于维护和更新
-
-## 风险评估
-
-### 高风险
-- 网络调用的稳定性和错误处理
-- VPC 环境配置的复杂性
-
-### 中风险
-- 工具可用性配置的准确性
-- 现有功能的兼容性
-
-### 低风险
-- 测试用例的迁移
-- 文档更新
-
-## 总结
-
-这个迁移方案确保了 Python 和 TypeScript SDK 能够与 Golang SDK 保持功能一致，同时根据实际的 VPC 环境工具可用性进行了适当的调整。通过分阶段实施，可以最小化风险并确保迁移的成功。 
+本迁移方案提供了将Golang中的VPC功能完整迁移到Python和TypeScript SDK的详细路径。通过分阶段实施，可以确保功能的完整性和稳定性，同时保持向后兼容性。预计整个迁移过程需要5周时间完成。 

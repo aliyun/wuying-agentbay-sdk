@@ -254,7 +254,22 @@ export class AgentBay {
         session.httpPort = data.httpPort;
       }
 
+      // Store imageId used for this session
+      (session as any).imageId = params.imageId;
+
       this.sessions.set(session.sessionId, session);
+
+      // For VPC sessions, automatically fetch MCP tools information
+      if (params.isVpc) {
+        log("VPC session detected, automatically fetching MCP tools...");
+        try {
+          const toolsResult = await session.listMcpTools();
+          log(`Successfully fetched ${toolsResult.tools.length} MCP tools for VPC session (RequestID: ${toolsResult.requestId})`);
+        } catch (error) {
+          logError(`Warning: Failed to fetch MCP tools for VPC session: ${error}`);
+          // Continue with session creation even if tools fetch fails
+        }
+      }
 
       // If we have persistence data, wait for context synchronization
       if (hasPersistenceData) {

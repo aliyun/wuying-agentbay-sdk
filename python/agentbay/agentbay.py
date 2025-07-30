@@ -273,8 +273,21 @@ class AgentBay:
             if data.get("HttpPort"):
                 session.http_port = data["HttpPort"]
 
+            # Store image_id used for this session
+            session.image_id = params.image_id
+
             with self._lock:
                 self._sessions[session_id] = session
+
+            # For VPC sessions, automatically fetch MCP tools information
+            if params.is_vpc:
+                print("VPC session detected, automatically fetching MCP tools...")
+                try:
+                    tools_result = session.list_mcp_tools()
+                    print(f"Successfully fetched {len(tools_result.tools)} MCP tools for VPC session (RequestID: {tools_result.request_id})")
+                except Exception as e:
+                    print(f"Warning: Failed to fetch MCP tools for VPC session: {e}")
+                    # Continue with session creation even if tools fetch fails
 
             # If we have persistence data, wait for context synchronization
             if has_persistence_data:

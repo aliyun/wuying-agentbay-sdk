@@ -67,6 +67,9 @@ class Session:
         self.network_interface_ip = ""  # Network interface IP for VPC sessions
         self.http_port = ""  # HTTP port for VPC sessions
 
+        # MCP tools available for this session
+        self.mcp_tools = []  # List[McpTool]
+
         # Initialize file system, command and code handlers
         self.file_system = FileSystem(self)
         self.command = Command(self)
@@ -94,6 +97,25 @@ class Session:
     def get_session_id(self) -> str:
         """Return the session_id for this session."""
         return self.session_id
+
+    def is_vpc_enabled(self) -> bool:
+        """Return whether this session uses VPC resources."""
+        return self.is_vpc
+
+    def get_network_interface_ip(self) -> str:
+        """Return the network interface IP for VPC sessions."""
+        return self.network_interface_ip
+
+    def get_http_port(self) -> str:
+        """Return the HTTP port for VPC sessions."""
+        return self.http_port
+
+    def find_server_for_tool(self, tool_name: str) -> str:
+        """Find the server that provides the given tool."""
+        for tool in self.mcp_tools:
+            if tool.name == tool_name:
+                return tool.server
+        return ""
 
     def delete(self, sync_context: bool = False) -> DeleteResult:
         """
@@ -480,3 +502,60 @@ class Session:
             raise
         except Exception as e:
             raise SessionError(f"Failed to get link asynchronously: {e}")
+
+    def list_mcp_tools(self, image_id: Optional[str] = None) -> "McpToolsResult":
+        """
+        List MCP tools available for this session.
+        
+        Args:
+            image_id: Optional image ID, defaults to session's image_id or "linux_latest"
+        
+        Returns:
+            McpToolsResult: Result containing tools list and request ID
+        """
+        from agentbay.api.models import ListMcpToolsRequest
+        from agentbay.model.response import McpToolsResult
+        from agentbay.models.mcp_tool import McpTool
+        import json
+        
+        # Use provided image_id, session's image_id, or default
+        if image_id is None:
+            image_id = getattr(self, 'image_id', '') or "linux_latest"
+        
+        request = ListMcpToolsRequest(
+            authorization=f"Bearer {self.get_api_key()}",
+            image_id=image_id
+        )
+        
+        print("API Call: ListMcpTools")
+        print(f"Request: ImageId={image_id}")
+        
+        response = self.get_client().list_mcp_tools(request)
+        
+        # Extract request ID
+        request_id = extract_request_id(response)
+        
+        if response and response.body:
+            print("Response from ListMcpTools:", response.body)
+        
+        # Parse the response data
+        tools = []
+        if response and response.body and response.body.data:
+            # The Data field is a JSON string, so we need to unmarshal it
+            try:
+                tools_data = json.loads(response.body.data)
+                for tool_data in tools_data:
+                    tool = McpTool(
+                        name=tool_data.get('name', ''),
+                        description=tool_data.get('description', ''),
+                        input_schema=tool_data.get('inputSchema', {}),
+                        server=tool_data.get('server', ''),
+                        tool=tool_data.get('tool', '')
+                    )
+                    tools.append(tool)
+            except json.JSONDecodeError as e:
+                print(f"Error unmarshaling tools data: {e}")
+        
+        self.mcp_tools = tools  # Update the session's mcp_tools field
+        
+        return McpToolsResult(request_id=request_id, tools=tools)

@@ -196,6 +196,93 @@ export class FileSystem {
   }
 
   /**
+   * Handle VPC-based MCP tool calls using HTTP requests with file operation logging support.
+   */
+  private async callMcpToolVPC(
+    toolName: string,
+    argsJSON: string,
+    loggableArgsJSON: string,
+    defaultErrorMsg: string
+  ): Promise<CallMcpToolResult> {
+    log(`API Call: CallMcpTool (VPC) - ${toolName}`);
+    log(`Request: Args=${loggableArgsJSON}`);
+
+    // Find server for this tool
+    const server = this.session.findServerForTool(toolName);
+    if (!server) {
+      throw new Error(`server not found for tool: ${toolName}`);
+    }
+
+    // Construct VPC URL with query parameters
+    const baseURL = `http://${this.session.getNetworkInterfaceIp()}:${this.session.getHttpPort()}/callTool`;
+
+    // Prepare query parameters
+    const params = new URLSearchParams({
+      server: server,
+      tool: toolName,
+      args: argsJSON,
+      apiKey: this.session.getAPIKey()
+    });
+
+    const url = `${baseURL}?${params.toString()}`;
+
+    try {
+      // Send HTTP request
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Parse response
+      const responseData = await response.json();
+      
+      // Log response differently based on operation type
+      if (isFileOperation(toolName)) {
+        log(`Response from VPC CallMcpTool - ${toolName} - status: ${response.status}`);
+      } else {
+        log(`Response from VPC CallMcpTool - ${toolName}:`, responseData);
+      }
+
+      // Create result object for VPC response
+      const result: CallMcpToolResult = {
+        data: responseData,
+        statusCode: response.status,
+        isError: false,
+        requestId: "", // VPC requests don't have traditional request IDs
+      };
+
+      // Extract the actual result from the nested VPC response structure
+      let actualResult: any = responseData;
+      if (typeof responseData.data === 'string') {
+        try {
+          const dataMap = JSON.parse(responseData.data);
+          if (dataMap.result) {
+            actualResult = dataMap.result;
+          }
+        } catch (error) {
+          // Keep original responseData if parsing fails
+        }
+      } else if (responseData.data && typeof responseData.data === 'object') {
+        actualResult = responseData.data;
+      }
+
+      result.data = actualResult;
+      return result;
+
+    } catch (error) {
+      logError(`Error calling VPC CallMcpTool - ${toolName}:`, error);
+      throw new Error(`failed to call VPC ${toolName}: ${error}`);
+    }
+  }
+
+  /**
    * Helper method to call MCP tools and handle common response processing
    *
    * @param toolName - Name of the MCP tool to call
@@ -220,6 +307,12 @@ export class FileSystem {
       const argsJSON = JSON.stringify(args);
       const loggableArgsJSON = JSON.stringify(loggableArgs);
 
+      // Check if this is a VPC session
+      if (this.session.isVpcEnabled()) {
+        return await this.callMcpToolVPC(toolName, argsJSON, loggableArgsJSON, defaultErrorMsg);
+      }
+
+      // Non-VPC mode: use traditional API call
       const callToolRequest = new CallMcpToolRequest({
         authorization: `Bearer ${this.session.getAPIKey()}`,
         sessionId: this.session.getSessionId(),
