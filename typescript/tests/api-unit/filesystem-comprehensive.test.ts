@@ -25,13 +25,13 @@ describe('FileSystem Comprehensive Tests', () => {
     }
   });
 
-  // 1. 文件基础操作测试
+  // 1. File Basic Operations Tests
   describe('1. File Basic Operations', () => {
     const testFilePath = '/tmp/test_files.txt';
     const multiLineFilePath = '/tmp/test_multiline.txt';
 
     beforeEach(async () => {
-      // 创建30KB测试文件，内容为重复的"hello world!!!"
+      // Create 30KB test file with repeated "hello world!!!" content
       const testContent = 'hello world!!!\n'.repeat(2000);
       await fileSystem.writeFile(testFilePath, testContent, 'overwrite');
     });
@@ -64,57 +64,57 @@ describe('FileSystem Comprehensive Tests', () => {
 
     describe('1.2 Parameterized File Reading Tests', () => {
       beforeEach(async () => {
-        // 创建多行测试文件
+        // Create multi-line test file
         const multiLineContent = Array.from({ length: 10 }, (_, i) => `Line ${i + 1}: This is test content`).join('\n');
         await fileSystem.writeFile(multiLineFilePath, multiLineContent, 'overwrite');
       });
 
       test('should read specific bytes with offset and length parameters', async () => {
-        // 从第3个字节开始读取3个字节 (offset=2, length=3)
+        // Read 3 bytes starting from the 3rd byte (offset=2, length=3)
         const result = await fileSystem.readFile(multiLineFilePath, 2, 3);
 
         expect(result.success).toBe(true);
         expect(result.requestId).toBeDefined();
         expect(result.content).toBeDefined();
-        expect(result.content.length).toBeLessThanOrEqual(3); // 应该最多读取3个字节
+        expect(result.content.length).toBeLessThanOrEqual(3); // Should read at most 3 bytes
 
-        // 验证读取的内容是从第3个字节开始的
+        // Verify that the read content starts from the 3rd byte
         const fullContent = await fileSystem.readFile(multiLineFilePath);
-        const expectedContent = fullContent.content.substring(2, 5); // 字节2-4 (3个字节)
+        const expectedContent = fullContent.content.substring(2, 5); // Bytes 2-4 (3 bytes)
         expect(result.content).toBe(expectedContent);
       });
 
       test('should read from offset to end of file', async () => {
-        // 从第6个字节开始读取到文件末尾 (offset=5, length=0)
+        // Read from the 6th byte to end of file (offset=5, length=0)
         const result = await fileSystem.readFile(multiLineFilePath, 5, 0);
 
         expect(result.success).toBe(true);
         expect(result.requestId).toBeDefined();
         expect(result.content).toBeDefined();
 
-        // 验证从第6个字节开始读取到文件末尾
+        // Verify reading from the 6th byte to end of file
         const fullContent = await fileSystem.readFile(multiLineFilePath);
-        const expectedContent = fullContent.content.substring(5); // 从第6个字节到末尾
+        const expectedContent = fullContent.content.substring(5); // From 6th byte to end
         expect(result.content).toBe(expectedContent);
       });
 
       test('should handle large offset values correctly', async () => {
-        // 测试大于文件大小的offset值
+        // Test offset value larger than file size
         const result = await fileSystem.readFile(multiLineFilePath, 1000);
 
         expect(result.success).toBe(true);
         expect(result.content).toBeDefined();
-        // 应该返回空内容，因为offset超过了文件大小
+        // Should return empty content as offset exceeds file size
       });
 
       test('should handle zero length parameter correctly', async () => {
-        // 测试length=0应该读取从offset到文件末尾
+        // Test that length=0 should read from offset to end of file
         const result = await fileSystem.readFile(multiLineFilePath, 0, 0);
 
         expect(result.success).toBe(true);
         expect(result.content).toBeDefined();
 
-        // length=0应该读取整个文件
+        // length=0 should read the entire file
         const fullContent = await fileSystem.readFile(multiLineFilePath);
         expect(result.content).toBe(fullContent.content);
       });
@@ -126,18 +126,18 @@ describe('FileSystem Comprehensive Tests', () => {
       test('should write file with different modes', async () => {
         const testContent = 'Hello, World!';
 
-        // 测试overwrite模式
+        // Test overwrite mode
         const writeResult = await fileSystem.writeFile(writeTestFilePath, testContent, 'overwrite');
         expect(writeResult.success).toBe(true);
         expect(writeResult.requestId).toBeDefined();
         expect(writeResult.data).toBe(true);
 
-        // 验证内容
+        // Verify content
         const readResult = await fileSystem.readFile(writeTestFilePath);
         expect(readResult.success).toBe(true);
         expect(readResult.content).toBe(testContent);
 
-        // 测试append模式
+        // Test append mode
         const appendResult = await fileSystem.writeFile(writeTestFilePath, '\nAppended content', 'append');
         expect(appendResult.success).toBe(true);
 
@@ -159,11 +159,11 @@ describe('FileSystem Comprehensive Tests', () => {
         const largeContent = 'Large content line. '.repeat(3000);
         const largeFilePath = '/tmp/large_test.txt';
 
-        // 写入大文件
+        // Write large file
         const writeResult = await fileSystem.writeLargeFile(largeFilePath, largeContent);
         expect(writeResult.success).toBe(true);
 
-        // 读取大文件
+        // Read large file
         const readResult = await fileSystem.readLargeFile(largeFilePath);
         expect(readResult.success).toBe(true);
         expect(readResult.content).toBe(largeContent);
@@ -171,7 +171,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 2. 文件信息管理测试
+  // 2. File Information Management Tests
   describe('2. File Information Management', () => {
     test('should get file info correctly', async () => {
       await fileSystem.writeFile('/tmp/info_test.txt', '', 'overwrite');
@@ -194,7 +194,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 3. 批量文件操作测试
+  // 3. Batch File Operations Tests
   describe('3. Batch File Operations', () => {
     test('should read multiple files correctly', async () => {
       const files = ['/tmp/batch1.txt', '/tmp/batch2.txt', '/tmp/batch3.txt'];
@@ -223,7 +223,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 4. 文件编辑和移动测试
+  // 4. File Edit and Move Operations Tests
   describe('4. File Edit and Move Operations', () => {
     test('should edit file with find-replace', async () => {
       const editPath = '/tmp/edit_test.txt';
@@ -257,7 +257,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 5. 目录管理测试
+  // 5. Directory Management Tests
   describe('5. Directory Management', () => {
     test('should create directory successfully', async () => {
       const dirPath = '/tmp/new_directory';
@@ -281,7 +281,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 6. 异常处理测试
+  // 6. Error Handling Tests
   describe('6. Error Handling', () => {
     test('should handle non-existent file operations', async () => {
       const nonExistentPath = '/tmp/non_existent.txt';
@@ -305,7 +305,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 7. 性能和边界测试
+  // 7. Performance and Boundary Tests
   describe('7. Performance and Boundary Tests', () => {
     test('should handle 1MB file efficiently', async () => {
       const largePath = '/tmp/1mb_test.txt';
@@ -345,7 +345,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 8. 路径长度边界测试
+  // 8. Path Length Boundary Tests
   describe('8. Path Length Boundary Tests', () => {
     test('should handle normal path lengths', async () => {
       const normalPath = '/tmp/normal_path_test.txt';
@@ -385,7 +385,7 @@ describe('FileSystem Comprehensive Tests', () => {
     });
   });
 
-  // 9. 文件内容极限边界测试
+  // 9. File Content Boundary Tests
   describe('9. File Content Boundary Tests', () => {
     test('should handle empty file content', async () => {
       const emptyPath = '/tmp/empty_test.txt';
@@ -434,7 +434,7 @@ Line 5: Newlines and tabs:\n\t\r\n`;
     });
   });
 
-  // 10. 极端场景边界测试
+  // 10. Extreme Scenario Tests
   describe('10. Extreme Scenario Tests', () => {
     test('should handle multiple files in directory', async () => {
       const manyFilesDir = '/tmp/many_files_test';
@@ -472,13 +472,13 @@ Line 5: Newlines and tabs:\n\t\r\n`;
     });
   });
 
-  // 数据完整性测试
+  // 11. Data Integrity Tests
   describe('11. Data Integrity Tests', () => {
     test('should maintain data integrity across operations', async () => {
       const integrityPath = '/tmp/integrity_test.txt';
       const originalContent = 'Original integrity test content with special chars: äöüß';
 
-      // 写入 -> 读取 -> 编辑 -> 读取 -> 移动 -> 读取
+      // Write -> Read -> Edit -> Read -> Move -> Read
       await fileSystem.writeFile(integrityPath, originalContent, 'overwrite');
 
       let readResult = await fileSystem.readFile(integrityPath);

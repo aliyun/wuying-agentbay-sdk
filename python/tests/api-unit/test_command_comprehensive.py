@@ -11,16 +11,16 @@ from agentbay.session_params import CreateSessionParams
 
 class TestCommandComprehensive(unittest.TestCase):
     """
-    Command Comprehensive Tests - 命令综合测试
+    Command Comprehensive Tests
 
     This test suite covers comprehensive command execution operations including:
-    1. ExecuteCommand Function Tests (命令执行功能测试)
-    2. RunCode Function Tests (代码运行功能测试)
-    3. Concurrent Execution Tests (并发执行测试)
-    4. Performance Tests (性能测试)
-    5. Security Tests (安全性测试)
-    6. Boundary Tests (边界测试)
-    7. Data Integrity Tests (数据完整性测试)
+    1. ExecuteCommand Function Tests
+    2. RunCode Function Tests
+    3. Concurrent Execution Tests
+    4. Performance Tests
+    5. Security Tests
+    6. Boundary Tests
+    7. Data Integrity Tests
     """
 
     @classmethod
@@ -62,55 +62,55 @@ class TestCommandComprehensive(unittest.TestCase):
             except Exception as e:
                 print(f"Warning: Error deleting session: {e}")
 
-    # 1. ExecuteCommand Function Tests (命令执行功能测试)
+    # 1. ExecuteCommand Function Tests
     def test_1_1_tc_cmd_001_basic_shell_command_execution(self):
-        """TC-CMD-001: 基础Shell命令执行 - should successfully execute basic shell commands"""
-        # 前提条件: AgentBay实例已创建且连接正常，Session已成功建立，Command对象已初始化
-        # 测试目标: 验证基础shell命令的正确执行
+        """TC-CMD-001: Basic Shell Command Execution - should successfully execute basic shell commands"""
+        # Prerequisites: AgentBay instance created and connected normally, Session established successfully, Command object initialized
+        # Test objective: Verify correct execution of basic shell commands
 
         start_time = time.time()
         result = self.command.execute_command("echo 'Hello World'", 1000)
         execution_time = (time.time() - start_time) * 1000
 
-        # 验证点
+        # Verification points
         self.assertIsInstance(result, CommandResult)
         self.assertTrue(result.success)
         self.assertIn("Hello World", result.output)
         self.assertIsNotNone(result.request_id)
         self.assertNotEqual(result.request_id, "")
-        self.assertGreater(execution_time, 0)  # 执行时间应该大于0
+        self.assertGreater(execution_time, 0)  # Execution time should be greater than 0
 
         print(f"TC-CMD-001 execution time: {execution_time:.2f}ms")
 
     def test_1_2_tc_cmd_002_file_operation_command_execution(self):
-        """TC-CMD-002: 文件操作命令执行 - should execute file creation, reading, and deletion commands"""
-        # 前提条件: Session环境已准备，有文件系统访问权限
-        # 测试目标: 验证文件创建、读取、删除命令的执行
+        """TC-CMD-002: File Operation Command Execution - should execute file creation, reading, and deletion commands"""
+        # Prerequisites: Session environment prepared, file system access permissions available
+        # Test objective: Verify execution of file create, read, delete commands
 
         test_content = "test content"
         test_file = "/tmp/test_file.txt"
 
-        # 步骤1: 执行创建文件命令
+        # Step 1: Execute create file command
         create_result = self.command.execute_command(f"echo '{test_content}' > {test_file}")
         self.assertTrue(create_result.success)
 
-        # 步骤2: 执行读取文件命令
+        # Step 2: Execute read file command
         read_result = self.command.execute_command(f"cat {test_file}")
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.output.strip(), test_content)
 
-        # 步骤3: 执行删除文件命令
+        # Step 3: Execute delete file command
         delete_result = self.command.execute_command(f"rm {test_file}")
         self.assertTrue(delete_result.success)
 
-        # 步骤4: 验证文件删除
+        # Step 4: Verify file deletion
         verify_result = self.command.execute_command(f"ls {test_file}")
-        self.assertFalse(verify_result.success)  # 文件不存在应该返回错误
+        self.assertFalse(verify_result.success)  # File not existing should return error
 
     def test_1_3_tc_cmd_003_timeout_mechanism_verification(self):
-        """TC-CMD-003: 超时机制验证 - should verify command execution timeout control mechanism"""
-        # 前提条件: Session环境已准备，系统支持sleep命令
-        # 测试目标: 验证命令执行超时控制机制
+        """TC-CMD-003: Timeout Mechanism Verification - should verify command execution timeout control mechanism"""
+        # Prerequisites: Session environment prepared, system supports sleep command
+        # Test objective: Verify command execution timeout control mechanism
 
         timeout_ms = 1000
         start_time = time.time()
@@ -118,37 +118,37 @@ class TestCommandComprehensive(unittest.TestCase):
         result = self.command.execute_command("sleep 5", timeout_ms)
         actual_time = (time.time() - start_time) * 1000
 
-        # 验证点
+        # Verification points
         self.assertFalse(result.success)
-        self.assertLess(actual_time, 6000)  # 应该在5秒内被中断
-        self.assertGreater(actual_time, timeout_ms * 0.8)  # 接近超时时间
+        self.assertLess(actual_time, 6000)  # Should be interrupted within 5 seconds
+        self.assertGreater(actual_time, timeout_ms * 0.8)  # Close to timeout time
 
         print(f"TC-CMD-003 actual execution time: {actual_time:.2f}ms, timeout: {timeout_ms}ms")
 
     def test_1_4_tc_cmd_004_error_command_handling(self):
-        """TC-CMD-004: 错误命令处理 - should handle invalid command error processing"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证无效命令的错误处理机制
+        """TC-CMD-004: Error Command Handling - should handle invalid command error processing"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify error handling mechanism for invalid commands
 
         result = self.command.execute_command("invalid_command_xyz")
 
-        # 验证点
+        # Verification points
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error_message)
         self.assertNotEqual(result.error_message, "")
 
         print(f"TC-CMD-004 error message: {result.error_message}")
 
-    # 2. RunCode Function Tests (代码运行功能测试)
+    # 2. RunCode Function Tests
     def test_2_1_tc_code_001_python_code_execution(self):
-        """TC-CODE-001: Python代码执行 - should verify correct execution of Python code"""
-        # 前提条件: Session环境已准备，Python运行环境可用
-        # 测试目标: 验证Python代码的正确执行
+        """TC-CODE-001: Python Code Execution - should verify correct execution of Python code"""
+        # Prerequisites: Session environment prepared, Python runtime environment available
+        # Test objective: Verify correct execution of Python code
 
         python_code = "print('Hello from Python')"
         result = self.code.run_code(python_code, "python", 60)
 
-        # 验证点
+        # Verification points
         self.assertIsInstance(result, CodeExecutionResult)
         self.assertTrue(result.success)
         self.assertIn("Hello from Python", result.result)
@@ -157,14 +157,14 @@ class TestCommandComprehensive(unittest.TestCase):
         print(f"TC-CODE-001 result: {result.result}")
 
     def test_2_2_tc_code_002_javascript_code_execution(self):
-        """TC-CODE-002: JavaScript代码执行 - should verify correct execution of JavaScript code"""
-        # 前提条件: Session环境已准备，JavaScript运行环境可用
-        # 测试目标: 验证JavaScript代码的正确执行
+        """TC-CODE-002: JavaScript Code Execution - should verify correct execution of JavaScript code"""
+        # Prerequisites: Session environment prepared, JavaScript runtime environment available
+        # Test objective: Verify correct execution of JavaScript code
 
         js_code = "console.log('Hello from JavaScript')"
         result = self.code.run_code(js_code, "javascript", 60)
 
-        # 验证点
+        # Verification points
         self.assertTrue(result.success)
         self.assertIn("Hello from JavaScript", result.result)
         self.assertIsNotNone(result.request_id)
@@ -172,9 +172,9 @@ class TestCommandComprehensive(unittest.TestCase):
         print(f"TC-CODE-002 result: {result.result}")
 
     def test_2_3_tc_code_003_complex_python_code_execution(self):
-        """TC-CODE-003: 复杂Python代码执行 - should verify execution of Python code with data processing"""
-        # 前提条件: Session环境已准备，Python标准库可用
-        # 测试目标: 验证包含数据处理的Python代码执行
+        """TC-CODE-003: Complex Python Code Execution - should verify execution of Python code with data processing"""
+        # Prerequisites: Session environment prepared, Python standard library available
+        # Test objective: Verify execution of Python code with data processing
 
         complex_python_code = """
 import json
@@ -185,10 +185,10 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
         result = self.code.run_code(complex_python_code, "python", 300)
 
-        # 验证点
+        # Verification points
         self.assertTrue(result.success)
 
-        # 解析JSON输出
+        # Parse JSON output
         import re
         import json
         json_match = re.search(r'\{.*\}', result.result)
@@ -202,9 +202,9 @@ print(json.dumps({"sum": result, "count": len(data)}))
         print(f"TC-CODE-003 result: {result.result}")
 
     def test_2_4_tc_code_004_code_execution_timeout_control(self):
-        """TC-CODE-004: 代码执行超时控制 - should verify code execution timeout control mechanism"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证代码执行的超时控制机制
+        """TC-CODE-004: Code Execution Timeout Control - should verify code execution timeout control mechanism"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify code execution timeout control mechanism
 
         long_running_code = "import time; time.sleep(10)"
         timeout_seconds = 5
@@ -213,21 +213,21 @@ print(json.dumps({"sum": result, "count": len(data)}))
         result = self.code.run_code(long_running_code, "python", timeout_seconds)
         actual_time = (time.time() - start_time) * 1000
 
-        # 验证点
+        # Verification points
         self.assertFalse(result.success)
-        self.assertLess(actual_time, 15000)  # 应该在15秒内完成（包含一些网络延迟）
-        self.assertGreater(actual_time, timeout_seconds * 1000 * 0.5)  # 接近超时时间
+        self.assertLess(actual_time, 15000)  # Should complete within 15 seconds (including network delay)
+        self.assertGreater(actual_time, timeout_seconds * 1000 * 0.5)  # Close to timeout time
 
         print(f"TC-CODE-004 actual time: {actual_time:.2f}ms, timeout: {timeout_seconds}s")
 
     def test_2_5_tc_code_005_unsupported_language_handling(self):
-        """TC-CODE-005: 不支持语言处理 - should handle unsupported language error processing"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证不支持语言的错误处理
+        """TC-CODE-005: Unsupported Language Handling - should handle unsupported language error processing"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify error handling for unsupported languages
 
         result = self.code.run_code('System.out.println("Hello");', "java", 60)
 
-        # 验证点
+        # Verification points
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error_message)
         self.assertIn("language", result.error_message.lower())
@@ -235,14 +235,14 @@ print(json.dumps({"sum": result, "count": len(data)}))
         print(f"TC-CODE-005 error: {result.error_message}")
 
     def test_2_6_tc_code_006_code_syntax_error_handling(self):
-        """TC-CODE-006: 代码语法错误处理 - should handle syntax error code processing"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证语法错误代码的处理
+        """TC-CODE-006: Code Syntax Error Handling - should handle syntax error code processing"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify handling of syntax error code
 
         syntax_error_code = "print('unclosed string"
         result = self.code.run_code(syntax_error_code, "python", 60)
 
-        # 验证点
+        # Verification points
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error_message)
         self.assertTrue(
@@ -252,13 +252,13 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
         print(f"TC-CODE-006 syntax error: {result.error_message}")
 
-    # 3. Concurrent Execution Tests (并发执行测试)
+    # 3. Concurrent Execution Tests
     def test_3_1_tc_concurrent_001_concurrent_command_execution(self):
-        """TC-CONCURRENT-001: 并发命令执行 - should verify concurrent command execution capability"""
-        # 前提条件: 多个Session已建立，系统支持并发操作
-        # 测试目标: 验证多个命令的并发执行能力
+        """TC-CONCURRENT-001: Concurrent Command Execution - should verify concurrent command execution capability"""
+        # Prerequisites: Multiple Sessions established, system supports concurrent operations
+        # Test objective: Verify concurrent execution capability of multiple commands
 
-        # 创建多个会话（使用默认镜像，命令执行不需要code_latest）
+        # Create multiple sessions (using default image, command execution doesn't need code_latest)
         sessions = []
         agent_bays = []
 
@@ -272,7 +272,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
                 agent_bays.append(ab)
                 sessions.append(session_result.session)
 
-            # 并发执行不同命令
+            # Execute different commands concurrently
             commands = [
                 "echo 'Command 1'",
                 "echo 'Command 2'",
@@ -293,10 +293,10 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
             concurrent_time = (time.time() - start_time) * 1000
 
-            # 验证点
+            # Verification points
             for i, result in enumerate(results):
                 self.assertTrue(result.success)
-                # 检查输出是否包含对应的命令结果
+                # Check if output contains corresponding command result
                 found_match = False
                 for j in range(1, 4):
                     if f"Command {j}" in result.output:
@@ -307,7 +307,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
             print(f"TC-CONCURRENT-001 concurrent execution time: {concurrent_time:.2f}ms")
 
         finally:
-            # 清理会话
+            # Clean up sessions
             for i in range(len(sessions)):
                 try:
                     agent_bays[i].delete(sessions[i])
@@ -315,9 +315,9 @@ print(json.dumps({"sum": result, "count": len(data)}))
                     print(f"Warning: Error deleting session {i}: {e}")
 
     def test_3_2_tc_concurrent_002_mixed_code_concurrent_execution(self):
-        """TC-CONCURRENT-002: 混合代码并发执行 - should verify concurrent execution of different language codes"""
-        # 前提条件: Session已建立，Python和JavaScript环境都可用
-        # 测试目标: 验证不同语言代码的并发执行
+        """TC-CONCURRENT-002: Mixed Code Concurrent Execution - should verify concurrent execution of different language codes"""
+        # Prerequisites: Session established, both Python and JavaScript environments available
+        # Test objective: Verify concurrent execution of different language codes
 
         python_code = "print('Python result')"
         js_code = "console.log('JavaScript result')"
@@ -336,7 +336,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
         concurrent_time = (time.time() - start_time) * 1000
 
-        # 验证点
+        # Verification points
         self.assertTrue(python_result.success)
         self.assertTrue(js_result.success)
         self.assertIn("Python result", python_result.result)
@@ -344,13 +344,13 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
         print(f"TC-CONCURRENT-002 mixed execution time: {concurrent_time:.2f}ms")
 
-    # 4. Performance Tests (性能测试)
+    # 4. Performance Tests
     def test_4_1_tc_perf_001_command_execution_performance_baseline(self):
-        """TC-PERF-001: 命令执行性能基线 - should establish command execution performance baseline"""
-        # 前提条件: 稳定的测试环境，无其他高负载任务
-        # 测试目标: 建立命令执行性能基线
+        """TC-PERF-001: Command Execution Performance Baseline - should establish command execution performance baseline"""
+        # Prerequisites: Stable test environment, no other high-load tasks
+        # Test objective: Establish command execution performance baseline
 
-        iterations = 10  # 减少迭代次数以适应测试环境
+        iterations = 10  # Reduce iterations to suit test environment
         execution_times = []
         success_count = 0
 
@@ -363,38 +363,38 @@ print(json.dumps({"sum": result, "count": len(data)}))
             if result.success:
                 success_count += 1
 
-        # 计算统计数据
+        # Calculate statistics
         avg_time = sum(execution_times) / len(execution_times)
         max_time = max(execution_times)
         min_time = min(execution_times)
         sorted_times = sorted(execution_times)
         p99_time = sorted_times[int(0.99 * len(sorted_times))]
 
-        # 验证点
-        self.assertLess(avg_time, 5000)  # 调整为5秒以适应网络延迟
-        self.assertLess(p99_time, 10000)  # 99%请求在10秒内完成
-        self.assertGreaterEqual(success_count / iterations, 0.8)  # 80%成功率
+        # Verification points
+        self.assertLess(avg_time, 5000)  # Adjust to 5 seconds to accommodate network delay
+        self.assertLess(p99_time, 10000)  # 99% requests complete within 10 seconds
+        self.assertGreaterEqual(success_count / iterations, 0.8)  # 80% success rate
 
         print(f"TC-PERF-001 Performance: Avg={avg_time:.2f}ms, Min={min_time:.2f}ms, "
               f"Max={max_time:.2f}ms, P99={p99_time:.2f}ms, Success={success_count}/{iterations}")
 
     def test_4_2_tc_perf_002_code_execution_performance_test(self):
-        """TC-PERF-002: 代码执行性能测试 - should test code execution performance"""
-        # 前提条件: 稳定的测试环境
-        # 测试目标: 测试代码执行的性能表现
+        """TC-PERF-002: Code Execution Performance Test - should test code execution performance"""
+        # Prerequisites: Stable test environment
+        # Test objective: Test performance of code execution
 
         python_iterations = 5
         js_iterations = 5
         python_times = []
         js_times = []
 
-        # Python性能测试
+        # Python performance test
         for i in range(python_iterations):
             start_time = time.time()
             self.code.run_code(f"print('Python test {i}')", "python", 60)
             python_times.append((time.time() - start_time) * 1000)
 
-        # JavaScript性能测试
+        # JavaScript performance test
         for i in range(js_iterations):
             start_time = time.time()
             self.code.run_code(f"console.log('JS test {i}')", "javascript", 60)
@@ -403,17 +403,17 @@ print(json.dumps({"sum": result, "count": len(data)}))
         avg_python_time = sum(python_times) / len(python_times)
         avg_js_time = sum(js_times) / len(js_times)
 
-        # 验证点
-        self.assertLess(avg_python_time, 10000)  # Python平均执行时间 < 10秒
-        self.assertLess(avg_js_time, 10000)  # JavaScript平均执行时间 < 10秒
+        # Verification points
+        self.assertLess(avg_python_time, 10000)  # Python average execution time < 10 seconds
+        self.assertLess(avg_js_time, 10000)  # JavaScript average execution time < 10 seconds
 
         print(f"TC-PERF-002 Code Performance: Python Avg={avg_python_time:.2f}ms, JS Avg={avg_js_time:.2f}ms")
 
-    # 5. Security Tests (安全性测试)
+    # 5. Security Tests
     def test_5_1_tc_sec_001_command_injection_protection(self):
-        """TC-SEC-001: 命令注入防护 - should verify system protection against command injection attacks"""
-        # 前提条件: Session环境已准备，系统具有安全防护机制
-        # 测试目标: 验证系统防止命令注入攻击
+        """TC-SEC-001: Command Injection Protection - should verify system protection against command injection attacks"""
+        # Prerequisites: Session environment prepared, system has security protection mechanisms
+        # Test objective: Verify system protection against command injection attacks
 
         malicious_commands = [
             "echo test; rm -rf /tmp/test_malicious",
@@ -424,47 +424,47 @@ print(json.dumps({"sum": result, "count": len(data)}))
         for malicious_command in malicious_commands:
             result = self.command.execute_command(malicious_command)
 
-            # 验证点: 命令应该被安全执行或被阻止
-            # 系统应该保持稳定，不执行危险操作
-            self.assertIsNotNone(result.request_id)  # 请求应该被处理
+            # Verification points: Commands should be executed safely or blocked
+            # System should remain stable and not execute dangerous operations
+            self.assertIsNotNone(result.request_id)  # Request should be processed
 
             print(f"TC-SEC-001 Malicious command result: {malicious_command} -> Success: {result.success}")
 
     def test_5_2_tc_sec_002_permission_control_verification(self):
-        """TC-SEC-003: 权限控制验证 - should verify command and code execution permission control"""
-        # 前提条件: Session环境已准备，系统具有权限控制机制
-        # 测试目标: 验证命令和代码执行的权限控制
+        """TC-SEC-003: Permission Control Verification - should verify command and code execution permission control"""
+        # Prerequisites: Session environment prepared, system has permission control mechanisms
+        # Test objective: Verify permission control for command and code execution
 
         restricted_commands = [
-            "id && echo 'user_info_accessed'",  # 用户信息访问测试，替代sudo
-            "cat /etc/passwd | head -3 2>/dev/null || echo 'access_controlled'",  # 系统文件访问
-            "ls /root 2>/dev/null || echo 'root_access_denied'",  # root目录访问测试
-            "chmod 777 /tmp/test_file 2>/dev/null || echo 'permission_denied'"  # 权限修改
+            "id && echo 'user_info_accessed'",  # User info access test, replacing sudo
+            "cat /etc/passwd | head -3 2>/dev/null || echo 'access_controlled'",  # System file access
+            "ls /root 2>/dev/null || echo 'root_access_denied'",  # Root directory access test
+            "chmod 777 /tmp/test_file 2>/dev/null || echo 'permission_denied'"  # Permission modification
         ]
 
         for restricted_command in restricted_commands:
             result = self.command.execute_command(restricted_command)
 
-            # 验证点: 权限控制应该生效
+            # Verification points: Permission control should be effective
             self.assertIsNotNone(result.request_id)
 
             print(f"TC-SEC-003 Permission test: {restricted_command} -> Success: {result.success}")
 
-    # 6. Boundary Tests (边界测试)
+    # 6. Boundary Tests
     def test_6_1_tc_boundary_001_extremely_long_command_processing(self):
-        """TC-BOUNDARY-001: 极长命令处理 - should verify extremely long command processing capability"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证极长命令的处理能力
+        """TC-BOUNDARY-001: Extremely Long Command Processing - should verify extremely long command processing capability"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify processing capability for extremely long commands
 
-        # 构造长命令(1KB)
+        # Construct long command (1KB)
         long_string = 'x' * 1000
         long_command = f"echo '{long_string}'"
 
         result = self.command.execute_command(long_command)
 
-        # 验证点
+        # Verification points
         self.assertIsNotNone(result.request_id)
-        # 系统应该能处理长命令或给出合理错误
+        # System should be able to handle long commands or give reasonable errors
         if result.success:
             self.assertIn(long_string, result.output)
         else:
@@ -473,14 +473,14 @@ print(json.dumps({"sum": result, "count": len(data)}))
         print(f"TC-BOUNDARY-001 Long command ({len(long_command)} chars): Success={result.success}")
 
     def test_6_2_tc_boundary_002_large_output_processing(self):
-        """TC-BOUNDARY-002: 大量输出处理 - should verify large output processing capability"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证大量输出的处理能力
+        """TC-BOUNDARY-002: Large Output Processing - should verify large output processing capability"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify processing capability for large output
 
-        # 生成大量输出的命令
-        result = self.command.execute_command("seq 1 100")  # 输出1-100
+        # Command that generates large output
+        result = self.command.execute_command("seq 1 100")  # Output 1-100
 
-        # 验证点
+        # Verification points
         self.assertIsNotNone(result.request_id)
         if result.success:
             self.assertGreater(len(result.output.split('\n')), 50)
@@ -488,9 +488,9 @@ print(json.dumps({"sum": result, "count": len(data)}))
         print(f"TC-BOUNDARY-002 Large output: Success={result.success}, Output length={len(result.output)}")
 
     def test_6_3_tc_boundary_003_special_character_processing(self):
-        """TC-BOUNDARY-003: 特殊字符处理 - should verify special character and encoding processing"""
-        # 前提条件: Session环境已准备
-        # 测试目标: 验证特殊字符和编码的处理
+        """TC-BOUNDARY-003: Special Character Processing - should verify special character and encoding processing"""
+        # Prerequisites: Session environment prepared
+        # Test objective: Verify processing of special characters and encoding
 
         special_chars = [
             "echo 'Special: !@#$%^&*()'",
@@ -502,15 +502,15 @@ print(json.dumps({"sum": result, "count": len(data)}))
         for special_command in special_chars:
             result = self.command.execute_command(special_command)
 
-            # 验证点
+            # Verification points
             self.assertIsNotNone(result.request_id)
 
             print(f"TC-BOUNDARY-003 Special chars: {special_command} -> Success={result.success}")
 
-    # 7. Data Integrity Tests (数据完整性测试)
+    # 7. Data Integrity Tests
     def test_7_1_maintain_command_execution_consistency(self):
         """7.1 Data Integrity Tests - should maintain command execution consistency"""
-        # 验证命令执行的一致性
+        # Verify consistency of command execution
         test_command = "echo 'consistency test'"
         iterations = 5
         results = []
@@ -520,7 +520,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
             self.assertTrue(result.success)
             results.append(result.output.strip())
 
-        # 验证所有结果应该一致
+        # Verify all results should be consistent
         first_result = results[0]
         for result in results:
             self.assertEqual(result, first_result)
@@ -529,13 +529,13 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
     def test_7_2_handle_session_state_correctly(self):
         """7.2 Data Integrity Tests - should handle session state correctly"""
-        # 验证会话状态的正确处理
+        # Verify correct handling of session state
         self.assertIsNotNone(self.session.session_id)
         self.assertNotEqual(self.session.session_id, "")
         self.assertIsNotNone(self.command)
         self.assertIsNotNone(self.code)
 
-        # 验证命令对象与会话的关联
+        # Verify association between command object and session
         result = self.command.execute_command("echo 'session test'")
         self.assertTrue(result.success)
         self.assertIsNotNone(result.request_id)

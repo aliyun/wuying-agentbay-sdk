@@ -14,23 +14,22 @@ from agentbay.filesystem.filesystem import (
 )
 from agentbay.session_params import CreateSessionParams
 
-
 class TestFileSystemComprehensive(unittest.TestCase):
     """
-    FileSystem Comprehensive Tests - 文件系统综合测试
+    FileSystem Comprehensive Tests
 
     This test suite covers comprehensive file system operations including:
-    1. File Basic Operations (文件基础操作)
-    2. File Information Management (文件信息管理)
-    3. Batch File Operations (批量文件操作)
-    4. File Edit and Move Operations (文件编辑和移动操作)
-    5. Directory Management (目录管理)
-    6. Error Handling (异常处理)
-    7. Performance and Boundary Tests (性能和边界测试)
-    8. Path Length Boundary Tests (路径长度边界测试)
-    9. File Content Boundary Tests (文件内容边界测试)
-    10. Extreme Scenario Tests (极端场景测试)
-    11. Data Integrity Tests (数据完整性测试)
+    1. File Basic Operations
+    2. File Information Management
+    3. Batch File Operations
+    4. File Edit and Move Operations
+    5. Directory Management
+    6. Error Handling
+    7. Performance and Boundary Tests
+    8. Path Length Boundary Tests
+    9. File Content Boundary Tests
+    10. Extreme Scenario Tests
+    11. Data Integrity Tests
     """
 
     @classmethod
@@ -85,7 +84,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         write_result = self.fs.write_file(self.test_file_path, test_content, "overwrite")
         self.assertTrue(write_result.success, "Failed to create test file")
 
-    # 1. File Basic Operations Tests (文件基础操作测试)
+    # 1. File Basic Operations Tests
     def test_1_1_file_reading_tests(self):
         """1.1 File Reading Tests - should successfully read file content"""
         result = self.fs.read_file(self.test_file_path)
@@ -221,7 +220,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.content, large_content)
 
-    # 2. File Information Management Tests (文件信息管理测试)
+    # 2. File Information Management Tests
     def test_2_get_file_info_correctly(self):
         """2. File Information Management - should get file info correctly"""
         info_test_file = "/tmp/info_test.txt"
@@ -247,7 +246,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertGreater(len(result.entries), 0)
 
-    # 3. Batch File Operations Tests (批量文件操作测试)
+    # 3. Batch File Operations Tests
     def test_3_read_multiple_files_correctly(self):
         """3. Batch File Operations - should read multiple files correctly"""
         files = ["/tmp/batch1.txt", "/tmp/batch2.txt", "/tmp/batch3.txt"]
@@ -279,7 +278,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertTrue(result2.success)
         self.assertIsNotNone(result2.matches)
 
-    # 4. File Edit and Move Operations Tests (文件编辑和移动操作测试)
+    # 4. File Edit and Move Operations Tests
     def test_4_edit_file_with_find_replace(self):
         """4. File Edit and Move Operations - should edit file with find-replace"""
         edit_path = "/tmp/edit_test.txt"
@@ -315,7 +314,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.content, content_to_move)
 
-    # 5. Directory Management Tests (目录管理测试)
+    # 5. Directory Management Tests
     def test_5_create_directory_successfully(self):
         """5. Directory Management - should create directory successfully"""
         dir_path = "/tmp/new_directory"
@@ -338,7 +337,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
 
         self.assertTrue(result.success)
 
-    # 6. Error Handling Tests (异常处理测试)
+    # 6. Error Handling Tests
     def test_6_handle_non_existent_file_operations(self):
         """6. Error Handling - should handle non-existent file operations"""
         non_existent_path = "/tmp/non_existent.txt"
@@ -360,7 +359,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertFalse(empty_path_result.success)
         self.assertIsNotNone(empty_path_result.error_message)
 
-    # 7. Performance and Boundary Tests (性能和边界测试)
+    # 7. Performance and Boundary Tests
     def test_7_handle_1mb_file_efficiently(self):
         """7. Performance and Boundary Tests - should handle 1MB file efficiently"""
         large_path = "/tmp/1mb_test.txt"
@@ -398,7 +397,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
             self.assertTrue(result.success)
             self.assertIsNotNone(result.request_id)
 
-    # 8. Path Length Boundary Tests (路径长度边界测试)
+    # 8. Path Length Boundary Tests
     def test_8_handle_normal_path_lengths(self):
         """8. Path Length Boundary Tests - should handle normal path lengths"""
         normal_path = "/tmp/normal_path_test.txt"
@@ -434,7 +433,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
             self.assertTrue(read_result.success)
             self.assertEqual(read_result.content, "space content")
 
-    # 9. File Content Boundary Tests (文件内容边界测试)
+    # 9. File Content Boundary Tests
     def test_9_handle_empty_file_content(self):
         """9. File Content Boundary Tests - should handle empty file content"""
         empty_path = "/tmp/empty_test.txt"
@@ -482,7 +481,7 @@ Line 5: Newlines and tabs:
         self.assertIn("你好世界", read_result.content)
         self.assertIn("🌍", read_result.content)
 
-    # 10. Extreme Scenario Tests (极端场景测试)
+    # 10. Extreme Scenario Tests
     def test_10_handle_multiple_files_in_directory(self):
         """10. Extreme Scenario Tests - should handle multiple files in directory"""
         many_files_dir = "/tmp/many_files_test"
@@ -520,7 +519,7 @@ Line 5: Newlines and tabs:
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.content, "Deep content")
 
-    # 11. Data Integrity Tests (数据完整性测试)
+    # 11. Data Integrity Tests
     def test_11_maintain_data_integrity_across_operations(self):
         """11. Data Integrity Tests - should maintain data integrity across operations"""
         integrity_path = "/tmp/integrity_test.txt"
@@ -548,7 +547,6 @@ Line 5: Newlines and tabs:
         self.assertIn("äöüß", final_result.content)
 
         print("Data integrity test completed successfully")
-
 
 if __name__ == "__main__":
     unittest.main()

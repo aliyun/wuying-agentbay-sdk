@@ -5,7 +5,7 @@ import { Command } from '../../src/command';
 import { Code } from '../../src/code';
 import { log } from 'console';
 
-// 会话创建辅助函数
+// Helper function for session creation
 async function createSession(imageId?: string): Promise<{ agentBay: AgentBay; session: Session }> {
   const agentBay = new AgentBay({ apiKey: process.env.AGENTBAY_API_KEY || 'test-api-key' });
   const sessionResult = await agentBay.create(imageId ? { imageId } : {});
@@ -24,7 +24,7 @@ describe('Command Comprehensive Tests', () => {
   let code: Code;
 
   beforeEach(async () => {
-    // 为了支持runCode测试，统一使用code_latest镜像
+    // Use code_latest image uniformly to support runCode tests
     const sessionInfo = await createSession('code_latest');
     agentBay = sessionInfo.agentBay;
     session = sessionInfo.session;
@@ -38,54 +38,54 @@ describe('Command Comprehensive Tests', () => {
     }
   });
 
-  // 1. ExecuteCommand 功能测试用例
+  // 1. ExecuteCommand Function Tests
   describe('1. ExecuteCommand Function Tests', () => {
-    test('TC-CMD-001: 基础Shell命令执行', async () => {
-      // 前提条件: AgentBay实例已创建且连接正常，Session已成功建立，Command对象已初始化
-      // 测试目标: 验证基础shell命令的正确执行
+    test('TC-CMD-001: Basic Shell Command Execution', async () => {
+      // Prerequisites: AgentBay instance created and connected normally, Session established successfully, Command object initialized
+      // Test objective: Verify correct execution of basic shell commands
 
       const startTime = Date.now();
       const result = await command.executeCommand("echo 'Hello World'", 1000);
       const executionTime = Date.now() - startTime;
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(true);
       expect(result.output).toContain('Hello World');
       expect(result.requestId).toBeDefined();
       expect(result.requestId).not.toBe('');
-      expect(executionTime).toBeGreaterThan(0); // 执行时间应该大于0
+      expect(executionTime).toBeGreaterThan(0); // Execution time should be greater than 0
 
       log(`TC-CMD-001 execution time: ${executionTime}ms`);
     });
 
-    test('TC-CMD-002: 文件操作命令执行', async () => {
-      // 前提条件: Session环境已准备，有文件系统访问权限
-      // 测试目标: 验证文件创建、读取、删除命令的执行
+    test('TC-CMD-002: File Operation Command Execution', async () => {
+      // Prerequisites: Session environment prepared, file system access permissions available
+      // Test objective: Verify execution of file create, read, delete commands
 
       const testContent = 'test content';
       const testFile = '/tmp/test_file.txt';
 
-      // 步骤1: 执行创建文件命令
+      // Step 1: Execute create file command
       const createResult = await command.executeCommand(`echo '${testContent}' > ${testFile}`);
       expect(createResult.success).toBe(true);
 
-      // 步骤2: 执行读取文件命令
+      // Step 2: Execute read file command
       const readResult = await command.executeCommand(`cat ${testFile}`);
       expect(readResult.success).toBe(true);
       expect(readResult.output.trim()).toBe(testContent);
 
-      // 步骤3: 执行删除文件命令
+      // Step 3: Execute delete file command
       const deleteResult = await command.executeCommand(`rm ${testFile}`);
       expect(deleteResult.success).toBe(true);
 
-      // 步骤4: 验证文件删除
+      // Step 4: Verify file deletion
       const verifyResult = await command.executeCommand(`ls ${testFile}`);
-      expect(verifyResult.success).toBe(false); // 文件不存在应该返回错误
+      expect(verifyResult.success).toBe(false); // File not existing should return error
     });
 
-    test('TC-CMD-003: 超时机制验证', async () => {
-      // 前提条件: Session环境已准备，系统支持sleep命令
-      // 测试目标: 验证命令执行超时控制机制
+    test('TC-CMD-003: Timeout Mechanism Verification', async () => {
+      // Prerequisites: Session environment prepared, system supports sleep command
+      // Test objective: Verify command execution timeout control mechanism
 
       const timeoutMs = 1000;
       const startTime = Date.now();
@@ -93,21 +93,21 @@ describe('Command Comprehensive Tests', () => {
       const result = await command.executeCommand('sleep 5', timeoutMs);
       const actualTime = Date.now() - startTime;
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(false);
-      expect(actualTime).toBeLessThan(6000); // 应该在5秒内被中断
-      expect(actualTime).toBeGreaterThan(timeoutMs * 0.8); // 接近超时时间
+      expect(actualTime).toBeLessThan(6000); // Should be interrupted within 5 seconds
+      expect(actualTime).toBeGreaterThan(timeoutMs * 0.8); // Close to timeout time
 
       log(`TC-CMD-003 actual execution time: ${actualTime}ms, timeout: ${timeoutMs}ms`);
     });
 
-    test('TC-CMD-004: 错误命令处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证无效命令的错误处理机制
+    test('TC-CMD-004: Error Command Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify error handling mechanism for invalid commands
 
       const result = await command.executeCommand('invalid_command_xyz');
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(false);
       expect(result.errorMessage).toBeDefined();
       expect(result.errorMessage).not.toBe('');
@@ -116,16 +116,16 @@ describe('Command Comprehensive Tests', () => {
     });
   });
 
-  // 2. RunCode 功能测试用例 (复用主session，已是code_latest镜像)
+  // 2. RunCode Function Tests (reusing main session, already code_latest image)
   describe('2. RunCode Function Tests', () => {
-    test('TC-CODE-001: Python代码执行', async () => {
-      // 前提条件: Session环境已准备，Python运行环境可用
-      // 测试目标: 验证Python代码的正确执行
+    test('TC-CODE-001: Python Code Execution', async () => {
+      // Prerequisites: Session environment prepared, Python runtime environment available
+      // Test objective: Verify correct execution of Python code
 
       const pythonCode = "print('Hello from Python')";
       const result = await code.runCode(pythonCode, 'python', 60);
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(true);
       expect(result.result).toContain('Hello from Python');
       expect(result.requestId).toBeDefined();
@@ -133,14 +133,14 @@ describe('Command Comprehensive Tests', () => {
       log(`TC-CODE-001 result: ${result.result}`);
     });
 
-    test('TC-CODE-002: JavaScript代码执行', async () => {
-      // 前提条件: Session环境已准备，JavaScript运行环境可用
-      // 测试目标: 验证JavaScript代码的正确执行
+    test('TC-CODE-002: JavaScript Code Execution', async () => {
+      // Prerequisites: Session environment prepared, JavaScript runtime environment available
+      // Test objective: Verify correct execution of JavaScript code
 
       const jsCode = "console.log('Hello from JavaScript')";
       const result = await code.runCode(jsCode, 'javascript', 60);
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(true);
       expect(result.result).toContain('Hello from JavaScript');
       expect(result.requestId).toBeDefined();
@@ -148,9 +148,9 @@ describe('Command Comprehensive Tests', () => {
       log(`TC-CODE-002 result: ${result.result}`);
     });
 
-    test('TC-CODE-003: 复杂Python代码执行', async () => {
-      // 前提条件: Session环境已准备，Python标准库可用
-      // 测试目标: 验证包含数据处理的Python代码执行
+    test('TC-CODE-003: Complex Python Code Execution', async () => {
+      // Prerequisites: Session environment prepared, Python standard library available
+      // Test objective: Verify execution of Python code with data processing
 
       const complexPythonCode = `
 import json
@@ -161,10 +161,10 @@ print(json.dumps({"sum": result, "count": len(data)}))
 
       const result = await code.runCode(complexPythonCode, 'python', 300);
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(true);
 
-      // 解析JSON输出
+      // Parse JSON output
       const jsonMatch = result.result.match(/\{.*\}/);
       expect(jsonMatch).toBeTruthy();
 
@@ -177,9 +177,9 @@ print(json.dumps({"sum": result, "count": len(data)}))
       log(`TC-CODE-003 result: ${result.result}`);
     });
 
-    test('TC-CODE-004: 代码执行超时控制', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证代码执行的超时控制机制
+    test('TC-CODE-004: Code Execution Timeout Control', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify timeout control mechanism for code execution
 
       const longRunningCode = "import time; time.sleep(10)";
       const timeoutSeconds = 5;
@@ -188,21 +188,21 @@ print(json.dumps({"sum": result, "count": len(data)}))
       const result = await code.runCode(longRunningCode, 'python', timeoutSeconds);
       const actualTime = Date.now() - startTime;
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(false);
-      expect(actualTime).toBeLessThan(15000); // 应该在15秒内完成（包含一些网络延迟）
-      expect(actualTime).toBeGreaterThan(timeoutSeconds * 1000 * 0.5); // 接近超时时间
+      expect(actualTime).toBeLessThan(15000); // Should complete within 15 seconds (including network delay)
+      expect(actualTime).toBeGreaterThan(timeoutSeconds * 1000 * 0.5); // Close to timeout time
 
       log(`TC-CODE-004 actual time: ${actualTime}ms, timeout: ${timeoutSeconds}s`);
     });
 
-    test('TC-CODE-005: 不支持语言处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证不支持语言的错误处理
+    test('TC-CODE-005: Unsupported Language Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify error handling for unsupported languages
 
       const result = await code.runCode('System.out.println("Hello");', 'java', 60);
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(false);
       expect(result.errorMessage).toBeDefined();
       expect(result.errorMessage!.toLowerCase()).toContain('language');
@@ -210,14 +210,14 @@ print(json.dumps({"sum": result, "count": len(data)}))
       log(`TC-CODE-005 error: ${result.errorMessage}`);
     });
 
-    test('TC-CODE-006: 代码语法错误处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证语法错误代码的处理
+    test('TC-CODE-006: Code Syntax Error Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify handling of syntax error code
 
       const syntaxErrorCode = "print('unclosed string";
       const result = await code.runCode(syntaxErrorCode, 'python', 60);
 
-      // 验证点
+      // Verification points
       expect(result.success).toBe(false);
       expect(result.errorMessage).toBeDefined();
       expect(result.errorMessage!.toLowerCase()).toMatch(/(syntax|error)/);
@@ -226,24 +226,24 @@ print(json.dumps({"sum": result, "count": len(data)}))
     });
   });
 
-  // 3. 并发执行测试用例
+  // 3. Concurrent Execution Tests
   describe('3. Concurrent Execution Tests', () => {
-    test('TC-CONCURRENT-001: 并发命令执行', async () => {
-      // 前提条件: 多个Session已建立，系统支持并发操作
-      // 测试目标: 验证多个命令的并发执行能力
+    test('TC-CONCURRENT-001: Concurrent Command Execution', async () => {
+      // Prerequisites: Multiple Sessions established, system supports concurrent operations
+      // Test objective: Verify concurrent execution capability of multiple commands
 
-      // 创建多个会话（使用默认镜像，命令执行不需要code_latest）
+      // Create multiple sessions (using default image, command execution doesn't need code_latest)
       const sessions: Session[] = [];
       const agentBays: AgentBay[] = [];
 
       try {
         for (let i = 0; i < 3; i++) {
-          const sessionInfo = await createSession(); // 不指定imageId，使用默认
+          const sessionInfo = await createSession(); // Don't specify imageId, use default
           agentBays.push(sessionInfo.agentBay);
           sessions.push(sessionInfo.session);
         }
 
-        // 并发执行不同命令
+        // Execute different commands concurrently
         const commands = [
           "echo 'Command 1'",
           "echo 'Command 2'",
@@ -258,7 +258,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
         const results = await Promise.all(promises);
         const concurrentTime = Date.now() - startTime;
 
-        // 验证点
+        // Verification points
         results.forEach((result, index) => {
           expect(result.success).toBe(true);
           expect(result.output).toContain(`Command ${index + 1}`);
@@ -267,18 +267,18 @@ print(json.dumps({"sum": result, "count": len(data)}))
         log(`TC-CONCURRENT-001 concurrent execution time: ${concurrentTime}ms`);
 
       } finally {
-        // 清理会话
+        // Clean up sessions
         for (let i = 0; i < sessions.length; i++) {
           await agentBays[i].delete(sessions[i]);
         }
       }
     });
 
-    test('TC-CONCURRENT-002: 混合代码并发执行', async () => {
-      // 前提条件: Session已建立，Python和JavaScript环境都可用
-      // 测试目标: 验证不同语言代码的并发执行
+    test('TC-CONCURRENT-002: Mixed Code Concurrent Execution', async () => {
+      // Prerequisites: Session established, both Python and JavaScript environments available
+      // Test objective: Verify concurrent execution of different language codes
 
-      // 复用主session（已是code_latest镜像）
+      // Reuse main session (already code_latest image)
       const pythonCode = "print('Python result')";
       const jsCode = "console.log('JavaScript result')";
 
@@ -289,7 +289,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
       ]);
       const concurrentTime = Date.now() - startTime;
 
-      // 验证点
+      // Verification points
       expect(pythonResult.success).toBe(true);
       expect(jsResult.success).toBe(true);
       expect(pythonResult.result).toContain('Python result');
@@ -299,13 +299,13 @@ print(json.dumps({"sum": result, "count": len(data)}))
     });
   });
 
-  // 4. 性能测试用例
+  // 4. Performance Tests
   describe('4. Performance Tests', () => {
-    test('TC-PERF-001: 命令执行性能基线', async () => {
-      // 前提条件: 稳定的测试环境，无其他高负载任务
-      // 测试目标: 建立命令执行性能基线
+    test('TC-PERF-001: Command Execution Performance Baseline', async () => {
+      // Prerequisites: Stable test environment, no other high-load tasks
+      // Test objective: Establish command execution performance baseline
 
-      const iterations = 10; // 减少迭代次数以适应测试环境
+      const iterations = 10; // Reduce iterations to suit test environment
       const executionTimes: number[] = [];
       let successCount = 0;
 
@@ -320,39 +320,39 @@ print(json.dumps({"sum": result, "count": len(data)}))
         }
       }
 
-      // 计算统计数据
+      // Calculate statistics
       const avgTime = executionTimes.reduce((a, b) => a + b, 0) / executionTimes.length;
       const maxTime = Math.max(...executionTimes);
       const minTime = Math.min(...executionTimes);
       const sortedTimes = [...executionTimes].sort((a, b) => a - b);
       const p99Time = sortedTimes[Math.floor(0.99 * sortedTimes.length)];
 
-      // 验证点
-      expect(avgTime).toBeLessThan(5000); // 调整为5秒以适应网络延迟
-      expect(p99Time).toBeLessThan(10000); // 99%请求在10秒内完成
-      expect(successCount / iterations).toBeGreaterThanOrEqual(0.8); // 80%成功率
+      // Verification points
+      expect(avgTime).toBeLessThan(5000); // Adjust to 5 seconds to accommodate network delay
+      expect(p99Time).toBeLessThan(10000); // 99% requests complete within 10 seconds
+      expect(successCount / iterations).toBeGreaterThanOrEqual(0.8); // 80% success rate
 
       log(`TC-PERF-001 Performance: Avg=${avgTime}ms, Min=${minTime}ms, Max=${maxTime}ms, P99=${p99Time}ms, Success=${successCount}/${iterations}`);
     });
 
-    test('TC-PERF-002: 代码执行性能测试', async () => {
-      // 前提条件: 稳定的测试环境
-      // 测试目标: 测试代码执行的性能表现
+    test('TC-PERF-002: Code Execution Performance Test', async () => {
+      // Prerequisites: Stable test environment
+      // Test objective: Test performance of code execution
 
-      // 复用主session（已是code_latest镜像）
+      // Reuse main session (already code_latest image)
       const pythonIterations = 5;
       const jsIterations = 5;
       const pythonTimes: number[] = [];
       const jsTimes: number[] = [];
 
-      // Python性能测试
+      // Python performance test
       for (let i = 0; i < pythonIterations; i++) {
         const startTime = Date.now();
         await code.runCode(`print('Python test ${i}')`, 'python', 60);
         pythonTimes.push(Date.now() - startTime);
       }
 
-      // JavaScript性能测试
+      // JavaScript performance test
       for (let i = 0; i < jsIterations; i++) {
         const startTime = Date.now();
         await code.runCode(`console.log('JS test ${i}')`, 'javascript', 60);
@@ -362,19 +362,19 @@ print(json.dumps({"sum": result, "count": len(data)}))
       const avgPythonTime = pythonTimes.reduce((a, b) => a + b, 0) / pythonTimes.length;
       const avgJsTime = jsTimes.reduce((a, b) => a + b, 0) / jsTimes.length;
 
-      // 验证点
-      expect(avgPythonTime).toBeLessThan(10000); // Python平均执行时间 < 10秒
-      expect(avgJsTime).toBeLessThan(10000); // JavaScript平均执行时间 < 10秒
+      // Verification points
+      expect(avgPythonTime).toBeLessThan(10000); // Python average execution time < 10 seconds
+      expect(avgJsTime).toBeLessThan(10000); // JavaScript average execution time < 10 seconds
 
       log(`TC-PERF-002 Code Performance: Python Avg=${avgPythonTime}ms, JS Avg=${avgJsTime}ms`);
     });
   });
 
-  // 5. 安全性测试用例
+  // 5. Security Tests
   describe('5. Security Tests', () => {
-    test('TC-SEC-001: 命令注入防护', async () => {
-      // 前提条件: Session环境已准备，系统具有安全防护机制
-      // 测试目标: 验证系统防止命令注入攻击
+    test('TC-SEC-001: Command Injection Protection', async () => {
+      // Prerequisites: Session environment prepared, system has security protection mechanisms
+      // Test objective: Verify system prevents command injection attacks
 
       const maliciousCommands = [
         "echo test; rm -rf /tmp/test_malicious",
@@ -385,28 +385,28 @@ print(json.dumps({"sum": result, "count": len(data)}))
       for (const maliciousCommand of maliciousCommands) {
         const result = await command.executeCommand(maliciousCommand);
 
-        // 验证点: 命令应该被安全执行或被阻止
-        // 系统应该保持稳定，不执行危险操作
-        expect(result.requestId).toBeDefined(); // 请求应该被处理
+        // Verification points: Commands should be executed safely or blocked
+        // System should remain stable and not execute dangerous operations
+        expect(result.requestId).toBeDefined(); // Request should be processed
 
         log(`TC-SEC-001 Malicious command result: ${maliciousCommand} -> Success: ${result.success}`);
       }
     });
-    test('TC-SEC-003: 权限控制验证', async () => {
-      // 前提条件: Session环境已准备，系统具有权限控制机制
-      // 测试目标: 验证命令和代码执行的权限控制
+    test('TC-SEC-003: Permission Control Verification', async () => {
+      // Prerequisites: Session environment prepared, system has permission control mechanisms
+      // Test objective: Verify permission control for command and code execution
 
       const restrictedCommands = [
-        "id && echo 'user_info_accessed'", // 用户信息访问测试，替代sudo
-        "cat /etc/passwd | head -3 2>/dev/null || echo 'access_controlled'", // 系统文件访问
-        "ls /root 2>/dev/null || echo 'root_access_denied'", // root目录访问测试
-        "chmod 777 /tmp/test_file 2>/dev/null || echo 'permission_denied'" // 权限修改
+        "id && echo 'user_info_accessed'", // User info access test, replacing sudo
+        "cat /etc/passwd | head -3 2>/dev/null || echo 'access_controlled'", // System file access
+        "ls /root 2>/dev/null || echo 'root_access_denied'", // Root directory access test
+        "chmod 777 /tmp/test_file 2>/dev/null || echo 'permission_denied'" // Permission modification
       ];
 
       for (const restrictedCommand of restrictedCommands) {
         const result = await command.executeCommand(restrictedCommand);
 
-        // 验证点: 权限控制应该生效
+        // Verification points: Permission control should be effective
         expect(result.requestId).toBeDefined();
 
         log(`TC-SEC-003 Permission test: ${restrictedCommand} -> Success: ${result.success}`);
@@ -414,21 +414,21 @@ print(json.dumps({"sum": result, "count": len(data)}))
     });
   });
 
-  // 6. 边界测试用例
+  // 6. Boundary Tests
   describe('6. Boundary Tests', () => {
-    test('TC-BOUNDARY-001: 极长命令处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证极长命令的处理能力
+    test('TC-BOUNDARY-001: Extremely Long Command Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify handling capability for extremely long commands
 
-      // 构造长命令(1KB)
+      // Construct long command (1KB)
       const longString = 'x'.repeat(1000);
       const longCommand = `echo '${longString}'`;
 
       const result = await command.executeCommand(longCommand);
 
-      // 验证点
+      // Verification points
       expect(result.requestId).toBeDefined();
-      // 系统应该能处理长命令或给出合理错误
+      // System should be able to handle long commands or give reasonable errors
       if (result.success) {
         expect(result.output).toContain(longString);
       } else {
@@ -438,14 +438,14 @@ print(json.dumps({"sum": result, "count": len(data)}))
       log(`TC-BOUNDARY-001 Long command (${longCommand.length} chars): Success=${result.success}`);
     });
 
-    test('TC-BOUNDARY-002: 大量输出处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证大量输出的处理能力
+    test('TC-BOUNDARY-002: Large Output Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify handling capability for large output
 
-      // 生成大量输出的命令
-      const result = await command.executeCommand('seq 1 100'); // 输出1-100
+      // Command that generates large output
+      const result = await command.executeCommand('seq 1 100'); // Output 1-100
 
-      // 验证点
+      // Verification points
       expect(result.requestId).toBeDefined();
       if (result.success) {
         expect(result.output.split('\n').length).toBeGreaterThan(50);
@@ -454,9 +454,9 @@ print(json.dumps({"sum": result, "count": len(data)}))
       log(`TC-BOUNDARY-002 Large output: Success=${result.success}, Output length=${result.output.length}`);
     });
 
-    test('TC-BOUNDARY-003: 特殊字符处理', async () => {
-      // 前提条件: Session环境已准备
-      // 测试目标: 验证特殊字符和编码的处理
+    test('TC-BOUNDARY-003: Special Character Handling', async () => {
+      // Prerequisites: Session environment prepared
+      // Test objective: Verify handling of special characters and encoding
 
       const specialChars = [
         "echo 'Special: !@#$%^&*()'",
@@ -468,7 +468,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
       for (const specialCommand of specialChars) {
         const result = await command.executeCommand(specialCommand);
 
-        // 验证点
+        // Verification points
         expect(result.requestId).toBeDefined();
 
         log(`TC-BOUNDARY-003 Special chars: ${specialCommand} -> Success=${result.success}`);
@@ -476,10 +476,10 @@ print(json.dumps({"sum": result, "count": len(data)}))
     });
   });
 
-  // 数据完整性和一致性测试
+  // 7. Data Integrity and Consistency Tests
   describe('7. Data Integrity Tests', () => {
     test('should maintain command execution consistency', async () => {
-      // 验证命令执行的一致性
+      // Verify consistency of command execution
       const testCommand = "echo 'consistency test'";
       const iterations = 5;
       const results: string[] = [];
@@ -490,7 +490,7 @@ print(json.dumps({"sum": result, "count": len(data)}))
         results.push(result.output.trim());
       }
 
-      // 验证所有结果应该一致
+      // Verify all results should be consistent
       const firstResult = results[0];
       results.forEach(result => {
         expect(result).toBe(firstResult);
@@ -500,13 +500,13 @@ print(json.dumps({"sum": result, "count": len(data)}))
     });
 
     test('should handle session state correctly', async () => {
-      // 验证会话状态的正确处理
+      // Verify correct handling of session state
       expect(session.sessionId).toBeDefined();
       expect(session.sessionId).not.toBe('');
       expect(command).toBeDefined();
       expect(code).toBeDefined();
 
-      // 验证命令对象与会话的关联
+      // Verify association between command object and session
       const result = await command.executeCommand("echo 'session test'");
       expect(result.success).toBe(true);
       expect(result.requestId).toBeDefined();
