@@ -37,16 +37,8 @@ class TestVPCSessionIntegration(unittest.TestCase):
 
         print(f"Using API key: {cls.api_key}")
 
-        # Create custom configuration with the specified parameters  
-        from agentbay import Config
-        config = Config(
-            region_id='cn-hangzhou',
-            endpoint='wuyingai-pre.cn-hangzhou.aliyuncs.com',
-            timeout_ms=60000
-        )
-
-        cls.agent_bay = AgentBay(cls.api_key, config)
-        print(f"AgentBay client initialized successfully with region: {config.region_id}")
+        cls.agent_bay = AgentBay(cls.api_key)
+        print(f"AgentBay client initialized successfully")
 
     def test_vpc_session_basic_tools(self):
         """Test VPC session creation and filesystem write/read functionality"""

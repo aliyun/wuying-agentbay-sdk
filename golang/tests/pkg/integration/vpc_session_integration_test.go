@@ -18,22 +18,15 @@ import (
 //
 // Note: This test is designed to verify that VPC sessions can be created and filesystem operations work correctly.
 func TestVpcSessionBasicTools(t *testing.T) {
-	// Initialize AgentBay client with custom configuration
+	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
 	t.Logf("Using API key: %s", apiKey)
 
-	// Create custom configuration with the specified parameters
-	config := &agentbay.Config{
-		RegionID:  "cn-hangzhou",
-		Endpoint:  "wuyingai-pre.cn-hangzhou.aliyuncs.com",
-		TimeoutMs: 60000,
-	}
-
-	agentBay, err := agentbay.NewAgentBay(apiKey, agentbay.WithConfig(config))
+	agentBay, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
-	t.Logf("AgentBay client initialized successfully with region: %s", agentBay.RegionId)
+	t.Logf("AgentBay client initialized successfully")
 
 	// Step 1: Create a VPC-based session
 	t.Log("Step 1: Creating VPC-based session...")
@@ -205,13 +198,8 @@ func TestVpcSessionOSSOperations(t *testing.T) {
 func TestVpcSessionSystemTools(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
-	config := &agentbay.Config{
-		RegionID:  "cn-hangzhou",
-		Endpoint:  "wuyingai-pre.cn-hangzhou.aliyuncs.com",
-		TimeoutMs: 60000,
-	}
 
-	agentBay, err := agentbay.NewAgentBay(apiKey, agentbay.WithConfig(config))
+	agentBay, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
@@ -247,13 +235,8 @@ func TestVpcSessionSystemTools(t *testing.T) {
 func TestVpcSessionBrowserTools(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
-	config := &agentbay.Config{
-		RegionID:  "cn-hangzhou",
-		Endpoint:  "wuyingai-pre.cn-hangzhou.aliyuncs.com",
-		TimeoutMs: 60000,
-	}
 
-	agentBay, err := agentbay.NewAgentBay(apiKey, agentbay.WithConfig(config))
+	agentBay, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}
@@ -288,13 +271,8 @@ func TestVpcSessionBrowserTools(t *testing.T) {
 func TestVpcSessionComprehensive(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)
-	config := &agentbay.Config{
-		RegionID:  "cn-hangzhou",
-		Endpoint:  "wuyingai-pre.cn-hangzhou.aliyuncs.com",
-		TimeoutMs: 60000,
-	}
 
-	agentBay, err := agentbay.NewAgentBay(apiKey, agentbay.WithConfig(config))
+	agentBay, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		t.Fatalf("Error initializing AgentBay client: %v", err)
 	}

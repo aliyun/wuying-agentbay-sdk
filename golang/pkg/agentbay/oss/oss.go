@@ -304,7 +304,7 @@ func (o *OSSManager) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) 
 // Helper function to extract common result fields from CallMcpTool result
 func (o *OSSManager) extractCallResult(result *CallMcpToolResult) (string, string, map[string]interface{}, error) {
 	if result.GetIsError() {
-		return "", "", nil, fmt.Errorf(result.GetErrorMsg())
+		return "", "", nil, fmt.Errorf("%s", result.GetErrorMsg())
 	}
 	return result.GetRequestID(), result.GetTextContent(), result.GetData(), nil
 }

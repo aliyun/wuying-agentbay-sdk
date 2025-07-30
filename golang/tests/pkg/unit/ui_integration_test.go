@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,9 +16,20 @@ type MockSession struct {
 	client    *client.Client
 }
 
-func (m *MockSession) GetAPIKey() string         { return m.apiKey }
-func (m *MockSession) GetClient() *client.Client { return m.client }
-func (m *MockSession) GetSessionId() string      { return m.sessionID }
+func (m *MockSession) GetAPIKey() string                                          { return m.apiKey }
+func (m *MockSession) GetClient() *client.Client                                  { return m.client }
+func (m *MockSession) GetSessionId() string                                       { return m.sessionID }
+func (m *MockSession) IsVpc() bool                                                { return false }
+func (m *MockSession) NetworkInterfaceIp() string                                 { return "" }
+func (m *MockSession) HttpPort() string                                           { return "" }
+func (m *MockSession) FindServerForTool(toolName string) string                   { return "" }
+func (m *MockSession) Delete(syncContext ...bool) (*agentbay.DeleteResult, error) { return nil, nil }
+func (m *MockSession) SetLabels(labels string) (*agentbay.LabelResult, error)     { return nil, nil }
+func (m *MockSession) GetLabels() (*agentbay.LabelResult, error)                  { return nil, nil }
+func (m *MockSession) GetLink(protocolType *string, port *int32) (*agentbay.LinkResult, error) {
+	return nil, nil
+}
+func (m *MockSession) Info() (*agentbay.InfoResult, error) { return nil, nil }
 
 // TestUI_GetClickableUIElements_Integration tests the GetClickableUIElements method of UI module
 func TestUI_GetClickableUIElements_Integration(t *testing.T) {

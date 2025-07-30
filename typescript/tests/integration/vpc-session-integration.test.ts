@@ -22,15 +22,8 @@ describe("VPC Session Integration", () => {
     const apiKey = getTestApiKey();
     log(`Using API key: ${apiKey}`);
 
-    // Create custom configuration with the specified parameters
-    const config = {
-        region_id: 'cn-hangzhou',
-        endpoint: 'wuyingai-pre.cn-hangzhou.aliyuncs.com',
-        timeout_ms: 60000
-    };
-
-    agentBay = new AgentBay({ apiKey, config });
-    log(`AgentBay client initialized successfully with region: ${config.region_id}`);
+    agentBay = new AgentBay({ apiKey });
+    log(`AgentBay client initialized successfully`);
   });
 
   describe("VPC Session Basic Tools", () => {
