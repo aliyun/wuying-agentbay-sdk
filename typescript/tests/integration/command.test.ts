@@ -60,7 +60,7 @@ print(x)
 
         try {
           // Test with default timeout
-          const runCodeResponse = await session.command.runCode(
+          const runCodeResponse = await session.code.runCode(
             pythonCode,
             "python"
           );
@@ -103,7 +103,7 @@ print(x)
         try {
           // Test with custom timeout (10 minutes)
           const customTimeout = 600;
-          const runCodeResponse = await session.command.runCode(
+          const runCodeResponse = await session.code.runCode(
             jsCode,
             "javascript",
             customTimeout
@@ -140,7 +140,7 @@ print(x)
         log("Testing with invalid language...");
 
         try {
-          await session.command.runCode('print("test")', "invalid_language");
+          await session.code.runCode('print("test")', "invalid_language");
           // If we get here, the test should fail
           log("Error: Expected error for invalid language, but got success");
           expect(false).toBe(true); // This should fail the test
