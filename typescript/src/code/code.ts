@@ -1,173 +1,38 @@
-import { APIError } from "../exceptions";
-import { Session } from "../session";
-import { Client } from "../api/client";
-import { CallMcpToolRequest } from "../api/models/model";
-import { log, logError } from "../utils/logger";
 import {
-  extractRequestId,
   CodeExecutionResult,
 } from "../types/api-response";
-
-import * as $_client from "../api";
-
-/**
- * Result object for a CallMcpTool operation
- */
-interface CallMcpToolResult {
-  data: Record<string, any>;
-  content?: any[];
-  textContent?: string;
-  isError: boolean;
-  errorMsg?: string;
-  statusCode: number;
-  requestId?: string;
-}
 
 /**
  * Handles code execution operations in the AgentBay cloud environment.
  */
 export class Code {
-  private session: Session;
-  private client!: $_client.Client;
-  private baseUrl!: string;
+  private session: {
+    getAPIKey(): string;
+    getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
+  };
 
   /**
    * Initialize a Code object.
    *
    * @param session - The Session instance that this Code belongs to.
    */
-  constructor(session: Session) {
+  constructor(session: {
+    getAPIKey(): string;
+    getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
+  }) {
     this.session = session;
-  }
-
-  /**
-   * Sanitizes error messages to remove sensitive information like API keys.
-   *
-   * @param error - The error to sanitize
-   * @returns The sanitized error
-   */
-  private sanitizeError(error: any): any {
-    if (!error) {
-      return error;
-    }
-
-    const errorStr = String(error);
-    
-    // Remove API key from URLs
-    // Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    let sanitized = errorStr.replace(/apiKey=akm-[a-f0-9-]+/g, 'apiKey=***REDACTED***');
-    
-    // Remove API key from Bearer tokens
-    // Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/Bearer akm-[a-f0-9-]+/g, 'Bearer ***REDACTED***');
-    
-    // Remove API key from query parameters
-    // Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/&apiKey=akm-[a-f0-9-]+/g, '&apiKey=***REDACTED***');
-    
-    // Remove API key from URL paths
-    // Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/\/callTool\?apiKey=akm-[a-f0-9-]+/g, '/callTool?apiKey=***REDACTED***');
-    
-    return sanitized;
-  }
-
-  /**
-   * Helper method to call MCP tools and handle common response processing
-   *
-   * @param toolName - Name of the MCP tool to call
-   * @param args - Arguments to pass to the tool
-   * @param defaultErrorMsg - Default error message if specific error details are not available
-   * @returns A CallMcpToolResult with the response data
-   * @throws APIError if the call fails
-   */
-  private async callMcpTool(
-    toolName: string,
-    args: Record<string, any>,
-    defaultErrorMsg: string
-  ): Promise<CallMcpToolResult> {
-    try {
-      const argsJSON = JSON.stringify(args);
-      const callToolRequest = new CallMcpToolRequest({
-        authorization: `Bearer ${this.session.getAPIKey()}`,
-        sessionId: this.session.getSessionId(),
-        name: toolName,
-        args: argsJSON,
-      });
-
-      // Log API request
-      log(`API Call: CallMcpTool - ${toolName}`);
-      log(
-        `Request: SessionId=${this.session.getSessionId()}, Args=${argsJSON}`
-      );
-
-      const response = await this.session
-        .getClient()
-        .callMcpTool(callToolRequest);
-
-      // Log API response
-      log(`Response from CallMcpTool - ${toolName}:`, response.body);
-
-      if (!response.body?.data) {
-        throw new Error("Invalid response data format");
-      }
-
-      // Extract data from response
-      const data = response.body.data as Record<string, any>;
-
-      // Create result object
-      const result: CallMcpToolResult = {
-        data,
-        statusCode: response.statusCode || 0,
-        isError: false,
-        requestId: extractRequestId(response),
-      };
-
-      // Check if there's an error in the response
-      if (data.isError === true) {
-        result.isError = true;
-
-        // Try to extract the error message from the content field
-        const contentArray = data.content as any[] | undefined;
-        if (contentArray && contentArray.length > 0) {
-          result.content = contentArray;
-
-          // Extract error message from the first content item
-          if (contentArray[0]?.text) {
-            result.errorMsg = contentArray[0].text;
-            throw new Error(contentArray[0].text);
-          }
-        }
-        throw new Error(defaultErrorMsg);
-      }
-
-      // Extract content array if it exists
-      if (Array.isArray(data.content)) {
-        result.content = data.content;
-
-        // Extract textContent from content items
-        if (result.content.length > 0) {
-          const textParts: string[] = [];
-          for (const item of result.content) {
-            if (
-              item &&
-              typeof item === "object" &&
-              item.text &&
-              typeof item.text === "string"
-            ) {
-              textParts.push(item.text);
-            }
-          }
-          result.textContent = textParts.join("\n");
-        }
-      }
-
-      return result;
-    } catch (error) {
-      const sanitizedError = this.sanitizeError(error);
-      logError(`Error calling CallMcpTool - ${toolName}:`, sanitizedError);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
-    }
   }
 
   /**
@@ -202,15 +67,24 @@ export class Code {
         timeout_s: timeoutS,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "run_code",
-        args,
-        "Failed to execute code"
+        args
       );
+
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          result: "",
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
-        result: result.textContent || "",
+        result: response.data || "",
       };
     } catch (error) {
       return {

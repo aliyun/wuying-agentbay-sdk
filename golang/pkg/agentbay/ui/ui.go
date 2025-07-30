@@ -3,77 +3,203 @@ package ui
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-	"time"
 
-	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/utils"
 )
 
-// UIResult wraps UI operation result and RequestID
+// UIElement represents a UI element structure
+type UIElement struct {
+	Bounds      *UIBounds `json:"bounds,omitempty"`
+	ClassName   string    `json:"className,omitempty"`
+	ContentDesc string    `json:"contentDesc,omitempty"`
+	ElementID   string    `json:"elementId,omitempty"`
+	Package     string    `json:"package,omitempty"`
+	ResourceID  string    `json:"resourceId,omitempty"`
+	Text        string    `json:"text,omitempty"`
+	Type        string    `json:"type,omitempty"`
+}
+
+// UIBounds represents the bounds of a UI element
+type UIBounds struct {
+	Bottom int `json:"bottom"`
+	Left   int `json:"left"`
+	Right  int `json:"right"`
+	Top    int `json:"top"`
+}
+
+// UIElementsResult represents the result containing UI elements
+type UIElementsResult struct {
+	models.ApiResponse
+	Elements []*UIElement
+}
+
+// KeyActionResult represents the result of a key action
+type KeyActionResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// TextInputResult represents the result of a text input action
+type TextInputResult struct {
+	models.ApiResponse
+	Text string
+}
+
+// SwipeResult represents the result of a swipe action
+type SwipeResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// UIResult represents the result of a UI action
 type UIResult struct {
 	models.ApiResponse
 	ComponentID string
 	Success     bool
 }
 
-// TextInputResult wraps text input result and RequestID
-type TextInputResult struct {
+// ScreenshotResult represents the result of a screenshot operation
+type ScreenshotResult struct {
 	models.ApiResponse
-	Text string
+	ScreenshotURL string
 }
 
-// UIElementsResult wraps UI elements list and RequestID
-type UIElementsResult struct {
-	models.ApiResponse
-	Elements []*UIElement
-}
-
-// KeyActionResult wraps keyboard action result and RequestID
-type KeyActionResult struct {
+// UIActionResult represents the result of a UI action
+type UIActionResult struct {
 	models.ApiResponse
 	Success bool
 }
 
-// SwipeResult wraps swipe operation result and RequestID
-type SwipeResult struct {
-	models.ApiResponse
-	Success bool
-}
+// SwipeDirection represents swipe directions
+type SwipeDirection string
 
-// UIElement represents a UI element in the UI hierarchy
-type UIElement struct {
-	Bounds     string       `json:"bounds"`
-	ClassName  string       `json:"className"`
-	Text       string       `json:"text"`
-	Type       string       `json:"type"`
-	ResourceId string       `json:"resourceId"`
-	Index      int          `json:"index"`
-	IsParent   bool         `json:"isParent"`
-	Children   []*UIElement `json:"children,omitempty"`
-}
+const (
+	SwipeUp    SwipeDirection = "up"
+	SwipeDown  SwipeDirection = "down"
+	SwipeLeft  SwipeDirection = "left"
+	SwipeRight SwipeDirection = "right"
+)
 
-// KeyCode constants for mobile device input
-var KeyCode = struct {
-	HOME        int
-	BACK        int
-	VOLUME_UP   int
-	VOLUME_DOWN int
-	POWER       int
-	MENU        int
-}{
-	HOME:        3,
-	BACK:        4,
-	VOLUME_UP:   24,
-	VOLUME_DOWN: 25,
-	POWER:       26,
-	MENU:        82,
-}
+// KeyCode represents Android UI key codes
+type KeyCode int
 
-// UIManager handles UI operations in the AgentBay cloud environment.
+// Common Android key codes
+const (
+	KEYCODE_UNKNOWN         KeyCode = 0
+	KEYCODE_SOFT_LEFT       KeyCode = 1
+	KEYCODE_SOFT_RIGHT      KeyCode = 2
+	KEYCODE_HOME            KeyCode = 3
+	KEYCODE_BACK            KeyCode = 4
+	KEYCODE_CALL            KeyCode = 5
+	KEYCODE_ENDCALL         KeyCode = 6
+	KEYCODE_0               KeyCode = 7
+	KEYCODE_1               KeyCode = 8
+	KEYCODE_2               KeyCode = 9
+	KEYCODE_3               KeyCode = 10
+	KEYCODE_4               KeyCode = 11
+	KEYCODE_5               KeyCode = 12
+	KEYCODE_6               KeyCode = 13
+	KEYCODE_7               KeyCode = 14
+	KEYCODE_8               KeyCode = 15
+	KEYCODE_9               KeyCode = 16
+	KEYCODE_STAR            KeyCode = 17
+	KEYCODE_POUND           KeyCode = 18
+	KEYCODE_DPAD_UP         KeyCode = 19
+	KEYCODE_DPAD_DOWN       KeyCode = 20
+	KEYCODE_DPAD_LEFT       KeyCode = 21
+	KEYCODE_DPAD_RIGHT      KeyCode = 22
+	KEYCODE_DPAD_CENTER     KeyCode = 23
+	KEYCODE_VOLUME_UP       KeyCode = 24
+	KEYCODE_VOLUME_DOWN     KeyCode = 25
+	KEYCODE_POWER           KeyCode = 26
+	KEYCODE_CAMERA          KeyCode = 27
+	KEYCODE_CLEAR           KeyCode = 28
+	KEYCODE_A               KeyCode = 29
+	KEYCODE_B               KeyCode = 30
+	KEYCODE_C               KeyCode = 31
+	KEYCODE_D               KeyCode = 32
+	KEYCODE_E               KeyCode = 33
+	KEYCODE_F               KeyCode = 34
+	KEYCODE_G               KeyCode = 35
+	KEYCODE_H               KeyCode = 36
+	KEYCODE_I               KeyCode = 37
+	KEYCODE_J               KeyCode = 38
+	KEYCODE_K               KeyCode = 39
+	KEYCODE_L               KeyCode = 40
+	KEYCODE_M               KeyCode = 41
+	KEYCODE_N               KeyCode = 42
+	KEYCODE_O               KeyCode = 43
+	KEYCODE_P               KeyCode = 44
+	KEYCODE_Q               KeyCode = 45
+	KEYCODE_R               KeyCode = 46
+	KEYCODE_S               KeyCode = 47
+	KEYCODE_T               KeyCode = 48
+	KEYCODE_U               KeyCode = 49
+	KEYCODE_V               KeyCode = 50
+	KEYCODE_W               KeyCode = 51
+	KEYCODE_X               KeyCode = 52
+	KEYCODE_Y               KeyCode = 53
+	KEYCODE_Z               KeyCode = 54
+	KEYCODE_COMMA           KeyCode = 55
+	KEYCODE_PERIOD          KeyCode = 56
+	KEYCODE_ALT_LEFT        KeyCode = 57
+	KEYCODE_ALT_RIGHT       KeyCode = 58
+	KEYCODE_SHIFT_LEFT      KeyCode = 59
+	KEYCODE_SHIFT_RIGHT     KeyCode = 60
+	KEYCODE_TAB             KeyCode = 61
+	KEYCODE_SPACE           KeyCode = 62
+	KEYCODE_SYM             KeyCode = 63
+	KEYCODE_EXPLORER        KeyCode = 64
+	KEYCODE_ENVELOPE        KeyCode = 65
+	KEYCODE_ENTER           KeyCode = 66
+	KEYCODE_DEL             KeyCode = 67
+	KEYCODE_GRAVE           KeyCode = 68
+	KEYCODE_MINUS           KeyCode = 69
+	KEYCODE_EQUALS          KeyCode = 70
+	KEYCODE_LEFT_BRACKET    KeyCode = 71
+	KEYCODE_RIGHT_BRACKET   KeyCode = 72
+	KEYCODE_BACKSLASH       KeyCode = 73
+	KEYCODE_SEMICOLON       KeyCode = 74
+	KEYCODE_APOSTROPHE      KeyCode = 75
+	KEYCODE_SLASH           KeyCode = 76
+	KEYCODE_AT              KeyCode = 77
+	KEYCODE_NUM             KeyCode = 78
+	KEYCODE_HEADSETHOOK     KeyCode = 79
+	KEYCODE_FOCUS           KeyCode = 80
+	KEYCODE_PLUS            KeyCode = 81
+	KEYCODE_MENU            KeyCode = 82
+	KEYCODE_NOTIFICATION    KeyCode = 83
+	KEYCODE_SEARCH          KeyCode = 84
+	KEYCODE_MEDIA_PLAY_PAUSE KeyCode = 85
+	KEYCODE_MEDIA_STOP      KeyCode = 86
+	KEYCODE_MEDIA_NEXT      KeyCode = 87
+	KEYCODE_MEDIA_PREVIOUS  KeyCode = 88
+	KEYCODE_MEDIA_REWIND    KeyCode = 89
+	KEYCODE_MEDIA_FAST_FORWARD KeyCode = 90
+	KEYCODE_MUTE            KeyCode = 91
+	KEYCODE_PAGE_UP         KeyCode = 92
+	KEYCODE_PAGE_DOWN       KeyCode = 93
+	KEYCODE_PICTSYMBOLS     KeyCode = 94
+	KEYCODE_SWITCH_CHARSET  KeyCode = 95
+	KEYCODE_BUTTON_A        KeyCode = 96
+	KEYCODE_BUTTON_B        KeyCode = 97
+	KEYCODE_BUTTON_C        KeyCode = 98
+	KEYCODE_BUTTON_X        KeyCode = 99
+	KEYCODE_BUTTON_Y        KeyCode = 100
+	KEYCODE_BUTTON_Z        KeyCode = 101
+	KEYCODE_BUTTON_L1       KeyCode = 102
+	KEYCODE_BUTTON_R1       KeyCode = 103
+	KEYCODE_BUTTON_L2       KeyCode = 104
+	KEYCODE_BUTTON_R2       KeyCode = 105
+	KEYCODE_BUTTON_THUMBL   KeyCode = 106
+	KEYCODE_BUTTON_THUMBR   KeyCode = 107
+	KEYCODE_BUTTON_START    KeyCode = 108
+	KEYCODE_BUTTON_SELECT   KeyCode = 109
+	KEYCODE_BUTTON_MODE     KeyCode = 110
+)
+
+// UIManager manages UI interactions with the session environment
 type UIManager struct {
 	Session interface {
 		GetAPIKey() string
@@ -83,6 +209,7 @@ type UIManager struct {
 		NetworkInterfaceIp() string
 		HttpPort() string
 		FindServerForTool(toolName string) string
+		CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
 	}
 }
 
@@ -95,238 +222,14 @@ func NewUI(session interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
+	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
 }) *UIManager {
 	return &UIManager{
 		Session: session,
 	}
 }
 
-// callMcpToolResult represents the result of a CallMcpTool operation
-type callMcpToolResult struct {
-	TextContent string
-	Data        map[string]interface{}
-	IsError     bool
-	ErrorMsg    string
-	StatusCode  int32
-	RequestID   string
-	Content     []map[string]interface{}
-}
-
-// callMcpTool is an internal helper to call MCP tool and handle errors
-func (u *UIManager) callMcpTool(name string, args interface{}, defaultErrorMsg string) (*callMcpToolResult, error) {
-	// Marshal arguments to JSON
-	argsJSON, err := json.Marshal(args)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal args: %w", err)
-	}
-
-	// Check if this is a VPC session
-	if u.Session.IsVpc() {
-		return u.callMcpToolVPC(name, string(argsJSON), defaultErrorMsg)
-	}
-
-	// Non-VPC mode: use traditional API call
-	return u.callMcpToolAPI(name, string(argsJSON), defaultErrorMsg)
-}
-
-// callMcpToolVPC handles VPC-based MCP tool calls
-func (u *UIManager) callMcpToolVPC(toolName, argsJSON, defaultErrorMsg string) (*callMcpToolResult, error) {
-	// VPC mode: Use HTTP request to the VPC endpoint
-	fmt.Println("API Call: CallMcpTool (VPC) -", toolName)
-	fmt.Printf("Request: Args=%s\n", argsJSON)
-
-	// Find server for this tool
-	server := u.Session.FindServerForTool(toolName)
-	if server == "" {
-		return nil, fmt.Errorf("server not found for tool: %s", toolName)
-	}
-
-	// Construct VPC URL with query parameters
-	baseURL := fmt.Sprintf("http://%s:%s/callTool", u.Session.NetworkInterfaceIp(), u.Session.HttpPort())
-
-	// Create URL with query parameters
-	req, err := http.NewRequest("GET", baseURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create VPC HTTP request: %w", err)
-	}
-
-	// Add query parameters
-	q := req.URL.Query()
-	q.Add("server", server)
-	q.Add("tool", toolName)
-	q.Add("args", argsJSON)
-	q.Add("apiKey", u.Session.GetAPIKey())
-	req.URL.RawQuery = q.Encode()
-
-	// Set content type header
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send HTTP request
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		sanitizedErr := utils.SanitizeError(err)
-		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
-		return nil, fmt.Errorf("failed to call VPC %s: %w", toolName, err)
-	}
-	defer resp.Body.Close()
-
-	// Parse response
-	var responseData map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&responseData); err != nil {
-		return nil, fmt.Errorf("failed to decode VPC response: %w", err)
-	}
-
-	fmt.Println("Response from VPC CallMcpTool -", toolName, ":", responseData)
-
-	// Create result object for VPC response
-	result := &callMcpToolResult{
-		Data:       responseData,
-		StatusCode: int32(resp.StatusCode),
-		RequestID:  "", // VPC requests don't have traditional request IDs
-	}
-
-	// Extract the actual result from the nested VPC response structure
-	var actualResult map[string]interface{}
-	if dataStr, ok := responseData["data"].(string); ok {
-		var dataMap map[string]interface{}
-		if err := json.Unmarshal([]byte(dataStr), &dataMap); err == nil {
-			if resultData, ok := dataMap["result"].(map[string]interface{}); ok {
-				actualResult = resultData
-			}
-		}
-	} else if data, ok := responseData["data"].(map[string]interface{}); ok {
-		if resultData, ok := data["result"].(map[string]interface{}); ok {
-			actualResult = resultData
-		}
-	}
-	if actualResult == nil {
-		actualResult = responseData
-	}
-
-	// Check if there's an error in the VPC response
-	if isError, ok := actualResult["isError"].(bool); ok && isError {
-		result.IsError = true
-		if errMsg, ok := actualResult["error"].(string); ok {
-			result.ErrorMsg = errMsg
-			return result, fmt.Errorf("%s", errMsg)
-		}
-		return result, fmt.Errorf("%s", defaultErrorMsg)
-	}
-
-	// Extract content array if it exists for VPC response
-	if contentArray, ok := actualResult["content"].([]interface{}); ok {
-		result.Content = make([]map[string]interface{}, len(contentArray))
-		for i, item := range contentArray {
-			if contentItem, ok := item.(map[string]interface{}); ok {
-				result.Content[i] = contentItem
-				if i == 0 && result.TextContent == "" {
-					if text, ok := contentItem["text"].(string); ok {
-						result.TextContent = text
-					}
-				}
-			}
-		}
-	}
-
-	return result, nil
-}
-
-// callMcpToolAPI handles traditional API-based MCP tool calls
-func (u *UIManager) callMcpToolAPI(toolName, argsJSON, defaultErrorMsg string) (*callMcpToolResult, error) {
-	// Check if client is nil
-	client := u.Session.GetClient()
-	if client == nil {
-		return nil, fmt.Errorf("client is nil, failed to call %s", toolName)
-	}
-
-	// Create the request
-	callToolRequest := &mcp.CallMcpToolRequest{
-		Authorization: tea.String("Bearer " + u.Session.GetAPIKey()),
-		SessionId:     tea.String(u.Session.GetSessionId()),
-		Name:          tea.String(toolName),
-		Args:          tea.String(argsJSON),
-	}
-
-	// Log API request
-	fmt.Println("API Call: CallMcpTool -", toolName)
-	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
-
-	// Call the MCP tool
-	response, err := client.CallMcpTool(callToolRequest)
-	if err != nil {
-		sanitizedErr := utils.SanitizeError(err)
-		fmt.Println("Error calling CallMcpTool -", toolName, ":", sanitizedErr)
-		return nil, fmt.Errorf("failed to call %s: %w", toolName, err)
-	}
-	if response != nil && response.Body != nil {
-		fmt.Println("Response from CallMcpTool -", toolName, ":", response.Body)
-	}
-
-	// Extract data from response
-	data, ok := response.Body.Data.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid response data format")
-	}
-
-	// Extract RequestID
-	var requestID string
-	if response != nil && response.Body != nil && response.Body.RequestId != nil {
-		requestID = *response.Body.RequestId
-	}
-
-	// Create result object
-	result := &callMcpToolResult{
-		Data:       data,
-		StatusCode: *response.StatusCode,
-		RequestID:  requestID,
-	}
-
-	// Check if there's an error in the response
-	isError, ok := data["isError"].(bool)
-	if ok && isError {
-		result.IsError = true
-
-		// Try to extract the error message from the content field
-		//nolint:govet
-		contentArray, ok := data["content"].([]interface{})
-		if ok && len(contentArray) > 0 {
-			// Extract error message from the first content item
-			if len(contentArray) > 0 {
-				//nolint:govet
-				contentItem, ok := contentArray[0].(map[string]interface{})
-				if ok {
-					//nolint:govet
-					text, ok := contentItem["text"].(string)
-					if ok {
-						result.ErrorMsg = text
-						return result, fmt.Errorf("%s", text)
-					}
-				}
-			}
-		}
-		return result, fmt.Errorf("%s", defaultErrorMsg)
-	}
-
-	// Extract text content from response
-	if contentArray, ok := data["content"].([]interface{}); ok {
-		var textParts []string
-		for _, item := range contentArray {
-			if contentItem, ok := item.(map[string]interface{}); ok {
-				if text, ok := contentItem["text"].(string); ok {
-					textParts = append(textParts, text)
-				}
-			}
-		}
-		if len(textParts) > 0 {
-			result.TextContent = strings.Join(textParts, "\n")
-		}
-	}
-
-	return result, nil
-}
-
-// GetClickableUIElements retrieves all clickable UI elements within the specified timeout
+// GetClickableUIElements retrieves all clickable UI elements
 func (u *UIManager) GetClickableUIElements(timeoutMs int) (*UIElementsResult, error) {
 	if timeoutMs <= 0 {
 		timeoutMs = 2000 // Default timeout
@@ -336,14 +239,18 @@ func (u *UIManager) GetClickableUIElements(timeoutMs int) (*UIElementsResult, er
 		"timeout_ms": timeoutMs,
 	}
 
-	result, err := u.callMcpTool("get_clickable_ui_elements", args, "failed to get clickable UI elements")
+	result, err := u.Session.CallMcpTool("get_clickable_ui_elements", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get clickable UI elements: %w", err)
+	}
+
+	if !result.Success {
+		return nil, fmt.Errorf("failed to get clickable UI elements: %s", result.ErrorMessage)
 	}
 
 	// Parse the JSON string into a slice of UIElement structs
 	var elements []*UIElement
-	if err := json.Unmarshal([]byte(result.TextContent), &elements); err != nil {
+	if err := json.Unmarshal([]byte(result.Data), &elements); err != nil {
 		return nil, fmt.Errorf("failed to parse UI elements: %w", err)
 	}
 
@@ -355,24 +262,28 @@ func (u *UIManager) GetClickableUIElements(timeoutMs int) (*UIElementsResult, er
 	}, nil
 }
 
-// GetAllUIElements retrieves all UI elements within the specified timeout
+// GetAllUIElements retrieves all UI elements regardless of their clickable status
 func (u *UIManager) GetAllUIElements(timeoutMs int) (*UIElementsResult, error) {
 	if timeoutMs <= 0 {
-		timeoutMs = 2000 // Default timeout
+		timeoutMs = 5000 // Default timeout
 	}
 
 	args := map[string]interface{}{
 		"timeout_ms": timeoutMs,
 	}
 
-	result, err := u.callMcpTool("get_all_ui_elements", args, "failed to get all UI elements")
+	result, err := u.Session.CallMcpTool("get_all_ui_elements", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all UI elements: %w", err)
+	}
+
+	if !result.Success {
+		return nil, fmt.Errorf("failed to get all UI elements: %s", result.ErrorMessage)
 	}
 
 	// Parse the JSON string into a slice of UIElement structs
 	var elements []*UIElement
-	if err := json.Unmarshal([]byte(result.TextContent), &elements); err != nil {
+	if err := json.Unmarshal([]byte(result.Data), &elements); err != nil {
 		return nil, fmt.Errorf("failed to parse UI elements: %w", err)
 	}
 
@@ -384,46 +295,50 @@ func (u *UIManager) GetAllUIElements(timeoutMs int) (*UIElementsResult, error) {
 	}, nil
 }
 
-// SendKey sends a key press event
+// SendKey sends a key event to the UI (original interface)
 func (u *UIManager) SendKey(key int) (*KeyActionResult, error) {
 	args := map[string]interface{}{
 		"key": key,
 	}
 
-	result, err := u.callMcpTool("send_key", args, "failed to send key")
+	result, err := u.Session.CallMcpTool("send_key", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send key: %w", err)
 	}
 
 	return &KeyActionResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Success: true,
+		Success: result.Success,
 	}, nil
 }
 
-// InputText inputs text at the current cursor position
+// InputText inputs text into the currently focused UI element (original interface)
 func (u *UIManager) InputText(text string) (*TextInputResult, error) {
-	args := map[string]string{
+	args := map[string]interface{}{
 		"text": text,
 	}
 
-	result, err := u.callMcpTool("input_text", args, "failed to input text")
+	result, err := u.Session.CallMcpTool("input_text", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to input text: %w", err)
 	}
 
 	return &TextInputResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Text: text,
+		Text: result.Data,
 	}, nil
 }
 
-// Swipe performs a swipe gesture from (startX,startY) to (endX,endY) over durationMs milliseconds
+// Swipe performs a swipe gesture on the screen (original interface)
 func (u *UIManager) Swipe(startX, startY, endX, endY, durationMs int) (*SwipeResult, error) {
+	if durationMs <= 0 {
+		durationMs = 300 // Default duration in milliseconds
+	}
+
 	args := map[string]interface{}{
 		"start_x":     startX,
 		"start_y":     startY,
@@ -432,27 +347,23 @@ func (u *UIManager) Swipe(startX, startY, endX, endY, durationMs int) (*SwipeRes
 		"duration_ms": durationMs,
 	}
 
-	result, err := u.callMcpTool("swipe", args, "failed to swipe")
+	result, err := u.Session.CallMcpTool("swipe", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to swipe: %w", err)
 	}
 
 	return &SwipeResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Success: true,
+		Success: result.Success,
 	}, nil
 }
 
-// Click performs a mouse click at (x,y) with the specified button
+// Click performs a click action on the screen (original interface)
 func (u *UIManager) Click(x, y int, button string) (*UIResult, error) {
 	if button == "" {
-		button = "left"
-	}
-
-	if button != "left" && button != "right" && button != "middle" {
-		return nil, fmt.Errorf("invalid button: %s. Must be 'left', 'right', or 'middle'", button)
+		button = "left" // Default button
 	}
 
 	args := map[string]interface{}{
@@ -461,30 +372,36 @@ func (u *UIManager) Click(x, y int, button string) (*UIResult, error) {
 		"button": button,
 	}
 
-	result, err := u.callMcpTool("click", args, "failed to click")
+	result, err := u.Session.CallMcpTool("click", args)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to click: %w", err)
 	}
 
 	return &UIResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Success: true,
+		ComponentID: result.Data,
+		Success:     result.Success,
 	}, nil
 }
 
-// Screenshot takes a screenshot of the current screen and returns the path to the image
+// Screenshot captures a screenshot of the current screen (original interface)
 func (u *UIManager) Screenshot() (*UIResult, error) {
-	result, err := u.callMcpTool("system_screenshot", nil, "failed to take screenshot")
+	result, err := u.Session.CallMcpTool("system_screenshot", nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to take screenshot: %w", err)
+	}
+
+	if !result.Success {
+		return nil, fmt.Errorf("failed to take screenshot: %s", result.ErrorMessage)
 	}
 
 	return &UIResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Success: true,
+		ComponentID: result.Data,
+		Success:     true,
 	}, nil
 }

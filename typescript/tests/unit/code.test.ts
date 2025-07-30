@@ -1,25 +1,25 @@
-import * as sinon from "sinon";
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { Code } from "../../src/code/code";
 import { APIError } from "../../src/exceptions";
 
 describe("Code", () => {
-  let mockSession: any;
   let code: Code;
+  let mockSession: any;
   let callMcpToolStub: sinon.SinonStub;
 
   beforeEach(() => {
-    // Create a mock session
+    // Create mock session
     mockSession = {
       getAPIKey: sinon.stub().returns("test-api-key"),
       getSessionId: sinon.stub().returns("test-session-id"),
-      getClient: sinon.stub().returns({}),
+      callMcpTool: sinon.stub(),
     };
 
     code = new Code(mockSession);
     
-    // Stub the private callMcpTool method
-    callMcpToolStub = sinon.stub(code as any, "callMcpTool");
+    // Get reference to the callMcpTool stub
+    callMcpToolStub = mockSession.callMcpTool;
   });
 
   afterEach(() => {
@@ -28,9 +28,11 @@ describe("Code", () => {
 
   describe("runCode", () => {
     it("should execute Python code successfully", async () => {
-      // Setup mock response
+      // Setup mock response - new format
       const mockResult = {
-        textContent: "Hello, world!\\n2\\n",
+        success: true,
+        data: "Hello, world!\\n2\\n",
+        errorMessage: "",
         requestId: "test-request-id",
       };
       callMcpToolStub.resolves(mockResult);
@@ -57,15 +59,16 @@ print(x)
           code: pythonCode,
           language: "python",
           timeout_s: 300,
-        },
-        "Failed to execute code"
+        }
       )).to.be.true;
     });
 
     it("should execute JavaScript code with custom timeout", async () => {
-      // Setup mock response
+      // Setup mock response - new format
       const mockResult = {
-        textContent: "Hello, world!\\n2\\n",
+        success: true,
+        data: "Hello, world!\\n2\\n",
+        errorMessage: "",
         requestId: "test-request-id",
       };
       callMcpToolStub.resolves(mockResult);
@@ -93,8 +96,7 @@ console.log(x);
           code: jsCode,
           language: "javascript",
           timeout_s: customTimeout,
-        },
-        "Failed to execute code"
+        }
       )).to.be.true;
     });
 
@@ -123,13 +125,15 @@ console.log(x);
       // Verify error handling
       expect(result.success).to.be.false;
       expect(result.result).to.equal("");
-      expect(result.errorMessage).to.equal("Failed to run code: APIError: Code execution failed");
+      expect(result.errorMessage).to.contain("Code execution failed");
     });
 
     it("should handle empty code input", async () => {
-      // Setup mock response
+      // Setup mock response - new format
       const mockResult = {
-        textContent: "",
+        success: true,
+        data: "",
+        errorMessage: "",
         requestId: "test-request-id",
       };
       callMcpToolStub.resolves(mockResult);
@@ -139,8 +143,9 @@ console.log(x);
 
       // Verify results
       expect(result.success).to.be.true;
-      expect(result.result).to.equal("");
       expect(result.requestId).to.equal("test-request-id");
+      expect(result.result).to.equal("");
+      expect(result.errorMessage).to.be.undefined;
     });
   });
 }); 

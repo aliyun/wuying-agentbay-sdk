@@ -21,7 +21,12 @@ func TestUI_GetClickableUIElements_WithMockClient(t *testing.T) {
 	expectedResult := &ui.UIElementsResult{
 		Elements: []*ui.UIElement{
 			{
-				Bounds:    "48,90,1032,630",
+				Bounds: &ui.UIBounds{
+					Left:   48,
+					Top:    90,
+					Right:  1032,
+					Bottom: 630,
+				},
 				ClassName: "LinearLayout",
 				Text:      "Sample Button",
 				Type:      "clickable",
@@ -54,10 +59,10 @@ func TestUI_SendKey_WithMockClient(t *testing.T) {
 	expectedResult := &ui.KeyActionResult{
 		Success: true,
 	}
-	mockUI.EXPECT().SendKey(ui.KeyCode.HOME).Return(expectedResult, nil)
+	mockUI.EXPECT().SendKey(int(ui.KEYCODE_HOME)).Return(expectedResult, nil)
 
 	// Test SendKey method call
-	result, err := mockUI.SendKey(ui.KeyCode.HOME)
+	result, err := mockUI.SendKey(int(ui.KEYCODE_HOME))
 
 	// Verify call success
 	assert.NoError(t, err)
@@ -147,13 +152,23 @@ func TestUI_GetAllUIElements_WithMockClient(t *testing.T) {
 	expectedResult := &ui.UIElementsResult{
 		Elements: []*ui.UIElement{
 			{
-				Bounds:    "48,90,1032,630",
+				Bounds: &ui.UIBounds{
+					Left:   48,
+					Top:    90,
+					Right:  1032,
+					Bottom: 630,
+				},
 				ClassName: "LinearLayout",
 				Text:      "Sample Text",
 				Type:      "UIElement",
 			},
 			{
-				Bounds:    "100,200,300,400",
+				Bounds: &ui.UIBounds{
+					Left:   100,
+					Top:    200,
+					Right:  300,
+					Bottom: 400,
+				},
 				ClassName: "Button",
 				Text:      "Click Me",
 				Type:      "button",

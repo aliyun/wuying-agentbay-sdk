@@ -22,14 +22,14 @@ class TestAgentIntegration(unittest.TestCase):
             )
         cls.agent_bay = AgentBay(api_key=api_key)
         params = CreateSessionParams(
-            image_id="imgc-07eksy57jatyybptz",
+            image_id="waic-playground-demo-windows",
         )
         session_result = cls.agent_bay.create(params)
         if not session_result.success or not session_result.session:
             raise unittest.SkipTest("Failed to create session")
 
         cls.session = session_result.session
-        cls.agent = Agent(cls.session)
+        cls.agent = cls.session.agent
 
     @classmethod
     def tearDownClass(cls):
@@ -47,10 +47,10 @@ class TestAgentIntegration(unittest.TestCase):
         Test executing a flux task successfully.
         """
 
-        task = "open notepad.exe and input 'Hello, AgentBay!'"
+        task = "create a folder named 'agentbay' in C:\\Window\\Temp"
         max_try_times = os.environ.get("AGENT_TASK_TIMEOUT")
         if not max_try_times:
-            max_try_times = 10
+            max_try_times = 300
             print("we will  for 200 * 3 seconds to finish.")
 
         result = self.agent.execute_task(task, int(max_try_times))

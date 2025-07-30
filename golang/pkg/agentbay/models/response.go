@@ -51,3 +51,11 @@ func ExtractRequestID(response interface{}) string {
 
 	return ""
 }
+
+// McpToolResult represents the result of an MCP tool call for Agent
+type McpToolResult struct {
+	Success      bool   `json:"success"`
+	Data         string `json:"data"`
+	ErrorMessage string `json:"error_message"`
+	RequestID    string `json:"request_id"`
+}

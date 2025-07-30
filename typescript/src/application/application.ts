@@ -1,29 +1,13 @@
-import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
 import { Client } from "../api/client";
-import { log, logError } from "../utils/logger";
-import { APIError } from "../exceptions";
 import {
-  extractRequestId,
-  ProcessListResult,
   InstalledAppListResult,
+  ProcessListResult,
   AppOperationResult,
 } from "../types/api-response";
 
-/**
- * Result object for a CallMcpTool operation
- */
-interface CallMcpToolResult {
-  data: Record<string, any>;
-  content?: any[];
-  textContent?: string;
-  isError: boolean;
-  errorMsg?: string;
-  statusCode: number;
-  requestId?: string;
-}
 
 /**
- * Represents an installed application.
+ * Represents an installed application
  */
 export interface InstalledApp {
   name: string;
@@ -33,7 +17,7 @@ export interface InstalledApp {
 }
 
 /**
- * Represents a running process.
+ * Represents a running process
  */
 export interface Process {
   pname: string;
@@ -43,23 +27,36 @@ export interface Process {
 }
 
 /**
- * Handles application management operations in the AgentBay cloud environment.
+ * Handles application operations in the AgentBay cloud environment.
  */
 export class Application {
   private session: {
     getAPIKey(): string;
     getClient(): Client;
     getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
   };
 
   /**
-   * Creates a new Application instance.
-   * @param session The session object that provides access to the AgentBay API.
+   * Initialize an Application object.
+   *
+   * @param session - The Session instance that this Application belongs to.
    */
   constructor(session: {
     getAPIKey(): string;
     getClient(): Client;
     getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
   }) {
     this.session = session;
   }
@@ -75,122 +72,8 @@ export class Application {
       return error;
     }
 
-    const errorStr = String(error);
-    
-    // Remove API key from URLs
-    // Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    let sanitized = errorStr.replace(/apiKey=akm-[a-f0-9-]+/g, 'apiKey=***REDACTED***');
-    
-    // Remove API key from Bearer tokens
-    // Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/Bearer akm-[a-f0-9-]+/g, 'Bearer ***REDACTED***');
-    
-    // Remove API key from query parameters
-    // Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/&apiKey=akm-[a-f0-9-]+/g, '&apiKey=***REDACTED***');
-    
-    // Remove API key from URL paths
-    // Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    sanitized = sanitized.replace(/\/callTool\?apiKey=akm-[a-f0-9-]+/g, '/callTool?apiKey=***REDACTED***');
-    
-    return sanitized;
-  }
-
-  /**
-   * Helper method to call MCP tools and handle common response processing
-   *
-   * @param toolName - Name of the MCP tool to call
-   * @param args - Arguments to pass to the tool
-   * @param defaultErrorMsg - Default error message if specific error details are not available
-   * @returns A CallMcpToolResult with the response data
-   * @throws APIError if the call fails
-   */
-  private async callMcpTool(
-    toolName: string,
-    args: Record<string, any>,
-    defaultErrorMsg: string
-  ): Promise<CallMcpToolResult> {
-    try {
-      const argsJSON = JSON.stringify(args);
-      const request = new CallMcpToolRequest({
-        authorization: `Bearer ${this.session.getAPIKey()}`,
-        sessionId: this.session.getSessionId(),
-        name: toolName,
-        args: argsJSON,
-      });
-
-      // Log API request
-      log(`API Call: CallMcpTool - ${toolName}`);
-      log(`Request: SessionId=${request.sessionId}, Args=${request.args}`);
-
-      const client = this.session.getClient();
-      const response = await client.callMcpTool(request);
-
-      // Log API response
-      if (response && response.body) {
-        log(`Response from CallMcpTool - ${toolName}:`, response.body);
-      }
-
-      // Extract data from response
-      if (!response.body?.data) {
-        throw new Error("Invalid response data format");
-      }
-
-      const data = response.body.data as Record<string, any>;
-
-      // Create result object
-      const result: CallMcpToolResult = {
-        data,
-        statusCode: response.statusCode || 0,
-        isError: false,
-        requestId: extractRequestId(response),
-      };
-
-      // Check if there's an error in the response
-      if (data.isError === true) {
-        result.isError = true;
-
-        // Try to extract the error message from the content field
-        const contentArray = data.content as any[] | undefined;
-        if (contentArray && contentArray.length > 0) {
-          result.content = contentArray;
-
-          // Extract error message from the first content item
-          if (contentArray[0]?.text) {
-            result.errorMsg = contentArray[0].text;
-            throw new Error(contentArray[0].text);
-          }
-        }
-        throw new Error(defaultErrorMsg);
-      }
-
-      // Extract content array if it exists
-      if (Array.isArray(data.content)) {
-        result.content = data.content;
-
-        // Extract textContent from content items
-        if (result.content.length > 0) {
-          const textParts: string[] = [];
-          for (const item of result.content) {
-            if (
-              item &&
-              typeof item === "object" &&
-              item.text &&
-              typeof item.text === "string"
-            ) {
-              textParts.push(item.text);
-            }
-          }
-          result.textContent = textParts.join("\n");
-        }
-      }
-
-      return result;
-    } catch (error) {
-      const sanitizedError = this.sanitizeError(error);
-      logError(`Error calling CallMcpTool - ${toolName}:`, sanitizedError);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
-    }
+    const errorString = String(error);
+    return errorString.replace(/Bearer\s+[^\s]+/g, "Bearer [REDACTED]");
   }
 
   /**
@@ -208,9 +91,9 @@ export class Application {
    * Retrieves a list of installed applications.
    * Corresponds to Python's get_installed_apps() method
    *
-   * @param startMenu Whether to include applications from the start menu. Defaults to true.
-   * @param desktop Whether to include applications from the desktop. Defaults to true.
-   * @param ignoreSystemApps Whether to ignore system applications. Defaults to true.
+   * @param startMenu - Whether to include applications from the start menu. Defaults to true.
+   * @param desktop - Whether to include applications from the desktop. Defaults to true.
+   * @param ignoreSystemApps - Whether to ignore system applications. Defaults to true.
    * @returns InstalledAppListResult with installed apps and requestId
    * @throws Error if the operation fails.
    */
@@ -226,19 +109,31 @@ export class Application {
         ignore_system_apps: ignoreSystemApps,
       };
 
-      const result = await this.callMcpTool(
-        "get_installed_apps",
-        args,
-        "Failed to get installed apps"
-      );
+      const result = await this.session.callMcpTool("get_installed_apps", args);
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: result.errorMessage,
+        };
+      }
 
       let apps: InstalledApp[] = [];
-      if (result.textContent) {
-        apps = this.parseJSON<InstalledApp[]>(result.textContent);
+      try {
+        apps = this.parseJSON<InstalledApp[]>(result.data);
+      } catch (err) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: `Failed to parse installed apps: ${err}`,
+        };
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: apps,
       };
@@ -256,9 +151,9 @@ export class Application {
    * Starts an application with the given command and optional working directory.
    * Corresponds to Python's start_app() method
    *
-   * @param startCmd The command to start the application.
-   * @param workDirectory The working directory for the application. Defaults to an empty string.
-   * @param activity Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to an empty string.
+   * @param startCmd - The command to start the application.
+   * @param workDirectory - The working directory for the application. Defaults to an empty string.
+   * @param activity - Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to an empty string.
    * @returns ProcessListResult with started processes and requestId
    * @throws Error if the operation fails.
    */
@@ -268,31 +163,37 @@ export class Application {
     activity = ""
   ): Promise<ProcessListResult> {
     try {
-      const args: any = {
+      const args = {
         start_cmd: startCmd,
+        work_directory: workDirectory,
+        activity,
       };
 
-      if (workDirectory) {
-        args.work_directory = workDirectory;
-      }
+      const result = await this.session.callMcpTool("start_app", args);
 
-      if (activity) {
-        args.activity = activity;
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: result.errorMessage,
+        };
       }
-
-      const result = await this.callMcpTool(
-        "start_app",
-        args,
-        "Failed to start app"
-      );
 
       let processes: Process[] = [];
-      if (result.textContent) {
-        processes = this.parseJSON<Process[]>(result.textContent);
+      try {
+        processes = this.parseJSON<Process[]>(result.data);
+      } catch (err) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: `Failed to parse processes: ${err}`,
+        };
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: processes,
       };
@@ -310,31 +211,32 @@ export class Application {
    * Stops an application by process name.
    * Corresponds to Python's stop_app_by_pname() method
    *
-   * @param pname The name of the process to stop.
-   * @returns AppOperationResult with requestId
+   * @param pname - The process name to stop.
+   * @returns AppOperationResult with operation result and requestId
    * @throws Error if the operation fails.
    */
   async stopAppByPName(pname: string): Promise<AppOperationResult> {
     try {
-      const args = {
-        pname,
-      };
+      const args = { pname };
+      const result = await this.session.callMcpTool("stop_app_by_pname", args);
 
-      const result = await this.callMcpTool(
-        "stop_app_by_pname",
-        args,
-        "Failed to stop app by pname"
-      );
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
       };
     } catch (error) {
       return {
         requestId: "",
         success: false,
-        errorMessage: `Failed to stop app by pname: ${error}`,
+        errorMessage: `Failed to stop app by process name: ${error}`,
       };
     }
   }
@@ -343,31 +245,32 @@ export class Application {
    * Stops an application by process ID.
    * Corresponds to Python's stop_app_by_pid() method
    *
-   * @param pid The ID of the process to stop.
-   * @returns AppOperationResult with requestId
+   * @param pid - The process ID to stop.
+   * @returns AppOperationResult with operation result and requestId
    * @throws Error if the operation fails.
    */
   async stopAppByPID(pid: number): Promise<AppOperationResult> {
     try {
-      const args = {
-        pid,
-      };
+      const args = { pid };
+      const result = await this.session.callMcpTool("stop_app_by_pid", args);
 
-      const result = await this.callMcpTool(
-        "stop_app_by_pid",
-        args,
-        "Failed to stop app by pid"
-      );
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
       };
     } catch (error) {
       return {
         requestId: "",
         success: false,
-        errorMessage: `Failed to stop app by pid: ${error}`,
+        errorMessage: `Failed to stop app by process ID: ${error}`,
       };
     }
   }
@@ -376,24 +279,25 @@ export class Application {
    * Stops an application by stop command.
    * Corresponds to Python's stop_app_by_cmd() method
    *
-   * @param stopCmd The command to stop the application.
-   * @returns AppOperationResult with requestId
+   * @param stopCmd - The stop command to execute.
+   * @returns AppOperationResult with operation result and requestId
    * @throws Error if the operation fails.
    */
   async stopAppByCmd(stopCmd: string): Promise<AppOperationResult> {
     try {
-      const args = {
-        stop_cmd: stopCmd,
-      };
+      const args = { stop_cmd: stopCmd };
+      const result = await this.session.callMcpTool("stop_app_by_cmd", args);
 
-      const result = await this.callMcpTool(
-        "stop_app_by_cmd",
-        args,
-        "Failed to stop app by command"
-      );
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
       };
     } catch (error) {
@@ -406,29 +310,39 @@ export class Application {
   }
 
   /**
-   * Lists all currently visible applications.
+   * Returns a list of currently visible applications.
    * Corresponds to Python's list_visible_apps() method
    *
-   * @returns ProcessListResult with visible processes and requestId
+   * @returns ProcessListResult with visible apps and requestId
    * @throws Error if the operation fails.
    */
   async listVisibleApps(): Promise<ProcessListResult> {
     try {
-      const args = {};
+      const result = await this.session.callMcpTool("list_visible_apps", {});
 
-      const result = await this.callMcpTool(
-        "list_visible_apps",
-        args,
-        "Failed to list visible apps"
-      );
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: result.errorMessage,
+        };
+      }
 
       let processes: Process[] = [];
-      if (result.textContent) {
-        processes = this.parseJSON<Process[]>(result.textContent);
+      try {
+        processes = this.parseJSON<Process[]>(result.data);
+      } catch (err) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: `Failed to parse visible apps: ${err}`,
+        };
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: processes,
       };

@@ -3,10 +3,13 @@ package agentbay
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/agent"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/code"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
@@ -14,6 +17,7 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/oss"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/utils"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/window"
 )
 
@@ -116,6 +120,9 @@ type Session struct {
 	Application *application.ApplicationManager
 	Window      *window.WindowManager
 
+	// Agent for task execution
+	Agent *agent.Agent
+
 	// Context management
 	Context *ContextManager
 
@@ -142,6 +149,9 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 	// Initialize application and window managers
 	session.Application = application.NewApplicationManager(session)
 	session.Window = window.NewWindowManager(session)
+
+	// Initialize Agent
+	session.Agent = agent.NewAgent(session)
 
 	// Initialize context manager
 	session.Context = NewContextManager(session)
@@ -605,5 +615,257 @@ func (s *Session) FindServerForTool(toolName string) string {
 			return tool.Server
 		}
 	}
+	return ""
+}
+
+// CallMcpTool calls the MCP tool and handles both VPC and non-VPC scenarios
+func (s *Session) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+	// Marshal arguments to JSON
+	argsJSON, err := json.Marshal(args)
+	if err != nil {
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("Failed to marshal args: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+
+	// Check if this is a VPC session
+	if s.IsVpc() {
+		return s.callMcpToolVPC(toolName, string(argsJSON))
+	}
+
+	// Non-VPC mode: use traditional API call
+	return s.callMcpToolAPI(toolName, string(argsJSON))
+}
+
+// callMcpToolVPC handles VPC-based MCP tool calls
+func (s *Session) callMcpToolVPC(toolName, argsJSON string) (*models.McpToolResult, error) {
+	// VPC mode: Use HTTP request to the VPC endpoint
+	fmt.Println("API Call: CallMcpTool (VPC) -", toolName)
+	fmt.Printf("Request: Args=%s\n", argsJSON)
+
+	// Find server for this tool
+	server := s.FindServerForTool(toolName)
+	if server == "" {
+		sanitizedErr := fmt.Sprintf("server not found for tool: %s", toolName)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Check VPC network configuration
+	if s.NetworkInterfaceIp() == "" || s.HttpPort() == "" {
+		sanitizedErr := fmt.Sprintf("VPC network configuration incomplete: networkInterfaceIp=%s, httpPort=%s", s.NetworkInterfaceIp(), s.HttpPort())
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", s.NetworkInterfaceIp(), s.HttpPort())
+	params := url.Values{}
+	params.Add("server", server)
+	params.Add("tool", toolName)
+	params.Add("args", argsJSON)
+	params.Add("apiKey", s.GetAPIKey())
+
+	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+
+	// Send HTTP request
+	response, err := http.Get(fullURL)
+	if err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("VPC request failed: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		sanitizedErr := fmt.Sprintf("VPC request failed with status: %d", response.StatusCode)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Parse response
+	var responseData interface{}
+	if err := json.NewDecoder(response.Body).Decode(&responseData); err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("Failed to parse VPC response: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+
+	fmt.Println("Response from VPC CallMcpTool -", toolName, ":", responseData)
+
+	// Extract text content from the response
+	textContent := s.extractTextContentFromResponse(responseData)
+
+	return &models.McpToolResult{
+		Success:      true,
+		Data:         textContent,
+		ErrorMessage: "",
+		RequestID:    "", // VPC requests don't have traditional request IDs
+	}, nil
+}
+
+// callMcpToolAPI handles traditional API-based MCP tool calls
+func (s *Session) callMcpToolAPI(toolName, argsJSON string) (*models.McpToolResult, error) {
+	// Helper function to convert string to *string
+	stringPtr := func(s string) *string { return &s }
+
+	callToolRequest := &mcp.CallMcpToolRequest{
+		Authorization:  stringPtr(fmt.Sprintf("Bearer %s", s.GetAPIKey())),
+		SessionId:      stringPtr(s.SessionID),
+		Name:           stringPtr(toolName),
+		Args:           stringPtr(argsJSON),
+		ExternalUserId: stringPtr(""),
+		ImageId:        stringPtr(""),
+	}
+
+	// Log API request
+	fmt.Println("API Call: CallMcpTool -", toolName)
+	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
+
+	response, err := s.GetClient().CallMcpTool(callToolRequest)
+
+	// Log API response
+	if err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("API request failed: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from CallMcpTool -", toolName, ":", response.Body)
+	}
+
+	// Extract request ID
+	requestID := ""
+	if response.Body != nil && response.Body.GetRequestId() != nil {
+		requestID = *response.Body.GetRequestId()
+	}
+
+	// Check for API-level errors
+	if response.Body == nil || response.Body.GetData() == nil {
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: "Invalid response data format",
+			RequestID:    requestID,
+		}, nil
+	}
+
+	// Parse response data
+	data := response.Body.GetData()
+
+	// Check if there's an error in the response
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		if isError, exists := dataMap["isError"]; exists && isError == true {
+			// Extract error message from content
+			errorMessage := "Unknown error"
+			if content, contentExists := dataMap["content"]; contentExists {
+				if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+					if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+						if text, textExists := contentItem["text"]; textExists {
+							if textStr, isString := text.(string); isString {
+								errorMessage = textStr
+							}
+						}
+					}
+				}
+			}
+
+			return &models.McpToolResult{
+				Success:      false,
+				Data:         "",
+				ErrorMessage: errorMessage,
+				RequestID:    requestID,
+			}, nil
+		}
+	}
+
+	// Extract text content from response
+	textContent := s.extractTextContentFromResponse(data)
+
+	return &models.McpToolResult{
+		Success:      true,
+		Data:         textContent,
+		ErrorMessage: "",
+		RequestID:    requestID,
+	}, nil
+}
+
+// extractTextContentFromResponse extracts text content from various response formats
+func (s *Session) extractTextContentFromResponse(data interface{}) string {
+	if data == nil {
+		return ""
+	}
+
+	// Try to extract text from different response formats
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		// Check for content array first
+		if content, exists := dataMap["content"]; exists {
+			if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+				if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+					if text, textExists := contentItem["text"]; textExists {
+						if textStr, isString := text.(string); isString {
+							return textStr
+						}
+					}
+				}
+			}
+		}
+
+		// Check for direct result field
+		if result, exists := dataMap["result"]; exists {
+			if resultMap, isMap := result.(map[string]interface{}); isMap {
+				if content, contentExists := resultMap["content"]; contentExists {
+					if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+						if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+							if text, textExists := contentItem["text"]; textExists {
+								if textStr, isString := text.(string); isString {
+									return textStr
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If no text content found, return JSON representation
+	if dataBytes, err := json.Marshal(data); err == nil {
+		return string(dataBytes)
+	}
+
 	return ""
 }

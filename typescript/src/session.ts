@@ -1,3 +1,4 @@
+import { Agent } from "./agent/agent";
 import { AgentBay } from "./agent-bay";
 import { Client } from "./api/client";
 import {
@@ -114,6 +115,9 @@ export class Session {
   public window: WindowManager;
   public ui: UI;
 
+  // Agent for task execution
+  public agent: Agent;
+
   // Context management (matching Go version)
   public context: ContextManager;
 
@@ -141,6 +145,9 @@ export class Session {
     this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
+
+    // Initialize Agent
+    this.agent = new Agent(this);
 
     // Initialize context manager (matching Go version)
     this.context = newContextManager(this);
@@ -651,5 +658,154 @@ export class Session {
       success: true,
       tools,
     };
+  }
+
+  /**
+   * Call an MCP tool and return the result in a format compatible with Agent.
+   *
+   * @param toolName - Name of the MCP tool to call
+   * @param args - Arguments to pass to the tool
+   * @returns McpToolResult containing the response data
+   */
+  async callMcpTool(toolName: string, args: any): Promise<import("./agent/agent").McpToolResult> {
+    try {
+      const argsJSON = JSON.stringify(args);
+      
+      // Check if this is a VPC session
+      if (this.isVpcEnabled()) {
+        // VPC mode: Use HTTP request to the VPC endpoint
+        const server = this.findServerForTool(toolName);
+        if (!server) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `Server not found for tool: ${toolName}`,
+            requestId: "",
+          };
+        }
+
+        if (!this.networkInterfaceIp || !this.httpPort) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `VPC network configuration incomplete: networkInterfaceIp=${this.networkInterfaceIp}, httpPort=${this.httpPort}. This may indicate the VPC session was not properly configured with network parameters.`,
+            requestId: "",
+          };
+        }
+        
+        const baseURL = `http://${this.networkInterfaceIp}:${this.httpPort}/callTool`;
+        const url = new URL(baseURL);
+        url.searchParams.append("server", server);
+        url.searchParams.append("tool", toolName);
+        url.searchParams.append("args", argsJSON);
+        url.searchParams.append("apiKey", this.getAPIKey());
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+
+        if (!response.ok) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `VPC request failed: ${response.statusText}`,
+            requestId: "",
+          };
+        }
+
+                 const responseData = await response.json() as any;
+         
+         // Extract the actual result from the nested VPC response structure
+         let actualResult: any = responseData;
+         if (typeof responseData.data === "string") {
+           try {
+             const dataMap = JSON.parse(responseData.data);
+             if (dataMap.result) {
+               actualResult = dataMap.result;
+             }
+           } catch (err) {
+             // Keep original response if parsing fails
+           }
+         } else if (responseData.data && responseData.data.result) {
+           actualResult = responseData.data.result;
+         }
+
+         // Extract text content from the result
+         let textContent = "";
+         if (actualResult.content && Array.isArray(actualResult.content) && actualResult.content.length > 0) {
+           const contentItem = actualResult.content[0];
+           if (contentItem && contentItem.text) {
+             textContent = contentItem.text;
+           }
+         }
+
+        return {
+          success: true,
+          data: textContent || JSON.stringify(actualResult),
+          errorMessage: "",
+          requestId: "",
+        };
+      } else {
+        // Non-VPC mode: use traditional API call
+        const callToolRequest = new (await import("./api/models/CallMcpToolRequest")).CallMcpToolRequest({
+          authorization: `Bearer ${this.getAPIKey()}`,
+          sessionId: this.getSessionId(),
+          name: toolName,
+          args: argsJSON,
+        });
+
+        const response = await this.getClient().callMcpTool(callToolRequest);
+
+        if (!response.body?.data) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: "Invalid response data format",
+            requestId: extractRequestId(response) || "",
+          };
+        }
+
+        const data = response.body.data as Record<string, any>;
+
+        // Check if there's an error in the response
+        if (data.isError) {
+          const errorContent = data.content || [];
+          const errorMessage = errorContent
+            .map((item: any) => item.text || "Unknown error")
+            .join("; ");
+          
+          return {
+            success: false,
+            data: "",
+            errorMessage,
+            requestId: extractRequestId(response) || "",
+          };
+        }
+
+        // Extract text content from content array
+        const content = data.content || [];
+        let textContent = "";
+        if (content.length > 0 && content[0].text !== undefined) {
+          textContent = content[0].text;
+        }
+
+        return {
+          success: true,
+          data: textContent,
+          errorMessage: "",
+          requestId: extractRequestId(response) || "",
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        data: "",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        requestId: "",
+      };
+    }
   }
 }
