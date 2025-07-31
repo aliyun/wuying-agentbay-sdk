@@ -16,6 +16,16 @@ describe('Browser Unit Tests', () => {
     mockSession = {
       getAPIKey: jest.fn().mockReturnValue('test-api-key'),
       getSessionId: jest.fn().mockReturnValue('test-session-id'),
+      getClient: jest.fn().mockReturnValue({
+        initBrowser: jest.fn().mockResolvedValue({
+          body: {
+            data: {
+              port: 9222,
+              endpoint: 'ws://localhost:9222'
+            }
+          }
+        })
+      }),
       callMcpTool: jest.fn().mockResolvedValue({
         success: true,
         data: '{"success": true, "message": "test"}',
