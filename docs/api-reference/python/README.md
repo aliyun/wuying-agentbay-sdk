@@ -9,8 +9,10 @@ This section provides detailed API reference documentation for the Python versio
 
 ## Functional Components
 
+- [Agent](agent.md) - Provides AI-powered capabilities for executing tasks using natural language descriptions
 - [FileSystem](filesystem.md) - Provides file system operations such as uploading, downloading, and managing files
-- [Command](command.md) - Provides functionality to execute commands in a session
+- [Command](command.md) - Provides functionality to execute shell commands in a session
+- [Code](code.md) - Handles code execution operations in Python and JavaScript languages
 - [Application](application.md) - Manages application operations and state
 - [Window](window.md) - Manages window and view operations
 - [UI](ui.md) - Provides user interface interaction functionality
@@ -36,10 +38,18 @@ pip install wuying-agentbay-sdk
 ## Quick Start
 
 ```python
-from agentbay import AgentBay
+from agentbay import AgentBay, Config
 
-# Initialize the SDK
+# Initialize the SDK with default configuration
 agent_bay = AgentBay(api_key="your_api_key")
+
+# Or with custom configuration
+config = Config(
+    region_id="us-west-1",
+    endpoint="https://agentbay.example.com", 
+    timeout_ms=30000
+)
+agent_bay_custom = AgentBay(api_key="your_api_key", cfg=config)
 
 # Create a session
 result = agent_bay.create()

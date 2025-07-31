@@ -7,12 +7,12 @@ The `AgentBay` class is the main entry point for interacting with the AgentBay c
 ### NewAgentBay
 
 ```go
-func NewAgentBay(apiKey string, cfg *Config) (*AgentBay, error)
+func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error)
 ```
 
 **Parameters:**
 - `apiKey` (string): The API key for authentication. If empty, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
-- `cfg` (*Config, optional): Configuration object containing region_id, endpoint, and timeout_ms. If not provided, default configuration is used.
+- `opts` (...Option, optional): Optional configuration options. Use `WithConfig(*Config)` to provide custom configuration containing region_id, endpoint, and timeout_ms. If not provided, default configuration is used.
 
 **Returns:**
 - `*AgentBay`: A new AgentBay instance.
@@ -62,8 +62,20 @@ import (
 )
 
 func main() {
-	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	// Initialize the SDK with default configuration
+	client, err := agentbay.NewAgentBay("your_api_key")
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Or initialize with custom configuration
+	config := &agentbay.Config{
+		RegionID:  "us-west-1",
+		Endpoint:  "https://agentbay.example.com",
+		TimeoutMs: 30000,
+	}
+	clientWithConfig, err := agentbay.NewAgentBay("your_api_key", agentbay.WithConfig(config))
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -149,7 +161,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	client, err := agentbay.NewAgentBay("your_api_key")
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -197,7 +209,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	client, err := agentbay.NewAgentBay("your_api_key")
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -281,7 +293,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	client, err := agentbay.NewAgentBay("your_api_key")
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)

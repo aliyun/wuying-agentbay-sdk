@@ -9,8 +9,10 @@ This section provides detailed API reference documentation for the Golang versio
 
 ## Functional Components
 
+- [Agent](agent.md) - Provides AI-powered capabilities for executing tasks using natural language descriptions
 - [FileSystem](filesystem.md) - Provides file system operations such as uploading, downloading, and managing files
-- [Command](command.md) - Provides functionality to execute commands in a session
+- [Command](command.md) - Provides functionality to execute shell commands in a session
+- [Code](code.md) - Handles code execution operations in Python and JavaScript languages
 - [Application](application.md) - Manages application operations and state
 - [Window](window.md) - Manages window and view operations
 - [UI](ui.md) - Provides user interface interaction functionality
@@ -46,8 +48,20 @@ import (
 )
 
 func main() {
-	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	// Initialize the SDK with default configuration
+	client, err := agentbay.NewAgentBay("your_api_key")
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Or with custom configuration
+	config := &agentbay.Config{
+		RegionID:  "us-west-1",
+		Endpoint:  "https://agentbay.example.com",
+		TimeoutMs: 30000,
+	}
+	clientWithConfig, err := agentbay.NewAgentBay("your_api_key", agentbay.WithConfig(config))
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)

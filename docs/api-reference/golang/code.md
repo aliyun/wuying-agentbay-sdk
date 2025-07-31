@@ -28,16 +28,24 @@ package main
 
 import (
     "fmt"
-    agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+    "os"
+    
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
-    // Initialize AgentBay and create session
-    ab := agentbay.NewAgentBay()
-    sessionParams := &agentbay.SessionParams{ResourceType: "linux"}
-    sessionResult, err := ab.CreateSession(sessionParams)
+    // Initialize AgentBay with API key
+    client, err := agentbay.NewAgentBay("your_api_key")
     if err != nil {
-        panic(err)
+        fmt.Printf("Error initializing AgentBay client: %v\n", err)
+        os.Exit(1)
+    }
+
+    // Create a session
+    sessionResult, err := client.Create(nil)
+    if err != nil {
+        fmt.Printf("Error creating session: %v\n", err)
+        os.Exit(1)
     }
     session := sessionResult.Session
 

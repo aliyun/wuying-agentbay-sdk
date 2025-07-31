@@ -28,10 +28,14 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 async function main() {
     // Initialize AgentBay with API key
     const apiKey = process.env.AGENTBAY_API_KEY!;
-    const ab = new AgentBay({ apiKey });
+    const agentBay = new AgentBay({ apiKey });
 
     // Create a session
-    const sessionResult = await ab.createSession({ resourceType: "linux" });
+    const sessionResult = await agentBay.create();
+    if (!sessionResult.success) {
+        console.error(`Failed to create session: ${sessionResult.errorMessage}`);
+        return;
+    }
     const session = sessionResult.session;
 
     // Execute Python code

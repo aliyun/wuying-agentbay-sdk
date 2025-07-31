@@ -28,11 +28,15 @@ from agentbay import AgentBay
 
 # Initialize AgentBay with API key
 api_key = os.getenv("AGENTBAY_API_KEY")
-ab = AgentBay(api_key=api_key)
+agent_bay = AgentBay(api_key=api_key)
 
 # Create a session
-session_result = ab.create_session(resource_type="linux")
-session = session_result.session
+session_result = agent_bay.create()
+if session_result.success:
+    session = session_result.session
+else:
+    print(f"Failed to create session: {session_result.error_message}")
+    exit(1)
 
 # Execute Python code
 python_code = """

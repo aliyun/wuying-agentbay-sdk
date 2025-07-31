@@ -7,15 +7,13 @@ The `AgentBay` class is the main entry point for interacting with the AgentBay c
 ### new AgentBay()
 
 ```typescript
-constructor(config: AgentBayConfig)
+constructor(options: { apiKey?: string; config?: Config } = {})
 ```
 
 **Parameters:**
-- `config` (AgentBayConfig): Configuration object containing the API key and optional settings.
-  - `apiKey` (string): The API key for authentication. If not provided, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
-  - `regionId` (string, optional): The region ID for the service.
-  - `endpoint` (string, optional): The service endpoint.
-  - `timeoutMs` (number, optional): Request timeout in milliseconds.
+- `options` (object): Configuration options object
+  - `apiKey` (string, optional): The API key for authentication. If not provided, the SDK will look for the `AGENTBAY_API_KEY` environment variable.
+  - `config` (Config, optional): Custom configuration object containing region_id, endpoint, and timeout_ms. If not provided, default configuration is used.
 
 **Throws:**
 - `Error`: If no API key is provided and `AGENTBAY_API_KEY` environment variable is not set.
@@ -56,8 +54,18 @@ create(params?: CreateSessionParams): Promise<SessionResult>
 import { AgentBay, CreateSessionParams } from 'wuying-agentbay-sdk';
 import { ContextSync, SyncPolicy } from 'wuying-agentbay-sdk/context-sync';
 
-// Initialize the SDK
+// Initialize the SDK with default configuration
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Or initialize with custom configuration
+const agentBayWithConfig = new AgentBay({
+  apiKey: 'your_api_key',
+  config: {
+    region_id: 'us-west-1',
+    endpoint: 'https://agentbay.example.com',
+    timeout_ms: 30000
+  }
+});
 
 // Create a session with default parameters
 async function createDefaultSession() {

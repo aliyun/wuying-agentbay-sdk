@@ -4,7 +4,7 @@ The `AgentBay` class is the main entry point for interacting with the AgentBay c
 
 ## Constructor
 
-###
+### AgentBay
 
 ```python
 AgentBay(api_key=None, cfg=None)
@@ -53,12 +53,20 @@ create(params: Optional[CreateSessionParams] = None) -> SessionResult
 
 **Example:**
 ```python
-from agentbay import AgentBay
+from agentbay import AgentBay, Config
 from agentbay.session_params import CreateSessionParams
 from agentbay.context_sync import ContextSync, SyncPolicy
 
-# Initialize the SDK
+# Initialize the SDK with default configuration
 agent_bay = AgentBay(api_key="your_api_key")
+
+# Or initialize with custom configuration
+config = Config(
+    region_id="us-west-1",
+    endpoint="https://agentbay.example.com",
+    timeout_ms=30000
+)
+agent_bay_with_config = AgentBay(api_key="your_api_key", cfg=config)
 
 # Create a session with default parameters
 default_result = agent_bay.create()

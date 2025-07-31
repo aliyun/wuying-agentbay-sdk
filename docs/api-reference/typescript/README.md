@@ -9,8 +9,10 @@ This section provides detailed API reference documentation for the TypeScript/Ja
 
 ## Functional Components
 
+- [Agent](agent.md) - Provides AI-powered capabilities for executing tasks using natural language descriptions
 - [FileSystem](filesystem.md) - Provides file system operations such as uploading, downloading, and managing files
-- [Command](command.md) - Provides functionality to execute commands in a session
+- [Command](command.md) - Provides functionality to execute shell commands in a session
+- [Code](code.md) - Handles code execution operations in Python and JavaScript languages
 - [Application](application.md) - Manages application operations and state
 - [Window](window.md) - Manages window and view operations
 - [UI](ui.md) - Provides user interface interaction functionality
@@ -38,8 +40,18 @@ npm install wuying-agentbay-sdk
 ```typescript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
-// Initialize the SDK
+// Initialize the SDK with default configuration
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+
+// Or with custom configuration
+const agentBayCustom = new AgentBay({
+  apiKey: 'your_api_key',
+  config: {
+    region_id: 'us-west-1',
+    endpoint: 'https://agentbay.example.com',
+    timeout_ms: 30000
+  }
+});
 
 // Create and use a session
 async function createAndUseSession() {
