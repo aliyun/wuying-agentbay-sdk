@@ -3,6 +3,7 @@ import asyncio
 import time
 from agentbay.api.models import InitBrowserRequest
 from agentbay.browser.browser_agent import BrowserAgent
+from agentbay.api.base_service import BaseService
 from agentbay.exceptions import BrowserError
 from agentbay.config import BROWSER_DATA_PATH
 
@@ -15,7 +16,7 @@ class BrowserOption:
     """
     pass
 
-class Browser:
+class Browser(BaseService):
     """
     Browser provides browser-related operations for the session.
     """
@@ -89,6 +90,15 @@ class Browser:
             self._endpoint_url = None
             self._option = None
             return False
+
+    def _stop_browser(self):
+        """
+        Stop the browser instance, internal use only.
+        """
+        if self.is_initialized():
+            self._call_mcp_tool("stopChrome", {})
+        else:
+            raise BrowserError("Browser is not initialized. Cannot stop browser.")
 
     def get_endpoint_url(self) -> str:
         """
