@@ -159,7 +159,7 @@ func TestContext_List(t *testing.T) {
 	}
 
 	// Get initial list of contexts
-	initialListResult, err := agentBay.Context.List()
+	initialListResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestContext_List(t *testing.T) {
 	}()
 
 	// List contexts again and verify our new context is in the list
-	listResult, err := agentBay.Context.List()
+	listResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
