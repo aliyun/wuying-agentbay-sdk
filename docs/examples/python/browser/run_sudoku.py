@@ -8,7 +8,7 @@ This example shows how to use PageUseAgent to run sudoku game, including:
 
 import os
 import asyncio
-from typing import List
+from typing import List, Optional, Tuple
 
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
@@ -68,7 +68,10 @@ async def main():
                     while not success:
                         print("📊 Extracting sudoku board...")
                         options = ExtractOptions(
-                            instruction="Extract the current sudoku board as a 9x9 array. Each cell should be a number (1-9) if filled, or 0 if empty.",
+                            instruction="""
+                            Extract the current sudoku board as a 9x9 array. 
+                            Each cell should be a number (1-9) if filled, or 0 if empty.
+                            """,
                             schema=SudokuBoard
                         )
                         success, board_objs = await session.browser.agent.extract_async(page, options)
@@ -83,35 +86,30 @@ async def main():
                     original_board = [row[:] for row in board]
 
                     # 2. Solve the sudoku
-                    success, solution_objs = await session.browser.agent.extract_async(
-                        page,
-                        ExtractOptions(
-                            instruction=
-                            "You are an expert sudoku solver. Given the following sudoku board as a 9x9 array (0 means empty), solve the sudoku and return the completed 9x9 array as 'solution'.\n\n"
-                            "Sudoku rules:\n"
-                            "- Each row must contain the digits 1-9 with no repeats.\n"
-                            "- Each column must contain the digits 1-9 with no repeats.\n"
-                            "- Each of the nine 3x3 subgrids must contain the digits 1-9 with no repeats.\n"
-                            "- Only fill in the cells that are 0.\n"
-                            "- The solution must be unique and valid.\n\n"
-                            f"board = [\n{format_board_for_llm(board)}\n]\n\n"
-                            "Return:\n{\n  solution: number[][] // 9x9, all filled, valid sudoku\n}",
-                            schema=SudokuSolution
+                    print("🧠 Solving sudoku...")
+                    solver = SudokuSolver(board)
+                    if solver.solve():
+                        solution = solver.get_solution_board()
+                        filled_cells = solver.get_filled_cells()
+                        print(
+                            "Solved Board:\n"
+                            + "\n".join([" ".join(map(str, row)) for row in solution])
                         )
-                    )
-                    solution = solution_objs[0].solution
-                    print("Solved Board:\n" + "\n".join([" ".join(map(str, row)) for row in solution]))
+                        print(f"Number of cells to fill: {len(filled_cells)}")
+                    else:
+                        print(
+                            "No solution found for this Sudoku puzzle by the local algorithm."
+                        )
+                        return
 
                     # 3. Fill the solution (only first row for demo)
                     for row in range(9):
                         for col in range(9):
-                            if original_board[row][col] == 0:
+                            if board[row][col] == 0:
                                 input_id = f"f{col}{row}"
                                 print(f"Type '{solution[row][col]}' into the cell with id '{input_id}'")
-                                # Use the new act method for natural language action
-                                await session.browser.agent.act_async(page, 
-                                    ActOptions(action=f"Enter '{solution[row][col]}' into the input element where the attribute id is exactly '{input_id}' (for example, if id='f53', you must match the full string 'f53', not just the number 53; do not split or extract numbers from the id)")
-                                )
+                                input_element = page.locator(f"#f{col}{row}")
+                                await input_element.fill(str(solution[row][col]))
                                 await asyncio.sleep(0.5)
 
                     print("✅ Finished! The board has been solved and filled in the browser.")
@@ -120,6 +118,78 @@ async def main():
                     print(f"❌ Error in game loop: {error}")
         else:
             print("Failed to initialize browser")
+
+class SudokuSolver:
+    def __init__(self, board: List[List[int]]):
+        self.board = [row[:] for row in board]
+        self.original_board_state = [row[:] for row in board]
+
+    def _find_empty(self) -> Optional[Tuple[int, int]]:
+        """Finds the next empty cell (represented by 0) on the board."""
+        for r in range(9):
+            for c in range(9):
+                if self.board[r][c] == 0:
+                    return (r, c)
+        return None
+
+    def _is_valid(self, num: int, pos: Tuple[int, int]) -> bool:
+        """
+        Checks if placing 'num' at 'pos' (row, col) is valid according to Sudoku rules.
+        """
+        row, col = pos
+
+        for c in range(9):
+            if self.board[row][c] == num and col != c:
+                return False
+
+        for r in range(9):
+            if self.board[r][col] == num and row != r:
+                return False
+
+        box_row_start = (row // 3) * 3
+        box_col_start = (col // 3) * 3
+        for r in range(box_row_start, box_row_start + 3):
+            for c in range(box_col_start, box_col_start + 3):
+                if self.board[r][c] == num and (r, c) != pos:
+                    return False
+        return True
+
+    def solve(self) -> bool:
+        """
+        Solves the Sudoku puzzle using backtracking.
+        Returns True if a solution is found, False otherwise.
+        The solution is stored in self.board.
+        """
+        find = self._find_empty()
+        if not find:
+            return True
+        else:
+            row, col = find
+
+        for num in range(1, 10):
+            if self._is_valid(num, (row, col)):
+                self.board[row][col] = num
+
+                if self.solve():
+                    return True
+
+                self.board[row][col] = 0
+        return False
+
+    def get_solution_board(self) -> List[List[int]]:
+        return self.board
+
+    def get_filled_cells(self) -> List[Tuple[int, int, int]]:
+        """
+        Returns a list of (row, col, value) for cells that were originally empty
+        and have now been filled by the solver.
+        """
+        filled_cells = []
+        for r in range(9):
+            for c in range(9):
+                if self.original_board_state[r][c] == 0 and self.board[r][c] != 0:
+                    filled_cells.append((r, c, self.board[r][c]))
+        return filled_cells
 
 if __name__ == "__main__":
     asyncio.run(main())
