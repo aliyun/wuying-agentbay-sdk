@@ -333,6 +333,75 @@ export class Session {
   }
 
   /**
+   * Validates labels parameter for label operations.
+   *
+   * @param labels - The labels to validate
+   * @returns null if validation passes, or OperationResult with error if validation fails
+   */
+  private validateLabels(labels: Record<string, string>): OperationResult | null {
+    // Check if labels is null, undefined, or invalid type
+    if (!labels || typeof labels !== 'object') {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: "Labels cannot be null, undefined, or invalid type. Please provide a valid labels object.",
+      };
+    }
+
+    // Check if labels is an array or other non-plain object
+    if (Array.isArray(labels)) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: "Labels cannot be an array. Please provide a valid labels object.",
+      };
+    }
+
+    // Check if labels is a Date, RegExp, or other built-in object types
+    if (labels instanceof Date || labels instanceof RegExp || labels instanceof Error ||
+        labels instanceof Map || labels instanceof Set || labels instanceof WeakMap ||
+        labels instanceof WeakSet || labels instanceof Promise) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: "Labels must be a plain object. Built-in object types are not allowed.",
+      };
+    }
+
+    // Check if labels object is empty
+    if (Object.keys(labels).length === 0) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: "Labels cannot be empty. Please provide at least one label.",
+      };
+    }
+
+    for (const [key, value] of Object.entries(labels)) {
+      // Check key validity
+      if (!key || key.trim() === "") {
+        return {
+          requestId: "",
+          success: false,
+          errorMessage: "Label keys cannot be empty Please provide valid keys.",
+        };
+      }
+
+      // Check value is not null or undefined
+      if (!value || value.trim() === "") {
+        return {
+          requestId: "",
+          success: false,
+          errorMessage: "Label values cannot be empty Please provide valid values.",
+        };
+      }
+    }
+
+    // Validation passed
+    return null;
+  }
+
+  /**
    * Sets the labels for this session.
    *
    * @param labels - The labels to set for the session.
@@ -341,6 +410,12 @@ export class Session {
    */
   async setLabels(labels: Record<string, string>): Promise<OperationResult> {
     try {
+      // Validate labels using the extracted validation function
+      const validationResult = this.validateLabels(labels);
+      if (validationResult !== null) {
+        return validationResult;
+      }
+
       // Convert labels to JSON string
       const labelsJSON = JSON.stringify(labels);
 
