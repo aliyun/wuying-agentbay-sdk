@@ -2,6 +2,7 @@ import { Agent } from "./agent/agent";
 import { AgentBay } from "./agent-bay";
 import { Client } from "./api/client";
 import {
+  CallMcpToolRequest,
   GetLabelRequest,
   GetLinkRequest,
   GetMcpResourceRequest,
@@ -24,6 +25,7 @@ import {
 import { UI } from "./ui";
 import { log, logError } from "./utils/logger";
 import { WindowManager } from "./window";
+import { Browser } from "./browser";
 
 /**
  * Represents an MCP tool with complete information.
@@ -118,6 +120,9 @@ export class Session {
   // Agent for task execution
   public agent: Agent;
 
+  // Browser for web automation
+  public browser: Browser;
+
   // Context management (matching Go version)
   public context: ContextManager;
 
@@ -148,6 +153,9 @@ export class Session {
 
     // Initialize Agent
     this.agent = new Agent(this);
+
+    // Initialize Browser
+    this.browser = new Browser(this);
 
     // Initialize context manager (matching Go version)
     this.context = newContextManager(this);
@@ -699,6 +707,9 @@ export class Session {
         url.searchParams.append("tool", toolName);
         url.searchParams.append("args", argsJSON);
         url.searchParams.append("apiKey", this.getAPIKey());
+        // Add requestId for debugging purposes
+        const requestId = `vpc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        url.searchParams.append("requestId", requestId);
 
         const response = await fetch(url.toString(), {
           method: "GET",
@@ -750,7 +761,7 @@ export class Session {
         };
       } else {
         // Non-VPC mode: use traditional API call
-        const callToolRequest = new (await import("./api/models/CallMcpToolRequest")).CallMcpToolRequest({
+        const callToolRequest = new CallMcpToolRequest({
           authorization: `Bearer ${this.getAPIKey()}`,
           sessionId: this.getSessionId(),
           name: toolName,

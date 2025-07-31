@@ -3,6 +3,7 @@ export { AgentBay, type CreateSessionParams} from "./agent-bay";
 export * from "./agent";
 export * from "./api";
 export * from "./application";
+export * from "./browser";
 export * from "./command";
 export { Context, ContextService } from "./context";
 export * from "./exceptions";

@@ -122,3 +122,17 @@ export class UIError extends AgentBayError {
     Object.setPrototypeOf(this, UIError.prototype);
   }
 }
+
+/**
+ * Raised for errors related to browser operations.
+ */
+export class BrowserError extends AgentBayError {
+  constructor(
+    message = "Browser operation error",
+    extra: Record<string, any> = {}
+  ) {
+    super(message, extra);
+    this.name = "BrowserError";
+    Object.setPrototypeOf(this, BrowserError.prototype);
+  }
+}

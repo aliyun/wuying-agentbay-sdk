@@ -200,7 +200,7 @@ export class AgentBay {
       log(requestLog);
 
       const response = await this.client.createMcpSession(request);
-      log("response =", response);
+      log("response data =", response.body?.data);
 
       // Extract request ID
       const requestId = extractRequestId(response) || "";

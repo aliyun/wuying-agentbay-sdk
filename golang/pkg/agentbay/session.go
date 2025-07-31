@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"time"
 
+	"math/rand"
+
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/agent"
@@ -678,6 +680,9 @@ func (s *Session) callMcpToolVPC(toolName, argsJSON string) (*models.McpToolResu
 	params.Add("tool", toolName)
 	params.Add("args", argsJSON)
 	params.Add("apiKey", s.GetAPIKey())
+	// Add requestId for debugging purposes
+	requestID := fmt.Sprintf("vpc-%d-%d", time.Now().UnixMilli(), rand.Intn(1000000000))
+	params.Add("requestId", requestID)
 
 	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 

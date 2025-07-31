@@ -8,7 +8,7 @@ describe("Session GetLink", () => {
 
   beforeEach(async () => {
     const apiKey = getTestApiKey();
-    console.log(`Using API key: ${apiKey}`);
+    log(`Using API key: ${apiKey}`);
 
     agentBay = new AgentBay({ apiKey });
 

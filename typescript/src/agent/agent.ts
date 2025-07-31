@@ -1,4 +1,5 @@
 import { ApiResponse } from "../types/api-response";
+import { log } from "../utils/logger";
 
 /**
  * Result of task execution.
@@ -165,7 +166,7 @@ export class Agent {
             };
         }
 
-        console.log(`Task ${taskId} is still running, please wait for a while.`);
+        log(`Task ${taskId} is still running, please wait for a while.`);
         await new Promise(resolve => setTimeout(resolve, 3000));
         triedTime++;
       }
@@ -231,7 +232,7 @@ export class Agent {
    * @returns ExecutionResult containing success status, task output, and error message if any.
    */
   async terminateTask(taskId: string): Promise<ExecutionResult> {
-    console.log("Terminating task");
+            log("Terminating task");
     
     try {
       const args = { task_id: taskId };

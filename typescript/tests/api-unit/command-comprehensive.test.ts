@@ -3,7 +3,7 @@ import { AgentBay } from '../../src/agent-bay';
 import { Session } from '../../src/session';
 import { Command } from '../../src/command';
 import { Code } from '../../src/code';
-import { log } from 'console';
+import { log } from '../../src/utils/logger';
 
 // Helper function for session creation
 async function createSession(imageId?: string): Promise<{ agentBay: AgentBay; session: Session }> {

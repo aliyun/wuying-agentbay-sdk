@@ -25,6 +25,12 @@ class TestBrowser(unittest.TestCase):
     def setUp(self):
         """Set up test browser."""
         self.mock_session = MagicMock()
+        # Configure async mock for init_browser_async
+        self.mock_session.get_client().init_browser_async = AsyncMock()
+        self.mock_session.get_client().init_browser_async.return_value = MagicMock()
+        self.mock_session.get_client().init_browser_async.return_value.to_map.return_value = {
+            "body": {"Data": {"Port": 9333}}
+        }
         self.browser = Browser(self.mock_session)
         self.browser.agent = MagicMock()
 
@@ -34,7 +40,8 @@ class TestBrowser(unittest.TestCase):
 
     def test_initialize_async(self):
         """Test initialize_async method."""
-        self.assertTrue(self.browser.initialize_async(BrowserOption()))
+        result = asyncio.run(self.browser.initialize_async(BrowserOption()))
+        self.assertTrue(result)
 
     def test_is_initialized(self):
         """Test is_initialized method."""

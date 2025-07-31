@@ -14,7 +14,7 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(chai)/)' // Exclude chai from transform ignore
   ],
-  testMatch: ['**/tests/**/*.test.ts'],
+  testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.test.js'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

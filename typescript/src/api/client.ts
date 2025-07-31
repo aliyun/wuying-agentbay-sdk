@@ -983,4 +983,101 @@ export class Client extends OpenApi {
     const runtime = new $dara.RuntimeOptions({});
     return await this.syncContextWithOptions(request, runtime);
   }
+
+  /**
+   * 初始化浏览器
+   *
+   * @param tmpReq - InitBrowserRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns InitBrowserResponse
+   */
+  async initBrowserWithOptions(
+    request: $_model.InitBrowserRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.InitBrowserResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+    if (!$dara.isNull(request.persistentPath)) {
+      body["PersistentPath"] = request.persistentPath;
+    }
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "InitBrowser",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.InitBrowserResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.InitBrowserResponse({})
+    );
+  }
+
+  /**
+   * 初始化浏览器
+   *
+   * @param request - InitBrowserRequest
+   * @returns InitBrowserResponse
+   */
+  async initBrowser(
+    request: $_model.InitBrowserRequest
+  ): Promise<$_model.InitBrowserResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.initBrowserWithOptions(request, runtime);
+  }
+
+  /**
+   * 初始化浏览器（同步版本）
+   *
+   * @param request - InitBrowserRequest
+   * @returns InitBrowserResponse
+   */
+  initBrowserSync(
+    request: $_model.InitBrowserRequest
+  ): $_model.InitBrowserResponse {
+    const runtime = new $dara.RuntimeOptions({});
+    
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+    if (!$dara.isNull(request.persistentPath)) {
+      body["PersistentPath"] = request.persistentPath;
+    }
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "InitBrowser",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.InitBrowserResponse>(
+      this.callApi(params, req, runtime),
+      new $_model.InitBrowserResponse({})
+    );
+  }
 }

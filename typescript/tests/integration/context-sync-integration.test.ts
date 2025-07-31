@@ -2,6 +2,7 @@ import { AgentBay } from "../../src/agent-bay";
 import { ContextStatusData } from "../../src/context-manager";
 import { ContextSync, newSyncPolicy, newContextSync } from "../../src/context-sync";
 import { wait, randomString } from "../utils/test-helpers";
+import { log } from "../../src/utils/logger";
 
 describe("ContextSyncIntegration", () => {
   let agentBay: AgentBay;
@@ -30,7 +31,7 @@ describe("ContextSyncIntegration", () => {
     }
     
     contextId = contextResult.context.id;
-    console.log(`Created context: ${contextResult.context.name} (ID: ${contextId})`);
+    log(`Created context: ${contextResult.context.name} (ID: ${contextId})`);
     
     // Create session parameters with context sync
     const sessionParams = {
@@ -49,7 +50,7 @@ describe("ContextSyncIntegration", () => {
     }
     
     sessionId = sessionResult.session.sessionId;
-    console.log(`Created session: ${sessionId}`);
+    log(`Created session: ${sessionId}`);
     
     // Wait for session to be ready
     await wait(10000);
@@ -68,7 +69,7 @@ describe("ContextSyncIntegration", () => {
         const session = sessions.find(s => s.sessionId === sessionId);
         if (session) {
           await agentBay.delete(session);
-          console.log(`Session deleted: ${sessionId}`);
+          log(`Session deleted: ${sessionId}`);
         }
       }
     } catch (e) {
@@ -81,7 +82,7 @@ describe("ContextSyncIntegration", () => {
         // We need to create a context object to delete it
         const context = { id: contextId, name: "", state: "" };
         await agentBay.context.delete(context);
-        console.log(`Context deleted: ${contextId}`);
+        log(`Context deleted: ${contextId}`);
       }
     } catch (e) {
       console.warn(`Warning: Failed to delete context: ${e}`);
@@ -92,7 +93,7 @@ describe("ContextSyncIntegration", () => {
   
   it("should return parsed ContextStatusData", async () => {
     if (shouldSkip) {
-      console.log("Skipping test: No API key available or running in CI");
+      log("Skipping test: No API key available or running in CI");
       return;
     }
     
@@ -111,7 +112,7 @@ describe("ContextSyncIntegration", () => {
     expect(contextInfo.requestId).not.toBe("");
     
     // Log the context status data
-    console.log(`Context status data count: ${contextInfo.contextStatusData.length}`);
+    log(`Context status data count: ${contextInfo.contextStatusData.length}`);
     for (let i = 0; i < contextInfo.contextStatusData.length; i++) {
       const data = contextInfo.contextStatusData[i];
       console.log(`Status data ${i}:`);
@@ -139,7 +140,7 @@ describe("ContextSyncIntegration", () => {
   
   it("should sync context and return info", async () => {
     if (shouldSkip) {
-      console.log("Skipping test: No API key available or running in CI");
+      log("Skipping test: No API key available or running in CI");
       return;
     }
     
@@ -200,7 +201,7 @@ describe("ContextSyncIntegration", () => {
   
   it("should get context info with parameters", async () => {
     if (shouldSkip) {
-      console.log("Skipping test: No API key available or running in CI");
+      log("Skipping test: No API key available or running in CI");
       return;
     }
     
@@ -242,7 +243,7 @@ describe("ContextSyncIntegration", () => {
 
   it("should test context sync persistence with retry", async () => {
     if (shouldSkip) {
-      console.log("Skipping test: No API key available or running in CI");
+      log("Skipping test: No API key available or running in CI");
       return;
     }
     

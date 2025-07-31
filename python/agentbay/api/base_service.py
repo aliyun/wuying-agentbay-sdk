@@ -1,5 +1,8 @@
 import json
 import requests
+import time
+import random
+import string
 from typing import Any, Dict
 
 from agentbay.api.models import CallMcpToolRequest
@@ -64,11 +67,14 @@ class BaseService:
         base_url = f"http://{self.session.get_network_interface_ip()}:{self.session.get_http_port()}/callTool"
         
         # Prepare query parameters
+        # Add requestId for debugging purposes
+        request_id = f"vpc-{int(time.time() * 1000)}-{''.join(random.choices(string.ascii_lowercase + string.digits, k=9))}"
         params = {
             'server': server,
             'tool': tool_name,
             'args': args_json,
-            'apiKey': self.session.get_api_key()
+            'apiKey': self.session.get_api_key(),
+            'requestId': request_id
         }
         
         # Set headers

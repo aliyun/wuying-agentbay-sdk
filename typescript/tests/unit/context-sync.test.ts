@@ -8,6 +8,7 @@ import {
   UploadStrategy,
   DownloadStrategy
 } from "../../src/context-sync";
+import { log } from "../../src/utils/logger";
 
 describe("ContextSync Unit Tests", () => {
   describe("SyncPolicy Default Construction", () => {
@@ -88,7 +89,7 @@ describe("ContextSync Unit Tests", () => {
       expect(jsonObject.syncPaths).toBeUndefined();
 
       // Log the generated JSON for verification
-      console.log("Generated JSON:", jsonString);
+      log("Generated JSON:", jsonString);
     });
 
     it("should create individual policy components with correct defaults", () => {
