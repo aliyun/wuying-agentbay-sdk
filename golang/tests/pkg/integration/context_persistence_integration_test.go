@@ -30,7 +30,7 @@ func TestContextPersistence(t *testing.T) {
 	t.Logf("Creating new context with name: %s", contextName)
 
 	// List existing contexts before creation
-	listResult, err := agentBay.Context.List()
+	listResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Logf("Warning: Failed to list existing contexts: %v", err)
 	} else {

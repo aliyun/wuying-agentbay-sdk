@@ -36,18 +36,36 @@ func (m *MockSessionInterface) EXPECT() *MockSessionInterfaceMockRecorder {
 }
 
 // Delete mocks base method.
-func (m *MockSessionInterface) Delete() (*agentbay.DeleteResult, error) {
+func (m *MockSessionInterface) Delete(arg0 ...bool) (*agentbay.DeleteResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete")
+	varargs := []interface{}{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Delete", varargs...)
 	ret0, _ := ret[0].(*agentbay.DeleteResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockSessionInterfaceMockRecorder) Delete() *gomock.Call {
+func (mr *MockSessionInterfaceMockRecorder) Delete(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSessionInterface)(nil).Delete))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSessionInterface)(nil).Delete), arg0...)
+}
+
+// FindServerForTool mocks base method.
+func (m *MockSessionInterface) FindServerForTool(arg0 string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindServerForTool", arg0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// FindServerForTool indicates an expected call of FindServerForTool.
+func (mr *MockSessionInterfaceMockRecorder) FindServerForTool(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindServerForTool", reflect.TypeOf((*MockSessionInterface)(nil).FindServerForTool), arg0)
 }
 
 // GetAPIKey mocks base method.
@@ -122,6 +140,20 @@ func (mr *MockSessionInterfaceMockRecorder) GetSessionId() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionId", reflect.TypeOf((*MockSessionInterface)(nil).GetSessionId))
 }
 
+// HttpPort mocks base method.
+func (m *MockSessionInterface) HttpPort() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HttpPort")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// HttpPort indicates an expected call of HttpPort.
+func (mr *MockSessionInterfaceMockRecorder) HttpPort() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HttpPort", reflect.TypeOf((*MockSessionInterface)(nil).HttpPort))
+}
+
 // Info mocks base method.
 func (m *MockSessionInterface) Info() (*agentbay.InfoResult, error) {
 	m.ctrl.T.Helper()
@@ -135,6 +167,34 @@ func (m *MockSessionInterface) Info() (*agentbay.InfoResult, error) {
 func (mr *MockSessionInterfaceMockRecorder) Info() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockSessionInterface)(nil).Info))
+}
+
+// IsVpc mocks base method.
+func (m *MockSessionInterface) IsVpc() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsVpc")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsVpc indicates an expected call of IsVpc.
+func (mr *MockSessionInterfaceMockRecorder) IsVpc() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsVpc", reflect.TypeOf((*MockSessionInterface)(nil).IsVpc))
+}
+
+// NetworkInterfaceIp mocks base method.
+func (m *MockSessionInterface) NetworkInterfaceIp() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NetworkInterfaceIp")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// NetworkInterfaceIp indicates an expected call of NetworkInterfaceIp.
+func (mr *MockSessionInterfaceMockRecorder) NetworkInterfaceIp() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkInterfaceIp", reflect.TypeOf((*MockSessionInterface)(nil).NetworkInterfaceIp))
 }
 
 // SetLabels mocks base method.

@@ -417,6 +417,12 @@ export interface ContextListResult extends ApiResponse {
   success: boolean;
   /** List of contexts */
   contexts: any[]; // Will be Context[] type, avoiding circular import
+  /** Token for the next page of results */
+  nextToken?: string;
+  /** Maximum number of results per page */
+  maxResults?: number;
+  /** Total number of contexts available */
+  totalCount?: number;
   /** Optional error message if the operation failed */
   errorMessage?: string;
 }

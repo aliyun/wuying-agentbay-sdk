@@ -17,16 +17,20 @@ func TestContext_List_WithMockClient(t *testing.T) {
 	mockContext := mock.NewMockContextInterface(ctrl)
 
 	// Set expected behavior
+	params := &agentbay.ContextListParams{
+		MaxResults: 10,
+		NextToken:  "",
+	}
 	expectedResult := &agentbay.ContextListResult{
 		Contexts: []*agentbay.Context{
 			{ID: "ctx1", Name: "context1"},
 			{ID: "ctx2", Name: "context2"},
 		},
 	}
-	mockContext.EXPECT().List().Return(expectedResult, nil)
+	mockContext.EXPECT().List(params).Return(expectedResult, nil)
 
 	// Test List method call
-	result, err := mockContext.List()
+	result, err := mockContext.List(params)
 
 	// Verify call success
 	assert.NoError(t, err)
@@ -136,10 +140,14 @@ func TestContext_Error_WithMockClient(t *testing.T) {
 	mockContext := mock.NewMockContextInterface(ctrl)
 
 	// Set expected behavior - return error
-	mockContext.EXPECT().List().Return(nil, assert.AnError)
+	params := &agentbay.ContextListParams{
+		MaxResults: 10,
+		NextToken:  "",
+	}
+	mockContext.EXPECT().List(params).Return(nil, assert.AnError)
 
 	// Test error case
-	result, err := mockContext.List()
+	result, err := mockContext.List(params)
 
 	// Verify error handling
 	assert.Error(t, err)

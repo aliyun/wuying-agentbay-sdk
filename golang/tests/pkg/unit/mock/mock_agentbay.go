@@ -50,18 +50,23 @@ func (mr *MockAgentBayInterfaceMockRecorder) Create(arg0 interface{}) *gomock.Ca
 }
 
 // Delete mocks base method.
-func (m *MockAgentBayInterface) Delete(arg0 *agentbay.Session) (*agentbay.DeleteResult, error) {
+func (m *MockAgentBayInterface) Delete(arg0 *agentbay.Session, arg1 ...bool) (*agentbay.DeleteResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0)
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Delete", varargs...)
 	ret0, _ := ret[0].(*agentbay.DeleteResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockAgentBayInterfaceMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+func (mr *MockAgentBayInterfaceMockRecorder) Delete(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAgentBayInterface)(nil).Delete), arg0)
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAgentBayInterface)(nil).Delete), varargs...)
 }
 
 // List mocks base method.

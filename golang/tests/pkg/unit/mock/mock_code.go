@@ -52,4 +52,4 @@ func (mr *MockCodeInterfaceMockRecorder) RunCode(arg0, arg1 interface{}, arg2 ..
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCode", reflect.TypeOf((*MockCodeInterface)(nil).RunCode), varargs...)
-} 
+}

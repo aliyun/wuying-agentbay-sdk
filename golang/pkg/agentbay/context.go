@@ -39,7 +39,10 @@ type ContextResult struct {
 // ContextListResult wraps context list and RequestID
 type ContextListResult struct {
 	models.ApiResponse
-	Contexts []*Context
+	Contexts   []*Context
+	NextToken  string
+	MaxResults int32
+	TotalCount int32
 }
 
 // ContextCreateResult wraps context creation result and RequestID
@@ -66,15 +69,43 @@ type ContextService struct {
 	AgentBay *AgentBay
 }
 
-// List lists all available contexts.
-func (cs *ContextService) List() (*ContextListResult, error) {
+// ContextListParams contains parameters for listing contexts
+type ContextListParams struct {
+	MaxResults int32  // Number of results per page
+	NextToken  string // Token for the next page
+}
+
+// NewContextListParams creates a new ContextListParams with default values
+func NewContextListParams() *ContextListParams {
+	return &ContextListParams{
+		MaxResults: 10, // Default page size
+		NextToken:  "",
+	}
+}
+
+// List lists all available contexts with pagination support.
+func (cs *ContextService) List(params *ContextListParams) (*ContextListResult, error) {
+	if params == nil {
+		params = NewContextListParams()
+	}
+
 	request := &mcp.ListContextsRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
+		MaxResults:    tea.Int32(params.MaxResults),
+	}
+
+	// Add NextToken if provided
+	if params.NextToken != "" {
+		request.NextToken = tea.String(params.NextToken)
 	}
 
 	// Log API request
 	fmt.Println("API Call: ListContexts")
-	fmt.Println("Request: (no parameters)")
+	fmt.Printf("Request: MaxResults=%d", *request.MaxResults)
+	if request.NextToken != nil {
+		fmt.Printf(", NextToken=%s", *request.NextToken)
+	}
+	fmt.Println()
 
 	response, err := cs.AgentBay.Client.ListContexts(request)
 
@@ -92,17 +123,34 @@ func (cs *ContextService) List() (*ContextListResult, error) {
 	}
 
 	var contexts []*Context
-	if response.Body != nil && response.Body.Data != nil {
-		for _, contextData := range response.Body.Data {
-			context := &Context{
-				ID:         tea.StringValue(contextData.Id),
-				Name:       tea.StringValue(contextData.Name),
-				State:      tea.StringValue(contextData.State),
-				CreatedAt:  tea.StringValue(contextData.CreateTime),
-				LastUsedAt: tea.StringValue(contextData.LastUsedTime),
-				OSType:     tea.StringValue(contextData.OsType),
+	var nextToken string
+	var maxResults int32
+	var totalCount int32
+
+	if response.Body != nil {
+		// Extract pagination information
+		if response.Body.NextToken != nil {
+			nextToken = *response.Body.NextToken
+		}
+		// Set maxResults and totalCount from params or response
+		maxResults = params.MaxResults
+		if response.Body.TotalCount != nil {
+			totalCount = *response.Body.TotalCount
+		}
+
+		// Extract context data
+		if response.Body.Data != nil {
+			for _, contextData := range response.Body.Data {
+				context := &Context{
+					ID:         tea.StringValue(contextData.Id),
+					Name:       tea.StringValue(contextData.Name),
+					State:      tea.StringValue(contextData.State),
+					CreatedAt:  tea.StringValue(contextData.CreateTime),
+					LastUsedAt: tea.StringValue(contextData.LastUsedTime),
+					OSType:     tea.StringValue(contextData.OsType),
+				}
+				contexts = append(contexts, context)
 			}
-			contexts = append(contexts, context)
 		}
 	}
 
@@ -110,7 +158,10 @@ func (cs *ContextService) List() (*ContextListResult, error) {
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Contexts: contexts,
+		Contexts:   contexts,
+		NextToken:  nextToken,
+		MaxResults: maxResults,
+		TotalCount: totalCount,
 	}, nil
 }
 

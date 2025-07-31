@@ -71,6 +71,22 @@ export class Context {
 }
 
 /**
+ * Parameters for listing contexts with pagination support.
+ */
+export interface ContextListParams {
+  /**
+   * Maximum number of results per page.
+   * Defaults to 10 if not specified.
+   */
+  maxResults?: number;
+
+  /**
+   * Token for the next page of results.
+   */
+  nextToken?: string;
+}
+
+/**
  * Provides methods to manage persistent contexts in the AgentBay cloud environment.
  */
 export class ContextService {
@@ -86,20 +102,26 @@ export class ContextService {
   }
 
   /**
-   * Lists all available contexts.
+   * Lists all available contexts with pagination support.
    * Corresponds to Python's list() method
    *
-   * @returns ContextListResult with contexts list and requestId
+   * @param params - Optional parameters for listing contexts.
+   * @returns ContextListResult with contexts list and pagination information
    */
-  async list(): Promise<ContextListResult> {
+  async list(params?: ContextListParams): Promise<ContextListResult> {
     try {
+      // Set default maxResults if not specified
+      const maxResults = params?.maxResults !== undefined ? params.maxResults : 10;
+
       const request = new $_client.ListContextsRequest({
         authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+        maxResults: maxResults,
+        nextToken: params?.nextToken,
       });
 
       // Log API request
       log("API Call: ListContexts");
-      log("Request: (no parameters)");
+      log(`Request: MaxResults=${maxResults}`, params?.nextToken ? `, NextToken=${params.nextToken}` : "");
 
       const response = await this.agentBay.getClient().listContexts(request);
 
@@ -126,6 +148,9 @@ export class ContextService {
         requestId: extractRequestId(response) || "",
         success: true,
         contexts,
+        nextToken: response.body?.nextToken,
+        maxResults: response.body?.maxResults || maxResults,
+        totalCount: response.body?.totalCount,
       };
     } catch (error) {
       logError("Error calling ListContexts:", error);

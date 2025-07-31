@@ -8,8 +8,8 @@ import (
 
 // ContextInterface defines the interface for context operations
 type ContextInterface interface {
-	// List lists all available contexts
-	List() (*agentbay.ContextListResult, error)
+	// List lists all available contexts with pagination support
+	List(params *agentbay.ContextListParams) (*agentbay.ContextListResult, error)
 
 	// Get gets a context by name, optionally creates it if it doesn't exist
 	Get(name string, create bool) (*agentbay.ContextResult, error)

@@ -91,6 +91,9 @@ class ContextListResult(ApiResponse):
         request_id: str = "",
         success: bool = False,
         contexts: Optional[List[Context]] = None,
+        next_token: Optional[str] = None,
+        max_results: Optional[int] = None,
+        total_count: Optional[int] = None,
     ):
         """
         Initialize a ContextListResult.
@@ -99,10 +102,36 @@ class ContextListResult(ApiResponse):
             request_id (str, optional): Unique identifier for the API request.
             success (bool, optional): Whether the operation was successful.
             contexts (Optional[List[Context]], optional): The list of context objects.
+            next_token (Optional[str], optional): Token for the next page of results.
+            max_results (Optional[int], optional): Maximum number of results per page.
+            total_count (Optional[int], optional): Total number of contexts available.
         """
         super().__init__(request_id)
         self.success = success
         self.contexts = contexts if contexts is not None else []
+        self.next_token = next_token
+        self.max_results = max_results
+        self.total_count = total_count
+
+
+class ContextListParams:
+    """Parameters for listing contexts with pagination support."""
+
+    def __init__(
+        self,
+        max_results: Optional[int] = None,
+        next_token: Optional[str] = None,
+    ):
+        """
+        Initialize ContextListParams.
+
+        Args:
+            max_results (Optional[int], optional): Maximum number of results per page.
+                Defaults to 10 if not specified.
+            next_token (Optional[str], optional): Token for the next page of results.
+        """
+        self.max_results = max_results
+        self.next_token = next_token
 
 
 class ContextService:
@@ -119,21 +148,38 @@ class ContextService:
         """
         self.agent_bay = agent_bay
 
-    def list(self) -> ContextListResult:
+    def list(self, params: Optional[ContextListParams] = None) -> ContextListResult:
         """
-        Lists all available contexts.
+        Lists all available contexts with pagination support.
+
+        Args:
+            params (Optional[ContextListParams], optional): Parameters for listing contexts.
+                If None, defaults will be used.
 
         Returns:
-            ContextListResult: A result object containing the list of Context objects
-                and request ID.
+            ContextListResult: A result object containing the list of Context objects,
+                pagination information, and request ID.
         """
         try:
+            # Use default params if none provided
+            if params is None:
+                params = ContextListParams()
+            
+            # Set default max_results if not specified
+            max_results = params.max_results if params.max_results is not None else 10
+
             # Log API request
             print("API Call: ListContexts")
-            print("Request: (no parameters)")
+            print(f"Request: MaxResults={max_results}", end="")
+            if params.next_token:
+                print(f", NextToken={params.next_token}")
+            else:
+                print()
 
             request = ListContextsRequest(
-                authorization=f"Bearer {self.agent_bay.api_key}"
+                authorization=f"Bearer {self.agent_bay.api_key}",
+                max_results=max_results,
+                next_token=params.next_token,
             )
             response = self.agent_bay.client.list_contexts(request)
 
@@ -180,8 +226,18 @@ class ContextService:
                             )
                             contexts.append(context)
 
+                # Extract pagination information
+                next_token = body.get("NextToken")
+                max_results = body.get("MaxResults", max_results)
+                total_count = body.get("TotalCount")
+
                 return ContextListResult(
-                    request_id=request_id, success=True, contexts=contexts
+                    request_id=request_id,
+                    success=True,
+                    contexts=contexts,
+                    next_token=next_token,
+                    max_results=max_results,
+                    total_count=total_count,
                 )
             except Exception as e:
                 print(f"Error parsing ListContexts response: {e}")
@@ -190,7 +246,15 @@ class ContextService:
                 )
         except Exception as e:
             print(f"Error calling ListContexts: {e}")
-            raise AgentBayError(f"Failed to list contexts: {e}")
+            # Return a ContextListResult with success=False instead of raising an exception
+            return ContextListResult(
+                request_id="", 
+                success=False, 
+                contexts=[],
+                next_token=None,
+                max_results=None,
+                total_count=None,
+            )
 
     def get(self, name: str, create: bool = False) -> ContextResult:
         """

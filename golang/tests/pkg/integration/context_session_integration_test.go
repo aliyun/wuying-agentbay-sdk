@@ -252,7 +252,7 @@ func TestContextLifecycle(t *testing.T) {
 
 	// Step 1: List initial contexts
 	t.Log("Step 1: Listing initial contexts...")
-	initialContextsResult, err := agentBay.Context.List()
+	initialContextsResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
@@ -286,7 +286,7 @@ func TestContextLifecycle(t *testing.T) {
 
 	// Step 3: List contexts and verify the new context is there
 	t.Log("Step 3: Listing contexts after creation...")
-	updatedContextsResult, err := agentBay.Context.List()
+	updatedContextsResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}
@@ -335,7 +335,7 @@ func TestContextLifecycle(t *testing.T) {
 
 	// Step 6: List contexts and verify the context is gone
 	t.Log("Step 6: Listing contexts after deletion...")
-	finalContextsResult, err := agentBay.Context.List()
+	finalContextsResult, err := agentBay.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		t.Fatalf("Error listing contexts: %v", err)
 	}

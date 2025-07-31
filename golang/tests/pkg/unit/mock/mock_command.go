@@ -53,5 +53,3 @@ func (mr *MockCommandInterfaceMockRecorder) ExecuteCommand(arg0 interface{}, arg
 	varargs := append([]interface{}{arg0}, arg1...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteCommand", reflect.TypeOf((*MockCommandInterface)(nil).ExecuteCommand), varargs...)
 }
-
-

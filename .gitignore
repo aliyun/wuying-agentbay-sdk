@@ -62,3 +62,4 @@ vendor/
 .cursor
 *.patch
 *.lock
+CLAUDE.md
