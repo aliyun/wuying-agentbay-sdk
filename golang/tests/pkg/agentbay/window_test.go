@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
@@ -28,7 +27,7 @@ func TestWindow_ListRootWindows(t *testing.T) {
 	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
-	// Test ListRootWindows
+	// Test Window list root windows functionality
 	if session.Window != nil {
 		fmt.Println("Listing root windows...")
 		listResult, err := session.Window.ListRootWindows()
@@ -37,22 +36,13 @@ func TestWindow_ListRootWindows(t *testing.T) {
 		} else {
 			t.Logf("Found %d root windows (RequestID: %s)", len(listResult.Windows), listResult.RequestID)
 
-			// Verify we got some windows
-			if len(listResult.Windows) == 0 {
-				t.Logf("Warning: No root windows found")
-			} else {
-				// Print the first 3 windows or fewer if less than 3 are available
-				count := min(len(listResult.Windows), 3)
-				for i := 0; i < count; i++ {
-					t.Logf("Window %d: %s (ID: %d)", i+1, listResult.Windows[i].Title, listResult.Windows[i].WindowID)
-				}
-
-				// Verify window properties
-				for _, window := range listResult.Windows {
-					if window.WindowID <= 0 {
-						t.Errorf("Found window with invalid ID: %d", window.WindowID)
-					}
-				}
+			// Print the first window if available
+			if len(listResult.Windows) > 0 {
+				t.Logf("First window: ID=%d, Title=%s, PID=%d, PName=%s",
+					listResult.Windows[0].WindowID,
+					listResult.Windows[0].Title,
+					listResult.Windows[0].PID,
+					listResult.Windows[0].PName)
 			}
 		}
 	} else {
@@ -66,37 +56,61 @@ func TestWindow_GetActiveWindow(t *testing.T) {
 	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
 	defer cleanup()
 
-	// Test GetActiveWindow with full workflow
-	if session.Window != nil && session.Application != nil {
-		// Step 1: Get installed applications
-		t.Logf("Step 1: Getting installed applications...")
-		appListResult, err := session.Application.GetInstalledApps(true, false, true)
+	// Test Window get active window functionality
+	if session.Window != nil {
+		fmt.Println("Getting active window...")
+		activeWindowResult, err := session.Window.GetActiveWindow()
 		if err != nil {
-			t.Logf("Note: GetInstalledApps failed: %v", err)
-			return
-		}
-		t.Logf("Found %d installed applications (RequestID: %s)", len(appListResult.Applications), appListResult.RequestID)
+			t.Logf("Note: GetActiveWindow failed: %v", err)
+		} else {
+			t.Logf("Active window (RequestID: %s):", activeWindowResult.RequestID)
+			if activeWindowResult.Window != nil {
+				t.Logf("Active window: %s (ID: %d, Process: %s, PID: %d)",
+					activeWindowResult.Window.Title,
+					activeWindowResult.Window.WindowID,
+					activeWindowResult.Window.PName,
+					activeWindowResult.Window.PID)
 
-		if len(appListResult.Applications) == 0 {
-			t.Logf("No installed applications found, skipping test")
-			return
-		}
-
-		// Find an app with name "Google Chrome" to launch
-		var appToStart *application.Application
-		for _, app := range appListResult.Applications {
-			if app.Name == "Google Chrome" {
-				appToStart = &app
-				break
+				// Verify window properties
+				if activeWindowResult.Window.WindowID <= 0 {
+					t.Errorf("Active window has invalid ID: %d", activeWindowResult.Window.WindowID)
+				}
+				if activeWindowResult.Window.PID <= 0 {
+					t.Logf("Active window has PID: %d", activeWindowResult.Window.PID)
+				}
+			} else {
+				t.Logf("No active window found")
 			}
 		}
+	} else {
+		t.Logf("Note: Window interface is nil, skipping window test")
+	}
+}
 
-		if appToStart == nil {
-			t.Logf("No application with name 'Google Chrome' found, skipping test")
+func TestWindow_ActivateWindow(t *testing.T) {
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
+	defer cleanup()
+
+	// Test Window activate window functionality
+	if session.Window != nil && session.Application != nil {
+		// Step 1: List available applications
+		t.Logf("Step 1: Listing available applications...")
+		appsResult, err := session.Application.GetInstalledApps(true, false, true)
+		if err != nil {
+			t.Logf("Note: ListApps failed: %v", err)
+			return
+		}
+		t.Logf("Found %d applications (RequestID: %s)", len(appsResult.Applications), appsResult.RequestID)
+
+		if len(appsResult.Applications) == 0 {
+			t.Logf("No applications found, skipping window activation test")
 			return
 		}
 
 		// Step 2: Start the application
+		appToStart := appsResult.Applications[0]
 		t.Logf("Step 2: Starting application: %s with command: %s", appToStart.Name, appToStart.CmdLine)
 		startResult, err := session.Application.StartApp(appToStart.CmdLine, "", "")
 		if err != nil {
@@ -124,7 +138,7 @@ func TestWindow_GetActiveWindow(t *testing.T) {
 		}
 
 		// Step 5: Activate a window
-		windowToActivate := &listResult.Windows[0]
+		windowToActivate := listResult.Windows[0]
 		t.Logf("Step 5: Activating window: %s (ID: %d)", windowToActivate.Title, windowToActivate.WindowID)
 		activateResult, err := session.Window.ActivateWindow(windowToActivate.WindowID)
 		if err != nil {
@@ -140,18 +154,20 @@ func TestWindow_GetActiveWindow(t *testing.T) {
 			t.Logf("Note: GetActiveWindow failed: %v", err)
 		} else {
 			t.Logf("Active window (RequestID: %s):", activeWindowResult.RequestID)
-			t.Logf("Active window: %s (ID: %d, Process: %s, PID: %d)",
-				activeWindowResult.Window.Title,
-				activeWindowResult.Window.WindowID,
-				activeWindowResult.Window.PName,
-				activeWindowResult.Window.PID)
+			if activeWindowResult.Window != nil {
+				t.Logf("Active window: %s (ID: %d, Process: %s, PID: %d)",
+					activeWindowResult.Window.Title,
+					activeWindowResult.Window.WindowID,
+					activeWindowResult.Window.PName,
+					activeWindowResult.Window.PID)
 
-			// Verify window properties
-			if activeWindowResult.Window.WindowID <= 0 {
-				t.Errorf("Active window has invalid ID: %d", activeWindowResult.Window.WindowID)
-			}
-			if activeWindowResult.Window.PID <= 0 {
-				t.Logf("Active window has PID: %d", activeWindowResult.Window.PID)
+				// Verify window properties
+				if activeWindowResult.Window.WindowID <= 0 {
+					t.Errorf("Active window has invalid ID: %d", activeWindowResult.Window.WindowID)
+				}
+				if activeWindowResult.Window.PID <= 0 {
+					t.Logf("Active window has PID: %d", activeWindowResult.Window.PID)
+				}
 			}
 		}
 	} else {

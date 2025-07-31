@@ -11,6 +11,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
   labels?: string;
   persistenceDataList?: CreateMcpSessionRequestPersistenceDataList[];
   sessionId?: string;
+  vpcResource?: boolean;
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
@@ -20,6 +21,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
       labels: 'Labels',
       persistenceDataList: 'PersistenceDataList',
       sessionId: 'SessionId',
+      vpcResource: 'VpcResource',
     };
   }
 
@@ -32,6 +34,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
       labels: 'string',
       persistenceDataList: { 'type': 'array', 'itemType': CreateMcpSessionRequestPersistenceDataList },
       sessionId: 'string',
+      vpcResource: 'boolean',
     };
   }
 

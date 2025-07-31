@@ -1,11 +1,15 @@
 package agentbay
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/agent"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/code"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
@@ -13,6 +17,7 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/oss"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/utils"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/window"
 )
 
@@ -55,6 +60,31 @@ type DeleteResult struct {
 	Success bool
 }
 
+// McpTool represents an MCP tool with complete information
+type McpTool struct {
+	Name        string                 `json:"name"`        // Tool name
+	Description string                 `json:"description"` // Tool description
+	InputSchema map[string]interface{} `json:"inputSchema"` // Input parameter schema
+	Server      string                 `json:"server"`      // Server name that provides this tool
+	Tool        string                 `json:"tool"`        // Tool identifier
+}
+
+// GetName returns the tool name
+func (m *McpTool) GetName() string {
+	return m.Name
+}
+
+// GetServer returns the server name that provides this tool
+func (m *McpTool) GetServer() string {
+	return m.Server
+}
+
+// McpToolsResult wraps MCP tools list and RequestID
+type McpToolsResult struct {
+	models.ApiResponse
+	Tools []McpTool
+}
+
 // SessionInfo contains information about a session.
 type SessionInfo struct {
 	SessionId            string
@@ -72,6 +102,12 @@ type Session struct {
 	AgentBay    *AgentBay
 	SessionID   string
 	ResourceUrl string
+	ImageId     string // ImageId used when creating this session
+
+	// VPC-related information
+	IsVpcEnabled       bool   // Whether this session uses VPC resources
+	NetworkInterfaceIP string // Network interface IP for VPC sessions
+	HttpPortNumber     string // HTTP port for VPC sessions
 
 	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
@@ -84,8 +120,14 @@ type Session struct {
 	Application *application.ApplicationManager
 	Window      *window.WindowManager
 
+	// Agent for task execution
+	Agent *agent.Agent
+
 	// Context management
 	Context *ContextManager
+
+	// MCP tools available for this session
+	McpTools []McpTool
 }
 
 // NewSession creates a new Session object.
@@ -107,6 +149,9 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 	// Initialize application and window managers
 	session.Application = application.NewApplicationManager(session)
 	session.Window = window.NewWindowManager(session)
+
+	// Initialize Agent
+	session.Agent = agent.NewAgent(session)
 
 	// Initialize context manager
 	session.Context = NewContextManager(session)
@@ -457,4 +502,370 @@ func (s *Session) Info() (*InfoResult, error) {
 	}
 
 	return nil, fmt.Errorf("failed to get session info: empty response data")
+}
+
+// ListMcpTools lists MCP tools available for this session.
+// It uses the ImageId from the session creation, or "linux_latest" as default.
+func (s *Session) ListMcpTools() (*McpToolsResult, error) {
+	// Use session's ImageId, or default to "linux_latest" if empty
+	imageId := s.ImageId
+	if imageId == "" {
+		imageId = "linux_latest"
+	}
+
+	listMcpToolsRequest := &mcp.ListMcpToolsRequest{
+		Authorization: tea.String("Bearer " + s.GetAPIKey()),
+		ImageId:       tea.String(imageId),
+	}
+
+	// Log API request
+	fmt.Println("API Call: ListMcpTools")
+	fmt.Printf("Request: ImageId=%s\n", *listMcpToolsRequest.ImageId)
+
+	response, err := s.GetClient().ListMcpTools(listMcpToolsRequest)
+
+	// Log API response
+	if err != nil {
+		fmt.Println("Error calling ListMcpTools:", err)
+		return nil, err
+	}
+
+	// Extract RequestID
+	requestID := models.ExtractRequestID(response)
+
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from ListMcpTools:", response.Body)
+	}
+
+	// Parse the response data
+	var tools []McpTool
+	if response != nil && response.Body != nil && response.Body.Data != nil {
+		// The Data field is a JSON string, so we need to unmarshal it
+		var toolsData []map[string]interface{}
+		if err := json.Unmarshal([]byte(*response.Body.Data), &toolsData); err != nil {
+			fmt.Printf("Error unmarshaling tools data: %v\n", err)
+			return &McpToolsResult{
+				ApiResponse: models.ApiResponse{
+					RequestID: requestID,
+				},
+				Tools: []McpTool{},
+			}, nil
+		}
+
+		// Convert the parsed data to McpTool structs
+		for _, toolData := range toolsData {
+			tool := McpTool{}
+			if name, ok := toolData["name"].(string); ok {
+				tool.Name = name
+			}
+			if description, ok := toolData["description"].(string); ok {
+				tool.Description = description
+			}
+			if inputSchema, ok := toolData["inputSchema"].(map[string]interface{}); ok {
+				tool.InputSchema = inputSchema
+			}
+			if server, ok := toolData["server"].(string); ok {
+				tool.Server = server
+			}
+			if toolIdentifier, ok := toolData["tool"].(string); ok {
+				tool.Tool = toolIdentifier
+			}
+			tools = append(tools, tool)
+		}
+	}
+
+	s.McpTools = tools // Update the session's McpTools field
+
+	return &McpToolsResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: requestID,
+		},
+		Tools: tools,
+	}, nil
+}
+
+// IsVpc returns whether this session uses VPC resources
+func (s *Session) IsVpc() bool {
+	return s.IsVpcEnabled
+}
+
+// NetworkInterfaceIp returns the network interface IP for VPC sessions
+func (s *Session) NetworkInterfaceIp() string {
+	return s.NetworkInterfaceIP
+}
+
+// HttpPort returns the HTTP port for VPC sessions
+func (s *Session) HttpPort() string {
+	return s.HttpPortNumber
+}
+
+// GetMcpTools returns the MCP tools available for this session
+func (s *Session) GetMcpTools() []interface{} {
+	result := make([]interface{}, len(s.McpTools))
+	for i, tool := range s.McpTools {
+		result[i] = &tool
+	}
+	return result
+}
+
+// FindServerForTool searches for the server that provides the given tool
+func (s *Session) FindServerForTool(toolName string) string {
+	for _, tool := range s.McpTools {
+		if tool.Name == toolName {
+			return tool.Server
+		}
+	}
+	return ""
+}
+
+// CallMcpTool calls the MCP tool and handles both VPC and non-VPC scenarios
+func (s *Session) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+	// Marshal arguments to JSON
+	argsJSON, err := json.Marshal(args)
+	if err != nil {
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("Failed to marshal args: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+
+	// Check if this is a VPC session
+	if s.IsVpc() {
+		return s.callMcpToolVPC(toolName, string(argsJSON))
+	}
+
+	// Non-VPC mode: use traditional API call
+	return s.callMcpToolAPI(toolName, string(argsJSON))
+}
+
+// callMcpToolVPC handles VPC-based MCP tool calls
+func (s *Session) callMcpToolVPC(toolName, argsJSON string) (*models.McpToolResult, error) {
+	// VPC mode: Use HTTP request to the VPC endpoint
+	fmt.Println("API Call: CallMcpTool (VPC) -", toolName)
+	fmt.Printf("Request: Args=%s\n", argsJSON)
+
+	// Find server for this tool
+	server := s.FindServerForTool(toolName)
+	if server == "" {
+		sanitizedErr := fmt.Sprintf("server not found for tool: %s", toolName)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Check VPC network configuration
+	if s.NetworkInterfaceIp() == "" || s.HttpPort() == "" {
+		sanitizedErr := fmt.Sprintf("VPC network configuration incomplete: networkInterfaceIp=%s, httpPort=%s", s.NetworkInterfaceIp(), s.HttpPort())
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Construct VPC URL with query parameters
+	baseURL := fmt.Sprintf("http://%s:%s/callTool", s.NetworkInterfaceIp(), s.HttpPort())
+	params := url.Values{}
+	params.Add("server", server)
+	params.Add("tool", toolName)
+	params.Add("args", argsJSON)
+	params.Add("apiKey", s.GetAPIKey())
+
+	fullURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
+
+	// Send HTTP request
+	response, err := http.Get(fullURL)
+	if err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("VPC request failed: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		sanitizedErr := fmt.Sprintf("VPC request failed with status: %d", response.StatusCode)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: sanitizedErr,
+			RequestID:    "",
+		}, nil
+	}
+
+	// Parse response
+	var responseData interface{}
+	if err := json.NewDecoder(response.Body).Decode(&responseData); err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling VPC CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("Failed to parse VPC response: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+
+	fmt.Println("Response from VPC CallMcpTool -", toolName, ":", responseData)
+
+	// Extract text content from the response
+	textContent := s.extractTextContentFromResponse(responseData)
+
+	return &models.McpToolResult{
+		Success:      true,
+		Data:         textContent,
+		ErrorMessage: "",
+		RequestID:    "", // VPC requests don't have traditional request IDs
+	}, nil
+}
+
+// callMcpToolAPI handles traditional API-based MCP tool calls
+func (s *Session) callMcpToolAPI(toolName, argsJSON string) (*models.McpToolResult, error) {
+	// Helper function to convert string to *string
+	stringPtr := func(s string) *string { return &s }
+
+	callToolRequest := &mcp.CallMcpToolRequest{
+		Authorization:  stringPtr(fmt.Sprintf("Bearer %s", s.GetAPIKey())),
+		SessionId:      stringPtr(s.SessionID),
+		Name:           stringPtr(toolName),
+		Args:           stringPtr(argsJSON),
+		ExternalUserId: stringPtr(""),
+		ImageId:        stringPtr(""),
+	}
+
+	// Log API request
+	fmt.Println("API Call: CallMcpTool -", toolName)
+	fmt.Printf("Request: SessionId=%s, Args=%s\n", *callToolRequest.SessionId, *callToolRequest.Args)
+
+	response, err := s.GetClient().CallMcpTool(callToolRequest)
+
+	// Log API response
+	if err != nil {
+		sanitizedErr := utils.SanitizeError(err)
+		fmt.Println("Error calling CallMcpTool -", toolName, ":", sanitizedErr)
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: fmt.Sprintf("API request failed: %v", err),
+			RequestID:    "",
+		}, nil
+	}
+	if response != nil && response.Body != nil {
+		fmt.Println("Response from CallMcpTool -", toolName, ":", response.Body)
+	}
+
+	// Extract request ID
+	requestID := ""
+	if response.Body != nil && response.Body.GetRequestId() != nil {
+		requestID = *response.Body.GetRequestId()
+	}
+
+	// Check for API-level errors
+	if response.Body == nil || response.Body.GetData() == nil {
+		return &models.McpToolResult{
+			Success:      false,
+			Data:         "",
+			ErrorMessage: "Invalid response data format",
+			RequestID:    requestID,
+		}, nil
+	}
+
+	// Parse response data
+	data := response.Body.GetData()
+
+	// Check if there's an error in the response
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		if isError, exists := dataMap["isError"]; exists && isError == true {
+			// Extract error message from content
+			errorMessage := "Unknown error"
+			if content, contentExists := dataMap["content"]; contentExists {
+				if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+					if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+						if text, textExists := contentItem["text"]; textExists {
+							if textStr, isString := text.(string); isString {
+								errorMessage = textStr
+							}
+						}
+					}
+				}
+			}
+
+			return &models.McpToolResult{
+				Success:      false,
+				Data:         "",
+				ErrorMessage: errorMessage,
+				RequestID:    requestID,
+			}, nil
+		}
+	}
+
+	// Extract text content from response
+	textContent := s.extractTextContentFromResponse(data)
+
+	return &models.McpToolResult{
+		Success:      true,
+		Data:         textContent,
+		ErrorMessage: "",
+		RequestID:    requestID,
+	}, nil
+}
+
+// extractTextContentFromResponse extracts text content from various response formats
+func (s *Session) extractTextContentFromResponse(data interface{}) string {
+	if data == nil {
+		return ""
+	}
+
+	// Try to extract text from different response formats
+	if dataMap, ok := data.(map[string]interface{}); ok {
+		// Check for content array first
+		if content, exists := dataMap["content"]; exists {
+			if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+				if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+					if text, textExists := contentItem["text"]; textExists {
+						if textStr, isString := text.(string); isString {
+							return textStr
+						}
+					}
+				}
+			}
+		}
+
+		// Check for direct result field
+		if result, exists := dataMap["result"]; exists {
+			if resultMap, isMap := result.(map[string]interface{}); isMap {
+				if content, contentExists := resultMap["content"]; contentExists {
+					if contentArray, isArray := content.([]interface{}); isArray && len(contentArray) > 0 {
+						if contentItem, isMap := contentArray[0].(map[string]interface{}); isMap {
+							if text, textExists := contentItem["text"]; textExists {
+								if textStr, isString := text.(string); isString {
+									return textStr
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// If no text content found, return JSON representation
+	if dataBytes, err := json.Marshal(data); err == nil {
+		return string(dataBytes)
+	}
+
+	return ""
 }

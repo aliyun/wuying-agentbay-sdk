@@ -116,6 +116,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		createSessionRequest.ImageId = tea.String(params.ImageId)
 	}
 
+	// Add VPC resource if specified
+	createSessionRequest.VpcResource = tea.Bool(params.IsVpc)
+
 	// Add labels if provided
 	if len(params.Labels) > 0 {
 		labelsJSON, err := params.GetLabelsJSON()
@@ -164,6 +167,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 	if createSessionRequest.ImageId != nil {
 		fmt.Printf("ImageId=%s, ", *createSessionRequest.ImageId)
+	}
+	if createSessionRequest.VpcResource != nil {
+		fmt.Printf("VpcResource=%t, ", *createSessionRequest.VpcResource)
 	}
 	if createSessionRequest.Labels != nil {
 		fmt.Printf("Labels=%s, ", *createSessionRequest.Labels)
@@ -222,15 +228,38 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 	// ResourceUrl is optional in CreateMcpSession response
 
-	// Create a new Session using the NewSession function from session.go
+	// Create a new session object
 	session := NewSession(a, *response.Body.Data.SessionId)
+	session.ImageId = params.ImageId // Store the ImageId used for this session
 
-	// Set the ResourceUrl field from the response data if present
+	// Set VPC-related information from response
+	session.IsVpcEnabled = params.IsVpc
+	if response.Body.Data.NetworkInterfaceIp != nil {
+		session.NetworkInterfaceIP = *response.Body.Data.NetworkInterfaceIp
+	}
+	if response.Body.Data.HttpPort != nil {
+		session.HttpPortNumber = *response.Body.Data.HttpPort
+	}
+
+	// Set the ResourceUrl if available in the response
 	if response.Body.Data.ResourceUrl != nil {
 		session.ResourceUrl = *response.Body.Data.ResourceUrl
 	}
 
 	a.Sessions.Store(session.SessionID, *session)
+
+	// For VPC sessions, automatically fetch MCP tools information
+	if params.IsVpc {
+		fmt.Println("VPC session detected, automatically fetching MCP tools...")
+		toolsResult, err := session.ListMcpTools()
+		if err != nil {
+			fmt.Printf("Warning: Failed to fetch MCP tools for VPC session: %v\n", err)
+			// Continue with session creation even if tools fetch fails
+		} else {
+			fmt.Printf("Successfully fetched %d MCP tools for VPC session (RequestID: %s)\n",
+				len(toolsResult.Tools), toolsResult.RequestID)
+		}
+	}
 
 	// If we have persistence data, wait for context synchronization
 	if hasPersistenceData {
@@ -394,6 +423,8 @@ func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, 
 			for _, sessionData := range response.Body.Data {
 				if sessionData.SessionId != nil {
 					session := NewSession(a, *sessionData.SessionId)
+					// Use default ImageId for sessions retrieved from API
+					session.ImageId = "linux_latest"
 					sessions = append(sessions, *session)
 					// Also store in the local cache
 					a.Sessions.Store(*sessionData.SessionId, *session)

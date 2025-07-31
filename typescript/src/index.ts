@@ -1,5 +1,6 @@
 // Export all public classes and interfaces
 export { AgentBay, type CreateSessionParams} from "./agent-bay";
+export * from "./agent";
 export * from "./api";
 export * from "./application";
 export * from "./command";

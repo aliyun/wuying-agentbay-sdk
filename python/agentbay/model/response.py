@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 if TYPE_CHECKING:
     from agentbay.session import Session
+    from agentbay.models.mcp_tool import McpTool
 
 
 class ApiResponse:
@@ -197,3 +198,20 @@ def extract_request_id(response) -> str:
         pass
 
     return ""
+
+
+class McpToolsResult(ApiResponse):
+    """Result containing MCP tools list and request ID."""
+
+    def __init__(self, request_id: str = "", tools: Optional[List["McpTool"]] = None):
+        """
+        Initialize a McpToolsResult.
+
+        Args:
+            request_id (str, optional): Unique identifier for the API request.
+                Defaults to "".
+            tools (Optional[List[McpTool]], optional): List of MCP tools.
+                Defaults to None.
+        """
+        super().__init__(request_id)
+        self.tools = tools or []

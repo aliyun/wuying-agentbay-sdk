@@ -3,19 +3,20 @@
 from __future__ import annotations
 from darabonba.model import DaraModel 
 from agentbay.api import models as main_models 
-from typing import List
+from typing import List, Optional
 
 
 class CreateMcpSessionRequest(DaraModel):
     def __init__(
         self,
-        authorization: str = None,
-        context_id: str = None,
-        external_user_id: str = None,
-        image_id: str = None,
-        labels: str = None,
-        persistence_data_list: List[main_models.CreateMcpSessionRequestPersistenceDataList] = None,
-        session_id: str = None,
+        authorization: Optional[str] = None,
+        context_id: Optional[str] = None,
+        external_user_id: Optional[str] = None,
+        image_id: Optional[str] = None,
+        labels: Optional[str] = None,
+        persistence_data_list: Optional[List[main_models.CreateMcpSessionRequestPersistenceDataList]] = None,
+        session_id: Optional[str] = None,
+        vpc_resource: Optional[bool] = None,
     ):
         self.authorization = authorization
         self.context_id = context_id
@@ -24,6 +25,7 @@ class CreateMcpSessionRequest(DaraModel):
         self.labels = labels
         self.persistence_data_list = persistence_data_list
         self.session_id = session_id
+        self.vpc_resource = vpc_resource
 
     def validate(self):
         if self.persistence_data_list:
@@ -59,9 +61,12 @@ class CreateMcpSessionRequest(DaraModel):
         if self.session_id is not None:
             result['SessionId'] = self.session_id
 
+        if self.vpc_resource is not None:
+            result['VpcResource'] = self.vpc_resource
+
         return result
 
-    def from_map(self, m: dict = None):
+    def from_map(self, m: Optional[dict] = None):
         m = m or dict()
         if m.get('Authorization') is not None:
             self.authorization = m.get('Authorization')
@@ -80,21 +85,24 @@ class CreateMcpSessionRequest(DaraModel):
 
         self.persistence_data_list = []
         if m.get('PersistenceDataList') is not None:
-            for k1 in m.get('PersistenceDataList'):
+            for k1 in m.get('PersistenceDataList', []):
                 temp_model = main_models.CreateMcpSessionRequestPersistenceDataList()
                 self.persistence_data_list.append(temp_model.from_map(k1))
 
         if m.get('SessionId') is not None:
             self.session_id = m.get('SessionId')
 
+        if m.get('VpcResource') is not None:
+            self.vpc_resource = m.get('VpcResource')
+
         return self
 
 class CreateMcpSessionRequestPersistenceDataList(DaraModel):
     def __init__(
         self,
-        context_id: str = None,
-        path: str = None,
-        policy: str = None,
+        context_id: Optional[str] = None,
+        path: Optional[str] = None,
+        policy: Optional[str] = None,
     ):
         self.context_id = context_id
         self.path = path
@@ -119,7 +127,7 @@ class CreateMcpSessionRequestPersistenceDataList(DaraModel):
 
         return result
 
-    def from_map(self, m: dict = None):
+    def from_map(self, m: Optional[dict] = None):
         m = m or dict()
         if m.get('ContextId') is not None:
             self.context_id = m.get('ContextId')

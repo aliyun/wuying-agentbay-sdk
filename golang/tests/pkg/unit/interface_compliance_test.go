@@ -9,6 +9,7 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 	interfaces "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/interface"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/oss"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/window"
@@ -159,6 +160,29 @@ type MockSessionForCompliance struct {
 	client    *client.Client
 }
 
-func (m *MockSessionForCompliance) GetAPIKey() string         { return m.apiKey }
-func (m *MockSessionForCompliance) GetSessionId() string      { return m.sessionID }
-func (m *MockSessionForCompliance) GetClient() *client.Client { return m.client }
+func (m *MockSessionForCompliance) GetAPIKey() string                        { return m.apiKey }
+func (m *MockSessionForCompliance) GetSessionId() string                     { return m.sessionID }
+func (m *MockSessionForCompliance) GetClient() *client.Client                { return m.client }
+func (m *MockSessionForCompliance) IsVpc() bool                              { return false }
+func (m *MockSessionForCompliance) NetworkInterfaceIp() string               { return "" }
+func (m *MockSessionForCompliance) HttpPort() string                         { return "" }
+func (m *MockSessionForCompliance) FindServerForTool(toolName string) string { return "" }
+func (m *MockSessionForCompliance) Delete(syncContext ...bool) (*agentbay.DeleteResult, error) {
+	return nil, nil
+}
+func (m *MockSessionForCompliance) SetLabels(labels string) (*agentbay.LabelResult, error) {
+	return nil, nil
+}
+func (m *MockSessionForCompliance) GetLabels() (*agentbay.LabelResult, error) { return nil, nil }
+func (m *MockSessionForCompliance) GetLink(protocolType *string, port *int32) (*agentbay.LinkResult, error) {
+	return nil, nil
+}
+func (m *MockSessionForCompliance) Info() (*agentbay.InfoResult, error) { return nil, nil }
+func (m *MockSessionForCompliance) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+	return &models.McpToolResult{
+		Success:      true,
+		Data:         "",
+		ErrorMessage: "",
+		RequestID:    "",
+	}, nil
+}

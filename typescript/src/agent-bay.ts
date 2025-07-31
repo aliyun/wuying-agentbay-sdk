@@ -31,6 +31,7 @@ export interface CreateSessionParams {
   imageId?: string;
   contextSync?: ContextSync[];
   browserContext?: BrowserContext;
+  isVpc?: boolean;
 }
 
 /**
@@ -119,6 +120,9 @@ export class AgentBay {
       if (params.imageId) {
         request.imageId = params.imageId;
       }
+
+      // Add VPC resource if specified
+      request.vpcResource = params.isVpc || false;
 
       // Flag to indicate if we need to wait for context synchronization
       let hasPersistenceData = false;
@@ -241,7 +245,31 @@ export class AgentBay {
         session.resourceUrl = resourceUrl;
       }
 
+      // Set VPC-related information from response
+      session.isVpc = params.isVpc || false;
+      if (data.networkInterfaceIp) {
+        session.networkInterfaceIp = data.networkInterfaceIp;
+      }
+      if (data.httpPort) {
+        session.httpPort = data.httpPort;
+      }
+
+      // Store imageId used for this session
+      (session as any).imageId = params.imageId;
+
       this.sessions.set(session.sessionId, session);
+
+      // For VPC sessions, automatically fetch MCP tools information
+      if (params.isVpc) {
+        log("VPC session detected, automatically fetching MCP tools...");
+        try {
+          const toolsResult = await session.listMcpTools();
+          log(`Successfully fetched ${toolsResult.tools.length} MCP tools for VPC session (RequestID: ${toolsResult.requestId})`);
+        } catch (error) {
+          logError(`Warning: Failed to fetch MCP tools for VPC session: ${error}`);
+          // Continue with session creation even if tools fetch fails
+        }
+      }
 
       // If we have persistence data, wait for context synchronization
       if (hasPersistenceData) {

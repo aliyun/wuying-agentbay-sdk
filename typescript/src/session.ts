@@ -1,9 +1,11 @@
+import { Agent } from "./agent/agent";
 import { AgentBay } from "./agent-bay";
 import { Client } from "./api/client";
 import {
   GetLabelRequest,
   GetLinkRequest,
   GetMcpResourceRequest,
+  ListMcpToolsRequest,
   ReleaseMcpSessionRequest,
   SetLabelRequest,
 } from "./api/models/model";
@@ -22,6 +24,24 @@ import {
 import { UI } from "./ui";
 import { log, logError } from "./utils/logger";
 import { WindowManager } from "./window";
+
+/**
+ * Represents an MCP tool with complete information.
+ */
+export interface McpTool {
+  name: string;
+  description: string;
+  inputSchema: Record<string, any>;
+  server: string;
+  tool: string;
+}
+
+/**
+ * Result containing MCP tools list and request ID.
+ */
+export interface McpToolsResult extends OperationResult {
+  tools: McpTool[];
+}
 
 /**
  * Contains information about a session.
@@ -79,6 +99,11 @@ export class Session {
   public sessionId: string;
   public resourceUrl = "";
 
+  // VPC-related information
+  public isVpc = false; // Whether this session uses VPC resources
+  public networkInterfaceIp = ""; // Network interface IP for VPC sessions
+  public httpPort = ""; // HTTP port for VPC sessions
+
   // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
   public command: Command;
@@ -90,8 +115,14 @@ export class Session {
   public window: WindowManager;
   public ui: UI;
 
+  // Agent for task execution
+  public agent: Agent;
+
   // Context management (matching Go version)
   public context: ContextManager;
+
+  // MCP tools available for this session
+  public mcpTools: McpTool[] = [];
 
   /**
    * Initialize a Session object.
@@ -114,6 +145,9 @@ export class Session {
     this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
+
+    // Initialize Agent
+    this.agent = new Agent(this);
 
     // Initialize context manager (matching Go version)
     this.context = newContextManager(this);
@@ -138,6 +172,39 @@ export class Session {
    */
   getSessionId(): string {
     return this.sessionId;
+  }
+
+  /**
+   * Return whether this session uses VPC resources.
+   */
+  isVpcEnabled(): boolean {
+    return this.isVpc;
+  }
+
+  /**
+   * Return the network interface IP for VPC sessions.
+   */
+  getNetworkInterfaceIp(): string {
+    return this.networkInterfaceIp;
+  }
+
+  /**
+   * Return the HTTP port for VPC sessions.
+   */
+  getHttpPort(): string {
+    return this.httpPort;
+  }
+
+  /**
+   * Find the server that provides the given tool.
+   */
+  findServerForTool(toolName: string): string {
+    for (const tool of this.mcpTools) {
+      if (tool.name === toolName) {
+        return tool.server;
+      }
+    }
+    return "";
   }
 
   /**
@@ -190,7 +257,7 @@ export class Session {
                 allCompleted = false;
                 break;
               }
-              
+
               if (item.status === "Failed") {
                 hasFailure = true;
                 logError(`Upload failed for context ${item.contextId}: ${item.errorMessage}`);
@@ -454,7 +521,7 @@ export class Session {
         }
       }
 
-      const url = (data as any).Url || "";
+      const url = (data as any).Url || (data as any).url;
 
       return {
         requestId,
@@ -517,7 +584,7 @@ export class Session {
         }
       }
 
-      const url = (data as any).Url || "";
+      const url = (data as any).Url || (data as any).url;
 
       return {
         requestId,
@@ -532,6 +599,213 @@ export class Session {
         throw error;
       }
       throw new Error(`Failed to get link asynchronously: ${error}`);
+    }
+  }
+
+  /**
+   * List MCP tools available for this session.
+   *
+   * @param imageId Optional image ID, defaults to session's imageId or "linux_latest"
+   * @returns McpToolsResult containing tools list and request ID
+   */
+  async listMcpTools(imageId?: string): Promise<McpToolsResult> {
+    // Use provided imageId, session's imageId, or default
+    if (!imageId) {
+      imageId = (this as any).imageId || "linux_latest";
+    }
+
+    const request = new ListMcpToolsRequest({
+      authorization: `Bearer ${this.getAPIKey()}`,
+      imageId: imageId,
+    });
+
+    log("API Call: ListMcpTools");
+    log(`Request: ImageId=${imageId}`);
+
+    const response = await this.getClient().listMcpTools(request);
+
+    // Extract request ID
+    const requestId = extractRequestId(response) || "";
+
+    if (response && response.body) {
+      log("Response from ListMcpTools:", response.body);
+    }
+
+    // Parse the response data
+    const tools: McpTool[] = [];
+    if (response && response.body && response.body.data) {
+      try {
+        const toolsData = JSON.parse(response.body.data as string);
+        for (const toolData of toolsData) {
+          const tool: McpTool = {
+            name: toolData.name || "",
+            description: toolData.description || "",
+            inputSchema: toolData.inputSchema || {},
+            server: toolData.server || "",
+            tool: toolData.tool || "",
+          };
+          tools.push(tool);
+        }
+      } catch (error) {
+        logError(`Error unmarshaling tools data: ${error}`);
+      }
+    }
+
+    this.mcpTools = tools; // Update the session's mcpTools field
+
+    return {
+      requestId,
+      success: true,
+      tools,
+    };
+  }
+
+  /**
+   * Call an MCP tool and return the result in a format compatible with Agent.
+   *
+   * @param toolName - Name of the MCP tool to call
+   * @param args - Arguments to pass to the tool
+   * @returns McpToolResult containing the response data
+   */
+  async callMcpTool(toolName: string, args: any): Promise<import("./agent/agent").McpToolResult> {
+    try {
+      const argsJSON = JSON.stringify(args);
+      
+      // Check if this is a VPC session
+      if (this.isVpcEnabled()) {
+        // VPC mode: Use HTTP request to the VPC endpoint
+        const server = this.findServerForTool(toolName);
+        if (!server) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `Server not found for tool: ${toolName}`,
+            requestId: "",
+          };
+        }
+
+        if (!this.networkInterfaceIp || !this.httpPort) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `VPC network configuration incomplete: networkInterfaceIp=${this.networkInterfaceIp}, httpPort=${this.httpPort}. This may indicate the VPC session was not properly configured with network parameters.`,
+            requestId: "",
+          };
+        }
+        
+        const baseURL = `http://${this.networkInterfaceIp}:${this.httpPort}/callTool`;
+        const url = new URL(baseURL);
+        url.searchParams.append("server", server);
+        url.searchParams.append("tool", toolName);
+        url.searchParams.append("args", argsJSON);
+        url.searchParams.append("apiKey", this.getAPIKey());
+
+        const response = await fetch(url.toString(), {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        });
+
+        if (!response.ok) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: `VPC request failed: ${response.statusText}`,
+            requestId: "",
+          };
+        }
+
+                 const responseData = await response.json() as any;
+         
+         // Extract the actual result from the nested VPC response structure
+         let actualResult: any = responseData;
+         if (typeof responseData.data === "string") {
+           try {
+             const dataMap = JSON.parse(responseData.data);
+             if (dataMap.result) {
+               actualResult = dataMap.result;
+             }
+           } catch (err) {
+             // Keep original response if parsing fails
+           }
+         } else if (responseData.data && responseData.data.result) {
+           actualResult = responseData.data.result;
+         }
+
+         // Extract text content from the result
+         let textContent = "";
+         if (actualResult.content && Array.isArray(actualResult.content) && actualResult.content.length > 0) {
+           const contentItem = actualResult.content[0];
+           if (contentItem && contentItem.text) {
+             textContent = contentItem.text;
+           }
+         }
+
+        return {
+          success: true,
+          data: textContent || JSON.stringify(actualResult),
+          errorMessage: "",
+          requestId: "",
+        };
+      } else {
+        // Non-VPC mode: use traditional API call
+        const callToolRequest = new (await import("./api/models/CallMcpToolRequest")).CallMcpToolRequest({
+          authorization: `Bearer ${this.getAPIKey()}`,
+          sessionId: this.getSessionId(),
+          name: toolName,
+          args: argsJSON,
+        });
+
+        const response = await this.getClient().callMcpTool(callToolRequest);
+
+        if (!response.body?.data) {
+          return {
+            success: false,
+            data: "",
+            errorMessage: "Invalid response data format",
+            requestId: extractRequestId(response) || "",
+          };
+        }
+
+        const data = response.body.data as Record<string, any>;
+
+        // Check if there's an error in the response
+        if (data.isError) {
+          const errorContent = data.content || [];
+          const errorMessage = errorContent
+            .map((item: any) => item.text || "Unknown error")
+            .join("; ");
+          
+          return {
+            success: false,
+            data: "",
+            errorMessage,
+            requestId: extractRequestId(response) || "",
+          };
+        }
+
+        // Extract text content from content array
+        const content = data.content || [];
+        let textContent = "";
+        if (content.length > 0 && content[0].text !== undefined) {
+          textContent = content[0].text;
+        }
+
+        return {
+          success: true,
+          data: textContent,
+          errorMessage: "",
+          requestId: extractRequestId(response) || "",
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        data: "",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        requestId: "",
+      };
     }
   }
 }

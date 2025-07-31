@@ -32,4 +32,16 @@ type SessionInterface interface {
 
 	// Info gets information about this session
 	Info() (*agentbay.InfoResult, error)
+
+	// IsVpc returns whether this session uses VPC resources
+	IsVpc() bool
+
+	// NetworkInterfaceIp returns the network interface IP for VPC sessions
+	NetworkInterfaceIp() string
+
+	// HttpPort returns the HTTP port for VPC sessions
+	HttpPort() string
+
+	// FindServerForTool searches for the server that provides the given tool
+	FindServerForTool(toolName string) string
 }

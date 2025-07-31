@@ -24,6 +24,8 @@ export interface CreateSessionParamsConfig {
   contextSync: ContextSync[];
   /** Optional configuration for browser data synchronization */
   browserContext?: BrowserContext;
+  /** Whether to create a VPC-based session. Defaults to false. */
+  isVpc?: boolean;
 }
 
 /**
@@ -66,9 +68,13 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   /** Optional configuration for browser data synchronization. */
   public browserContext?: BrowserContext;
 
+  /** Whether to create a VPC-based session. Defaults to false. */
+  public isVpc: boolean;
+
   constructor() {
     this.labels = {};
     this.contextSync = [];
+    this.isVpc = false;
   }
 
   /**
@@ -100,6 +106,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   withBrowserContext(browserContext: BrowserContext): CreateSessionParams {
     this.browserContext = browserContext;
+    return this;
+  }
+
+  /**
+   * WithIsVpc sets the VPC flag for the session parameters and returns the updated parameters.
+   */
+  withIsVpc(isVpc: boolean): CreateSessionParams {
+    this.isVpc = isVpc;
     return this;
   }
 
@@ -162,6 +176,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
       imageId: this.imageId,
       contextSync: this.contextSync,
       browserContext: this.browserContext,
+      isVpc: this.isVpc,
     };
   }
 
@@ -175,6 +190,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     params.imageId = config.imageId;
     params.contextSync = config.contextSync || [];
     params.browserContext = config.browserContext;
+    params.isVpc = config.isVpc || false;
     return params;
   }
 }

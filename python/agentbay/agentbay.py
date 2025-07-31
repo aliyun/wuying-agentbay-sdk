@@ -111,6 +111,9 @@ class AgentBay:
             if params.context_id:
                 request.context_id = params.context_id
 
+            # Add VPC resource if specified
+            request.vpc_resource = params.is_vpc
+
             # Flag to indicate if we need to wait for context synchronization
             has_persistence_data = False
 
@@ -143,11 +146,20 @@ class AgentBay:
                 from agentbay.api.models import (
                     CreateMcpSessionRequestPersistenceDataList,
                 )
-                from agentbay.context_sync import SyncPolicy, UploadPolicy
+                from agentbay.context_sync import SyncPolicy, UploadPolicy, WhiteList, BWList
 
                 # Create a new SyncPolicy with default values for browser context
                 upload_policy = UploadPolicy(auto_upload=params.browser_context.auto_upload)
-                sync_policy = SyncPolicy(upload_policy=upload_policy)
+                
+                # Create BWList with white lists for browser data paths
+                white_lists = [
+                    WhiteList(path="/Local State", exclude_paths=[]),
+                    WhiteList(path="/Default/Cookies", exclude_paths=[]),
+                    WhiteList(path="/Default/Cookies-journal", exclude_paths=[])
+                ]
+                bw_list = BWList(white_lists=white_lists)
+                
+                sync_policy = SyncPolicy(upload_policy=upload_policy, bw_list=bw_list)
 
                 # Serialize policy to JSON string
                 import json as _json
@@ -233,6 +245,15 @@ class AgentBay:
                     "'Data' field is not a dictionary",
                 )
 
+            # Check if the session creation was successful
+            if data.get("Success") is False:
+                error_msg = data.get("ErrMsg", "Session creation failed")
+                return SessionResult(
+                    request_id=request_id,
+                    success=False,
+                    error_message=error_msg,
+                )
+
             session_id = data.get("SessionId")
             if not session_id:
                 return SessionResult(
@@ -247,12 +268,35 @@ class AgentBay:
             print("session_id =", session_id)
             print("resource_url =", resource_url)
 
+            # Create Session object
+            from agentbay.session import Session
+
             session = Session(self, session_id)
-            if resource_url:
+            if resource_url is not None:
                 session.resource_url = resource_url
+
+            # Set VPC-related information from response
+            session.is_vpc = params.is_vpc
+            if data.get("NetworkInterfaceIp"):
+                session.network_interface_ip = data["NetworkInterfaceIp"]
+            if data.get("HttpPort"):
+                session.http_port = data["HttpPort"]
+
+            # Store image_id used for this session
+            session.image_id = params.image_id
 
             with self._lock:
                 self._sessions[session_id] = session
+
+            # For VPC sessions, automatically fetch MCP tools information
+            if params.is_vpc:
+                print("VPC session detected, automatically fetching MCP tools...")
+                try:
+                    tools_result = session.list_mcp_tools()
+                    print(f"Successfully fetched {len(tools_result.tools)} MCP tools for VPC session (RequestID: {tools_result.request_id})")
+                except Exception as e:
+                    print(f"Warning: Failed to fetch MCP tools for VPC session: {e}")
+                    # Continue with session creation even if tools fetch fails
 
             # If we have persistence data, wait for context synchronization
             if has_persistence_data:

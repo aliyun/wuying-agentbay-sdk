@@ -1,25 +1,11 @@
-import { CallMcpToolRequest } from "../api/models/CallMcpToolRequest";
-import { log, logError } from "../utils/logger";
-import { APIError } from "../exceptions";
+
 import {
-  extractRequestId,
   WindowListResult,
   WindowInfoResult,
   BoolResult,
 } from "../types/api-response";
 
-/**
- * Result object for a CallMcpTool operation
- */
-interface CallMcpToolResult {
-  data: Record<string, any>;
-  content?: any[];
-  textContent?: string;
-  isError: boolean;
-  errorMsg?: string;
-  statusCode: number;
-  requestId?: string;
-}
+
 
 /**
  * Represents a window in the system.
@@ -42,8 +28,13 @@ export interface Window {
 export class WindowManager {
   private session: {
     getAPIKey(): string;
-    getClient(): any;
     getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
   };
 
   /**
@@ -52,106 +43,18 @@ export class WindowManager {
    */
   constructor(session: {
     getAPIKey(): string;
-    getClient(): any;
     getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
   }) {
     this.session = session;
   }
 
-  /**
-   * Helper method to call MCP tools and handle common response processing
-   *
-   * @param toolName - Name of the MCP tool to call
-   * @param args - Arguments to pass to the tool
-   * @param defaultErrorMsg - Default error message if specific error details are not available
-   * @returns A CallMcpToolResult with the response data
-   * @throws APIError if the call fails
-   */
-  private async callMcpTool(
-    toolName: string,
-    args: Record<string, any>,
-    defaultErrorMsg: string
-  ): Promise<CallMcpToolResult> {
-    try {
-      const argsJSON = JSON.stringify(args);
-      const request = new CallMcpToolRequest({
-        authorization: `Bearer ${this.session.getAPIKey()}`,
-        sessionId: this.session.getSessionId(),
-        name: toolName,
-        args: argsJSON,
-      });
 
-      // Log API request
-      log(`API Call: CallMcpTool - ${toolName}`);
-      log(`Request: SessionId=${request.sessionId}, Args=${request.args}`);
-
-      const response = await this.session.getClient().callMcpTool(request);
-
-      // Log API response
-      if (response && response.body) {
-        log(`Response from CallMcpTool - ${toolName}:`, response.body);
-      }
-
-      // Extract data from response
-      if (!response.body?.data) {
-        throw new Error("Invalid response data format");
-      }
-
-      const data = response.body.data as Record<string, any>;
-
-      // Create result object
-      const result: CallMcpToolResult = {
-        data,
-        statusCode: response.statusCode || 0,
-        isError: false,
-        requestId: extractRequestId(response),
-      };
-
-      // Check if there's an error in the response
-      if (data.isError === true) {
-        result.isError = true;
-
-        // Try to extract the error message from the content field
-        const contentArray = data.content as any[] | undefined;
-        if (contentArray && contentArray.length > 0) {
-          result.content = contentArray;
-
-          // Extract error message from the first content item
-          if (contentArray[0]?.text) {
-            result.errorMsg = contentArray[0].text;
-            throw new Error(contentArray[0].text);
-          }
-        }
-        throw new Error(defaultErrorMsg);
-      }
-
-      // Extract content array if it exists
-      if (Array.isArray(data.content)) {
-        result.content = data.content;
-
-        // Extract textContent from content items
-        if (result.content.length > 0) {
-          const textParts: string[] = [];
-          for (const item of result.content) {
-            if (
-              item &&
-              typeof item === "object" &&
-              item.text &&
-              typeof item.text === "string"
-            ) {
-              textParts.push(item.text);
-            }
-          }
-          result.textContent = textParts.join("\n");
-        }
-      }
-
-      return result;
-    } catch (error) {
-      logError(`Error calling CallMcpTool - ${toolName}:`, error);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
-    }
-  }
 
   /**
    * Helper method to parse JSON string into Window objects
@@ -180,18 +83,26 @@ export class WindowManager {
         timeout_ms: timeoutMs,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "list_root_windows",
-        args,
-        "Failed to list root windows"
+        args
       );
 
-      const windows = result.textContent
-        ? this.parseWindowsFromJSON(result.textContent)
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          windows: [],
+          errorMessage: response.errorMessage,
+        };
+      }
+
+      const windows = response.data
+        ? this.parseWindowsFromJSON(response.data)
         : [];
 
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         windows,
       };
@@ -218,20 +129,27 @@ export class WindowManager {
         timeout_ms: timeoutMs,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "get_active_window",
-        args,
-        "Failed to get active window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       let activeWindow: Window | undefined = undefined;
-      if (result.textContent) {
-        const windows = this.parseWindowsFromJSON(result.textContent);
+      if (response.data) {
+        const windows = this.parseWindowsFromJSON(response.data);
         activeWindow = windows.length > 0 ? windows[0] : undefined;
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         window: activeWindow,
       };
@@ -257,14 +175,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "activate_window",
-        args,
-        "Failed to activate window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -290,14 +215,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "maximize_window",
-        args,
-        "Failed to maximize window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -323,14 +255,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "minimize_window",
-        args,
-        "Failed to minimize window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -356,14 +295,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "restore_window",
-        args,
-        "Failed to restore window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -389,14 +335,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "close_window",
-        args,
-        "Failed to close window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -422,14 +375,21 @@ export class WindowManager {
         window_id: windowId,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "fullscreen_window",
-        args,
-        "Failed to set window to fullscreen"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -463,14 +423,21 @@ export class WindowManager {
         height,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "resize_window",
-        args,
-        "Failed to resize window"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };
@@ -496,14 +463,21 @@ export class WindowManager {
         on,
       };
 
-      const result = await this.callMcpTool(
+      const response = await this.session.callMcpTool(
         "focus_mode",
-        args,
-        "Failed to set focus mode"
+        args
       );
 
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: response.requestId,
         success: true,
         data: true,
       };

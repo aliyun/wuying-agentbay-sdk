@@ -199,25 +199,38 @@ class Agent(BaseService):
             args = {"task_id": task_id}
 
             result = self._call_mcp_tool("flux_terminate_task", args)
-            print(f"Task termination response: {result}")
-
             if result.success:
+                content = json.loads(result.data)
+                task_id = content["task_id"]
                 return ExecutionResult(
                     request_id=result.request_id,
                     success=True,
-                    output=result.data,
+                    error_message="",
+                    task_id=content["task_id"],
+                    task_status=content["status"],
                 )
             else:
+                content = json.loads(result.data)
                 return ExecutionResult(
                     request_id=result.request_id,
                     success=False,
                     error_message=result.error_message or "Failed to terminate task",
+                    task_id=content["task_id"],
+                    task_status=content["status"],
                 )
         except AgentError as e:
-            return ExecutionResult(request_id="", success=False, error_message=str(e))
+            return ExecutionResult(
+                request_id=result.request_id,
+                success=False,
+                error_message=str(e),
+                task_id=task_id,
+                task_status="failed",
+            )
         except Exception as e:
             return ExecutionResult(
                 request_id="",
                 success=False,
                 error_message=f"Failed to terminate: {e}",
+                task_id=task_id,
+                task_status="failed",
             )

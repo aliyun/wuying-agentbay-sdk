@@ -1,35 +1,14 @@
-import { APIError } from "../exceptions";
 import { Session } from "../session";
-import { Client } from "../api/client";
-import { CallMcpToolRequest } from "../api/models/model";
-import { log, logError } from "../utils/logger";
 import {
-  extractRequestId,
   CommandResult,
 } from "../types/api-response";
 
-import * as $_client from "../api";
-
-/**
- * Result object for a CallMcpTool operation
- */
-interface CallMcpToolResult {
-  data: Record<string, any>;
-  content?: any[];
-  textContent?: string;
-  isError: boolean;
-  errorMsg?: string;
-  statusCode: number;
-  requestId?: string;
-}
 
 /**
  * Handles command execution operations in the AgentBay cloud environment.
  */
 export class Command {
   private session: Session;
-  private client!: $_client.Client;
-  private baseUrl!: string;
 
   /**
    * Initialize a Command object.
@@ -41,109 +20,28 @@ export class Command {
   }
 
   /**
-   * Helper method to call MCP tools and handle common response processing
+   * Sanitizes error messages to remove sensitive information like API keys.
    *
-   * @param toolName - Name of the MCP tool to call
-   * @param args - Arguments to pass to the tool
-   * @param defaultErrorMsg - Default error message if specific error details are not available
-   * @returns A CallMcpToolResult with the response data
-   * @throws APIError if the call fails
+   * @param error - The error to sanitize
+   * @returns The sanitized error
    */
-  private async callMcpTool(
-    toolName: string,
-    args: Record<string, any>,
-    defaultErrorMsg: string
-  ): Promise<CallMcpToolResult> {
-    try {
-      const argsJSON = JSON.stringify(args);
-      const callToolRequest = new CallMcpToolRequest({
-        authorization: `Bearer ${this.session.getAPIKey()}`,
-        sessionId: this.session.getSessionId(),
-        name: toolName,
-        args: argsJSON,
-      });
-
-      // Log API request
-      log(`API Call: CallMcpTool - ${toolName}`);
-      log(
-        `Request: SessionId=${this.session.getSessionId()}, Args=${argsJSON}`
-      );
-
-      const response = await this.session
-        .getClient()
-        .callMcpTool(callToolRequest);
-
-      // Log API response
-      log(`Response from CallMcpTool - ${toolName}:`, response.body);
-
-      if (!response.body?.data) {
-        throw new Error("Invalid response data format");
-      }
-
-      // Extract data from response
-      const data = response.body.data as Record<string, any>;
-
-      // Create result object
-      const result: CallMcpToolResult = {
-        data,
-        statusCode: response.statusCode || 0,
-        isError: false,
-        requestId: extractRequestId(response),
-      };
-
-      // Check if there's an error in the response
-      if (data.isError === true) {
-        result.isError = true;
-
-        // Try to extract the error message from the content field
-        const contentArray = data.content as any[] | undefined;
-        if (contentArray && contentArray.length > 0) {
-          result.content = contentArray;
-
-          // Extract error message from the first content item
-          if (contentArray[0]?.text) {
-            result.errorMsg = contentArray[0].text;
-            throw new Error(contentArray[0].text);
-          }
-        }
-        throw new Error(defaultErrorMsg);
-      }
-
-      // Extract content array if it exists
-      if (Array.isArray(data.content)) {
-        result.content = data.content;
-
-        // Extract textContent from content items
-        if (result.content.length > 0) {
-          const textParts: string[] = [];
-          for (const item of result.content) {
-            if (
-              item &&
-              typeof item === "object" &&
-              item.text &&
-              typeof item.text === "string"
-            ) {
-              textParts.push(item.text);
-            }
-          }
-          result.textContent = textParts.join("\n");
-        }
-      }
-
-      return result;
-    } catch (error) {
-      logError(`Error calling CallMcpTool - ${toolName}:`, error);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
+  private sanitizeError(error: any): any {
+    if (!error) {
+      return error;
     }
+
+    const errorString = String(error);
+    return errorString.replace(/Bearer\s+[^\s]+/g, "Bearer [REDACTED]");
   }
 
   /**
-   * Execute a command in the cloud environment with a specified timeout.
+   * Execute a command in the session environment.
    * Corresponds to Python's execute_command() method
    *
-   * @param command - The command to execute.
-   * @param timeoutMs - The timeout for the command execution in milliseconds. Default is 1000ms.
+   * @param command - The command to execute
+   * @param timeoutMs - The timeout in milliseconds. Default is 1000ms.
    * @returns CommandResult with command output and requestId
+   * @throws APIError if the operation fails.
    */
   async executeCommand(
     command: string,
@@ -154,17 +52,13 @@ export class Command {
         command,
         timeout_ms: timeoutMs,
       };
-
-      const result = await this.callMcpTool(
-        "shell",
-        args,
-        "Failed to execute command"
-      );
+      const result = await this.session.callMcpTool("shell", args);
 
       return {
-        requestId: result.requestId || "",
-        success: true,
-        output: result.textContent || "",
+        requestId: result.requestId,
+        success: result.success,
+        output: result.data,
+        errorMessage: result.errorMessage,
       };
     } catch (error) {
       return {
@@ -175,6 +69,4 @@ export class Command {
       };
     }
   }
-
-
 }

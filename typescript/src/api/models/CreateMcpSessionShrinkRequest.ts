@@ -10,6 +10,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
   labels?: string;
   persistenceDataListShrink?: string;
   sessionId?: string;
+  vpcResource?: boolean;
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
@@ -19,6 +20,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
       labels: 'Labels',
       persistenceDataListShrink: 'PersistenceDataList',
       sessionId: 'SessionId',
+      vpcResource: 'VpcResource',
     };
   }
 
@@ -31,6 +33,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
       labels: 'string',
       persistenceDataListShrink: 'string',
       sessionId: 'string',
+      vpcResource: 'boolean',
     };
   }
 

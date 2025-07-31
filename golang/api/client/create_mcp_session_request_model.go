@@ -23,6 +23,8 @@ type iCreateMcpSessionRequest interface {
 	GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList
 	SetSessionId(v string) *CreateMcpSessionRequest
 	GetSessionId() *string
+	SetVpcResource(v bool) *CreateMcpSessionRequest
+	GetVpcResource() *bool
 }
 
 type CreateMcpSessionRequest struct {
@@ -33,6 +35,7 @@ type CreateMcpSessionRequest struct {
 	Labels              *string                                       `json:"Labels,omitempty" xml:"Labels,omitempty"`
 	PersistenceDataList []*CreateMcpSessionRequestPersistenceDataList `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty" type:"Repeated"`
 	SessionId           *string                                       `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	VpcResource         *bool                                         `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
 }
 
 func (s CreateMcpSessionRequest) String() string {
@@ -71,6 +74,10 @@ func (s *CreateMcpSessionRequest) GetSessionId() *string {
 	return s.SessionId
 }
 
+func (s *CreateMcpSessionRequest) GetVpcResource() *bool {
+	return s.VpcResource
+}
+
 func (s *CreateMcpSessionRequest) SetAuthorization(v string) *CreateMcpSessionRequest {
 	s.Authorization = &v
 	return s
@@ -103,6 +110,11 @@ func (s *CreateMcpSessionRequest) SetPersistenceDataList(v []*CreateMcpSessionRe
 
 func (s *CreateMcpSessionRequest) SetSessionId(v string) *CreateMcpSessionRequest {
 	s.SessionId = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequest) SetVpcResource(v bool) *CreateMcpSessionRequest {
+	s.VpcResource = &v
 	return s
 }
 

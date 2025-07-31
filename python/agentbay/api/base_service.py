@@ -1,4 +1,5 @@
 import json
+import requests
 from typing import Any, Dict
 
 from agentbay.api.models import CallMcpToolRequest
@@ -35,6 +36,95 @@ class BaseService:
         """
         return e
 
+    def _call_mcp_tool_vpc(self, tool_name: str, args_json: str, default_error_msg: str) -> OperationResult:
+        """
+        Handle VPC-based MCP tool calls using HTTP requests.
+        
+        Args:
+            tool_name: Name of the tool to call
+            args_json: JSON string of arguments
+            default_error_msg: Default error message
+            
+        Returns:
+            OperationResult: The response from the tool
+        """
+        print(f"API Call: CallMcpTool (VPC) - {tool_name}")
+        print(f"Request: Args={args_json}")
+        
+        # Find server for this tool
+        server = self.session.find_server_for_tool(tool_name)
+        if not server:
+            return OperationResult(
+                request_id="",
+                success=False,
+                error_message=f"server not found for tool: {tool_name}"
+            )
+        
+        # Construct VPC URL with query parameters
+        base_url = f"http://{self.session.get_network_interface_ip()}:{self.session.get_http_port()}/callTool"
+        
+        # Prepare query parameters
+        params = {
+            'server': server,
+            'tool': tool_name,
+            'args': args_json,
+            'apiKey': self.session.get_api_key()
+        }
+        
+        # Set headers
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        try:
+            # Send HTTP request
+            response = requests.get(base_url, params=params, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            # Parse response
+            response_data = response.json()
+            print(f"Response from VPC CallMcpTool - {tool_name}:", response_data)
+            
+            # Extract the actual result from the nested VPC response structure
+            actual_result = None
+            if isinstance(response_data.get("data"), str):
+                try:
+                    data_map = json.loads(response_data["data"])
+                    if "result" in data_map:
+                        actual_result = data_map["result"]
+                except json.JSONDecodeError:
+                    pass
+            elif isinstance(response_data.get("data"), dict):
+                actual_result = response_data["data"]
+            
+            if actual_result is None:
+                actual_result = response_data
+            
+            # For VPC responses, we need to parse the content similar to non-VPC mode
+            # The actual_result contains the parsed response structure
+            if isinstance(actual_result, dict) and "content" in actual_result:
+                # Extract text from content array
+                content = actual_result.get("content", [])
+                if content and isinstance(content, list) and len(content) > 0:
+                    content_item = content[0]
+                    if isinstance(content_item, dict) and "text" in content_item:
+                        actual_result = content_item["text"]
+            
+            return OperationResult(
+                request_id="",  # VPC requests don't have traditional request IDs
+                success=True,
+                data=actual_result
+            )
+            
+        except requests.RequestException as e:
+            sanitized_error = self._sanitize_error(str(e))
+            print(f"Error calling VPC CallMcpTool - {tool_name}: {sanitized_error}")
+            return OperationResult(
+                request_id="",
+                success=False,
+                error_message=f"failed to call VPC {tool_name}: {e}"
+            )
+
     def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> OperationResult:
         """
         Internal helper to call MCP tool and handle errors.
@@ -48,6 +138,12 @@ class BaseService:
         """
         try:
             args_json = json.dumps(args, ensure_ascii=False)
+            
+            # Check if this is a VPC session
+            if self.session.is_vpc_enabled():
+                return self._call_mcp_tool_vpc(name, args_json, f"Failed to call {name}")
+            
+            # Non-VPC mode: use traditional API call
             request = CallMcpToolRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
@@ -99,6 +195,43 @@ class BaseService:
                 success=False,
                 error_message=f"Failed to call MCP tool {name}: {handled_error}",
             )
+
+    def _sanitize_error(self, error_str: str) -> str:
+        """
+        Sanitizes error messages to remove sensitive information like API keys.
+        
+        Args:
+            error_str (str): The error string to sanitize.
+            
+        Returns:
+            str: The sanitized error string.
+        """
+        import re
+        
+        if not error_str:
+            return error_str
+        
+        # Remove API key from URLs
+        # Pattern: apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        api_key_pattern = re.compile(r'apiKey=akm-[a-f0-9-]+')
+        error_str = api_key_pattern.sub('apiKey=***REDACTED***', error_str)
+        
+        # Remove API key from Bearer tokens
+        # Pattern: Bearer akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        bearer_pattern = re.compile(r'Bearer akm-[a-f0-9-]+')
+        error_str = bearer_pattern.sub('Bearer ***REDACTED***', error_str)
+        
+        # Remove API key from query parameters
+        # Pattern: &apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        query_pattern = re.compile(r'&apiKey=akm-[a-f0-9-]+')
+        error_str = query_pattern.sub('&apiKey=***REDACTED***', error_str)
+        
+        # Remove API key from URL paths
+        # Pattern: /callTool?apiKey=akm-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        url_pattern = re.compile(r'/callTool\?apiKey=akm-[a-f0-9-]+')
+        error_str = url_pattern.sub('/callTool?apiKey=***REDACTED***', error_str)
+        
+        return error_str
 
     def _parse_response_body(
         self, body: Dict[str, Any], parse_json: bool = False

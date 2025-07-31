@@ -1,10 +1,4 @@
-import { APIError } from "../exceptions";
-import { Session } from "../session";
-import { CallMcpToolRequest } from "../api/models/model";
-import * as $_client from "../api";
-import { log, logError } from "../utils/logger";
 import {
-  extractRequestId,
   BoolResult,
   FileInfoResult,
   DirectoryListResult,
@@ -36,48 +30,6 @@ export interface FileInfo {
 export interface DirectoryEntry {
   name: string;
   isDirectory: boolean;
-}
-
-// File operations that might contain large content
-const FILE_OPERATIONS: { [key: string]: boolean } = {
-  read_file: true,
-  write_file: true,
-  read_multiple_files: true,
-};
-
-/**
- * Checks if the tool operation is file-related and might contain large content
- *
- * @param toolName - Name of the MCP tool
- * @returns True if the operation is file-related
- */
-function isFileOperation(toolName: string): boolean {
-  return FILE_OPERATIONS[toolName] === true;
-}
-
-/**
- * Replaces large content with size information in JSON args for logging
- *
- * @param args - Arguments object to truncate
- * @returns Truncated arguments object for logging
- */
-function truncateContentForLogging(
-  args: Record<string, any>
-): Record<string, any> {
-  const truncatedArgs = { ...args };
-
-  // Check for content field and replace with length info
-  if (typeof truncatedArgs.content === "string") {
-    const contentLength = truncatedArgs.content.length;
-    truncatedArgs.content = `[Content length: ${contentLength} bytes]`;
-  }
-
-  // Check for paths array and log number of paths instead of all paths
-  if (Array.isArray(truncatedArgs.paths) && truncatedArgs.paths.length > 3) {
-    truncatedArgs.paths = `[${truncatedArgs.paths.length} paths, first few: ${truncatedArgs.paths[0]}, ${truncatedArgs.paths[1]}, ${truncatedArgs.paths[2]}, ...]`;
-  }
-
-  return truncatedArgs;
 }
 
 /**
@@ -166,183 +118,36 @@ function parseDirectoryListing(text: string): DirectoryEntry[] {
 }
 
 /**
- * Result object for a CallMcpTool operation
- */
-interface CallMcpToolResult {
-  data: Record<string, any>;
-  content?: any[];
-  textContent?: string;
-  isError: boolean;
-  errorMsg?: string;
-  statusCode: number;
-  requestId?: string;
-}
-
-/**
  * Handles file operations in the AgentBay cloud environment.
  */
 export class FileSystem {
-  private session: Session;
-  private client!: $_client.Client;
-  private baseUrl!: string;
+  private session: {
+    getAPIKey(): string;
+    getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
+  };
 
   /**
    * Initialize a FileSystem object.
    *
    * @param session - The Session instance that this FileSystem belongs to.
    */
-  constructor(session: Session) {
+  constructor(session: {
+    getAPIKey(): string;
+    getSessionId(): string;
+    callMcpTool(toolName: string, args: any): Promise<{
+      success: boolean;
+      data: string;
+      errorMessage: string;
+      requestId: string;
+    }>;
+  }) {
     this.session = session;
-  }
-
-  /**
-   * Helper method to call MCP tools and handle common response processing
-   *
-   * @param toolName - Name of the MCP tool to call
-   * @param args - Arguments to pass to the tool
-   * @param defaultErrorMsg - Default error message if specific error details are not available
-   * @returns A CallMcpToolResult with the response data
-   * @throws APIError if the call fails
-   */
-  private async callMcpTool(
-    toolName: string,
-    args: Record<string, any>,
-    defaultErrorMsg: string
-  ): Promise<CallMcpToolResult> {
-    try {
-      // Handle logging differently based on operation type
-      let loggableArgs = args;
-      if (isFileOperation(toolName)) {
-        // For file operations, truncate content for logging
-        loggableArgs = truncateContentForLogging(args);
-      }
-
-      const argsJSON = JSON.stringify(args);
-      const loggableArgsJSON = JSON.stringify(loggableArgs);
-
-      const callToolRequest = new CallMcpToolRequest({
-        authorization: `Bearer ${this.session.getAPIKey()}`,
-        sessionId: this.session.getSessionId(),
-        name: toolName,
-        args: argsJSON,
-      });
-
-      // Log API request
-      log(`API Call: CallMcpTool - ${toolName}`);
-      log(
-        `Request: SessionId=${this.session.getSessionId()}, Args=${loggableArgsJSON}`
-      );
-
-      const response = await this.session
-        .getClient()
-        .callMcpTool(callToolRequest);
-
-      // Log API response differently based on operation type
-      if (isFileOperation(toolName)) {
-        // Log content size for file operations instead of full content
-        log(
-          `Response from CallMcpTool - ${toolName} - status: ${response.statusCode}`
-        );
-
-        // Log only relevant response information without content
-        if (response.body?.data) {
-          const data = response.body.data as Record<string, any>;
-          if (data.isError === true) {
-            log(`Response contains error: ${data.isError}`);
-          } else {
-            // For successful responses, don't log the content at all
-            log("Response successful, content length info provided separately");
-
-            // If there's content, log its size instead of the actual content
-            if (Array.isArray(data.content) && data.content.length > 0) {
-              let totalSize = 0;
-              for (const item of data.content) {
-                if (
-                  item &&
-                  typeof item === "object" &&
-                  item.text &&
-                  typeof item.text === "string"
-                ) {
-                  totalSize += item.text.length;
-                }
-              }
-              log(`Content size: ${totalSize} bytes`);
-            }
-          }
-        }
-      } else {
-        // For non-file operations, create a sanitized version of the response body
-        // that doesn't include large content fields
-        const sanitizedBody = { ...response.body };
-        if (sanitizedBody.data && typeof sanitizedBody.data === "object") {
-          const sanitizedData = { ...sanitizedBody.data };
-          if (Array.isArray(sanitizedData.content)) {
-            sanitizedData.content = `[Array with ${sanitizedData.content.length} items]`;
-          }
-          sanitizedBody.data = sanitizedData;
-        }
-        log(`Response from CallMcpTool - ${toolName}:`, sanitizedBody);
-      }
-
-      if (!response.body?.data) {
-        throw new Error("Invalid response data format");
-      }
-
-      // Extract data from response
-      const data = response.body.data as Record<string, any>;
-
-      // Create result object
-      const result: CallMcpToolResult = {
-        data,
-        statusCode: response.statusCode || 0,
-        isError: false,
-        requestId: extractRequestId(response),
-      };
-
-      // Check if there's an error in the response
-      if (data.isError === true) {
-        result.isError = true;
-
-        // Try to extract the error message from the content field
-        const contentArray = data.content as any[] | undefined;
-        if (contentArray && contentArray.length > 0) {
-          result.content = contentArray;
-
-          // Extract error message from the first content item
-          if (contentArray[0]?.text) {
-            result.errorMsg = contentArray[0].text;
-            throw new Error(contentArray[0].text);
-          }
-        }
-        throw new Error(defaultErrorMsg);
-      }
-
-      // Extract content array if it exists
-      if (Array.isArray(data.content)) {
-        result.content = data.content;
-
-        // Extract textContent from content items
-        if (result.content.length > 0) {
-          const textParts: string[] = [];
-          for (const item of result.content) {
-            if (
-              item &&
-              typeof item === "object" &&
-              item.text &&
-              typeof item.text === "string"
-            ) {
-              textParts.push(item.text);
-            }
-          }
-          result.textContent = textParts.join("\n");
-        }
-      }
-
-      return result;
-    } catch (error) {
-      logError(`Error calling CallMcpTool - ${toolName}:`, error);
-      throw new APIError(`Failed to call ${toolName}: ${error}`);
-    }
   }
 
   /**
@@ -358,14 +163,21 @@ export class FileSystem {
         path,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "create_directory",
-        args,
-        "Failed to create directory"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: true,
       };
@@ -399,14 +211,21 @@ export class FileSystem {
         dryRun,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "edit_file",
-        args,
-        "Failed to edit file"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: true,
       };
@@ -432,26 +251,34 @@ export class FileSystem {
         path,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "get_file_info",
-        args,
-        "Failed to get file info"
+        args
       );
 
-      // Parse and return the file info
-      if (!result.textContent) {
+      if (!result.success) {
         return {
-          requestId: result.requestId || "",
+          requestId: result.requestId,
+          success: false,
+          fileInfo: {},
+          errorMessage: result.errorMessage,
+        };
+      }
+
+      // Parse and return the file info
+      if (!result.data) {
+        return {
+          requestId: result.requestId,
           success: false,
           fileInfo: {},
           errorMessage: "Empty response from get_file_info",
         };
       }
 
-      const fileInfo = parseFileInfo(result.textContent);
+      const fileInfo = parseFileInfo(result.data);
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         fileInfo,
       };
@@ -477,19 +304,27 @@ export class FileSystem {
         path,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "list_directory",
-        args,
-        "Failed to list directory"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          entries: [],
+          errorMessage: result.errorMessage,
+        };
+      }
+
       // Parse the text content into directory entries
-      const entries = result.textContent
-        ? parseDirectoryListing(result.textContent)
+      const entries = result.data
+        ? parseDirectoryListing(result.data)
         : [];
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         entries,
       };
@@ -518,14 +353,21 @@ export class FileSystem {
         destination,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "move_file",
-        args,
-        "Failed to move file"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: true,
       };
@@ -543,8 +385,8 @@ export class FileSystem {
    * Corresponds to Python's read_file() method
    *
    * @param path - Path to the file to read.
-   * @param offset - Optional: Line offset to start reading from.
-   * @param length - Optional: Number of lines to read. If 0, reads the entire file.
+   * @param offset - Optional: Byte offset to start reading from (0-based).
+   * @param length - Optional: Number of bytes to read. If 0, reads the entire file from offset.
    * @returns FileContentResult with file content and requestId
    */
   async readFile(
@@ -553,7 +395,7 @@ export class FileSystem {
     length = 0
   ): Promise<FileContentResult> {
     try {
-      const args: Record<string, any> = {
+      const args: any = {
         path,
       };
 
@@ -565,16 +407,24 @@ export class FileSystem {
         args.length = length;
       }
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "read_file",
-        args,
-        "Failed to read file"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          content: "",
+          errorMessage: result.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
-        content: result.textContent || "",
+        content: result.data || "",
       };
     } catch (error) {
       return {
@@ -599,17 +449,25 @@ export class FileSystem {
         paths,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "read_multiple_files",
-        args,
-        "Failed to read multiple files"
+        args
       );
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          contents: {},
+          errorMessage: result.errorMessage,
+        };
+      }
 
       const fileContents: Record<string, string> = {};
 
-      if (result.textContent) {
+      if (result.data) {
         // Parse the response into a map of file paths to contents
-        const lines = result.textContent.split("\n");
+        const lines = result.data.split("\n");
         let currentPath = "";
         let currentContent: string[] = [];
 
@@ -659,7 +517,7 @@ export class FileSystem {
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         contents: fileContents,
       };
@@ -688,33 +546,41 @@ export class FileSystem {
     excludePatterns: string[] = []
   ): Promise<FileSearchResult> {
     try {
-      const args: Record<string, any> = {
+      const args: any = {
         path,
         pattern,
       };
 
       if (excludePatterns.length > 0) {
-        args.exclude_patterns = excludePatterns;
+        args.excludePatterns = excludePatterns;
       }
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "search_files",
-        args,
-        "Failed to search files"
+        args
       );
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          matches: [],
+          errorMessage: result.errorMessage,
+        };
+      }
 
       // Parse the text content into search results
       let searchResults: string[] = [];
-      if (result.textContent) {
+      if (result.data) {
         // Split by newlines and filter out empty lines
-        searchResults = result.textContent
+        searchResults = result.data
           .split("\n")
           .map((line) => line.trim())
           .filter((line) => line !== "");
       }
 
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         matches: searchResults,
       };
@@ -761,14 +627,21 @@ export class FileSystem {
         mode,
       };
 
-      const result = await this.callMcpTool(
+      const result = await this.session.callMcpTool(
         "write_file",
-        args,
-        "Failed to write file"
+        args
       );
 
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
+
       return {
-        requestId: result.requestId || "",
+        requestId: result.requestId,
         success: true,
         data: true,
       };
@@ -832,22 +705,12 @@ export class FileSystem {
       let offset = 0;
       let chunkCount = 0;
 
-      log(
-        `ReadLargeFile: Starting chunked read of ${path} (total size: ${fileSize} bytes, chunk size: ${chunkSize} bytes)`
-      );
-
       while (offset < fileSize) {
         // Calculate how much to read in this chunk
         let length = chunkSize;
         if (offset + length > fileSize) {
           length = fileSize - offset;
         }
-
-        log(
-          `ReadLargeFile: Reading chunk ${
-            chunkCount + 1
-          } (${length} bytes at offset ${offset}/${fileSize})`
-        );
 
         try {
           // Read the chunk
@@ -864,7 +727,6 @@ export class FileSystem {
           offset += length;
           chunkCount++;
         } catch (error) {
-          logError(`Error reading chunk at offset ${offset}: ${error}`);
           return {
             requestId: fileInfoResult.requestId,
             success: false,
@@ -873,10 +735,6 @@ export class FileSystem {
           };
         }
       }
-
-      log(
-        `ReadLargeFile: Successfully read ${path} in ${chunkCount} chunks (total: ${fileSize} bytes)`
-      );
 
       return {
         requestId: fileInfoResult.requestId,
@@ -910,24 +768,14 @@ export class FileSystem {
     try {
       const contentLen = content.length;
 
-      log(
-        `WriteLargeFile: Starting chunked write to ${path} (total size: ${contentLen} bytes, chunk size: ${chunkSize} bytes)`
-      );
-
       // If content is small enough, use the regular WriteFile method
       if (contentLen <= chunkSize) {
-        log(
-          `WriteLargeFile: Content size (${contentLen} bytes) is smaller than chunk size, using normal WriteFile`
-        );
         return await this.writeFile(path, content, "overwrite");
       }
 
       // Write the first chunk with "overwrite" mode to create/clear the file
       const firstChunkEnd = Math.min(chunkSize, contentLen);
 
-      log(
-        `WriteLargeFile: Writing first chunk (0-${firstChunkEnd} bytes) with overwrite mode`
-      );
       const firstResult = await this.writeFile(
         path,
         content.substring(0, firstChunkEnd),
@@ -943,11 +791,6 @@ export class FileSystem {
       for (let offset = firstChunkEnd; offset < contentLen; ) {
         const end = Math.min(offset + chunkSize, contentLen);
 
-        log(
-          `WriteLargeFile: Writing chunk ${
-            chunkCount + 1
-          } (${offset}-${end} bytes) with append mode`
-        );
         const chunkResult = await this.writeFile(
           path,
           content.substring(offset, end),
@@ -961,10 +804,6 @@ export class FileSystem {
         offset = end;
         chunkCount++;
       }
-
-      log(
-        `WriteLargeFile: Successfully wrote ${path} in ${chunkCount} chunks (total: ${contentLen} bytes)`
-      );
 
       return {
         requestId: firstResult.requestId,
