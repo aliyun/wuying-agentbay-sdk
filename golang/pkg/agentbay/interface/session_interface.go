@@ -22,7 +22,7 @@ type SessionInterface interface {
 	Delete(syncContext ...bool) (*agentbay.DeleteResult, error)
 
 	// SetLabels sets the labels for this session
-	SetLabels(labels string) (*agentbay.LabelResult, error)
+	SetLabels(labels map[string]string) (*agentbay.LabelResult, error)
 
 	// GetLabels gets the labels for this session
 	GetLabels() (*agentbay.LabelResult, error)
