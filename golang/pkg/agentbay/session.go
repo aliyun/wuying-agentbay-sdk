@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"math/rand"
@@ -299,11 +300,61 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	}, nil
 }
 
+// validateLabels validates labels parameter for label operations.
+// Returns error message if validation fails, empty string if validation passes
+func (s *Session) validateLabels(labels map[string]string) string {
+	// Check if labels is nil
+	if labels == nil {
+		return "Labels cannot be nil. Please provide a valid labels map."
+	}
+
+	// Check if labels map is empty
+	if len(labels) == 0 {
+		return "Labels cannot be empty. Please provide at least one label."
+	}
+
+	for key, value := range labels {
+		// Check key validity
+		if key == "" || len(strings.TrimSpace(key)) == 0 {
+			return "Label keys cannot be empty. Please provide valid keys."
+		}
+
+		// Check value validity
+		if value == "" || len(strings.TrimSpace(value)) == 0 {
+			return "Label values cannot be empty. Please provide valid values."
+		}
+	}
+
+	// Validation passed
+	return ""
+}
+
 // SetLabels sets the labels for this session.
-func (s *Session) SetLabels(labels string) (*LabelResult, error) {
+func (s *Session) SetLabels(labels map[string]string) (*LabelResult, error) {
+	// Validate labels using the validation function
+	if validationError := s.validateLabels(labels); validationError != "" {
+		return &LabelResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: "",
+			},
+			Labels: "",
+		}, fmt.Errorf(validationError)
+	}
+
+	// Convert labels to JSON string
+	labelsJSON, err := json.Marshal(labels)
+	if err != nil {
+		return &LabelResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: "",
+			},
+			Labels: "",
+		}, fmt.Errorf("failed to marshal labels to JSON: %v", err)
+	}
+
 	setLabelRequest := &mcp.SetLabelRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
-		Labels:        tea.String(labels),
+		Labels:        tea.String(string(labelsJSON)),
 		SessionId:     tea.String(s.SessionID),
 	}
 
@@ -330,7 +381,7 @@ func (s *Session) SetLabels(labels string) (*LabelResult, error) {
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Labels: labels,
+		Labels: string(labelsJSON),
 	}, nil
 }
 
