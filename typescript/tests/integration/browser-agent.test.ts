@@ -1,5 +1,5 @@
 // Browser agent integration tests
-const { AgentBay, Browser, BrowserAgent, log } = require('../../dist/index.cjs');
+import { AgentBay, Browser, BrowserAgent, log } from '../../src';
 
 function getTestApiKey() {
   const apiKey = process.env.AGENTBAY_API_KEY;
@@ -11,8 +11,8 @@ function getTestApiKey() {
 }
 
 describe('BrowserAgent Integration Tests', () => {
-  let agentBay;
-  let session;
+  let agentBay: AgentBay;
+  let session: any;
 
   beforeEach(async () => {
     const apiKey = getTestApiKey();
@@ -29,7 +29,7 @@ describe('BrowserAgent Integration Tests', () => {
     
     if (!result.success) {
       log("⚠️ Session creation failed - probably due to resource limitations");
-      log("Result data:", result.data || result);
+      log("Result data:", result.errorMessage || result);
       session = null; // Mark as failed
       return;
     }
@@ -82,7 +82,7 @@ describe('BrowserAgent Integration Tests', () => {
       const endpointUrl = await browser.getEndpointUrl();
       log("endpoint_url data:", endpointUrl.data || endpointUrl);
       expect(endpointUrl).toBeDefined();
-    } catch (error) {
+    } catch (error: any) {
       log("Expected: Getting endpoint URL might fail in test environment:", error.message);
     }
   }, 30000);
@@ -112,7 +112,7 @@ describe('BrowserAgent Integration Tests', () => {
       const result = await browser.agent.act(mockPage, { action: "Click search button" });
       log("Act result data:", result.data || result);
       expect(result).toBeDefined();
-    } catch (error) {
+    } catch (error: any) {
       log("Expected: Act operation might fail without real page:", error.message);
     }
 
@@ -123,16 +123,14 @@ describe('BrowserAgent Integration Tests', () => {
       log("Observe results count:", observeResults.length);
       expect(typeof success).toBe('boolean');
       expect(Array.isArray(observeResults)).toBe(true);
-    } catch (error) {
+    } catch (error: any) {
       log("Expected: Observe operation might fail without real page:", error.message);
     }
 
     // Test extract operation
     try {
       class TestSchema {
-        constructor() {
-          this.title = "";
-        }
+        title: string = "";
       }
 
       const [success, objects] = await browser.agent.extract(mockPage, { 
@@ -144,8 +142,8 @@ describe('BrowserAgent Integration Tests', () => {
       log("Extract objects count:", objects.length);
       expect(typeof success).toBe('boolean');
       expect(Array.isArray(objects)).toBe(true);
-    } catch (error) {
+    } catch (error: any) {
       log("Expected: Extract operation might fail without real page:", error.message);
     }
   }, 60000);
-}); 
+});

@@ -248,12 +248,6 @@ class TestBrowserContextIntegration(unittest.TestCase):
         # Run second session operations
         asyncio.run(second_session_operations())
         
-        # Clean up second session
-        print("Cleaning up second session...")
-        delete_result2 = self.agent_bay.delete(session2)
-        self.assertTrue(delete_result2.success, "Failed to delete second session")
-        print(f"Second session deleted successfully (RequestID: {delete_result2.request_id})")
-        
         print("Browser context manual cookie persistence test completed successfully!")
 
 

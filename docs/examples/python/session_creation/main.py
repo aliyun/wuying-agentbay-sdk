@@ -8,7 +8,7 @@ from typing import Dict, Optional
 
 from agentbay import AgentBay
 from agentbay.context_sync import ContextSync, SyncPolicy
-from agentbay.session_params import CreateSessionParams
+from agentbay.session_params import CreateSessionParams, BrowserContext
 
 
 def create_session_with_default_params() -> None:
@@ -161,6 +161,50 @@ def create_session_with_context_sync() -> None:
         print(f"Failed to get or create context: {context_result.error_message}")
 
 
+def create_session_with_browser_context() -> None:
+    """Create a session with browser context for cookie persistence."""
+    # Initialize the AgentBay client
+    api_key = os.environ.get("AGENTBAY_API_KEY", "")
+    agent_bay = AgentBay(api_key=api_key)
+
+    # Create or get a persistent context for browser data
+    context_result = agent_bay.context.get("example-browser-context", create=True)
+
+    if context_result.success and context_result.context:
+        context = context_result.context
+        print(f"Using browser context with ID: {context.id}")
+
+        # Create a Browser Context configuration
+        browser_context = BrowserContext(
+            context_id=context.id,
+            auto_upload=True  # Automatically upload browser data when session ends
+        )
+
+        # Create session parameters with Browser Context
+        session_params = CreateSessionParams(
+            image_id="imgc-wucyOiPmeV2Z753lq",  # Browser image ID required
+            browser_context=browser_context
+        )
+        session_result = agent_bay.create(session_params)
+
+        if session_result.success and session_result.session:
+            session = session_result.session
+            print(f"Session with browser context created successfully with ID: {session.session_id}")
+            print(f"Request ID: {session_result.request_id}")
+            print("Browser context will persist cookies and other browser data across sessions")
+
+            # Clean up with context synchronization (important for browser data)
+            delete_result = agent_bay.delete(session, sync_context=True)
+            if delete_result.success:
+                print("Session deleted successfully with context synchronization")
+            else:
+                print(f"Failed to delete session: {delete_result.error_message}")
+        else:
+            print(f"Failed to create session with browser context: {session_result.error_message}")
+    else:
+        print(f"Failed to get or create browser context: {context_result.error_message}")
+
+
 def main() -> None:
     """Run all examples."""
     print("1. Creating session with default parameters...")
@@ -171,6 +215,8 @@ def main() -> None:
     create_session_with_context()
     print("\n4. Creating session with context synchronization...")
     create_session_with_context_sync()
+    print("\n5. Creating session with browser context...")
+    create_session_with_browser_context()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,100 @@
 
 All notable changes to the Wuying AgentBay SDK will be documented in this file.
 
+## [0.5.0] - TBD
+
+### Added
+
+- **Browser Automation & AI Browser**: Comprehensive browser automation capabilities with AI-powered interactions
+  - AIBrowser interface with Playwright integration
+  - Browser Context for persistent data across sessions (cookies, local storage, session storage)
+  - Browser Agent with natural language operations (Act, Observe, Extract)
+  - Support for complex web automation tasks through Agent module integration
+- **VPC Session Support**: Enhanced security and networking capabilities
+  - VPC-based session creation with `is_vpc` parameter
+  - Specialized system tools (get_resource, system_screenshot, release_resource)
+  - Browser tools availability in VPC sessions (cdp, pageuse-mcp-server, playwright)
+  - Network isolation for sensitive operations
+- **Agent Module**: AI-powered task execution framework
+  - Natural language task execution with `ExecuteTask()` method
+  - Task status monitoring and management
+  - Task termination capabilities
+  - Integration with browser automation for complex web operations
+- **Unified MCP Tool Interface**: Standardized tool calling mechanism across all modules
+  - `CallMcpTool()` method for unified tool invocation
+  - Support for both VPC and non-VPC tool calling patterns
+  - Automatic server discovery for tools
+  - Enhanced error handling and debugging capabilities
+- **Comprehensive Interface Architecture**: Complete interface definitions for better modularity
+  - FileSystemInterface, SessionInterface, WindowInterface, ApplicationInterface
+  - CommandInterface, CodeInterface, UIInterface, OSSInterface
+  - AgentBayInterface for main client operations
+  - Mock generation support for all interfaces
+- **Enhanced Context Management**: Improved context synchronization and pagination
+  - Context list pagination with `ListContexts` API
+  - Enhanced context binding and persistence
+  - Better error handling for context operations
+- **Quality Assurance Infrastructure**: Automated quality check scripts for all languages
+  - One-click quality check scripts (`quality-check.sh`) for Python, TypeScript, and Golang
+  - Comprehensive linting, formatting, and security scanning
+  - Automated unit and integration testing
+  - CI/CD integration support
+- **Documentation & Examples**: Comprehensive documentation and example improvements
+  - Agent module documentation and examples for all languages
+  - VPC session tutorials and API reference
+  - Browser automation architecture documentation
+  - AI-powered web interactions tutorial
+  - Updated API reference with new modules and interfaces
+
+### Changed
+
+- **Architecture Refactoring**: Major structural improvements for better maintainability
+  - Interfaces-first design with dependency injection
+  - Removal of circular dependencies between modules
+  - Unified MCP tool calling across all components
+- **Session Management**: Enhanced session capabilities and VPC support
+  - VPC session detection and handling
+  - Network interface IP and HTTP port management for VPC sessions
+  - Improved session lifecycle management
+- **Error Handling**: Improved error handling and logging across all SDKs
+  - Better error messages for VPC configuration issues
+  - Enhanced debugging information with request IDs
+  - Sanitized error reporting for security
+- **Testing Infrastructure**: Significantly expanded test coverage
+  - Comprehensive unit tests for all modules
+  - Integration tests for VPC sessions and browser automation
+  - API-level comprehensive testing for command and filesystem operations
+- **Module Separation**: Code execution moved from Command to dedicated Code module
+  - `RunCode` method moved from Command module to Code module
+  - Clear separation of concerns between shell commands and code execution
+  - Improved API consistency across all language implementations
+
+### Fixed
+
+- **VPC Session Compatibility**: Fixed issues with VPC-based tool calling
+  - Proper HTTP endpoint construction for VPC sessions
+  - Network configuration validation
+  - Server discovery for VPC environments
+- **Browser Context Persistence**: Fixed browser data persistence across sessions
+  - Cookie synchronization improvements
+  - Context cleanup on session termination
+  - Resource management for browser instances
+- **Interface Consistency**: Fixed inconsistencies across language implementations
+  - Standardized method signatures across Python, TypeScript, and Golang
+  - Consistent error handling patterns
+  - Unified response structures
+
+### Security
+
+- **Enhanced Security Scanning**: Improved security measures across all SDKs
+  - Dependency vulnerability scanning with pip-audit, npm audit, and govulncheck
+  - Code security analysis with bandit, snyk, and gosec
+  - Secure credential handling for VPC sessions
+- **Network Isolation**: VPC sessions provide enhanced security through network isolation
+  - Private network environments for sensitive operations
+  - Controlled access policies
+  - Secure resource access patterns
+
 ## [0.4.0] - 2025-07-18
 
 ### Added
