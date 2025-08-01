@@ -338,7 +338,7 @@ func (s *Session) SetLabels(labels map[string]string) (*LabelResult, error) {
 				RequestID: "",
 			},
 			Labels: "",
-		}, fmt.Errorf(validationError)
+		}, fmt.Errorf("%s", validationError)
 	}
 
 	// Convert labels to JSON string
