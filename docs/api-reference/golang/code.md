@@ -21,6 +21,9 @@ RunCode(code string, language string, timeoutS ...int) (*CodeResult, error)
 - `*CodeResult`: A result object containing the execution output and request ID.
 - `error`: An error object if the operation fails.
 
+**Important Note:**
+The `RunCode` method requires a session created with the `code_latest` image to function properly. If you encounter errors indicating that the tool is not found, make sure to create your session with `ImageId: "code_latest"` in the `CreateSessionParams`.
+
 **Usage Example:**
 
 ```go
@@ -41,8 +44,11 @@ func main() {
         os.Exit(1)
     }
 
-    // Create a session
-    sessionResult, err := client.Create(nil)
+    // Create a session with code_latest image
+    params := &agentbay.CreateSessionParams{
+        ImageId: "code_latest",
+    }
+    sessionResult, err := client.Create(params)
     if err != nil {
         fmt.Printf("Error creating session: %v\n", err)
         os.Exit(1)

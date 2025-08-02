@@ -20,18 +20,23 @@ run_code(code: str, language: str, timeout_s: int = 300) -> CodeExecutionResult
 **Returns:**
 - `CodeExecutionResult`: A result object containing success status, execution result, error message if any, and request ID.
 
+**Important Note:**
+The `run_code` method requires a session created with the `code_latest` image to function properly. If you encounter errors indicating that the tool is not found, make sure to create your session with `image_id="code_latest"` in the `CreateSessionParams`.
+
 **Usage Example:**
 
 ```python
 import os
 from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
 
 # Initialize AgentBay with API key
 api_key = os.getenv("AGENTBAY_API_KEY")
 agent_bay = AgentBay(api_key=api_key)
 
-# Create a session
-session_result = agent_bay.create()
+# Create a session with code_latest image
+params = CreateSessionParams(image_id="code_latest")
+session_result = agent_bay.create(params)
 if session_result.success:
     session = session_result.session
 else:

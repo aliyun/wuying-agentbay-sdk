@@ -20,6 +20,9 @@ runCode(code: string, language: string, timeoutS: number = 300): Promise<CodeExe
 **Returns:**
 - `Promise<CodeExecutionResult>`: A promise that resolves to a result object containing success status, execution result, error message if any, and request ID.
 
+**Important Note:**
+The `runCode` method requires a session created with the `code_latest` image to function properly. If you encounter errors indicating that the tool is not found, make sure to create your session with `imageId: "code_latest"` in the session creation parameters.
+
 **Usage Example:**
 
 ```typescript
@@ -30,8 +33,10 @@ async function main() {
     const apiKey = process.env.AGENTBAY_API_KEY!;
     const agentBay = new AgentBay({ apiKey });
 
-    // Create a session
-    const sessionResult = await agentBay.create();
+    // Create a session with code_latest image
+    const sessionResult = await agentBay.create({
+        imageId: "code_latest"
+    });
     if (!sessionResult.success) {
         console.error(`Failed to create session: ${sessionResult.errorMessage}`);
         return;
