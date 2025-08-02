@@ -354,6 +354,10 @@ deleteResult, err := session.Delete(true)
 
 ## Related Resources
 
-- [Context API Reference](../api-reference/context.md)
-- [Context Manager API Reference](../api-reference/context-manager.md)
+- [Context API Reference (Python)](../api-reference/python/context.md)
+- [Context API Reference (TypeScript)](../api-reference/typescript/context.md)
+- [Context API Reference (Golang)](../api-reference/golang/context.md)
+- [Context Manager API Reference (Python)](../api-reference/python/context-manager.md)
+- [Context Manager API Reference (TypeScript)](../api-reference/typescript/context-manager.md)
+- [Context Manager API Reference (Golang)](../api-reference/golang/context-manager.md)
 - [Session Management Tutorial](session-management.md) 

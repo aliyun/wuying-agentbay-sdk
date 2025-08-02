@@ -358,5 +358,7 @@ agent_bay.delete(session)
 
 ## Related Resources
 
-- [API Reference: Window](../api-reference/window.md)
+- [API Reference: Window (Python)](../api-reference/python/window.md)
+- [API Reference: Window (TypeScript)](../api-reference/typescript/window.md)
+- [API Reference: Window (Golang)](../api-reference/golang/window.md)
 - [Examples: Window Operations](../examples/python/application_window) 

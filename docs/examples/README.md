@@ -6,7 +6,7 @@ This directory contains code examples demonstrating how to use the AgentBay SDK 
 
 - [Basic Usage](python/basic_usage.py): Simple introduction to the SDK with session creation and command execution
 - [Session Creation](python/session_creation): Creating sessions with different parameters
-- [File System Operations](python/file_system): Working with files and directories
+- [File System Operations](python/file_system/README.md): Working with files and directories
 - [Context Management](python/context_management): Managing persistent contexts
 - [Label Management](python/label_management): Working with session labels
 - [Mobile System](python/mobile_system): Mobile-specific features

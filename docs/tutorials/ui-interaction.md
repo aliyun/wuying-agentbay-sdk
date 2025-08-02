@@ -366,5 +366,7 @@ agent_bay.delete(session)
 
 ## Related Resources
 
-- [API Reference: UI](../api-reference/ui.md)
+- [API Reference: UI (Python)](../api-reference/python/ui.md)
+- [API Reference: UI (TypeScript)](../api-reference/typescript/ui.md)
+- [API Reference: UI (Golang)](../api-reference/golang/ui.md)
 - [Examples: UI Interaction](../examples/python/ui_example) 

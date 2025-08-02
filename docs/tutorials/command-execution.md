@@ -153,6 +153,8 @@ print(f"Command output: {result.output}")
 
 ## Related Resources
 
-- [API Reference: Command](../api-reference/command.md)
+- [API Reference: Command (Python)](../api-reference/python/command.md)
+- [API Reference: Command (TypeScript)](../api-reference/typescript/command.md)
+- [API Reference: Command (Golang)](../api-reference/golang/command.md)
 - [Examples: Command Execution](../examples/python/command-example)
 - [Code Execution Tutorial](code-execution.md): Learn how to run Python and JavaScript code 

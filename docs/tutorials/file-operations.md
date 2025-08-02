@@ -422,5 +422,7 @@ agent_bay.delete(session)
 
 ## Related Resources
 
-- [API Reference: FileSystem](../api-reference/filesystem.md)
+- [API Reference: FileSystem (Python)](../api-reference/python/filesystem.md)
+- [API Reference: FileSystem (TypeScript)](../api-reference/typescript/filesystem.md)
+- [API Reference: FileSystem (Golang)](../api-reference/golang/filesystem.md)
 - [Examples: File System Operations](../examples/python/file_system) 

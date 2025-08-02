@@ -56,8 +56,8 @@ Code examples for different languages:
 - [Python Examples](examples/python): Basic usage, session creation, file operations, context management, and more
 - [TypeScript Examples](examples/typescript): Basic usage, session creation, context management, command execution, and more 
 - [Golang Examples](examples/golang): Basic usage, session creation, context management, command execution, and more
-- [Agent Module Examples](examples/agent-module.md): Examples of using the new Agent module for AI-powered task execution
-- [VPC Sessions Examples](examples/vpc-sessions.md): Examples of creating and using VPC sessions
+- [Agent Module Examples](examples/python/agent_module/README.md): Examples of using the new Agent module for AI-powered task execution
+- [VPC Sessions Examples](examples/python/vpc_session/README.md): Examples of creating and using VPC sessions
 
 ## Architecture Documentation
 

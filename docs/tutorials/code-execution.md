@@ -261,5 +261,7 @@ print(f"Code execution result:\n{result.result}")
 
 ## Related Resources
 
-- [API Reference: Command](../api-reference/command.md)
+- [API Reference: Command (Python)](../api-reference/python/command.md)
+- [API Reference: Command (TypeScript)](../api-reference/typescript/command.md)
+- [API Reference: Command (Golang)](../api-reference/golang/command.md)
 - [Command Execution Tutorial](command-execution.md): Learn how to execute shell commands 

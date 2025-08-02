@@ -412,5 +412,7 @@ else:
 
 ## Related Resources
 
-- [API Reference: OSS](../api-reference/oss.md)
+- [API Reference: OSS (Python)](../api-reference/python/oss.md)
+- [API Reference: OSS (TypeScript)](../api-reference/typescript/oss.md)
+- [API Reference: OSS (Golang)](../api-reference/golang/oss.md)
 - [Examples: OSS Management](../examples/python/oss_management) 

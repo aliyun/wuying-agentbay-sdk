@@ -10,11 +10,18 @@ sessionId  // The ID of this session
 resourceUrl  // The URL of the resource associated with this session
 fileSystem  // The FileSystem instance for this session
 command  // The Command instance for this session
+code  // The Code instance for this session
 oss  // The Oss instance for this session
 application  // The Application instance for this session
 window  // The WindowManager instance for this session
 ui  // The UI instance for this session
 context  // The ContextManager instance for this session
+browser  // The Browser instance for this session
+agent  // The Agent instance for this session
+isVpc  // Whether this session uses VPC resources
+networkInterfaceIp  // Network interface IP for VPC sessions
+httpPort  // HTTP port for VPC sessions
+mcpTools  // MCP tools available for this session
 ```
 
 ## Methods

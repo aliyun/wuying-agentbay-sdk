@@ -435,5 +435,7 @@ else:
 
 ## Related Resources
 
-- [API Reference: Application](../api-reference/application.md)
+- [API Reference: Application (Python)](../api-reference/python/application.md)
+- [API Reference: Application (TypeScript)](../api-reference/typescript/application.md)
+- [API Reference: Application (Golang)](../api-reference/golang/application.md)
 - [Examples: Application Management](../examples/python/application_window) 

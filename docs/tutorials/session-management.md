@@ -530,6 +530,10 @@ func main() {
 
 ## Related Resources
 
-- [API Reference: AgentBay](../api-reference/agentbay.md)
-- [API Reference: Session](../api-reference/session.md)
+- [API Reference: AgentBay (Python)](../api-reference/python/agentbay.md)
+- [API Reference: AgentBay (TypeScript)](../api-reference/typescript/agentbay.md)
+- [API Reference: AgentBay (Golang)](../api-reference/golang/agentbay.md)
+- [API Reference: Session (Python)](../api-reference/python/session.md)
+- [API Reference: Session (TypeScript)](../api-reference/typescript/session.md)
+- [API Reference: Session (Golang)](../api-reference/golang/session.md)
 - [Examples: Session Creation](../examples/python/session-creation) 

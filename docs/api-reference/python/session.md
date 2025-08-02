@@ -10,11 +10,18 @@ session_id  # The ID of this session
 resource_url  # The URL of the resource associated with this session
 file_system  # The FileSystem instance for this session
 command  # The Command instance for this session
+code  # The Code instance for this session
 oss  # The Oss instance for this session
 application  # The ApplicationManager instance for this session
 window  # The WindowManager instance for this session
 ui  # The UI instance for this session
 context  # The ContextManager instance for this session
+browser  # The Browser instance for this session
+agent  # The Agent instance for this session
+is_vpc  # Whether this session uses VPC resources
+network_interface_ip  # Network interface IP for VPC sessions
+http_port  # HTTP port for VPC sessions
+mcp_tools  # MCP tools available for this session
 ```
 
 ## Methods
@@ -35,10 +42,10 @@ delete(sync_context: bool = False) -> DeleteResult
 
 **Behavior:**
 - When `sync_context` is True, the API will first call `context.sync` to trigger file upload.
-- It will then check `context.info` to retrieve ContextStatusData and monitor all data items' Status.
-- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
-- Any "Failed" status items will have their error messages printed.
-- The session deletion only proceeds after context sync status checking completes.
+- It will then check `context.info` to retrieve ContextStatusData and monitor only upload task items' Status.
+- The API waits until all upload tasks show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status upload tasks will have their error messages printed.
+- The session deletion only proceeds after context sync status checking for upload tasks completes.
 
 **Example:**
 ```python
