@@ -170,8 +170,10 @@ func (m *MockSessionForCompliance) FindServerForTool(toolName string) string { r
 func (m *MockSessionForCompliance) Delete(syncContext ...bool) (*agentbay.DeleteResult, error) {
 	return nil, nil
 }
-func (m *MockSessionForCompliance) SetLabels(labels string) (*agentbay.LabelResult, error) {
-	return nil, nil
+func (m *MockSessionForCompliance) SetLabels(labels map[string]string) *agentbay.LabelResult {
+	return &agentbay.LabelResult{
+		ApiResponse: models.ApiResponse{RequestID: ""},
+	}
 }
 func (m *MockSessionForCompliance) GetLabels() (*agentbay.LabelResult, error) { return nil, nil }
 func (m *MockSessionForCompliance) GetLink(protocolType *string, port *int32) (*agentbay.LinkResult, error) {
