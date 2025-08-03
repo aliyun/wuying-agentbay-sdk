@@ -8,6 +8,93 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
+func TestSession_ValidateLabels(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create a session
+	fmt.Println("Creating a new session for label validation testing...")
+	sessionResult, err := agentBay.Create(nil)
+	if err != nil {
+		t.Fatalf("Error creating session: %v", err)
+	}
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s", session.SessionID)
+
+	defer func() {
+		// Clean up the session after test
+		fmt.Println("Cleaning up: Deleting the session...")
+		deleteResult, err := agentBay.Delete(session)
+		if err != nil {
+			t.Logf("Warning: Error deleting session: %v", err)
+		} else {
+			t.Logf("Session deleted (RequestID: %s)", deleteResult.RequestID)
+		}
+	}()
+
+	// Test successful validation with valid labels
+	t.Run("ValidLabels", func(t *testing.T) {
+		labels := map[string]string{"key1": "value1", "key2": "value2"}
+		errMsg := session.ValidateLabels(labels)
+		if errMsg != "" {
+			t.Errorf("Expected successful validation, got error: %s", errMsg)
+		}
+	})
+
+	// Test validation with nil labels
+	t.Run("NilLabels", func(t *testing.T) {
+		var labels map[string]string
+		errMsg := session.ValidateLabels(labels)
+		if errMsg == "" {
+			t.Error("Expected validation to fail with nil labels")
+		}
+		if errMsg != "Labels cannot be nil. Please provide a valid labels map." {
+			t.Errorf("Expected specific error message, got: %s", errMsg)
+		}
+	})
+
+	// Test validation with empty map
+	t.Run("EmptyLabels", func(t *testing.T) {
+		labels := map[string]string{}
+		errMsg := session.ValidateLabels(labels)
+		if errMsg == "" {
+			t.Error("Expected validation to fail with empty labels")
+		}
+		if errMsg != "Labels cannot be empty. Please provide at least one label." {
+			t.Errorf("Expected specific error message, got: %s", errMsg)
+		}
+	})
+
+	// Test validation with empty key
+	t.Run("EmptyKey", func(t *testing.T) {
+		labels := map[string]string{"": "value1"}
+		errMsg := session.ValidateLabels(labels)
+		if errMsg == "" {
+			t.Error("Expected validation to fail with empty key")
+		}
+		if errMsg != "Label keys cannot be empty. Please provide valid keys." {
+			t.Errorf("Expected specific error message, got: %s", errMsg)
+		}
+	})
+
+	// Test validation with empty value
+	t.Run("EmptyValue", func(t *testing.T) {
+		labels := map[string]string{"key1": ""}
+		errMsg := session.ValidateLabels(labels)
+		if errMsg == "" {
+			t.Error("Expected validation to fail with empty value")
+		}
+		if errMsg != "Label values cannot be empty. Please provide valid values." {
+			t.Errorf("Expected specific error message, got: %s", errMsg)
+		}
+	})
+}
+
 func TestSession_Properties(t *testing.T) {
 	// Initialize AgentBay client
 	apiKey := testutil.GetTestAPIKey(t)

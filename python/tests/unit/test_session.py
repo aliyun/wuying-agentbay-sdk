@@ -19,6 +19,60 @@ class TestSession(unittest.TestCase):
         self.session_id = "test_session_id"
         self.session = Session(self.agent_bay, self.session_id)
 
+    def test_validate_labels_success(self):
+        # Test successful validation with valid labels
+        labels = {"key1": "value1", "key2": "value2"}
+        result = self.session._validate_labels(labels)
+        self.assertIsNone(result)
+
+    def test_validate_labels_none(self):
+        # Test validation with None labels
+        labels = None
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Labels cannot be null", result.error_message)
+
+    def test_validate_labels_list(self):
+        # Test validation with list instead of dict
+        labels = ["key1", "value1"]
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Labels cannot be an array", result.error_message)
+
+    def test_validate_labels_empty_dict(self):
+        # Test validation with empty dict
+        labels = {}
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Labels cannot be empty", result.error_message)
+
+    def test_validate_labels_empty_key(self):
+        # Test validation with empty key
+        labels = {"": "value1"}
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Label keys cannot be empty", result.error_message)
+
+    def test_validate_labels_empty_value(self):
+        # Test validation with empty value
+        labels = {"key1": ""}
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Label values cannot be empty", result.error_message)
+
+    def test_validate_labels_none_value(self):
+        # Test validation with None value
+        labels = {"key1": None}
+        result = self.session._validate_labels(labels)
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("Label values cannot be empty", result.error_message)
+
     def test_initialization(self):
         self.assertEqual(self.session.session_id, self.session_id)
         self.assertEqual(self.session.agent_bay, self.agent_bay)

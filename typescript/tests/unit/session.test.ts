@@ -25,6 +25,74 @@ describe("TestSession", () => {
     sinon.restore();
   });
 
+  describe("test_validate_labels_success", () => {
+    it("should validate labels successfully", () => {
+      const labels = { key1: "value1", key2: "value2" };
+      const result = mockSession["validateLabels"](labels);
+      expect(result).to.be.null;
+    });
+  });
+
+  describe("test_validate_labels_null", () => {
+    it("should fail validation with null labels", () => {
+      const labels = null;
+      const result = mockSession["validateLabels"](labels as any);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Labels cannot be null");
+    });
+  });
+
+  describe("test_validate_labels_array", () => {
+    it("should fail validation with array labels", () => {
+      const labels = ["key1", "value1"];
+      const result = mockSession["validateLabels"](labels as any);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Labels cannot be an array");
+    });
+  });
+
+  describe("test_validate_labels_empty_object", () => {
+    it("should fail validation with empty object", () => {
+      const labels = {};
+      const result = mockSession["validateLabels"](labels);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Labels cannot be empty");
+    });
+  });
+
+  describe("test_validate_labels_empty_key", () => {
+    it("should fail validation with empty key", () => {
+      const labels = { "": "value1" };
+      const result = mockSession["validateLabels"](labels);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Label keys cannot be empty");
+    });
+  });
+
+  describe("test_validate_labels_empty_value", () => {
+    it("should fail validation with empty value", () => {
+      const labels = { key1: "" };
+      const result = mockSession["validateLabels"](labels);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Label values cannot be empty");
+    });
+  });
+
+  describe("test_validate_labels_null_value", () => {
+    it("should fail validation with null value", () => {
+      const labels = { key1: null };
+      const result = mockSession["validateLabels"](labels as any);
+      expect(result).to.not.be.null;
+      expect(result?.success).to.be.false;
+      expect(result?.errorMessage).to.include("Label values cannot be empty");
+    });
+  });
+
   describe("test_get_api_key", () => {
     it("should return correct API key", () => {
       const apiKey = mockSession.getAPIKey();

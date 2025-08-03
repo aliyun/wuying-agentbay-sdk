@@ -300,9 +300,9 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	}, nil
 }
 
-// validateLabels validates labels parameter for label operations.
+// ValidateLabels validates labels parameter for label operations.
 // Returns error message if validation fails, empty string if validation passes
-func (s *Session) validateLabels(labels map[string]string) string {
+func (s *Session) ValidateLabels(labels map[string]string) string {
 	// Check if labels is nil
 	if labels == nil {
 		return "Labels cannot be nil. Please provide a valid labels map."
@@ -332,7 +332,7 @@ func (s *Session) validateLabels(labels map[string]string) string {
 // SetLabels sets the labels for this session.
 func (s *Session) SetLabels(labels map[string]string) (*LabelResult, error) {
 	// Validate labels using the validation function
-	if validationError := s.validateLabels(labels); validationError != "" {
+	if validationError := s.ValidateLabels(labels); validationError != "" {
 		return &LabelResult{
 			ApiResponse: models.ApiResponse{
 				RequestID: "",

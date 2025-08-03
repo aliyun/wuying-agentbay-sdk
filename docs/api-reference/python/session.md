@@ -107,11 +107,11 @@ else:
 Gets the labels for this session.
 
 ```python
-get_labels() -> Dict[str, str]
+get_labels() -> OperationResult
 ```
 
 **Returns:**
-- `Dict[str, str]`: The labels for the session.
+- `OperationResult`: A result object containing success status, request ID, error message if any, and the labels data.
 
 **Raises:**
 - `AgentBayError`: If getting labels fails due to API errors or other issues.
@@ -120,8 +120,11 @@ get_labels() -> Dict[str, str]
 ```python
 # Get session labels
 try:
-    labels = session.get_labels()
-    print(f"Session labels: {labels}")
+    result = session.get_labels()
+    if result.success:
+        print(f"Session labels: {result.data}")
+    else:
+        print(f"Failed to get labels: {result.error_message}")
 except AgentBayError as e:
     print(f"Failed to get labels: {e}")
 ```

@@ -23,6 +23,13 @@ HttpPortNumber  // HTTP port for VPC sessions
 McpTools  // MCP tools available for this session
 ```
 
+**Accessor Methods:**
+```go
+IsVpc() bool  // Returns whether this session uses VPC resources
+NetworkInterfaceIp() string  // Returns the network interface IP for VPC sessions
+HttpPort() string  // Returns the HTTP port for VPC sessions
+```
+
 ## Methods
 
 ### Delete
@@ -42,10 +49,10 @@ Delete(syncContext ...bool) (*DeleteResult, error)
 
 **Behavior:**
 - When `syncContext` is true, the API will first call `Context.Sync()` to trigger file upload.
-- It will then check `Context.Info()` to retrieve ContextStatusData and monitor all data items' Status.
-- The API waits until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
-- Any "Failed" status items will have their error messages printed.
-- The session deletion only proceeds after context sync status checking completes.
+- It will then check `Context.Info()` to retrieve ContextStatusData and monitor only upload task items' Status.
+- The API waits until all upload tasks show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- Any "Failed" status upload tasks will have their error messages printed.
+- The session deletion only proceeds after context sync status checking for upload tasks completes.
 
 **Example:**
 ```go
@@ -129,25 +136,33 @@ fmt.Printf("Request ID: %s\n", response.RequestID)
 Gets the labels for this session.
 
 ```go
-GetLabels() (map[string]string, error)
+GetLabels() (*LabelResult, error)
 ```
 
 **Returns:**
-- `map[string]string`: The labels for the session.
+- `*LabelResult`: A result object containing the labels data, request ID, and success status.
 - `error`: An error if getting labels fails.
 
 **Example:**
 ```go
 // Get session labels
-labels, err := session.GetLabels()
+result, err := session.GetLabels()
 if err != nil {
 	fmt.Printf("Error getting labels: %v\n", err)
 	os.Exit(1)
 }
 
-fmt.Println("Session labels:")
-for key, value := range labels {
-	fmt.Printf("%s: %s\n", key, value)
+if result.Success {
+	fmt.Println("Session labels:")
+	// Parse the labels JSON string
+	var labels map[string]string
+	if err := json.Unmarshal([]byte(result.Labels), &labels); err == nil {
+		for key, value := range labels {
+			fmt.Printf("%s: %s\n", key, value)
+		}
+	}
+} else {
+	fmt.Printf("Failed to get labels: %s\n", result.ErrorMessage)
 }
 ```
 
