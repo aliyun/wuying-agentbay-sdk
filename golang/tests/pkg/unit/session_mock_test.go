@@ -1,6 +1,7 @@
 package agentbay_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -191,6 +192,106 @@ func TestSession_Error_WithMockClient(t *testing.T) {
 
 	// Test error case
 	result, err := mockSession.Delete()
+
+	// Verify error handling
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestSession_Delete_APIFailure_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior - return failure response
+	expectedResult := &agentbay.DeleteResult{
+		Success: false,
+	}
+	mockSession.EXPECT().Delete().Return(expectedResult, nil)
+
+	// Test Delete method call
+	result, err := mockSession.Delete()
+
+	// Verify call success but with failure result
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.False(t, result.Success)
+}
+
+func TestSession_SetLabels_APIError_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior - return error
+	labels := map[string]string{"key1": "value1"}
+	// Convert labels to JSON string to match the mock interface
+	labelsJSON, _ := json.Marshal(labels)
+	labelsStr := string(labelsJSON)
+	mockSession.EXPECT().SetLabels(labelsStr).Return(nil, assert.AnError)
+
+	// Test error case
+	result, err := mockSession.SetLabels(labelsStr)
+
+	// Verify error handling
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestSession_GetLabels_APIError_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior - return error
+	mockSession.EXPECT().GetLabels().Return(nil, assert.AnError)
+
+	// Test error case
+	result, err := mockSession.GetLabels()
+
+	// Verify error handling
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestSession_GetLink_APIError_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior - return error
+	protocolType := "http"
+	port := int32(8080)
+	mockSession.EXPECT().GetLink(&protocolType, &port).Return(nil, assert.AnError)
+
+	// Test error case
+	result, err := mockSession.GetLink(&protocolType, &port)
+
+	// Verify error handling
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestSession_Info_APIError_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior - return error
+	mockSession.EXPECT().Info().Return(nil, assert.AnError)
+
+	// Test error case
+	result, err := mockSession.Info()
 
 	// Verify error handling
 	assert.Error(t, err)

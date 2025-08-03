@@ -220,6 +220,137 @@ class TestSession(unittest.TestCase):
         )
         self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
 
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.ReleaseMcpSessionRequest")
+    def test_delete_api_failure_response(
+        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+    ):
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockReleaseMcpSessionRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-123"
+        self.agent_bay.client.release_mcp_session.return_value = mock_response
+
+        # Mock the response.to_map() method to return a failure response
+        mock_response.to_map.return_value = {
+            "body": {"Data": {"IsError": True}, "Success": False}
+        }
+
+        result = self.session.delete()
+        self.assertIsInstance(result, DeleteResult)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertFalse(result.success)
+
+        MockReleaseMcpSessionRequest.assert_called_once_with(
+            authorization="Bearer test_api_key", session_id="test_session_id"
+        )
+        self.agent_bay.client.release_mcp_session.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.SetLabelRequest")
+    def test_set_labels_success(
+        self, MockSetLabelRequest, mock_extract_request_id
+    ):
+        from agentbay.model.response import OperationResult
+        
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockSetLabelRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-456"
+        self.agent_bay.client.set_label.return_value = mock_response
+
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {"Data": {}, "Success": True}
+        }
+
+        labels = {"key1": "value1", "key2": "value2"}
+        result = self.session.set_labels(labels)
+        self.assertIsInstance(result, OperationResult)
+        self.assertEqual(result.request_id, "request-456")
+        self.assertTrue(result.success)
+
+        MockSetLabelRequest.assert_called_once_with(
+            authorization="Bearer test_api_key",
+            session_id="test_session_id",
+            labels='{"key1": "value1", "key2": "value2"}',
+        )
+        self.agent_bay.client.set_label.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.SetLabelRequest")
+    def test_set_labels_api_failure(
+        self, MockSetLabelRequest, mock_extract_request_id
+    ):
+        mock_request = MagicMock()
+        MockSetLabelRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-789"
+        self.agent_bay.client.set_label.side_effect = Exception("API Error")
+
+        labels = {"key1": "value1"}
+        with self.assertRaises(Exception) as context:
+            self.session.set_labels(labels)
+
+        self.assertIn("Failed to set labels for session", str(context.exception))
+
+        MockSetLabelRequest.assert_called_once_with(
+            authorization="Bearer test_api_key",
+            session_id="test_session_id",
+            labels='{"key1": "value1"}',
+        )
+        self.agent_bay.client.set_label.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.GetLabelRequest")
+    def test_get_labels_success(
+        self, MockGetLabelRequest, mock_extract_request_id
+    ):
+        from agentbay.model.response import OperationResult
+        
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockGetLabelRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-101"
+        self.agent_bay.client.get_label.return_value = mock_response
+
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {"Data": {"Labels": '{"key1": "value1"}'}, "Success": True}
+        }
+
+        result = self.session.get_labels()
+        self.assertIsInstance(result, OperationResult)
+        self.assertEqual(result.request_id, "request-101")
+        self.assertTrue(result.success)
+        # Note: In the actual implementation, result.data would be the parsed labels
+
+        MockGetLabelRequest.assert_called_once_with(
+            authorization="Bearer test_api_key",
+            session_id="test_session_id",
+        )
+        self.agent_bay.client.get_label.assert_called_once_with(mock_request)
+
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.GetLabelRequest")
+    def test_get_labels_api_failure(
+        self, MockGetLabelRequest, mock_extract_request_id
+    ):
+        mock_request = MagicMock()
+        MockGetLabelRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-102"
+        self.agent_bay.client.get_label.side_effect = Exception("API Error")
+
+        with self.assertRaises(Exception) as context:
+            self.session.get_labels()
+
+        self.assertIn("Failed to get labels for session", str(context.exception))
+
+        MockGetLabelRequest.assert_called_once_with(
+            authorization="Bearer test_api_key",
+            session_id="test_session_id",
+        )
+        self.agent_bay.client.get_label.assert_called_once_with(mock_request)
+
 
 class TestAgentBayDelete(unittest.TestCase):
     def setUp(self):
