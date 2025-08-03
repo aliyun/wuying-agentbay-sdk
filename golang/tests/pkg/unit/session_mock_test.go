@@ -297,3 +297,60 @@ func TestSession_Info_APIError_WithMockClient(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
+
+func TestSession_ListMcpTools_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Set expected behavior based on the actual API response from integration test
+	tools := []agentbay.McpTool{
+		{
+			Name:        "get_resource",
+			Description: "The command to retrieve  a wuying mcp runtime URL when user wants to get access to this runtime. Each retrieved URL will expire after a single use",
+			InputSchema: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []interface{}{},
+			},
+			Server: "mcp-server",
+			Tool:   "get_resource",
+		},
+		{
+			Name:        "system_screenshot",
+			Description: "Captures a full-screen screenshot of the current display and returns a shareable URL. The screenshot is automatically processed and stored securely. The generated URL will expire after 64 minutes for security purposes.",
+			InputSchema: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []interface{}{},
+			},
+			Server: "mcp-server",
+			Tool:   "system_screenshot",
+		},
+	}
+	expectedResult := &agentbay.McpToolsResult{
+		Tools: tools,
+	}
+	expectedResult.RequestID = "test-request-id"
+	
+	mockSession.EXPECT().ListMcpTools().Return(expectedResult, nil)
+
+	// Test ListMcpTools method call
+	result, err := mockSession.ListMcpTools()
+
+	// Verify call success
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "test-request-id", result.RequestID)
+	assert.Len(t, result.Tools, 2)
+	assert.Equal(t, "get_resource", result.Tools[0].Name)
+	assert.Equal(t, "The command to retrieve  a wuying mcp runtime URL when user wants to get access to this runtime. Each retrieved URL will expire after a single use", result.Tools[0].Description)
+	assert.Equal(t, "mcp-server", result.Tools[0].Server)
+	assert.Equal(t, "get_resource", result.Tools[0].Tool)
+	assert.Equal(t, "system_screenshot", result.Tools[1].Name)
+	assert.Equal(t, "Captures a full-screen screenshot of the current display and returns a shareable URL. The screenshot is automatically processed and stored securely. The generated URL will expire after 64 minutes for security purposes.", result.Tools[1].Description)
+	assert.Equal(t, "mcp-server", result.Tools[1].Server)
+	assert.Equal(t, "system_screenshot", result.Tools[1].Tool)
+}

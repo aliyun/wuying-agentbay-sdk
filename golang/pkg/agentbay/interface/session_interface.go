@@ -33,6 +33,9 @@ type SessionInterface interface {
 	// Info gets information about this session
 	Info() (*agentbay.InfoResult, error)
 
+	// ListMcpTools lists MCP tools available for this session
+	ListMcpTools() (*agentbay.McpToolsResult, error)
+
 	// IsVpc returns whether this session uses VPC resources
 	IsVpc() bool
 

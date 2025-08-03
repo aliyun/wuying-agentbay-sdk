@@ -347,4 +347,34 @@ describe("TestSession", () => {
       expect(mockClient.getLabel.calledOnce).to.be.true;
     });
   });
+
+  describe("test_get_link_success", () => {
+    it("should get link successfully", async () => {
+      const mockResponse = {
+        body: {
+          requestId: "test-request-id",
+          data: {
+            url: "wss://example.com/websocket"
+          },
+          success: true,
+        },
+        statusCode: 200,
+      };
+
+      mockClient.getLink.resolves(mockResponse as any);
+
+      const result = await mockSession.getLink();
+      
+      expect(result.success).to.equal(true);
+      expect(result.requestId).to.equal("test-request-id");
+      expect(result.data).to.equal("wss://example.com/websocket");
+
+      expect(mockClient.getLink.calledOnce).to.be.true;
+      const callArgs = mockClient.getLink.getCall(0).args[0];
+      expect(callArgs.authorization).to.equal("Bearer test_api_key");
+      expect(callArgs.sessionId).to.equal("test_session_id");
+      expect(callArgs.protocolType).to.be.undefined;
+      expect(callArgs.port).to.be.undefined;
+    });
+  });
 });

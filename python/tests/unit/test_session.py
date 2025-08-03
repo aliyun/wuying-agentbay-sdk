@@ -351,6 +351,41 @@ class TestSession(unittest.TestCase):
         )
         self.agent_bay.client.get_label.assert_called_once_with(mock_request)
 
+    @patch("agentbay.session.extract_request_id")
+    @patch("agentbay.session.GetLinkRequest")
+    def test_get_link_success(
+        self, MockGetLinkRequest, mock_extract_request_id
+    ):
+        from agentbay.model.response import OperationResult
+        
+        mock_request = MagicMock()
+        mock_response = MagicMock()
+        MockGetLinkRequest.return_value = mock_request
+        mock_extract_request_id.return_value = "request-103"
+        self.agent_bay.client.get_link.return_value = mock_response
+
+        # Mock the response.to_map() method
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {"Url": "http://example.com"},
+                "Success": True
+            }
+        }
+
+        result = self.session.get_link()
+        self.assertIsInstance(result, OperationResult)
+        self.assertEqual(result.request_id, "request-103")
+        self.assertTrue(result.success)
+        self.assertEqual(result.data, "http://example.com")
+
+        MockGetLinkRequest.assert_called_once_with(
+            authorization="Bearer test_api_key",
+            session_id="test_session_id",
+            protocol_type=None,
+            port=None,
+        )
+        self.agent_bay.client.get_link.assert_called_once_with(mock_request)
+
 
 class TestAgentBayDelete(unittest.TestCase):
     def setUp(self):
