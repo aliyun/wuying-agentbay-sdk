@@ -33,9 +33,9 @@ If no configuration is provided, the SDK uses the following default values:
 from agentbay import AgentBay, Config
 
 custom_config = Config(
-    region_id="cn-beijing",
-    endpoint="wuyingai.cn-beijing.aliyuncs.com",
-    timeout_ms=30000
+    region_id="ap-southeast-1",
+    endpoint="wuyingai.ap-southeast-1.aliyuncs.com",
+    timeout_ms=60000
 )
 
 agent_bay = AgentBay(api_key="your-api-key", cfg=custom_config)
@@ -47,9 +47,9 @@ agent_bay = AgentBay(api_key="your-api-key", cfg=custom_config)
 import { AgentBay, Config } from 'wuying-agentbay-sdk';
 
 const customConfig: Config = {
-  region_id: 'cn-beijing',
-  endpoint: 'wuyingai.cn-beijing.aliyuncs.com',
-  timeout_ms: 30000,
+  region_id: 'ap-southeast-1',
+  endpoint: 'wuyingai.ap-southeast-1.aliyuncs.com',
+  timeout_ms: 60000,
 };
 
 const agentBay = new AgentBay({
@@ -69,9 +69,9 @@ import (
 
 func main() {
     customConfig := &agentbay.Config{
-        RegionID:  "cn-beijing",
-        Endpoint:  "wuyingai.cn-beijing.aliyuncs.com",
-        TimeoutMs: 30000,
+        RegionID:  "ap-southeast-1",
+        Endpoint:  "wuyingai.ap-southeast-1.aliyuncs.com",
+        TimeoutMs: 60000,
     }
 
     client, err := agentbay.NewAgentBay("your-api-key", agentbay.WithConfig(customConfig))
@@ -86,9 +86,9 @@ func main() {
 Set environment variables in your shell:
 
 ```bash
-export AGENTBAY_REGION_ID=cn-qingdao
-export AGENTBAY_ENDPOINT=wuyingai.cn-qingdao.aliyuncs.com
-export AGENTBAY_TIMEOUT_MS=120000
+export AGENTBAY_REGION_ID=ap-southeast-1
+export AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
+export AGENTBAY_TIMEOUT_MS=60000
 ```
 
 Then create the SDK client without explicit configuration:
@@ -113,9 +113,9 @@ client, err := agentbay.NewAgentBay("your-api-key", nil)
 Create a `.env` file in your project root directory:
 
 ```env
-AGENTBAY_REGION_ID=cn-hangzhou
-AGENTBAY_ENDPOINT=wuyingai.cn-hangzhou.aliyuncs.com
-AGENTBAY_TIMEOUT_MS=45000
+AGENTBAY_REGION_ID=ap-southeast-1
+AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
+AGENTBAY_TIMEOUT_MS=60000
 ```
 
 The SDK will automatically load this file when initialized:
