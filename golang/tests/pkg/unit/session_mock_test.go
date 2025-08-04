@@ -1,7 +1,6 @@
 package agentbay_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -94,13 +93,14 @@ func TestSession_SetLabels_WithMockClient(t *testing.T) {
 	mockSession := mock.NewMockSessionInterface(ctrl)
 
 	// Set expected behavior
+	labels := map[string]string{"key1": "label1", "key2": "label2"}
 	expectedResult := &agentbay.LabelResult{
 		Labels: "label1,label2",
 	}
-	mockSession.EXPECT().SetLabels("label1,label2").Return(expectedResult, nil)
+	mockSession.EXPECT().SetLabels(labels).Return(expectedResult, nil)
 
 	// Test SetLabels method call
-	result, err := mockSession.SetLabels("label1,label2")
+	result, err := mockSession.SetLabels(labels)
 
 	// Verify call success
 	assert.NoError(t, err)
@@ -229,13 +229,10 @@ func TestSession_SetLabels_APIError_WithMockClient(t *testing.T) {
 
 	// Set expected behavior - return error
 	labels := map[string]string{"key1": "value1"}
-	// Convert labels to JSON string to match the mock interface
-	labelsJSON, _ := json.Marshal(labels)
-	labelsStr := string(labelsJSON)
-	mockSession.EXPECT().SetLabels(labelsStr).Return(nil, assert.AnError)
+	mockSession.EXPECT().SetLabels(labels).Return(nil, assert.AnError)
 
 	// Test error case
-	result, err := mockSession.SetLabels(labelsStr)
+	result, err := mockSession.SetLabels(labels)
 
 	// Verify error handling
 	assert.Error(t, err)

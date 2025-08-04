@@ -183,6 +183,21 @@ func (mr *MockSessionInterfaceMockRecorder) IsVpc() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsVpc", reflect.TypeOf((*MockSessionInterface)(nil).IsVpc))
 }
 
+// ListMcpTools mocks base method.
+func (m *MockSessionInterface) ListMcpTools() (*agentbay.McpToolsResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMcpTools")
+	ret0, _ := ret[0].(*agentbay.McpToolsResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMcpTools indicates an expected call of ListMcpTools.
+func (mr *MockSessionInterfaceMockRecorder) ListMcpTools() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMcpTools", reflect.TypeOf((*MockSessionInterface)(nil).ListMcpTools))
+}
+
 // NetworkInterfaceIp mocks base method.
 func (m *MockSessionInterface) NetworkInterfaceIp() string {
 	m.ctrl.T.Helper()
@@ -198,7 +213,7 @@ func (mr *MockSessionInterfaceMockRecorder) NetworkInterfaceIp() *gomock.Call {
 }
 
 // SetLabels mocks base method.
-func (m *MockSessionInterface) SetLabels(arg0 string) (*agentbay.LabelResult, error) {
+func (m *MockSessionInterface) SetLabels(arg0 map[string]string) (*agentbay.LabelResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetLabels", arg0)
 	ret0, _ := ret[0].(*agentbay.LabelResult)
