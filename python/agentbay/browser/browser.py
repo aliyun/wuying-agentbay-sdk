@@ -230,6 +230,7 @@ class BrowserOption:
         screen: BrowserScreen = None,
         fingerprint: BrowserFingerprint = None,
         proxies: Optional[list[BrowserProxy]] = None,
+        extension_path: Optional[str] = "/tmp/extensions/",
     ):
         self.use_stealth = use_stealth
         self.user_agent = user_agent
@@ -237,6 +238,7 @@ class BrowserOption:
         self.screen = screen
         self.fingerprint = fingerprint
         self.proxies = proxies
+        self.extension_path = extension_path
 
         # Validate proxies list items
         if proxies is not None:
@@ -244,6 +246,13 @@ class BrowserOption:
                 raise ValueError("proxies must be a list")
             if len(proxies) > 1:
                 raise ValueError("proxies list length must be limited to 1")
+
+        # Validate extension_path if provided
+        if extension_path is not None:
+            if not isinstance(extension_path, str):
+                raise ValueError("extension_path must be a string")
+            if not extension_path.strip():
+                raise ValueError("extension_path cannot be empty")
 
     def to_map(self):
         option_map = dict()
@@ -259,6 +268,8 @@ class BrowserOption:
             option_map['fingerprint'] = self.fingerprint.to_map()
         if self.proxies is not None:
             option_map['proxies'] = [proxy.to_map() for proxy in self.proxies]
+        if self.extension_path is not None:
+            option_map['extensionPath'] = self.extension_path
         return option_map
 
     def from_map(self, m: dict = None):
