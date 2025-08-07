@@ -10,7 +10,7 @@ class BrowserContext:
         context_id (str): ID of the browser context to bind to the session
         auto_upload (bool): Whether to automatically upload browser data when session ends
     """
-    
+
     def __init__(self, context_id: str, auto_upload: bool = True):
         """
         Initialize BrowserContext.
