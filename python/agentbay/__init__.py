@@ -17,6 +17,7 @@ from .context_sync import (
     DownloadPolicy,
     DownloadStrategy,
     DeletePolicy,
+    ExtractPolicy,
     BWList,
     WhiteList,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "DownloadPolicy",
     "DownloadStrategy",
     "DeletePolicy",
+    "ExtractPolicy",
     "BWList",
     "WhiteList",
     "ContextManager",

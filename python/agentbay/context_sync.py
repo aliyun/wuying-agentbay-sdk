@@ -93,6 +93,29 @@ class DeletePolicy:
 
 
 @dataclass
+class ExtractPolicy:
+    """
+    Defines the extract policy for context synchronization
+
+    Attributes:
+        extract: Enables file extraction
+        delete_src_file: Enables deletion of source file after extraction
+    """
+
+    extract: bool = True
+    delete_src_file: bool = True
+    extract_current_folder: bool = False
+
+    @classmethod
+    def default(cls):
+        """Creates a new extract policy with default values"""
+        return cls()
+
+    def __dict__(self):
+        return {"extract": self.extract, "deleteSrcFile": self.delete_src_file, "extractToCurrentFolder": self.extract_current_folder}
+
+
+@dataclass
 class WhiteList:
     """
     Defines the white list configuration
@@ -137,12 +160,14 @@ class SyncPolicy:
         upload_policy: Defines the upload policy
         download_policy: Defines the download policy
         delete_policy: Defines the delete policy
+        extract_policy: Defines the extract policy
         bw_list: Defines the black and white list
     """
 
     upload_policy: Optional[UploadPolicy] = None
     download_policy: Optional[DownloadPolicy] = None
     delete_policy: Optional[DeletePolicy] = None
+    extract_policy: Optional[ExtractPolicy] = None
     bw_list: Optional[BWList] = None
 
     def __post_init__(self):
@@ -153,6 +178,8 @@ class SyncPolicy:
             self.download_policy = DownloadPolicy.default()
         if self.delete_policy is None:
             self.delete_policy = DeletePolicy.default()
+        if self.extract_policy is None:
+            self.extract_policy = ExtractPolicy.default()
         if self.bw_list is None:
             self.bw_list = BWList(white_lists=[WhiteList(path="", exclude_paths=[])])
 
@@ -163,6 +190,7 @@ class SyncPolicy:
             upload_policy=UploadPolicy.default(),
             download_policy=DownloadPolicy.default(),
             delete_policy=DeletePolicy.default(),
+            extract_policy=ExtractPolicy.default(),
             bw_list=BWList(white_lists=[WhiteList(path="", exclude_paths=[])]),
         )
 
@@ -174,6 +202,8 @@ class SyncPolicy:
             result["downloadPolicy"] = self.download_policy.__dict__()
         if self.delete_policy:
             result["deletePolicy"] = self.delete_policy.__dict__()
+        if self.extract_policy:
+            result["extractPolicy"] = self.extract_policy.__dict__()
         if self.bw_list:
             result["bwList"] = self.bw_list.__dict__()
         return result
