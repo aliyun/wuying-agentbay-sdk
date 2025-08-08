@@ -1,4 +1,4 @@
-name: Auto Publish to TestPyPI
+name: Auto Publish to TestPyPI with Timestamp Version
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-publish-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,6 +17,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
+
+      - name: Generate timestamp as version
+        run: |
+          # 获取当前时间戳（格式：YYYYMMDDHHMMSS）
+          TIMESTAMP=$(date "+%Y%m%d%H%M%S")
+          echo "BUILD_VERSION=$TIMESTAMP" >> $GITHUB_ENV
 
       - name: Print current directory before changing to python
         run: pwd
@@ -32,9 +39,9 @@ jobs:
           fi
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
-          VERSION=$(python setup.py --version)
-          DEV_VERSION="${VERSION}.dev${GITHUB_SHA:0:7}"
-          echo "PACKAGE_VERSION=$DEV_VERSION" >> $GITHUB_ENV
+          echo "Using version: $BUILD_VERSION"
+          # 修改 setup.py 中的版本号（假设版本号在 setup.py 的第一行定义）
+          sed -i "s/version='.*'/version='$BUILD_VERSION'/" setup.py
           python setup.py sdist bdist_wheel
           ls dist/
 
