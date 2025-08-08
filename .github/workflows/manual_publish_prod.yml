@@ -29,7 +29,9 @@ jobs:
           pip install setuptools wheel twine
           # 使用用户指定的版本号
           echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
-          sed -i "s/VERSION = .*/VERSION = '${{ inputs.version }}'/" setup.py
+          sed -i "s/version='.*'/version='${{ inputs.version }}'/" setup.py
+          # 验证替换结果
+          cat setup.py | grep version
           python setup.py sdist bdist_wheel
           ls dist/
 
