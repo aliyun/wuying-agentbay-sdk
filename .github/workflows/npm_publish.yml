@@ -21,30 +21,26 @@ jobs:
           node-version: "18"
           registry-url: "https://registry.npmjs.org"  # 或私有 npm 仓库地址
 
-      - name: Change directory to typescript
-        run: cd typescript
+      - name: List files in current directory before changing to python
+        run: ls .
 
-      - name: Remove existing dist folder
+      - name: Change directory, remove dist folder, install dependencies, update version in package.json, and build TypeScript
         run: |
+          cd typescript
+          pwd
           if [ -d "dist" ]; then
             rm -rf dist/
           fi
-
-      - name: Install dependencies
-        run: |
           npm install
           npm install -g typescript  # 如果未安装全局 tsc
-
-      - name: Update version in package.json
-        run: |
-          # 使用输入的版本号更新 package.json
           npm version ${{ inputs.version }} --no-git-tag-version
-
-      - name: Build TypeScript
-        run: npm run build
+          npm run build
+          ls dist/
 
       - name: Publish to npm
         if: ${{ inputs.version != '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish
+        run: |
+          cd typescript
+          npm publish
