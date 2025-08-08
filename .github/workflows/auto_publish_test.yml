@@ -7,10 +7,11 @@ on:
       - v0.6.0_dev  # 仅当合并到 v0.6.0_dev 分支时触发
     types:
       - closed  # 仅当 PR 被关闭（合并或拒绝）时触发
-
 jobs:
   build-and-publish-test:
     runs-on: ubuntu-latest
+    permissions:
+      secrets: read
     # 仅当 PR 被合并时执行
     if: github.event.pull_request.merged == true
 
@@ -61,4 +62,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
           cd python
-          twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+          twine upload --repository-url https://test.pypi.org/legacy/ --verbose dist/*
