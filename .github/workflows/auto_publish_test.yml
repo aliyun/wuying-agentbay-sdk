@@ -1,0 +1,60 @@
+name: Auto Publish to TestPyPI with Timestamp Version
+
+on:
+  push:
+    branches:
+      - main  # 仅当推送到 main 分支时触发
+
+jobs:
+  build-and-publish-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Extract base version from setup.py
+        run: |
+          cd python
+          BASE_VERSION=$(grep "version='" setup.py | head -n 1 | cut -d "'" -f 2)
+          echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_ENV
+
+      - name: Generate final version with timestamp
+        run: |
+          TIMESTAMP=$(date "+%Y%m%d%H%M%S")
+          FINAL_VERSION="${BASE_VERSION}-${TIMESTAMP}"
+          echo "FINAL_VERSION=$FINAL_VERSION" >> $GITHUB_ENV
+
+      - name: Print current directory before changing to python
+        run: pwd
+
+      - name: List files in current directory before changing to python
+        run: ls .
+
+      - name: Change directory to python and perform operations
+        run: |
+          cd python
+          pwd
+          if [ -d "dist" ]; then
+            rm -rf dist/
+          fi
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+          echo "Using version: $FINAL_VERSION"
+          # 修改 setup.py 中的版本号（假设版本号在 setup.py 的第一行定义）
+          sed -i "s/version='.*'/version='$FINAL_VERSION'/" setup.py
+          python setup.py sdist bdist_wheel
+          ls dist/
+
+      - name: Publish to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: |
+          cd python
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*

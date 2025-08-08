@@ -1,0 +1,44 @@
+name: Manual Publish to PyPI
+
+on:
+  workflow_dispatch:  # 手动触发
+    inputs:
+      version:
+        description: "Stable version (e.g., 1.0.0)"
+        required: true
+        type: string
+
+jobs:
+  build-and-publish-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: List files in current directory before changing to python
+        run: ls .
+
+      - name: Setup Python, remove dist folder, install dependencies, and build package
+        run: |
+          cd python
+          pwd
+          if [ -d "dist" ]; then
+            rm -rf dist/
+          fi
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+          # 使用用户指定的版本号
+          echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+          sed -i "s/version='.*'/version='${{ inputs.version }}'/" setup.py
+          # 验证替换结果
+          cat setup.py | grep version
+          python setup.py sdist bdist_wheel
+          ls dist/
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          cd python
+          twine upload dist/*
