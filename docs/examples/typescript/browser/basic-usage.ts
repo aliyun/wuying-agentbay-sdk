@@ -4,7 +4,7 @@
  */
 
 import { AgentBay, CreateSessionParams } from '../../../../typescript/src/agent-bay';
-import { BrowserOption, ActOptions, ObserveOptions, ExtractOptions } from '../../../../typescript/src/browser';
+import { ActOptions, ObserveOptions, ExtractOptions } from '../../../../typescript/src/browser';
 
 // Simple schema for demonstration
 class PageInfo {
@@ -42,11 +42,8 @@ async function main() {
 
     // Initialize browser
     console.log("Initializing browser...");
-    const browserOption: BrowserOption = {
-      persistentPath: "/tmp/browser-data"
-    };
-    
-    const initialized = await session.browser.initializeAsync(browserOption);
+    // Note: persistentPath is currently ignored by the SDK implementation
+    const initialized = await session.browser.initializeAsync({});
     if (!initialized) {
       console.log("Failed to initialize browser");
       return;
@@ -94,7 +91,7 @@ async function main() {
       console.log("Observe success:", observeSuccess);
       console.log("Number of observations:", observations.length);
       
-      observations.forEach((obs, index) => {
+      observations.forEach((obs: any, index: number) => {
         console.log(`Observation ${index + 1}:`, {
           selector: obs.selector,
           description: obs.description,
@@ -117,7 +114,7 @@ async function main() {
       console.log("Extract success:", extractSuccess);
       console.log("Extracted data count:", extractedData.length);
       
-      extractedData.forEach((data, index) => {
+      extractedData.forEach((data: PageInfo, index: number) => {
         console.log(`Extracted item ${index + 1}:`, {
           title: data.title,
           url: data.url

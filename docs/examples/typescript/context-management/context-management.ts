@@ -1,4 +1,4 @@
-import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
+import { AgentBay,logError,log, ContextSync } from 'wuying-agentbay-sdk';
 
 /**
  * Context Management Example
@@ -44,8 +44,9 @@ async function main() {
 
     // Example 3: Create a session with the context
     log('\nExample 3: Creating a session with the context...');
+    const contextSync = new ContextSync(context.id, '/mnt/persistent');
     const sessionResult = await agentBay.create({
-      contextId: context.id,
+      contextSync: [contextSync],
       labels: {
         username: 'alice',
         project: 'my-project'

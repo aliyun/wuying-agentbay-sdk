@@ -90,18 +90,18 @@ for i in range(1, 6):
     log('\n4. Running JavaScript code with custom timeout...');
     try {
       const jsCode = `
-log("JavaScript execution in AgentBay");
-log("Basic operations:");
+console.log("JavaScript execution in AgentBay");
+console.log("Basic operations:");
 
 // Simple array operations
 const numbers = [1, 2, 3, 4, 5];
-log("Original array:", numbers);
+console.log("Original array:", numbers);
 
 const doubled = numbers.map(n => n * 2);
-log("Doubled values:", doubled);
+console.log("Doubled values:", doubled);
 
 const sum = numbers.reduce((total, n) => total + n, 0);
-log("Sum of array:", sum);
+console.log("Sum of array:", sum);
 `;
       const timeoutS = 10; // 10 seconds timeout
       const jsResponse = await session.code.runCode(jsCode, "javascript", timeoutS);
