@@ -17,29 +17,21 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Print current directory for debugging
+      - name: Print current directory before changing to python
         run: pwd
 
-      - name: Change directory to python
-        run: cd python
+      - name: List files in current directory before changing to python
+        run: ls .
 
-      - name: Print current directory for debugging
-        run: pwd
-
-      - name: Remove existing dist folder
+      - name: Change directory to python and perform operations
         run: |
+          cd python
+          pwd
           if [ -d "dist" ]; then
             rm -rf dist/
           fi
-
-      - name: Install dependencies
-        run: |
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
-
-      - name: Build package
-        run: |
-          # 动态生成带 dev 后缀的版本号（如 1.0.0.dev1）
           VERSION=$(python setup.py --version)
           DEV_VERSION="${VERSION}.dev${GITHUB_SHA:0:7}"
           echo "PACKAGE_VERSION=$DEV_VERSION" >> $GITHUB_ENV
