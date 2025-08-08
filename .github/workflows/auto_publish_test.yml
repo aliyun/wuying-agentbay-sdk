@@ -1,0 +1,47 @@
+name: Auto Publish to TestPyPI
+
+on:
+  push:
+    branches:
+      - main  # 仅当推送到 main 分支时触发
+
+jobs:
+  build-and-publish-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Change directory to python
+        run: cd python
+
+      - name: Remove existing dist folder
+        run: |
+          if [ -d "dist" ]; then
+            rm -rf dist/
+          fi
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine
+
+      - name: Build package
+        run: |
+          # 动态生成带 dev 后缀的版本号（如 1.0.0.dev1）
+          VERSION=$(python setup.py --version)
+          DEV_VERSION="${VERSION}.dev${GITHUB_SHA:0:7}"
+          echo "PACKAGE_VERSION=$DEV_VERSION" >> $GITHUB_ENV
+          python setup.py sdist bdist_wheel
+
+      - name: Publish to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: |
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*
