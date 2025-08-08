@@ -7,11 +7,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 # Get version from environment variable or use default value
-version = os.getenv("RELEASE_VERSION", "0.3.2")
+# version = os.getenv("RELEASE_VERSION", "0.3.2")
 
 setup(
     name="wuying_agentbay_sdk",
-    version=version,
+    version='0.3.2',
     author="Alibaba Cloud",
     author_email="wuying@alibaba-inc.com",
     description="Python SDK for AgentBay service",
