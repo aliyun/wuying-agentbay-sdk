@@ -36,10 +36,12 @@ jobs:
           DEV_VERSION="${VERSION}.dev${GITHUB_SHA:0:7}"
           echo "PACKAGE_VERSION=$DEV_VERSION" >> $GITHUB_ENV
           python setup.py sdist bdist_wheel
+          ls dist/
 
       - name: Publish to TestPyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
+          cd python
           twine upload --repository-url https://test.pypi.org/legacy/ dist/*
