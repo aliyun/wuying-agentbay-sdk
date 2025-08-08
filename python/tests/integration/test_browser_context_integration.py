@@ -99,7 +99,7 @@ class TestBrowserContextIntegration(unittest.TestCase):
         print(f"Step 1-2: Creating session with browser context ID: {self.context.id}")
         browser_context = BrowserContext(self.context.id, auto_upload=True)
         params = CreateSessionParams(
-            image_id="imgc-wucyOiPmeV2Z753lq",
+            image_id="browser_latest",
             browser_context=browser_context
         )
         

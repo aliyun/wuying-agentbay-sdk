@@ -42,7 +42,7 @@ delete(sync_context: bool = False) -> DeleteResult
 
 **Behavior:**
 - When `sync_context` is True, the API will first call `context.sync` to trigger file upload.
-- It will then check `context.info` to retrieve ContextStatusData and monitor only upload task items' Status.
+- It will then retrieve ContextStatusData via `context.info` and monitor only upload task items' Status.
 - The API waits until all upload tasks show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
 - Any "Failed" status upload tasks will have their error messages printed.
 - The session deletion only proceeds after context sync status checking for upload tasks completes.

@@ -26,7 +26,6 @@ import { log, logError } from "./utils/logger";
  * Parameters for creating a session.
  */
 export interface CreateSessionParams {
-  contextId?: string;
   labels?: Record<string, string>;
   imageId?: string;
   contextSync?: ContextSync[];
@@ -106,11 +105,6 @@ export class AgentBay {
         authorization: "Bearer " + this.apiKey,
       });
 
-      // Add context_id if provided
-      if (params.contextId) {
-        request.contextId = params.contextId;
-      }
-
       // Add labels if provided
       if (params.labels) {
         request.labels = JSON.stringify(params.labels);
@@ -175,9 +169,6 @@ export class AgentBay {
       // Log API request
       log("API Call: CreateMcpSession");
       let requestLog = "Request: ";
-      if (request.contextId) {
-        requestLog += `ContextId=${request.contextId}, `;
-      }
       if (request.imageId) {
         requestLog += `ImageId=${request.imageId}, `;
       }

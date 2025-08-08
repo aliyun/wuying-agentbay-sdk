@@ -18,6 +18,9 @@ describe("Browser Context - Integration Tests", () => {
     }
     agentBay = new AgentBay({ apiKey });
     
+    // Increase timeout for integration tests
+    jest.setTimeout(120000); // 120 seconds
+    
     // Create a unique context name for this test
     contextName = `test-browser-context-${Date.now()}`;
     

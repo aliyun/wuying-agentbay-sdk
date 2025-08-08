@@ -1,4 +1,4 @@
-import { AgentBay, Session, Context } from "../../src";
+import { AgentBay, Session, Context, newContextSync } from "../../src";
 import { getTestApiKey, randomString } from "../utils/test-helpers";
 import { log } from "../../src/utils/logger";
 
@@ -27,6 +27,9 @@ describe("Context Persistence Integration", () => {
   const testFilePath = `~/test-file-${Date.now()}.txt`;
   const testFileContent = "This is a test file for context persistence";
   const testFileMode = "664"; // Read and write for owner only
+
+  // Increase timeout for integration tests
+  jest.setTimeout(120000); // 120 seconds
 
   beforeEach(async () => {
     const apiKey = getTestApiKey();
@@ -105,12 +108,14 @@ describe("Context Persistence Integration", () => {
       throw new Error("Test context creation failed");
     }
 
-    // Create first session with the test context
+    // Create first session with context sync
     let session1: Session;
     try {
+      const contextSync = newContextSync(testContextId, "/home/wuying");
+      
       const createSession1Response = await agentBay.create({
         imageId: "linux_latest",
-        contextId: testContextId,
+        contextSync: [contextSync],
       });
       session1 = createSession1Response.session!;
       log(`First session created with ID: ${session1.sessionId}`);
@@ -198,14 +203,19 @@ describe("Context Persistence Integration", () => {
       log(`Warning: Failed to list active sessions: ${error}`);
     }
 
-    // Create second session with the same context ID
+    // Create second session with the same context
     let session2: Session;
     try {
+      const contextSync = newContextSync(testContextId, "/home/wuying");
+      
       const createSession2Response = await agentBay.create({
         imageId: "linux_latest",
-        contextId: testContextId,
+        contextSync: [contextSync],
       });
-      session2 = createSession2Response.session!;
+      if (!createSession2Response.session) {
+        throw new Error("Failed to create second session: session is null");
+      }
+      session2 = createSession2Response.session;
       log(`Second session created with ID: ${session2.sessionId}`);
       log(
         `Create Session 2 RequestId: ${
@@ -268,12 +278,14 @@ describe("Context Persistence Integration", () => {
         }`
       );
 
-      // Create first session with the first test context
+      // Create first session with context sync
       let session1: Session;
       try {
+        const contextSync = newContextSync(testContextId, "/home/wuying");
+        
         const createSession1Response = await agentBay.create({
           imageId: "linux_latest",
-          contextId: testContextId,
+          contextSync: [contextSync],
         });
         session1 = createSession1Response.session!;
         log(`First session created with ID: ${session1.sessionId}`);
@@ -322,12 +334,14 @@ describe("Context Persistence Integration", () => {
         }
       }
 
-      // Create third session with the second context ID
+      // Create third session with the second context
       let session3: Session;
       try {
+        const contextSync = newContextSync(secondContext.id, "/home/wuying");
+        
         const createSession3Response = await agentBay.create({
           imageId: "linux_latest",
-          contextId: secondContext.id,
+          contextSync: [contextSync],
         });
         session3 = createSession3Response.session!;
         log(`Third session created with ID: ${session3.sessionId}`);

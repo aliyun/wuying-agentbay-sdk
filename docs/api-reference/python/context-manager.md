@@ -26,7 +26,7 @@ info(context_id: Optional[str] = None, path: Optional[str] = None, task_type: Op
 - `task_type` (str, optional): The type of task to get information for.
 
 **Returns:**
-- `ContextInfoResult`: A result object containing the context status data, success status, and request ID.
+- `ContextInfoResult`: A result object containing the context status data, success status, and request ID. This class inherits from `ApiResponse`.
 
 **Example:**
 ```python

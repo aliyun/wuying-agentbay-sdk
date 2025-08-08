@@ -15,7 +15,7 @@ func containsToolNotFound(s string) bool {
 	return strings.Contains(strings.ToLower(s), "tool not found")
 }
 
-// TestContextPersistence tests the persistence of files across sessions with the same context ID
+// TestContextPersistence tests the persistence of files across sessions with the same context
 // and the isolation of files between different contexts.
 func TestContextPersistence(t *testing.T) {
 	apiKey := testutil.GetTestAPIKey(t)
@@ -54,7 +54,7 @@ func TestContextPersistence(t *testing.T) {
 		t.Fatalf("Error getting created context: %v", err)
 	}
 
-	context := contextFromResult(getResult)
+	context := getResult.Context
 	t.Logf("Context created successfully - ID: %s, Name: %s, State: %s, OSType: %s (RequestID: %s)",
 		context.ID, context.Name, context.State, context.OSType, createResult.RequestID)
 
@@ -62,11 +62,16 @@ func TestContextPersistence(t *testing.T) {
 	testFilePath := fmt.Sprintf("~/test-file-%d.txt", time.Now().Unix())
 	testFileContent := "This is a test file for context persistence"
 
-	// Step 2: Create a session with the context ID
-	t.Log("Creating first session with context ID...")
-	params := agentbay.NewCreateSessionParams().WithContextID(context.ID)
+	// Step 2: Create a session with context sync
+	t.Log("Creating first session with context sync...")
+	params := agentbay.NewCreateSessionParams()
+	contextSync := &agentbay.ContextSync{
+		ContextID: context.ID,
+		Path:      "/home/wuying",
+		Policy:    agentbay.NewSyncPolicy(),
+	}
+	params.AddContextSyncConfig(contextSync)
 	params.ImageId = "linux_latest"
-	t.Logf("Session params: ContextID=%s", params.ContextID)
 
 	// List active sessions before creation
 	listSessionResult, err := agentBay.List()
@@ -83,7 +88,7 @@ func TestContextPersistence(t *testing.T) {
 
 	sessionResult, err := agentBay.Create(params)
 	if err != nil {
-		t.Fatalf("Error creating session with context ID: %v", err)
+		t.Fatalf("Error creating session with context sync: %v", err)
 	}
 	session1 := sessionResult.Session
 	t.Logf("Session created with ID: %s, AgentBay client region: %s (RequestID: %s)",
@@ -152,11 +157,16 @@ func TestContextPersistence(t *testing.T) {
 	t.Log("Waiting for 20 seconds before creating the second session...")
 	time.Sleep(20 * time.Second)
 
-	// Step 5: Create another session with the same context ID
-	t.Log("Creating second session with the same context ID...")
-	params = agentbay.NewCreateSessionParams().WithContextID(context.ID)
+	// Step 5: Create another session with the same context
+	t.Log("Creating second session with the same context...")
+	params = agentbay.NewCreateSessionParams()
+	contextSync = &agentbay.ContextSync{
+		ContextID: context.ID,
+		Path:      "/home/wuying",
+		Policy:    agentbay.NewSyncPolicy(),
+	}
+	params.AddContextSyncConfig(contextSync)
 	params.ImageId = "linux_latest"
-	t.Logf("Second session params: ContextID=%s", params.ContextID)
 
 	// List active sessions before creating second session
 	listSessionResult, err = agentBay.List()
@@ -176,7 +186,7 @@ func TestContextPersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to get context before second session creation: %v", err)
 	} else if contextBeforeResult != nil {
-		contextBefore := contextFromResult(contextBeforeResult)
+		contextBefore := contextBeforeResult.Context
 		t.Logf("Context state before second session: ID=%s, Name=%s, State=%s, OSType=%s (RequestID: %s)",
 			contextBefore.ID, contextBefore.Name, contextBefore.State, contextBefore.OSType,
 			contextBeforeResult.RequestID)
@@ -184,7 +194,7 @@ func TestContextPersistence(t *testing.T) {
 
 	session2Result, err := agentBay.Create(params)
 	if err != nil {
-		t.Logf("Error creating second session with context ID: %v", err)
+		t.Logf("Error creating second session with context sync: %v", err)
 		t.Logf("This may be due to resource limits or the context being in use.")
 
 		// Try to clean up the context before failing
@@ -197,7 +207,7 @@ func TestContextPersistence(t *testing.T) {
 				context.ID, deleteContextResult.RequestID)
 		}
 
-		t.Fatalf("Failed to create second session with context ID: %v", err)
+		t.Fatalf("Failed to create second session with context sync: %v", err)
 	}
 	session2 := session2Result.Session
 	t.Logf("Second session created with ID: %s, AgentBay client region: %s (RequestID: %s)",
@@ -225,8 +235,8 @@ func TestContextPersistence(t *testing.T) {
 	t.Logf("Second session released successfully (RequestID: %s)",
 		deleteResult.RequestID)
 
-	// Step 8: Create a session without a context ID
-	t.Log("Creating third session without context ID...")
+	// Step 8: Create a session without context sync
+	t.Log("Creating third session without context sync...")
 
 	// List active sessions before creating third session
 	listSessionResult, err = agentBay.List()
@@ -241,7 +251,7 @@ func TestContextPersistence(t *testing.T) {
 	params = agentbay.NewCreateSessionParams().WithImageId("linux_latest")
 	session3Result, err := agentBay.Create(params)
 	if err != nil {
-		t.Fatalf("Error creating third session without context ID: %v", err)
+		t.Fatalf("Error creating third session without context sync: %v", err)
 	}
 	session3 := session3Result.Session
 	t.Logf("Third session created with ID: %s (RequestID: %s)",

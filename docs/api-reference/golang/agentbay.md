@@ -97,7 +97,6 @@ func main() {
 	params := &agentbay.CreateSessionParams{
 		ImageId:   "linux_latest",
 		Labels:    labels,
-		ContextID: "your_context_id", // DEPRECATED: Use ContextSync instead
 	}
 	customResult, err := client.Create(params)
 	if err != nil {
@@ -299,8 +298,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create a session
-	createResult, err := client.Create(nil)
+	// Create a session with context synchronization
+	contextSync := &agentbay.ContextSync{
+		ContextID: "your_context_id",
+		Path:      "/home/wuying",
+		Policy:    agentbay.NewSyncPolicy(),
+	}
+	params := &agentbay.CreateSessionParams{
+		ImageId:      "linux_latest",
+		ContextSync: []*agentbay.ContextSync{contextSync},
+	}
+	
+	createResult, err := client.Create(params)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)

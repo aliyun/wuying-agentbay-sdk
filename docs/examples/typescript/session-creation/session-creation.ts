@@ -99,9 +99,8 @@ async function createSessionWithContext() {
       log(`Using context with ID: ${contextResult.context.id}`);
 
       // Create a session linked to the context
-      const params: CreateSessionParams = {
-        contextId: contextResult.context.id
-      };
+      const params = new CreateSessionParams()
+        .addContextSync(contextResult.context.id, "/home/wuying");
 
       const sessionResult = await agent_bay.create(params);
 

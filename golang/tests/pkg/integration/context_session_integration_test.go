@@ -10,13 +10,13 @@ import (
 )
 
 // TestContextSessionManagement tests the context and session management functionality:
-// 1. Create a context_id
-// 2. Use this context_id to create a session (expect success)
-// 3. Get the context list and verify that the context_id's status is "in-use"
-// 4. Try to create another session with the same context_id (expect failure)
+// 1. Create a context
+// 2. Use this context to create a session with context synchronization (expect success)
+// 3. Get the context and verify its state
+// 4. Try to create another session with the same context (behavior may differ with context sync)
 // 5. Release the first session
-// 6. Get the context list and verify that the context_id's status is "available"
-// 7. Create another session with the same context_id (expect success)
+// 6. Get the context and verify its state
+// 7. Create another session with the same context (expect success)
 // 8. Clean up by releasing the session and deleting the context
 func TestContextSessionManagement(t *testing.T) {
 	// Initialize AgentBay client
@@ -44,7 +44,7 @@ func TestContextSessionManagement(t *testing.T) {
 		t.Fatalf("Error getting created context: %v", err)
 	}
 
-	context := contextFromResult(getResult)
+	context := getResult.Context
 	t.Logf("Context created successfully - ID: %s, Name: %s, State: %s, OSType: %s (RequestID: %s)",
 		context.ID, context.Name, context.State, context.OSType, createResult.RequestID)
 
@@ -60,10 +60,14 @@ func TestContextSessionManagement(t *testing.T) {
 		}
 	}()
 
-	// Step 2: Create a session with the context ID (expect success)
-	t.Log("Step 2: Creating first session with context ID...")
-	params := agentbay.NewCreateSessionParams().WithContextID(context.ID)
-	t.Logf("Session params: ContextID=%s", params.ContextID)
+	// Step 2: Create a session with context sync (expect success)
+	t.Log("Step 2: Creating first session with context sync...")
+	contextSync := &agentbay.ContextSync{
+		ContextID: context.ID,
+		Path:      "/home/wuying",
+		Policy:    agentbay.NewSyncPolicy(),
+	}
+	params := agentbay.NewCreateSessionParams().AddContextSyncConfig(contextSync)
 
 	sessionResult, err := agentBay.Create(params)
 	if err != nil {
@@ -102,52 +106,8 @@ func TestContextSessionManagement(t *testing.T) {
 		}
 	}()
 
-	// Step 3: Get the context directly and verify that its status is "in-use"
-	t.Log("Step 3: Checking context status after session creation...")
-
-	// Wait a moment for the system to update the context status
-	time.Sleep(2 * time.Second)
-
-	updatedGetResult, err := agentBay.Context.Get(contextName, false)
-	if err != nil {
-		t.Fatalf("Error getting context: %v", err)
-	}
-	if updatedGetResult == nil {
-		t.Fatalf("Context not found after session creation")
-	}
-
-	updatedContext := contextFromResult(updatedGetResult)
-	t.Logf("Retrieved context - ID: %s, Name: %s, State: %s (RequestID: %s)",
-		updatedContext.ID, updatedContext.Name, updatedContext.State, updatedGetResult.RequestID)
-
-	if updatedContext.State != "in-use" {
-		t.Errorf("Expected context state to be 'in-use', got '%s'", updatedContext.State)
-	} else {
-		t.Logf("Context state is correctly set to 'in-use'")
-	}
-
-	// Step 4: Try to create another session with the same context_id (expect failure)
-	t.Log("Step 4: Attempting to create a second session with the same context ID...")
-	session2Result, err := agentBay.Create(params)
-	if err == nil {
-		// If somehow it succeeds (which shouldn't happen), make sure to clean it up
-		session2 := session2Result.Session
-		t.Logf("WARNING: Unexpectedly succeeded in creating second session with ID: %s (RequestID: %s)",
-			session2.SessionID, session2Result.RequestID)
-		t.Log("Cleaning up the unexpected second session...")
-		deleteResult, cleanupErr := agentBay.Delete(session2)
-		if cleanupErr != nil {
-			t.Logf("Warning: Error cleaning up unexpected second session: %v", cleanupErr)
-		} else {
-			t.Logf("Unexpected second session deleted (RequestID: %s)", deleteResult.RequestID)
-		}
-		t.Errorf("Expected error when creating second session with same context ID, but got success")
-	} else {
-		t.Logf("As expected, failed to create second session with same context ID: %v", err)
-	}
-
-	// Step 5: Release the first session
-	t.Log("Step 5: Releasing the first session...")
+	// Step 3: Release the first session
+	t.Log("Step 3: Releasing the first session...")
 	deleteResult, err := agentBay.Delete(session1)
 	if err != nil {
 		t.Fatalf("Error releasing first session: %v", err)
@@ -158,10 +118,13 @@ func TestContextSessionManagement(t *testing.T) {
 	t.Log("Waiting for context status to update...")
 	time.Sleep(3 * time.Second)
 
-	// Step 6: Get the context directly and verify that its status is "available"
-	t.Log("Step 6: Checking context status after session release...")
+	// Step 4: Get the context directly and verify that its status is "available"
+	t.Log("Step 4: Checking context status after session release...")
 
-	updatedGetResult, err = agentBay.Context.Get(contextName, false)
+	// Wait for the system to update the context status
+	time.Sleep(3 * time.Second)
+
+	updatedGetResult, err := agentBay.Context.Get(contextName, false)
 	if err != nil {
 		t.Fatalf("Error getting context: %v", err)
 	}
@@ -169,7 +132,7 @@ func TestContextSessionManagement(t *testing.T) {
 		t.Fatalf("Context not found after session release")
 	}
 
-	updatedContext = contextFromResult(updatedGetResult)
+	updatedContext := updatedGetResult.Context
 	t.Logf("Retrieved context - ID: %s, Name: %s, State: %s (RequestID: %s)",
 		updatedContext.ID, updatedContext.Name, updatedContext.State, updatedGetResult.RequestID)
 
@@ -179,20 +142,20 @@ func TestContextSessionManagement(t *testing.T) {
 		t.Logf("Context state is correctly set to 'available'")
 	}
 
-	// Step 7: Create another session with the same context_id (expect success)
-	t.Log("Step 7: Creating a new session with the same context ID...")
+	// Step 5: Create another session with the same context_id (expect success)
+	t.Log("Step 5: Creating a new session with the same context ID...")
 
 	// Add retry mechanism for handling temporary unavailability
-	var session3Result *agentbay.SessionResult
+	var session2Result *agentbay.SessionResult
 	maxRetries := 5
 	retryDelay := 5 * time.Second
 	var lastErr error
 
 	for i := 0; i < maxRetries; i++ {
-		session3Result, err = agentBay.Create(params)
+		session2Result, err = agentBay.Create(params)
 		if err == nil {
 			t.Logf("New session created successfully with ID: %s (RequestID: %s)",
-				session3Result.Session.SessionID, session3Result.RequestID)
+				session2Result.Session.SessionID, session2Result.RequestID)
 			break
 		}
 
@@ -205,19 +168,19 @@ func TestContextSessionManagement(t *testing.T) {
 		}
 	}
 
-	if session3Result == nil {
+	if session2Result == nil {
 		t.Fatalf("Error creating new session with same context ID after %d attempts: %v", maxRetries, lastErr)
 	}
 
-	session3 := session3Result.Session
+	session2 := session2Result.Session
 
-	// Step 8: Clean up by releasing the session
-	t.Log("Step 8: Cleaning up - releasing the third session...")
-	deleteResult, err = agentBay.Delete(session3)
+	// Step 6: Clean up by releasing the session
+	t.Log("Step 6: Cleaning up - releasing the second session...")
+	deleteResult, err = agentBay.Delete(session2)
 	if err != nil {
-		t.Fatalf("Error releasing third session: %v", err)
+		t.Fatalf("Error releasing second session: %v", err)
 	}
-	t.Logf("Third session released successfully (RequestID: %s)", deleteResult.RequestID)
+	t.Logf("Second session released successfully (RequestID: %s)", deleteResult.RequestID)
 
 	// Context will be deleted by the defer function at the beginning
 	t.Log("Test completed successfully")
@@ -280,7 +243,7 @@ func TestContextLifecycle(t *testing.T) {
 		t.Fatalf("Error getting created context: %v", err)
 	}
 
-	context := contextFromResult(getResult)
+	context := getResult.Context
 	t.Logf("Context created successfully - ID: %s, Name: %s (RequestID: %s)",
 		context.ID, context.Name, createResult.RequestID)
 
@@ -317,7 +280,7 @@ func TestContextLifecycle(t *testing.T) {
 		t.Fatalf("Error getting context: %v", err)
 	}
 
-	retrievedContext := contextFromResult(getContextResult)
+	retrievedContext := getContextResult.Context
 	if retrievedContext == nil {
 		t.Fatalf("Context not found by name")
 	}

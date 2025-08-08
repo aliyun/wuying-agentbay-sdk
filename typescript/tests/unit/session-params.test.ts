@@ -50,27 +50,6 @@ describe("Session Parameters", () => {
       expect(createResponse.errorMessage).toBeUndefined();
     });
 
-    it("should accept contextId option", async () => {
-      const contextId = "test-context-id";
-
-      // Mock create response with contextId and SessionResult structure
-      const mockCreateResponse = {
-        requestId: "create-with-context-request-id",
-        success: true,
-        session: mockSession,
-      };
-      mockAgentBay.create.resolves(mockCreateResponse);
-
-      const createResponse = await mockAgentBay.create({ contextId });
-
-      // Verify SessionResult structure
-      expect(createResponse.success).toBe(true);
-      expect(createResponse.requestId).toBe("create-with-context-request-id");
-      expect(createResponse.session).toBe(mockSession);
-      expect(createResponse.errorMessage).toBeUndefined();
-      expect(mockAgentBay.create.calledOnceWith({ contextId })).toBe(true);
-    });
-
     it("should accept labels option", async () => {
       const labels = { username: "alice", project: "my-project" };
 
@@ -113,32 +92,7 @@ describe("Session Parameters", () => {
       expect(mockAgentBay.create.calledOnceWith({ imageId })).toBe(true);
     });
 
-    it("should accept both contextId and labels options", async () => {
-      const contextId = "test-context-id";
-      const labels = { username: "alice", project: "my-project" };
-
-      // Mock create response with both options and SessionResult structure
-      const mockCreateResponse = {
-        requestId: "create-with-both-request-id",
-        success: true,
-        session: mockSession,
-      };
-      mockAgentBay.create.resolves(mockCreateResponse);
-
-      const createResponse = await mockAgentBay.create({ contextId, labels });
-
-      // Verify SessionResult structure
-      expect(createResponse.success).toBe(true);
-      expect(createResponse.requestId).toBe("create-with-both-request-id");
-      expect(createResponse.session).toBe(mockSession);
-      expect(createResponse.errorMessage).toBeUndefined();
-      expect(mockAgentBay.create.calledOnceWith({ contextId, labels })).toBe(
-        true
-      );
-    });
-
     it("should accept all options together", async () => {
-      const contextId = "test-context-id";
       const labels = { username: "alice", project: "my-project" };
       const imageId = "test-image-id";
 
@@ -151,7 +105,6 @@ describe("Session Parameters", () => {
       mockAgentBay.create.resolves(mockCreateResponse);
 
       const createResponse = await mockAgentBay.create({
-        contextId,
         labels,
         imageId,
       });
@@ -162,7 +115,7 @@ describe("Session Parameters", () => {
       expect(createResponse.session).toBe(mockSession);
       expect(createResponse.errorMessage).toBeUndefined();
       expect(
-        mockAgentBay.create.calledOnceWith({ contextId, labels, imageId })
+        mockAgentBay.create.calledOnceWith({ labels, imageId })
       ).toBe(true);
     });
   });
@@ -170,7 +123,6 @@ describe("Session Parameters", () => {
   describe("session creation with options", () => {
     it("should create a session with the specified options", async () => {
       const options = {
-        contextId: "test-context-id",
         labels: { username: "alice" },
         imageId: "test-image-id",
       };
@@ -195,7 +147,6 @@ describe("Session Parameters", () => {
 
     it("should handle create session failure", async () => {
       const options = {
-        contextId: "test-context-id",
         labels: { username: "alice" },
       };
 

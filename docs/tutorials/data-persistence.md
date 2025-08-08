@@ -8,27 +8,19 @@ AgentBay provides a powerful way to persist data across sessions using contexts.
 
 ## Context Synchronization Approaches
 
-AgentBay provides two approaches for context synchronization:
+AgentBay provides the following approach for context synchronization:
 
-1. **Simple Context Attachment** (Deprecated): Link a session to a persistent context
-   ```python
-   # Python - DEPRECATED APPROACH
-   params = CreateSessionParams(context_id="your_context_id")
-   session_result = agent_bay.create(params)
-   ```
-   Note: This approach is deprecated and will be removed in a future version.
-
-2. **Advanced Context Synchronization** (Recommended): Mount a context at a specific path with synchronization policies
-   ```python
-   # Python - RECOMMENDED APPROACH
-   context_sync = ContextSync.new(
-       context_id="your_context_id",
-       path="/mnt/persistent",
-       policy=SyncPolicy.default()
-   )
-   params = CreateSessionParams(context_syncs=[context_sync])
-   session_result = agent_bay.create(params)
-   ```
+**Advanced Context Synchronization** (Recommended): Mount a context at a specific path with synchronization policies
+```python
+# Python - RECOMMENDED APPROACH
+context_sync = ContextSync.new(
+    context_id="your_context_id",
+    path="/mnt/persistent",
+    policy=SyncPolicy.default()
+)
+params = CreateSessionParams(context_syncs=[context_sync])
+session_result = agent_bay.create(params)
+```
 
 ## Benefits of Advanced Context Synchronization
 

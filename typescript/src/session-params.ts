@@ -15,11 +15,6 @@ export interface BrowserContext {
  */
 export interface CreateSessionParamsConfig {
   labels: Record<string, string>;
-  /**
-   * @deprecated This field is deprecated and will be removed in a future version.
-   * Please use contextSync instead for more flexible and powerful data persistence.
-   */
-  contextId?: string;
   imageId?: string;
   contextSync: ContextSync[];
   /** Optional configuration for browser data synchronization */
@@ -35,26 +30,6 @@ export interface CreateSessionParamsConfig {
 export class CreateSessionParams implements CreateSessionParamsConfig {
   /** Custom labels for the Session. These can be used for organizing and filtering sessions. */
   public labels: Record<string, string>;
-
-  /**
-   * ID of the context to bind to the session.
-   * The context can include various types of persistence like file system (volume) and cookies.
-   *
-   * @deprecated This field is deprecated and will be removed in a future version.
-   * Please use contextSync instead for more flexible and powerful data persistence.
-   *
-   * Important Limitations:
-   * 1. One session at a time: A context can only be used by one session at a time.
-   *    If you try to create a session with a context ID that is already in use by another active session,
-   *    the session creation will fail.
-   *
-   * 2. OS binding: A context is bound to the operating system of the first session that uses it.
-   *    When a context is first used with a session, it becomes bound to that session's OS.
-   *    Any attempt to use the context with a session running on a different OS will fail.
-   *    For example, if a context is first used with a Linux session, it cannot later be used
-   *    with a Windows or Android session.
-   */
-  public contextId?: string;
 
   /** Image ID to use for the session. */
   public imageId?: string;
@@ -85,13 +60,6 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     return this;
   }
 
-  /**
-   * WithContextID sets the context ID for the session parameters and returns the updated parameters.
-   */
-  withContextID(contextId: string): CreateSessionParams {
-    this.contextId = contextId;
-    return this;
-  }
 
   /**
    * WithImageId sets the image ID for the session parameters and returns the updated parameters.
@@ -172,7 +140,6 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   toJSON(): CreateSessionParamsConfig {
     return {
       labels: this.labels,
-      contextId: this.contextId,
       imageId: this.imageId,
       contextSync: this.contextSync,
       browserContext: this.browserContext,
@@ -186,7 +153,6 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   static fromJSON(config: CreateSessionParamsConfig): CreateSessionParams {
     const params = new CreateSessionParams();
     params.labels = config.labels || {};
-    params.contextId = config.contextId;
     params.imageId = config.imageId;
     params.contextSync = config.contextSync || [];
     params.browserContext = config.browserContext;

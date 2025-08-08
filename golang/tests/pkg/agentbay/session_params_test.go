@@ -19,9 +19,6 @@ func TestCreateSessionParams(t *testing.T) {
 	if len(params.Labels) != 0 {
 		t.Errorf("Expected empty Labels map, got %v", params.Labels)
 	}
-	if params.ContextID != "" {
-		t.Errorf("Expected empty ContextID, got %s", params.ContextID)
-	}
 
 	// Test WithLabels
 	labels := map[string]string{
@@ -37,24 +34,6 @@ func TestCreateSessionParams(t *testing.T) {
 	}
 	if params.Labels["project"] != "my-project" {
 		t.Errorf("Expected project=my-project, got %s", params.Labels["project"])
-	}
-
-	// Test WithContextID
-	contextID := "test-context-id"
-	params = agentbay.NewCreateSessionParams().WithContextID(contextID)
-	if params.ContextID != contextID {
-		t.Errorf("Expected ContextID=%s, got %s", contextID, params.ContextID)
-	}
-
-	// Test chaining
-	params = agentbay.NewCreateSessionParams().
-		WithLabels(labels).
-		WithContextID(contextID)
-	if len(params.Labels) != 2 {
-		t.Errorf("Expected 2 labels, got %d", len(params.Labels))
-	}
-	if params.ContextID != contextID {
-		t.Errorf("Expected ContextID=%s, got %s", contextID, params.ContextID)
 	}
 
 	// Test GetLabelsJSON

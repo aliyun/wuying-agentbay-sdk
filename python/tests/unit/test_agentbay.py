@@ -106,7 +106,7 @@ class TestAgentBay(unittest.TestCase):
 
         # Create AgentBay instance and session parameters
         agent_bay = AgentBay(api_key="test-key")
-        params = CreateSessionParams(context_id="test-context", labels={"env": "test"})
+        params = CreateSessionParams(labels={"env": "test"})
 
         # Test creating a session
         result = agent_bay.create(params)

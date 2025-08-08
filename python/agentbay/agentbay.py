@@ -107,10 +107,7 @@ class AgentBay:
 
             request = CreateMcpSessionRequest(authorization=f"Bearer {self.api_key}")
 
-            # Add context_id if provided
-            if params.context_id:
-                request.context_id = params.context_id
-
+            
             # Add VPC resource if specified
             request.vpc_resource = params.is_vpc
 

@@ -78,7 +78,7 @@ def create_session_with_labels() -> None:
 
 
 def create_session_with_context() -> None:
-    """Create a session with persistent context."""
+    """Create a session with context synchronization."""
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
@@ -90,8 +90,13 @@ def create_session_with_context() -> None:
         context = context_result.context
         print(f"Using context with ID: {context.id}")
 
-        # Create a session linked to the context
-        session_params = CreateSessionParams(context_id=context.id)
+        # Create a session with context synchronization
+        context_sync = ContextSync.new(
+            context_id=context.id,
+            path="/mnt/data",
+            policy=SyncPolicy.default()
+        )
+        session_params = CreateSessionParams(context_syncs=[context_sync])
         session_result = agent_bay.create(session_params)
 
         if session_result.success and session_result.session:

@@ -9,29 +9,12 @@ class TestCreateSessionParams(unittest.TestCase):
         """Test that CreateSessionParams initializes with default values."""
         params = CreateSessionParams()
         self.assertEqual(params.labels, {})
-        self.assertIsNone(params.context_id)
 
     def test_custom_labels(self):
         """Test that CreateSessionParams accepts custom labels."""
         labels = {"username": "alice", "project": "my-project"}
         params = CreateSessionParams(labels=labels)
         self.assertEqual(params.labels, labels)
-        self.assertIsNone(params.context_id)
-
-    def test_context_id(self):
-        """Test that CreateSessionParams accepts a context ID."""
-        context_id = "test-context-id"
-        params = CreateSessionParams(context_id=context_id)
-        self.assertEqual(params.labels, {})
-        self.assertEqual(params.context_id, context_id)
-
-    def test_both_parameters(self):
-        """Test that CreateSessionParams accepts both labels and context ID."""
-        labels = {"username": "alice", "project": "my-project"}
-        context_id = "test-context-id"
-        params = CreateSessionParams(labels=labels, context_id=context_id)
-        self.assertEqual(params.labels, labels)
-        self.assertEqual(params.context_id, context_id)
 
     def test_labels_json_conversion(self):
         """Test that labels can be converted to JSON for the API request."""

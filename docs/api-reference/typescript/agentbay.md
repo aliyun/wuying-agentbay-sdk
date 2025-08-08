@@ -81,8 +81,7 @@ async function createDefaultSession() {
 async function createCustomSession() {
   const params: CreateSessionParams = {
     imageId: 'linux_latest',
-    labels: { project: 'demo', environment: 'testing' },
-    contextId: 'your_context_id'  // DEPRECATED: Use contextSync instead
+    labels: { project: 'demo', environment: 'testing' }
   };
   
   const result = await agentBay.create(params);
@@ -117,14 +116,11 @@ async function createSessionWithSync() {
 
 
 ```typescript
-list(): Promise<Session[]>
+list(): Session[]
 ```
 
 **Returns:**
-- `Promise<Session[]>`: A promise that resolves to an array of Session instances.
-
-**Throws:**
-- `Error`: If the session listing fails.
+- `Session[]`: An array of Session instances.
 
 **Example:**
 ```typescript
@@ -134,8 +130,8 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
 // List all sessions
-async function listSessions() {
-  const sessions = await agentBay.list();
+function listSessions() {
+  const sessions = agentBay.list();
   console.log(`Found ${sessions.length} sessions:`);
   sessions.forEach(session => {
     console.log(`Session ID: ${session.sessionId}`);
@@ -147,11 +143,11 @@ listSessions();
 
 
 ```typescript
-listByLabels(params?: ListSessionParams | Record<string, string>): Promise<SessionListResult>
+listByLabels(params?: ListSessionParams): Promise<SessionListResult>
 ```
 
 **Parameters:**
-- `params` (ListSessionParams | Record<string, string>, optional): Parameters for filtering sessions by labels. If a dictionary is provided, it will be treated as labels. If not provided, all sessions will be returned.
+- `params` (ListSessionParams, optional): Parameters including labels and pagination options. If not provided, defaults will be used (labels `{}`, maxResults `10`).
 
 **Returns:**
 - `Promise<SessionListResult>`: A promise that resolves to a result object containing the filtered sessions, pagination information, and request ID.
@@ -181,8 +177,8 @@ async function listSessionsByLabels() {
   // Process the results
   if (result.success) {
     // Print the current page sessions
-    console.log(`Found ${result.sessions.length} sessions:`);
-    result.sessions.forEach(session => {
+    console.log(`Found ${result.data.length} sessions:`);
+    result.data.forEach(session => {
       console.log(`Session ID: ${session.sessionId}`);
     });
     

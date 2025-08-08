@@ -357,8 +357,8 @@ class TestContextSyncIntegration(unittest.TestCase):
                 delete_result = self.agent_bay.delete(session1, sync_context=True)
                 self.assertTrue(delete_result.success, "Error deleting first session")
 
-                # 8. Create a second session with the same context ID
-                print("Creating second session with the same context ID...")
+                # 8. Create a second session with the same context
+                print("Creating second session with the same context...")
                 session_params = CreateSessionParams()
                 context_sync = ContextSync.new(context.id, sync_path, default_policy)
                 session_params.context_syncs = [context_sync]

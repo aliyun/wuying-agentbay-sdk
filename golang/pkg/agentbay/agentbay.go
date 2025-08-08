@@ -106,11 +106,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		Authorization: tea.String("Bearer " + a.APIKey),
 	}
 
-	// Add context_id if provided
-	if params.ContextID != "" {
-		createSessionRequest.ContextId = tea.String(params.ContextID)
-	}
-
+	
 	// Add image_id if provided
 	if params.ImageId != "" {
 		createSessionRequest.ImageId = tea.String(params.ImageId)

@@ -10,24 +10,6 @@ type CreateSessionParams struct {
 	// Labels are custom labels for the Session. These can be used for organizing and filtering sessions.
 	Labels map[string]string
 
-	// ContextID is the ID of the context to bind to the session.
-	// The context can include various types of persistence like file system (volume) and cookies.
-	//
-	// Deprecated: This field is deprecated and will be removed in a future version.
-	// Please use ContextSync instead for more flexible and powerful data persistence.
-	//
-	// Important Limitations:
-	// 1. One session at a time: A context can only be used by one session at a time.
-	//    If you try to create a session with a context ID that is already in use by another active session,
-	//    the session creation will fail.
-	//
-	// 2. OS binding: A context is bound to the operating system of the first session that uses it.
-	//    When a context is first used with a session, it becomes bound to that session's OS.
-	//    Any attempt to use the context with a session running on a different OS will fail.
-	//    For example, if a context is first used with a Linux session, it cannot later be used
-	//    with a Windows or Android session.
-	ContextID string
-
 	// ImageId specifies the image ID to use for the session.
 	ImageId string
 
@@ -53,11 +35,6 @@ func (p *CreateSessionParams) WithLabels(labels map[string]string) *CreateSessio
 	return p
 }
 
-// WithContextID sets the context ID for the session parameters and returns the updated parameters.
-func (p *CreateSessionParams) WithContextID(contextID string) *CreateSessionParams {
-	p.ContextID = contextID
-	return p
-}
 
 // WithImageId sets the image ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithImageId(imageId string) *CreateSessionParams {

@@ -63,9 +63,7 @@ func TestSessionParams_WithContextID_WithMockClient(t *testing.T) {
 
 	// Set expected behavior
 	contextID := "test-context-id"
-	expectedResult := &agentbay.CreateSessionParams{
-		ContextID: contextID,
-	}
+	expectedResult := &agentbay.CreateSessionParams{}
 	mockSessionParams.EXPECT().WithContextID(contextID).Return(expectedResult)
 
 	// Test WithContextID method call
@@ -73,7 +71,6 @@ func TestSessionParams_WithContextID_WithMockClient(t *testing.T) {
 
 	// Verify call success
 	assert.NotNil(t, result)
-	assert.Equal(t, contextID, result.ContextID)
 }
 
 func TestSessionParams_GetLabelsJSON_WithMockClient(t *testing.T) {

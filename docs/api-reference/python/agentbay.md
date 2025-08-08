@@ -43,8 +43,8 @@ create(params: Optional[CreateSessionParams] = None) -> SessionResult
 - `SessionResult`: A result object containing the new Session instance, success status, request ID, and error message if any.
 
 **Behavior:**
-- When `params` includes valid `persistence_data_list`, after creating the session, the API will check `session.context.info` to retrieve ContextStatusData.
-- It will continuously monitor all data items' Status in ContextStatusData until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
+- When `params` includes valid `persistence_data_list`, after creating the session, the API will internally wait for context synchronization to complete.
+- It will retrieve ContextStatusData via `session.context.info` and continuously monitor all data items' Status until all items show either "Success" or "Failed" status, or until the maximum retry limit (150 times with 2-second intervals) is reached.
 - Any "Failed" status items will have their error messages printed.
 - The create operation only returns after context status checking completes.
 
@@ -77,15 +77,14 @@ if default_result.success:
 # Create a session with custom parameters
 params = CreateSessionParams(
     image_id="linux_latest",
-    labels={"project": "demo", "environment": "testing"},
-    context_id="your_context_id"  # DEPRECATED: Use context_syncs instead
+    labels={"project": "demo", "environment": "testing"}
 )
 custom_result = agent_bay.create(params)
 if custom_result.success:
     custom_session = custom_result.session
     print(f"Created custom session with ID: {custom_session.session_id}")
 
-# RECOMMENDED: Create a session with context synchronization
+# Create a session with context synchronization
 context_sync = ContextSync.new(
     context_id="your_context_id",
     path="/mnt/persistent",

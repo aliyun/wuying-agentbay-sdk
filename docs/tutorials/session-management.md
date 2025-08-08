@@ -72,7 +72,7 @@ You can customize a session by specifying parameters. Common parameters include:
 
 - `image_id`: Specify the image to use for the session
 - `labels`: Add labels to the session for easier management
-- `context_id`: Associate a persistent context (DEPRECATED, use context synchronization instead)
+- `context_syncs`: Associate persistent contexts with synchronization policies
 
 ```python
 from agentbay import AgentBay

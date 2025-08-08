@@ -30,11 +30,6 @@ class CreateSessionParams:
     Attributes:
         labels (Optional[Dict[str, str]]): Custom labels for the Session. These can be
             used for organizing and filtering sessions.
-        context_id (Optional[str]): ID of the context to bind to the session. The
-            context can include various types of persistence like file system (volume)
-            and cookies.
-            Deprecated: This field is deprecated and will be removed in a future version.
-            Please use context_syncs instead for more flexible and powerful data persistence.
         context_syncs (Optional[List[ContextSync]]): List of context synchronization
             configurations that define how contexts should be synchronized and mounted.
         browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.
@@ -44,7 +39,6 @@ class CreateSessionParams:
     def __init__(
         self,
         labels: Optional[Dict[str, str]] = None,
-        context_id: Optional[str] = None,  # Deprecated: Use context_syncs instead
         image_id: Optional[str] = None,
         context_syncs: Optional[List[ContextSync]] = None,
         browser_context: Optional[BrowserContext] = None,
@@ -56,10 +50,6 @@ class CreateSessionParams:
         Args:
             labels (Optional[Dict[str, str]], optional): Custom labels for the Session.
                 Defaults to None.
-            context_id (Optional[str], optional): ID of the context to bind to the
-                session. Defaults to None.
-                Deprecated: This field is deprecated and will be removed in a future version.
-                Please use context_syncs instead.
             image_id (Optional[str], optional): ID of the image to use for the session.
                 Defaults to None.
             context_syncs (Optional[List[ContextSync]], optional): List of context
@@ -70,7 +60,6 @@ class CreateSessionParams:
                 Defaults to False.
         """
         self.labels = labels or {}
-        self.context_id = context_id
         self.image_id = image_id
         self.context_syncs = context_syncs or []
         self.browser_context = browser_context

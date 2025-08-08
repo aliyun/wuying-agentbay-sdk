@@ -18,8 +18,7 @@ func TestAgentBay_Create_WithMockClient(t *testing.T) {
 
 	// Set expected behavior
 	params := &agentbay.CreateSessionParams{
-		Labels:    map[string]string{"env": "test"},
-		ContextID: "test_context_id",
+		Labels: map[string]string{"env": "test"},
 	}
 	expectedResult := &agentbay.SessionResult{
 		Session: &agentbay.Session{
