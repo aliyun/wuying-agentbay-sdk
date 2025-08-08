@@ -1,14 +1,18 @@
 name: Auto Publish to TestPyPI with Timestamp Version
 
 on:
-  push:
+  pull_request:
     branches:
-      - main  # 仅当推送到 main 分支时触发
-      - v0.6.0_dev # 仅当推送到 v0.6.0_dev 分支时触发
+      - main  # 仅当合并到 main 分支时触发
+      - v0.6.0_dev  # 仅当合并到 v0.6.0_dev 分支时触发
+    types:
+      - closed  # 仅当 PR 被关闭（合并或拒绝）时触发
 
 jobs:
   build-and-publish-test:
     runs-on: ubuntu-latest
+    # 仅当 PR 被合并时执行
+    if: github.event.pull_request.merged == true
 
     steps:
       - name: Checkout code
@@ -47,7 +51,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
           echo "Using version: $FINAL_VERSION"
-          # 修改 setup.py 中的版本号（假设版本号在 setup.py 的第一行定义）
           sed -i "s/version='.*'/version='$FINAL_VERSION'/" setup.py
           python setup.py sdist bdist_wheel
           ls dist/
