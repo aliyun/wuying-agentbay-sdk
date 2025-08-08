@@ -1,0 +1,41 @@
+name: Build and Publish to npm
+
+on:
+  workflow_dispatch:  # 手动触发
+    inputs:
+      version:
+        description: "Package version (e.g., 1.0.0)"
+        required: true
+        type: string
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"  # 或私有 npm 仓库地址
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install -g typescript  # 如果未安装全局 tsc
+
+      - name: Update version in package.json
+        run: |
+          # 使用输入的版本号更新 package.json
+          npm version ${{ inputs.version }} --no-git-tag-version
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Publish to npm
+        if: ${{ inputs.version != '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
