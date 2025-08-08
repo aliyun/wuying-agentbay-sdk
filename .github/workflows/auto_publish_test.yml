@@ -17,8 +17,14 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Print current directory for debugging
+        run: pwd
+
       - name: Change directory to python
         run: cd python
+
+      - name: Print current directory for debugging
+        run: pwd
 
       - name: Remove existing dist folder
         run: |
