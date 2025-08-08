@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # 仅当推送到 main 分支时触发
+      - v0.6.0_dev # 仅当推送到 v0.6.0_dev 分支时触发
 
 jobs:
   build-and-publish-test:
