@@ -11,7 +11,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="wuying_agentbay_sdk",
-    version='0.3.2',
+    version='0.5.0',
     author="Alibaba Cloud",
     author_email="wuying@alibaba-inc.com",
     description="Python SDK for AgentBay service",
