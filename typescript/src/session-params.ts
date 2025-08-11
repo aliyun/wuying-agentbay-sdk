@@ -21,6 +21,8 @@ export interface CreateSessionParamsConfig {
   browserContext?: BrowserContext;
   /** Whether to create a VPC-based session. Defaults to false. */
   isVpc?: boolean;
+  /** MCP policy id to apply when creating the session. */
+  mcpPolicyId?: string;
 }
 
 /**
@@ -45,6 +47,9 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
 
   /** Whether to create a VPC-based session. Defaults to false. */
   public isVpc: boolean;
+
+  /** MCP policy id to apply when creating the session. */
+  public mcpPolicyId?: string;
 
   constructor() {
     this.labels = {};
@@ -82,6 +87,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   withIsVpc(isVpc: boolean): CreateSessionParams {
     this.isVpc = isVpc;
+    return this;
+  }
+
+  /**
+   * WithMcpPolicyId sets the MCP policy id for the session parameters and returns the updated parameters.
+   */
+  withMcpPolicyId(mcpPolicyId: string): CreateSessionParams {
+    this.mcpPolicyId = mcpPolicyId;
     return this;
   }
 
@@ -144,6 +157,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
       contextSync: this.contextSync,
       browserContext: this.browserContext,
       isVpc: this.isVpc,
+      mcpPolicyId: this.mcpPolicyId,
     };
   }
 
@@ -157,6 +171,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     params.contextSync = config.contextSync || [];
     params.browserContext = config.browserContext;
     params.isVpc = config.isVpc || false;
+    params.mcpPolicyId = config.mcpPolicyId;
     return params;
   }
 }

@@ -28,6 +28,11 @@ class TestCreateSessionParams(unittest.TestCase):
         parsed_labels = json.loads(labels_json)
         self.assertEqual(parsed_labels, labels)
 
+    def test_mcp_policy_id(self):
+        """Test that mcp_policy_id can be carried by CreateSessionParams."""
+        params = CreateSessionParams(mcp_policy_id="policy-xyz")
+        self.assertEqual(params.mcp_policy_id, "policy-xyz")
+
 
 if __name__ == "__main__":
     unittest.main()

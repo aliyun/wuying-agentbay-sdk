@@ -450,3 +450,14 @@ func TestSession_InfoMethod(t *testing.T) {
 		t.Errorf("ℹ️  Ticket field is empty (this may be normal depending on the API response)")
 	}
 }
+
+func TestCreate_WithMcpPolicyId_Smoke(t *testing.T) {
+	apiKey := testutil.GetTestAPIKey(t)
+	client, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	params := agentbay.NewCreateSessionParams().WithMcpPolicyId("policy-abc")
+	_, _ = client.Create(params) // Do not enforce external dependencies; smoke that call path works
+}

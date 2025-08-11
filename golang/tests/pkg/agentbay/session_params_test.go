@@ -65,4 +65,11 @@ func TestCreateSessionParams(t *testing.T) {
 	if labelsJSON != "" {
 		t.Errorf("Expected empty JSON string for empty labels, got %s", labelsJSON)
 	}
+
+	// Test WithMcpPolicyId
+	policyId := "policy-abc"
+	params = agentbay.NewCreateSessionParams().WithMcpPolicyId(policyId)
+	if params.McpPolicyId != policyId {
+		t.Errorf("Expected McpPolicyId=%s, got %s", policyId, params.McpPolicyId)
+	}
 }

@@ -185,6 +185,10 @@ func (client *Client) CreateMcpSessionWithOptions(tmpReq *CreateMcpSessionReques
 		body["Labels"] = request.Labels
 	}
 
+	if !dara.IsNil(request.McpPolicyId) {
+		body["McpPolicyId"] = request.McpPolicyId
+	}
+
 	if !dara.IsNil(request.PersistenceDataListShrink) {
 		body["PersistenceDataList"] = request.PersistenceDataListShrink
 	}

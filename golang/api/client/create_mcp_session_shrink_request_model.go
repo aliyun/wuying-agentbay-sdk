@@ -19,6 +19,8 @@ type iCreateMcpSessionShrinkRequest interface {
 	GetImageId() *string
 	SetLabels(v string) *CreateMcpSessionShrinkRequest
 	GetLabels() *string
+	SetMcpPolicyId(v string) *CreateMcpSessionShrinkRequest
+	GetMcpPolicyId() *string
 	SetPersistenceDataListShrink(v string) *CreateMcpSessionShrinkRequest
 	GetPersistenceDataListShrink() *string
 	SetSessionId(v string) *CreateMcpSessionShrinkRequest
@@ -33,6 +35,7 @@ type CreateMcpSessionShrinkRequest struct {
 	ExternalUserId            *string `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
 	ImageId                   *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels                    *string `json:"Labels,omitempty" xml:"Labels,omitempty"`
+	McpPolicyId               *string `json:"McpPolicyId,omitempty" xml:"McpPolicyId,omitempty"`
 	PersistenceDataListShrink *string `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty"`
 	SessionId                 *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	VpcResource               *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
@@ -64,6 +67,10 @@ func (s *CreateMcpSessionShrinkRequest) GetImageId() *string {
 
 func (s *CreateMcpSessionShrinkRequest) GetLabels() *string {
 	return s.Labels
+}
+
+func (s *CreateMcpSessionShrinkRequest) GetMcpPolicyId() *string {
+	return s.McpPolicyId
 }
 
 func (s *CreateMcpSessionShrinkRequest) GetPersistenceDataListShrink() *string {
@@ -100,6 +107,11 @@ func (s *CreateMcpSessionShrinkRequest) SetImageId(v string) *CreateMcpSessionSh
 
 func (s *CreateMcpSessionShrinkRequest) SetLabels(v string) *CreateMcpSessionShrinkRequest {
 	s.Labels = &v
+	return s
+}
+
+func (s *CreateMcpSessionShrinkRequest) SetMcpPolicyId(v string) *CreateMcpSessionShrinkRequest {
+	s.McpPolicyId = &v
 	return s
 }
 

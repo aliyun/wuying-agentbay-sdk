@@ -19,6 +19,8 @@ type iCreateMcpSessionRequest interface {
 	GetImageId() *string
 	SetLabels(v string) *CreateMcpSessionRequest
 	GetLabels() *string
+	SetMcpPolicyId(v string) *CreateMcpSessionRequest
+	GetMcpPolicyId() *string
 	SetPersistenceDataList(v []*CreateMcpSessionRequestPersistenceDataList) *CreateMcpSessionRequest
 	GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList
 	SetSessionId(v string) *CreateMcpSessionRequest
@@ -33,6 +35,7 @@ type CreateMcpSessionRequest struct {
 	ExternalUserId      *string                                       `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
 	ImageId             *string                                       `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels              *string                                       `json:"Labels,omitempty" xml:"Labels,omitempty"`
+	McpPolicyId         *string                                       `json:"McpPolicyId,omitempty" xml:"McpPolicyId,omitempty"`
 	PersistenceDataList []*CreateMcpSessionRequestPersistenceDataList `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty" type:"Repeated"`
 	SessionId           *string                                       `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	VpcResource         *bool                                         `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
@@ -64,6 +67,10 @@ func (s *CreateMcpSessionRequest) GetImageId() *string {
 
 func (s *CreateMcpSessionRequest) GetLabels() *string {
 	return s.Labels
+}
+
+func (s *CreateMcpSessionRequest) GetMcpPolicyId() *string {
+	return s.McpPolicyId
 }
 
 func (s *CreateMcpSessionRequest) GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList {
@@ -100,6 +107,11 @@ func (s *CreateMcpSessionRequest) SetImageId(v string) *CreateMcpSessionRequest 
 
 func (s *CreateMcpSessionRequest) SetLabels(v string) *CreateMcpSessionRequest {
 	s.Labels = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequest) SetMcpPolicyId(v string) *CreateMcpSessionRequest {
+	s.McpPolicyId = &v
 	return s
 }
 

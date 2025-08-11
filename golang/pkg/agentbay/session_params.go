@@ -19,6 +19,9 @@ type CreateSessionParams struct {
 
 	// IsVpc specifies whether to create a VPC-based session. Defaults to false.
 	IsVpc bool
+
+	// McpPolicyId specifies the MCP policy ID to apply when creating the session.
+	McpPolicyId string
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -35,7 +38,6 @@ func (p *CreateSessionParams) WithLabels(labels map[string]string) *CreateSessio
 	return p
 }
 
-
 // WithImageId sets the image ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithImageId(imageId string) *CreateSessionParams {
 	p.ImageId = imageId
@@ -45,6 +47,12 @@ func (p *CreateSessionParams) WithImageId(imageId string) *CreateSessionParams {
 // WithIsVpc sets the VPC flag for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithIsVpc(isVpc bool) *CreateSessionParams {
 	p.IsVpc = isVpc
+	return p
+}
+
+// WithMcpPolicyId sets the MCP policy ID for the session parameters and returns the updated parameters.
+func (p *CreateSessionParams) WithMcpPolicyId(mcpPolicyId string) *CreateSessionParams {
+	p.McpPolicyId = mcpPolicyId
 	return p
 }
 

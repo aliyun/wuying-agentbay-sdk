@@ -611,4 +611,27 @@ describe("AgentBay", () => {
       log("Test completed successfully");
     });
   });
+
+  describe("mcpPolicyId passthrough", () => {
+    it("should pass mcpPolicyId to CreateMcpSession request body", async () => {
+      const apiKey = "test-api-key";
+      const agentBay = new AgentBay({ apiKey });
+
+      const createMockResponse = {
+        statusCode: 200,
+        body: {
+          data: mockSessionData,
+          requestId: "mock-request-id-create",
+        },
+      };
+      createMcpSessionStub.resolves(createMockResponse);
+
+      const mcpPolicyId = "policy-xyz";
+      await agentBay.create({ mcpPolicyId });
+
+      expect(createMcpSessionStub.calledOnce).toBe(true);
+      const createCallArgs = createMcpSessionStub.getCall(0).args[0];
+      expect(createCallArgs.mcpPolicyId).toBe(mcpPolicyId);
+    });
+  });
 });

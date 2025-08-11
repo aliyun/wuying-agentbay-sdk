@@ -8,6 +8,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
   externalUserId?: string;
   imageId?: string;
   labels?: string;
+  mcpPolicyId?: string;
   persistenceDataListShrink?: string;
   sessionId?: string;
   vpcResource?: boolean;
@@ -18,6 +19,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
       externalUserId: 'ExternalUserId',
       imageId: 'ImageId',
       labels: 'Labels',
+      mcpPolicyId: 'McpPolicyId',
       persistenceDataListShrink: 'PersistenceDataList',
       sessionId: 'SessionId',
       vpcResource: 'VpcResource',
@@ -31,6 +33,7 @@ export class CreateMcpSessionShrinkRequest extends $dara.Model {
       externalUserId: 'string',
       imageId: 'string',
       labels: 'string',
+      mcpPolicyId: 'string',
       persistenceDataListShrink: 'string',
       sessionId: 'string',
       vpcResource: 'boolean',

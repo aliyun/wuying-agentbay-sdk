@@ -171,6 +171,10 @@ export class Client extends OpenApi {
       body["Labels"] = request.labels;
     }
 
+    if (!$dara.isNull(request.mcpPolicyId)) {
+      body["McpPolicyId"] = request.mcpPolicyId;
+    }
+
     if (!$dara.isNull(request.persistenceDataListShrink)) {
       body["PersistenceDataList"] = request.persistenceDataListShrink;
     }

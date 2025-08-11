@@ -31,6 +31,7 @@ export interface CreateSessionParams {
   contextSync?: ContextSync[];
   browserContext?: BrowserContext;
   isVpc?: boolean;
+  mcpPolicyId?: string;
 }
 
 /**
@@ -113,6 +114,11 @@ export class AgentBay {
       // Add image_id if provided
       if (params.imageId) {
         request.imageId = params.imageId;
+      }
+
+      // Add McpPolicyId if provided
+      if (params.mcpPolicyId) {
+        request.mcpPolicyId = params.mcpPolicyId;
       }
 
       // Add VPC resource if specified

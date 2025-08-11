@@ -13,6 +13,7 @@ class CreateMcpSessionShrinkRequest(DaraModel):
         external_user_id: Optional[str] = None,
         image_id: Optional[str] = None,
         labels: Optional[str] = None,
+        mcp_policy_id: Optional[str] = None,
         persistence_data_list_shrink: Optional[str] = None,
         session_id: Optional[str] = None,
         vpc_resource: Optional[bool] = None,
@@ -22,6 +23,7 @@ class CreateMcpSessionShrinkRequest(DaraModel):
         self.external_user_id = external_user_id
         self.image_id = image_id
         self.labels = labels
+        self.mcp_policy_id = mcp_policy_id
         self.persistence_data_list_shrink = persistence_data_list_shrink
         self.session_id = session_id
         self.vpc_resource = vpc_resource
@@ -48,6 +50,9 @@ class CreateMcpSessionShrinkRequest(DaraModel):
 
         if self.labels is not None:
             result['Labels'] = self.labels
+
+        if self.mcp_policy_id is not None:
+            result['McpPolicyId'] = self.mcp_policy_id
 
         if self.persistence_data_list_shrink is not None:
             result['PersistenceDataList'] = self.persistence_data_list_shrink
@@ -76,6 +81,9 @@ class CreateMcpSessionShrinkRequest(DaraModel):
 
         if m.get('Labels') is not None:
             self.labels = m.get('Labels')
+
+        if m.get('McpPolicyId') is not None:
+            self.mcp_policy_id = m.get('McpPolicyId')
 
         if m.get('PersistenceDataList') is not None:
             self.persistence_data_list_shrink = m.get('PersistenceDataList')

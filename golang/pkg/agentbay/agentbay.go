@@ -106,7 +106,6 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		Authorization: tea.String("Bearer " + a.APIKey),
 	}
 
-	
 	// Add image_id if provided
 	if params.ImageId != "" {
 		createSessionRequest.ImageId = tea.String(params.ImageId)
@@ -114,6 +113,11 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 	// Add VPC resource if specified
 	createSessionRequest.VpcResource = tea.Bool(params.IsVpc)
+
+	// Add McpPolicyId if provided
+	if params.McpPolicyId != "" {
+		createSessionRequest.McpPolicyId = tea.String(params.McpPolicyId)
+	}
 
 	// Add labels if provided
 	if len(params.Labels) > 0 {
@@ -163,6 +167,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 	if createSessionRequest.ImageId != nil {
 		fmt.Printf("ImageId=%s, ", *createSessionRequest.ImageId)
+	}
+	if createSessionRequest.McpPolicyId != nil {
+		fmt.Printf("McpPolicyId=%s, ", *createSessionRequest.McpPolicyId)
 	}
 	if createSessionRequest.VpcResource != nil {
 		fmt.Printf("VpcResource=%t, ", *createSessionRequest.VpcResource)
