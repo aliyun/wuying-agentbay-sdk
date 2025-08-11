@@ -4,7 +4,13 @@ from unittest.mock import MagicMock, patch, AsyncMock
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-from agentbay.browser.browser import Browser, BrowserOption
+from agentbay.browser.browser import (
+    Browser,
+    BrowserOption,
+    BrowserViewport,
+    BrowserScreen,
+    BrowserFingerprint
+)
 from agentbay.browser.browser_agent import (
     BrowserAgent, 
     ActOptions, 
@@ -54,8 +60,29 @@ class TestBrowser(unittest.TestCase):
 
     def test_get_option(self):
         """Test get_option method."""
-        self.browser.initialize(BrowserOption())
-        self.assertIsNotNone(self.browser.get_option())
+        browser_option = BrowserOption(
+            use_stealth=True,
+            user_agent="User-Agent(By Mock)",
+            viewport=BrowserViewport(width=1920, height=1080),
+            screen=BrowserScreen(width=1920, height=1080),
+            fingerprint=BrowserFingerprint(
+                devices=["desktop"],
+                operating_systems=["windows", "macos"],
+                locales=["zh-CN"],
+            )
+        )
+        self.browser.initialize(browser_option)
+        option = self.browser.get_option()
+        self.assertIsNotNone(option)
+        self.assertEqual(option.use_stealth, True)
+        self.assertEqual(option.user_agent, "User-Agent(By Mock)")
+        self.assertEqual(option.viewport.width, 1920)
+        self.assertEqual(option.viewport.height, 1080)
+        self.assertEqual(option.screen.width, 1920)
+        self.assertEqual(option.screen.height, 1080)
+        self.assertEqual(option.fingerprint.devices, ["desktop"])
+        self.assertEqual(option.fingerprint.operating_systems, ["windows", "macos"])
+        self.assertEqual(option.fingerprint.locales, ["zh-CN"])
 
     def test_act(self):
         """Test act method."""

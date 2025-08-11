@@ -4,7 +4,7 @@ import random
 import sys
 import time
 import unittest
-from agentbay.browser import Browser, BrowserOption
+from agentbay.browser import Browser, BrowserOption, BrowserFingerprint
 from agentbay.browser.browser_agent import ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
 from playwright.sync_api import sync_playwright
 from pydantic import BaseModel
@@ -29,6 +29,19 @@ def get_test_api_key():
             "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
         )
     return api_key
+
+def is_windows_user_agent(user_agent: str) -> bool:
+    if not user_agent:
+        return False
+    user_agent_lower = user_agent.lower()
+    windows_indicators = [
+        'windows nt',
+        'win32',
+        'win64',
+        'windows',
+        'wow64'
+    ]
+    return any(indicator in user_agent_lower for indicator in windows_indicators)
 
 class TestBrowserAgentIntegration(unittest.TestCase):
     def setUp(self):
@@ -77,6 +90,44 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         print("page.title() =", page.title())
 
         self.assertTrue(page.title() is not None)
+        page.close()
+
+    def test_initialize_browser_with_fingerprint(self):
+        browser = self.session.browser
+        self.assertIsNotNone(browser)
+        self.assertIsInstance(browser, Browser)
+        option = BrowserOption(
+            use_stealth=True,
+            fingerprint=BrowserFingerprint(
+                devices=["desktop"],
+                operating_systems=["windows"],
+                locales=["zh-CN"],
+            )
+        )
+        self.assertTrue(browser.initialize(option))
+
+        endpoint_url = browser.get_endpoint_url()
+        print("endpoint_url =", endpoint_url)
+        self.assertTrue(endpoint_url is not None)
+
+        time.sleep(10)
+
+        from playwright.sync_api import sync_playwright
+        p = sync_playwright().start()
+        playwright_browser = p.chromium.connect_over_cdp(endpoint_url)
+        self.assertTrue(playwright_browser is not None)
+        default_context = playwright_browser.contexts[0]
+        self.assertTrue(default_context is not None)
+
+        page = default_context.new_page()
+        page.goto("https://httpbin.org/user-agent", timeout=60000)
+        response = page.evaluate("() => JSON.parse(document.body.textContent)")
+        user_agent = response["user-agent"]
+        print("user_agent =", user_agent)
+        self.assertTrue(user_agent is not None)
+        is_windows = is_windows_user_agent(user_agent)
+        self.assertTrue(is_windows)
+
         page.close()
 
     def test_act_success(self):

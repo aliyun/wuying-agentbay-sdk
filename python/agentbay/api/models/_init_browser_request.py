@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel 
-
+from darabonba.model import DaraModel
 
 class InitBrowserRequest(DaraModel):
     def __init__(
@@ -10,10 +9,12 @@ class InitBrowserRequest(DaraModel):
         authorization: str = None,
         persistent_path: str = None,
         session_id: str = None,
+        browser_option: dict = None,
     ):
         self.authorization = authorization
         self.persistent_path = persistent_path
         self.session_id = session_id
+        self.browser_option = browser_option
 
     def validate(self):
         pass
@@ -31,6 +32,9 @@ class InitBrowserRequest(DaraModel):
 
         if self.session_id is not None:
             result['SessionId'] = self.session_id
+
+        if self.browser_option is not None:
+            result['BrowserOption'] = self.browser_option
 
         return result
 

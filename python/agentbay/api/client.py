@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
+import json
 from alibabacloud_tea_openapi.client import Client as OpenApiClient
 from alibabacloud_tea_openapi import utils_models as open_api_util_models
 from darabonba.core import DaraCore as DaraCore
@@ -738,6 +739,8 @@ class Client(OpenApiClient):
             body['PersistentPath'] = request.persistent_path
         if not DaraCore.is_null(request.session_id):
             body['SessionId'] = request.session_id
+        if not DaraCore.is_null(request.browser_option):
+            body['BrowserOption'] = json.dumps(request.browser_option)
         req = open_api_util_models.OpenApiRequest(
             body = Utils.parse_to_map(body)
         )
@@ -770,7 +773,10 @@ class Client(OpenApiClient):
             body['PersistentPath'] = request.persistent_path
         if not DaraCore.is_null(request.session_id):
             body["SessionId"] = request.session_id
-        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        if not DaraCore.is_null(request.browser_option):
+            body['BrowserOption'] = json.dumps(request.browser_option)
+        body_map = Utils.parse_to_map(body)
+        req = open_api_util_models.OpenApiRequest(body=body_map)
         params = open_api_util_models.Params(
             action = 'InitBrowser',
             version = '2025-05-06',
