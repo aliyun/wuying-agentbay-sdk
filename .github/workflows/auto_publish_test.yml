@@ -22,7 +22,7 @@ jobs:
       actions: write
       id-token: write
 
-    if: github.repository == 'aliyun/wuying-agentbay-sdk'
+    if: github.repository == 'aliyun/wuying-agentbay-sdk' && github.event.pull_request.merged == true
 
     steps:
       - name: Checkout code
