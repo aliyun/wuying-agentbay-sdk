@@ -403,7 +403,15 @@ class ContextService:
                 authorization=f"Bearer {self.agent_bay.api_key}",
             )
             response = self.agent_bay.client.modify_context(request)
-            print(f"Response from ModifyContext: {response}")
+            try:
+                print("Response body:")
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
+            except Exception:
+                print(f"Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map() if hasattr(response, "to_map") else {}
@@ -452,7 +460,15 @@ class ContextService:
                 id=context.id, authorization=f"Bearer {self.agent_bay.api_key}"
             )
             response = self.agent_bay.client.delete_context(request)
-            print(f"Response from DeleteContext: {response}")
+            try:
+                print("Response body:")
+                print(
+                    json.dumps(
+                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
+                    )
+                )
+            except Exception:
+                print(f"Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map() if hasattr(response, "to_map") else {}
@@ -494,7 +510,15 @@ class ContextService:
             file_path=file_path,
         )
         resp = self.agent_bay.client.get_context_file_download_url(req)
-        print(f"Response from GetContextFileDownloadUrl: {resp}")
+        try:
+            print("Response body:")
+            print(
+                json.dumps(
+                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
+                )
+            )
+        except Exception:
+            print(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         data = getattr(body, "data", None)
@@ -515,7 +539,15 @@ class ContextService:
             file_path=file_path,
         )
         resp = self.agent_bay.client.get_context_file_upload_url(req)
-        print(f"Response from GetContextFileUploadUrl: {resp}")
+        try:
+            print("Response body:")
+            print(
+                json.dumps(
+                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
+                )
+            )
+        except Exception:
+            print(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         data = getattr(body, "data", None)
@@ -536,7 +568,15 @@ class ContextService:
             file_path=file_path,
         )
         resp = self.agent_bay.client.delete_context_file(req)
-        print(f"Response from DeleteContextFile: {resp}")
+        try:
+            print("Response body:")
+            print(
+                json.dumps(
+                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
+                )
+            )
+        except Exception:
+            print(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         success = bool(body and getattr(body, "success", False))
@@ -569,7 +609,15 @@ class ContextService:
             context_id=context_id,
         )
         resp = self.agent_bay.client.describe_context_files(req)
-        print(f"Response from DescribeContextFiles: {resp}")
+        try:
+            print("Response body:")
+            print(
+                json.dumps(
+                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
+                )
+            )
+        except Exception:
+            print(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         raw_list = getattr(body, "data", None) or []
