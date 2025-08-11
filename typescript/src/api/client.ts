@@ -1080,4 +1080,244 @@ export class Client extends OpenApi {
       new $_model.InitBrowserResponse({})
     );
   }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - DeleteContextFileRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns DeleteContextFileResponse
+   */
+  async deleteContextFileWithOptions(
+    request: $_model.DeleteContextFileRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.DeleteContextFileResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.contextId)) {
+      body["ContextId"] = request.contextId;
+    }
+
+    if (!$dara.isNull(request.filePath)) {
+      body["FilePath"] = request.filePath;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "DeleteContextFile",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.DeleteContextFileResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.DeleteContextFileResponse({})
+    );
+  }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - DeleteContextFileRequest
+   * @returns DeleteContextFileResponse
+   */
+  async deleteContextFile(
+    request: $_model.DeleteContextFileRequest
+  ): Promise<$_model.DeleteContextFileResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.deleteContextFileWithOptions(request, runtime);
+  }
+
+  /**
+   * 查询context特定目录文件
+   *
+   * @param request - DescribeContextFilesRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns DescribeContextFilesResponse
+   */
+  async describeContextFilesWithOptions(
+    request: $_model.DescribeContextFilesRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.DescribeContextFilesResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.pageNumber)) {
+      body["PageNumber"] = request.pageNumber;
+    }
+
+    if (!$dara.isNull(request.pageSize)) {
+      body["PageSize"] = request.pageSize;
+    }
+
+    if (!$dara.isNull(request.parentFolderPath)) {
+      body["ParentFolderPath"] = request.parentFolderPath;
+    }
+
+    if (!$dara.isNull(request.contextId)) {
+      body["ContextId"] = request.contextId;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "DescribeContextFiles",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.DescribeContextFilesResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.DescribeContextFilesResponse({})
+    );
+  }
+
+  /**
+   * 查询context特定目录文件
+   *
+   * @param request - DescribeContextFilesRequest
+   * @returns DescribeContextFilesResponse
+   */
+  async describeContextFiles(
+    request: $_model.DescribeContextFilesRequest
+  ): Promise<$_model.DescribeContextFilesResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.describeContextFilesWithOptions(request, runtime);
+  }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - GetContextFileDownloadUrlRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetContextFileDownloadUrlResponse
+   */
+  async getContextFileDownloadUrlWithOptions(
+    request: $_model.GetContextFileDownloadUrlRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.GetContextFileDownloadUrlResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.contextId)) {
+      body["ContextId"] = request.contextId;
+    }
+
+    if (!$dara.isNull(request.filePath)) {
+      body["FilePath"] = request.filePath;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "GetContextFileDownloadUrl",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetContextFileDownloadUrlResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.GetContextFileDownloadUrlResponse({})
+    );
+  }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - GetContextFileDownloadUrlRequest
+   * @returns GetContextFileDownloadUrlResponse
+   */
+  async getContextFileDownloadUrl(
+    request: $_model.GetContextFileDownloadUrlRequest
+  ): Promise<$_model.GetContextFileDownloadUrlResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.getContextFileDownloadUrlWithOptions(request, runtime);
+  }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - GetContextFileUploadUrlRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetContextFileUploadUrlResponse
+   */
+  async getContextFileUploadUrlWithOptions(
+    request: $_model.GetContextFileUploadUrlRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.GetContextFileUploadUrlResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.contextId)) {
+      body["ContextId"] = request.contextId;
+    }
+
+    if (!$dara.isNull(request.filePath)) {
+      body["FilePath"] = request.filePath;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "GetContextFileUploadUrl",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetContextFileUploadUrlResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.GetContextFileUploadUrlResponse({})
+    );
+  }
+
+  /**
+   * 获取上传context文件url
+   *
+   * @param request - GetContextFileUploadUrlRequest
+   * @returns GetContextFileUploadUrlResponse
+   */
+  async getContextFileUploadUrl(
+    request: $_model.GetContextFileUploadUrlRequest
+  ): Promise<$_model.GetContextFileUploadUrlResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.getContextFileUploadUrlWithOptions(request, runtime);
+  }
 }

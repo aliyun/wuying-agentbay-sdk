@@ -304,6 +304,150 @@ func (client *Client) DeleteContext(request *DeleteContextRequest) (_result *Del
 
 // Summary:
 //
+// 获取上传context文件url
+//
+// @param request - DeleteContextFileRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return DeleteContextFileResponse
+func (client *Client) DeleteContextFileWithOptions(request *DeleteContextFileRequest, runtime *dara.RuntimeOptions) (_result *DeleteContextFileResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.ContextId) {
+		body["ContextId"] = request.ContextId
+	}
+
+	if !dara.IsNil(request.FilePath) {
+		body["FilePath"] = request.FilePath
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DeleteContextFile"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &DeleteContextFileResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上传context文件url
+//
+// @param request - DeleteContextFileRequest
+//
+// @return DeleteContextFileResponse
+func (client *Client) DeleteContextFile(request *DeleteContextFileRequest) (_result *DeleteContextFileResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &DeleteContextFileResponse{}
+	_body, _err := client.DeleteContextFileWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 查询context特定目录文件
+//
+// @param request - DescribeContextFilesRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return DescribeContextFilesResponse
+func (client *Client) DescribeContextFilesWithOptions(request *DescribeContextFilesRequest, runtime *dara.RuntimeOptions) (_result *DescribeContextFilesResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.PageNumber) {
+		body["PageNumber"] = request.PageNumber
+	}
+
+	if !dara.IsNil(request.PageSize) {
+		body["PageSize"] = request.PageSize
+	}
+
+	if !dara.IsNil(request.ParentFolderPath) {
+		body["ParentFolderPath"] = request.ParentFolderPath
+	}
+
+	if !dara.IsNil(request.ContextId) {
+		body["ContextId"] = request.ContextId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DescribeContextFiles"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &DescribeContextFilesResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 查询context特定目录文件
+//
+// @param request - DescribeContextFilesRequest
+//
+// @return DescribeContextFilesResponse
+func (client *Client) DescribeContextFiles(request *DescribeContextFilesRequest) (_result *DescribeContextFilesResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &DescribeContextFilesResponse{}
+	_body, _err := client.DescribeContextFilesWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
 // 获取上下文
 //
 // @param request - GetContextRequest
@@ -647,6 +791,142 @@ func (client *Client) GetMcpResource(request *GetMcpResourceRequest) (_result *G
 	runtime := &dara.RuntimeOptions{}
 	_result = &GetMcpResourceResponse{}
 	_body, _err := client.GetMcpResourceWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上传context文件url
+//
+// @param request - GetContextFileDownloadUrlRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return GetContextFileDownloadUrlResponse
+func (client *Client) GetContextFileDownloadUrlWithOptions(request *GetContextFileDownloadUrlRequest, runtime *dara.RuntimeOptions) (_result *GetContextFileDownloadUrlResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.ContextId) {
+		body["ContextId"] = request.ContextId
+	}
+
+	if !dara.IsNil(request.FilePath) {
+		body["FilePath"] = request.FilePath
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("GetContextFileDownloadUrl"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &GetContextFileDownloadUrlResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上传context文件url
+//
+// @param request - GetContextFileDownloadUrlRequest
+//
+// @return GetContextFileDownloadUrlResponse
+func (client *Client) GetContextFileDownloadUrl(request *GetContextFileDownloadUrlRequest) (_result *GetContextFileDownloadUrlResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &GetContextFileDownloadUrlResponse{}
+	_body, _err := client.GetContextFileDownloadUrlWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上传context文件url
+//
+// @param request - GetContextFileUploadUrlRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return GetContextFileUploadUrlResponse
+func (client *Client) GetContextFileUploadUrlWithOptions(request *GetContextFileUploadUrlRequest, runtime *dara.RuntimeOptions) (_result *GetContextFileUploadUrlResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.ContextId) {
+		body["ContextId"] = request.ContextId
+	}
+
+	if !dara.IsNil(request.FilePath) {
+		body["FilePath"] = request.FilePath
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("GetContextFileUploadUrl"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &GetContextFileUploadUrlResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// 获取上传context文件url
+//
+// @param request - GetContextFileUploadUrlRequest
+//
+// @return GetContextFileUploadUrlResponse
+func (client *Client) GetContextFileUploadUrl(request *GetContextFileUploadUrlRequest) (_result *GetContextFileUploadUrlResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &GetContextFileUploadUrlResponse{}
+	_body, _err := client.GetContextFileUploadUrlWithOptions(request, runtime)
 	if _err != nil {
 		return _result, _err
 	}

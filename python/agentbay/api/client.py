@@ -1317,3 +1317,303 @@ class Client(OpenApiClient):
     ) -> main_models.SyncContextResponse:
         runtime = RuntimeOptions()
         return await self.sync_context_with_options_async(request, runtime)
+
+    def delete_context_file_with_options(
+        self,
+        request: main_models.DeleteContextFileRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DeleteContextFileResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DeleteContextFile",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DeleteContextFileResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def delete_context_file_with_options_async(
+        self,
+        request: main_models.DeleteContextFileRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DeleteContextFileResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DeleteContextFile",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DeleteContextFileResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def delete_context_file(
+        self,
+        request: main_models.DeleteContextFileRequest,
+    ) -> main_models.DeleteContextFileResponse:
+        runtime = RuntimeOptions()
+        return self.delete_context_file_with_options(request, runtime)
+
+    async def delete_context_file_async(
+        self,
+        request: main_models.DeleteContextFileRequest,
+    ) -> main_models.DeleteContextFileResponse:
+        runtime = RuntimeOptions()
+        return await self.delete_context_file_with_options_async(request, runtime)
+
+    def describe_context_files_with_options(
+        self,
+        request: main_models.DescribeContextFilesRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DescribeContextFilesResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.page_number):
+            body["PageNumber"] = request.page_number
+        if not DaraCore.is_null(request.page_size):
+            body["PageSize"] = request.page_size
+        if not DaraCore.is_null(request.parent_folder_path):
+            body["ParentFolderPath"] = request.parent_folder_path
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DescribeContextFiles",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DescribeContextFilesResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def describe_context_files_with_options_async(
+        self,
+        request: main_models.DescribeContextFilesRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DescribeContextFilesResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.page_number):
+            body["PageNumber"] = request.page_number
+        if not DaraCore.is_null(request.page_size):
+            body["PageSize"] = request.page_size
+        if not DaraCore.is_null(request.parent_folder_path):
+            body["ParentFolderPath"] = request.parent_folder_path
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DescribeContextFiles",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DescribeContextFilesResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def describe_context_files(
+        self,
+        request: main_models.DescribeContextFilesRequest,
+    ) -> main_models.DescribeContextFilesResponse:
+        runtime = RuntimeOptions()
+        return self.describe_context_files_with_options(request, runtime)
+
+    async def describe_context_files_async(
+        self,
+        request: main_models.DescribeContextFilesRequest,
+    ) -> main_models.DescribeContextFilesResponse:
+        runtime = RuntimeOptions()
+        return await self.describe_context_files_with_options_async(request, runtime)
+
+    def get_context_file_download_url_with_options(
+        self,
+        request: main_models.GetContextFileDownloadUrlRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetContextFileDownloadUrlResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="GetContextFileDownloadUrl",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.GetContextFileDownloadUrlResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def get_context_file_download_url_with_options_async(
+        self,
+        request: main_models.GetContextFileDownloadUrlRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetContextFileDownloadUrlResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="GetContextFileDownloadUrl",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.GetContextFileDownloadUrlResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def get_context_file_download_url(
+        self,
+        request: main_models.GetContextFileDownloadUrlRequest,
+    ) -> main_models.GetContextFileDownloadUrlResponse:
+        runtime = RuntimeOptions()
+        return self.get_context_file_download_url_with_options(request, runtime)
+
+    async def get_context_file_download_url_async(
+        self,
+        request: main_models.GetContextFileDownloadUrlRequest,
+    ) -> main_models.GetContextFileDownloadUrlResponse:
+        runtime = RuntimeOptions()
+        return await self.get_context_file_download_url_with_options_async(request, runtime)
+
+    def get_context_file_upload_url_with_options(
+        self,
+        request: main_models.GetContextFileUploadUrlRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetContextFileUploadUrlResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="GetContextFileUploadUrl",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.GetContextFileUploadUrlResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def get_context_file_upload_url_with_options_async(
+        self,
+        request: main_models.GetContextFileUploadUrlRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetContextFileUploadUrlResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.context_id):
+            body["ContextId"] = request.context_id
+        if not DaraCore.is_null(request.file_path):
+            body["FilePath"] = request.file_path
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="GetContextFileUploadUrl",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.GetContextFileUploadUrlResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def get_context_file_upload_url(
+        self,
+        request: main_models.GetContextFileUploadUrlRequest,
+    ) -> main_models.GetContextFileUploadUrlResponse:
+        runtime = RuntimeOptions()
+        return self.get_context_file_upload_url_with_options(request, runtime)
+
+    async def get_context_file_upload_url_async(
+        self,
+        request: main_models.GetContextFileUploadUrlRequest,
+    ) -> main_models.GetContextFileUploadUrlResponse:
+        runtime = RuntimeOptions()
+        return await self.get_context_file_upload_url_with_options_async(request, runtime)

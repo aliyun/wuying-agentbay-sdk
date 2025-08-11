@@ -62,3 +62,16 @@ export { SetLabelResponse } from './SetLabelResponse';
 export { SyncContextRequest } from './SyncContextRequest';
 export { SyncContextResponseBody } from './SyncContextResponseBody';
 export { SyncContextResponse } from './SyncContextResponse';
+// New context file operations
+export { DeleteContextFileRequest } from './DeleteContextFileRequest';
+export { DeleteContextFileResponseBody } from './DeleteContextFileResponseBody';
+export { DeleteContextFileResponse } from './DeleteContextFileResponse';
+export { DescribeContextFilesRequest } from './DescribeContextFilesRequest';
+export { DescribeContextFilesResponseBody } from './DescribeContextFilesResponseBody';
+export { DescribeContextFilesResponse } from './DescribeContextFilesResponse';
+export { GetContextFileDownloadUrlRequest } from './GetContextFileDownloadUrlRequest';
+export { GetContextFileDownloadUrlResponseBody } from './GetContextFileDownloadUrlResponseBody';
+export { GetContextFileDownloadUrlResponse } from './GetContextFileDownloadUrlResponse';
+export { GetContextFileUploadUrlRequest } from './GetContextFileUploadUrlRequest';
+export { GetContextFileUploadUrlResponseBody } from './GetContextFileUploadUrlResponseBody';
+export { GetContextFileUploadUrlResponse } from './GetContextFileUploadUrlResponse';

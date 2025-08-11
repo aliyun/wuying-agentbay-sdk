@@ -39,11 +39,9 @@ from ._list_mcp_tools_request import ListMcpToolsRequest
 from ._list_mcp_tools_response_body import ListMcpToolsResponseBody
 from ._list_mcp_tools_response import ListMcpToolsResponse
 from ._list_session_request import ListSessionRequest
-from ._list_session_response_body import ListSessionResponseBody
-from ._list_session_response import ListSessionResponse
 from ._modify_context_request import ModifyContextRequest
-from ._modify_context_response_body import ModifyContextResponseBody
 from ._modify_context_response import ModifyContextResponse
+from ._modify_context_response_body import ModifyContextResponseBody
 from ._release_mcp_session_request import ReleaseMcpSessionRequest
 from ._release_mcp_session_response_body import ReleaseMcpSessionResponseBody
 from ._release_mcp_session_response import ReleaseMcpSessionResponse
@@ -64,6 +62,23 @@ from ._get_mcp_resource_response_body import GetMcpResourceResponseBodyData
 from ._init_browser_response_body import InitBrowserResponseBodyData
 from ._list_contexts_response_body import ListContextsResponseBodyData
 from ._list_session_response_body import ListSessionResponseBodyData
+
+# New context file operations
+from ._delete_context_file_request import DeleteContextFileRequest
+from ._delete_context_file_response_body import DeleteContextFileResponseBody
+from ._delete_context_file_response import DeleteContextFileResponse
+from ._describe_context_files_request import DescribeContextFilesRequest
+from ._describe_context_files_response_body import DescribeContextFilesResponseBody
+from ._describe_context_files_response import DescribeContextFilesResponse
+from ._get_context_file_download_url_request import GetContextFileDownloadUrlRequest
+from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBody
+from ._get_context_file_download_url_response import GetContextFileDownloadUrlResponse
+from ._get_context_file_upload_url_request import GetContextFileUploadUrlRequest
+from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBody
+from ._get_context_file_upload_url_response import GetContextFileUploadUrlResponse
+from ._describe_context_files_response_body import DescribeContextFilesResponseBodyData
+from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBodyData
+from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBodyData
 
 __all__ = [
     CallMcpToolRequest,
@@ -101,8 +116,6 @@ __all__ = [
     ListMcpToolsResponseBody,
     ListMcpToolsResponse,
     ListSessionRequest,
-    ListSessionResponseBody,
-    ListSessionResponse,
     ModifyContextRequest,
     ModifyContextResponseBody,
     ModifyContextResponse,
@@ -125,5 +138,21 @@ __all__ = [
     GetMcpResourceResponseBodyData,
     InitBrowserResponseBodyData,
     ListContextsResponseBodyData,
-    ListSessionResponseBodyData
+    ListSessionResponseBodyData,
+    # New context file operations
+    DeleteContextFileRequest,
+    DeleteContextFileResponseBody,
+    DeleteContextFileResponse,
+    DescribeContextFilesRequest,
+    DescribeContextFilesResponseBody,
+    DescribeContextFilesResponse,
+    GetContextFileDownloadUrlRequest,
+    GetContextFileDownloadUrlResponseBody,
+    GetContextFileDownloadUrlResponse,
+    GetContextFileUploadUrlRequest,
+    GetContextFileUploadUrlResponseBody,
+    GetContextFileUploadUrlResponse,
+    DescribeContextFilesResponseBodyData,
+    GetContextFileDownloadUrlResponseBodyData,
+    GetContextFileUploadUrlResponseBodyData,
 ]
