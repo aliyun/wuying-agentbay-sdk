@@ -191,6 +191,8 @@ class Client(OpenApiClient):
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
+        if not DaraCore.is_null(request.mcp_policy_id):
+            body["McpPolicyId"] = request.mcp_policy_id
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
@@ -238,6 +240,8 @@ class Client(OpenApiClient):
             body["ImageId"] = request.image_id
         if not DaraCore.is_null(request.labels):
             body["Labels"] = request.labels
+        if not DaraCore.is_null(request.mcp_policy_id):
+            body["McpPolicyId"] = request.mcp_policy_id
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):

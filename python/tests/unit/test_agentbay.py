@@ -264,9 +264,9 @@ class TestAgentBay(unittest.TestCase):
         self.assertTrue(result.success)
         mock_client.create_mcp_session.assert_called_once()
         call_arg = mock_client.create_mcp_session.call_args[0][0]
-        # shrink model abstraction hides body assembly inside client; we assert param presence on request object
-        self.assertEqual(getattr(call_arg, "mcp_policy_id", None) or getattr(call_arg, "McpPolicyId", None), None)
-        # However, we can assert that AgentBay.create did not error and call was made; deep body assert is handled in client unit tests
+        # Ensure mcp_policy_id is carried on the request object; client will include it in request body
+        self.assertEqual(getattr(call_arg, "mcp_policy_id", None) or getattr(call_arg, "McpPolicyId", None), "policy-xyz")
+        # Basic success assertion remains; deep body behavior is validated in client integration tests
 
 
 if __name__ == "__main__":
