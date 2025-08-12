@@ -10,6 +10,114 @@ from agentbay.config import BROWSER_DATA_PATH
 if TYPE_CHECKING:
     from agentbay.session import Session
 
+class BrowserProxy:
+    """
+    Browser proxy configuration.
+    Supports two types of proxy: custom proxy, wuying proxy.
+    wuying proxy support two strategies: restricted and polling.
+    """
+    def __init__(
+        self,
+        proxy_type: Literal["custom", "wuying"],
+        server: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        strategy: Optional[Literal["restricted", "polling"]] = None,
+        pollsize: int = 10
+    ):
+        """
+        Initialize a BrowserProxy.
+        
+        Args:
+            proxy_type: Type of proxy - "custom" or "wuying"
+            server: Proxy server address (required for custom type)
+            username: Proxy username (optional for custom type)
+            password: Proxy password (optional for custom type)
+            strategy: Strategy for wuying support "restricted" and "polling"
+            pollsize: Pool size (optional for proxy_type wuying and strategy polling)
+
+            example: 
+            # custom proxy
+            proxy_type: custom
+            server: "127.0.0.1:9090"
+            username: "username"
+            password: "password"
+
+            # wuying proxy with polling strategy
+            proxy_type: wuying
+            strategy: "polling"
+            pollsize: 10
+
+            # wuying proxy with restricted strategy
+            proxy_type: wuying
+            strategy: "restricted"
+        """
+        self.type = proxy_type
+        self.server = server
+        self.username = username
+        self.password = password
+        self.strategy = strategy
+        self.pollsize = pollsize
+        
+        # Validation
+        if proxy_type not in ["custom", "wuying"]:
+            raise ValueError("proxy_type must be custom or wuying")
+        
+        if proxy_type == "custom" and not server:
+            raise ValueError("server is required for custom proxy type")
+        
+        if proxy_type == "wuying" and not strategy:
+            raise ValueError("strategy is required for wuying proxy type")
+        
+        if proxy_type == "wuying" and strategy not in ["restricted", "polling"]:
+            raise ValueError("strategy must be restricted or polling for wuying proxy type")
+        
+        if proxy_type == "wuying" and strategy == "polling" and pollsize <= 0:
+            raise ValueError("pollsize must be greater than 0 for polling strategy")
+    def to_map(self):
+        proxy_map = {
+            "type": self.type
+        }
+        
+        if self.type == "custom":
+            proxy_map["server"] = self.server
+            if self.username:
+                proxy_map["username"] = self.username
+            if self.password:
+                proxy_map["password"] = self.password
+        elif self.type == "wuying":
+            proxy_map["strategy"] = self.strategy
+            if self.strategy == "polling":
+                proxy_map["pollsize"] = self.pollsize
+
+            
+        return proxy_map
+
+    @classmethod
+    def from_map(cls, m: dict = None):
+        if not m:
+            return None
+            
+        proxy_type = m.get("type")
+        if not proxy_type:
+            raise ValueError("type is required in proxy configuration")
+            
+        if proxy_type == "custom":
+            return cls(
+                proxy_type=proxy_type,
+                server=m.get("server"),
+                username=m.get("username"),
+                password=m.get("password")
+            )
+        elif proxy_type == "wuying":
+            return cls(
+                proxy_type=proxy_type,
+                strategy=m.get("strategy"),
+                pollsize=m.get("pollsize", 10)
+            )
+        else:
+            raise ValueError(f"Unsupported proxy type: {proxy_type}")
+
 class BrowserViewport:
     """
     Browser viewport options.
@@ -72,6 +180,24 @@ class BrowserFingerprint:
         self.operating_systems = operating_systems
         self.locales = locales
 
+
+        # Validation
+        
+
+        if devices is not None:
+            if not isinstance(devices, list):
+                raise ValueError("devices must be a list")
+            for device in devices:
+                if device not in ["desktop", "mobile"]:
+                    raise ValueError("device must be desktop or mobile")
+
+        if operating_systems is not None:
+            if not isinstance(operating_systems, list):
+                raise ValueError("operating_systems must be a list")
+            for operating_system in operating_systems:
+                if operating_system not in ["windows", "macos", "linux", "android", "ios"]:
+                    raise ValueError("operating_system must be windows, macos, linux, android or ios")
+        
     def to_map(self):
         fingerprint_map = dict()
         if self.devices is not None:
@@ -103,12 +229,21 @@ class BrowserOption:
         viewport: BrowserViewport = None,
         screen: BrowserScreen = None,
         fingerprint: BrowserFingerprint = None,
+        proxies: Optional[list[BrowserProxy]] = None,
     ):
         self.use_stealth = use_stealth
         self.user_agent = user_agent
         self.viewport = viewport
         self.screen = screen
         self.fingerprint = fingerprint
+        self.proxies = proxies
+
+        # Validate proxies list items
+        if proxies is not None:
+            if not isinstance(proxies, list):
+                raise ValueError("proxies must be a list")
+            if len(proxies) > 1:
+                raise ValueError("proxies list length must be limited to 1")
 
     def to_map(self):
         option_map = dict()
@@ -122,6 +257,8 @@ class BrowserOption:
             option_map['screen'] = self.screen.to_map()
         if self.fingerprint is not None:
             option_map['fingerprint'] = self.fingerprint.to_map()
+        if self.proxies is not None:
+            option_map['proxies'] = [proxy.to_map() for proxy in self.proxies]
         return option_map
 
     def from_map(self, m: dict = None):
@@ -138,6 +275,11 @@ class BrowserOption:
             self.screen = BrowserScreen.from_map(m.get('screen'))
         if m.get('fingerprint') is not None:
             self.fingerprint = BrowserFingerprint.from_map(m.get('fingerprint'))
+        if m.get('proxies') is not None:
+            proxy_list = m.get('proxies')
+            if len(proxy_list) > 1:
+                raise ValueError("proxies list length must be limited to 1")
+            self.proxies = [BrowserProxy.from_map(proxy_data) for proxy_data in proxy_list]
         return self
 
 class Browser(BaseService):
