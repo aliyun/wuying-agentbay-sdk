@@ -9,7 +9,9 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
     if: github.repository == 'aliyun/wuying-agentbay-sdk'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,3 +50,7 @@ jobs:
         run: |
           cd typescript
           npm publish
+
+      - name: get install command
+        run: |
+          echo "npm install test-wuying-agentbay-sdk@${{ env.FINAL_VERSION }}"

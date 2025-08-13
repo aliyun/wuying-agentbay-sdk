@@ -31,13 +31,13 @@ jobs:
         run: |
           cd python
           BASE_VERSION=$(grep "version='" setup.py | head -n 1 | cut -d "'" -f 2)
-          echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_ENV
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
 
       - name: Generate final version with timestamp
         run: |
           TIMESTAMP=$(TZ='Asia/Shanghai' date "+%Y%m%d%H%M%S")
           FINAL_VERSION="${BASE_VERSION}.${TIMESTAMP}"
-          echo "FINAL_VERSION=$FINAL_VERSION" >> $GITHUB_ENV
+          echo "FINAL_VERSION=${FINAL_VERSION}" >> $GITHUB_ENV
 
       - name: Print current directory before changing to python
         run: pwd
@@ -66,3 +66,6 @@ jobs:
         run: |
           cd python
           twine upload --repository-url https://test.pypi.org/legacy/ --verbose dist/*
+      - name: get install command
+        run: |
+          echo "pip install -i https://test.pypi.org/simple/ wuying-agentbay-sdk==${{ env.FINAL_VERSION }}"
