@@ -8,7 +8,7 @@ import argparse
 from typing import Dict, Any
 from dotenv import load_dotenv
 
-from mcp_server.page_agent import PageAgent
+from agentbay.browser.eval.page_agent import PageAgent
 
 
 logger = logging.getLogger(__name__)
