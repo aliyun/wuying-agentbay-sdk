@@ -35,7 +35,7 @@ jobs:
 
       - name: Generate final version with timestamp
         run: |
-          TIMESTAMP=$(date "+%Y%m%d%H%M%S")
+          TIMESTAMP=$(TZ='Asia/Shanghai' date "+%Y%m%d%H%M%S")
           FINAL_VERSION="${BASE_VERSION}.${TIMESTAMP}"
           echo "FINAL_VERSION=$FINAL_VERSION" >> $GITHUB_ENV
 
