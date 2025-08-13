@@ -13,7 +13,10 @@ from playwright.async_api import Page, async_playwright
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 from agentbay.browser import Browser, BrowserOption
-from agentbay.browser.browser_agent import ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
+from agentbay.model.response import SessionResult
+from agentbay.browser.browser_agent import BrowserAgent, ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
+from agentbay.browser.eval.local_page_agent import LocalSession
+
 logger = logging.getLogger(__name__)
 
 class PageAgent:
@@ -43,16 +46,23 @@ class PageAgent:
 
     async def initialize(self):
         try:
-            api_key = self.get_test_api_key()
-            logger.info(f"api_key = {api_key}")
-            self.agent_bay = AgentBay(api_key=api_key)
+            run_local = os.environ.get("RUN_PAGE_TASK_LOCAL", "false") == "true"
+            result = SessionResult(success=False)
+            if not run_local:
+                api_key = self.get_test_api_key()
+                logger.info(f"api_key = {api_key}")
+                self.agent_bay = AgentBay(api_key=api_key)
 
-            # Create a session
-            logger.info("Creating a new session for browser agent testing...")
-            params = CreateSessionParams(
-                image_id="browser_latest",  # Specify the image ID
-            )
-            result = self.agent_bay.create(params)
+                # Create a session
+                logger.info("Creating a new session for browser agent testing...")
+                params = CreateSessionParams(
+                    image_id="browser_latest",  # Specify the image ID
+                )
+                result = self.agent_bay.create(params)
+            else:
+                result.session = LocalSession()
+                result.success = True
+
             if result.success:
                 self.session = result.session
                 logger.info(f"Session created with ID: {self.session.session_id}")
@@ -74,7 +84,7 @@ class PageAgent:
                                         logger.info("Browser connected successfully")
                                         success = True
                                         promise.set_result(success)
-                                        await self._interactive_loop()
+                                        await self._playwright_interactive_loop()
                                 except Exception as e:
                                     logger.error(f"Failed to connect to browser: {e}")
                                     success = False
@@ -106,7 +116,7 @@ class PageAgent:
             raise
         logger.info("Initialize browser agent successfully")
 
-    async def _interactive_loop(self):
+    async def _playwright_interactive_loop(self):
             """Run interactive loop."""
             while True:
                 if self._task_queue is not None:
@@ -136,9 +146,50 @@ class PageAgent:
                 else:
                     await asyncio.sleep(1)
 
-    async def postTask(self, task: str, arguments: dict):
+    async def _call_mcp_tool(self, tool_name: str, arguments: dict):
+        if not self.session or not self._tool_call_queue or not self._loop:
+            raise RuntimeError("MCP client is not connected. Call connect() and ensure it returns True before calling callTool.")
+        # Use a Future to get the result back from the interactive loop
+        future = concurrent.futures.Future()
+        await self._tool_call_queue.put((tool_name, arguments, future))
+        return future.result()
+
+    async def _interactive_loop(self):
+        """Run interactive loop."""
+        while True:
+            if self._tool_call_queue is not None:
+                try:
+                    tool_name, arguments, future = await asyncio.wait_for(self._tool_call_queue.get(), timeout=1.0)
+                    try:
+                        print(f"Call tool {tool_name} with arguments {arguments}")
+                        if self.session is not None:
+                            response = await self.session.call_tool(tool_name, arguments)
+                            print("MCP tool response:", response)
+                            
+                            # Extract text content from response
+                            if hasattr(response, 'content') and response.content:
+                                for content_item in response.content:
+                                    if hasattr(content_item, 'text') and content_item.text:
+                                        future.set_result(content_item.text)
+                                        break
+                                else:
+                                    # If no text content found, use the original response
+                                    future.set_result(response)
+                            else:
+                                # Fallback to original response if no content structure
+                                future.set_result(response)
+                        else:
+                            future.set_exception(RuntimeError("MCP client session is not initialized."))
+                    except Exception as e:
+                        future.set_exception(e)
+                except asyncio.TimeoutError:
+                    pass
+            else:
+                await asyncio.sleep(1)
+
+    async def _post_task_to_pr_loop(self, task: str, arguments: dict):
         if not self.session or not self._task_queue or not self._loop:
-            raise RuntimeError("Session is not ready. Call initialize() and ensure it returns True before calling postTask.")
+            raise RuntimeError("Session is not ready. Call initialize() and ensure it returns True before calling _post_task_to_pr_loop.")
         # Use a Future to get the result back from the interactive loop
         future = concurrent.futures.Future()
         await self._task_queue.put((task, arguments, future))
@@ -175,7 +226,7 @@ class PageAgent:
             Literal["load", "domcontentloaded", "networkidle", "commit"]
         ] = "load",
         timeout_ms: Optional[int] = 180000) -> str:
-        return await self.postTask("goto", {"url": url, "context_id": context_id, "page_id": page_id, "wait_until": wait_until, "timeout_ms": timeout_ms})
+        return await self._post_task_to_pr_loop("goto", {"url": url, "context_id": context_id, "page_id": page_id, "wait_until": wait_until, "timeout_ms": timeout_ms})
 
     async def _goto(
         self,
@@ -195,7 +246,7 @@ class PageAgent:
             return f"goto {url} failed: {str(e)}"
 
     async def screenshot(self) -> str:
-        return await self.postTask("screenshot", {})
+        return await self._post_task_to_pr_loop("screenshot", {})
 
     async def _screenshot(
         self, arguments: dict
@@ -208,7 +259,7 @@ class PageAgent:
             return f"screenshot failed: {str(e)}"
 
     async def extract(self, instruction: str, schema: Type[BaseModel], context_id: Optional[int] = None, page_id: Optional[str] = None, use_text_extract: Optional[bool] = False, dom_settle_timeout_ms: Optional[int] = 5000, use_vision: Optional[bool] = False, selector: Optional[str] = None) -> BaseModel:
-        return await self.postTask("extract", {"instruction": instruction, "schema": schema, "context_id": context_id, "page_id": page_id, "use_text_extract": use_text_extract, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision, "selector": selector})
+        return await self._post_task_to_pr_loop("extract", {"instruction": instruction, "schema": schema, "context_id": context_id, "page_id": page_id, "use_text_extract": use_text_extract, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision, "selector": selector})
 
     async def _extract(
         self,
@@ -248,7 +299,7 @@ class PageAgent:
             raise
 
     async def observe(self, instruction: str, return_actions: bool = False, only_visible: bool = False, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
-        return await self.postTask("observe", {"instruction": instruction, "return_actions": return_actions, "only_visible": only_visible, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision})
+        return await self._post_task_to_pr_loop("observe", {"instruction": instruction, "return_actions": return_actions, "only_visible": only_visible, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision})
 
     async def _observe(
         self,
@@ -287,7 +338,7 @@ class PageAgent:
             raise
 
     async def act(self, action_input: Union[str, ObserveResult], context_id: Optional[int] = None, page_id: Optional[str] = None, use_vision: bool = False) -> ActResult:
-        return await self.postTask("act", {"action_input": action_input, "context_id": context_id, "page_id": page_id, "use_vision": use_vision})
+        return await self._post_task_to_pr_loop("act", {"action_input": action_input, "context_id": context_id, "page_id": page_id, "use_vision": use_vision})
 
     async def _act(
         self,
