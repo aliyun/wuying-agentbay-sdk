@@ -127,7 +127,7 @@ class LocalPageAgent(BrowserAgent):
             mcp_client = self.mcp_client  # local reference to avoid race conditions
             def thread_func():
                 response = asyncio.run(mcp_client.call_tool(name, args))
-                logger.info("LocalBrowserAgent call_mcp_tool got response ", response)
+                #logger.info("LocalBrowserAgent call_mcp_tool got response ", response)
                 return response
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(thread_func)
