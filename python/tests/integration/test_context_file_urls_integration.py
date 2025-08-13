@@ -73,36 +73,33 @@ class TestContextFileUrlsIntegration(unittest.TestCase):
         self.assertEqual(dl_resp.content, upload_content, "Downloaded content does not match uploaded content")
         print(f"Downloaded {len(dl_resp.content)} bytes, content matches uploaded data")
 
-        # List files to verify presence of the uploaded file (try multiple candidate parents with small retry)
-        candidate_parents = ["/FILE/tmp", "/tmp", "/FILE", "/"]
+        # List files to verify presence of the uploaded file under /tmp (with small retry)
         file_name = os.path.basename(test_path)
 
-        def list_contains_file_any_parent():
-            last_res = None
-            last_parent = None
-            for parent in candidate_parents:
-                res = self.agent_bay.context.list_files(self.context.id, parent, page_number=1, page_size=50)
-                last_res = res
-                last_parent = parent
-                if not res.success:
-                    continue
-                found_local = any(
-                    (getattr(e, "file_path", "") == test_path)
-                    or (getattr(e, "file_name", "") == file_name)
-                    for e in res.entries
-                )
-                if found_local or len(res.entries) > 0:
-                    return found_local, res, parent
-            return False, last_res, last_parent
+        def list_contains():
+            res = self.agent_bay.context.list_files(self.context.id, "/tmp", page_number=1, page_size=50)
+            if not res or not res.success:
+                return False, res, "/tmp"
+            found_local = any(
+                (getattr(e, "file_path", "") == test_path)
+                or (getattr(e, "file_name", "") == file_name)
+                for e in res.entries
+            )
+            if found_local or len(res.entries) > 0:
+                return found_local, res, "/tmp"
+            return False, res, "/tmp"
 
         found = False
         last_lf_res = None
         chosen_parent = None
-        for _ in range(3):
-            found, last_lf_res, chosen_parent = list_contains_file_any_parent()
+        retries_presence = 0
+        for _ in range(30):
+            found, last_lf_res, chosen_parent = list_contains()
             if found:
                 break
-            time.sleep(1.0)
+            retries_presence += 1
+            time.sleep(2.0)
+        print(f"List files retry attempts (presence check): {retries_presence}")
 
         if last_lf_res and chosen_parent:
             total = (last_lf_res.count if getattr(last_lf_res, "count", None) is not None else len(last_lf_res.entries))
@@ -119,22 +116,25 @@ class TestContextFileUrlsIntegration(unittest.TestCase):
         self.assertTrue(op.success, "delete_file should be successful")
         print(f"Deleted file: {test_path}")
 
-        removed = None
-        for _ in range(3):
-            present, _, _ = list_contains_file_any_parent()
+        removed = False
+        retries_deletion = 0
+        for _ in range(20):
+            present, _, _ = list_contains()
             if last_lf_res and len(last_lf_res.entries) > 0:
-                # If listing had entries before, require absence after delete
                 if not present:
                     removed = True
                     break
                 removed = False
             else:
-                # If listing was empty/unavailable before, we cannot rely on it
                 removed = True
                 break
+            retries_deletion += 1
             time.sleep(1.0)
+        print(f"List files retry attempts (deletion check): {retries_deletion}")
         self.assertTrue(removed, "Deleted file should not appear in list_files when listing is available")
-        print(f"List files: {file_name} absent after delete (listing availability: {len(last_lf_res.entries) if last_lf_res else 'n/a'})")
+        if last_lf_res:
+            prev = (last_lf_res.count if getattr(last_lf_res, "count", None) is not None else len(last_lf_res.entries))
+            print(f"List files: {file_name} absent after delete (listing availability: {prev})")
 
         # Additionally, attempt to download after delete and log the status.
         # Some backends may keep presigned URLs valid until expiry even if the file is deleted.

@@ -315,3 +315,230 @@ func (cs *ContextService) Delete(context *Context) (*ContextDeleteResult, error)
 		Success: true,
 	}, nil
 }
+
+// ContextFileUrlResult represents a presigned URL operation result.
+type ContextFileUrlResult struct {
+	models.ApiResponse
+	Success    bool
+	Url        string
+	ExpireTime *int64
+}
+
+// ContextFileEntry represents a file item in a context.
+type ContextFileEntry struct {
+	FileID      string
+	FileName    string
+	FilePath    string
+	FileType    string
+	GmtCreate   string
+	GmtModified string
+	Size        int64
+	Status      string
+}
+
+// ContextFileListResult represents the result of listing files under a context path.
+type ContextFileListResult struct {
+	models.ApiResponse
+	Success bool
+	Entries []*ContextFileEntry
+	Count   *int32
+}
+
+// ContextFileDeleteResult represents the result of deleting a file in a context.
+type ContextFileDeleteResult struct {
+	models.ApiResponse
+	Success bool
+}
+
+// GetFileDownloadUrl gets a presigned download URL for a file in a context.
+func (cs *ContextService) GetFileDownloadUrl(contextID string, filePath string) (*ContextFileUrlResult, error) {
+	req := &mcp.GetContextFileDownloadUrlRequest{
+		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
+		ContextId:     tea.String(contextID),
+		FilePath:      tea.String(filePath),
+	}
+
+	fmt.Println("API Call: GetContextFileDownloadUrl")
+	fmt.Printf("Request: ContextId=%s, FilePath=%s\n", contextID, filePath)
+
+	resp, err := cs.AgentBay.Client.GetContextFileDownloadUrl(req)
+	if err != nil {
+		fmt.Println("Error calling GetContextFileDownloadUrl:", err)
+		return nil, err
+	}
+
+	requestID := models.ExtractRequestID(resp)
+
+	success := false
+	var url string
+	var expire *int64
+	if resp != nil && resp.Body != nil {
+		if resp.Body.Success != nil {
+			success = *resp.Body.Success
+		}
+		if resp.Body.Data != nil {
+			if resp.Body.Data.Url != nil {
+				url = *resp.Body.Data.Url
+			}
+			if resp.Body.Data.ExpireTime != nil {
+				expire = resp.Body.Data.ExpireTime
+			}
+		}
+		fmt.Println("Response from GetContextFileDownloadUrl:", resp.Body)
+	}
+
+	return &ContextFileUrlResult{
+		ApiResponse: models.WithRequestID(requestID),
+		Success:     success,
+		Url:         url,
+		ExpireTime:  expire,
+	}, nil
+}
+
+// GetFileUploadUrl gets a presigned upload URL for a file in a context.
+func (cs *ContextService) GetFileUploadUrl(contextID string, filePath string) (*ContextFileUrlResult, error) {
+	req := &mcp.GetContextFileUploadUrlRequest{
+		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
+		ContextId:     tea.String(contextID),
+		FilePath:      tea.String(filePath),
+	}
+
+	fmt.Println("API Call: GetContextFileUploadUrl")
+	fmt.Printf("Request: ContextId=%s, FilePath=%s\n", contextID, filePath)
+
+	resp, err := cs.AgentBay.Client.GetContextFileUploadUrl(req)
+	if err != nil {
+		fmt.Println("Error calling GetContextFileUploadUrl:", err)
+		return nil, err
+	}
+
+	requestID := models.ExtractRequestID(resp)
+
+	success := false
+	var url string
+	var expire *int64
+	if resp != nil && resp.Body != nil {
+		if resp.Body.Success != nil {
+			success = *resp.Body.Success
+		}
+		if resp.Body.Data != nil {
+			if resp.Body.Data.Url != nil {
+				url = *resp.Body.Data.Url
+			}
+			if resp.Body.Data.ExpireTime != nil {
+				expire = resp.Body.Data.ExpireTime
+			}
+		}
+		fmt.Println("Response from GetContextFileUploadUrl:", resp.Body)
+	}
+
+	return &ContextFileUrlResult{
+		ApiResponse: models.WithRequestID(requestID),
+		Success:     success,
+		Url:         url,
+		ExpireTime:  expire,
+	}, nil
+}
+
+// ListFiles lists files under a specific folder path in a context.
+func (cs *ContextService) ListFiles(contextID string, parentFolderPath string, pageNumber int32, pageSize int32) (*ContextFileListResult, error) {
+	req := &mcp.DescribeContextFilesRequest{
+		Authorization:    tea.String("Bearer " + cs.AgentBay.APIKey),
+		PageNumber:       tea.Int32(pageNumber),
+		PageSize:         tea.Int32(pageSize),
+		ParentFolderPath: tea.String(parentFolderPath),
+		ContextId:        tea.String(contextID),
+	}
+
+	fmt.Println("API Call: DescribeContextFiles")
+	fmt.Printf("Request: ContextId=%s, ParentFolderPath=%s, PageNumber=%d, PageSize=%d\n", contextID, parentFolderPath, pageNumber, pageSize)
+
+	resp, err := cs.AgentBay.Client.DescribeContextFiles(req)
+	if err != nil {
+		fmt.Println("Error calling DescribeContextFiles:", err)
+		return nil, err
+	}
+
+	requestID := models.ExtractRequestID(resp)
+
+	entries := []*ContextFileEntry{}
+	success := false
+	var count *int32
+	if resp != nil && resp.Body != nil {
+		if resp.Body.Success != nil {
+			success = *resp.Body.Success
+		}
+		if resp.Body.Count != nil {
+			count = resp.Body.Count
+		}
+		for _, it := range resp.Body.Data {
+			if it == nil {
+				continue
+			}
+			entry := &ContextFileEntry{}
+			if it.FileId != nil {
+				entry.FileID = *it.FileId
+			}
+			if it.FileName != nil {
+				entry.FileName = *it.FileName
+			}
+			if it.FilePath != nil {
+				entry.FilePath = *it.FilePath
+			}
+			if it.FileType != nil {
+				entry.FileType = *it.FileType
+			}
+			if it.GmtCreate != nil {
+				entry.GmtCreate = *it.GmtCreate
+			}
+			if it.GmtModified != nil {
+				entry.GmtModified = *it.GmtModified
+			}
+			if it.Size != nil {
+				entry.Size = *it.Size
+			}
+			if it.Status != nil {
+				entry.Status = *it.Status
+			}
+			entries = append(entries, entry)
+		}
+		fmt.Println("Response from DescribeContextFiles:", resp.Body)
+	}
+
+	return &ContextFileListResult{
+		ApiResponse: models.WithRequestID(requestID),
+		Success:     success,
+		Entries:     entries,
+		Count:       count,
+	}, nil
+}
+
+// DeleteFile deletes a file in a context.
+func (cs *ContextService) DeleteFile(contextID string, filePath string) (*ContextFileDeleteResult, error) {
+	req := &mcp.DeleteContextFileRequest{
+		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
+		ContextId:     tea.String(contextID),
+		FilePath:      tea.String(filePath),
+	}
+
+	fmt.Println("API Call: DeleteContextFile")
+	fmt.Printf("Request: ContextId=%s, FilePath=%s\n", contextID, filePath)
+
+	resp, err := cs.AgentBay.Client.DeleteContextFile(req)
+	if err != nil {
+		fmt.Println("Error calling DeleteContextFile:", err)
+		return nil, err
+	}
+
+	requestID := models.ExtractRequestID(resp)
+	success := false
+	if resp != nil && resp.Body != nil && resp.Body.Success != nil {
+		success = *resp.Body.Success
+		fmt.Println("Response from DeleteContextFile:", resp.Body)
+	}
+
+	return &ContextFileDeleteResult{
+		ApiResponse: models.WithRequestID(requestID),
+		Success:     success,
+	}, nil
+}

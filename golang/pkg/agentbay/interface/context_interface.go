@@ -22,4 +22,16 @@ type ContextInterface interface {
 
 	// Delete deletes the specified context
 	Delete(context *agentbay.Context) (*agentbay.ContextDeleteResult, error)
+
+	// GetFileDownloadUrl gets a presigned download URL for a context file
+	GetFileDownloadUrl(contextID string, filePath string) (*agentbay.ContextFileUrlResult, error)
+
+	// GetFileUploadUrl gets a presigned upload URL for a context file
+	GetFileUploadUrl(contextID string, filePath string) (*agentbay.ContextFileUrlResult, error)
+
+	// ListFiles lists files under a specific folder path in a context
+	ListFiles(contextID string, parentFolderPath string, pageNumber int32, pageSize int32) (*agentbay.ContextFileListResult, error)
+
+	// DeleteFile deletes a file in a context
+	DeleteFile(contextID string, filePath string) (*agentbay.ContextFileDeleteResult, error)
 }

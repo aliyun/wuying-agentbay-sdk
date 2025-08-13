@@ -7,6 +7,9 @@ import {
   ContextResult,
   ContextListResult,
   OperationResult,
+  FileUrlResult,
+  ContextFileListResult,
+  ContextFileEntry,
 } from "./types/api-response";
 
 /**
@@ -329,5 +332,120 @@ export class ContextService {
         errorMessage: `Failed to delete context ${context.id}: ${error}`,
       };
     }
+  }
+
+  /**
+   * Get a presigned upload URL for a file in a context.
+   */
+  async getFileUploadUrl(contextId: string, filePath: string): Promise<FileUrlResult> {
+    log("API Call: GetContextFileUploadUrl");
+    log(`Request: ContextId=${contextId}, FilePath=${filePath}`);
+    const req = new $_client.GetContextFileUploadUrlRequest({
+      authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+      contextId,
+      filePath,
+    });
+    const resp = await this.agentBay.getClient().getContextFileUploadUrl(req);
+    log("Response from GetContextFileUploadUrl:", resp.body);
+    const requestId = extractRequestId(resp) || "";
+    const body = resp.body;
+    const data = body?.data;
+    return {
+      requestId,
+      success: !!(body && body.success),
+      url: data?.url || "",
+      expireTime: data?.expireTime,
+    };
+  }
+
+  /**
+   * Get a presigned download URL for a file in a context.
+   */
+  async getFileDownloadUrl(contextId: string, filePath: string): Promise<FileUrlResult> {
+    log("API Call: GetContextFileDownloadUrl");
+    log(`Request: ContextId=${contextId}, FilePath=${filePath}`);
+    const req = new $_client.GetContextFileDownloadUrlRequest({
+      authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+      contextId,
+      filePath,
+    });
+    const resp = await this.agentBay.getClient().getContextFileDownloadUrl(req);
+    log("Response from GetContextFileDownloadUrl:", resp.body);
+    const requestId = extractRequestId(resp) || "";
+    const body = resp.body;
+    const data = body?.data;
+    return {
+      requestId,
+      success: !!(body && body.success),
+      url: data?.url || "",
+      expireTime: data?.expireTime,
+    };
+  }
+
+  /**
+   * Delete a file in a context.
+   */
+  async deleteFile(contextId: string, filePath: string): Promise<OperationResult> {
+    log("API Call: DeleteContextFile");
+    log(`Request: ContextId=${contextId}, FilePath=${filePath}`);
+    const req = new $_client.DeleteContextFileRequest({
+      authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+      contextId,
+      filePath,
+    });
+    const resp = await this.agentBay.getClient().deleteContextFile(req);
+    log("Response from DeleteContextFile:", resp.body);
+    const requestId = extractRequestId(resp) || "";
+    const body = resp.body;
+    const success = !!(body && body.success);
+    return {
+      requestId,
+      success,
+      data: success,
+      errorMessage: success ? "" : `Delete failed: ${body?.code || ""}`,
+    };
+  }
+
+  /**
+   * List files under a specific folder path in a context.
+   */
+  async listFiles(
+    contextId: string,
+    parentFolderPath: string,
+    pageNumber = 1,
+    pageSize = 50
+  ): Promise<ContextFileListResult> {
+    log("API Call: DescribeContextFiles");
+    log(
+      `Request: ContextId=${contextId}, ParentFolderPath=${parentFolderPath}, PageNumber=${pageNumber}, PageSize=${pageSize}`
+    );
+    const req = new $_client.DescribeContextFilesRequest({
+      authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+      pageNumber,
+      pageSize,
+      parentFolderPath,
+      contextId,
+    });
+    const resp = await this.agentBay.getClient().describeContextFiles(req);
+    log("Response from DescribeContextFiles:", resp.body);
+    const requestId = extractRequestId(resp) || "";
+    const body = resp.body;
+    const rawList = body?.data || [];
+    const entries: ContextFileEntry[] = rawList.map((it: any) => ({
+      fileId: it.fileId,
+      fileName: it.fileName,
+      filePath: it.filePath || "",
+      fileType: it.fileType,
+      gmtCreate: it.gmtCreate,
+      gmtModified: it.gmtModified,
+      size: it.size,
+      status: it.status,
+    }));
+    return {
+      requestId,
+      success: !!(body && body.success),
+      entries,
+      count: body?.count,
+    };
   }
 }

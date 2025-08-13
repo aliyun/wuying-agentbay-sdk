@@ -428,6 +428,52 @@ export interface ContextListResult extends ApiResponse {
 }
 
 /**
+ * Result of a presigned URL request
+ */
+export interface FileUrlResult extends ApiResponse {
+  /** Request identifier for tracking API calls */
+  requestId: string;
+  /** Whether the operation was successful */
+  success: boolean;
+  /** The presigned URL */
+  url: string;
+  /** Optional expire time (epoch seconds) */
+  expireTime?: number;
+  /** Optional error message if the operation failed */
+  errorMessage?: string;
+}
+
+/**
+ * Represents a file item in a context
+ */
+export interface ContextFileEntry {
+  fileId?: string;
+  fileName?: string;
+  filePath: string;
+  fileType?: string;
+  gmtCreate?: string;
+  gmtModified?: string;
+  size?: number;
+  status?: string;
+}
+
+/**
+ * Result of context file listing
+ */
+export interface ContextFileListResult extends ApiResponse {
+  /** Request identifier for tracking API calls */
+  requestId: string;
+  /** Whether the operation was successful */
+  success: boolean;
+  /** File entries under a folder */
+  entries: ContextFileEntry[];
+  /** Optional total count returned by backend */
+  count?: number;
+  /** Optional error message if the operation failed */
+  errorMessage?: string;
+}
+
+/**
  * Helper function to extract request ID from API responses
  */
 export function extractRequestId(response: any): string | undefined {
