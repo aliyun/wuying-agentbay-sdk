@@ -1,0 +1,34 @@
+{
+  "experimentName": "page_agent_local_run",
+  "passed": [
+    {
+      "eval": "vanta_h"
+    }
+  ],
+  "failed": [],
+  "summary": {
+    "total": 1,
+    "passed_count": 1,
+    "failed_count": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "task_name": "vanta_h",
+      "result": {
+        "_success": true
+      },
+      "performance": {
+        "total_duration_s": 90.1,
+        "browser_setup_s": 10.17,
+        "task_duration_s": 79.93,
+        "llm_duration_s": 0,
+        "llm_call_count": 0,
+        "total_tokens": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "llm_time_percentage": 0.0
+      }
+    }
+  ]
+}

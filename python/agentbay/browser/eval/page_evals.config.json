@@ -67,13 +67,6 @@
             ]
         },
         {
-            "name": "observe_amazon_add_to_cart",
-            "categories": [
-                "combination",
-                "regression"
-            ]
-        },
-        {
             "name": "arxiv",
             "categories": [
                 "combination",
