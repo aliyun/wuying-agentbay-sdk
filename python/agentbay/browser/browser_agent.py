@@ -111,7 +111,7 @@ class BrowserAgent(BaseService):
             else:
                 return ActResult(success=False, message=response.error_message, action="")
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")
+            raise BrowserError(f"Failed to act: {e}")
 
     async def act_async(self, page, options: ActOptions) -> 'ActResult':
         """
@@ -152,7 +152,7 @@ class BrowserAgent(BaseService):
             else:
                 return ActResult(success=False, message=response.error_message, action="")
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")
+            raise BrowserError(f"Failed to act: {e}")
 
     def observe(self, page, options: ObserveOptions) -> Tuple[bool, List[ObserveResult]]:
         """
@@ -211,7 +211,7 @@ class BrowserAgent(BaseService):
                 return False, []
 
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")
+            raise BrowserError(f"Failed to observe: {e}")
 
     async def observe_async(self, page, options: ObserveOptions) -> Tuple[bool, List[ObserveResult]]:
         """
@@ -270,7 +270,7 @@ class BrowserAgent(BaseService):
                 return False, []
                 
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")
+            raise BrowserError(f"Failed to observe: {e}")
 
     def extract(self, page, options: ExtractOptions) -> Tuple[bool, List[T]]:
         """
@@ -321,7 +321,7 @@ class BrowserAgent(BaseService):
                 print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
                 return False, []
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")
+            raise BrowserError(f"Failed to extract: {e}")
 
     async def extract_async(self, page, options: ExtractOptions) -> Tuple[bool, List[T]]:
         """
@@ -372,7 +372,7 @@ class BrowserAgent(BaseService):
                 print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
                 return False, []
         except Exception as e:
-            raise BrowserError(f"Failed to get page/context index: {e}")  
+            raise BrowserError(f"Failed to extract: {e}")  
 
     def _get_page_and_context_index(self, page):
         """
