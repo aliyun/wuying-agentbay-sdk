@@ -1,4 +1,4 @@
-name: Auto Publish to TestPyPI with Timestamp Version
+name: Auto Publish to TestPyPI And TestNpm
 
 on:
   push:
@@ -66,6 +66,54 @@ jobs:
         run: |
           cd python
           twine upload --repository-url https://test.pypi.org/legacy/ --verbose dist/*
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Extract base version from package.json
+        run: |
+          cd typescript
+          BASE_VERSION=$(jq -r .version package.json)
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+
+      - name: Generate final version with timestamp
+        run: |
+          TIMESTAMP=$(TZ='Asia/Shanghai' date "+%Y%m%d%H%M%S")
+          FINAL_VERSION="${BASE_VERSION}-${TIMESTAMP}"
+          echo "NPM_FINAL_VERSION=${FINAL_VERSION}" >> $GITHUB_ENV
+
+      - name: Build TypeScript
+        run: |
+          cd typescript
+          rm -rf dist/ || true
+          sed -i 's/"name":.*/"name": "test-wuying-agentbay-sdk",/' package.json
+          npm install
+          npm install -g typescript
+          npm version ${{ env.NPM_FINAL_VERSION }} --no-git-tag-version
+          npm run build
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.TEST_NPM_TOKEN }}
+        run: |
+          cd typescript
+          npm publish
+
+      - name: Get commit info
+        run: |
+          # 获取 Commit ID 和时间
+          LATEST_COMMIT=$(git log -1 --pretty=format:"%H")
+          COMMIT_TIME=$(git log -1 --pretty=format:"%cd")
+          echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
+          echo "COMMIT_TIME=$COMMIT_TIME" >> $GITHUB_ENV
+          echo "Latest Commit ID: $LATEST_COMMIT"
+          echo "Commit Time: $COMMIT_TIME"
+
       - name: get install command
         run: |
           echo "pip install -i https://test.pypi.org/simple/ wuying-agentbay-sdk==${{ env.FINAL_VERSION }}"
+          echo "npm install test-wuying-agentbay-sdk@${{ env.NPM_FINAL_VERSION }}"
+          echo "go get github.com/aliyun/wuying-agentbay-sdk@${{env.LATEST_COMMIT }}"
