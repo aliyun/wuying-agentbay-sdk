@@ -52,4 +52,4 @@ jobs:
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 
-          echo "pip install -i https://pypi.org/ wuying-agentbay-sdk==${{ inputs.version }}" >> $SUMMARY_PATH
+          echo "pip install -i https://test.pypi.org/simple/ wuying-agentbay-sdk==${{ inputs.version }}" >> $SUMMARY_PATH

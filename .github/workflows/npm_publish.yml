@@ -1,4 +1,4 @@
-name: Build and Publish to npm
+name: Manual Publish to npm
 
 on:
   workflow_dispatch:  # 手动触发
@@ -54,4 +54,4 @@ jobs:
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 
-          echo "npm install wuying-agentbay-sdk@${{ inputs.version }}" >> $SUMMARY_PATH
+          echo "npm install test-wuying-agentbay-sdk@${{ inputs.version }}" >> $SUMMARY_PATH
