@@ -11,7 +11,15 @@ from dotenv import load_dotenv
 from agentbay.browser.eval.page_agent import PageAgent
 
 
-logger = logging.getLogger(__name__)
+# Configure logging to output to console
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("run_page_evals")
 
 
 async def run_single_task(

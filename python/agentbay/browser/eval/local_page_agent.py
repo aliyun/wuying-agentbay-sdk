@@ -44,7 +44,7 @@ class LocalMCPClient:
                                 await self.session.initialize()
                                 logger.info("Client initialized. Listing available tools...")
                                 tools = await self.session.list_tools()
-                                logger.info("Tools:", tools)
+                                logger.info(f"Tools: {tools}")
                                 success = True
                                 promise.set_result(success)
                                 await self._interactive_loop()
