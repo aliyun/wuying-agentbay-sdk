@@ -21,6 +21,7 @@ from agentbay.session_params import CreateSessionParams
 class DummySchema(BaseModel):
     title: str
 
+
 def get_test_api_key():
     """Get API key for testing"""
     api_key = os.environ.get("AGENTBAY_API_KEY")
@@ -30,6 +31,16 @@ def get_test_api_key():
             "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
         )
     return api_key
+
+
+def _mask_secret(secret: str, visible: int = 4) -> str:
+    """Mask a secret value, keeping only the last `visible` characters."""
+    if not secret:
+        return ""
+    if len(secret) <= visible:
+        return "*" * len(secret)
+    return ("*" * (len(secret) - visible)) + secret[-visible:]
+
 
 def is_windows_user_agent(user_agent: str) -> bool:
     if not user_agent:
@@ -44,11 +55,12 @@ def is_windows_user_agent(user_agent: str) -> bool:
     ]
     return any(indicator in user_agent_lower for indicator in windows_indicators)
 
+
 class TestBrowserAgentIntegration(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         api_key = get_test_api_key()
-        print("api_key =", api_key)
+        print("api_key =", _mask_secret(api_key))
         self.agent_bay = AgentBay(api_key=api_key)
         print("Creating a new session for browser agent testing...")
         self.create_session()
