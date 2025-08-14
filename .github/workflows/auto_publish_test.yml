@@ -117,3 +117,16 @@ jobs:
           echo "pip install -i https://test.pypi.org/simple/ wuying-agentbay-sdk==${{ env.FINAL_VERSION }}"
           echo "npm install test-wuying-agentbay-sdk@${{ env.NPM_FINAL_VERSION }}"
           echo "go get github.com/aliyun/wuying-agentbay-sdk@${{env.LATEST_COMMIT }}"
+
+      - name: Generate Build Summary
+        if: success()
+        run: |
+          SUMMARY_PATH=$GITHUB_STEP_SUMMARY
+
+          # 写入测试内容
+          echo "## INSTALL COMMAND " > $SUMMARY_PATH
+          echo "### CONTENT" >> $SUMMARY_PATH
+
+          echo "go get github.com/aliyun/wuying-agentbay-sdk@${{env.LATEST_COMMIT }}" >> $SUMMARY_PATH
+          echo "pip install -i https://test.pypi.org/simple/ wuying-agentbay-sdk==${{ env.FINAL_VERSION }}" >> $SUMMARY_PATH
+          echo "npm install test-wuying-agentbay-sdk@${{ env.NPM_FINAL_VERSION }}" >> $SUMMARY_PATH
