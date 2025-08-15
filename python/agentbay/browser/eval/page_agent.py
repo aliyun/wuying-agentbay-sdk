@@ -135,6 +135,12 @@ class PageAgent:
                                 ret = await self._observe(arguments)
                             elif task_name == "act":
                                 ret = await self._act(arguments)
+                            elif task_name == "wait_current_page_networkidle":
+                                await self._do_wait_current_page_networkidle(arguments)
+                                ret = {}
+                            elif task_name == "get_current_page":
+                                await self._get_current_page(arguments)
+                                ret = {}
                             else:
                                 future.set_exception(RuntimeError(f"Unknown task: {task_name}"))
                             
@@ -196,7 +202,8 @@ class PageAgent:
         return future.result()
 
     async def get_current_page(self) -> Page:
-        logger.info("Requesting direct access to the Playwright Page object...")
+        await self._post_task_to_pr_loop("get_current_page", {})
+        #await self._wait_current_page_networkidle()
         return self.current_page
 
     def reset_metrics(self):
@@ -227,6 +234,21 @@ class PageAgent:
         ] = "load",
         timeout_ms: Optional[int] = 180000) -> str:
         return await self._post_task_to_pr_loop("goto", {"url": url, "context_id": context_id, "page_id": page_id, "wait_until": wait_until, "timeout_ms": timeout_ms})
+
+    async def _wait_current_page_networkidle(self):
+        await self._post_task_to_pr_loop("wait_current_page_networkidle", {})
+    
+    async def _do_wait_current_page_networkidle(self, arguments: dict):
+        await self.current_page.wait_for_load_state("networkidle")
+
+    async def _get_current_page(self, arguments: dict):
+        cdp_session = None
+        try:
+            cdp_session = await self.current_page.context.new_cdp_session(self.current_page)
+            #logger.info(f"get_current_page: {self.current_page}")
+        finally:
+            if cdp_session:
+                await cdp_session.detach()
 
     async def _goto(
         self,
