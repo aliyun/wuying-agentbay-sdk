@@ -16,9 +16,7 @@ class ApartmentListings(BaseModel):
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
     logger.info("Navigating to apartments.com with extended timeout...")
     await agent.goto(
-        "https://www.apartments.com/san-francisco-ca/2-bedrooms/",
-        timeout_ms=60000,
-        wait_until="domcontentloaded",
+        "https://www.apartments.com/san-francisco-ca/2-bedrooms/"
     )
     logger.info("Page navigation completed.")
 

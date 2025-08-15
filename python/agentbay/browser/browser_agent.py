@@ -57,12 +57,14 @@ class ExtractOptions(Generic[T]):
                  schema: Type[T],
                  selector: Optional[str] = None,
                  iframe: Optional[bool] = None,
-                 domSettleTimeoutsMS: Optional[int] = None):
+                 domSettleTimeoutsMS: Optional[int] = None,
+                 use_text_extract: Optional[bool] = False):
         self.instruction = instruction
         self.schema = schema
         self.selector = selector
         self.iframe = iframe
         self.domSettleTimeoutsMS = domSettleTimeoutsMS
+        self.use_text_extract = use_text_extract
 
 class BrowserAgent(BaseService):
     """
@@ -272,7 +274,7 @@ class BrowserAgent(BaseService):
         except Exception as e:
             raise BrowserError(f"Failed to observe: {e}")
 
-    def extract(self, page, options: ExtractOptions) -> Tuple[bool, List[T]]:
+    def extract(self, page, options: ExtractOptions) -> Tuple[bool, T]:
         """
         Extract information from the given Playwright Page object.
         Gets the page and context index and calls the MCP tool 'page_use_extract'.
@@ -294,6 +296,8 @@ class BrowserAgent(BaseService):
                 args["iframe"] = options.iframe
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
+            if options.use_text_extract is not None:
+                args["use_text_extract"] = options.use_text_extract
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
@@ -307,29 +311,26 @@ class BrowserAgent(BaseService):
                     data = response.data
                 print("extract data =", data)
                 success = data.get("success", False)
-                extract_objs = []
+                extract_result = data.get("extract_result", "")
+                extract_obj = None
                 if success:
-                    extract_results = json.loads(data.get("extract_result", ""))
-                    for extract_result in extract_results:
-                        print("extract_result =", extract_result)
-                        extract_objs.append(options.schema.model_validate(extract_result))
+                    extract_obj = options.schema.model_validate(extract_result)
                 else:
-                    extract_results = data.get("extract_result", "")
-                    print("Extract failed due to: ", extract_results)
-                return success, extract_objs
+                    print(f"Extract failed due to: {extract_result}")
+                return success, extract_obj
             else:
                 print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
-                return False, []
+                return False, None
         except Exception as e:
             raise BrowserError(f"Failed to extract: {e}")
 
-    async def extract_async(self, page, options: ExtractOptions) -> Tuple[bool, List[T]]:
+    async def extract_async(self, page, options: ExtractOptions) -> Tuple[bool, T]:
         """
         Async version of extract method for extracting information from the given Playwright Page object.
         Gets the page and context index and calls the MCP tool 'page_use_extract' asynchronously.
         """
         if not self.browser.is_initialized():
-            raise BrowserError("Browser must be initialized before calling extract_async.")
+            raise BrowserError("Browser must be initialized before calling extract  _async.")
         try:
             page_index, context_index = await self._get_page_and_context_index_async(page)
             args = {
@@ -345,6 +346,8 @@ class BrowserAgent(BaseService):
                 args["iframe"] = options.iframe
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
+            if options.use_text_extract is not None:
+                args["use_text_extract"] = options.use_text_extract
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
@@ -358,19 +361,16 @@ class BrowserAgent(BaseService):
                     data = response.data
                 print("extract data =", data)
                 success = data.get("success", False)
-                extract_objs = []
+                extract_result = data.get("extract_result", "")
+                extract_obj = None
                 if success:
-                    extract_results = json.loads(data.get("extract_result", ""))
-                    for extract_result in extract_results:
-                        print("extract_result =", extract_result)
-                        extract_objs.append(options.schema.model_validate(extract_result))
+                    extract_obj = options.schema.model_validate(extract_result)
                 else:
-                    extract_results = data.get("extract_result", "")
-                    print("Extract failed due to: ", extract_results)
-                return success, extract_objs
+                    print(f"Extract failed due to: {extract_result}")
+                return success, extract_obj
             else:
                 print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
-                return False, []
+                return False, None
         except Exception as e:
             raise BrowserError(f"Failed to extract: {e}")  
 

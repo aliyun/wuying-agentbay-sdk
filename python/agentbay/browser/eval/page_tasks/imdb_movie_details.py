@@ -12,9 +12,7 @@ class CountryRatings(BaseModel):
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
-    await agent.goto(
-        "https://www.imdb.com/title/tt0111161/", wait_until="domcontentloaded"
-    )
+    await agent.goto("https://www.imdb.com/title/tt0111161/")
     await agent.act("click on the movie ratings")
     extract_method = config.get("extract_method", "domExtract")
     use_text_extract = extract_method == "textExtract"

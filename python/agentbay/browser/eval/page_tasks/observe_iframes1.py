@@ -4,9 +4,7 @@ from mcp_server.page_agent import PageAgent
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
-    await agent.goto(
-        "https://tucowsdomains.com/abuse-form/phishing/", wait_until="domcontentloaded"
-    )
+    await agent.goto("https://tucowsdomains.com/abuse-form/phishing/")
 
     logger.info("Observing for the main header of the page...")
     observations = await agent.observe(

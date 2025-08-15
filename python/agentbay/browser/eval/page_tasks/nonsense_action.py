@@ -4,10 +4,7 @@ from mcp_server.page_agent import PageAgent
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
-    await agent.goto(
-        "https://www.homedepot.com/",
-        wait_until="domcontentloaded",
-    )
+    await agent.goto("https://www.homedepot.com/")
 
     try:
         result = await agent.act("what is the capital of the moon?")
