@@ -5,7 +5,7 @@ from mcp_server.page_agent import PageAgent
 
 
 class Batch(BaseModel):
-    batch: str
+    batch: int
     companies: List[str]
 
 
@@ -37,20 +37,20 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     expected_length = 4
     expected_companies = [
         {
-            "batch": "4",
-            "companies": 16,
+            "batch": 1,
+            "companies": 26,
         },
         {
-            "batch": "3",
-            "companies": 19,
-        },
-        {
-            "batch": "2",
+            "batch": 2,
             "companies": 30,
         },
         {
-            "batch": "1",
-            "companies": 26,
+            "batch": 3,
+            "companies": 19,
+        },
+        {
+            "batch": 4,
+            "companies": 16,
         },
     ]
 
