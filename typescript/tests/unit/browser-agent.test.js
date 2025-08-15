@@ -1,9 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Browser, BrowserAgent } = require('../../dist/index.cjs');
 
 class TestSchema {
-  title;
-  content;
   constructor() {
     this.title = "";
     this.content = "";
