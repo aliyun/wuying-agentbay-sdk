@@ -313,10 +313,10 @@ class BrowserAgent(BaseService):
                 print("extract data =", data)
                 success = data.get("success", False)
                 extract_result = data.get("extract_result", "")
-                print("extract_result =", extract_results)
+                print("extract_result =", extract_result)
                 extract_obj = None
                 if success:
-                    extract_obj = options.schema.model_validate(extract_result)
+                    extract_obj = options.schema.model_validate_json(extract_result)
                 else:
                     print(f"Extract failed due to: {extract_result}")
                 return success, extract_obj
@@ -367,7 +367,7 @@ class BrowserAgent(BaseService):
                 print("extract_result =", extract_result)
                 extract_obj = None
                 if success:
-                    extract_obj = options.schema.model_validate(extract_result)
+                    extract_obj = options.schema.model_validate_json(extract_result)
                 else:
                     print(f"Extract failed due to: {extract_result}")
                 return success, extract_obj
