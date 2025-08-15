@@ -1010,6 +1010,9 @@ export class Client extends OpenApi {
     if (!$dara.isNull(request.sessionId)) {
       body["SessionId"] = request.sessionId;
     }
+    if (!$dara.isNull(request.browserOption)) {
+      body["BrowserOption"] = request.browserOption;
+    }
     const req = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),
     });
@@ -1064,6 +1067,9 @@ export class Client extends OpenApi {
     }
     if (!$dara.isNull(request.sessionId)) {
       body["SessionId"] = request.sessionId;
+    }
+    if (!$dara.isNull(request.browserOption)) {
+      body["BrowserOption"] = request.browserOption;
     }
     const req = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),

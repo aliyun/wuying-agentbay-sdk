@@ -1,4 +1,4 @@
-export { Browser, BrowserOption } from './browser';
+export { Browser, BrowserOption, BrowserViewport, BrowserScreen, BrowserFingerprint } from './browser';
 export { 
   BrowserAgent, 
   ActOptions, 

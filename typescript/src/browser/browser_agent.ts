@@ -72,7 +72,7 @@ export class BrowserAgent {
     }
 
     try {
-      const [pageIndex, contextIndex] = this._getPageAndContextIndex(page);
+      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
       log(`Acting on page: ${page}, pageIndex: ${pageIndex}, contextIndex: ${contextIndex}`);
 
       const args: Record<string, any> = {
@@ -133,7 +133,7 @@ export class BrowserAgent {
     }
 
     try {
-      const [pageIndex, contextIndex] = this._getPageAndContextIndex(page);
+      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
       log(`Observing page: ${page}, pageIndex: ${pageIndex}, contextIndex: ${contextIndex}`);
 
       const args: Record<string, any> = {
@@ -208,7 +208,7 @@ export class BrowserAgent {
     }
 
     try {
-      const [pageIndex, contextIndex] = this._getPageAndContextIndex(page);
+      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
       
       // Create a temporary instance to get the schema
       const tempInstance = new options.schema();
@@ -260,7 +260,7 @@ export class BrowserAgent {
           }
         } else {
           const extractResults = data.extract_result || "";
-                      log("Extract failed due to:", extractResults);
+          log("Extract failed due to:", extractResults);
         }
 
         return [success, extractObjs];
@@ -286,8 +286,7 @@ export class BrowserAgent {
     }
 
     try {
-      // Simplified implementation - in real scenario would need to work with Playwright CDP
-      // For now, return default values
+      // Fallback implementation - prefer async version where CDP is available
       const pageIndex = "default-page-id";
       const contextIndex = 0;
       return [pageIndex, contextIndex];
@@ -301,15 +300,40 @@ export class BrowserAgent {
       throw new BrowserError("Page is null");
     }
 
+    // Try to use Playwright CDP if available
     try {
-      // Simplified implementation - in real scenario would need to work with Playwright CDP
-      // For now, return default values
-      const pageIndex = "default-page-id";
-      const contextIndex = 0;
-      return [pageIndex, contextIndex];
+      if (page.context && typeof page.context === 'function') {
+        const context = page.context();
+        if (context && typeof context.newCDPSession === 'function') {
+          const cdpSession = await context.newCDPSession(page);
+          const targetInfo = await cdpSession.send('Target.getTargetInfo');
+          const pageIndex = (targetInfo && targetInfo.targetInfo && targetInfo.targetInfo.targetId) ? targetInfo.targetInfo.targetId : 'default-page-id';
+          if (typeof cdpSession.detach === 'function') {
+            await cdpSession.detach();
+          }
+
+          let contextIndex = 0;
+          if (typeof context.browser === 'function') {
+            const browserObj = context.browser();
+            if (browserObj && typeof browserObj.contexts === 'function') {
+              const contexts = browserObj.contexts();
+              const idx = contexts.indexOf(context);
+              if (idx >= 0) {
+                contextIndex = idx;
+              }
+            }
+          }
+          return [pageIndex, contextIndex];
+        }
+      }
     } catch (error) {
-      throw new BrowserError(`Failed to get page/context index: ${error}`);
+      log(`CDP targetId retrieval failed, fallback to defaults: ${error}`);
     }
+
+    // Fallback to defaults if CDP is not available
+    const pageIndex = "default-page-id";
+    const contextIndex = 0;
+    return [pageIndex, contextIndex];
   }
 
   private async _callMcpTool(toolName: string, args: Record<string, any>) {

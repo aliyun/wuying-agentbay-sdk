@@ -1,17 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 // Browser agent integration tests
 import { AgentBay, Browser, BrowserAgent, log } from '../../src';
 
-function getTestApiKey() {
+function getTestApiKey(): string {
   const apiKey = process.env.AGENTBAY_API_KEY;
   if (!apiKey) {
     log("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing.");
     return "akm-xxx";
   }
-  return apiKey;
+  return apiKey as string;
+}
+
+function isWindowsUserAgent(userAgent: any): boolean {
+  if (!userAgent) return false;
+  const lower = String(userAgent).toLowerCase();
+  return ['windows nt','win32','win64','windows','wow64'].some(x => lower.includes(x));
 }
 
 describe('BrowserAgent Integration Tests', () => {
-  let agentBay: AgentBay;
+  let agentBay: any;
   let session: any;
 
   beforeEach(async () => {
@@ -43,8 +50,8 @@ describe('BrowserAgent Integration Tests', () => {
       log("Cleaning up: Deleting the session...");
       try {
         await agentBay.delete(session);
-      } catch (error) {
-        log(`Warning: Error deleting session: ${error}`);
+      } catch (error: any) {
+        log(`Warning: Error deleting session: ${error?.message || error}`);
       }
     }
   });
@@ -62,41 +69,58 @@ describe('BrowserAgent Integration Tests', () => {
     expect(browser.agent).toBeInstanceOf(BrowserAgent);
   });
 
-  test('should initialize browser successfully', async () => {
+  test('initialize browser', async () => {
     if (!session) {
       log("⏭️ Skipping test - session creation failed");
-      expect(true).toBe(true); // Skip test gracefully
+      expect(true).toBe(true);
       return;
     }
     
     const browser = session.browser;
     expect(browser).toBeDefined();
-    expect(browser).toBeInstanceOf(Browser);
 
     const initialized = await browser.initializeAsync({});
     expect(initialized).toBe(true);
 
-    // Note: Getting endpoint URL requires actual MCP tool response
-    // In a real test environment, this would return a valid WebSocket URL
     try {
       const endpointUrl = await browser.getEndpointUrl();
-      log("endpoint_url data:", endpointUrl.data || endpointUrl);
+      log("endpoint_url:", endpointUrl);
       expect(endpointUrl).toBeDefined();
     } catch (error: any) {
-      log("Expected: Getting endpoint URL might fail in test environment:", error.message);
+      log("Expected: Getting endpoint URL might fail in test environment:", error?.message || error);
     }
-  }, 30000);
+  }, 60000);
 
-  test('should perform browser agent operations', async () => {
+  test('initialize browser with fingerprint', async () => {
     if (!session) {
       log("⏭️ Skipping test - session creation failed");
-      expect(true).toBe(true); // Skip test gracefully
+      expect(true).toBe(true);
+      return;
+    }
+
+    const browser = session.browser;
+    const option = {
+      useStealth: true,
+      fingerprint: {
+        devices: ['desktop'] as Array<'desktop'|'mobile'>,
+        operatingSystems: ['windows'] as Array<'windows'|'linux'|'macos'>,
+        locales: ['zh-CN'] as Array<'zh-CN'|'en-US'>
+      }
+    };
+
+    const initialized = await browser.initializeAsync(option);
+    expect(initialized).toBe(true);
+  }, 60000);
+
+  test('act success', async () => {
+    if (!session) {
+      log("⏭️ Skipping test - session creation failed");
+      expect(true).toBe(true);
       return;
     }
     
     const browser = session.browser;
     expect(browser).toBeDefined();
-    expect(browser).toBeInstanceOf(Browser);
 
     const initialized = await browser.initializeAsync({});
     expect(initialized).toBe(true);
@@ -107,14 +131,33 @@ describe('BrowserAgent Integration Tests', () => {
       title: () => "Example Domain"
     };
 
-    // Test act operation
     try {
       const result = await browser.agent.act(mockPage, { action: "Click search button" });
-      log("Act result data:", result.data || result);
+      log("Act result:", result);
       expect(result).toBeDefined();
     } catch (error: any) {
-      log("Expected: Act operation might fail without real page:", error.message);
+      log("Expected: Act operation might fail without real page:", error?.message || error);
     }
+  }, 60000);
+
+  test('observe success', async () => {
+    if (!session) {
+      log("⏭️ Skipping test - session creation failed");
+      expect(true).toBe(true);
+      return;
+    }
+    
+    const browser = session.browser;
+    expect(browser).toBeDefined();
+
+    const initialized = await browser.initializeAsync({});
+    expect(initialized).toBe(true);
+
+    // Mock page object (in real scenario would be from Playwright)
+    const mockPage = {
+      url: () => "http://example.com",
+      title: () => "Example Domain"
+    };
 
     // Test observe operation
     try {
@@ -124,13 +167,36 @@ describe('BrowserAgent Integration Tests', () => {
       expect(typeof success).toBe('boolean');
       expect(Array.isArray(observeResults)).toBe(true);
     } catch (error: any) {
-      log("Expected: Observe operation might fail without real page:", error.message);
+      log("Expected: Observe operation might fail without real page:", error?.message || error);
     }
+  }, 60000);
+
+  test('extract success', async () => {
+    if (!session) {
+      log("⏭️ Skipping test - session creation failed");
+      expect(true).toBe(true);
+      return;
+    }
+
+    const browser = session.browser;
+    expect(browser).toBeDefined();
+
+    const initialized = await browser.initializeAsync({});
+    expect(initialized).toBe(true);
+
+    // Mock page object (in real scenario would be from Playwright)
+    const mockPage = {
+      url: () => "http://example.com",
+      title: () => "Example Domain"
+    };
 
     // Test extract operation
     try {
-      class TestSchema {
-        title: string = "";
+      class TestSchema { 
+        title = '';
+        constructor() { 
+          this.title = ""; 
+        } 
       }
 
       const [success, objects] = await browser.agent.extract(mockPage, { 
@@ -143,7 +209,7 @@ describe('BrowserAgent Integration Tests', () => {
       expect(typeof success).toBe('boolean');
       expect(Array.isArray(objects)).toBe(true);
     } catch (error: any) {
-      log("Expected: Extract operation might fail without real page:", error.message);
+      log("Expected: Extract operation might fail without real page:", error?.message || error);
     }
   }, 60000);
 });

@@ -5,12 +5,14 @@ export class InitBrowserRequest extends $dara.Model {
   authorization?: string;
   persistentPath?: string;
   sessionId?: string;
+  browserOption?: { [key: string]: any };
   
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
       persistentPath: 'PersistentPath',
       sessionId: 'SessionId',
+      browserOption: 'BrowserOption',
     };
   }
 
@@ -19,6 +21,7 @@ export class InitBrowserRequest extends $dara.Model {
       authorization: 'string',
       persistentPath: 'string',
       sessionId: 'string',
+      browserOption: { 'type': 'map', 'keyType': 'string', 'valueType': 'any' },
     };
   }
 

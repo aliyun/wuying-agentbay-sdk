@@ -1,7 +1,9 @@
-// Simple browser agent unit tests
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Browser, BrowserAgent } = require('../../dist/index.cjs');
 
 class TestSchema {
+  title;
+  content;
   constructor() {
     this.title = "";
     this.content = "";
@@ -77,7 +79,10 @@ describe('Browser Unit Tests', () => {
     const result = await browser.agent.act(mockPage, options);
     
     expect(result.success).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_act', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_act');
+    expect(typeof args).toBe('object');
   });
 
   test('should perform observe operation', async () => {
@@ -97,7 +102,10 @@ describe('Browser Unit Tests', () => {
     
     expect(success).toBe(true);
     expect(Array.isArray(results)).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_observe', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_observe');
+    expect(typeof args).toBe('object');
   });
 
   test('should perform extract operation', async () => {
@@ -105,7 +113,7 @@ describe('Browser Unit Tests', () => {
     
     mockSession.callMcpTool.mockResolvedValue({
       success: true,
-      data: '{"success": true, "extract_result": "[{\\"title\\": \\"Test Title\\"}]"}',
+      data: '{"success": true, "extract_result": "[{\\"title\\": \\\"Test Title\\\"}]"}',
       errorMessage: '',
       requestId: 'test-request-id'
     });
@@ -120,7 +128,10 @@ describe('Browser Unit Tests', () => {
     
     expect(success).toBe(true);
     expect(Array.isArray(objects)).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_extract', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_extract');
+    expect(typeof args).toBe('object');
   });
 
   test('should handle act operation failure', async () => {
