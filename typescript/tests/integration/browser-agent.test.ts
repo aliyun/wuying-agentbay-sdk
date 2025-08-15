@@ -11,6 +11,12 @@ function getTestApiKey(): string {
   return apiKey as string;
 }
 
+function maskSecret(secret: string, visible = 4): string {
+  if (!secret) return "";
+  if (secret.length <= visible) return "*".repeat(secret.length);
+  return "*".repeat(secret.length - visible) + secret.slice(-visible);
+}
+
 function isWindowsUserAgent(userAgent: any): boolean {
   if (!userAgent) return false;
   const lower = String(userAgent).toLowerCase();
@@ -23,7 +29,7 @@ describe('BrowserAgent Integration Tests', () => {
 
   beforeEach(async () => {
     const apiKey = getTestApiKey();
-    log("api_key =", apiKey);
+    log("api_key =", maskSecret(apiKey));
     agentBay = new AgentBay({ apiKey });
 
     // Create a session

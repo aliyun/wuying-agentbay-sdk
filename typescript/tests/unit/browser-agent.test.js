@@ -53,7 +53,15 @@ describe('Browser Unit Tests', () => {
     
     expect(result).toBe(true);
     expect(browser.isInitialized()).toBe(true);
-    expect(browser.getOption()).toEqual(option);
+    
+    const savedOption = browser.getOption();
+    expect(savedOption).toBeDefined();
+    expect(savedOption.useStealth).toBe(false); // Default value
+    expect(savedOption.userAgent).toBeUndefined();
+    expect(savedOption.viewport).toBeUndefined();
+    expect(savedOption.screen).toBeUndefined();
+    expect(savedOption.fingerprint).toBeUndefined();
+    expect(savedOption.proxies).toBeUndefined();
   });
 
   test('should get endpoint URL when initialized', async () => {
@@ -158,5 +166,45 @@ describe('Browser Unit Tests', () => {
     await expect(browser.agent.act(mockPage, { action: 'test' })).rejects.toThrow('Browser must be initialized');
     await expect(browser.agent.observe(mockPage, { instruction: 'test' })).rejects.toThrow('Browser must be initialized');
     await expect(browser.agent.extract(mockPage, { instruction: 'test', schema: TestSchema })).rejects.toThrow('Browser must be initialized');
+  });
+
+  describe('Browser Options', () => {
+    test('should handle browser options with all parameters', async () => {
+      const option = {
+        useStealth: true,
+        userAgent: 'Test User Agent',
+        viewport: { width: 1920, height: 1080 },
+        screen: { width: 1920, height: 1080 },
+        fingerprint: {
+          devices: ['desktop'],
+          operatingSystems: ['windows', 'macos'],
+          locales: ['zh-CN']
+        },
+        proxies: [{
+          type: 'wuying',
+          strategy: 'polling',
+          pollsize: 15
+        }]
+      };
+      
+      await browser.initializeAsync(option);
+      const savedOption = browser.getOption();
+      
+      expect(savedOption).toBeDefined();
+      expect(savedOption.useStealth).toBe(true);
+      expect(savedOption.userAgent).toBe('Test User Agent');
+      expect(savedOption.viewport.width).toBe(1920);
+      expect(savedOption.viewport.height).toBe(1080);
+      expect(savedOption.screen.width).toBe(1920);
+      expect(savedOption.screen.height).toBe(1080);
+      expect(savedOption.fingerprint.devices).toEqual(['desktop']);
+      expect(savedOption.fingerprint.operatingSystems).toEqual(['windows', 'macos']);
+      expect(savedOption.fingerprint.locales).toEqual(['zh-CN']);
+      expect(savedOption.proxies).toBeDefined();
+      expect(savedOption.proxies.length).toBe(1);
+      expect(savedOption.proxies[0].type).toBe('wuying');
+      expect(savedOption.proxies[0].strategy).toBe('polling');
+      expect(savedOption.proxies[0].pollsize).toBe(15);
+    });
   });
 }); 

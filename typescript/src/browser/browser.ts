@@ -123,7 +123,7 @@ export class BrowserProxyClass implements BrowserProxy {
         undefined,
         undefined,
         m.strategy,
-        m.pollsize || 10
+        m.pollsize
       );
     } else {
       throw new Error(`Unsupported proxy type: ${proxyType}`);
@@ -231,7 +231,14 @@ export class BrowserOptionClass implements BrowserOption {
       if (proxyList.length > 1) {
         throw new Error('proxies list length must be limited to 1');
       }
-      this.proxies = proxyList.map((proxyData: any) => BrowserProxyClass.fromMap(proxyData)).filter(Boolean) as BrowserProxy[];
+      this.proxies = proxyList.map((proxyData: any) => {
+        // If it's already a BrowserProxyClass instance, return it
+        if (proxyData instanceof BrowserProxyClass) {
+          return proxyData;
+        }
+        // Otherwise, convert from map
+        return BrowserProxyClass.fromMap(proxyData);
+      }).filter(Boolean) as BrowserProxy[];
     }
     return this;
   }
@@ -253,7 +260,7 @@ export class Browser {
    * Initialize the browser instance with the given options.
    * Returns true if successful, false otherwise.
    */
-  initialize(option: BrowserOptionClass): boolean {
+  initialize(option: BrowserOptionClass | BrowserOption): boolean {
     if (this.isInitialized()) {
       return true;
     }
@@ -265,22 +272,18 @@ export class Browser {
       request.persistentPath = BROWSER_DATA_PATH;
       request.sessionId = this.session.getSessionId();
 
+      // Ensure option is a BrowserOptionClass instance
+      let browserOption: BrowserOptionClass;
+      if (option instanceof BrowserOptionClass) {
+        browserOption = option;
+      } else {
+        // Convert plain object to BrowserOptionClass instance
+        browserOption = new BrowserOptionClass();
+        browserOption.fromMap(option as Record<string, any>);
+      }
+
       // Map BrowserOption to API BrowserOption payload
-      const browserOptionMap: Record<string, any> = {};
-      if (option.useStealth !== undefined) browserOptionMap['useStealth'] = option.useStealth;
-      if (option.userAgent !== undefined) browserOptionMap['userAgent'] = option.userAgent;
-      if (option.viewport) browserOptionMap['viewport'] = { width: option.viewport.width, height: option.viewport.height };
-      if (option.screen) browserOptionMap['screen'] = { width: option.screen.width, height: option.screen.height };
-      if (option.fingerprint) {
-        const fp: Record<string, any> = {};
-        if (option.fingerprint.devices) fp['devices'] = option.fingerprint.devices;
-        if (option.fingerprint.operatingSystems) fp['operatingSystems'] = option.fingerprint.operatingSystems;
-        if (option.fingerprint.locales) fp['locales'] = option.fingerprint.locales;
-        browserOptionMap['fingerprint'] = fp;
-      }
-      if (option.proxies && option.proxies.length > 0) {
-        browserOptionMap['proxies'] = option.proxies.map(proxy => proxy.toMap());
-      }
+      const browserOptionMap = browserOption.toMap();
       if (Object.keys(browserOptionMap).length > 0) {
         request.browserOption = browserOptionMap;
       }
@@ -291,7 +294,7 @@ export class Browser {
       const success = response.body?.data?.port !== null && response.body?.data?.port !== undefined;
       if (success) {
         this._initialized = true;
-        this._option = option;
+        this._option = browserOption;
         log("Browser instance was successfully initialized.");
       }
 
@@ -309,7 +312,7 @@ export class Browser {
    * Initialize the browser instance with the given options asynchronously.
    * Returns true if successful, false otherwise.
    */
-  async initializeAsync(option: BrowserOptionClass): Promise<boolean> {
+  async initializeAsync(option: BrowserOptionClass | BrowserOption): Promise<boolean> {
     if (this.isInitialized()) {
       return true;
     }
@@ -321,22 +324,18 @@ export class Browser {
       request.persistentPath = BROWSER_DATA_PATH;
       request.sessionId = this.session.getSessionId();
 
+      // Ensure option is a BrowserOptionClass instance
+      let browserOption: BrowserOptionClass;
+      if (option instanceof BrowserOptionClass) {
+        browserOption = option;
+      } else {
+        // Convert plain object to BrowserOptionClass instance
+        browserOption = new BrowserOptionClass();
+        browserOption.fromMap(option as Record<string, any>);
+      }
+
       // Map BrowserOption to API BrowserOption payload
-      const browserOptionMap: Record<string, any> = {};
-      if (option.useStealth !== undefined) browserOptionMap['useStealth'] = option.useStealth;
-      if (option.userAgent !== undefined) browserOptionMap['userAgent'] = option.userAgent;
-      if (option.viewport) browserOptionMap['viewport'] = { width: option.viewport.width, height: option.viewport.height };
-      if (option.screen) browserOptionMap['screen'] = { width: option.screen.width, height: option.screen.height };
-      if (option.fingerprint) {
-        const fp: Record<string, any> = {};
-        if (option.fingerprint.devices) fp['devices'] = option.fingerprint.devices;
-        if (option.fingerprint.operatingSystems) fp['operatingSystems'] = option.fingerprint.operatingSystems;
-        if (option.fingerprint.locales) fp['locales'] = option.fingerprint.locales;
-        browserOptionMap['fingerprint'] = fp;
-      }
-      if (option.proxies && option.proxies.length > 0) {
-        browserOptionMap['proxies'] = option.proxies.map(proxy => proxy.toMap());
-      }
+      const browserOptionMap = browserOption.toMap();
       if (Object.keys(browserOptionMap).length > 0) {
         request.browserOption = browserOptionMap;
       }
@@ -347,7 +346,7 @@ export class Browser {
       const success = response.body?.data?.port !== null && response.body?.data?.port !== undefined;
       if (success) {
         this._initialized = true;
-        this._option = option;
+        this._option = browserOption;
         log("Browser instance successfully initialized");
       }
 
@@ -391,5 +390,16 @@ export class Browser {
    */
   isInitialized(): boolean {
     return this._initialized;
+  }
+
+  /**
+   * Stop the browser instance, internal use only.
+   */
+  private _stopBrowser(): void {
+    if (this.isInitialized()) {
+      this.session.callMcpTool("stopChrome", {});
+    } else {
+      throw new BrowserError("Browser is not initialized. Cannot stop browser.");
+    }
   }
 } 

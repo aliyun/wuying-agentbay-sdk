@@ -13,13 +13,19 @@ function getTestApiKey() {
   return apiKey;
 }
 
+function maskSecret(secret, visible = 4) {
+  if (!secret) return "";
+  if (secret.length <= visible) return "*".repeat(secret.length);
+  return "*".repeat(secret.length - visible) + secret.slice(-visible);
+}
+
 describe('BrowserProxy Integration Tests', () => {
   let agentBay;
   let session;
 
   beforeEach(async () => {
     const apiKey = getTestApiKey();
-    log("api_key =", apiKey);
+    log("api_key =", maskSecret(apiKey));
     agentBay = new AgentBay({ apiKey });
 
     // Create a session
