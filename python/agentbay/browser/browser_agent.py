@@ -13,11 +13,11 @@ class ActOptions:
     """
     Options for configuring the behavior of the act method.
     """
-    def __init__(self, action: str, timeoutMS: Optional[int] = None, iframes: Optional[bool] = None, domSettleTimeoutMS: Optional[int] = None):
+    def __init__(self, action: str, timeoutMS: Optional[int] = None, iframes: Optional[bool] = None, dom_settle_timeout_ms: Optional[int] = None):
         self.action = action
         self.timeoutMS = timeoutMS
         self.iframes = iframes
-        self.domSettleTimeoutMS = domSettleTimeoutMS
+        self.dom_settle_timeout_ms = dom_settle_timeout_ms
 
 class ActResult:
     """
@@ -32,11 +32,11 @@ class ObserveOptions:
     """
     Options for configuring the behavior of the observe method.
     """
-    def __init__(self, instruction: str, returnActions: Optional[int] = None, iframes: Optional[bool] = None, domSettleTimeoutMS: Optional[int] = None):
+    def __init__(self, instruction: str, returnActions: Optional[int] = None, iframes: Optional[bool] = None, dom_settle_timeout_ms: Optional[int] = None):
         self.instruction = instruction
         self.returnActions = returnActions
         self.iframes = iframes
-        self.domSettleTimeoutMS = domSettleTimeoutMS
+        self.dom_settle_timeout_ms = dom_settle_timeout_ms
 
 class ObserveResult:
     """
@@ -58,13 +58,13 @@ class ExtractOptions(Generic[T]):
                  use_text_extract: Optional[bool] = None,
                  selector: Optional[str] = None,
                  iframe: Optional[bool] = None,
-                 domSettleTimeoutsMS: Optional[int] = None):
+                 dom_settle_timeout_ms: Optional[int] = None):
         self.instruction = instruction
         self.schema = schema
         self.use_text_extract = use_text_extract
         self.selector = selector
         self.iframe = iframe
-        self.domSettleTimeoutsMS = domSettleTimeoutsMS
+        self.dom_settle_timeout_ms = dom_settle_timeout_ms
 
 class BrowserAgent(BaseService):
     """
@@ -95,8 +95,8 @@ class BrowserAgent(BaseService):
                 args["timeout_ms"] = options.timeoutMS
             if options.iframes is not None:
                 args["iframes"] = options.iframes
-            if options.domSettleTimeoutMS is not None:
-                args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
+            if options.dom_settle_timeouts_ms is not None:
+                args["dom_settle_timeout_ms"] = options.dom_settle_timeouts_ms
             response = self._call_mcp_tool("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
@@ -136,8 +136,8 @@ class BrowserAgent(BaseService):
                 args["timeout_ms"] = options.timeoutMS
             if options.iframes is not None:
                 args["iframes"] = options.iframes
-            if options.domSettleTimeoutMS is not None:
-                args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
+            if options.dom_settle_timeouts_ms is not None:
+                args["dom_settle_timeout_ms"] = options.dom_settle_timeouts_ms
             response = self._call_mcp_tool("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
@@ -178,8 +178,8 @@ class BrowserAgent(BaseService):
                 args["return_actions"] = options.returnActions
             if options.iframes is not None:
                 args["iframes"] = options.iframes
-            if options.domSettleTimeoutMS is not None:
-                args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
+            if options.dom_settle_timeouts_ms is not None:
+                args["dom_settle_timeout_ms"] = options.dom_settle_timeouts_ms
             response = self._call_mcp_tool("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
 
@@ -237,8 +237,8 @@ class BrowserAgent(BaseService):
                 args["return_actions"] = options.returnActions
             if options.iframes is not None:
                 args["iframes"] = options.iframes
-            if options.domSettleTimeoutMS is not None:
-                args["dom_settle_timeout_ms"] = options.domSettleTimeoutMS
+            if options.dom_settle_timeouts_ms is not None:
+                args["dom_settle_timeout_ms"] = options.dom_settle_timeouts_ms
             response = self._call_mcp_tool("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
 
@@ -296,8 +296,8 @@ class BrowserAgent(BaseService):
                 args["selector"] = options.selector
             if options.iframe is not None:
                 args["iframe"] = options.iframe
-            if options.domSettleTimeoutsMS is not None:
-                args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
+            if options.dom_settle_timeout_ms is not None:
+                args["dom_settle_timeouts_ms"] = options.dom_settle_timeout_ms
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
@@ -347,8 +347,8 @@ class BrowserAgent(BaseService):
                 args["selector"] = options.selector
             if options.iframe is not None:
                 args["iframe"] = options.iframe
-            if options.domSettleTimeoutsMS is not None:
-                args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
+            if options.dom_settle_timeout_ms is not None:
+                args["dom_settle_timeouts_ms"] = options.dom_settle_timeout_ms
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
