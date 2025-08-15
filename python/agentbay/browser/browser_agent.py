@@ -65,7 +65,6 @@ class ExtractOptions(Generic[T]):
         self.selector = selector
         self.iframe = iframe
         self.domSettleTimeoutsMS = domSettleTimeoutsMS
-        self.use_text_extract = use_text_extract
 
 class BrowserAgent(BaseService):
     """
