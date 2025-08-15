@@ -369,16 +369,10 @@ class BrowserAgent(BaseService):
                 print("extract data =", data)
                 success = data.get("success", False)
                 extract_result = data.get("extract_result", "")
+                print("extract_result =", extract_results)
                 extract_obj = None
                 if success:
-<<<<<<< HEAD
                     extract_obj = options.schema.model_validate(extract_result)
-=======
-                    extract_results = data.get("extract_result")
-                    if extract_results and isinstance(extract_results, str):
-                        print("extract_result =", extract_results)
-                        extract_objs.append(options.schema.model_validate_json(extract_results))
->>>>>>> 5e254b5 (fix: apply use_text_extract for ExtractOption)
                 else:
                     print(f"Extract failed due to: {extract_result}")
                 return success, extract_obj
