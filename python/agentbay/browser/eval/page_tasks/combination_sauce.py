@@ -28,7 +28,7 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
         }
 
     await agent.act("enter username 'standard_user'")
-    await agent.act(f"enter password ${credentials.password}")
+    await agent.act(f"enter password {credentials.password}")
     await agent.act("click on 'login'")
 
     logger.info("Observing for 'add to cart' buttons on the inventory page...")

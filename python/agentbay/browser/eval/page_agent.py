@@ -321,7 +321,7 @@ class PageAgent:
             logger.error(f"Error in extract: {e}", exc_info=True)
             raise
 
-    async def observe(self, instruction: str, return_actions: bool = False, only_visible: bool = False, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
+    async def observe(self, instruction: str, return_actions: bool = True, only_visible: bool = False, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
         return await self._post_task_to_pr_loop("observe", {"instruction": instruction, "return_actions": return_actions, "only_visible": only_visible, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision})
 
     async def _observe(
