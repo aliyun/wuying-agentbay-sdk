@@ -21,6 +21,7 @@ export interface ObserveOptions {
 export interface ExtractOptions<T = any> {
   instruction: string;
   schema: new (...args: any[]) => T;
+  use_text_extract: boolean;
   selector?: string;
   iframe?: boolean;
   domSettleTimeoutsMS?: number;
