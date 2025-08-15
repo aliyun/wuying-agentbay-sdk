@@ -123,7 +123,7 @@ export class BrowserProxyClass implements BrowserProxy {
         undefined,
         undefined,
         m.strategy,
-        m.pollsize
+        m.pollsize || 10
       );
     } else {
       throw new Error(`Unsupported proxy type: ${proxyType}`);
