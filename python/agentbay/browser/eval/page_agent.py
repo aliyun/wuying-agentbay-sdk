@@ -315,7 +315,7 @@ class PageAgent:
             )
 
             success, extracted_data = await self.session.browser.agent.extract_async(self.current_page, options)
-            return extracted_data[0] if extracted_data else None
+            return extracted_data if success else None
         except Exception as e:
             logger.error(f"Error in extract: {e}", exc_info=True)
             raise

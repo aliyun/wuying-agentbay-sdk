@@ -4,10 +4,7 @@ from mcp_server.page_agent import PageAgent
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
-    await agent.goto(
-        "https://browserbase.github.io/stagehand-eval-sites/sites/amazon/",
-        wait_until="domcontentloaded",
-    )
+    await agent.goto("https://browserbase.github.io/stagehand-eval-sites/sites/amazon/")
     observations1 = await agent.observe(
         instruction="Find and click the 'Add to Cart' button",
         only_visible=False,

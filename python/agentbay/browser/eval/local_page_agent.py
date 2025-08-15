@@ -160,7 +160,8 @@ class LocalBrowser(Browser):
                             
                             # Launch headless browser and create a page for all tests
                             self._browser = await p.chromium.launch_persistent_context(
-                                headless=False, 
+                                headless=False,
+                                viewport={"width": 1280, "height": 1200},
                                 args=[
                                     f'--remote-debugging-port={self._cdp_port}',
                                 ], 

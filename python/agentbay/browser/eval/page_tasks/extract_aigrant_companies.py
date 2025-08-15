@@ -4,13 +4,13 @@ from typing import List, Dict, Any
 from mcp_server.page_agent import PageAgent
 
 
-class Company(BaseModel):
-    company: str
+class Batch(BaseModel):
     batch: str
+    companies: List[str]
 
 
 class CompanyList(BaseModel):
-    companies: List[Company]
+    batches: List[Batch]
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
@@ -21,7 +21,7 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     instruction = (
         "Extract all companies that received the AI grant and group them with their "
         "batch numbers as an array of objects. Each object should contain the "
-        "company name and its corresponding batch number."
+        "batch number and its corresponding company names."
     )
 
     extract_method = config.get("extract_method", "domExtract")
@@ -33,22 +33,41 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
         use_text_extract=use_text_extract,
     )
 
-    companies = extracted_data.companies
-    expected_length = 91
-    expected_first_item = {"company": "Goodfire", "batch": "4"}
+    batches = extracted_data.batches
+    expected_length = 4
+    expected_companies = [
+        {
+            "batch": "4",
+            "companies": 16,
+        },
+        {
+            "batch": "3",
+            "companies": 19,
+        },
+        {
+            "batch": "2",
+            "companies": 30,
+        },
+        {
+            "batch": "1",
+            "companies": 26,
+        },
+    ]
 
-    if len(companies) != expected_length:
-        error_msg = f"Incorrect number of companies. Expected {expected_length}, got {len(companies)}"
+    if len(batches) != expected_length:
+        error_msg = f"Incorrect number of companies. Expected {expected_length}, got {len(batches)}"
         logger.error(error_msg)
         return {"_success": False, "error": error_msg}
 
-    first_item = companies[0]
-    if (
-        first_item.company != expected_first_item["company"]
-        or first_item.batch != expected_first_item["batch"]
-    ):
-        error_msg = f"First item mismatch. Expected {expected_first_item}, got {first_item.dict()}"
-        logger.error(error_msg)
-        return {"_success": False, "error": error_msg}
+    for index in range(len(expected_companies)):
+        extracted_item = batches[index]
+        expected_item = expected_companies[index]
+        if (
+            extracted_item.batch != expected_item["batch"]
+            or len(extracted_item.companies) != expected_item["companies"]
+        ):
+            error_msg = f"First item mismatch. Expected {expected_item}, got {extracted_item.dict()}"
+            logger.error(error_msg)
+            return {"_success": False, "error": error_msg}
 
     return {"_success": True}
