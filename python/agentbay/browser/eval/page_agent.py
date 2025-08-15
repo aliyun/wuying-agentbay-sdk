@@ -312,6 +312,7 @@ class PageAgent:
             options = ExtractOptions(
                 instruction=instruction,
                 schema=schema,
+                use_text_extract=use_text_extract,
             )
 
             success, extracted_data = await self.session.browser.agent.extract_async(self.current_page, options)
