@@ -58,8 +58,7 @@ class ExtractOptions(Generic[T]):
                  use_text_extract: Optional[bool] = None,
                  selector: Optional[str] = None,
                  iframe: Optional[bool] = None,
-                 domSettleTimeoutsMS: Optional[int] = None,
-                 use_text_extract: Optional[bool] = False):
+                 domSettleTimeoutsMS: Optional[int] = None):
         self.instruction = instruction
         self.schema = schema
         self.use_text_extract = use_text_extract
@@ -300,8 +299,6 @@ class BrowserAgent(BaseService):
                 args["iframe"] = options.iframe
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
-            if options.use_text_extract is not None:
-                args["use_text_extract"] = options.use_text_extract
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
@@ -353,8 +350,6 @@ class BrowserAgent(BaseService):
                 args["iframe"] = options.iframe
             if options.domSettleTimeoutsMS is not None:
                 args["dom_settle_timeouts_ms"] = options.domSettleTimeoutsMS
-            if options.use_text_extract is not None:
-                args["use_text_extract"] = options.use_text_extract
 
             response = self._call_mcp_tool("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
@@ -369,7 +364,7 @@ class BrowserAgent(BaseService):
                 print("extract data =", data)
                 success = data.get("success", False)
                 extract_result = data.get("extract_result", "")
-                print("extract_result =", extract_results)
+                print("extract_result =", extract_result)
                 extract_obj = None
                 if success:
                     extract_obj = options.schema.model_validate(extract_result)
