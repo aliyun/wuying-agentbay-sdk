@@ -352,7 +352,7 @@ class PageAgent:
             options = ObserveOptions(
                 instruction=instruction,
                 returnActions=return_actions,
-                domSettleTimeoutMS=dom_settle_timeout_ms,
+                dom_settle_timeout_ms=dom_settle_timeout_ms,
             )
             success, observed_elements = await self.session.browser.agent.observe_async(self.current_page, options)
             return observed_elements
