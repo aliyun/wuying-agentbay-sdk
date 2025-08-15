@@ -263,8 +263,13 @@ class BrowserAgent(BaseService):
                     selector = item.get("selector", "")
                     description = item.get("description", "")
                     method = item.get("method", "")
-                    arguments = item.get("arguments", {})
-                    results.append(ObserveResult(selector, description, method, arguments))
+                    arguments_str = item.get("arguments", "{}")
+                    try:
+                        arguments_dict = _json.loads(arguments_str)
+                    except _json.JSONDecodeError:
+                        print(f"Warning: Could not parse arguments as JSON: {arguments_str}")
+                        arguments_dict = arguments_str
+                    results.append(ObserveResult(selector, description, method, arguments_dict))
                 
                 return success, results
             else:
