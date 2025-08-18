@@ -131,7 +131,7 @@ class BaseService:
                 error_message=f"failed to call VPC {tool_name}: {e}"
             )
 
-    def _call_mcp_tool(self, name: str, args: Dict[str, Any]) -> OperationResult:
+    def _call_mcp_tool(self, name: str, args: Dict[str, Any], read_timeout: int = None, connect_timeout: int = None) -> OperationResult:
         """
         Internal helper to call MCP tool and handle errors.
 
@@ -156,7 +156,7 @@ class BaseService:
                 name=name,
                 args=args_json,
             )
-            response = self.session.get_client().call_mcp_tool(request)
+            response = self.session.get_client().call_mcp_tool(request, read_timeout=read_timeout, connect_timeout=connect_timeout)
 
             # Extract request ID
             request_id = extract_request_id(response)

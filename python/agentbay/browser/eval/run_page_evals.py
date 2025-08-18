@@ -43,6 +43,8 @@ async def run_single_task(
 
         status = "✅ Passed" if result.get("_success") else "❌ Failed"
         logger.info(f"{status} - Task: {task_name}")
+        if not result.get("_success"):
+            logger.error(f"Error: {result.get('error')}")
 
     except Exception as e:
         logger.error(f"💥 Unhandled exception in task {task_name}: {e}", exc_info=True)

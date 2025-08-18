@@ -120,7 +120,7 @@ class LocalPageAgent(BrowserAgent):
     def initialize(self):
         self.mcp_client.connect()
 
-    def _call_mcp_tool(self, name: str, args: dict) -> OperationResult:
+    def _call_mcp_tool(self, name: str, args: dict, read_timeout: int = None, connect_timeout: int = None) -> OperationResult:
         if not self.mcp_client:
             raise RuntimeError("mcp_client is not set on LocalBrowserAgent.")
         try:
@@ -198,3 +198,6 @@ class LocalSession(Session):
     def __init__(self):
         super().__init__(None, "local_session")
         self.browser = LocalBrowser(self)
+
+    def delete(self, sync_context: bool = False):
+        pass
