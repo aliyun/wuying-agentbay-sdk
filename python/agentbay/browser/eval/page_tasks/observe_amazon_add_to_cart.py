@@ -7,7 +7,6 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     await agent.goto("https://browserbase.github.io/stagehand-eval-sites/sites/amazon/")
     observations1 = await agent.observe(
         instruction="Find and click the 'Add to Cart' button",
-        only_visible=False,
     )
 
     if not observations1:
@@ -21,7 +20,6 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     observations2 = await agent.observe(
         instruction="Find and click the 'Proceed to checkout' button",
     )
-    # await stagehand.page.waitForTimeout(2000);
 
     if not observations2:
         return {
@@ -31,7 +29,6 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
 
     logger.info("Found 'Proceed to checkout' button. Executing action...")
     await agent.act(observations2[0])
-    # await stagehand.page.waitForTimeout(2000);
 
     page = await agent.get_current_page()
     expected_url_prefix = (
