@@ -3,7 +3,7 @@ import json
 import re
 from typing import List, Dict, Union, Any, Optional, Tuple, TypeVar, Generic, Type
 from pydantic import BaseModel
-from agentbay.api.base_service import BaseService
+from agentbay.api.base_service import BaseService, OperationResult
 from agentbay.exceptions import BrowserError, AgentBayError
 from agentbay.api.models import CallMcpToolRequest
 
@@ -97,7 +97,7 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
-            response = self._call_mcp_tool("page_use_act", args)
+            response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
                 import json as _json
@@ -138,7 +138,7 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
-            response = self._call_mcp_tool("page_use_act", args)
+            response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
                 import json as _json
@@ -180,7 +180,7 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
-            response = self._call_mcp_tool("page_use_observe", args)
+            response = self._call_mcp_tool_timeout("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
 
             if response.success:
@@ -239,7 +239,7 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
-            response = self._call_mcp_tool("page_use_observe", args)
+            response = self._call_mcp_tool_timeout("page_use_observe", args)
             print("Response from CallMcpTool - page_use_observe:", response)
 
             if response.success:
@@ -304,7 +304,7 @@ class BrowserAgent(BaseService):
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
 
-            response = self._call_mcp_tool("page_use_extract", args)
+            response = self._call_mcp_tool_timeout("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
 
             if response.success:
@@ -355,7 +355,7 @@ class BrowserAgent(BaseService):
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
 
-            response = self._call_mcp_tool("page_use_extract", args)
+            response = self._call_mcp_tool_timeout("page_use_extract", args)
             print("Response from CallMcpTool - page_use_extract:", response)
 
             if response.success:
@@ -446,3 +446,9 @@ class BrowserAgent(BaseService):
         if isinstance(e, AgentBayError):
             return BrowserError(str(e))
         return e
+
+    def _call_mcp_tool_timeout(self, name: str, args: Dict[str, Any]) -> OperationResult:
+        """
+        Call MCP tool with timeout.
+        """
+        return self._call_mcp_tool(name, args, read_timeout=60000, connect_timeout=60000)

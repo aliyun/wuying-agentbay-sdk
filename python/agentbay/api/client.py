@@ -156,15 +156,19 @@ class Client(OpenApiClient):
     def call_mcp_tool(
         self,
         request: main_models.CallMcpToolRequest,
+        read_timeout: int = None,
+        connect_timeout: int = None,
     ) -> main_models.CallMcpToolResponse:
-        runtime = RuntimeOptions()
+        runtime = RuntimeOptions(read_timeout=read_timeout, connect_timeout=connect_timeout)
         return self.call_mcp_tool_with_options(request, runtime)
 
     async def call_mcp_tool_async(
         self,
         request: main_models.CallMcpToolRequest,
+        read_timeout: int = None,
+        connect_timeout: int = None,
     ) -> main_models.CallMcpToolResponse:
-        runtime = RuntimeOptions()
+        runtime = RuntimeOptions(read_timeout=read_timeout, connect_timeout=connect_timeout)
         return await self.call_mcp_tool_with_options_async(request, runtime)
 
     def create_mcp_session_with_options(
