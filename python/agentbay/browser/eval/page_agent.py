@@ -4,6 +4,7 @@ import logging
 import re
 import time
 import os
+from types import ModuleType
 from typing import List, Optional, Type, Union, Literal, Dict, Any
 import concurrent.futures
 import importlib
@@ -124,26 +125,13 @@ class PageAgent:
                         task_name, arguments, future = await asyncio.wait_for(self._task_queue.get(), timeout=1.0)
                         try:
                             print(f"Execute task {task_name} with arguments {arguments}")
-                            ret = None
-                            if task_name == "goto":
-                                ret = await self._goto(arguments)
-                            elif task_name == "screenshot":
-                                ret = await self._screenshot(arguments)
-                            elif task_name == "extract":
-                                ret = await self._extract(arguments)
-                            elif task_name == "observe":
-                                ret = await self._observe(arguments)
-                            elif task_name == "act":
-                                ret = await self._act(arguments)
-                            elif task_name == "wait_current_page_networkidle":
-                                await self._do_wait_current_page_networkidle(arguments)
-                                ret = {}
-                            elif task_name == "get_current_page":
-                                await self._get_current_page(arguments)
-                                ret = {}
+                            if task_name == "run_task":
+                                task_module = arguments["task"]
+                                logger = arguments["logger"]
+                                config = arguments["config"]
+                                ret = await task_module.run(self, logger, config)
                             else:
-                                future.set_exception(RuntimeError(f"Unknown task: {task_name}"))
-                            
+                                raise RuntimeError(f"Unknown task: {task_name}")
                             future.set_result(ret)
                         except Exception as e:
                             future.set_exception(e)
@@ -202,9 +190,22 @@ class PageAgent:
         return future.result()
 
     async def get_current_page(self) -> Page:
-        await self._post_task_to_pr_loop("get_current_page", {})
-        #await self._wait_current_page_networkidle()
+        cdp_session = None
+        try:
+            cdp_session = await self.current_page.context.new_cdp_session(self.current_page)
+            #logger.info(f"get_current_page: {self.current_page}")
+        finally:
+            if cdp_session:
+                await cdp_session.detach()
         return self.current_page
+
+    async def run_task(self, task: ModuleType, logger: logging.Logger, config: Dict[str, Any]):
+        arguments = {
+            "task": task,
+            "logger": logger,
+            "config": config,
+        }
+        return await self._post_task_to_pr_loop("run_task", arguments)
 
     def reset_metrics(self):
         """
@@ -233,45 +234,18 @@ class PageAgent:
             Literal["load", "domcontentloaded", "networkidle", "commit"]
         ] = "load",
         timeout_ms: Optional[int] = 180000) -> str:
-        return await self._post_task_to_pr_loop("goto", {"url": url, "context_id": context_id, "page_id": page_id, "wait_until": wait_until, "timeout_ms": timeout_ms})
-
-    async def _wait_current_page_networkidle(self):
-        await self._post_task_to_pr_loop("wait_current_page_networkidle", {})
-    
-    async def _do_wait_current_page_networkidle(self, arguments: dict):
-        await self.current_page.wait_for_load_state("networkidle")
-
-    async def _get_current_page(self, arguments: dict):
-        cdp_session = None
-        try:
-            cdp_session = await self.current_page.context.new_cdp_session(self.current_page)
-            #logger.info(f"get_current_page: {self.current_page}")
-        finally:
-            if cdp_session:
-                await cdp_session.detach()
-
-    async def _goto(
-        self,
-        arguments: dict,
-    ) -> str:
         """Navigates the browser to the specified URL."""
-        url = arguments["url"]
-        wait_til = arguments["wait_until"]
-        timeout_ms = arguments["timeout_ms"]
         logger.info(f"goto {url}")
         try:
             self.current_page = await self.browser.new_page()
-            await self.current_page.goto(url, wait_until=wait_til, timeout=timeout_ms)
+            await self.current_page.goto(url, wait_until=wait_until, timeout=timeout_ms)
             return f"Successfully navigated to {url}"
         except Exception as e:
             logger.error(f"Error in goto: {e}", exc_info=True)
             return f"goto {url} failed: {str(e)}"
 
-    async def screenshot(self) -> str:
-        return await self._post_task_to_pr_loop("screenshot", {})
-
-    async def _screenshot(
-        self, arguments: dict
+    async def screenshot(
+        self
     ) -> str:
         try:
             image_bytes = await self.current_page.screenshot(full_page=True)
@@ -281,12 +255,6 @@ class PageAgent:
             return f"screenshot failed: {str(e)}"
 
     async def extract(self, instruction: str, schema: Type[BaseModel], context_id: Optional[int] = None, page_id: Optional[str] = None, use_text_extract: Optional[bool] = False, dom_settle_timeout_ms: Optional[int] = 5000, use_vision: Optional[bool] = False, selector: Optional[str] = None) -> BaseModel:
-        return await self._post_task_to_pr_loop("extract", {"instruction": instruction, "schema": schema, "context_id": context_id, "page_id": page_id, "use_text_extract": use_text_extract, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision, "selector": selector})
-
-    async def _extract(
-        self,
-        arguments: dict,
-    ) -> BaseModel:
         """
         Extracts structured data from the current webpage based on an instruction.
 
@@ -301,13 +269,6 @@ class PageAgent:
         Returns:
             BaseModel: An instance of the provided Pydantic schema with extracted data.
         """
-        instruction = arguments["instruction"]
-        schema = arguments["schema"]
-        use_text_extract = arguments["use_text_extract"]
-        dom_settle_timeout_ms = arguments["dom_settle_timeout_ms"]
-        use_vision = arguments["use_vision"]
-        selector = arguments["selector"]
-
         try:
             options = ExtractOptions(
                 instruction=instruction,
@@ -322,12 +283,6 @@ class PageAgent:
             raise
 
     async def observe(self, instruction: str, return_actions: bool = True, only_visible: bool = False, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
-        return await self._post_task_to_pr_loop("observe", {"instruction": instruction, "return_actions": return_actions, "only_visible": only_visible, "dom_settle_timeout_ms": dom_settle_timeout_ms, "use_vision": use_vision})
-
-    async def _observe(
-        self,
-        arguments: dict,
-    ) -> List[ObserveResult]:
         """
         Observes the current webpage to identify and describe elements.
 
@@ -341,12 +296,6 @@ class PageAgent:
         Returns:
             List[ObservedElement]: A list of identified and described elements.
         """
-        instruction = arguments["instruction"]
-        return_actions = arguments["return_actions"]
-        only_visible = arguments["only_visible"]
-        dom_settle_timeout_ms = arguments["dom_settle_timeout_ms"]
-        use_vision = arguments["use_vision"]
-
         try:
             logger.info("Starting observation...")
             options = ObserveOptions(
@@ -361,12 +310,6 @@ class PageAgent:
             raise
 
     async def act(self, action_input: Union[str, ObserveResult], context_id: Optional[int] = None, page_id: Optional[str] = None, use_vision: bool = False) -> ActResult:
-        return await self._post_task_to_pr_loop("act", {"action_input": action_input, "context_id": context_id, "page_id": page_id, "use_vision": use_vision})
-
-    async def _act(
-        self,
-        arguments: dict,
-    ) -> ActResult:
         """
         Performs an action on the current webpage, either inferred from an instruction
         or directly on an ObservedElement.
@@ -381,11 +324,6 @@ class PageAgent:
         Returns:
             ActionResult: The result of the action, indicating success or failure.
         """
-        action_input = arguments["action_input"]
-        context_id = arguments["context_id"]
-        page_id = arguments["page_id"]
-        use_vision = arguments["use_vision"]
-
         try:
             logger.info(f"Attempting to execute action: {action_input}")
 

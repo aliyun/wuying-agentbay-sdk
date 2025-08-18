@@ -38,7 +38,8 @@ async def run_single_task(
     try:
         task_module = importlib.import_module(f"page_tasks.{task_name}")
 
-        result = await task_module.run(agent, logger, task_config)
+        #result = await task_module.run(agent, logger, task_config)
+        result = await agent.run_task(task_module, logger, task_config)
 
         status = "✅ Passed" if result.get("_success") else "❌ Failed"
         logger.info(f"{status} - Task: {task_name}")
