@@ -44,3 +44,14 @@ jobs:
         run: |
           cd typescript
           npm publish
+
+      - name: Generate Build Summary
+        if: success()
+        run: |
+          SUMMARY_PATH=$GITHUB_STEP_SUMMARY
+
+          # 写入测试内容
+          echo "## INSTALL COMMAND " > $SUMMARY_PATH
+          echo "### CONTENT" >> $SUMMARY_PATH
+
+          echo "npm install wuying-agentbay-sdk@${{ inputs.version }}" >> $SUMMARY_PATH

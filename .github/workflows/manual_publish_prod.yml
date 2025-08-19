@@ -42,3 +42,14 @@ jobs:
         run: |
           cd python
           twine upload dist/*
+
+      - name: Generate Build Summary
+        if: success()
+        run: |
+          SUMMARY_PATH=$GITHUB_STEP_SUMMARY
+
+          # 写入测试内容
+          echo "## INSTALL COMMAND " > $SUMMARY_PATH
+          echo "### CONTENT" >> $SUMMARY_PATH
+
+          echo "pip install -i https://pypi.org/ wuying-agentbay-sdk==${{ inputs.version }}" >> $SUMMARY_PATH

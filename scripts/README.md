@@ -1,8 +1,17 @@
+
 # Code Quality Check Scripts
 
 This directory contains scripts for checking and ensuring code quality in the Wuying AgentBay SDK project, including formatting, linting, security scanning, and unit testing.
 
 ## Usage
+
+### Installing Git Hooks
+
+ After cloning the repository, run the installation script (recommended):：
+   ```bash
+   chmod +x ./scripts/install-hooks.sh
+   ./scripts/install-hooks.sh
+   ```
 
 ### TypeScript Quality Check
 

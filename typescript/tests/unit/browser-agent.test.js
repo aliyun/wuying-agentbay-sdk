@@ -1,4 +1,5 @@
-// Simple browser agent unit tests
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Browser, BrowserAgent } = require('../../dist/index.cjs');
 
 class TestSchema {
@@ -52,7 +53,15 @@ describe('Browser Unit Tests', () => {
     
     expect(result).toBe(true);
     expect(browser.isInitialized()).toBe(true);
-    expect(browser.getOption()).toEqual(option);
+    
+    const savedOption = browser.getOption();
+    expect(savedOption).toBeDefined();
+    expect(savedOption.useStealth).toBe(false); // Default value
+    expect(savedOption.userAgent).toBeUndefined();
+    expect(savedOption.viewport).toBeUndefined();
+    expect(savedOption.screen).toBeUndefined();
+    expect(savedOption.fingerprint).toBeUndefined();
+    expect(savedOption.proxies).toBeUndefined();
   });
 
   test('should get endpoint URL when initialized', async () => {
@@ -77,7 +86,10 @@ describe('Browser Unit Tests', () => {
     const result = await browser.agent.act(mockPage, options);
     
     expect(result.success).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_act', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_act');
+    expect(typeof args).toBe('object');
   });
 
   test('should perform observe operation', async () => {
@@ -97,7 +109,10 @@ describe('Browser Unit Tests', () => {
     
     expect(success).toBe(true);
     expect(Array.isArray(results)).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_observe', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_observe');
+    expect(typeof args).toBe('object');
   });
 
   test('should perform extract operation', async () => {
@@ -105,7 +120,7 @@ describe('Browser Unit Tests', () => {
     
     mockSession.callMcpTool.mockResolvedValue({
       success: true,
-      data: '{"success": true, "extract_result": "[{\\"title\\": \\"Test Title\\"}]"}',
+      data: '{"success": true, "extract_result": "[{\\"title\\": \\\"Test Title\\\"}]"}',
       errorMessage: '',
       requestId: 'test-request-id'
     });
@@ -120,7 +135,10 @@ describe('Browser Unit Tests', () => {
     
     expect(success).toBe(true);
     expect(Array.isArray(objects)).toBe(true);
-    expect(mockSession.callMcpTool).toHaveBeenCalledWith('page_use_extract', expect.any(Object));
+    expect(mockSession.callMcpTool).toHaveBeenCalled();
+    const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
+    expect(toolName).toBe('page_use_extract');
+    expect(typeof args).toBe('object');
   });
 
   test('should handle act operation failure', async () => {
@@ -148,5 +166,45 @@ describe('Browser Unit Tests', () => {
     await expect(browser.agent.act(mockPage, { action: 'test' })).rejects.toThrow('Browser must be initialized');
     await expect(browser.agent.observe(mockPage, { instruction: 'test' })).rejects.toThrow('Browser must be initialized');
     await expect(browser.agent.extract(mockPage, { instruction: 'test', schema: TestSchema })).rejects.toThrow('Browser must be initialized');
+  });
+
+  describe('Browser Options', () => {
+    test('should handle browser options with all parameters', async () => {
+      const option = {
+        useStealth: true,
+        userAgent: 'Test User Agent',
+        viewport: { width: 1920, height: 1080 },
+        screen: { width: 1920, height: 1080 },
+        fingerprint: {
+          devices: ['desktop'],
+          operatingSystems: ['windows', 'macos'],
+          locales: ['zh-CN']
+        },
+        proxies: [{
+          type: 'wuying',
+          strategy: 'polling',
+          pollsize: 15
+        }]
+      };
+      
+      await browser.initializeAsync(option);
+      const savedOption = browser.getOption();
+      
+      expect(savedOption).toBeDefined();
+      expect(savedOption.useStealth).toBe(true);
+      expect(savedOption.userAgent).toBe('Test User Agent');
+      expect(savedOption.viewport.width).toBe(1920);
+      expect(savedOption.viewport.height).toBe(1080);
+      expect(savedOption.screen.width).toBe(1920);
+      expect(savedOption.screen.height).toBe(1080);
+      expect(savedOption.fingerprint.devices).toEqual(['desktop']);
+      expect(savedOption.fingerprint.operatingSystems).toEqual(['windows', 'macos']);
+      expect(savedOption.fingerprint.locales).toEqual(['zh-CN']);
+      expect(savedOption.proxies).toBeDefined();
+      expect(savedOption.proxies.length).toBe(1);
+      expect(savedOption.proxies[0].type).toBe('wuying');
+      expect(savedOption.proxies[0].strategy).toBe('polling');
+      expect(savedOption.proxies[0].pollsize).toBe(15);
+    });
   });
 }); 
