@@ -222,11 +222,11 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result, objs = browser.agent.extract(page, ExtractOptions(instruction="Extract the title", schema=DummySchema))
+        result, obj = browser.agent.extract(page, ExtractOptions(instruction="Extract the title", schema=DummySchema))
         print("result =", result)
-        print("objs =", objs)
+        print("obj =", obj)
         self.assertTrue(result)
-        self.assertIsInstance(objs[0], DummySchema)
+        self.assertIsInstance(obj, DummySchema)
 
         page.close()
 

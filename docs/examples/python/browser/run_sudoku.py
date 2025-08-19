@@ -74,12 +74,11 @@ async def main():
                             """,
                             schema=SudokuBoard
                         )
-                        success, board_objs = await session.browser.agent.extract_async(page, options)
+                        success, board = await session.browser.agent.extract_async(page, options)
                         if not success:
                             print("❌ Failed to extract sudoku board, retry extracting")
                             await asyncio.sleep(3)
 
-                    board = board_objs[0].board
                     print(
                         "Current Board:\n" + "\n".join([" ".join(map(str, row)) for row in board])
                     )

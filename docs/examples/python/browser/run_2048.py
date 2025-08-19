@@ -86,9 +86,8 @@ async def main():
                             schema=GameState
                         )
                         # Calculate time cost， average time cost, min & max time cost
-                        success, gameStates = await session.browser.agent.extract_async(page, options)
+                        success, gameState = await session.browser.agent.extract_async(page, options)
                         if success:
-                            gameState = gameStates[0]
                             transposed_grid = transpose_grid(gameState.grid)
                             print(f"transposed grid: {transposed_grid}")
                             print("🤔 Analyzing board for next move...")
