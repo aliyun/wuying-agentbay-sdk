@@ -15,7 +15,6 @@ func main() {
 	if apiKey == "" {
 		apiKey = "akm-xxx" // Replace with your actual API key
 	}
-
 	// Initialize the AgentBay client
 	ab, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {

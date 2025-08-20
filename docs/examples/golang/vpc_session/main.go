@@ -38,9 +38,9 @@ func main() {
 		"purpose":   "demonstration",
 		"timestamp": fmt.Sprintf("%d", time.Now().Unix()),
 	}
-	
+
 	params := agentbay.NewCreateSessionParams().
-		WithImageId("imgc-07eksy57nw6r759fb").
+		WithImageId("linux_latest").
 		WithIsVpc(true).
 		WithLabels(labels)
 
@@ -49,15 +49,12 @@ func main() {
 		fmt.Printf("Error creating VPC session: %v\n", err)
 		return
 	}
-	
-	if !sessionResult.Success {
-		fmt.Printf("Failed to create VPC session: %s\n", sessionResult.ErrorMessage)
-		return
-	}
+
+
 
 	session := sessionResult.Session
 	fmt.Printf("VPC session created successfully with ID: %s\n", session.SessionID)
-	
+
 	// Ensure cleanup
 	defer func() {
 		fmt.Println("\n--- Cleaning up ---")
@@ -67,7 +64,7 @@ func main() {
 		} else if deleteResult.Success {
 			fmt.Println("✓ VPC session deleted successfully")
 		} else {
-			fmt.Printf("⚠ Failed to delete VPC session: %s\n", deleteResult.ErrorMessage)
+			fmt.Printf("⚠ Failed to delete VPC session: %s\n", deleteResult.RequestID)
 		}
 	}()
 
@@ -77,23 +74,23 @@ func main() {
 	testContent := fmt.Sprintf("Hello from VPC session! Created at %s", time.Now().Format(time.RFC3339))
 
 	// Write file
-	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent)
+	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent,"overwrite")
 	if err != nil {
 		fmt.Printf("Error writing file: %v\n", err)
 	} else if writeResult.Success {
 		fmt.Println("✓ File written successfully")
 	} else {
-		fmt.Printf("⚠ File write failed: %s\n", writeResult.ErrorMessage)
+		fmt.Printf("⚠ File write failed: %s\n", writeResult.RequestID)
 	}
 
 	// Read file
 	readResult, err := session.FileSystem.ReadFile(testFilePath)
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
-	} else if readResult.Success {
+	} else if len(readResult.Content)>0 {
 		fmt.Printf("✓ File read successfully. Content: %s\n", readResult.Content)
 	} else {
-		fmt.Printf("⚠ File read failed: %s\n", readResult.ErrorMessage)
+		fmt.Printf("⚠ File read failed: %s\n", readResult.Content)
 	}
 
 	// Test Command operations
@@ -103,20 +100,20 @@ func main() {
 	cmdResult, err := session.Command.ExecuteCommand("whoami")
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
-	} else if cmdResult.Success {
+	} else if len(cmdResult.Output)>0 {
 		fmt.Printf("✓ Current user: %s\n", cmdResult.Output)
 	} else {
-		fmt.Printf("⚠ Command execution failed: %s\n", cmdResult.ErrorMessage)
+		fmt.Printf("⚠ Command execution failed: %s\n", cmdResult.Output)
 	}
 
 	// List directory contents
 	lsResult, err := session.Command.ExecuteCommand("ls -la /tmp")
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
-	} else if lsResult.Success {
+	} else if len(lsResult.Output)>0 {
 		fmt.Println("✓ Directory listing successful")
 		fmt.Printf("  Output:\n%s\n", lsResult.Output)
 	} else {
-		fmt.Printf("⚠ Directory listing failed: %s\n", lsResult.ErrorMessage)
+		fmt.Printf("⚠ Directory listing failed: %s\n", lsResult.Output)
 	}
 }

@@ -23,7 +23,7 @@ func main() {
 
 	// Example 1: List all contexts
 	fmt.Println("\nExample 1: Listing all contexts...")
-	listResult, err := ab.Context.List()
+	listResult, err := ab.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		fmt.Printf("Error listing contexts: %v\n", err)
 	} else {

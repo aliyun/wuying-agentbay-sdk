@@ -3,20 +3,29 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
+	apiKey := os.Getenv("AGENTBAY_API_KEY")
+	if apiKey == "" {
+		apiKey = "akm-xxx" // Replace with your actual API key for testing
+		fmt.Println("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.")
+	}
 	// Initialize AgentBay with API key from environment
-	ab := agentbay.NewAgentBay()
+	ab,err := agentbay.NewAgentBay(apiKey)
 
-	// Create a session
-	sessionParams := &agentbay.SessionParams{
-		ResourceType: "linux",
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
 	}
 
-	sessionResult, err := ab.CreateSession(sessionParams)
+	// Create a session
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+
+	sessionResult, err := ab.Create(sessionParams)
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
 	}
@@ -33,7 +42,7 @@ print(f"2 + 3 = {result}")
 `
 
 	fmt.Println("\n=== Running Python Code ===")
-	codeResult, err := session.Code.RunCode(pythonCode, "python", 30)
+	codeResult, err := session.Code.RunCode(pythonCode, "python", 1000)
 	if err != nil {
 		log.Printf("Failed to run Python code: %v", err)
 	} else {

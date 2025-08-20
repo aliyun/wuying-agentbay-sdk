@@ -31,7 +31,8 @@ func main() {
 
 	// Create a session
 	fmt.Println("Creating a new session...")
-	sessionResult, err := client.Create(nil)
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	sessionResult, err := client.Create(sessionParams)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)
 		return
@@ -67,6 +68,6 @@ func main() {
 	if deleteResult.Success {
 		fmt.Println("Session deleted successfully")
 	} else {
-		fmt.Printf("Failed to delete session: %s\n", deleteResult.ErrorMessage)
+		fmt.Printf("Failed to delete session: %s\n", deleteResult.RequestID)
 	}
 }

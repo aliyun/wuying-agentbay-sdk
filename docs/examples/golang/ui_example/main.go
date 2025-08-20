@@ -66,8 +66,11 @@ func main() {
 	elementsResult, err := session.UI.GetAllUIElements(2000) // 2 second timeout
 	if err != nil {
 		fmt.Printf("Error getting UI elements: %v\n", err)
+	} else if len(elementsResult.Elements) == 0 {
+		fmt.Println("No UI elements found.")
 	} else {
-		fmt.Printf("Found %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), elementsResult.RequestID)
+		getElement := elementsResult.Elements[0]
+		fmt.Printf("Found %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), getElement.ElementID)
 		// Print details of the first few elements if available
 		elementsToShow := 3
 		if len(elementsResult.Elements) < elementsToShow {
@@ -81,7 +84,7 @@ func main() {
 			fmt.Printf("  Type: %v\n", elem.Type)
 			fmt.Printf("  Text: %v\n", elem.Text)
 			fmt.Printf("  Bounds: %v\n", elem.Bounds)
-			fmt.Printf("  ResourceId: %v\n", elem.ResourceId)
+			fmt.Printf("  ResourceId: %v\n", elem.ResourceID)
 			fmt.Println()
 		}
 	}
@@ -91,6 +94,8 @@ func main() {
 	clickableElementsResult, err := session.UI.GetClickableUIElements(2000) // 2 second timeout
 	if err != nil {
 		fmt.Printf("Error getting clickable UI elements: %v\n", err)
+	} else if len(clickableElementsResult.Elements) == 0 {
+		fmt.Println("No clickable UI elements found.")
 	} else {
 		fmt.Printf("Found %d clickable UI elements (RequestID: %s)\n", len(clickableElementsResult.Elements), clickableElementsResult.RequestID)
 		// Print details of the first few clickable elements if available
@@ -106,14 +111,14 @@ func main() {
 			fmt.Printf("  Type: %v\n", elem.Type)
 			fmt.Printf("  Text: %v\n", elem.Text)
 			fmt.Printf("  Bounds: %v\n", elem.Bounds)
-			fmt.Printf("  ResourceId: %v\n", elem.ResourceId)
+			fmt.Printf("  ResourceId: %v\n", elem.ResourceID)
 			fmt.Println()
 		}
 	}
 
 	// 4. Send key event (HOME key)
 	fmt.Println("\n4. Sending HOME key event...")
-	keyResult, err := session.UI.SendKey(ui.KeyCode.HOME) // Use KeyCode.HOME constant
+	keyResult, err := session.UI.SendKey(int(ui.KEYCODE_HOME)) // Use KeyCode.HOME constant
 	if err != nil {
 		fmt.Printf("Error sending HOME key: %v\n", err)
 	} else {

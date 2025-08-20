@@ -92,7 +92,7 @@ func main() {
 
 							if len(rootWindowsResult.Windows) > 0 {
 								// Step 5: Activate a window
-								windowToActivate := &rootWindowsResult.Windows[0]
+								windowToActivate := rootWindowsResult.Windows[0]
 								fmt.Printf("\nStep 5: Activating window: %s (ID: %d)\n", windowToActivate.Title, windowToActivate.WindowID)
 								activateResult, err := session.Window.ActivateWindow(windowToActivate.WindowID)
 								if err != nil {
