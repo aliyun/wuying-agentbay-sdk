@@ -80,6 +80,10 @@ from ._describe_context_files_response_body import DescribeContextFilesResponseB
 from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBodyData
 from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBodyData
 
+# Add these lines at the appropriate place
+from ._list_session_response import ListSessionResponse
+from ._list_session_response_body import ListSessionResponseBody
+
 __all__ = [
     CallMcpToolRequest,
     CallMcpToolResponseBody,
@@ -155,4 +159,7 @@ __all__ = [
     DescribeContextFilesResponseBodyData,
     GetContextFileDownloadUrlResponseBodyData,
     GetContextFileUploadUrlResponseBodyData,
+    # Add these lines at the appropriate place
+    ListSessionResponse,
+    ListSessionResponseBody,
 ]
