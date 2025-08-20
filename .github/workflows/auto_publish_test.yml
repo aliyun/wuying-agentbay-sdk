@@ -54,6 +54,7 @@ jobs:
           fi
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
+          pip install . --index-url https://pypi.tuna.tsinghua.edu.cn/simple
           echo "Using version: $FINAL_VERSION"
           sed -i "s/version='.*'/version='$FINAL_VERSION'/" setup.py
           python setup.py sdist bdist_wheel
