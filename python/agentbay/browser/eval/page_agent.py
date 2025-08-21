@@ -332,11 +332,8 @@ class PageAgent:
                     action=action_input,    
                 )
                 return await self.session.browser.agent.act_async(self.current_page, options)
-            else:
-                options = ActOptions(
-                    action=action_input.method + " " + action_input.arguments,    
-                )
-                return await self.session.browser.agent.act_async(self.current_page, options)
+            elif isinstance(action_input, ObserveResult):
+                return await self.session.browser.agent.act_async(self.current_page, action_input)
         except Exception as e:
             logger.error(f"Error in act: {e}", exc_info=True)
             raise

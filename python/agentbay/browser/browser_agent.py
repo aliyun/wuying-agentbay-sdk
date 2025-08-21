@@ -74,7 +74,7 @@ class BrowserAgent(BaseService):
         self.session = session
         self.browser = browser
 
-    def act(self, page, options: ActOptions) -> 'ActResult':
+    def act(self, page, action_input: Union[ObserveResult, ActOptions]) -> 'ActResult':
         """
         Perform an action on the given Playwright Page object, using ActOptions to configure behavior.
         Also gets the page index and corresponding context index.
@@ -89,14 +89,21 @@ class BrowserAgent(BaseService):
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
-                "action": options.action,
             }
-            if options.timeoutMS is not None:
-                args["timeout_ms"] = options.timeoutMS
-            if options.iframes is not None:
-                args["iframes"] = options.iframes
-            if options.dom_settle_timeout_ms is not None:
-                args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
+            if isinstance(action_input, ActOptions):
+                if action_input.timeoutMS is not None:
+                    args["timeout_ms"] = action_input.timeoutMS
+                if action_input.iframes is not None:
+                    args["iframes"] = action_input.iframes
+                if action_input.dom_settle_timeout_ms is not None:
+                    args["dom_settle_timeout_ms"] = action_input.dom_settle_timeout_ms
+                args["action"] = action_input.action
+            elif isinstance(action_input, ObserveResult):
+                action_dict = {
+                    "method": action_input.method,
+                    "arguments": json.loads(action_input.arguments) if isinstance(action_input.arguments, str) else action_input.arguments
+                }
+                args["action"] = json.dumps(action_dict)
             response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
@@ -115,7 +122,7 @@ class BrowserAgent(BaseService):
         except Exception as e:
             raise BrowserError(f"Failed to act: {e}")
 
-    async def act_async(self, page, options: ActOptions) -> 'ActResult':
+    async def act_async(self, page, action_input: Union[ObserveResult, ActOptions]) -> 'ActResult':
         """
         Async version of act method for performing actions on the given Playwright Page object.
         Gets the page index and corresponding context index asynchronously.
@@ -130,14 +137,21 @@ class BrowserAgent(BaseService):
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
-                "action": options.action,
             }
-            if options.timeoutMS is not None:
-                args["timeout_ms"] = options.timeoutMS
-            if options.iframes is not None:
-                args["iframes"] = options.iframes
-            if options.dom_settle_timeout_ms is not None:
-                args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
+            if isinstance(action_input, ActOptions):
+                args["action"] = action_input.action
+                if action_input.timeoutMS is not None:
+                    args["timeout_ms"] = action_input.timeoutMS
+                if action_input.iframes is not None:
+                    args["iframes"] = action_input.iframes
+                if action_input.dom_settle_timeout_ms is not None:
+                    args["dom_settle_timeout_ms"] = action_input.dom_settle_timeout_ms
+            elif isinstance(action_input, ObserveResult):
+                action_dict = {
+                    "method": action_input.method,
+                    "arguments": json.loads(action_input.arguments) if isinstance(action_input.arguments, str) else action_input.arguments
+                }
+                args["action"] = json.dumps(action_dict)
             response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
                 print(f"Response from CallMcpTool - page_use_act:", response.data)
