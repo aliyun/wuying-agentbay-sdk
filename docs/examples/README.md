@@ -63,8 +63,8 @@ export AGENTBAY_API_KEY=your_api_key_here
 
 3. Compile and run an example:
 ```bash
-npx tsc basic-usage.ts
-node basic-usage.js
+cd ./docs/examples/typescript
+npx ts-node basic-usage.ts
 ```
 
 ### Golang
@@ -96,4 +96,4 @@ All the examples demonstrate one or more of the following features:
 - **UI Interaction**: Working with UI elements and capture screenshots
 - **Label Management**: Organizing sessions with labels
 
-For more detailed documentation, please refer to the [API Reference](../api-reference) and [Tutorials](../tutorials) directories. 
+For more detailed documentation, please refer to the [API Reference](../api-reference) and [Tutorials](../tutorials) directories.

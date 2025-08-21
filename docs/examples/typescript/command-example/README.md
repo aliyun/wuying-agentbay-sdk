@@ -28,10 +28,8 @@ export AGENTBAY_API_KEY=your_api_key_here
 
 ```bash
 # Compile TypeScript
-npx tsc command-example.ts
-
-# Run the compiled JavaScript
-node command-example.js
+cd command-example
+npx ts-node command-example.ts
 ```
 
 ## Code Explanation
@@ -46,4 +44,4 @@ The example demonstrates different ways to execute commands:
 
 The code also demonstrates proper error handling and resource cleanup using try-finally.
 
-For more details on command execution, see the [Command API Reference](../../api-reference/command.md) and [Command Execution Tutorial](../../tutorials/command-execution.md). 
+For more details on command execution, see the [Command API Reference](../../api-reference/command.md) and [Command Execution Tutorial](../../tutorials/command-execution.md).

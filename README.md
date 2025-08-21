@@ -55,12 +55,15 @@ Before using the SDK, you need to:
 
 ```python
 from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
 
 # Initialize with API key
 agent_bay = AgentBay(api_key="your_api_key")
 
 # Create a session
-session_result = agent_bay.create()
+session_param = CreateSessionParams()
+session_param.image_id = "code_latest"
+session_result = agent_bay.create(session_param)
 session = session_result.session
 
 # Execute a simple echo command
@@ -84,13 +87,13 @@ const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 async function main() {
   try {
     // Create a session
-    const createResponse = await agentBay.create();
+    const createResponse = await agentBay.create({imageId:'code_latest'});
     const session = createResponse.session;
-    
+
     // Execute a simple echo command
     const result = await session.command.executeCommand("echo 'Hello, AgentBay!'");
     console.log(`Command output: ${result.output}`);
-    
+
     // Delete the session when done
     await agentBay.delete(session);
     console.log('Session deleted successfully');
@@ -123,7 +126,8 @@ func main() {
   }
 
   // Create a session
-  result, err := client.Create(nil)
+  params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
+  result, err := client.Create(params)
   if err != nil {
     fmt.Printf("Error creating session: %v\n", err)
     os.Exit(1)

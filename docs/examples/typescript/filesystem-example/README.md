@@ -27,9 +27,10 @@ export AGENTBAY_API_KEY="your-api-key-here"
 Then run the example:
 
 ```bash
+cd filesystem-example
 npx ts-node filesystem-example.ts
 ```
 
 ## Note
 
-The example uses the `/tmp` directory for all operations to ensure it has the necessary permissions. Some operations might not be supported in all session types or environments. The example includes error handling to handle such cases gracefully. 
+The example uses the `/tmp` directory for all operations to ensure it has the necessary permissions. Some operations might not be supported in all session types or environments. The example includes error handling to handle such cases gracefully.

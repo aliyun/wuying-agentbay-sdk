@@ -32,10 +32,8 @@ export AGENTBAY_API_KEY=your_api_key_here
 
 ```bash
 # Compile TypeScript
-npx tsc ui-example.ts
-
-# Run the compiled JavaScript
-node ui-example.js
+cd ui-example
+npx ts-node ui-example.ts
 ```
 
 ## Code Explanation
@@ -63,4 +61,4 @@ UI interaction capabilities are particularly useful for:
 - Implementing mobile device control applications
 - Developing UI testing frameworks
 
-For more details on UI interaction, see the [UI API Reference](../../api-reference/ui.md). 
+For more details on UI interaction, see the [UI API Reference](../../api-reference/ui.md).
