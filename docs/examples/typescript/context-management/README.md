@@ -28,10 +28,8 @@ export AGENTBAY_API_KEY=your_api_key_here
 
 ```bash
 # Compile TypeScript
-npx tsc context-management.ts
-
-# Run the compiled JavaScript
-node context-management.js
+cd context-management
+npx ts-node context-management.ts
 ```
 
 ## Code Explanation
@@ -52,4 +50,4 @@ Context management allows you to work with persistent storage areas that can be 
 - Sharing data between different sessions
 - Creating templates for quick session initialization
 
-For more details on context management, see the [Context API Reference](../../api-reference/context.md) and [Data Persistence Tutorial](../../tutorials/data-persistence.md). 
+For more details on context management, see the [Context API Reference](../../api-reference/context.md) and [Data Persistence Tutorial](../../tutorials/data-persistence.md).

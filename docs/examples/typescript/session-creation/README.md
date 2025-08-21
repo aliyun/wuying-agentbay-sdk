@@ -15,7 +15,7 @@ This example is useful for understanding the session lifecycle and how to manage
 
 ```bash
 cd session-creation
-ts-node session-creation.ts
+npx ts-node session-creation.ts
 ```
 
 Make sure you have set the `AGENTBAY_API_KEY` environment variable or replace the placeholder in the code with your actual API key.
