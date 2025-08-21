@@ -8,6 +8,7 @@ This example demonstrates:
 
 import os
 from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
 
 def main():
     # Get API key from environment variable
@@ -22,7 +23,9 @@ def main():
 
     # Create a session
     print("Creating a new session...")
-    session_result = agent_bay.create()
+    params = CreateSessionParams()
+    params.image_id = "windows_latest"
+    session_result = agent_bay.create(params)
 
     if session_result.success:
         session = session_result.session
@@ -31,9 +34,9 @@ def main():
         # Execute a task using the Agent
         task_description = "Calculate the square root of 144"
         print(f"Executing task: {task_description}")
-        
+
         execution_result = session.agent.execute_task(task_description, max_try_times=5)
-        
+
         if execution_result.success:
             print("Task completed successfully!")
             print(f"Task ID: {execution_result.task_id}")
