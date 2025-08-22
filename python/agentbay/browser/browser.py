@@ -303,6 +303,7 @@ class Browser(BaseService):
         self._initialized = False
         self._option = None
         self.agent = BrowserAgent(self.session, self)
+        self.endpoint_router_port = None
 
     def initialize(self, option: "BrowserOption") -> bool:
         """
@@ -359,6 +360,7 @@ class Browser(BaseService):
             data = body.get("Data", {})
             success = data.get("Port") is not None
             if success:
+                self.endpoint_router_port = data.get("Port")
                 self._initialized = True
                 self._option = option
                 print("Browser instance successfully initialized")
@@ -387,8 +389,12 @@ class Browser(BaseService):
         if not self.is_initialized():
             raise BrowserError("Browser is not initialized. Cannot access endpoint URL.")
         try:
-            cdp_url = self.session.get_link()
-            self._endpoint_url = cdp_url.data
+            if self.session.is_vpc:
+                print(f"VPC mode, endpoint_router_port: {self.endpoint_router_port}")
+                self._endpoint_url = f"ws://{self.session.network_interface_ip}:{self.endpoint_router_port}"
+            else:
+                cdp_url = self.session.get_link()
+                self._endpoint_url = cdp_url.data
             return self._endpoint_url
         except Exception as e:
             raise BrowserError(f"Failed to get endpoint URL from session: {e}")
