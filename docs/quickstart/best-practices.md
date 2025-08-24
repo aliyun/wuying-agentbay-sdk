@@ -160,7 +160,7 @@ import os
 
 # ✅ Good practice - Use os.path.join
 local_path = os.path.join("data", "input.txt")
-remote_path = "/workspace/input.txt"
+remote_path = "~/input.txt"
 
 # ✅ Check paths before operations
 # Note: In cloud environments, local file operations should be handled carefully
@@ -287,12 +287,12 @@ if hasattr(result, 'success') and result.success:
 ```python
 # ✅ Save important data to context
 # Note: Direct context methods may vary, use file-based persistence as alternative
-session.command.execute_command("mkdir -p /workspace/context")
-session.command.execute_command("echo '{\"theme\": \"dark\", \"language\": \"en\"}' > /workspace/context/user_preferences.json")
+session.command.execute_command("mkdir -p ~/context")
+session.command.execute_command("echo '{\"theme\": \"dark\", \"language\": \"en\"}' > ~/context/user_preferences.json")
 
 # ✅ Retrieve data in another session
-result = session.command.execute_command("cat /workspace/context/user_preferences.json")
-preferences = getattr(result, 'stdout', result)
+result = session.command.execute_command("cat ~/context/user_preferences.json")
+preferences = getattr(result, 'output', result)
 ```
 
 ### 16. Sync Context When Needed
@@ -305,7 +305,7 @@ else:
     print(f"Failed to sync context: {getattr(result, 'error_message', 'Unknown error')}")
 
 # ✅ Use file-based persistence as alternative to context
-session.command.execute_command("cp -r /workspace/data /persistent/data")
+session.command.execute_command("cp -r ~/data ~/persistent_data")
 ```
 ```
 
@@ -349,7 +349,7 @@ finally:
 result = session.command.execute_command("cd /home/user/project && python main.py")
 
 # ✅ Good - Use variables and configuration
-project_dir = os.getenv('PROJECT_DIR', '/workspace/project')
+project_dir = os.getenv('PROJECT_DIR', '~/project')
 python_script = os.getenv('PYTHON_SCRIPT', 'main.py')
 result = session.command.execute_command(f"cd {project_dir} && python {python_script}")
 ```
@@ -360,8 +360,8 @@ result = session.command.execute_command(f"cd {project_dir} && python {python_sc
 ```python
 # ✅ Batch commands
 commands = [
-    "mkdir -p /workspace/data",
-    "cd /workspace",
+    "mkdir -p ~/data",
+    "cd ~",
     "git clone https://github.com/user/repo.git"
 ]
 session = agent_bay.create().session
@@ -428,7 +428,7 @@ def safe_filename(filename):
 user_filename = input("Enter filename: ")
 safe_name = safe_filename(user_filename)
 # Use command execution for file operations
-session.command.execute_command(f"cp {local_file} /workspace/{safe_name}")
+session.command.execute_command(f"cp {local_file} ~/{safe_name}")
 ```
 
 ### 25. Be Careful with Command Injection
