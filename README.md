@@ -1,168 +1,119 @@
-# Wuying AgentBay SDK
+# AgentBay SDK
+
+> Multi-language SDK for executing commands, operating files, and running code in cloud environments
 
 [English](README.md) | [中文](README-CN.md)
 
-Wuying AgentBay SDK provides APIs for Python, TypeScript, and Golang to interact with the Wuying AgentBay cloud runtime environment. This environment enables running commands, executing code, and manipulating files.
+## 📦 Installation
 
-## Features
+| Language | Install Command | Documentation |
+|----------|----------------|---------------|
+| Python | `pip install wuying-agentbay-sdk` | [Python Docs](python/README.md) |
+| TypeScript | `npm install wuying-agentbay-sdk` | [TypeScript Docs](typescript/README.md) |
+| Golang | `go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay` | [Golang Docs](golang/README.md) |
 
-- **Session Management**: Create, retrieve, list, and delete sessions
-- **File Management**:
-  - Basic file operations (read, write, edit)
-  - Large file support with automatic chunking
-  - Multi-file operations
-- **Command Execution**: Run commands and execute code
-- **Application Management**: List, start, and stop applications
-- **Window Management**: List, activate, and manipulate windows
-- **Label Management**: Categorize and filter sessions using labels
-- **Context Management**: Work with persistent storage contexts
-- **Port Forwarding**: Forward ports between local and remote environments
-- **Process Management**: Monitor and control processes
-- **OSS Integration**: Work with Object Storage Service for cloud storage
-- **Mobile Tools Support**: Use mobile-specific APIs and tools
-- **CodeSpace Compatibility**: Work seamlessly with CodeSpace environments
-
-## Installation
-
-### Python
-
-```bash
-pip install wuying-agentbay-sdk
-```
-
-### TypeScript
-
-```bash
-npm install wuying-agentbay-sdk
-```
-
-### Golang
-
-```bash
-go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
-```
-
-## Preparation
+## 🚀 Prerequisites
 
 Before using the SDK, you need to:
 
-1. Register an Alibaba Cloud account at [https://aliyun.com](https://aliyun.com)
-2. Register an API key at [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+1. Register an Alibaba Cloud account: [https://aliyun.com](https://aliyun.com)
+2. Get API credentials: [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Python
-
 ```python
 from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
 
-# Initialize with API key
-agent_bay = AgentBay(api_key="your_api_key")
-
-# Create a session
-session_param = CreateSessionParams()
-session_param.image_id = "code_latest"
-session_result = agent_bay.create(session_param)
+# Create session and execute command
+agent_bay = AgentBay()
+session_result = agent_bay.create()
 session = session_result.session
+result = session.command.execute_command("echo 'Hello AgentBay'")
+print(result.output)  # Hello AgentBay
 
-# Execute a simple echo command
-result = session.command.execute_command("echo 'Hello, AgentBay!'")
-if result.success:
-    print(f"Command output: {result.output}")
-
-# Don't forget to delete the session when done
-delete_result = agent_bay.delete(session)
+# Clean up
+agent_bay.delete(session)
 ```
 
 ### TypeScript
-
 ```typescript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
-// Initialize with API key
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+// Create session and execute command
+const agentBay = new AgentBay();
+const sessionResult = await agentBay.create();
+const session = sessionResult.session;
+const result = await session.command.executeCommand("echo 'Hello AgentBay'");
+console.log(result.output);  // Hello AgentBay
 
-// Create a session and run a command
-async function main() {
-  try {
-    // Create a session
-    const createResponse = await agentBay.create({imageId:'code_latest'});
-    const session = createResponse.session;
-
-    // Execute a simple echo command
-    const result = await session.command.executeCommand("echo 'Hello, AgentBay!'");
-    console.log(`Command output: ${result.output}`);
-
-    // Delete the session when done
-    await agentBay.delete(session);
-    console.log('Session deleted successfully');
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-main();
+// Clean up
+await agentBay.delete(session);
 ```
 
 ### Golang
-
 ```go
-package main
-
 import (
-	"fmt"
-	"os"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+    "fmt"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
-func main() {
-  // Initialize with API key
-  client, err := agentbay.NewAgentBay("your_api_key")
-  if err != nil {
-    fmt.Printf("Error initializing AgentBay client: %v\n", err)
-    os.Exit(1)
-  }
+// Create session and execute command
+client, err := agentbay.NewAgentBay("", nil)
+if err != nil {
+    fmt.Printf("Failed to initialize AgentBay client: %v\n", err)
+    return
+}
 
-  // Create a session
-  params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
-  result, err := client.Create(params)
-  if err != nil {
-    fmt.Printf("Error creating session: %v\n", err)
-    os.Exit(1)
-  }
+sessionResult, err := client.Create(nil)
+if err != nil {
+    fmt.Printf("Failed to create session: %v\n", err)
+    return
+}
 
-  session := result.Session
+session := sessionResult.Session
+result, err := session.Command.ExecuteCommand("echo 'Hello AgentBay'")
+if err != nil {
+    fmt.Printf("Failed to execute command: %v\n", err)
+    return
+}
+fmt.Println(result.Output)  // Hello AgentBay
 
-  // Execute a simple echo command
-  cmdResult, err := session.Command.ExecuteCommand("echo 'Hello, AgentBay!'")
-  if err != nil {
-    fmt.Printf("Error executing command: %v\n", err)
-    os.Exit(1)
-  }
-  fmt.Printf("Command output: %s\n", cmdResult.Output)
-
-  // Delete the session when done
-  _, err = client.Delete(session)
-  if err != nil {
-    fmt.Printf("Error deleting session: %v\n", err)
-    os.Exit(1)
-  }
-  fmt.Println("Session deleted successfully")
+// Clean up
+_, err = client.Delete(session, false)
+if err != nil {
+    fmt.Printf("Failed to delete session: %v\n", err)
+    return
 }
 ```
 
-For more detailed examples and advanced usage, please refer to the [docs](docs/) directory.
+## 👋 Choose Your Learning Path
 
-## What's New
+### 🆕 New Users
+If you're new to AgentBay or cloud development:
+- [Quick Start Tutorial](docs/quickstart/README.md) - Get started in 5 minutes
+- [Core Concepts](docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 
-For details on the latest features and improvements, please see the [Changelog](CHANGELOG.md).
+### 🚀 Experienced Users
+If you're familiar with Docker, cloud services, or similar products:
+- [Feature Guides](docs/guides/README.md) - Complete feature introduction
+- [API Reference](docs/api-reference.md) - Core API quick lookup
 
-## License
+## 🔧 Core Features
+
+- **Session Management** - Create and manage cloud environments
+- **Command Execution** - Execute Shell commands in the cloud
+- **File Operations** - Upload, download, and edit cloud files
+- **Code Execution** - Run Python, JavaScript code
+- **UI Automation** - Interact with cloud application interfaces
+- **Data Persistence** - Save data across sessions
+
+## 🆘 Get Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Complete Documentation](docs/README.md)
+- [Changelog](CHANGELOG.md)
+
+## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## Documentation
-
-For more detailed documentation, examples, and advanced usage, please refer to the [docs](docs/) directory.

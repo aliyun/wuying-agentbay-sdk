@@ -300,18 +300,14 @@ Now that you know the basics of using the AgentBay SDK, you can explore more fea
 - [OSS Integration](tutorials/oss-integration.md)
 - [Application Management](tutorials/application-management.md)
 
-### API Reference
+### 功能指南
 
-- [AgentBay](api-reference/agentbay.md)
-- [Session](api-reference/session.md)
-- [Command](api-reference/command.md)
-- [FileSystem](api-reference/filesystem.md)
-- [UI](api-reference/ui.md)
-- [Window](api-reference/window.md)
-- [OSS](api-reference/oss.md)
-- [Application](api-reference/application.md)
-- [Context](api-reference/context.md)
-- [ContextManager](api-reference/context-manager.md)
+- [会话管理](guides/session-management.md)
+- [代码执行](guides/code-execution.md)
+- [上下文管理](guides/context-management.md)
+- [浏览器自动化](guides/browser-automation.md)
+- [VPC会话](guides/vpc-sessions.md)
+- [Agent模块](guides/agent-module.md)
 
 ### Examples
 
