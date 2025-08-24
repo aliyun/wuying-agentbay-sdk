@@ -38,7 +38,7 @@ def main():
     # result = agent_bay.create(linux_params)
     
     if not result.success:
-        print(f"❌ Session creation failed: {result.error}")
+        print(f"❌ Session creation failed: {result.error_message}")
         return
     
     session = result.session
@@ -70,7 +70,7 @@ def main():
     if write_result.success:
         print("✅ File written successfully")
     else:
-        print(f"❌ File write failed: {write_result.error}")
+        print(f"❌ File write failed: {write_result.error_message}")
         return
     
     # Read file
@@ -78,7 +78,7 @@ def main():
     if read_result.success:
         print(f"📖 File content:\n{read_result.data}")
     else:
-        print(f"❌ File read failed: {read_result.error}")
+        print(f"❌ File read failed: {read_result.error_message}")
     
     # 5. Create directory and multiple files
     print("\n📂 Creating directory structure...")
@@ -134,7 +134,7 @@ async function main() {
     const result = await agentBay.create();
     
     if (!result.success) {
-        console.log(`❌ Session creation failed: ${result.error}`);
+        console.log(`❌ Session creation failed: ${result.errorMessage}`);
         return;
     }
     
@@ -162,7 +162,7 @@ async function main() {
     if (writeResult.success) {
         console.log("✅ File written successfully");
     } else {
-        console.log(`❌ File write failed: ${writeResult.error}`);
+        console.log(`❌ File write failed: ${writeResult.errorMessage}`);
         return;
     }
     
@@ -236,7 +236,7 @@ func main() {
     
     // Create file
     content := fmt.Sprintf("Hello from AgentBay!\nCreated at: %s", session.SessionID)
-    _, err = session.FileSystem.WriteFile("/tmp/hello.txt", []byte(content))
+    _, err = session.FileSystem.WriteFile("/tmp/hello.txt", content, "")
     
     if err != nil {
         fmt.Printf("❌ File write failed: %v\n", err)
@@ -248,7 +248,7 @@ func main() {
     // Read file
     readResult, err := session.FileSystem.ReadFile("/tmp/hello.txt")
     if err == nil {
-        fmt.Printf("📖 File content:\n%s\n", string(readResult.Data))
+        fmt.Printf("📖 File content:\n%s\n", readResult.Content)
     }
     
     // 5. Run Go code
@@ -263,7 +263,7 @@ func main() {
     fmt.Println("Current time:", time.Now().Format("2006-01-02 15:04:05"))
 }`
     
-    session.FileSystem.WriteFile("/tmp/script.go", []byte(goScript))
+    session.FileSystem.WriteFile("/tmp/script.go", goScript, "")
     goResult, _ := session.Command.ExecuteCommand("cd /tmp && go run script.go")
     fmt.Printf("Script output: %s", goResult.Output)
     
