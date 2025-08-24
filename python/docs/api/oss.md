@@ -56,7 +56,7 @@ else:
 
 ### upload
 
-**注意：在调用此API前，必须先调用`env_init`进行OSS环境初始化。**
+**Note: Before calling this API, you must first call `env_init` to initialize the OSS environment.**
 
 Uploads a local file or directory to OSS.
 
@@ -79,14 +79,14 @@ class OSSUploadResult(ApiResponse):
                  content: str = "", error_message: str = "")
 ```
 
-**示例：**
+**Example:**
 ```python
 from wuying_agentbay_sdk import AgentBay
 
-# 初始化SDK
+# Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# 第一步：初始化OSS环境
+# Step 1: Initialize OSS environment
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
@@ -95,14 +95,14 @@ agent_bay.oss.env_init(
     region="cn-hangzhou"
 )
 
-# 第二步：上传文件
+# Step 2: Upload file
 result = agent_bay.oss.upload("my-bucket", "my-object", "/path/to/local/file")
-print("文件上传成功：", result)
+print("File uploaded successfully:", result)
 ```
 
 ### upload_anonymous
 
-**注意：在调用此API前，必须先调用`env_init`进行OSS环境初始化。**
+**Note: Before calling this API, you must first call `env_init` to initialize the OSS environment.**
 
 Uploads a local file or directory to a URL anonymously.
 
@@ -134,14 +134,14 @@ else:
     print(f"Failed to upload file anonymously: {result.error_message}")
 ```
 
-**示例：**
+**Example:**
 ```python
 from wuying_agentbay_sdk import AgentBay
 
-# 初始化SDK
+# Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# 第一步：初始化OSS环境
+# Step 1: Initialize OSS environment
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
@@ -150,14 +150,14 @@ agent_bay.oss.env_init(
     region="cn-hangzhou"
 )
 
-# 第二步：匿名上传文件
+# Step 2: Upload file anonymously
 result = agent_bay.oss.upload_anonymous("https://example.com/upload", "/path/to/local/file")
-print("匿名上传成功：", result)
+print("File uploaded anonymously:", result)
 ```
 
 ### download
 
-**注意：在调用此API前，必须先调用`env_init`进行OSS环境初始化。**
+**Note: Before calling this API, you must first call `env_init` to initialize the OSS environment.**
 
 Downloads an object from OSS to a local file or directory.
 
@@ -180,14 +180,14 @@ class OSSDownloadResult(ApiResponse):
                  content: str = "", error_message: str = "")
 ```
 
-**示例：**
+**Example:**
 ```python
 from wuying_agentbay_sdk import AgentBay
 
-# 初始化SDK
+# Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# 第一步：初始化OSS环境
+# Step 1: Initialize OSS environment
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
@@ -196,14 +196,14 @@ agent_bay.oss.env_init(
     region="cn-hangzhou"
 )
 
-# 第二步：下载文件
+# Step 2: Download file
 result = agent_bay.oss.download("my-bucket", "my-object", "/path/to/local/file")
-print("文件下载成功：", result)
+print("File downloaded successfully:", result)
 ```
 
 ### download_anonymous
 
-**注意：在调用此API前，必须先调用`env_init`进行OSS环境初始化。**
+**Note: Before calling this API, you must first call `env_init` to initialize the OSS environment.**
 
 Downloads a file from a URL anonymously to a local file path.
 
@@ -235,14 +235,14 @@ else:
     print(f"Failed to download file anonymously: {result.error_message}")
 ```
 
-**示例：**
+**Example:**
 ```python
 from wuying_agentbay_sdk import AgentBay
 
-# 初始化SDK
+# Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# 第一步：初始化OSS环境
+# Step 1: Initialize OSS environment
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
@@ -251,9 +251,9 @@ agent_bay.oss.env_init(
     region="cn-hangzhou"
 )
 
-# 第二步：匿名下载文件
+# Step 2: Download file anonymously
 result = agent_bay.oss.download_anonymous("https://example.com/file.txt", "/path/to/local/file.txt")
-print("匿名下载成功：", result)
+print("File downloaded anonymously:", result)
 ```
 
 ## Related Resources

@@ -40,7 +40,7 @@ windows_params = CreateSessionParams(image_id="windows_latest")
 windows_session = agent_bay.create(windows_params).session
 
 # Android image
-android_params = CreateSessionParams(image_id="android_latest")
+android_params = CreateSessionParams(image_id="mobile_latest")
 android_session = agent_bay.create(android_params).session
 
 # Sessions have independent:
@@ -79,7 +79,6 @@ C:\
 ├── Users\        # User directory
 ├── Windows\      # System files
 ├── Program Files\ # Program files
-├── temp\         # Temporary files
 └── ...           # Other Windows directories
 ```
 
@@ -89,7 +88,6 @@ C:\
 ├── data/         # Application data
 ├── system/       # System files
 ├── storage/      # Storage directory
-├── tmp/          # Temporary files
 └── ...           # Other Android directories
 ```
 
@@ -99,30 +97,30 @@ File operations vary depending on the operating system image:
 #### Linux/Android
 ```python
 # Write file
-session.filesystem.write("/tmp/hello.txt", "Hello World")
+session.filesystem.write_file("/tmp/hello.txt", "Hello World")
 
 # Read file
-content = session.filesystem.read("/tmp/hello.txt")
-print(content.data)  # Hello World
+content = session.filesystem.read_file("/tmp/hello.txt")
+print(content.content)  # Hello World
 
 # List directory
-files = session.filesystem.list("/tmp")
-for file in files.data:
+files = session.filesystem.list_directory("/tmp")
+for file in files.entries:
     print(file.name)
 ```
 
 #### Windows
 ```python
 # Write file
-session.filesystem.write("C:\\temp\\hello.txt", "Hello World")
+session.filesystem.write_file("C:\\Users\\hello.txt", "Hello World")
 
 # Read file
-content = session.filesystem.read("C:\\temp\\hello.txt")
-print(content.data)  # Hello World
+content = session.filesystem.read_file("C:\\Users\\hello.txt")
+print(content.content)  # Hello World
 
 # List directory
-files = session.filesystem.list("C:\\temp")
-for file in files.data:
+files = session.filesystem.list_directory("C:\\Users")
+for file in files.entries:
     print(file.name)
 ```
 
@@ -131,43 +129,44 @@ for file in files.data:
 ### Linux/Android Commands
 ```python
 # Basic commands
-result = session.command.execute("ls -la")
-result = session.command.execute("pwd")
-result = session.command.execute("whoami")
+result = session.command.execute_command("ls -la")
+result = session.command.execute_command("pwd")
+result = session.command.execute_command("whoami")
 
 # Install packages
-result = session.command.execute("apt-get update")
-result = session.command.execute("apt-get install -y python3-pip")
+result = session.command.execute_command("apt-get update")
+result = session.command.execute_command("apt-get install -y python3-pip")
 
 # Run Python
-result = session.command.execute("python3 -c 'print(\"Hello from Python\")'")
+result = session.command.execute_command("python3 -c 'print(\"Hello from Python\")'")
 ```
 
 ### Windows Commands
 ```python
 # Basic commands
-result = session.command.execute("dir")
-result = session.command.execute("cd")
-result = session.command.execute("whoami")
+result = session.command.execute_command("dir")
+result = session.command.execute_command("cd")
+result = session.command.execute_command("whoami")
 
 # PowerShell commands
-result = session.command.execute("powershell Get-Process")
-result = session.command.execute("powershell Get-Location")
+result = session.command.execute_command("powershell -Command \"Get-Process | Select-Object -First 5\"")
+result = session.command.execute_command("powershell -Command \"Get-Location\"")
+result = session.command.execute_command("powershell -Command \"Get-Date\"")
 
 # Run programs
-result = session.command.execute("python --version")
+result = session.command.execute_command("python --version")
 ```
 
 ### Android Commands
 ```python
 # Android-specific commands
-result = session.command.execute("am start -n com.android.settings/.Settings")
-result = session.command.execute("input tap 500 500")
-result = session.command.execute("screencap /tmp/screenshot.png")
+result = session.command.execute_command("am start -n com.android.settings/.Settings")
+result = session.command.execute_command("input tap 500 500")
+result = session.command.execute_command("screencap /tmp/screenshot.png")
 
 # Package management
-result = session.command.execute("pm list packages")
-result = session.command.execute("pm install /tmp/app.apk")
+result = session.command.execute_command("pm list packages")
+result = session.command.execute_command("pm install /tmp/app.apk")
 ```
 
 ## 🔄 Data Persistence
@@ -179,7 +178,10 @@ result = session.command.execute("pm install /tmp/app.apk")
 
 ```python
 # Temporary data - will be lost
-session.filesystem.write("/tmp/temp_data.txt", "temporary content")
+# For Linux/Android:
+session.filesystem.write_file("/tmp/temp_data.txt", "temporary content")
+# For Windows:
+session.filesystem.write_file("C:\\Users\\temp_data.txt", "temporary content")
 ```
 
 ### Persistent Data (Context)
@@ -193,17 +195,16 @@ from agentbay import ContextSync, SyncPolicy
 # Create persistent context
 context = agent_bay.context.get("my-project", create=True).context
 
-# Configure sync policy
-sync_policy = SyncPolicy.default()
-context_sync = ContextSync.new(context.id, "/mnt/data", sync_policy)
+# Create context sync (sync_policy is optional)
+context_sync = ContextSync.new(context.id, "/tmp/data")
 
 # Create session with persistent data
 from agentbay import CreateSessionParams
 params = CreateSessionParams(context_syncs=[context_sync])
 session = agent_bay.create(params).session
 
-# Data written to /mnt/data will persist
-session.filesystem.write("/mnt/data/config.json", '{"setting": "value"}')
+# Data written to /tmp/data will persist
+session.filesystem.write_file("/tmp/data/config.json", '{"setting": "value"}')
 ```
 
 ## 🏷️ Labels and Organization
@@ -224,43 +225,10 @@ session = agent_bay.create(params).session
 
 # Find sessions by labels
 sessions = agent_bay.list_by_labels({"project": "web-scraper"})
-for session_info in sessions.data:
+for session_info in sessions.sessions:
     print(f"Session: {session_info.session_id}")
 ```
 
-## 🌍 Network Access
-
-### Internet Access
-All sessions have internet access by default:
-
-```python
-# Download files
-session.command.execute("wget https://example.com/file.txt")
-
-# Use curl
-session.command.execute("curl -s https://api.github.com/users/octocat")
-
-# Python requests
-code = """
-import requests
-response = requests.get('https://httpbin.org/json')
-print(response.json())
-"""
-session.code.run_code(code, "python")
-```
-
-### Port Access
-For applications that start services:
-
-```python
-# Start a web server
-session.command.execute("python3 -m http.server 8000 &")
-
-# Get access link
-link_result = session.get_link("http", 8000)
-if link_result.success:
-    print(f"Access your server at: {link_result.data}")
-```
 
 ## 🔐 Security Model
 
