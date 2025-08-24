@@ -1,201 +1,106 @@
-# Python SDK for Wuying AgentBay
+# AgentBay SDK for Python
 
-This directory contains the Python implementation of the Wuying AgentBay SDK.
+> Execute commands, operate files, and run code in cloud environments
 
-## Prerequisites
-
-- Python 3.10 or later
-- Poetry (for development)
-
-## Installation
-
-### For Development
-
-Clone the repository and install dependencies using Poetry:
-
-```bash
-git clone https://github.com/aliyun/wuying-agentbay-sdk.git
-cd wuying-agentbay-sdk/python
-poetry install
-```
-
-### For Usage in Your Project
+## 📦 Installation
 
 ```bash
 pip install wuying-agentbay-sdk
 ```
 
-## Running Examples
+## 🚀 Prerequisites
 
-You can find examples in the `docs/examples/python` directory, including:
+Before using the SDK, you need to:
 
-- Basic SDK usage
-- Context management
-- Label management
-- Mobile system integration
-- OSS management
-- File system operations
-- Session creation
+1. Register an Alibaba Cloud account: [https://aliyun.com](https://aliyun.com)
+2. Get API credentials: [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+3. Set environment variable: `export AGENTBAY_API_KEY=your_api_key`
 
-To run the examples:
-
-```bash
-# Using Poetry
-poetry run python docs/examples/python/basic_usage.py
-
-# Or directly with Python if installed in your environment
-python docs/examples/python/basic_usage.py
-```
-
-## Python-Specific Usage
-
+## 🚀 Quick Start
 ```python
 from agentbay import AgentBay
-from agentbay.exceptions import AgentBayError
-from agentbay.session_params import CreateSessionParams
 
-def main():
-    # Initialize with API key
-    api_key = "your_api_key"  # Or use os.environ.get("AGENTBAY_API_KEY")
+# Create session
+agent_bay = AgentBay()
+result = agent_bay.create()
 
-    try:
-        agent_bay = AgentBay(api_key=api_key)
-
-        # Create a session with labels
-        params = CreateSessionParams()
-        params.labels = {
-            "purpose": "demo",
-            "environment": "development"
-        }
-        session_result = agent_bay.create(params)
-        session = session_result.session
-        
-        # Execute a command
-        cmd_result = session.command.execute_command("ls -la")
-        
-        # Read a file
-        file_result = session.file_system.read_file("/path/to/file.txt")
-        
-        # Run code
-        code_result = session.code.run_code("print('Hello, World!')", "python")
-        
-        # Application management
-        apps_result = session.application.get_installed_apps(
-            include_system_apps=True,
-            include_store_apps=False,
-            include_desktop_apps=True
-        )
-        
-        # Window management
-        windows_result = session.window.list_root_windows()
-        window_result = session.window.get_active_window()
-        
-        # UI interactions
-        screenshot_result = session.ui.screenshot()
-        session.ui.send_key(3)  # Send HOME key
-        
-        # OSS operations
-        upload_result = session.oss.upload_file("/local/path/file.txt", "remote/path/")
-        
-        # Context management
-        contexts_result = agent_bay.context.list()
-        
-        # Session labels
-        labels_result = session.get_labels()
-        
-        # Clean up
-        delete_result = agent_bay.delete(session)
-
-    except AgentBayError as e:
-        print(f"Error: {e}")
+if result.success:
+    session = result.session
+    
+    # Execute command
+    cmd_result = session.command.execute("ls -la")
+    print(cmd_result.data.stdout)
+    
+    # File operations
+    session.file_system.write_file("/tmp/test.txt", "Hello World")
+    content = session.file_system.read_file("/tmp/test.txt")
+    print(content.data)
 ```
 
-## Key Features
+## 📖 Complete Documentation
+
+### 🆕 New Users
+- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart) - Get started in 5 minutes
+- [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
+- [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and tips
+
+### 🚀 Experienced Users
+- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides) - Complete feature introduction
+- [🔧 Python API Reference](docs/api/README.md) - Detailed API documentation
+- [💻 Python Examples](docs/examples/) - Complete example code
+
+### 🆘 Need Help
+- [❓ FAQ](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/faq.md) - Quick answers
+- [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
+
+## 🔧 Core Features Quick Reference
 
 ### Session Management
+```python
+# Create session
+session = agent_bay.create().session
 
-- Create sessions with optional parameters (image_id, context_id, labels)
-- List sessions with pagination and filtering by labels
-- Delete sessions and clean up resources
-- Manage session labels
-- Get session information and links
+# List sessions
+sessions = agent_bay.list()
+
+# Connect to existing session
+session = agent_bay.connect("session_id")
+```
+
+### File Operations
+```python
+# Read/write files
+session.file_system.write_file("/path/file.txt", "content")
+content = session.file_system.read_file("/path/file.txt")
+
+# List directory
+files = session.file_system.list_directory("/path")
+```
 
 ### Command Execution
-
-- Execute shell commands
-- Run code in various languages
-- Get command output and execution status
-
-### File System Operations
-
-- Read and write files
-- List directory contents
-- Create and delete files and directories
-- Get file information
-
-### UI Interaction
-
-- Take screenshots
-- Find UI elements by criteria
-- Click on UI elements
-- Send text input
-- Perform swipe gestures
-- Send key events (HOME, BACK, MENU, etc.)
-
-### Application Management
-
-- Get installed applications
-- List running applications
-- Start and stop applications
-- Get application information
-
-### Window Management
-
-- List windows
-- Get active window
-- Focus, resize, and move windows
-- Get window properties
-
-### Context Management
-
-- Create, list, and delete contexts
-- Bind sessions to contexts
-- Synchronize context data using policies
-- Get context information
-
-### OSS Integration
-
-- Upload files to OSS
-- Download files from OSS
-- Initialize OSS environment
-
-### Mobile System Support
-
-- Special UI interactions for mobile environments
-- Support for mobile application management
-- Touch and gesture simulation
-
-## Response Format
-
-All API methods return responses that include:
-
-- `request_id`: A unique identifier for the request
-- `success`: A boolean indicating whether the operation was successful
-- Operation-specific data (varies by method)
-- `error_message`: Error details if the operation failed
-
-## Development
-
-### Building the SDK
-
-```bash
-poetry build
+```python
+# Execute command
+result = session.command.execute("python script.py")
+print(result.data.stdout)
 ```
 
-### Running Tests
+### Data Persistence
+```python
+# Create context
+context = agent_bay.context.get("my-project", create=True).context
 
-```bash
-poetry run pytest
+# Create session with context
+from agentbay.session_params import CreateSessionParams
+from agentbay.context_sync import ContextSync, SyncPolicy
+context_sync = ContextSync.new(context.id, "/mnt/data", SyncPolicy.default())
+session = agent_bay.create(CreateSessionParams(context_syncs=[context_sync])).session
 ```
 
-For more detailed documentation, refer to the [SDK Documentation](../docs/README.md).
+## 🆘 Get Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs)
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](../LICENSE) file for details.
