@@ -30,14 +30,13 @@ def main():
         # Initialize the AgentBay client
         agent_bay = AgentBay(api_key=api_key)
 
-        # Create a new session with labels
+        # Create a new session with labels (recommended approach)
         print("\nCreating a new session with labels...")
-        params = CreateSessionParams()
-        params.labels = {
+        params = CreateSessionParams(labels={
             "purpose": "demo",
             "feature": "label-management",
             "version": "1.0",
-        }
+        })
         session_result = agent_bay.create(params)
         session1 = session_result.session
         print(f"Session created with ID: {session1.session_id}")
@@ -49,14 +48,13 @@ def main():
         print(f"Session labels: {labels_result.data}")
         print(f"Request ID: {labels_result.request_id}")
 
-        # Create another session with different labels
+        # Create another session with different labels (recommended approach)
         print("\nCreating another session with different labels...")
-        params = CreateSessionParams()
-        params.labels = {
+        params = CreateSessionParams(labels={
             "purpose": "demo",
             "feature": "other-feature",
             "version": "2.0",
-        }
+        })
         session_result = agent_bay.create(params)
         session2 = session_result.session
         print(f"Session created with ID: {session2.session_id}")

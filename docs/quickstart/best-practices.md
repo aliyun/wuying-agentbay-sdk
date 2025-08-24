@@ -224,18 +224,21 @@ result = session.command.execute_command(f"cat {filename}")  # Will fail
 
 ### 12. Use Labels for Session Organization
 ```python
-# ✅ Create sessions with meaningful labels
-session = agent_bay.create({
-    'labels': {
-        'project': 'web-scraper',
-        'environment': 'development',
-        'owner': 'john.doe'
-    }
-}).session
+from agentbay.session_params import CreateSessionParams
+
+# ✅ Create sessions with meaningful labels (recommended approach)
+params = CreateSessionParams(labels={
+    'project': 'web-scraper',
+    'environment': 'development',
+    'owner': 'john.doe'
+})
+session = agent_bay.create(params).session
 
 # ✅ Find sessions by labels
 sessions = agent_bay.list_by_labels({'project': 'web-scraper'})
 ```
+
+**Note**: While you can pass labels directly as a dictionary to the `create()` method, using `CreateSessionParams` is the recommended approach for better type safety and clarity.
 
 ### 13. Clean Up Sessions When Done
 ```python
@@ -285,28 +288,138 @@ if hasattr(result, 'success') and result.success:
 
 ### 15. Use Context for Data Persistence
 ```python
-# ✅ Save important data to context
-# Note: Direct context methods may vary, use file-based persistence as alternative
-session.command.execute_command("mkdir -p ~/context")
-session.command.execute_command("echo '{\"theme\": \"dark\", \"language\": \"en\"}' > ~/context/user_preferences.json")
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.context_sync import ContextSync, SyncPolicy
 
-# ✅ Retrieve data in another session
-result = session.command.execute_command("cat ~/context/user_preferences.json")
-preferences = getattr(result, 'output', result)
+# ✅ Create a context for data persistence across sessions
+agent_bay = AgentBay()
+
+# Create a named context for persistence
+context_name = "my-persistent-context"
+context_result = agent_bay.context.create(context_name)
+if context_result.success:
+    context_id = context_result.context_id
+    print(f"Context created with ID: {context_id}")
+
+# ✅ Save important data to context in first session
+# Create context sync configuration
+context_sync = ContextSync.new(
+    context_id,
+    '/tmp/shared_data',
+    SyncPolicy.default()
+)
+
+# Create session with context sync
+session_params = CreateSessionParams()
+session_params.context_syncs = [context_sync]
+
+session_result = agent_bay.create(session_params)
+if session_result.success:
+    session1 = session_result.session
+    
+    # Create and save data in the context
+    session1.command.execute_command("mkdir -p /tmp/shared_data")
+    session1.command.execute_command("echo '{\"theme\": \"dark\", \"language\": \"en\", \"version\": \"1.0\"}' > /tmp/shared_data/user_preferences.json")
+    
+    # Session cleanup with automatic context sync
+    agent_bay.delete(session1, sync_context=True)
+
+# ✅ Retrieve data in another session using the same context
+# Create a new session with the same context
+context_sync2 = ContextSync.new(
+    context_id,
+    '/tmp/shared_data',
+    SyncPolicy.default()
+)
+
+session_params2 = CreateSessionParams()
+session_params2.context_syncs = [context_sync2]
+
+session_result2 = agent_bay.create(session_params2)
+if session_result2.success:
+    session2 = session_result2.session
+    
+    # Retrieve the data that was saved in the first session
+    result = session2.command.execute_command("cat /tmp/shared_data/user_preferences.json")
+    if hasattr(result, 'success') and result.success:
+        preferences = getattr(result, 'output', result)
+        print(f"Retrieved preferences: {preferences.strip()}")
+    
+    # Clean up
+    agent_bay.delete(session2, sync_context=True)
+
+# Clean up context when no longer needed
+agent_bay.context.delete(context_id)
 ```
 
 ### 16. Sync Context When Needed
 ```python
-# ✅ Sync context before important operations
-result = session.context.sync()
-if hasattr(result, 'success') and result.success:
-    print("Context sync initiated successfully")
-else:
-    print(f"Failed to sync context: {getattr(result, 'error_message', 'Unknown error')}")
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.context_sync import ContextSync, SyncPolicy
 
-# ✅ Use file-based persistence as alternative to context
-session.command.execute_command("cp -r ~/data ~/persistent_data")
-```
+# ✅ Create a session with context sync
+agent_bay = AgentBay()
+
+# Create a context for synchronization
+context_name = "sync-context-example"
+context_result = agent_bay.context.create(context_name)
+if context_result.success:
+    context_id = context_result.context_id
+    print(f"Context created with ID: {context_id}")
+
+# Create session with context sync configuration
+context_sync = ContextSync.new(
+    context_id,
+    '/tmp/workspace',
+    SyncPolicy.default()
+)
+
+session_params = CreateSessionParams()
+session_params.context_syncs = [context_sync]
+
+session_result = agent_bay.create(session_params)
+if session_result.success:
+    session = session_result.session
+    
+    # Perform some operations that modify the context
+    session.command.execute_command("mkdir -p /tmp/workspace/project")
+    session.command.execute_command("echo 'Initial data' > /tmp/workspace/project/data.txt")
+    
+    # ✅ Sync context before important operations or session termination
+    # This ensures all local changes are uploaded to the persistent context storage
+    sync_result = session.context.sync()
+    if hasattr(sync_result, 'success') and sync_result.success:
+        print("Context sync initiated successfully")
+        
+        # Wait for sync to complete by checking context info
+        import time
+        max_attempts = 30
+        attempt = 0
+        while attempt < max_attempts:
+            context_info = session.context.info()
+            if context_info and hasattr(context_info, 'context_status_data'):
+                status_data = context_info.context_status_data
+                if status_data and len(status_data) > 0:
+                    task_status = status_data[0].status
+                    if task_status == "Success":
+                        print("Context sync completed successfully")
+                        break
+                    elif task_status == "Failed":
+                        print("Context sync failed")
+                        break
+            attempt += 1
+            time.sleep(2)
+    else:
+        error_msg = getattr(sync_result, 'error_message', 'Unknown error')
+        print(f"Failed to sync context: {error_msg}")
+    
+    # Clean up session
+    agent_bay.delete(session)
+
+# Clean up context
+agent_bay.context.delete(context_id)
 ```
 
 ## 🚨 Common Pitfalls to Avoid
