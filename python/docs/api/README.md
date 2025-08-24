@@ -1,88 +1,88 @@
-# AgentBay Python SDK API 参考
+# AgentBay Python SDK API Reference
 
-本文档提供了AgentBay Python SDK的完整API参考。
+This document provides a complete API reference for the AgentBay Python SDK.
 
-## 📚 模块概览
+## 📚 Module Overview
 
-| 模块 | 描述 | 主要类/函数 |
-|------|------|-------------|
-| [agentbay](#agentbay) | 主客户端类 | `AgentBay` |
-| [session](#session) | 会话管理 | `Session` |
-| [command](#command) | 命令执行 | `CommandExecutor` |
-| [code](#code) | 代码执行 | `CodeExecutor` |
-| [filesystem](#filesystem) | 文件系统操作 | `FileSystemManager` |
-| [ui](#ui) | UI自动化 | `UIAutomation` |
-| [context](#context) | 上下文管理 | `ContextManager` |
-| [browser](#browser) | 浏览器自动化 | `BrowserAutomation` |
+| Module | Description | Main Classes/Functions |
+|--------|-------------|------------------------|
+| [agentbay](#agentbay) | Main client class | `AgentBay` |
+| [session](#session) | Session management | `Session` |
+| [command](#command) | Command execution | `CommandExecutor` |
+| [code](#code) | Code execution | `CodeExecutor` |
+| [filesystem](#filesystem) | File system operations | `FileSystemManager` |
+| [ui](#ui) | UI automation | `UIAutomation` |
+| [context](#context) | Context management | `ContextManager` |
+| [browser](#browser) | Browser automation | `BrowserAutomation` |
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
 ```python
 from agentbay import AgentBay
 
-# 初始化客户端
+# Initialize client
 agent_bay = AgentBay()
 
-# 创建会话
+# Create session
 session_result = agent_bay.create()
 session = session_result.session
 
-# 执行命令
+# Execute command
 result = session.command.execute("ls -la")
 print(result.data.stdout)
 
-# 清理会话
+# Clean up session
 agent_bay.destroy(session.session_id)
 ```
 
 ## AgentBay
 
-主客户端类，提供会话管理和高级功能。
+Main client class that provides session management and advanced features.
 
-### 构造函数
+### Constructor
 
 ```python
 AgentBay(api_key: Optional[str] = None, config: Optional[Dict] = None)
 ```
 
-**参数:**
-- `api_key` (str, optional): API密钥，默认从环境变量`AGENTBAY_API_KEY`获取
-- `config` (dict, optional): 客户端配置
+**Parameters:**
+- `api_key` (str, optional): API key, defaults to `AGENTBAY_API_KEY` environment variable
+- `config` (dict, optional): Client configuration
 
-**示例:**
+**Examples:**
 ```python
-# 使用环境变量中的API密钥
+# Use API key from environment variable
 agent_bay = AgentBay()
 
-# 显式指定API密钥
+# Explicitly specify API key
 agent_bay = AgentBay(api_key="your-api-key")
 
-# 带配置
+# With configuration
 agent_bay = AgentBay(config={"timeout": 30})
 ```
 
-### 方法
+### Methods
 
 #### create()
 
-创建新的会话。
+Create a new session.
 
 ```python
 create(params: Optional[CreateSessionParams] = None) -> CreateSessionResult
 ```
 
-**参数:**
-- `params` (CreateSessionParams, optional): 会话创建参数
+**Parameters:**
+- `params` (CreateSessionParams, optional): Session creation parameters
 
-**返回:**
-- `CreateSessionResult`: 包含会话对象或错误信息
+**Returns:**
+- `CreateSessionResult`: Contains session object or error information
 
-**示例:**
+**Examples:**
 ```python
-# 创建默认会话
+# Create default session
 result = agent_bay.create()
 
-# 创建带参数的会话
+# Create session with parameters
 params = CreateSessionParams(
     image="ubuntu:20.04",
     labels={"project": "demo"}
@@ -92,103 +92,103 @@ result = agent_bay.create(params)
 
 #### destroy()
 
-销毁指定会话。
+Destroy the specified session.
 
 ```python
 destroy(session_id: str) -> DestroySessionResult
 ```
 
-**参数:**
-- `session_id` (str): 会话ID
+**Parameters:**
+- `session_id` (str): Session ID
 
-**返回:**
-- `DestroySessionResult`: 销毁结果
+**Returns:**
+- `DestroySessionResult`: Destruction result
 
 #### list()
 
-列出所有会话。
+List all sessions.
 
 ```python
 list(params: Optional[ListSessionParams] = None) -> ListSessionResult
 ```
 
-**参数:**
-- `params` (ListSessionParams, optional): 列表查询参数
+**Parameters:**
+- `params` (ListSessionParams, optional): List query parameters
 
-**返回:**
-- `ListSessionResult`: 会话列表
+**Returns:**
+- `ListSessionResult`: Session list
 
 ## Session
 
-会话对象，提供对各种功能模块的访问。
+Session object that provides access to various functional modules.
 
-### 属性
+### Properties
 
-- `session_id` (str): 会话唯一标识符
-- `status` (str): 会话状态
-- `created_at` (datetime): 创建时间
-- `command` (CommandExecutor): 命令执行器
-- `code` (CodeExecutor): 代码执行器
-- `file_system` (FileSystemManager): 文件系统管理器
-- `ui` (UIAutomation): UI自动化
-- `context_sync` (ContextSync): 上下文同步
-- `browser` (BrowserAutomation): 浏览器自动化
+- `session_id` (str): Unique session identifier
+- `status` (str): Session status
+- `created_at` (datetime): Creation time
+- `command` (CommandExecutor): Command executor
+- `code` (CodeExecutor): Code executor
+- `file_system` (FileSystemManager): File system manager
+- `ui` (UIAutomation): UI automation
+- `context_sync` (ContextSync): Context synchronization
+- `browser` (BrowserAutomation): Browser automation
 
 ## CommandExecutor
 
-命令执行功能。
+Command execution functionality.
 
 ### execute()
 
-执行Shell命令。
+Execute Shell commands.
 
 ```python
 execute(command: str, timeout: Optional[int] = None, input_data: Optional[str] = None) -> CommandResult
 ```
 
-**参数:**
-- `command` (str): 要执行的命令
-- `timeout` (int, optional): 超时时间（秒）
-- `input_data` (str, optional): 输入数据
+**Parameters:**
+- `command` (str): Command to execute
+- `timeout` (int, optional): Timeout in seconds
+- `input_data` (str, optional): Input data
 
-**返回:**
-- `CommandResult`: 命令执行结果
+**Returns:**
+- `CommandResult`: Command execution result
 
-**示例:**
+**Examples:**
 ```python
-# 基本命令执行
+# Basic command execution
 result = session.command.execute("ls -la")
 
-# 带超时
+# With timeout
 result = session.command.execute("long_running_task", timeout=60)
 
-# 交互式命令
+# Interactive command
 result = session.command.execute("python3", input_data="print('hello')\nexit()\n")
 ```
 
 ## CodeExecutor
 
-代码执行功能。
+Code execution functionality.
 
 ### run_code()
 
-执行指定语言的代码。
+Execute code in the specified language.
 
 ```python
 run_code(code: str, language: str, timeout: Optional[int] = None) -> CodeResult
 ```
 
-**参数:**
-- `code` (str): 要执行的代码
-- `language` (str): 编程语言 ("python", "javascript", "go")
-- `timeout` (int, optional): 超时时间（秒）
+**Parameters:**
+- `code` (str): Code to execute
+- `language` (str): Programming language ("python", "javascript", "go")
+- `timeout` (int, optional): Timeout in seconds
 
-**返回:**
-- `CodeResult`: 代码执行结果
+**Returns:**
+- `CodeResult`: Code execution result
 
-**示例:**
+**Examples:**
 ```python
-# Python代码
+# Python code
 python_code = """
 print("Hello from Python!")
 result = 2 + 2
@@ -196,7 +196,7 @@ print(f"2 + 2 = {result}")
 """
 result = session.code.run_code(python_code, "python")
 
-# JavaScript代码
+# JavaScript code
 js_code = """
 console.log("Hello from JavaScript!");
 const result = 2 + 2;
@@ -207,11 +207,11 @@ result = session.code.run_code(js_code, "javascript")
 
 ## FileSystemManager
 
-文件系统操作功能。
+File system operations functionality.
 
 ### read_file()
 
-读取文件内容。
+Read file content.
 
 ```python
 read_file(file_path: str) -> FileReadResult
@@ -219,7 +219,7 @@ read_file(file_path: str) -> FileReadResult
 
 ### write_file()
 
-写入文件内容。
+Write file content.
 
 ```python
 write_file(file_path: str, content: str, encoding: str = "utf-8") -> FileWriteResult
@@ -227,7 +227,7 @@ write_file(file_path: str, content: str, encoding: str = "utf-8") -> FileWriteRe
 
 ### delete_file()
 
-删除文件。
+Delete file.
 
 ```python
 delete_file(file_path: str) -> FileDeleteResult
@@ -235,22 +235,22 @@ delete_file(file_path: str) -> FileDeleteResult
 
 ### list_directory()
 
-列出目录内容。
+List directory contents.
 
 ```python
 list_directory(directory_path: str) -> DirectoryListResult
 ```
 
-**示例:**
+**Examples:**
 ```python
-# 写入文件
+# Write file
 result = session.file_system.write_file("/tmp/test.txt", "Hello World!")
 
-# 读取文件
+# Read file
 result = session.file_system.read_file("/tmp/test.txt")
 print(result.data)  # "Hello World!"
 
-# 列出目录
+# List directory
 result = session.file_system.list_directory("/tmp")
 for file in result.data:
     print(f"{file.name} ({file.size} bytes)")
@@ -258,11 +258,11 @@ for file in result.data:
 
 ## UIAutomation
 
-UI自动化功能。
+UI automation functionality.
 
 ### screenshot()
 
-获取屏幕截图。
+Take screenshot.
 
 ```python
 screenshot() -> ScreenshotResult
@@ -270,7 +270,7 @@ screenshot() -> ScreenshotResult
 
 ### click()
 
-模拟鼠标点击。
+Simulate mouse click.
 
 ```python
 click(x: int, y: int) -> ClickResult
@@ -278,7 +278,7 @@ click(x: int, y: int) -> ClickResult
 
 ### type()
 
-模拟键盘输入。
+Simulate keyboard input.
 
 ```python
 type(text: str) -> TypeResult
@@ -286,20 +286,20 @@ type(text: str) -> TypeResult
 
 ### key()
 
-模拟按键。
+Simulate key press.
 
 ```python
 key(key_name: str) -> KeyResult
 ```
 
-**示例:**
+**Examples:**
 ```python
-# 截图
+# Screenshot
 screenshot = session.ui.screenshot()
 with open("screenshot.png", "wb") as f:
     f.write(screenshot.data)
 
-# 鼠标和键盘操作
+# Mouse and keyboard operations
 session.ui.click(100, 200)
 session.ui.type("Hello AgentBay!")
 session.ui.key("Enter")
@@ -307,11 +307,11 @@ session.ui.key("Enter")
 
 ## ContextManager
 
-上下文管理功能。
+Context management functionality.
 
 ### get()
 
-获取或创建上下文。
+Get or create context.
 
 ```python
 get(name: str, create: bool = False) -> ContextResult
@@ -319,7 +319,7 @@ get(name: str, create: bool = False) -> ContextResult
 
 ### upload_file()
 
-上传文件到上下文。
+Upload file to context.
 
 ```python
 upload_file(context_id: str, file_path: str, content: str) -> UploadResult
@@ -327,40 +327,40 @@ upload_file(context_id: str, file_path: str, content: str) -> UploadResult
 
 ### download_file()
 
-从上下文下载文件。
+Download file from context.
 
 ```python
 download_file(context_id: str, file_path: str) -> DownloadResult
 ```
 
-**示例:**
+**Examples:**
 ```python
-# 获取上下文
+# Get context
 context_result = agent_bay.context.get("my-project", create=True)
 context = context_result.context
 
-# 上传文件
+# Upload file
 agent_bay.context.upload_file(context.id, "/config.json", '{"version": "1.0"}')
 
-# 下载文件
+# Download file
 result = agent_bay.context.download_file(context.id, "/config.json")
 print(result.data)
 ```
 
-## 错误处理
+## Error Handling
 
-所有API调用都返回结果对象，包含`is_error`属性和可能的错误信息。
+All API calls return result objects that contain `is_error` property and possible error information.
 
 ```python
 result = session.command.execute("invalid_command")
 if result.is_error:
-    print(f"错误: {result.error}")
-    print(f"错误代码: {result.error_code}")
+    print(f"Error: {result.error}")
+    print(f"Error code: {result.error_code}")
 else:
-    print(f"成功: {result.data}")
+    print(f"Success: {result.data}")
 ```
 
-## 类型定义
+## Type Definitions
 
 ### CreateSessionParams
 
@@ -407,12 +407,12 @@ class CodeData:
     execution_time: float
 ```
 
-## 相关资源
+## Related Resources
 
-- [功能指南](../../../docs/guides/) - 详细的功能使用指南
-- [示例代码](../examples/) - 完整的示例代码
-- [故障排除](../../../docs/quickstart/troubleshooting.md) - 常见问题解决
+- [Feature Guides](../../../docs/guides/) - Detailed feature usage guides
+- [Example Code](../examples/) - Complete example code
+- [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
 ---
 
-💡 **提示**: 这是Python SDK的API参考。其他语言的API可能略有不同，请参考对应语言的文档。 
+💡 **Tip**: This is the Python SDK API reference. APIs for other languages may differ slightly, please refer to the documentation for the corresponding language.

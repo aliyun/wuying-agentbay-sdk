@@ -1,70 +1,70 @@
 # Installation and Configuration
 
-## 环境要求
+## System Requirements
 
 ### Python
 - Python 3.8+
-- pip 或 poetry
+- pip or poetry
 
 ### TypeScript/JavaScript
 - Node.js 14+
-- npm 或 yarn
+- npm or yarn
 
 ### Golang
 - Go 1.18+
 
-## 安装SDK
+## Installing the SDK
 
 ### Python
 ```bash
-# 使用pip安装
+# Install using pip
 pip install wuying-agentbay-sdk
 
-# 验证安装
-python -c "import agentbay; print('安装成功')"
+# Verify installation
+python -c "import agentbay; print('Installation successful')"
 ```
 
 ### TypeScript
 ```bash
-# 使用npm安装
+# Install using npm
 npm install wuying-agentbay-sdk
 
-# 验证安装
-node -e "const {AgentBay} = require('wuying-agentbay-sdk'); console.log('安装成功')"
+# Verify installation
+node -e "const {AgentBay} = require('wuying-agentbay-sdk'); console.log('Installation successful')"
 ```
 
 ### Golang
 ```bash
-# 安装包
+# Install the package
 go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 
-# 验证安装（创建测试文件）
+# Verify installation (create test file)
 echo 'package main
 import "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-func main() { println("安装成功") }' > test.go
+func main() { println("Installation successful") }' > test.go
 go run test.go
 rm test.go
 ```
 
-## 获取API密钥
+## Getting API Keys
 
-### 步骤1：注册阿里云账号
-访问 [https://aliyun.com](https://aliyun.com) 注册账号
+### Step 1: Register an Alibaba Cloud Account
+Visit [https://aliyun.com](https://aliyun.com) to register an account
 
-### 步骤2：获取API密钥
-1. 登录 [AgentBay控制台](https://agentbay.console.aliyun.com/service-management)
-2. 在服务管理页面找到API密钥管理
-3. 创建新的API密钥
-4. 复制密钥备用
+### Step 2: Obtain API Keys
+1. Log in to the [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+2. Find API Key Management in the Service Management page
+3. Create a new API key
+4. Copy the key for later use
 
-## 配置API密钥
+## Configuring API Keys
 
-### 方式1：环境变量（推荐）
+### Method 1: Environment Variables (Recommended)
 ```bash
 export AGENTBAY_API_KEY=your_api_key_here
 ```
 
-### 方式2：代码中设置
+### Method 2: Setting in Code
 ```python
 # Python
 from agentbay import AgentBay
@@ -82,9 +82,9 @@ const agentBay = new AgentBay({ apiKey: 'your_api_key_here' });
 client, err := agentbay.NewAgentBay("your_api_key_here", nil)
 ```
 
-## 验证配置
+## Verifying Configuration
 
-创建一个简单的测试程序验证一切正常：
+Create a simple test program to verify everything is working:
 
 ### Python Test
 ```python
@@ -193,8 +193,8 @@ func main() {
 }
 ```
 
-## 🎉 安装完成！
+## 🎉 Installation Complete!
 
-如果上面的测试都通过了，恭喜你已经成功安装并配置了AgentBay SDK！
+If all the above tests pass, congratulations! You have successfully installed and configured the AgentBay SDK!
 
-下一步：[理解基本概念](basic-concepts.md) 
+Next step: [Understanding Basic Concepts](basic-concepts.md) 

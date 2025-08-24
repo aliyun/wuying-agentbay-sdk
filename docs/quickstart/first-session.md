@@ -1,198 +1,198 @@
-# 创建你的第一个会话
+# Create Your First Session
 
-现在让我们通过实际代码来体验AgentBay的核心功能。
+Now let's experience the core features of AgentBay through actual code.
 
-## 🎯 本节目标
+## 🎯 Objectives
 
-- 创建你的第一个云端会话
-- 执行基本的文件和命令操作
-- 理解会话的工作方式
+- Create your first cloud session
+- Perform basic file and command operations
+- Understand how sessions work
 
-## 📝 完整示例
+## 📝 Complete Example
 
-选择你熟悉的语言跟着做：
+Choose the language you're familiar with to follow along:
 
-### Python版本
+### Python Version
 
 ```python
 from agentbay import AgentBay
 
 def main():
-    # 1. 初始化AgentBay客户端
-    print("🚀 初始化AgentBay...")
+    # 1. Initialize AgentBay client
+    print("🚀 Initializing AgentBay...")
     agent_bay = AgentBay()
     
-    # 2. 创建新会话
-    print("📱 创建新会话...")
+    # 2. Create new session
+    print("📱 Creating new session...")
     
-    # 可以选择不同的镜像类型
+    # You can choose different image types
     from agentbay.session_params import CreateSessionParams
     
-    # 默认Linux镜像
+    # Default Linux image
     result = agent_bay.create()
     
-    # 或者指定特定镜像
+    # Or specify specific image
     # linux_params = CreateSessionParams(image_id="linux_latest")
     # windows_params = CreateSessionParams(image_id="windows_latest") 
     # android_params = CreateSessionParams(image_id="android_latest")
     # result = agent_bay.create(linux_params)
     
     if not result.success:
-        print(f"❌ 创建会话失败: {result.error}")
+        print(f"❌ Session creation failed: {result.error}")
         return
     
     session = result.session
-    print(f"✅ 会话创建成功，ID: {session.session_id}")
-    print(f"   镜像类型: {getattr(session, 'image_id', '默认Linux')}")
+    print(f"✅ Session created successfully, ID: {session.session_id}")
+    print(f"   Image type: {getattr(session, 'image_id', 'Default Linux')}")
     
-    # 3. 执行基本命令
-    print("\n💻 执行命令...")
+    # 3. Execute basic commands
+    print("\n💻 Executing commands...")
     
-    # 查看当前目录
+    # Check current directory
     cmd_result = session.command.execute("pwd")
-    print(f"当前目录: {cmd_result.data.stdout.strip()}")
+    print(f"Current directory: {cmd_result.data.stdout.strip()}")
     
-    # 查看系统信息
+    # Check system information
     cmd_result = session.command.execute("uname -a")
-    print(f"系统信息: {cmd_result.data.stdout.strip()}")
+    print(f"System info: {cmd_result.data.stdout.strip()}")
     
-    # 列出文件
+    # List files
     cmd_result = session.command.execute("ls -la /tmp")
-    print(f"临时目录内容:\n{cmd_result.data.stdout}")
+    print(f"Temporary directory contents:\n{cmd_result.data.stdout}")
     
-    # 4. 文件操作
-    print("\n📁 文件操作...")
+    # 4. File operations
+    print("\n📁 File operations...")
     
-    # 创建文件
-    content = f"Hello from AgentBay!\n创建时间: {session.session_id}"
+    # Create file
+    content = f"Hello from AgentBay!\nCreated at: {session.session_id}"
     write_result = session.file_system.write_file("/tmp/hello.txt", content)
     
     if write_result.success:
-        print("✅ 文件写入成功")
+        print("✅ File written successfully")
     else:
-        print(f"❌ 文件写入失败: {write_result.error}")
+        print(f"❌ File write failed: {write_result.error}")
         return
     
-    # 读取文件
+    # Read file
     read_result = session.file_system.read_file("/tmp/hello.txt")
     if read_result.success:
-        print(f"📖 文件内容:\n{read_result.data}")
+        print(f"📖 File content:\n{read_result.data}")
     else:
-        print(f"❌ 文件读取失败: {read_result.error}")
+        print(f"❌ File read failed: {read_result.error}")
     
-    # 5. 创建目录和多个文件
-    print("\n📂 创建目录结构...")
+    # 5. Create directory and multiple files
+    print("\n📂 Creating directory structure...")
     
-    # 创建目录
+    # Create directory
     session.command.execute("mkdir -p /tmp/my_project/data")
     
-    # 创建多个文件
+    # Create multiple files
     files_to_create = {
-        "/tmp/my_project/README.md": "# 我的第一个AgentBay项目\n\n这是一个测试项目。",
+        "/tmp/my_project/README.md": "# My First AgentBay Project\n\nThis is a test project.",
         "/tmp/my_project/data/config.json": '{"name": "test", "version": "1.0"}',
         "/tmp/my_project/script.py": 'print("Hello from Python in the cloud!")'
     }
     
     for file_path, file_content in files_to_create.items():
         session.file_system.write_file(file_path, file_content)
-        print(f"✅ 创建文件: {file_path}")
+        print(f"✅ Created file: {file_path}")
     
-    # 查看目录结构
+    # View directory structure
     tree_result = session.command.execute("find /tmp/my_project -type f")
-    print(f"\n📋 项目文件列表:\n{tree_result.data.stdout}")
+    print(f"\n📋 Project file list:\n{tree_result.data.stdout}")
     
-    # 6. 运行Python脚本
-    print("\n🐍 运行Python脚本...")
+    # 6. Run Python script
+    print("\n🐍 Running Python script...")
     python_result = session.command.execute("python3 /tmp/my_project/script.py")
-    print(f"脚本输出: {python_result.data.stdout.strip()}")
+    print(f"Script output: {python_result.data.stdout.strip()}")
     
-    # 7. 网络操作示例
-    print("\n🌐 网络操作...")
+    # 7. Network operations example
+    print("\n🌐 Network operations...")
     curl_result = session.command.execute("curl -s https://httpbin.org/json")
-    print(f"网络请求结果: {curl_result.data.stdout[:100]}...")
+    print(f"Network request result: {curl_result.data.stdout[:100]}...")
     
-    print(f"\n🎉 恭喜！你已经成功完成了第一个AgentBay会话")
-    print(f"会话ID: {session.session_id}")
-    print("💡 提示: 会话会在一段时间后自动清理，文件会丢失")
+    print(f"\n🎉 Congratulations! You have successfully completed your first AgentBay session")
+    print(f"Session ID: {session.session_id}")
+    print("💡 Tip: Sessions will be automatically cleaned up after a period of time, files will be lost")
 
 if __name__ == "__main__":
     main()
 ```
 
-### TypeScript版本
+### TypeScript Version
 
 ```typescript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
 async function main() {
-    // 1. 初始化AgentBay客户端
-    console.log("🚀 初始化AgentBay...");
+    // 1. Initialize AgentBay client
+    console.log("🚀 Initializing AgentBay...");
     const agentBay = new AgentBay();
     
-    // 2. 创建新会话
-    console.log("📱 创建新会话...");
+    // 2. Create new session
+    console.log("📱 Creating new session...");
     const result = await agentBay.create();
     
     if (!result.success) {
-        console.log(`❌ 创建会话失败: ${result.error}`);
+        console.log(`❌ Session creation failed: ${result.error}`);
         return;
     }
     
     const session = result.session;
-    console.log(`✅ 会话创建成功，ID: ${session.sessionId}`);
+    console.log(`✅ Session created successfully, ID: ${session.sessionId}`);
     
-    // 3. 执行基本命令
-    console.log("\n💻 执行命令...");
+    // 3. Execute basic commands
+    console.log("\n💻 Executing commands...");
     
-    // 查看当前目录
+    // Check current directory
     let cmdResult = await session.command.execute("pwd");
-    console.log(`当前目录: ${cmdResult.data.stdout.trim()}`);
+    console.log(`Current directory: ${cmdResult.data.stdout.trim()}`);
     
-    // 查看系统信息
+    // Check system information
     cmdResult = await session.command.execute("uname -a");
-    console.log(`系统信息: ${cmdResult.data.stdout.trim()}`);
+    console.log(`System info: ${cmdResult.data.stdout.trim()}`);
     
-    // 4. 文件操作
-    console.log("\n📁 文件操作...");
+    // 4. File operations
+    console.log("\n📁 File operations...");
     
-    // 创建文件
-    const content = `Hello from AgentBay!\n创建时间: ${session.sessionId}`;
+    // Create file
+    const content = `Hello from AgentBay!\nCreated at: ${session.sessionId}`;
     const writeResult = await session.fileSystem.writeFile("/tmp/hello.txt", content);
     
     if (writeResult.success) {
-        console.log("✅ 文件写入成功");
+        console.log("✅ File written successfully");
     } else {
-        console.log(`❌ 文件写入失败: ${writeResult.error}`);
+        console.log(`❌ File write failed: ${writeResult.error}`);
         return;
     }
     
-    // 读取文件
+    // Read file
     const readResult = await session.fileSystem.readFile("/tmp/hello.txt");
     if (readResult.success) {
-        console.log(`📖 文件内容:\n${readResult.data}`);
+        console.log(`📖 File content:\n${readResult.data}`);
     }
     
-    // 5. 运行Node.js代码
-    console.log("\n🟢 运行Node.js脚本...");
+    // 5. Run Node.js code
+    console.log("\n🟢 Running Node.js script...");
     
-    // 创建Node.js脚本
+    // Create Node.js script
     const nodeScript = `
 console.log("Hello from Node.js in the cloud!");
-console.log("当前时间:", new Date().toISOString());
+console.log("Current time:", new Date().toISOString());
 `;
     
     await session.fileSystem.writeFile("/tmp/script.js", nodeScript);
     const nodeResult = await session.command.execute("node /tmp/script.js");
-    console.log(`脚本输出: ${nodeResult.data.stdout}`);
+    console.log(`Script output: ${nodeResult.data.stdout}`);
     
-    console.log(`\n🎉 恭喜！你已经成功完成了第一个AgentBay会话`);
-    console.log(`会话ID: ${session.sessionId}`);
+    console.log(`\n🎉 Congratulations! You have successfully completed your first AgentBay session`);
+    console.log(`Session ID: ${session.sessionId}`);
 }
 
 main().catch(console.error);
 ```
 
-### Golang版本
+### Golang Version
 
 ```go
 package main
@@ -203,131 +203,131 @@ import (
 )
 
 func main() {
-    // 1. 初始化AgentBay客户端
-    fmt.Println("🚀 初始化AgentBay...")
+    // 1. Initialize AgentBay client
+    fmt.Println("🚀 Initializing AgentBay...")
     client, err := agentbay.NewAgentBay("", nil)
     if err != nil {
-        fmt.Printf("❌ 初始化失败: %v\n", err)
+        fmt.Printf("❌ Initialization failed: %v\n", err)
         return
     }
     
-    // 2. 创建新会话
-    fmt.Println("📱 创建新会话...")
+    // 2. Create new session
+    fmt.Println("📱 Creating new session...")
     result, err := client.Create(nil)
     if err != nil {
-        fmt.Printf("❌ 创建会话失败: %v\n", err)
+        fmt.Printf("❌ Session creation failed: %v\n", err)
         return
     }
     
     session := result.Session
-    fmt.Printf("✅ 会话创建成功，ID: %s\n", session.SessionID)
+    fmt.Printf("✅ Session created successfully, ID: %s\n", session.SessionID)
     
-    // 3. 执行基本命令
-    fmt.Println("\n💻 执行命令...")
+    // 3. Execute basic commands
+    fmt.Println("\n💻 Executing commands...")
     
-    // 查看当前目录
+    // Check current directory
     cmdResult, err := session.Command.ExecuteCommand("pwd")
     if err == nil {
-        fmt.Printf("当前目录: %s", cmdResult.Output)
+        fmt.Printf("Current directory: %s", cmdResult.Output)
     }
     
-    // 4. 文件操作
-    fmt.Println("\n📁 文件操作...")
+    // 4. File operations
+    fmt.Println("\n📁 File operations...")
     
-    // 创建文件
-    content := fmt.Sprintf("Hello from AgentBay!\n创建时间: %s", session.SessionID)
+    // Create file
+    content := fmt.Sprintf("Hello from AgentBay!\nCreated at: %s", session.SessionID)
     _, err = session.FileSystem.WriteFile("/tmp/hello.txt", []byte(content))
     
     if err != nil {
-        fmt.Printf("❌ 文件写入失败: %v\n", err)
+        fmt.Printf("❌ File write failed: %v\n", err)
         return
     }
     
-    fmt.Println("✅ 文件写入成功")
+    fmt.Println("✅ File written successfully")
     
-    // 读取文件
+    // Read file
     readResult, err := session.FileSystem.ReadFile("/tmp/hello.txt")
     if err == nil {
-        fmt.Printf("📖 文件内容:\n%s\n", string(readResult.Data))
+        fmt.Printf("📖 File content:\n%s\n", string(readResult.Data))
     }
     
-    // 5. 运行Go代码
-    fmt.Println("\n🔵 运行Go脚本...")
+    // 5. Run Go code
+    fmt.Println("\n🔵 Running Go script...")
     
-    // 创建Go脚本
+    // Create Go script
     goScript := `package main
 import "fmt"
 import "time"
 func main() {
     fmt.Println("Hello from Go in the cloud!")
-    fmt.Println("当前时间:", time.Now().Format("2006-01-02 15:04:05"))
+    fmt.Println("Current time:", time.Now().Format("2006-01-02 15:04:05"))
 }`
     
     session.FileSystem.WriteFile("/tmp/script.go", []byte(goScript))
     goResult, _ := session.Command.ExecuteCommand("cd /tmp && go run script.go")
-    fmt.Printf("脚本输出: %s", goResult.Output)
+    fmt.Printf("Script output: %s", goResult.Output)
     
-    fmt.Printf("\n🎉 恭喜！你已经成功完成了第一个AgentBay会话\n")
-    fmt.Printf("会话ID: %s\n", session.SessionID)
+    fmt.Printf("\n🎉 Congratulations! You have successfully completed your first AgentBay session\n")
+    fmt.Printf("Session ID: %s\n", session.SessionID)
 }
 ```
 
-## 🔍 代码解析
+## 🔍 Code Explanation
 
-### 1. 初始化客户端
+### 1. Initialize Client
 ```python
-agent_bay = AgentBay()  # 自动从环境变量读取API密钥
+agent_bay = AgentBay()  # Automatically reads API key from environment variables
 ```
 
-### 2. 创建会话
+### 2. Create Session
 ```python
-result = agent_bay.create()  # 返回结果对象
-session = result.session     # 获取会话实例
+result = agent_bay.create()  # Returns result object
+session = result.session     # Get session instance
 ```
 
-### 3. 命令执行
+### 3. Command Execution
 ```python
 cmd_result = session.command.execute("ls -la")
-print(cmd_result.data.stdout)    # 标准输出
-print(cmd_result.data.stderr)    # 错误输出
-print(cmd_result.data.exit_code) # 退出码
+print(cmd_result.data.stdout)    # Standard output
+print(cmd_result.data.stderr)    # Error output
+print(cmd_result.data.exit_code) # Exit code
 ```
 
-### 4. 文件操作
+### 4. File Operations
 ```python
-# 写入
+# Write
 session.file_system.write_file(path, content)
 
-# 读取
+# Read
 result = session.file_system.read_file(path)
 content = result.data
 ```
 
-## 🎯 运行这个示例
+## 🎯 Run This Example
 
-1. 确保已经安装SDK并配置API密钥
-2. 将代码保存为文件（如`first_session.py`）
-3. 运行：`python first_session.py`
+1. Ensure you have installed the SDK and configured the API key
+2. Save the code to a file (e.g., `first_session.py`)
+3. Run: `python first_session.py`
 
-## 💡 关键要点
+## 💡 Key Points
 
-1. **会话是临时的**：会话结束后，所有文件都会丢失
-2. **网络访问**：云端环境可以访问互联网
-3. **完整Linux环境**：支持大部分Linux命令和工具
-4. **多语言支持**：可以运行Python、Node.js、Go等程序
+1. **Sessions are temporary**: All files are lost when the session ends
+2. **Network access**: The cloud environment can access the internet
+3. **Complete Linux environment**: Supports most Linux commands and tools
+4. **Multi-language support**: Can run Python, Node.js, Go, and other programs
 
-## 🚀 下一步
+## 🚀 Next Steps
 
-- 学习[数据持久化](../guides/data-persistence.md)保存重要文件
-- 探索[更多功能](../guides/README.md)
-- 查看[实用技巧](best-practices.md)
+- Learn about [Data Persistence](../guides/data-persistence.md) to save important files
+- Explore [More Features](../guides/README.md)
+- Check out [Best Practices](best-practices.md)
 
-## 🎉 恭喜！
+## 🎉 Congratulations!
 
-你已经成功创建并使用了第一个AgentBay会话！现在你可以：
-- 在云端执行任何Linux命令
-- 创建和编辑文件
-- 运行各种编程语言的代码
-- 访问互联网资源
+You have successfully created and used your first AgentBay session! Now you can:
+- Execute any Linux command in the cloud
+- Create and edit files
+- Run code in various programming languages
+- Access internet resources
 
-继续学习更多高级功能吧！ 
+Continue learning more advanced features! 🚀

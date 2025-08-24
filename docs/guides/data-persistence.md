@@ -137,12 +137,10 @@ from agentbay import ContextSync, SyncPolicy, CreateSessionParams
 # Create context
 context = agent_bay.context.get("my-project", create=True).context
 
-# Configure sync policy
-sync_policy = SyncPolicy.default()
+# Create context sync (policy is optional, will use default if not specified)
 context_sync = ContextSync.new(
     context_id=context.id,
-    path="/mnt/data",  # Mount path in session
-    policy=sync_policy
+    path="/tmp/data"  # Mount path in session
 )
 
 # Create session with context

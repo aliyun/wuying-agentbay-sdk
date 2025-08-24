@@ -300,14 +300,14 @@ Now that you know the basics of using the AgentBay SDK, you can explore more fea
 - [OSS Integration](tutorials/oss-integration.md)
 - [Application Management](tutorials/application-management.md)
 
-### 功能指南
+### Feature Guides
 
-- [会话管理](guides/session-management.md)
-- [代码执行](guides/code-execution.md)
-- [上下文管理](guides/context-management.md)
-- [浏览器自动化](guides/browser-automation.md)
-- [VPC会话](guides/vpc-sessions.md)
-- [Agent模块](guides/agent-module.md)
+- [Session Management](guides/session-management.md)
+- [Code Execution](guides/code-execution.md)
+- [Context Management](guides/context-management.md)
+- [Browser Automation](guides/browser-automation.md)
+- [VPC Sessions](guides/vpc-sessions.md)
+- [Agent Module](guides/agent-module.md)
 
 ### Examples
 

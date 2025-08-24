@@ -1,20 +1,20 @@
-# AgentBay Golang SDK API 参考
+# AgentBay Golang SDK API Reference
 
-本文档提供了AgentBay Golang SDK的完整API参考。
+This document provides a complete API reference for the AgentBay Golang SDK.
 
-## 📚 模块概览
+## 📚 Module Overview
 
-| 模块 | 描述 | 主要结构体/接口 |
-|------|------|----------------|
-| [AgentBay](#agentbay) | 主客户端结构体 | `AgentBay` |
-| [Session](#session) | 会话管理 | `Session` |
-| [Command](#command) | 命令执行 | `CommandExecutor` |
-| [Code](#code) | 代码执行 | `CodeExecutor` |
-| [FileSystem](#filesystem) | 文件系统操作 | `FileSystemManager` |
-| [UI](#ui) | UI自动化 | `UIAutomation` |
-| [Context](#context) | 上下文管理 | `ContextManager` |
+| Module | Description | Main Structs/Interfaces |
+|--------|-------------|-------------------------|
+| [AgentBay](#agentbay) | Main client struct | `AgentBay` |
+| [Session](#session) | Session management | `Session` |
+| [Command](#command) | Command execution | `CommandExecutor` |
+| [Code](#code) | Code execution | `CodeExecutor` |
+| [FileSystem](#filesystem) | File system operations | `FileSystemManager` |
+| [UI](#ui) | UI automation | `UIAutomation` |
+| [Context](#context) | Context management | `ContextManager` |
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
 ```go
 package main
@@ -27,62 +27,62 @@ import (
 )
 
 func main() {
-    // 初始化客户端
+    // Initialize client
     client, err := agentbay.NewAgentBay("", nil)
     if err != nil {
-        log.Fatalf("初始化失败: %v", err)
+        log.Fatalf("Initialization failed: %v", err)
     }
     
-    // 创建会话
+    // Create session
     sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
     if err != nil {
-        log.Fatalf("创建会话失败: %v", err)
+        log.Fatalf("Session creation failed: %v", err)
     }
     
     session := sessionResult.Session
     
-    // 执行命令
+    // Execute command
     result, err := session.Command.ExecuteCommand("ls -la")
     if err == nil && !result.IsError {
-        fmt.Printf("命令输出: %s\n", result.Data.Stdout)
+        fmt.Printf("Command output: %s\n", result.Data.Stdout)
     }
     
-    // 清理会话
+    // Clean up session
     client.Destroy(session.SessionID)
 }
 ```
 
 ## AgentBay
 
-主客户端结构体，提供会话管理和高级功能。
+Main client struct that provides session management and advanced features.
 
-### 构造函数
+### Constructor
 
 #### NewAgentBay()
 
-创建新的AgentBay客户端实例。
+Create a new AgentBay client instance.
 
 ```go
 func NewAgentBay(apiKey string, config *Config) (*AgentBay, error)
 ```
 
-**参数:**
-- `apiKey` (string): API密钥，空字符串时从环境变量`AGENTBAY_API_KEY`获取
-- `config` (*Config): 客户端配置，nil时使用默认配置
+**Parameters:**
+- `apiKey` (string): API key, empty string uses `AGENTBAY_API_KEY` environment variable
+- `config` (*Config): Client configuration, nil uses default configuration
 
-**返回:**
-- `*AgentBay`: 客户端实例
-- `error`: 错误信息
+**Returns:**
+- `*AgentBay`: Client instance
+- `error`: Error information
 
-**示例:**
+**Examples:**
 ```go
-// 使用环境变量中的API密钥
+// Use API key from environment variable
 client, err := agentbay.NewAgentBay("", nil)
 
-// 显式指定API密钥
+// Explicitly specify API key
 client, err := agentbay.NewAgentBay("your-api-key", nil)
 
-// 带配置
+// With configuration
 config := &agentbay.Config{
     Timeout: 30000,
     Region:  "cn-hangzhou",
@@ -90,29 +90,29 @@ config := &agentbay.Config{
 client, err := agentbay.NewAgentBay("your-api-key", config)
 ```
 
-### 方法
+### Methods
 
 #### Create()
 
-创建新的会话。
+Create a new session.
 
 ```go
 func (ab *AgentBay) Create(params *CreateSessionParams) (*CreateSessionResult, error)
 ```
 
-**参数:**
-- `params` (*CreateSessionParams): 会话创建参数
+**Parameters:**
+- `params` (*CreateSessionParams): Session creation parameters
 
-**返回:**
-- `*CreateSessionResult`: 包含会话对象或错误信息
-- `error`: 错误信息
+**Returns:**
+- `*CreateSessionResult`: Contains session object or error information
+- `error`: Error information
 
-**示例:**
+**Examples:**
 ```go
-// 创建默认会话
+// Create default session
 result, err := client.Create(agentbay.NewCreateSessionParams())
 
-// 创建带参数的会话
+// Create session with parameters
 params := agentbay.NewCreateSessionParams().
     SetImage("ubuntu:20.04").
     AddLabel("project", "demo")
@@ -121,56 +121,56 @@ result, err := client.Create(params)
 
 #### Destroy()
 
-销毁指定会话。
+Destroy the specified session.
 
 ```go
 func (ab *AgentBay) Destroy(sessionID string) (*DestroySessionResult, error)
 ```
 
-**参数:**
-- `sessionID` (string): 会话ID
+**Parameters:**
+- `sessionID` (string): Session ID
 
-**返回:**
-- `*DestroySessionResult`: 销毁结果
-- `error`: 错误信息
+**Returns:**
+- `*DestroySessionResult`: Destruction result
+- `error`: Error information
 
 #### List()
 
-列出所有会话。
+List all sessions.
 
 ```go
 func (ab *AgentBay) List(params *ListSessionParams) (*ListSessionResult, error)
 ```
 
-**参数:**
-- `params` (*ListSessionParams): 列表查询参数
+**Parameters:**
+- `params` (*ListSessionParams): List query parameters
 
-**返回:**
-- `*ListSessionResult`: 会话列表
-- `error`: 错误信息
+**Returns:**
+- `*ListSessionResult`: Session list
+- `error`: Error information
 
 ## Session
 
-会话结构体，提供对各种功能模块的访问。
+Session struct that provides access to various functional modules.
 
-### 字段
+### Fields
 
-- `SessionID` (string): 会话唯一标识符
-- `Status` (string): 会话状态
-- `CreatedAt` (time.Time): 创建时间
-- `Command` (*CommandExecutor): 命令执行器
-- `Code` (*CodeExecutor): 代码执行器
-- `FileSystem` (*FileSystemManager): 文件系统管理器
-- `UI` (*UIAutomation): UI自动化
-- `ContextSync` (*ContextSync): 上下文同步
+- `SessionID` (string): Unique session identifier
+- `Status` (string): Session status
+- `CreatedAt` (time.Time): Creation time
+- `Command` (*CommandExecutor): Command executor
+- `Code` (*CodeExecutor): Code executor
+- `FileSystem` (*FileSystemManager): File system manager
+- `UI` (*UIAutomation): UI automation
+- `ContextSync` (*ContextSync): Context synchronization
 
 ## CommandExecutor
 
-命令执行功能。
+Command execution functionality.
 
 ### ExecuteCommand()
 
-执行Shell命令。
+Execute Shell commands.
 
 ```go
 func (ce *CommandExecutor) ExecuteCommand(command string) (*CommandResult, error)
@@ -178,32 +178,32 @@ func (ce *CommandExecutor) ExecuteCommand(command string) (*CommandResult, error
 
 ### ExecuteCommandWithOptions()
 
-带选项执行Shell命令。
+Execute Shell commands with options.
 
 ```go
 func (ce *CommandExecutor) ExecuteCommandWithOptions(command string, options *CommandOptions) (*CommandResult, error)
 ```
 
-**参数:**
-- `command` (string): 要执行的命令
-- `options` (*CommandOptions): 执行选项
-  - `Timeout` (int): 超时时间（秒）
-  - `InputData` (string): 输入数据
+**Parameters:**
+- `command` (string): Command to execute
+- `options` (*CommandOptions): Execution options
+  - `Timeout` (int): Timeout in seconds
+  - `InputData` (string): Input data
 
-**返回:**
-- `*CommandResult`: 命令执行结果
-- `error`: 错误信息
+**Returns:**
+- `*CommandResult`: Command execution result
+- `error`: Error information
 
-**示例:**
+**Examples:**
 ```go
-// 基本命令执行
+// Basic command execution
 result, err := session.Command.ExecuteCommand("ls -la")
 
-// 带超时
+// With timeout
 options := &agentbay.CommandOptions{Timeout: 60}
 result, err := session.Command.ExecuteCommandWithOptions("long_running_task", options)
 
-// 交互式命令
+// Interactive command
 options := &agentbay.CommandOptions{
     InputData: "print('hello')\nexit()\n",
 }
@@ -212,11 +212,11 @@ result, err := session.Command.ExecuteCommandWithOptions("python3", options)
 
 ## CodeExecutor
 
-代码执行功能。
+Code execution functionality.
 
 ### RunCode()
 
-执行指定语言的代码。
+Execute code in the specified language.
 
 ```go
 func (ce *CodeExecutor) RunCode(code string, language string) (*CodeResult, error)
@@ -224,25 +224,25 @@ func (ce *CodeExecutor) RunCode(code string, language string) (*CodeResult, erro
 
 ### RunCodeWithOptions()
 
-带选项执行指定语言的代码。
+Execute code in the specified language with options.
 
 ```go
 func (ce *CodeExecutor) RunCodeWithOptions(code string, language string, options *CodeOptions) (*CodeResult, error)
 ```
 
-**参数:**
-- `code` (string): 要执行的代码
-- `language` (string): 编程语言 ("python", "javascript", "go")
-- `options` (*CodeOptions): 执行选项
-  - `Timeout` (int): 超时时间（秒）
+**Parameters:**
+- `code` (string): Code to execute
+- `language` (string): Programming language ("python", "javascript", "go")
+- `options` (*CodeOptions): Execution options
+  - `Timeout` (int): Timeout in seconds
 
-**返回:**
-- `*CodeResult`: 代码执行结果
-- `error`: 错误信息
+**Returns:**
+- `*CodeResult`: Code execution result
+- `error`: Error information
 
-**示例:**
+**Examples:**
 ```go
-// Python代码
+// Python code
 pythonCode := `
 print("Hello from Python!")
 result = 2 + 2
@@ -250,7 +250,7 @@ print(f"2 + 2 = {result}")
 `
 result, err := session.Code.RunCode(pythonCode, "python")
 
-// JavaScript代码
+// JavaScript code
 jsCode := `
 console.log("Hello from JavaScript!");
 const result = 2 + 2;
@@ -261,11 +261,11 @@ result, err := session.Code.RunCode(jsCode, "javascript")
 
 ## FileSystemManager
 
-文件系统操作功能。
+File system operations functionality.
 
 ### ReadFile()
 
-读取文件内容。
+Read file content.
 
 ```go
 func (fsm *FileSystemManager) ReadFile(filePath string) (*FileReadResult, error)
@@ -273,7 +273,7 @@ func (fsm *FileSystemManager) ReadFile(filePath string) (*FileReadResult, error)
 
 ### WriteFile()
 
-写入文件内容。
+Write file content.
 
 ```go
 func (fsm *FileSystemManager) WriteFile(filePath string, content string) (*FileWriteResult, error)
@@ -281,7 +281,7 @@ func (fsm *FileSystemManager) WriteFile(filePath string, content string) (*FileW
 
 ### DeleteFile()
 
-删除文件。
+Delete file.
 
 ```go
 func (fsm *FileSystemManager) DeleteFile(filePath string) (*FileDeleteResult, error)
@@ -289,24 +289,24 @@ func (fsm *FileSystemManager) DeleteFile(filePath string) (*FileDeleteResult, er
 
 ### ListDirectory()
 
-列出目录内容。
+List directory contents.
 
 ```go
 func (fsm *FileSystemManager) ListDirectory(directoryPath string) (*DirectoryListResult, error)
 ```
 
-**示例:**
+**Examples:**
 ```go
-// 写入文件
+// Write file
 _, err := session.FileSystem.WriteFile("/tmp/test.txt", "Hello World!")
 
-// 读取文件
+// Read file
 result, err := session.FileSystem.ReadFile("/tmp/test.txt")
 if err == nil && !result.IsError {
-    fmt.Printf("文件内容: %s\n", result.Data) // "Hello World!"
+    fmt.Printf("File content: %s\n", result.Data) // "Hello World!"
 }
 
-// 列出目录
+// List directory
 result, err := session.FileSystem.ListDirectory("/tmp")
 if err == nil && !result.IsError {
     for _, file := range result.Data {
@@ -317,11 +317,11 @@ if err == nil && !result.IsError {
 
 ## UIAutomation
 
-UI自动化功能。
+UI automation functionality.
 
 ### Screenshot()
 
-获取屏幕截图。
+Take screenshot.
 
 ```go
 func (ui *UIAutomation) Screenshot() (*ScreenshotResult, error)
@@ -329,7 +329,7 @@ func (ui *UIAutomation) Screenshot() (*ScreenshotResult, error)
 
 ### Click()
 
-模拟鼠标点击。
+Simulate mouse click.
 
 ```go
 func (ui *UIAutomation) Click(x, y int) (*ClickResult, error)
@@ -337,7 +337,7 @@ func (ui *UIAutomation) Click(x, y int) (*ClickResult, error)
 
 ### Type()
 
-模拟键盘输入。
+Simulate keyboard input.
 
 ```go
 func (ui *UIAutomation) Type(text string) (*TypeResult, error)
@@ -345,22 +345,22 @@ func (ui *UIAutomation) Type(text string) (*TypeResult, error)
 
 ### Key()
 
-模拟按键。
+Simulate key press.
 
 ```go
 func (ui *UIAutomation) Key(keyName string) (*KeyResult, error)
 ```
 
-**示例:**
+**Examples:**
 ```go
-// 截图
+// Screenshot
 screenshot, err := session.UI.Screenshot()
 if err == nil && !screenshot.IsError {
-    // 保存截图到文件
+    // Save screenshot to file
     session.FileSystem.WriteFile("/tmp/screenshot.png", string(screenshot.Data))
 }
 
-// 鼠标和键盘操作
+// Mouse and keyboard operations
 session.UI.Click(100, 200)
 session.UI.Type("Hello AgentBay!")
 session.UI.Key("Enter")
@@ -368,11 +368,11 @@ session.UI.Key("Enter")
 
 ## ContextManager
 
-上下文管理功能。
+Context management functionality.
 
 ### Get()
 
-获取或创建上下文。
+Get or create context.
 
 ```go
 func (cm *ContextManager) Get(name string, create bool) (*ContextResult, error)
@@ -380,7 +380,7 @@ func (cm *ContextManager) Get(name string, create bool) (*ContextResult, error)
 
 ### UploadFile()
 
-上传文件到上下文。
+Upload file to context.
 
 ```go
 func (cm *ContextManager) UploadFile(contextID, filePath, content string) (*UploadResult, error)
@@ -388,47 +388,47 @@ func (cm *ContextManager) UploadFile(contextID, filePath, content string) (*Uplo
 
 ### DownloadFile()
 
-从上下文下载文件。
+Download file from context.
 
 ```go
 func (cm *ContextManager) DownloadFile(contextID, filePath string) (*DownloadResult, error)
 ```
 
-**示例:**
+**Examples:**
 ```go
-// 获取上下文
+// Get context
 contextResult, err := client.Context.Get("my-project", true)
 if err == nil && !contextResult.IsError {
     context := contextResult.Context
     
-    // 上传文件
+    // Upload file
     client.Context.UploadFile(context.ID, "/config.json", `{"version": "1.0"}`)
     
-    // 下载文件
+    // Download file
     result, err := client.Context.DownloadFile(context.ID, "/config.json")
     if err == nil && !result.IsError {
-        fmt.Printf("文件内容: %s\n", result.Data)
+        fmt.Printf("File content: %s\n", result.Data)
     }
 }
 ```
 
-## 错误处理
+## Error Handling
 
-所有API调用都返回结果结构体，包含`IsError`字段和可能的错误信息。
+All API calls return result structs that contain `IsError` field and possible error information.
 
 ```go
 result, err := session.Command.ExecuteCommand("invalid_command")
 if err != nil {
-    fmt.Printf("调用失败: %v\n", err)
+    fmt.Printf("Call failed: %v\n", err)
 } else if result.IsError {
-    fmt.Printf("命令失败: %s\n", result.Error)
-    fmt.Printf("错误代码: %s\n", result.ErrorCode)
+    fmt.Printf("Command failed: %s\n", result.Error)
+    fmt.Printf("Error code: %s\n", result.ErrorCode)
 } else {
-    fmt.Printf("成功: %s\n", result.Data.Stdout)
+    fmt.Printf("Success: %s\n", result.Data.Stdout)
 }
 ```
 
-## 结构体定义
+## Struct Definitions
 
 ### CreateSessionParams
 
@@ -475,12 +475,12 @@ type CodeData struct {
 }
 ```
 
-## 相关资源
+## Related Resources
 
-- [功能指南](../../../docs/guides/) - 详细的功能使用指南
-- [示例代码](../examples/) - 完整的示例代码
-- [故障排除](../../../docs/quickstart/troubleshooting.md) - 常见问题解决
+- [Feature Guides](../../../docs/guides/) - Detailed feature usage guides
+- [Example Code](../examples/) - Complete example code
+- [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
 ---
 
-💡 **提示**: 这是Golang SDK的API参考。其他语言的API可能略有不同，请参考对应语言的文档。 
+💡 **Tip**: This is the Golang SDK API reference. APIs for other languages may differ slightly, please refer to the documentation for the corresponding language.

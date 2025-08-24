@@ -1,58 +1,58 @@
-# 自动化功能示例
+# Automation Feature Examples
 
-本示例展示了AgentBay SDK的自动化功能，包括命令执行、代码执行、UI自动化和工作流编排。
+This example demonstrates the automation capabilities of the AgentBay SDK, including command execution, code execution, UI automation, and workflow orchestration.
 
-## 功能特性
+## Features
 
-- **命令执行**: 在云端执行Shell命令
-- **代码执行**: 运行Python和JavaScript代码
-- **UI自动化**: 屏幕截图、键盘输入、鼠标操作
-- **工作流编排**: 多步骤自动化任务
+- **Command Execution**: Execute Shell commands in the cloud
+- **Code Execution**: Run Python and JavaScript code
+- **UI Automation**: Screen capture, keyboard input, mouse operations
+- **Workflow Orchestration**: Multi-step automation tasks
 
-## 运行示例
+## Running the Example
 
 ```bash
-# 安装依赖
+# Install dependencies
 pip install wuying-agentbay-sdk
 
-# 设置环境变量
+# Set environment variables
 export AGENTBAY_API_KEY="your-api-key"
 
-# 运行示例
+# Run the example
 python main.py
 ```
 
-## 示例内容
+## Example Content
 
-### 1. 命令执行示例
-- 基本系统命令执行
-- 带超时的命令执行
-- 错误处理
+### 1. Command Execution Example
+- Basic system command execution
+- Command execution with timeout
+- Error handling
 
-### 2. 代码执行示例
-- Python代码执行
-- JavaScript代码执行
-- 系统信息获取
+### 2. Code Execution Example
+- Python code execution
+- JavaScript code execution
+- System information retrieval
 
-### 3. UI自动化示例
-- 屏幕截图
-- 键盘输入模拟
-- 鼠标操作模拟
+### 3. UI Automation Example
+- Screen capture
+- Keyboard input simulation
+- Mouse operation simulation
 
-### 4. 工作流编排示例
-- 数据生成
-- 数据分析
-- 报告生成
-- 结果验证
+### 4. Workflow Orchestration Example
+- Data generation
+- Data analysis
+- Report generation
+- Result validation
 
-## 相关文档
+## Related Documentation
 
-- [自动化功能指南](../../../../docs/guides/automation.md)
-- [API参考文档](../api/)
-- [更多示例](../)
+- [Automation Feature Guide](../../../../docs/guides/automation.md)
+- [API Reference Documentation](../api/)
+- [More Examples](../)
 
-## 注意事项
+## Notes
 
-- 确保已设置正确的API密钥
-- UI自动化功能需要图形界面支持
-- 某些功能可能需要特定的系统权限 
+- Ensure the correct API key is set
+- UI automation features require graphical interface support
+- Some features may require specific system permissions
