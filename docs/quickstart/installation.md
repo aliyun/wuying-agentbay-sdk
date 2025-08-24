@@ -91,7 +91,8 @@ client, err := agentbay.NewAgentBay("your_api_key_here", nil)
 from agentbay import AgentBay
 
 try:
-    agent_bay = AgentBay()
+    # Use API key to initialize SDK
+    agent_bay = AgentBay(api_key="your_actual_api_key_here")
     print("✅ SDK initialized successfully")
     
     # Create session
@@ -117,7 +118,8 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 
 async function test() {
     try {
-        const agentBay = new AgentBay();
+        // Use API key to initialize SDK
+        const agentBay = new AgentBay({ apiKey: "your_actual_api_key_here" });
         console.log("✅ SDK initialized successfully");
         
         // Create session
@@ -151,8 +153,8 @@ import (
 )
 
 func main() {
-    // Initialize client
-    client, err := agentbay.NewAgentBay("", nil)
+    // Use API key to initialize client
+    client, err := agentbay.NewAgentBay("your_actual_api_key_here", nil)
     if err != nil {
         fmt.Printf("❌ Failed to initialize SDK: %v\n", err)
         return
