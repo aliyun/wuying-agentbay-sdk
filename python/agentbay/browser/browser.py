@@ -229,6 +229,7 @@ class BrowserOption:
         viewport: BrowserViewport = None,
         screen: BrowserScreen = None,
         fingerprint: BrowserFingerprint = None,
+        solve_captchas: bool = False,
         proxies: Optional[list[BrowserProxy]] = None,
     ):
         self.use_stealth = use_stealth
@@ -236,6 +237,7 @@ class BrowserOption:
         self.viewport = viewport
         self.screen = screen
         self.fingerprint = fingerprint
+        self.solve_captchas = solve_captchas
         self.proxies = proxies
 
         # Validate proxies list items
@@ -257,6 +259,8 @@ class BrowserOption:
             option_map['screen'] = self.screen.to_map()
         if self.fingerprint is not None:
             option_map['fingerprint'] = self.fingerprint.to_map()
+        if self.solve_captchas is not None:
+            option_map['solveCaptchas'] = self.solve_captchas
         if self.proxies is not None:
             option_map['proxies'] = [proxy.to_map() for proxy in self.proxies]
         return option_map
@@ -275,6 +279,10 @@ class BrowserOption:
             self.screen = BrowserScreen.from_map(m.get('screen'))
         if m.get('fingerprint') is not None:
             self.fingerprint = BrowserFingerprint.from_map(m.get('fingerprint'))
+        if m.get('solveCaptchas') is not None:
+            self.solve_captchas = m.get('solveCaptchas')
+        else:
+            self.solve_captchas = False
         if m.get('proxies') is not None:
             proxy_list = m.get('proxies')
             if len(proxy_list) > 1:
