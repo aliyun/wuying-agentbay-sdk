@@ -9,7 +9,7 @@ The `Command` class provides methods for executing commands within a session in 
 Executes a shell command in the cloud environment.
 
 ```python
-execute_command(command: str, timeout_ms: int = 1000) -> OperationResult
+execute_command(command: str, timeout_ms: int = 1000) -> CommandResult
 ```
 
 **Parameters:**
@@ -17,7 +17,7 @@ execute_command(command: str, timeout_ms: int = 1000) -> OperationResult
 - `timeout_ms` (int, optional): The timeout for the command execution in milliseconds. Default is 1000ms.
 
 **Returns:**
-- `OperationResult`: A result object containing the command output as data, success status, request ID, and error message if any.
+- `CommandResult`: A result object containing the command output, success status, request ID, and error message if any.
 
 **Usage Example:**
 
