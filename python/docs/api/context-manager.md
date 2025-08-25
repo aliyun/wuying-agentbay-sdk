@@ -27,6 +27,7 @@ info(context_id: Optional[str] = None, path: Optional[str] = None, task_type: Op
 
 **Returns:**
 - `ContextInfoResult`: A result object containing the context status data, success status, and request ID. This class inherits from `ApiResponse`.
+  - `context_status_data` (List[ContextStatusData]): A list of context status data objects.
 
 **Example:**
 ```python
@@ -64,6 +65,7 @@ sync(context_id: Optional[str] = None, path: Optional[str] = None, mode: Optiona
 
 **Returns:**
 - `ContextSyncResult`: A result object containing success status and request ID.
+  - `success` (bool): Indicates whether the synchronization was successful.
 
 **Example:**
 ```python
