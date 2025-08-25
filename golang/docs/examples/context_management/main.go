@@ -58,7 +58,7 @@ func main() {
 	// Example 3: Create a session with the context
 	fmt.Println("\nExample 3: Creating a session with the context...")
 	params := agentbay.NewCreateSessionParams().
-		WithContextID(context.ID).
+		AddContextSync(context.ID, "/workspace", nil).
 		WithLabels(map[string]string{
 			"username": "alice",
 			"project":  "my-project",
