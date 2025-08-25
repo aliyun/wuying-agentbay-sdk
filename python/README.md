@@ -28,13 +28,13 @@ if result.success:
     session = result.session
     
     # Execute command
-    cmd_result = session.command.execute("ls -la")
-    print(cmd_result.data.stdout)
+    cmd_result = session.command.execute_command("ls -la")
+    print(cmd_result.output)
     
     # File operations
     session.file_system.write_file("/tmp/test.txt", "Hello World")
     content = session.file_system.read_file("/tmp/test.txt")
-    print(content.data)
+    print(content.content)
 ```
 
 ## 📖 Complete Documentation
@@ -58,7 +58,9 @@ if result.success:
 ### Session Management
 ```python
 # Create session
-session = agent_bay.create().session
+result = agent_bay.create()
+if result.success:
+    session = result.session
 
 # List sessions
 sessions = agent_bay.list()
@@ -80,8 +82,8 @@ files = session.file_system.list_directory("/path")
 ### Command Execution
 ```python
 # Execute command
-result = session.command.execute("python script.py")
-print(result.data.stdout)
+result = session.command.execute_command("python script.py")
+print(result.output)
 ```
 
 ### Data Persistence
