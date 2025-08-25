@@ -18,6 +18,7 @@ ui  // The UI instance for this session
 context  // The ContextManager instance for this session
 browser  // The Browser instance for this session
 agent  // The Agent instance for this session
+imageId  // The image ID used when creating this session
 isVpc  // Whether this session uses VPC resources
 networkInterfaceIp  // Network interface IP for VPC sessions
 httpPort  // HTTP port for VPC sessions
@@ -206,6 +207,77 @@ async function getSessionLink(session) {
     return result.data;
   } catch (error) {
     console.error(`Failed to get link: ${error}`);
+    throw error;
+  }
+}
+```
+
+### getLinkAsync
+
+Asynchronously gets a link for this session.
+
+```typescript
+getLinkAsync(protocolType?: string, port?: number): Promise<LinkResult>
+```
+
+**Parameters:**
+- `protocolType` (string, optional): The protocol type for the link.
+- `port` (number, optional): The port for the link.
+
+**Returns:**
+- `Promise<LinkResult>`: A promise that resolves to a result object containing the session link, request ID, and success status.
+
+**Example:**
+```typescript
+// Get session link asynchronously
+async function getSessionLinkAsync(session) {
+  try {
+    const result = await session.getLinkAsync();
+    console.log(`Session link: ${result.data}`);
+    console.log(`Request ID: ${result.requestId}`);
+    
+    // Get link with specific protocol and port
+    const customResult = await session.getLinkAsync('https', 8443);
+    console.log(`Custom link: ${customResult.data}`);
+    
+    return result.data;
+  } catch (error) {
+    console.error(`Failed to get link: ${error}`);
+    throw error;
+  }
+}
+```
+
+### listMcpTools
+
+Lists MCP tools available for this session.
+
+```typescript
+listMcpTools(imageId?: string): Promise<McpToolsResult>
+```
+
+**Parameters:**
+- `imageId` (string, optional): The image ID to list tools for. Defaults to the session's imageId or "linux_latest".
+
+**Returns:**
+- `Promise<McpToolsResult>`: A promise that resolves to a result object containing success status, request ID, and the list of MCP tools.
+
+**Example:**
+```typescript
+// List MCP tools
+async function listMcpTools(session) {
+  try {
+    const result = await session.listMcpTools();
+    console.log(`Found ${result.tools.length} MCP tools`);
+    console.log(`Request ID: ${result.requestId}`);
+    
+    for (const tool of result.tools) {
+      console.log(`Tool: ${tool.name} - ${tool.description}`);
+    }
+    
+    return result.tools;
+  } catch (error) {
+    console.error(`Failed to list MCP tools: ${error}`);
     throw error;
   }
 }
