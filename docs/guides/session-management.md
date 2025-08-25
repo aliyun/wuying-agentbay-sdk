@@ -39,51 +39,6 @@ if session_result.success:
     print(f"Session created with ID: {session.session_id}")
 ```
 
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// Create a session
-async function createSession() {
-  const createResponse = await agentBay.create();
-  const session = createResponse.session;
-  console.log(`Session created with ID: ${session.sessionId}`);
-  return session;
-}
-```
-
-```go
-package main
-
-import (
-    "fmt"
-    "os"
-    
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    // Initialize the SDK
-    client, err := agentbay.NewAgentBay("your_api_key")
-    if err != nil {
-        fmt.Printf("Error initializing AgentBay client: %v\n", err)
-        os.Exit(1)
-    }
-
-    // Create a session
-    result, err := client.Create(nil)
-    if err != nil {
-        fmt.Printf("Error creating session: %v\n", err)
-        os.Exit(1)
-    }
-
-    session := result.Session
-    fmt.Printf("Session created with ID: %s\n", session.SessionID)
-}
-```
-
 ## Creating Sessions with Custom Parameters
 
 You can customize sessions by specifying parameters such as image ID and labels:
@@ -106,64 +61,6 @@ session = session_result.session
 print(f"Session created with ID: {session.session_id}")
 ```
 
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// Create a session with custom parameters
-async function createCustomSession() {
-  const createResponse = await agentBay.create({
-    imageId: 'linux_latest',
-    labels: { project: 'demo', environment: 'testing' }
-  });
-  
-  const session = createResponse.session;
-  console.log(`Session created with ID: ${session.sessionId}`);
-  return session;
-}
-```
-
-```go
-package main
-
-import (
-    "fmt"
-    "os"
-    
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    // Initialize the SDK
-    client, err := agentbay.NewAgentBay("your_api_key")
-    if err != nil {
-        fmt.Printf("Error initializing AgentBay client: %v\n", err)
-        os.Exit(1)
-    }
-
-    // Create a session with custom parameters
-    labels := map[string]string{
-        "project":     "demo",
-        "environment": "testing",
-    }
-    params := &agentbay.CreateSessionParams{
-        ImageId: "linux_latest",
-        Labels:  labels,
-    }
-    
-    result, err := client.Create(params)
-    if err != nil {
-        fmt.Printf("Error creating session: %v\n", err)
-        os.Exit(1)
-    }
-    
-    session := result.Session
-    fmt.Printf("Session created with ID: %s\n", session.SessionID)
-}
-```
-
 ## Session Context Synchronization
 
 For data persistence across sessions, use context synchronization:
@@ -183,7 +80,7 @@ if context_result.success:
     # Configure context synchronization
     context_sync = ContextSync.new(
         context_id=context_result.context.id,
-        path="/mnt/data",  # Mount path in the session
+        path="/tmp/data",  # Mount path in the session
         policy=SyncPolicy.default()
     )
     
@@ -192,72 +89,7 @@ if context_result.success:
     session_result = agent_bay.create(params)
     session = session_result.session
     
-    print(f"Session created with ID: {session.session_id} and synchronized context at /mnt/data")
-```
-
-```typescript
-import { AgentBay, ContextSync, SyncPolicy } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// Get or create a persistent context
-async function createSessionWithContextSync() {
-  const contextResult = await agentBay.context.get('my-persistent-context', true);
-  
-  if (contextResult.success) {
-    // Configure context synchronization
-    const contextSync = new ContextSync({
-      contextId: contextResult.context.id,
-      path: '/mnt/data',  // Mount path in the session
-      policy: SyncPolicy.default()
-    });
-    
-    // Create a session with context synchronization
-    const sessionResult = await agentBay.create({
-      contextSync: [contextSync]
-    });
-    
-    const session = sessionResult.session;
-    console.log(`Session created with ID: ${session.sessionId} and synchronized context at /mnt/data`);
-    return session;
-  }
-}
-```
-
-```go
-package main
-
-import (
-    "fmt"
-    
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    // Initialize the SDK
-    client, _ := agentbay.NewAgentBay("your_api_key", nil)
-    
-    // Get or create a persistent context
-    contextResult, _ := client.Context.Get("my-persistent-context", true)
-    
-    // Configure context synchronization
-    policy := agentbay.NewSyncPolicy()
-    contextSync := agentbay.NewContextSync(
-        contextResult.Context.ID,
-        "/mnt/data",  // Mount path in the session
-        policy,
-    )
-    
-    // Create a session with context synchronization
-    params := agentbay.NewCreateSessionParams().
-        AddContextSyncConfig(contextSync)
-    
-    sessionResult, _ := client.Create(params)
-    session := sessionResult.Session
-    
-    fmt.Printf("Session created with ID: %s and synchronized context at /mnt/data\n", session.SessionID)
-}
+    print(f"Session created with ID: {session.session_id} and synchronized context at /tmp/data")
 ```
 
 ## Listing Sessions with Pagination
@@ -287,85 +119,6 @@ if result.next_token:
     params.next_token = result.next_token
     next_page = agent_bay.list_by_labels(params)
     print(f"Next page has {len(next_page.sessions)} sessions")
-```
-
-```typescript
-import { AgentBay, ListSessionParams } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// List sessions by labels
-async function listSessionsByLabels() {
-  const params: ListSessionParams = {
-    labels: { project: 'demo' },
-    maxResults: 10
-  };
-  
-  const result = await agentBay.listByLabels(params);
-  console.log(`Found ${result.sessions.length} sessions`);
-  
-  // Handle pagination
-  if (result.nextToken) {
-    const nextParams = {
-      ...params,
-      nextToken: result.nextToken
-    };
-    const nextPage = await agentBay.listByLabels(nextParams);
-    console.log(`Next page has ${nextPage.sessions.length} sessions`);
-  }
-}
-```
-
-```go
-package main
-
-import (
-    "fmt"
-    "os"
-    
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    // Initialize the SDK
-    client, err := agentbay.NewAgentBay("your_api_key", nil)
-    if err != nil {
-        fmt.Printf("Error initializing AgentBay client: %v\n", err)
-        os.Exit(1)
-    }
-
-    // List sessions by labels
-    labels := map[string]string{
-        "project": "demo",
-    }
-    params := &agentbay.ListSessionParams{
-        MaxResults: 10,
-        Labels:     labels,
-    }
-    
-    result, err := client.ListByLabels(params)
-    if err != nil {
-        fmt.Printf("Error listing sessions: %v\n", err)
-        os.Exit(1)
-    }
-    
-    fmt.Printf("Found %d sessions\n", len(result.Sessions))
-    for _, session := range result.Sessions {
-        fmt.Printf("Session ID: %s\n", session.SessionID)
-    }
-    
-    // Handle pagination
-    if result.NextToken != "" {
-        params.NextToken = result.NextToken
-        nextPage, err := client.ListByLabels(params)
-        if err != nil {
-            fmt.Printf("Error listing next page: %v\n", err)
-            os.Exit(1)
-        }
-        fmt.Printf("Next page has %d sessions\n", len(nextPage.Sessions))
-    }
-}
 ```
 
 ## Session Label Management

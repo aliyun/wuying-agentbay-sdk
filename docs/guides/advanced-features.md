@@ -10,6 +10,7 @@ This guide integrates the advanced features of the AgentBay SDK, including VPC s
 - [Integration and Extensions](#integration-and-extensions)
 - [Best Practices](#best-practices)
 
+<a id="vpc-sessions"></a>
 ## 🔒 VPC Sessions
 
 ### VPC Session Overview
@@ -18,9 +19,6 @@ VPC (Virtual Private Cloud) sessions provide isolated network environments, suit
 
 ### Creating VPC Sessions
 
-<details>
-<summary><strong>Python</strong></summary>
-
 ```python
 from agentbay import AgentBay, CreateSessionParams
 
@@ -28,115 +26,22 @@ agent_bay = AgentBay()
 
 # Create VPC session parameters
 vpc_params = CreateSessionParams(
-    session_type="vpc",
-    vpc_config={
-        "vpc_id": "vpc-xxxxxxxxx",
-        "subnet_id": "subnet-xxxxxxxxx",
-        "security_group_ids": ["sg-xxxxxxxxx"],
-        "region": "cn-hangzhou"
-    },
-    image="ubuntu:20.04",
+    is_vpc=True,
     labels={"environment": "production", "type": "vpc"}
 )
 
 # Create VPC session
 result = agent_bay.create(vpc_params)
-if not result.is_error:
+if result.success:
     vpc_session = result.session
     print(f"VPC session created successfully: {vpc_session.session_id}")
-    print(f"Network configuration: {vpc_session.network_info}")
 else:
-    print(f"VPC session creation failed: {result.error}")
+    print(f"VPC session creation failed: {result.error_message}")
 ```
-</details>
 
-<details>
-<summary><strong>TypeScript</strong></summary>
+### VPC Session Creation
 
-```typescript
-import { AgentBay, CreateSessionParams } from 'wuying-agentbay-sdk';
-
-const agentBay = new AgentBay();
-
-// Create VPC session parameters
-const vpcParams = new CreateSessionParams({
-    sessionType: "vpc",
-    vpcConfig: {
-        vpcId: "vpc-xxxxxxxxx",
-        subnetId: "subnet-xxxxxxxxx",
-        securityGroupIds: ["sg-xxxxxxxxx"],
-        region: "cn-hangzhou"
-    },
-    image: "ubuntu:20.04",
-    labels: { environment: "production", type: "vpc" }
-});
-
-// Create VPC session
-async function createVpcSession() {
-    const result = await agentBay.create(vpcParams);
-    if (!result.isError) {
-        const vpcSession = result.session;
-        console.log(`VPC session created successfully: ${vpcSession.sessionId}`);
-        console.log(`Network configuration: ${vpcSession.networkInfo}`);
-    } else {
-        console.log(`VPC session creation failed: ${result.error}`);
-    }
-}
-```
-</details>
-
-<details>
-<summary><strong>Golang</strong></summary>
-
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    client, _ := agentbay.NewAgentBay("", nil)
-
-    // Create VPC session parameters
-    vpcConfig := map[string]interface{}{
-        "vpc_id":              "vpc-xxxxxxxxx",
-        "subnet_id":           "subnet-xxxxxxxxx",
-        "security_group_ids":  []string{"sg-xxxxxxxxx"},
-        "region":              "cn-hangzhou",
-    }
-    
-    params := agentbay.NewCreateSessionParams().
-        SetSessionType("vpc").
-        SetVPCConfig(vpcConfig).
-        SetImage("ubuntu:20.04").
-        AddLabel("environment", "production").
-        AddLabel("type", "vpc")
-
-    // Create VPC session
-    result, _ := client.Create(params)
-    if !result.IsError {
-        vpcSession := result.Session
-        fmt.Printf("VPC session created successfully: %s\n", vpcSession.SessionID)
-        fmt.Printf("Network configuration: %v\n", vpcSession.NetworkInfo)
-    } else {
-        fmt.Printf("VPC session creation failed: %s\n", result.Error)
-    }
-}
-```
-</details>
-
-### VPC Configuration Parameters
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `vpc_id` | VPC ID | Yes |
-| `subnet_id` | Subnet ID | Yes |
-| `security_group_ids` | Security group IDs (array) | Yes |
-| `region` | Region identifier | Yes |
-| `vpc_cidr_block` | VPC CIDR block | No |
-| `subnet_cidr_block` | Subnet CIDR block | No |
+VPC sessions are created by setting the `is_vpc` parameter to `True` in the `CreateSessionParams`. The actual VPC configuration (VPC ID, subnet ID, security groups, etc.) is managed by the AgentBay platform and does not need to be specified in the SDK.
 
 ### VPC Session Benefits
 
@@ -151,6 +56,7 @@ func main() {
 2. **Resource Quotas**: Subject to VPC and subnet resource quotas
 3. **Network Complexity**: Requires understanding of cloud networking concepts
 
+<a id="agent-modules"></a>
 ## 🤖 Agent Modules
 
 ### Agent Module Overview
@@ -164,66 +70,39 @@ Agent modules are specialized AI task execution units that can perform complex o
 
 ### Creating Agent Sessions
 
-<details>
-<summary><strong>Python</strong></summary>
-
 ```python
 from agentbay import AgentBay, CreateSessionParams
 
 agent_bay = AgentBay()
 
-# Create agent session with specific capabilities
+# Create a session for Agent module usage
 agent_params = CreateSessionParams(
-    session_type="agent",
-    agent_config={
-        "model": "gpt-4",
-        "capabilities": ["web_browsing", "code_execution", "file_operations"],
-        "max_tokens": 8192,
-        "temperature": 0.7
-    },
+    image_id="windows_latest",
     labels={"project": "ai-agent", "type": "web-scraper"}
 )
 
 result = agent_bay.create(agent_params)
-if not result.is_error:
+if result.success:
     agent_session = result.session
-    print(f"Agent session created: {agent_session.session_id}")
+    print(f"Session created with ID: {agent_session.session_id}")
 else:
-    print(f"Agent session creation failed: {result.error}")
+    print(f"Session creation failed: {result.error_message}")
 ```
-</details>
 
 ### Agent Capabilities
 
-#### Web Browsing
+#### Task Execution
 ```python
-# Navigate to websites and extract information
-result = agent_session.browser.navigate("https://example.com")
-content = agent_session.browser.extract_text()
-links = agent_session.browser.extract_links()
+# Execute a task using natural language
+task_description = "Calculate the square root of 144"
+execution_result = agent_session.agent.execute_task(task_description, max_try_times=5)
 
-# Perform searches
-search_result = agent_session.browser.search("latest technology news")
-```
-
-#### Code Execution
-```python
-# Execute code in multiple languages
-python_code = """
-import requests
-response = requests.get('https://api.github.com')
-print(f"Status: {response.status_code}")
-"""
-
-result = agent_session.code.run_code(python_code, "python")
-print(result.output)
-```
-
-#### File Operations
-```python
-# Advanced file operations with AI assistance
-analysis = agent_session.file_system.analyze_directory("/project")
-recommendations = agent_session.file_system.optimize_structure("/project")
+if execution_result.success:
+    print("Task completed successfully!")
+    print(f"Task ID: {execution_result.task_id}")
+    print(f"Task status: {execution_result.task_status}")
+else:
+    print(f"Task failed: {execution_result.error_message}")
 ```
 
 ### Agent Module Best Practices
@@ -233,6 +112,7 @@ recommendations = agent_session.file_system.optimize_structure("/project")
 3. **Error Handling**: Implement robust error handling for AI-generated content
 4. **Security**: Validate and sanitize AI-generated code before execution
 
+<a id="browser-automation"></a>
 ## 🌐 Browser Automation
 
 ### Browser Automation Overview
@@ -246,76 +126,81 @@ Browser automation enables programmatic control of web browsers for tasks such a
 
 ### Basic Browser Operations
 
-<details>
-<summary><strong>Python</strong></summary>
-
 ```python
 from agentbay import AgentBay
 
 agent_bay = AgentBay()
-session = agent_bay.create().session
+session_result = agent_bay.create()
+if session_result.success:
+    session = session_result.session
+    print(f"Session created with ID: {session.session_id}")
 
-# Navigate to a webpage
-session.browser.navigate("https://example.com")
-
-# Wait for page to load
-session.browser.wait_for_element("#content", timeout=30)
-
-# Take screenshot
-screenshot = session.browser.screenshot()
-with open("screenshot.png", "wb") as f:
-    f.write(screenshot.data)
-
-# Extract page information
-title = session.browser.get_title()
-url = session.browser.get_url()
-text = session.browser.get_text()
-
-# Find elements
-buttons = session.browser.find_elements("button")
-links = session.browser.find_elements("a[href]")
-
-print(f"Page title: {title}")
-print(f"Current URL: {url}")
-print(f"Page text length: {len(text)}")
+    # Initialize browser
+    from agentbay.browser.browser import BrowserOption
+    if session.browser.initialize(BrowserOption()):
+        print("Browser initialized successfully")
+        endpoint_url = session.browser.get_endpoint_url()
+        print(f"Browser endpoint URL: {endpoint_url}")
+        
+        # Note: Actual browser automation is done using Playwright
+        # See examples/browser/visit_aliyun.py for a complete example
+    else:
+        print("Failed to initialize browser")
+else:
+    print(f"Session creation failed: {session_result.error_message}")
 ```
-</details>
 
-### Advanced Browser Interactions
+### Browser Automation Implementation
 
-#### Form Filling and Submission
+Browser automation in AgentBay SDK is implemented using Playwright connected through the Chrome DevTools Protocol (CDP). After initializing the browser with `session.browser.initialize()`, you can use Playwright to perform advanced interactions:
+
 ```python
-# Fill form fields
-session.browser.type("#username", "myuser")
-session.browser.type("#password", "mypassword")
+# Complete example of browser automation with Playwright
+import asyncio
+from playwright.async_api import async_playwright
 
-# Click buttons
-session.browser.click("#login-button")
+async def browser_automation_example():
+    # After initializing the browser as shown in the basic example
+    endpoint_url = session.browser.get_endpoint_url()
+    
+    async with async_playwright() as p:
+        browser = await p.chromium.connect_over_cdp(endpoint_url)
+        page = await browser.new_page()
+        
+        # Navigate to a webpage
+        await page.goto("https://example.com")
+        print("Page title:", await page.title())·
+        
+        # Fill form fields
+        await page.fill("#username", "myuser")
+        await page.fill("#password", "mypassword")
+        
+        # Click buttons
+        await page.click("#login-button")
+        
+        # Wait for navigation
+        await page.wait_for_url("https://example.com/dashboard")
+        
+        # Execute custom JavaScript
+        dimensions = await page.evaluate("""() => {
+            return {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                userAgent: navigator.userAgent
+            };
+        }""")
+        print(f"Browser dimensions: {dimensions['width']}x{dimensions['height']}")
+        
+        # Take screenshot
+        await page.screenshot(path="screenshot.png")
+        
+        await browser.close()
 
-# Wait for navigation
-session.browser.wait_for_url("https://example.com/dashboard")
+# Run the example
+asyncio.run(browser_automation_example())
 ```
 
-#### JavaScript Execution
-```python
-# Execute custom JavaScript
-result = session.browser.execute_script("""
-    return {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        userAgent: navigator.userAgent
-    };
-""")
-
-print(f"Browser dimensions: {result.width}x{result.height}")
-```
-
-#### File Uploads
-```python
-# Upload files through browser
-session.browser.upload_file("#file-input", "/local/path/to/file.pdf")
-session.browser.click("#upload-button")
-```
+For a complete working example, see `examples/browser/visit_aliyun.py` in the SDK repository.
 
 ### Browser Automation Best Practices
 
@@ -324,15 +209,35 @@ session.browser.click("#upload-button")
 3. **Resource Cleanup**: Close browser sessions to free resources
 4. **Performance**: Use efficient selectors and minimize screenshot captures
 
+<a id="integration-and-extensions"></a>
 ## 🔌 Integration and Extensions
 
 ### Custom Integration Framework
 
-The AgentBay SDK provides extension points for custom integrations:
+The AgentBay SDK can be integrated with custom systems and third-party services. While the SDK doesn't provide built-in event listeners or middleware, you can implement these patterns in your application code:
 
-#### Event Listeners
+#### Custom Event Handling
 ```python
-# Python example
+# Python example of custom event handling
+class SessionEventManager:
+    def __init__(self):
+        self.listeners = {
+            "session_created": [],
+            "session_destroyed": []
+        }
+    
+    def on(self, event, callback):
+        if event in self.listeners:
+            self.listeners[event].append(callback)
+    
+    def emit(self, event, *args):
+        if event in self.listeners:
+            for callback in self.listeners[event]:
+                callback(*args)
+
+# Usage
+event_manager = SessionEventManager()
+
 def on_session_created(session):
     print(f"Session created: {session.session_id}")
     # Custom initialization logic
@@ -341,28 +246,12 @@ def on_session_destroyed(session_id):
     print(f"Session destroyed: {session_id}")
     # Cleanup logic
 
-# Register event listeners
-agent_bay.events.on("session_created", on_session_created)
-agent_bay.events.on("session_destroyed", on_session_destroyed)
-```
+event_manager.on("session_created", on_session_created)
+event_manager.on("session_destroyed", on_session_destroyed)
 
-#### Custom Middleware
-```python
-# TypeScript example
-class LoggingMiddleware {
-    async beforeSend(request) {
-        console.log("Sending request:", request);
-        return request;
-    }
-    
-    async afterReceive(response) {
-        console.log("Received response:", response);
-        return response;
-    }
-}
-
-// Register middleware
-agentBay.use(new LoggingMiddleware());
+# Emit events in your application code
+# event_manager.emit("session_created", session)
+# event_manager.emit("session_destroyed", session_id)
 ```
 
 ### Third-Party Service Integration
@@ -417,6 +306,7 @@ jobs:
         AGENTBAY_API_KEY: ${{ secrets.AGENTBAY_API_KEY }}
 ```
 
+<a id="best-practices"></a>
 ## 🏆 Best Practices
 
 ### Performance Optimization

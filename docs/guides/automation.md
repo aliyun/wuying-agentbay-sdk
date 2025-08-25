@@ -7,131 +7,52 @@ This guide integrates all automation features of AgentBay SDK, including command
 - [Overview](#overview)
 - [Command Execution](#command-execution)
 - [Code Execution](#code-execution)
+- [File System Operations](#file-system-operations)
 - [UI Automation](#ui-automation)
 - [Workflow Orchestration](#workflow-orchestration)
 - [Error Handling and Retry](#error-handling-and-retry)
 - [Best Practices](#best-practices)
 
+<a id="overview"></a>
 ## 🎯 Overview
 
-AgentBay provides three main automation capabilities:
+AgentBay provides four main automation capabilities:
 
 1. **Command Execution** - Execute Shell commands and system operations in the cloud
-2. **Code Execution** - Run code in programming languages like Python, JavaScript, Go
+2. **Code Execution** - Run code in programming languages like Python, JavaScript
 3. **UI Automation** - Interact with graphical interfaces (screenshots, clicks, input, etc.)
+4. **File System Operations** - Manage files and directories in the cloud environment
 
 These features can be used individually or combined to build complex automation workflows.
 
+<a id="command-execution"></a>
 ## 💻 Command Execution
 
 ### Basic Command Execution
 
-<details>
-<summary><strong>Python</strong></summary>
-
 ```python
 # Basic command execution
-result = session.command.execute("ls -la /tmp")
-if not result.is_error:
-    print("Output:", result.data.stdout)
-    print("Error:", result.data.stderr)
-    print("Exit code:", result.data.exit_code)
+result = session.command.execute_command("ls -la /tmp")
+if result.success:
+    print("Output:", result.output)
 else:
-    print("Command execution failed:", result.error)
+    print("Command execution failed:", result.error_message)
 
 # Command execution with timeout
-result = session.command.execute("sleep 10", timeout=5)
-if result.is_error:
+result = session.command.execute_command("sleep 10", timeout_ms=5000)
+if not result.success:
     print("Command timed out or failed")
 
 # Interactive command
-result = session.command.execute(
-    "python3", 
-    input_data="print('Hello from Python')\nexit()\n"
-)
-```
-</details>
-
-<details>
-<summary><strong>TypeScript</strong></summary>
-
-```typescript
-// Basic command execution
-const result = await session.command.execute("ls -la /tmp");
-if (!result.isError) {
-    console.log("Output:", result.data.stdout);
-    console.log("Error:", result.data.stderr);
-    console.log("Exit code:", result.data.exitCode);
-} else {
-    console.log("Command execution failed:", result.error);
-}
-
-// Command execution with timeout
-const result = await session.command.execute("sleep 10", { timeout: 5000 });
-if (result.isError) {
-    console.log("Command timed out or failed");
-}
-
-// Interactive command
-const result = await session.command.execute("python3", {
-    inputData: "print('Hello from Python')\nexit()\n"
-});
-```
-</details>
-
-<details>
-<summary><strong>Golang</strong></summary>
-
-```go
-// Basic command execution
-result, err := session.Command.ExecuteCommand("ls -la /tmp")
-if err == nil && !result.IsError {
-    fmt.Println("Output:", result.Data.Stdout)
-    fmt.Println("Error:", result.Data.Stderr)
-    fmt.Println("Exit code:", result.Data.ExitCode)
-} else {
-    fmt.Println("Command execution failed:", err)
-}
-
-// Command execution with timeout
-options := &agentbay.CommandOptions{Timeout: 5}
-result, err := session.Command.ExecuteCommandWithOptions("sleep 10", options)
-
-// Interactive command
-inputData := "print('Hello from Python')\nexit()\n"
-options := &agentbay.CommandOptions{InputData: inputData}
-result, err := session.Command.ExecuteCommandWithOptions("python3", options)
-```
-</details>
-
-### Advanced Command Patterns
-
-```python
-# Chain commands
-commands = [
-    "mkdir -p /tmp/workspace",
-    "cd /tmp/workspace",
-    "git clone https://github.com/user/repo.git",
-    "cd repo && npm install"
-]
-
-for cmd in commands:
-    result = session.command.execute(cmd)
-    if result.is_error:
-        print(f"Failed at: {cmd}")
-        break
-
-# Parallel command execution
-import concurrent.futures
-
-def execute_command(cmd):
-    return session.command.execute(cmd)
-
-commands = ["ls /tmp", "ps aux", "df -h"]
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    results = list(executor.map(execute_command, commands))
+# Note: Interactive commands are not directly supported in the current SDK
+# You can achieve similar functionality by writing scripts to a file and executing them
+session.file_system.write_file("/tmp/script.py", "print('Hello from Python')\nexit()\n")
+result = session.command.execute_command("python3 /tmp/script.py")
 ```
 
+
+
+<a id="code-execution"></a>
 ## 🐍 Code Execution
 
 ### Python Code Execution
@@ -147,8 +68,8 @@ print("Hello from AgentBay!")
 """
 
 result = session.code.run_code(code, "python")
-if not result.is_error:
-    print("Output:", result.data.output)
+if result.success:
+    print("Output:", result.result)
 
 # Code with dependencies
 code = """
@@ -158,7 +79,7 @@ print(response.json()['name'])
 """
 
 # Install dependencies first
-session.command.execute("pip install requests")
+session.command.execute_command("pip install requests")
 result = session.code.run_code(code, "python")
 ```
 
@@ -179,13 +100,15 @@ console.log('File created successfully');
 """
 
 result = session.code.run_code(js_code, "javascript")
+if result.success:
+    print("Output:", result.result)
 ```
 
 ### Code Execution with File I/O
 
 ```python
 # Upload code file
-session.filesystem.write("/tmp/script.py", """
+session.file_system.write_file("/tmp/script.py", """
 import json
 import sys
 
@@ -201,65 +124,119 @@ print(json.dumps(data, indent=2))
 """)
 
 # Execute uploaded script
-result = session.command.execute("python /tmp/script.py arg1 arg2")
-print("Script output:", result.data.stdout)
+result = session.command.execute_command("python /tmp/script.py arg1 arg2")
+if result.success:
+    print("Script output:", result.output)
 
 # Read output file
-output = session.filesystem.read("/tmp/output.json")
-print("File content:", output.data)
+output = session.file_system.read_file("/tmp/output.json")
+if output.success:
+    print("File content:", output.content)
 ```
 
+<a id="file-system-operations"></a>
+## 📁 File System Operations
+
+### Basic File Operations
+
+```python
+# Create a directory
+result = session.file_system.create_directory("/tmp/test_dir")
+if result.success:
+    print("Directory created successfully")
+else:
+    print("Failed to create directory:", result.error_message)
+
+# Write to a file
+result = session.file_system.write_file("/tmp/test.txt", "Hello, AgentBay!")
+if result.success:
+    print("File written successfully")
+else:
+    print("Failed to write file:", result.error_message)
+
+# Read a file
+result = session.file_system.read_file("/tmp/test.txt")
+if result.success:
+    print("File content:", result.content)
+else:
+    print("Failed to read file:", result.error_message)
+
+# Get file information
+result = session.file_system.get_file_info("/tmp/test.txt")
+if result.success:
+    print("File info:", result.file_info)
+else:
+    print("Failed to get file info:", result.error_message)
+
+# List directory contents
+result = session.file_system.list_directory("/tmp")
+if result.success:
+    for entry in result.entries:
+        print(f"Name: {entry['name']}, Is Directory: {entry['isDirectory']}")
+else:
+    print("Failed to list directory:", result.error_message)
+```
+
+<a id="ui-automation"></a>
 ## 🖱️ UI Automation
 
 ### Screenshot and Visual Operations
-
 ```python
 # Take screenshot
 screenshot = session.ui.screenshot()
-if not screenshot.is_error:
+if screenshot.success:
     # Save screenshot locally
     with open("screenshot.png", "wb") as f:
         f.write(screenshot.data)
 
 # Click at coordinates
 result = session.ui.click(x=100, y=200)
+if result.success:
+    print("Click successful")
 
-# Double click
-result = session.ui.double_click(x=150, y=250)
-
-# Right click
-result = session.ui.right_click(x=200, y=300)
+# Note: Double click and right click methods are not available in the current SDK
+# You can achieve similar functionality by calling click() multiple times or with different parameters
 ```
 
 ### Keyboard and Text Input
 
 ```python
 # Type text
-result = session.ui.type("Hello AgentBay!")
+result = session.ui.input_text("Hello AgentBay!")
+if result.success:
+    print("Text input successful")
 
 # Press keys
-result = session.ui.key_press("Enter")
-result = session.ui.key_press("Ctrl+C")
-result = session.ui.key_press("Alt+Tab")
+# The SDK provides predefined key codes for common keys
+from agentbay.ui.ui import KeyCode
+result = session.ui.send_key(KeyCode.ENTER)
+if result.success:
+    print("Enter key pressed")
 
-# Key combinations
-result = session.ui.key_combination(["Ctrl", "Shift", "N"])
+# Note: The SDK does not support direct string-based key presses or key combinations
+# You need to use the predefined key codes or implement custom solutions
 ```
 
 ### Element Detection and Interaction
 
 ```python
-# Find element by image (template matching)
-element = session.ui.find_element_by_image("button_template.png")
-if element.success:
-    session.ui.click(element.data.x, element.data.y)
+# Get all UI elements
+elements = session.ui.get_all_ui_elements()
+if elements.success:
+    print(f"Found {len(elements.elements)} UI elements")
+    for element in elements.elements:
+        print(f"Element: {element}")
 
-# Wait for element to appear
-element = session.ui.wait_for_element("login_button.png", timeout=10)
-if element.success:
-    session.ui.click(element.data.x, element.data.y)
+# Get clickable UI elements
+clickable_elements = session.ui.get_clickable_ui_elements()
+if clickable_elements.success:
+    print(f"Found {len(clickable_elements.elements)} clickable elements")
+
+# Note: The SDK does not provide image-based element detection or waiting functionality
+# UI element interaction is done through the methods available in the SDK
 ```
 
+<a id="workflow-orchestration"></a>
 ## 🔄 Workflow Orchestration
 
 ### Sequential Workflows
@@ -279,26 +256,26 @@ class AutomationWorkflow:
         ]
         
         for cmd in commands:
-            result = self.session.command.execute(cmd)
-            if result.is_error:
+            result = self.session.command.execute_command(cmd)
+            if not result.success:
                 raise Exception(f"Setup failed at: {cmd}")
         
         return True
     
     def install_dependencies(self, requirements):
         """Install Python dependencies"""
-        self.session.filesystem.write("/tmp/workspace/requirements.txt", requirements)
-        result = self.session.command.execute(
+        self.session.file_system.write_file("/tmp/workspace/requirements.txt", requirements)
+        result = self.session.command.execute_command(
             "cd /tmp/workspace && source venv/bin/activate && pip install -r requirements.txt"
         )
-        return not result.is_error
+        return result.success
     
     def run_tests(self):
         """Run automated tests"""
-        result = self.session.command.execute(
+        result = self.session.command.execute_command(
             "cd /tmp/workspace && source venv/bin/activate && python -m pytest"
         )
-        return not result.is_error
+        return result.success
     
     def generate_report(self):
         """Generate test report"""
@@ -316,7 +293,7 @@ with open('/tmp/workspace/report.json', 'w') as f:
     json.dump(report, f, indent=2)
 """
         result = self.session.code.run_code(code, "python")
-        return not result.is_error
+        return result.success
 
 # Usage
 workflow = AutomationWorkflow(session)
@@ -338,28 +315,32 @@ class ParallelWorkflow:
         
     def create_session(self):
         """Create a new session for parallel execution"""
-        return self.agent_bay.create().session
+        result = self.agent_bay.create()
+        if result.success:
+            return result.session
+        else:
+            raise Exception(f"Failed to create session: {result.error_message}")
     
     def task_1(self):
         """Data processing task"""
         session = self.create_session()
         try:
             # Process data
-            result = session.command.execute("python data_processor.py")
-            return {"task": "data_processing", "success": not result.is_error}
+            result = session.command.execute_command("python data_processor.py")
+            return {"task": "data_processing", "success": result.success}
         finally:
             # Clean up session if needed
-            pass
+            self.agent_bay.delete(session)
     
     def task_2(self):
         """Report generation task"""
         session = self.create_session()
         try:
             # Generate report
-            result = session.command.execute("python report_generator.py")
-            return {"task": "report_generation", "success": not result.is_error}
+            result = session.command.execute_command("python report_generator.py")
+            return {"task": "report_generation", "success": result.success}
         finally:
-            pass
+            self.agent_bay.delete(session)
     
     def task_3(self):
         """Notification task"""
@@ -372,9 +353,9 @@ response = requests.post('https://api.slack.com/webhook', json={'text': 'Task co
 print(f'Notification sent: {response.status_code}')
 """
             result = session.code.run_code(code, "python")
-            return {"task": "notification", "success": not result.is_error}
+            return {"task": "notification", "success": result.success}
         finally:
-            pass
+            self.agent_bay.delete(session)
     
     def run_parallel(self):
         """Run all tasks in parallel"""
@@ -401,6 +382,7 @@ results = workflow.run_parallel()
 print("Parallel execution results:", results)
 ```
 
+<a id="error-handling-and-retry"></a>
 ## 🚨 Error Handling and Retry
 
 ### Retry Mechanisms
@@ -413,11 +395,11 @@ def execute_with_retry(session, command, max_retries=3, delay=1):
     """Execute command with exponential backoff retry"""
     for attempt in range(max_retries):
         try:
-            result = session.command.execute(command)
-            if not result.is_error:
+            result = session.command.execute_command(command)
+            if result.success:
                 return result
             
-            print(f"Attempt {attempt + 1} failed: {result.error}")
+            print(f"Attempt {attempt + 1} failed: {result.error_message}")
             
         except Exception as e:
             print(f"Attempt {attempt + 1} exception: {e}")
@@ -432,7 +414,8 @@ def execute_with_retry(session, command, max_retries=3, delay=1):
 # Usage
 try:
     result = execute_with_retry(session, "unstable-command")
-    print("Command succeeded:", result.data.stdout)
+    if result.success:
+        print("Command succeeded:", result.output)
 except Exception as e:
     print("Command ultimately failed:", e)
 ```
@@ -474,9 +457,9 @@ class CircuitBreaker:
 breaker = CircuitBreaker()
 
 def unreliable_operation():
-    result = session.command.execute("flaky-command")
-    if result.is_error:
-        raise Exception(result.error)
+    result = session.command.execute_command("flaky-command")
+    if not result.success:
+        raise Exception(result.error_message)
     return result
 
 try:
@@ -486,6 +469,7 @@ except Exception as e:
     print("Operation failed:", e)
 ```
 
+<a id="best-practices"></a>
 ## 💡 Best Practices
 
 ### 1. Resource Management
@@ -496,16 +480,25 @@ from contextlib import contextmanager
 
 @contextmanager
 def managed_session(agent_bay):
-    session = agent_bay.create().session
-    try:
-        yield session
-    finally:
-        # Cleanup if needed
-        pass
+    result = agent_bay.create()
+    if result.success:
+        session = result.session
+        try:
+            yield session
+        finally:
+            # Cleanup session
+            agent_bay.delete(session)
+    else:
+        raise Exception(f"Failed to create session: {result.error_message}")
 
 # Usage
-with managed_session(agent_bay) as session:
-    result = session.command.execute("echo 'Hello'")
+try:
+    with managed_session(agent_bay) as session:
+        result = session.command.execute_command("echo 'Hello'")
+        if result.success:
+            print("Command output:", result.output)
+except Exception as e:
+    print("Error:", e)
 ```
 
 ### 2. Logging and Monitoring
@@ -522,11 +515,11 @@ def execute_with_logging(session, command):
     start_time = time.time()
     
     try:
-        result = session.command.execute(command)
+        result = session.command.execute_command(command)
         duration = time.time() - start_time
         
-        if result.is_error:
-            logger.error(f"Command failed in {duration:.2f}s: {result.error}")
+        if not result.success:
+            logger.error(f"Command failed in {duration:.2f}s: {result.error_message}")
         else:
             logger.info(f"Command succeeded in {duration:.2f}s")
         
@@ -561,7 +554,7 @@ class AutomationConfig:
 
 # Usage
 config = AutomationConfig.from_env()
-result = session.command.execute("ls", timeout=config.timeout)
+result = session.command.execute_command("ls", timeout_ms=config.timeout*1000)
 ```
 
 ### 4. Testing Automation Scripts
@@ -577,16 +570,16 @@ class TestAutomation(unittest.TestCase):
     def test_command_execution(self):
         # Mock successful command
         mock_result = Mock()
-        mock_result.is_error = False
-        mock_result.data.stdout = "test output"
-        self.mock_session.command.execute.return_value = mock_result
+        mock_result.success = True
+        mock_result.output = "test output"
+        self.mock_session.command.execute_command.return_value = mock_result
         
         # Test your automation function
         result = execute_with_logging(self.mock_session, "test command")
         
-        self.assertFalse(result.is_error)
-        self.assertEqual(result.data.stdout, "test output")
-        self.mock_session.command.execute.assert_called_once_with("test command")
+        self.assertTrue(result.success)
+        self.assertEqual(result.output, "test output")
+        self.mock_session.command.execute_command.assert_called_once_with("test command")
 
 if __name__ == "__main__":
     unittest.main()

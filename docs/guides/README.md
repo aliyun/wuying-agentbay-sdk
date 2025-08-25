@@ -17,57 +17,176 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 ```python
 # Create session
 agent_bay = AgentBay()
-session = agent_bay.create().session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+else:
+    print(f"Failed to create session: {result.error_message}")
 
 # Execute command
-result = session.command.execute("ls -la")
+result = session.command.execute_command("ls -la")
 
 # File operations
-session.filesystem.write("/path/file.txt", "content")
-content = session.filesystem.read("/path/file.txt").data
+write_result = session.file_system.write_file("/path/file.txt", "content")
+if write_result.success:
+    read_result = session.file_system.read_file("/path/file.txt")
+    if read_result.success:
+        content = read_result.content
 ```
 
 ### Persistent Storage
 ```python
 # Create context
-context = agent_bay.context.get("project-name", create=True).context
+context_result = agent_bay.context.get("project-name", create=True)
+if context_result.success:
+    context = context_result.context
+else:
+    print(f"Failed to get context: {context_result.error_message}")
 
 # Create session with context
 context_sync = ContextSync.new(context.id, "/mnt/data", SyncPolicy.default())
-session = agent_bay.create(CreateSessionParams(context_syncs=[context_sync])).session
+params = CreateSessionParams(context_syncs=[context_sync])
+session_result = agent_bay.create(params)
+if session_result.success:
+    session = session_result.session
+else:
+    print(f"Failed to create session: {session_result.error_message}")
 ```
 
 ### Code Execution
 ```python
-# Python code
-result = session.code.run_code("print('Hello World')", "python")
+# Python code execution using command
+python_code = """
+print('Hello World from Python!')
+import sys
+print('Python version:', sys.version)
+"""
 
-# JavaScript code
-result = session.code.run_code("console.log('Hello')", "javascript")
+# Write code to a file and execute it
+write_result = session.file_system.write_file("/tmp/script.py", python_code)
+if write_result.success:
+    result = session.command.execute_command("python3 /tmp/script.py")
+    if result.success:
+        print("Python output:", result.output)
+    else:
+        print(f"Python execution failed: {result.error_message}")
+else:
+    print(f"Failed to write Python script: {write_result.error_message}")
+
+# JavaScript code execution using command
+js_code = """
+console.log('Hello World from JavaScript!');
+console.log('Node.js version:', process.version);
+"""
+
+# Write code to a file and execute it
+write_result = session.file_system.write_file("/tmp/script.js", js_code)
+if write_result.success:
+    result = session.command.execute_command("node /tmp/script.js")
+    if result.success:
+        print("JavaScript output:", result.output)
+    else:
+        print(f"JavaScript execution failed: {result.error_message}")
+else:
+    print(f"Failed to write JavaScript script: {write_result.error_message}")
 ```
 
 ### UI Automation
 ```python
-# Click element
-session.ui.click("button[type='submit']")
+# Get clickable UI elements
+elements_result = session.ui.get_clickable_ui_elements(timeout_ms=5000)
+if elements_result.success:
+    print(f"Found {len(elements_result.elements)} clickable elements")
+    for element in elements_result.elements:
+        print(f"  - {element.get('text', '')} ({element.get('className', '')})")
+else:
+    print(f"Failed to get clickable UI elements: {elements_result.error_message}")
+
+# Click at specific coordinates
+click_result = session.ui.click(x=100, y=200, button="left")
+if click_result.success:
+    print("Click successful")
+else:
+    print(f"Click failed: {click_result.error_message}")
 
 # Input text
-session.ui.type("#username", "myuser")
+input_result = session.ui.input_text("myuser")
+if input_result.success:
+    print("Text input successful")
+else:
+    print(f"Text input failed: {input_result.error_message}")
 
-# Wait for element
-session.ui.wait_for_element(".loading", visible=False)
+# Send key events (e.g., HOME key)
+from agentbay.ui.ui import KeyCode
+key_result = session.ui.send_key(KeyCode.HOME)
+if key_result.success:
+    print("Key event sent successfully")
+else:
+    print(f"Key event failed: {key_result.error_message}")
+
+# Swipe gesture
+swipe_result = session.ui.swipe(start_x=100, start_y=200, end_x=300, end_y=400, duration_ms=500)
+if swipe_result.success:
+    print("Swipe gesture performed successfully")
+else:
+    print(f"Swipe gesture failed: {swipe_result.error_message}")
+
+# Take screenshot
+screenshot_result = session.ui.screenshot()
+if screenshot_result.success:
+    print(f"Screenshot saved to: {screenshot_result.data}")
+else:
+    print(f"Screenshot failed: {screenshot_result.error_message}")
 ```
 
 ### Browser Automation
 ```python
-# Navigate to page
-session.browser.navigate("https://example.com")
+# Initialize browser with options
+from agentbay.browser.browser import BrowserOption
+option = BrowserOption(
+    use_stealth=True,
+    viewport={"width": 1920, "height": 1080}
+)
 
-# Take screenshot
-screenshot = session.browser.screenshot()
+# Initialize browser
+init_result = session.browser.initialize(option)
+if init_result:
+    print("Browser initialized successfully")
+else:
+    print("Failed to initialize browser")
+    exit(1)
 
-# Execute JavaScript
-result = session.browser.execute_script("return document.title")
+# Get browser endpoint URL for Playwright connection
+try:
+    endpoint_url = session.browser.get_endpoint_url()
+    print(f"Browser endpoint URL: {endpoint_url}")
+except Exception as e:
+    print(f"Failed to get browser endpoint URL: {e}")
+    exit(1)
+
+# Connect to browser using Playwright
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp(endpoint_url)
+    page = browser.new_page()
+    
+    # Navigate to page
+    page.goto("https://example.com")
+    print("Navigation successful")
+    
+    # Take screenshot
+    screenshot = page.screenshot()
+    with open("screenshot.png", "wb") as f:
+        f.write(screenshot)
+    print("Screenshot saved to screenshot.png")
+    
+    # Execute JavaScript
+    title = page.evaluate("() => document.title")
+    print("Page title:", title)
+    
+    # Close browser
+    browser.close()
 ```
 
 ## 📚 Detailed Guides
@@ -117,50 +236,6 @@ Explore advanced capabilities:
 
 [Read Advanced Features Guide →](advanced-features.md)
 
-## 🎯 Use Case Examples
-
-### Web Scraping
-```python
-# Create session with browser
-session = agent_bay.create().session
-
-# Navigate and extract data
-session.browser.navigate("https://example.com")
-data = session.browser.execute_script("""
-    return Array.from(document.querySelectorAll('.item')).map(el => el.textContent)
-""")
-```
-
-### Data Processing
-```python
-# Upload data file
-session.filesystem.upload_file("data.csv", "/tmp/data.csv")
-
-# Process with Python
-code = """
-import pandas as pd
-df = pd.read_csv('/tmp/data.csv')
-result = df.groupby('category').sum()
-result.to_csv('/tmp/result.csv')
-"""
-session.code.run_code(code, "python")
-
-# Download result
-session.filesystem.download_file("/tmp/result.csv", "result.csv")
-```
-
-### CI/CD Integration
-```python
-# Clone repository
-session.command.execute("git clone https://github.com/user/repo.git")
-
-# Run tests
-result = session.command.execute("cd repo && npm test")
-
-# Deploy if tests pass
-if result.success:
-    session.command.execute("cd repo && npm run deploy")
-```
 
 ## 🔍 Troubleshooting
 
