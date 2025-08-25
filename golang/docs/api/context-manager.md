@@ -6,6 +6,36 @@ The `ContextManager` class provides functionality for managing contexts within a
 
 The `ContextManager` is accessed through a session instance and provides functionality for managing contexts within that session.
 
+## Data Types
+
+```go
+type ContextStatusData struct {
+  ContextId    string  // The ID of the context
+  Path         string  // The path where the context is mounted
+  ErrorMessage string  // Error message if the operation failed
+  Status       string  // Status of the synchronization task
+  StartTime    int64   // Start time of the task (Unix timestamp)
+  FinishTime   int64   // Finish time of the task (Unix timestamp)
+  TaskType     string  // Type of the task (e.g., "upload", "download")
+}
+```
+
+## Result Types
+
+```go
+type ContextInfoResult struct {
+  ApiResponse       // Embedded ApiResponse struct
+  ContextStatusData []ContextStatusData  // Array of context status data objects
+}
+```
+
+```go
+type ContextSyncResult struct {
+  ApiResponse  // Embedded ApiResponse struct
+  Success bool  // Indicates whether the synchronization was successful
+}
+```
+
 ## Methods
 
 
