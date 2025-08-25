@@ -33,11 +33,11 @@ Lists all root windows in the system.
 
 
 ```go
-func (wm *WindowManager) ListRootWindows() (string, error)
+func (wm *WindowManager) ListRootWindows() (*WindowListResult, error)
 ```
 
 **Returns:**
-- `string`: A JSON string containing the list of root windows.
+- `*WindowListResult`: A result object containing the list of root windows and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -45,11 +45,11 @@ Gets the currently active window.
 
 
 ```go
-func (wm *WindowManager) GetActiveWindow() (string, error)
+func (wm *WindowManager) GetActiveWindow() (*WindowDetailResult, error)
 ```
 
 **Returns:**
-- `string`: A JSON string containing the active window.
+- `*WindowDetailResult`: A result object containing the active window and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -57,13 +57,14 @@ Activates (brings to front) a window by ID.
 
 
 ```go
-func (wm *WindowManager) ActivateWindow(windowID int) error
+func (wm *WindowManager) ActivateWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to activate.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -71,13 +72,14 @@ Minimizes a window by ID.
 
 
 ```go
-func (wm *WindowManager) MinimizeWindow(windowID int) error
+func (wm *WindowManager) MinimizeWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to minimize.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -85,13 +87,14 @@ Maximizes a window by ID.
 
 
 ```go
-func (wm *WindowManager) MaximizeWindow(windowID int) error
+func (wm *WindowManager) MaximizeWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to maximize.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -99,13 +102,14 @@ Restores a window by ID (from minimized or maximized state).
 
 
 ```go
-func (wm *WindowManager) RestoreWindow(windowID int) error
+func (wm *WindowManager) RestoreWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to restore.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -113,13 +117,14 @@ Makes a window fullscreen by ID.
 
 
 ```go
-func (wm *WindowManager) FullscreenWindow(windowID int) error
+func (wm *WindowManager) FullscreenWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to make fullscreen.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -127,7 +132,7 @@ Resizes a window by ID to the specified width and height.
 
 
 ```go
-func (wm *WindowManager) ResizeWindow(windowID, width, height int) error
+func (wm *WindowManager) ResizeWindow(windowID, width, height int) (*WindowResult, error)
 ```
 
 **Parameters:**
@@ -136,6 +141,7 @@ func (wm *WindowManager) ResizeWindow(windowID, width, height int) error
 - `height` (int): The new height of the window.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -143,13 +149,14 @@ Closes a window by ID.
 
 
 ```go
-func (wm *WindowManager) CloseWindow(windowID int) error
+func (wm *WindowManager) CloseWindow(windowID int) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `windowID` (int): The ID of the window to close.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 
@@ -157,13 +164,14 @@ Enables or disables focus mode, which prevents window switching.
 
 
 ```go
-func (wm *WindowManager) FocusMode(on bool) error
+func (wm *WindowManager) FocusMode(on bool) (*WindowResult, error)
 ```
 
 **Parameters:**
 - `on` (bool): True to enable focus mode, False to disable it.
 
 **Returns:**
+- `*WindowResult`: A result object containing the success status and request ID.
 - `error`: An error if the operation fails.
 
 ## Usage Examples

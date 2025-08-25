@@ -28,99 +28,78 @@ interface Window {
 
 
 ```typescript
-async listRootWindows(): Promise<Window[]>
+async listRootWindows(): Promise<WindowListResult>
 ```
 
 **Returns:**
-- `Promise<Window[]>`: A promise that resolves to a list of root windows.
-
-**Throws:**
-- `APIError`: If there's an error listing the root windows.
+- `Promise<WindowListResult>`: A promise that resolves to a result object containing the list of root windows and request ID.
 
 
 ```typescript
-async getActiveWindow(): Promise<Window>
+async getActiveWindow(): Promise<WindowInfoResult>
 ```
 
 **Returns:**
-- `Promise<Window>`: A promise that resolves to the currently active window.
-
-**Throws:**
-- `APIError`: If there's an error getting the active window.
+- `Promise<WindowInfoResult>`: A promise that resolves to a result object containing the active window and request ID.
 
 
 ```typescript
-async activateWindow(windowId: number): Promise<boolean>
+async activateWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to activate.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error activating the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async minimizeWindow(windowId: number): Promise<boolean>
+async minimizeWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to minimize.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error minimizing the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async maximizeWindow(windowId: number): Promise<boolean>
+async maximizeWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to maximize.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error maximizing the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async restoreWindow(windowId: number): Promise<boolean>
+async restoreWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to restore.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error restoring the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async fullscreenWindow(windowId: number): Promise<boolean>
+async fullscreenWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to make fullscreen.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error making the window fullscreen.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async resizeWindow(windowId: number, width: number, height: number): Promise<boolean>
+async resizeWindow(windowId: number, width: number, height: number): Promise<BoolResult>
 ```
 
 **Parameters:**
@@ -129,35 +108,26 @@ async resizeWindow(windowId: number, width: number, height: number): Promise<boo
 - `height` (number): The new height of the window.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error resizing the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async closeWindow(windowId: number): Promise<boolean>
+async closeWindow(windowId: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `windowId` (number): The ID of the window to close.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error closing the window.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
 ```typescript
-async focusMode(on: boolean): Promise<boolean>
+async focusMode(on: boolean): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `on` (boolean): True to enable focus mode, False to disable it.
 
 **Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the operation was successful, false otherwise.
-
-**Throws:**
-- `APIError`: If there's an error setting focus mode.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
