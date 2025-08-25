@@ -178,6 +178,9 @@ export class BrowserOptionClass implements BrowserOption {
 
   toMap(): Record<string, any> {
     const optionMap: Record<string, any> = {};
+    if (process.env.AGENTBAY_BROWSER_BEHAVIOR_SIMULATE) {
+      optionMap['behaviorSimulate'] = (process.env.AGENTBAY_BROWSER_BEHAVIOR_SIMULATE !== "0") as boolean;
+    }
     if (this.useStealth !== undefined) {
       optionMap['useStealth'] = this.useStealth;
     }
