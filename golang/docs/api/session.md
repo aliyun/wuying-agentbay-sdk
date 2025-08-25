@@ -17,6 +17,7 @@ UI  // The UI instance for this session
 Context  // The ContextManager instance for this session
 Browser  // The Browser instance for this session
 Agent  // The Agent instance for this session
+ImageId  // The image ID used when creating this session
 IsVpcEnabled  // Whether this session uses VPC resources
 NetworkInterfaceIP  // Network interface IP for VPC sessions
 HttpPortNumber  // HTTP port for VPC sessions
@@ -227,6 +228,33 @@ if err != nil {
 }
 
 fmt.Printf("Custom link: %s\n", customLink)
+```
+
+### ListMcpTools
+
+Lists MCP tools available for this session.
+
+```go
+ListMcpTools() (*McpToolsResult, error)
+```
+
+**Returns:**
+- `*McpToolsResult`: A result object containing the list of MCP tools and request ID.
+- `error`: An error if listing MCP tools fails.
+
+**Example:**
+```go
+// List MCP tools
+toolsResult, err := session.ListMcpTools()
+if err != nil {
+	fmt.Printf("Error listing MCP tools: %v\n", err)
+	os.Exit(1)
+}
+
+fmt.Printf("Found %d MCP tools\n", len(toolsResult.Tools))
+for _, tool := range toolsResult.Tools {
+	fmt.Printf("Tool: %s - %s\n", tool.Name, tool.Description)
+}
 ```
 
 ## Related Resources
