@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Literal
 import asyncio
 import time
+import os
 from agentbay.api.models import InitBrowserRequest
 from agentbay.browser.browser_agent import BrowserAgent
 from agentbay.api.base_service import BaseService
@@ -247,6 +248,8 @@ class BrowserOption:
 
     def to_map(self):
         option_map = dict()
+        if behavior_simulate_env := os.getenv("AGENTBAY_BROWSER_BEHAVIOR_SIMULATE"):
+            option_map['behaviorSimulate'] = behavior_simulate_env != "0"
         if self.use_stealth is not None:
             option_map['useStealth'] = self.use_stealth
         if self.user_agent is not None:
