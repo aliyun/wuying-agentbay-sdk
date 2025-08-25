@@ -5,7 +5,7 @@ from .exceptions import AgentBayError, APIError, AuthenticationError
 from .filesystem import FileSystem
 from .oss import Oss
 from .session import Session
-from .session_params import CreateSessionParams
+from .session_params import CreateSessionParams, ListSessionParams
 from .ui import UI
 from .window import Window
 from .agent import Agent
@@ -39,6 +39,7 @@ __all__ = [
     "InstalledApp",
     "Process",
     "CreateSessionParams",
+    "ListSessionParams",
     "ContextSync",
     "SyncPolicy",
     "UploadPolicy",

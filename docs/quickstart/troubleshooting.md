@@ -22,10 +22,11 @@ def quick_diagnosis():
     else:
         print(f"✅ API key set (length: {len(api_key)})")
     
-    # 2. Test Connection
+    # 2. Initialize Client
     try:
         agent_bay = AgentBay()
         print("✅ AgentBay client initialized successfully")
+        print("ℹ️  Note: Creating AgentBay client does not establish a connection")
     except Exception as e:
         print(f"❌ Client initialization failed: {e}")
         return False
@@ -33,8 +34,8 @@ def quick_diagnosis():
     # 3. Test Session Creation
     try:
         result = agent_bay.create()
-        if result.is_error:
-            print(f"❌ Session creation failed: {result.error}")
+        if not result.success:
+            print(f"❌ Session creation failed: {result.error_message}")
             return False
         else:
             print("✅ Session created successfully")
@@ -45,12 +46,13 @@ def quick_diagnosis():
     
     # 4. Test Basic Commands
     try:
-        cmd_result = session.command.execute("echo 'Hello AgentBay'")
-        if cmd_result.is_error:
-            print(f"❌ Command execution failed: {cmd_result.error}")
+        cmd_result = session.command.execute_command("echo 'Hello AgentBay'")
+        if not cmd_result.success:
+            print(f"❌ Command execution failed: {cmd_result.error_message}")
             return False
         else:
             print("✅ Command executed successfully")
+            print(f"   Output: {cmd_result.output}")
     except Exception as e:
         print(f"❌ Command execution exception: {e}")
         return False
@@ -125,18 +127,22 @@ from agentbay import AgentBay
 agent_bay = AgentBay()
 
 # List existing sessions and clean up if needed
-sessions_result = agent_bay.list()
-if not sessions_result.is_error:
-    sessions = sessions_result.sessions
+try:
+    sessions = agent_bay.list()
     print(f"Current sessions: {len(sessions)}")
     
     # Clean up old sessions if needed
-    for session_info in sessions[:3]:  # Clean up first 3 as example
+    for session in sessions[:3]:  # Clean up first 3 as example
         try:
-            agent_bay.delete(session_info.session_id)
-            print(f"Deleted session: {session_info.session_id}")
+            delete_result = agent_bay.delete(session)
+            if delete_result.success:
+                print(f"Deleted session: {session.session_id}")
+            else:
+                print(f"Failed to delete session {session.session_id}: {delete_result.error_message}")
         except Exception as e:
-            print(f"Failed to delete session {session_info.session_id}: {e}")
+            print(f"Failed to delete session {session.session_id}: {e}")
+except Exception as e:
+    print(f"Failed to list sessions: {e}")
 ```
 
 #### Problem: "Session not found" or "Session expired"
@@ -149,10 +155,10 @@ def get_or_create_session(agent_bay):
     try:
         # Try to create new session
         result = agent_bay.create()
-        if not result.is_error:
+        if result.success:
             return result.session
         else:
-            print(f"Failed to create session: {result.error}")
+            print(f"Failed to create session: {result.error_message}")
             return None
     except Exception as e:
         print(f"Exception creating session: {e}")
@@ -176,16 +182,16 @@ def check_file_access(session, path):
     try:
         # Check if directory exists
         dir_path = os.path.dirname(path)
-        cmd_result = session.command.execute(f"mkdir -p {dir_path}")
-        if cmd_result.is_error:
-            print(f"Failed to create directory: {cmd_result.error}")
+        cmd_result = session.command.execute_command(f"mkdir -p {dir_path}")
+        if not cmd_result.success:
+            print(f"Failed to create directory: {cmd_result.error_message}")
             return False
         
         # Test write access
         test_content = "test"
         write_result = session.file_system.write_file(path, test_content)
-        if write_result.is_error:
-            print(f"Write failed: {write_result.error}")
+        if not write_result.success:
+            print(f"Write failed: {write_result.error_message}")
             return False
         
         # Clean up test file
@@ -204,31 +210,45 @@ if check_file_access(session, "/tmp/test.txt"):
 **Cause**: File size limits or network issues
 
 **Solution**:
+Instead of manually handling file chunking, use the SDK's built-in large file operations:
+
 ```python
-# Handle large file uploads with chunking
-def upload_large_file(session, local_path, remote_path, chunk_size=1024*1024):  # 1MB chunks
+# For reading large files, use read_large_file
+def read_large_file_example(session, path):
     try:
-        with open(local_path, 'rb') as f:
-            chunk_number = 0
-            while True:
-                chunk = f.read(chunk_size)
-                if not chunk:
-                    break
-                
-                # Write chunk to remote file (append mode would be needed)
-                chunk_path = f"{remote_path}.part{chunk_number}"
-                write_result = session.file_system.write_file(chunk_path, chunk)
-                if write_result.is_error:
-                    print(f"Failed to upload chunk {chunk_number}: {write_result.error}")
-                    return False
-                
-                chunk_number += 1
-            
-            print(f"Uploaded {chunk_number} chunks successfully")
-            return True
+        # read_large_file automatically handles chunking for large files
+        result = session.file_system.read_large_file(path)
+        if result.success:
+            print(f"Successfully read large file: {len(result.content)} characters")
+            return result.content
+        else:
+            print(f"Failed to read large file: {result.error_message}")
+            return None
     except Exception as e:
-        print(f"Large file upload failed: {e}")
+        print(f"Error reading large file: {e}")
+        return None
+
+# For writing large files, use write_large_file
+def write_large_file_example(session, path, content):
+    try:
+        # write_large_file automatically handles chunking for large files
+        result = session.file_system.write_large_file(path, content)
+        if result.success:
+            print("Successfully wrote large file")
+            return True
+        else:
+            print(f"Failed to write large file: {result.error_message}")
+            return False
+    except Exception as e:
+        print(f"Error writing large file: {e}")
         return False
+
+# Usage
+large_content = "A" * (1024 * 1024 * 5)  # 5MB of data
+if write_large_file_example(session, "/tmp/large_file.txt", large_content):
+    content = read_large_file_example(session, "/tmp/large_file.txt")
+    if content:
+        print(f"Verified content length: {len(content)}")
 ```
 
 ### 5. Command Execution Issues
@@ -240,15 +260,15 @@ def upload_large_file(session, local_path, remote_path, chunk_size=1024*1024):  
 ```python
 # Check if command exists before executing
 def check_command_exists(session, command):
-    cmd_result = session.command.execute(f"which {command}")
-    return not cmd_result.is_error
+    cmd_result = session.command.execute_command(f"which {command}")
+    return cmd_result.success
 
 # Install missing packages
 def install_package(session, package_name):
     # For Ubuntu/Debian
-    cmd_result = session.command.execute(f"apt-get update && apt-get install -y {package_name}")
-    if cmd_result.is_error:
-        print(f"Failed to install {package_name}: {cmd_result.error}")
+    cmd_result = session.command.execute_command(f"apt-get update && apt-get install -y {package_name}")
+    if not cmd_result.success:
+        print(f"Failed to install {package_name}: {cmd_result.error_message}")
         return False
     return True
 
@@ -264,27 +284,25 @@ if not check_command_exists(session, "curl"):
 **Solution**:
 ```python
 # Use appropriate timeouts
-from agentbay import CommandOptions
-
 # For quick commands, use shorter timeout
-quick_cmd_result = session.command.execute("ls -la", CommandOptions(timeout=30))
+quick_cmd_result = session.command.execute_command("ls -la", timeout_ms=30000)
 
 # For long-running commands, use longer timeout
-long_cmd_result = session.command.execute("find / -name '*.log'", CommandOptions(timeout=300))
+long_cmd_result = session.command.execute_command("find / -name '*.log'", timeout_ms=300000)
 
 # For very long operations, consider breaking them into steps
 def process_large_dataset(session):
     # Step 1: Prepare data
-    session.command.execute("mkdir -p /tmp/processing")
+    session.command.execute_command("mkdir -p /tmp/processing")
     
     # Step 2: Process in chunks
     for i in range(10):
-        cmd_result = session.command.execute(
+        cmd_result = session.command.execute_command(
             f"process_chunk.sh {i}", 
-            CommandOptions(timeout=60)
+            timeout_ms=60000
         )
-        if cmd_result.is_error:
-            print(f"Chunk {i} failed: {cmd_result.error}")
+        if not cmd_result.success:
+            print(f"Chunk {i} failed: {cmd_result.error_message}")
             # Decide whether to continue or abort
 ```
 
@@ -306,18 +324,18 @@ agent_bay = AgentBay(debug=True)
 ### Capture and Analyze Error Details
 ```python
 def detailed_error_analysis(result):
-    if result.is_error:
-        print(f"Error Type: {type(result.error)}")
-        print(f"Error Message: {result.error}")
+    if not result.success:
+        print(f"Error Type: {type(result.error_message)}")
+        print(f"Error Message: {result.error_message}")
         print(f"Error Code: {getattr(result, 'error_code', 'N/A')}")
         print(f"Request ID: {getattr(result, 'request_id', 'N/A')}")
         
         # Check if it's a network issue
-        if "timeout" in str(result.error).lower():
+        if "timeout" in str(result.error_message).lower():
             print("💡 This appears to be a network timeout issue")
-        elif "permission" in str(result.error).lower():
+        elif "permission" in str(result.error_message).lower():
             print("💡 This appears to be a permission issue")
-        elif "not found" in str(result.error).lower():
+        elif "not found" in str(result.error_message).lower():
             print("💡 This appears to be a resource not found issue")
 ```
 
@@ -334,7 +352,7 @@ class SessionManager:
     def get_session(self):
         if not self.session:
             result = self.agent_bay.create()
-            if not result.is_error:
+            if result.success:
                 self.session = result.session
         return self.session
     
@@ -367,10 +385,9 @@ def batch_file_operations(session, operations):
 
 If you're still experiencing issues after trying these solutions:
 
-1. **Check the [FAQ](faq.md)** for common questions
-2. **Review the [Documentation](../README.md)** for detailed information
-3. **Search [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)** for similar problems
-4. **Create a new issue** with:
+1. **Review the [Documentation](../README.md)** for detailed information
+2. **Search [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)** for similar problems
+3. **Create a new issue** with:
    - Detailed error messages
    - Code snippets that reproduce the issue
    - Environment information (SDK version, Python/Node.js/Go version, etc.)

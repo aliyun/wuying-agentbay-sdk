@@ -41,7 +41,6 @@ After completing this quick start guide, you will be able to:
 
 ## ❓ Having Issues?
 
-- [Frequently Asked Questions](faq.md)
 - [Troubleshooting Guide](troubleshooting.md)
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
 
