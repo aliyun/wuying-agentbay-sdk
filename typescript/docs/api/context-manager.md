@@ -6,6 +6,34 @@ The `ContextManager` class provides functionality for managing contexts within a
 
 The `ContextManager` is accessed through a session instance and provides functionality for managing contexts within that session.
 
+## Data Types
+
+```typescript
+interface ContextStatusData {
+  contextId: string;     // The ID of the context
+  path: string;          // The path where the context is mounted
+  errorMessage: string;  // Error message if the operation failed
+  status: string;        // Status of the synchronization task
+  startTime: number;     // Start time of the task (Unix timestamp)
+  finishTime: number;    // Finish time of the task (Unix timestamp)
+  taskType: string;      // Type of the task (e.g., "upload", "download")
+}
+```
+
+## Result Types
+
+```typescript
+interface ContextInfoResult extends ApiResponse {
+  contextStatusData: ContextStatusData[];  // Array of context status data objects
+}
+```
+
+```typescript
+interface ContextSyncResult extends ApiResponse {
+  success: boolean;  // Indicates whether the synchronization was successful
+}
+```
+
 ## Methods
 
 

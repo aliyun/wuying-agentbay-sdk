@@ -34,6 +34,48 @@ class Process:
     cmdline: str  # The command line used to start the process (optional)
 ```
 
+## Result Types
+
+```python
+class ProcessListResult(ApiResponse):
+    success: bool
+    data: List[Process]
+    error_message: str
+```
+
+```python
+class InstalledAppListResult(ApiResponse):
+    success: bool
+    data: List[InstalledApp]
+    error_message: str
+```
+
+```python
+class AppInfoResult(ApiResponse):
+    success: bool
+    app_info: Dict[str, Any]
+    error_message: str
+```
+
+```python
+class AppListResult(ApiResponse):
+    success: bool
+    apps: List[Dict[str, Any]]
+    error_message: str
+```
+
+```python
+class AppOperationResult(ApiResponse):
+    success: bool
+    error_message: str
+```
+
+```python
+class AppInstallResult(ApiResponse):
+    success: bool
+    message: str
+```
+
 
 ```python
 def get_installed_apps(self, start_menu: bool, desktop: bool, ignore_system_apps: bool) -> InstalledAppListResult:
