@@ -22,6 +22,7 @@ is_vpc  # Whether this session uses VPC resources
 network_interface_ip  # Network interface IP for VPC sessions
 http_port  # HTTP port for VPC sessions
 mcp_tools  # MCP tools available for this session
+image_id  # The image ID used for this session
 ```
 
 ## Methods
@@ -134,11 +135,11 @@ except AgentBayError as e:
 Gets information about this session.
 
 ```python
-info() -> SessionInfo
+info() -> OperationResult
 ```
 
 **Returns:**
-- `SessionInfo`: An object containing information about the session.
+- `OperationResult`: A result object containing success status, request ID, and the session information as data.
 
 **Raises:**
 - `AgentBayError`: If getting session information fails due to API errors or other issues.
@@ -147,10 +148,14 @@ info() -> SessionInfo
 ```python
 # Get session information
 try:
-    info = session.info()
-    print(f"Session ID: {info.session_id}")
-    print(f"Resource URL: {info.resource_url}")
-    print(f"App ID: {info.app_id}")
+    result = session.info()
+    if result.success:
+        info = result.data
+        print(f"Session ID: {info.session_id}")
+        print(f"Resource URL: {info.resource_url}")
+        print(f"App ID: {info.app_id}")
+    else:
+        print(f"Failed to get session info: {result.error_message}")
 except AgentBayError as e:
     print(f"Failed to get session info: {e}")
 ```
@@ -160,7 +165,7 @@ except AgentBayError as e:
 Gets a link for this session.
 
 ```python
-get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> str
+get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> OperationResult
 ```
 
 **Parameters:**
@@ -168,7 +173,7 @@ get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> str
 - `port` (int, optional): The port for the link.
 
 **Returns:**
-- `str`: The link for the session.
+- `OperationResult`: A result object containing success status, request ID, and the link URL as data.
 
 **Raises:**
 - `AgentBayError`: If getting the link fails due to API errors or other issues.
@@ -177,15 +182,58 @@ get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> str
 ```python
 # Get session link
 try:
-    link = session.get_link()
-    print(f"Session link: {link}")
+    result = session.get_link()
+    if result.success:
+        link = result.data
+        print(f"Session link: {link}")
+    else:
+        print(f"Failed to get link: {result.error_message}")
     
     # Get link with specific protocol and port
-    custom_link = session.get_link("https", 8443)
-    print(f"Custom link: {custom_link}")
+    custom_result = session.get_link("https", 8443)
+    if custom_result.success:
+        custom_link = custom_result.data
+        print(f"Custom link: {custom_link}")
+    else:
+        print(f"Failed to get custom link: {custom_result.error_message}")
 except AgentBayError as e:
     print(f"Failed to get link: {e}")
 ```
+
+### get_link_async
+
+Asynchronously gets a link for this session.
+
+```python
+async get_link_async(protocol_type: Optional[str] = None, port: Optional[int] = None) -> OperationResult
+```
+
+**Parameters:**
+- `protocol_type` (str, optional): The protocol type for the link.
+- `port` (int, optional): The port for the link.
+
+**Returns:**
+- `OperationResult`: A result object containing success status, request ID, and the link URL as data.
+
+**Raises:**
+- `AgentBayError`: If getting the link fails due to API errors or other issues.
+
+### list_mcp_tools
+
+Lists MCP tools available for this session.
+
+```python
+list_mcp_tools(image_id: Optional[str] = None) -> McpToolsResult
+```
+
+**Parameters:**
+- `image_id` (str, optional): The image ID to list tools for. Defaults to the session's image_id or "linux_latest".
+
+**Returns:**
+- `McpToolsResult`: A result object containing success status, request ID, and the list of MCP tools.
+
+**Raises:**
+- `AgentBayError`: If listing MCP tools fails due to API errors or other issues.
 
 ## Related Resources
 
