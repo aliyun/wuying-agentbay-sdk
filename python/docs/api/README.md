@@ -13,6 +13,7 @@ This document provides a complete API reference for the AgentBay Python SDK.
 | [filesystem](#filesystem) | File system operations | `FileSystemManager` |
 | [ui](#ui) | UI automation | `UIAutomation` |
 | [context](#context) | Context management | `ContextManager` |
+| [extension](extension.md) | Browser extension management | `ExtensionsService`, `ExtensionOption` |
 | [browser](#browser) | Browser automation | `BrowserAutomation` |
 
 ## 🚀 Quick Start
@@ -346,6 +347,76 @@ agent_bay.context.upload_file(context.id, "/config.json", '{"version": "1.0"}')
 result = agent_bay.context.download_file(context.id, "/config.json")
 print(result.data)
 ```
+
+## ExtensionsService
+
+Browser extension management functionality.
+
+### Constructor
+
+Create an extensions service instance.
+
+```python
+ExtensionsService(agent_bay: AgentBay, context_id: str = "")
+```
+
+**Parameters:**
+- `agent_bay` (AgentBay): AgentBay client instance
+- `context_id` (str, optional): Context ID or name for extension storage
+
+### create()
+
+Upload a browser extension.
+
+```python
+create(local_path: str) -> Extension
+```
+
+### list()
+
+List all extensions in the current context.
+
+```python
+list() -> List[Extension]
+```
+
+### create_extension_option()
+
+Create extension configuration for browser sessions.
+
+```python
+create_extension_option(extension_ids: List[str]) -> ExtensionOption
+```
+
+**Examples:**
+```python
+from agentbay.extention import ExtensionsService
+from agentbay.session_params import CreateSessionParams, BrowserContext
+
+# Initialize extensions service
+extensions_service = ExtensionsService(agent_bay)
+
+# Upload extension
+extension = extensions_service.create("/path/to/extension.zip")
+
+# Create browser session with extension
+ext_option = extensions_service.create_extension_option([extension.id])
+session_params = CreateSessionParams(
+    browser_context=BrowserContext(
+        context_id="browser_session",
+        extension_option=ext_option
+    )
+)
+session = agent_bay.create(session_params).session
+
+# Cleanup
+extensions_service.cleanup()
+```
+
+**Related Documentation:**
+- [Extension API Reference](./extension.md) - Complete API documentation
+- [Extension Examples](../examples/extension/) - Practical code examples
+- [Browser Extensions Guide](../../../docs/guides/browser-extensions.md) - Tutorial and best practices
 
 ## Error Handling
 

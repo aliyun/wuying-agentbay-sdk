@@ -9,6 +9,7 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 - [File Operations](file-operations.md) - Upload, download, and manipulate files
 - [Data Persistence](data-persistence.md) - Persistent data storage and synchronization
 - [Automation](automation.md) - Command execution and workflow automation
+- [Browser Extensions](browser-extensions.md) - Browser extension management and testing
 - [Advanced Features](advanced-features.md) - Advanced capabilities and integrations
 
 ## 🚀 API Quick Reference
