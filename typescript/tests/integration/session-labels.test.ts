@@ -73,7 +73,100 @@ describe("Session Labels", () => {
       }
     });
   });
+  test('setLabels empty object handling test', async () => {
+      // Prerequisites: Session instance has been created
+      // Test objective: Verify handling when empty object is passed
 
+      const emptyResult = await session.setLabels({});
+      expect(emptyResult.success).toBe(false);
+      expect(emptyResult.errorMessage).toBe("Labels cannot be empty. Please provide at least one label.");
+      expect(emptyResult.requestId).toBe("");
+
+      log(` setLabels empty object: Empty object correctly rejected`);
+    });
+
+     test(' setLabels empty keys/values handling test', async () => {
+        // Prerequisites: Session instance has been created
+        // Test objective: Verify handling when empty keys or values are passed
+
+        // Test empty key
+        const emptyKeyResult = await session.setLabels({"": "value"});
+        expect(emptyKeyResult.success).toBe(false);
+        expect(emptyKeyResult.errorMessage).toBe("Label keys cannot be empty Please provide valid keys.");
+        expect(emptyKeyResult.requestId).toBe("");
+
+        // Test empty value
+        const emptyValueResult = await session.setLabels({"key": ""});
+        expect(emptyValueResult.success).toBe(false);
+        expect(emptyValueResult.errorMessage).toBe("Label values cannot be empty Please provide valid values.");
+        expect(emptyValueResult.requestId).toBe("");
+
+        // Test null value
+        const nullValueResult = await session.setLabels({"key": null as any});
+        expect(nullValueResult.success).toBe(false);
+        expect(nullValueResult.errorMessage).toBe("Label values cannot be empty Please provide valid values.");
+
+        // Test undefined value
+        const undefinedValueResult = await session.setLabels({"key": undefined as any});
+        expect(undefinedValueResult.success).toBe(false);
+        expect(undefinedValueResult.errorMessage).toBe("Label values cannot be empty Please provide valid values.");
+
+        log(`TC-ERROR-003 setLabels empty keys/values: All empty keys and values correctly rejected`);
+      });
+ test('setLabels mixed invalid parameters test', async () => {
+      // Prerequisites: Session instance has been created
+      // Test objective: Verify priority handling of mixed invalid parameters
+
+      // Test mixed situation with empty key and valid key-value pair
+      const mixedEmptyKeyResult = await session.setLabels({
+        "validKey": "validValue",
+        "": "emptyKeyValue"
+      });
+      expect(mixedEmptyKeyResult.success).toBe(false);
+      expect(mixedEmptyKeyResult.errorMessage).toBe("Label keys cannot be empty Please provide valid keys.");
+
+      // Test mixed situation with empty value and valid key-value pair
+      const mixedEmptyValueResult = await session.setLabels({
+        "validKey": "validValue",
+        "emptyValueKey": ""
+      });
+      expect(mixedEmptyValueResult.success).toBe(false);
+      expect(mixedEmptyValueResult.errorMessage).toBe("Label values cannot be empty Please provide valid values.");
+
+      // Test multiple invalid key-value pairs
+      const multipleInvalidResult = await session.setLabels({
+        "": "emptyKey",
+        "emptyValue": "",
+        "nullValue": null as any
+      });
+      expect(multipleInvalidResult.success).toBe(false);
+      // Should return the first encountered error (empty key)
+      expect(multipleInvalidResult.errorMessage).toBe("Label keys cannot be empty Please provide valid keys.");
+
+      log(`setLabels mixed invalid parameters: Mixed invalid parameters correctly handled with proper priority`);
+    });
+
+    test('setLabels boundary cases test', async () => {
+      // Prerequisites: Session instance has been created
+      // Test objective: Verify handling of boundary cases
+
+      // Test key with only whitespace
+      const whitespaceKeyResult = await session.setLabels({" ": "value"});
+      expect(whitespaceKeyResult.success).toBe(false);
+
+      // Test value with only whitespace
+      const whitespaceValueResult = await session.setLabels({"key": " "});
+      expect(whitespaceValueResult.success).toBe(false);
+
+      // Test zero-length but non-empty special cases (if any exist)
+      const specialCharsResult = await session.setLabels({
+        "key1": "value1",
+        "key2": "value2"
+      });
+      expect(specialCharsResult.success).toBe(true);
+
+      log(`setLabels boundary cases: Boundary cases correctly handled`);
+    });
   describe("getLabels()", () => {
     it.only("should get labels for a session", async () => {
       log("Testing getLabels...");

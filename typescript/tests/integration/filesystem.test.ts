@@ -110,6 +110,7 @@ describe("fileSystem", () => {
   });
 
   describe("writeFile", () => {
+    const writeTestFilePath = '/tmp/test_write.txt';
     it.only("should write to a file", async () => {
       // Check if fileSystem exists and has a writeFile method
       if (
@@ -170,6 +171,33 @@ describe("fileSystem", () => {
         );
       }
     });
+    it.only("File Writing Tests", async () => {
+      const testContent = 'Hello, World!';
+      // Test overwrite mode
+      const writeResult = await session.fileSystem.writeFile(writeTestFilePath, testContent, 'overwrite');
+      expect(writeResult.success).toBe(true);
+      expect(writeResult.requestId).toBeDefined();
+      expect(writeResult.data).toBe(true);
+
+      // Verify content
+      const readResult = await session.fileSystem.readFile(writeTestFilePath);
+      expect(readResult.success).toBe(true);
+      expect(readResult.content).toBe(testContent);
+
+      // Test append mode
+      const appendResult = await session.fileSystem.writeFile(writeTestFilePath, '\nAppended content', 'append');
+      expect(appendResult.success).toBe(true);
+
+      const readResult2 = await session.fileSystem.readFile(writeTestFilePath);
+      expect(readResult2.content).toContain(testContent);
+      expect(readResult2.content).toContain('Appended content');
+    })
+    it.only("should validate write mode parameter",async()=>{
+      const result = await session.fileSystem.writeFile(writeTestFilePath, 'content', 'invalid_mode' as any);
+      log(`Write result: ${JSON.stringify(result)}`);
+      expect(result.success).toBe(false);
+      expect(result.errorMessage).toContain('Invalid mode');
+    })
   });
 
   describe("createDirectory", () => {
@@ -660,6 +688,66 @@ describe("fileSystem", () => {
           "Note: fileSystem searchFiles method is not available, skipping search files test"
         );
       }
+    });
+  });
+
+  describe('Parameterized File Reading Tests', () => {
+    const multiLineFilePath = '/tmp/test_multiline.txt';
+    beforeEach(async () => {
+      // Create multi-line test file
+
+      const multiLineContent = Array.from({ length: 10 }, (_, i) => `Line ${i + 1}: This is test content`).join('\n');
+      await session.fileSystem.writeFile(multiLineFilePath, multiLineContent, 'overwrite');
+    });
+
+    test('should read specific bytes with offset and length parameters', async () => {
+      // Read 3 bytes starting from the 3rd byte (offset=2, length=3)
+      const result = await session.fileSystem.readFile(multiLineFilePath, 2, 3);
+
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBeDefined();
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBeLessThanOrEqual(3); // Should read at most 3 bytes
+
+      // Verify that the read content starts from the 3rd byte
+      const fullContent = await session.fileSystem.readFile(multiLineFilePath);
+      const expectedContent = fullContent.content.substring(2, 5); // Bytes 2-4 (3 bytes)
+      expect(result.content).toBe(expectedContent);
+    });
+
+    test('should read from offset to end of file', async () => {
+      // Read from the 6th byte to end of file (offset=5, length=0)
+      const result = await session.fileSystem.readFile(multiLineFilePath, 5, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBeDefined();
+      expect(result.content).toBeDefined();
+
+      // Verify reading from the 6th byte to end of file
+      const fullContent = await session.fileSystem.readFile(multiLineFilePath);
+      const expectedContent = fullContent.content.substring(5); // From 6th byte to end
+      expect(result.content).toBe(expectedContent);
+    });
+
+    test('should handle large offset values correctly', async () => {
+      // Test offset value larger than file size
+      const result = await session.fileSystem.readFile(multiLineFilePath, 1000);
+
+      expect(result.success).toBe(true);
+      expect(result.content).toBeDefined();
+      // Should return empty content as offset exceeds file size
+    });
+
+    test('should handle zero length parameter correctly', async () => {
+      // Test that length=0 should read from offset to end of file
+      const result = await session.fileSystem.readFile(multiLineFilePath, 0, 0);
+
+      expect(result.success).toBe(true);
+      expect(result.content).toBeDefined();
+
+      // length=0 should read the entire file
+      const fullContent = await session.fileSystem.readFile(multiLineFilePath);
+      expect(result.content).toBe(fullContent.content);
     });
   });
 });
