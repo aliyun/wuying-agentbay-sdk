@@ -33,7 +33,7 @@ jobs:
           fi
           npm install
           npm install -g typescript  # 如果未安装全局 tsc
-          npm version ${{ inputs.version }} --no-git-tag-version
+          npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
           npm run build
           ls dist/
 
