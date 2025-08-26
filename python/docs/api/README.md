@@ -28,8 +28,8 @@ session_result = agent_bay.create()
 session = session_result.session
 
 # Execute command
-result = session.command.execute("ls -la")
-print(result.data.stdout)
+result = session.command.execute_command("ls -la")
+print(result.output)
 
 # Clean up session
 agent_bay.destroy(session.session_id)
@@ -157,13 +157,13 @@ execute(command: str, timeout: Optional[int] = None, input_data: Optional[str] =
 **Examples:**
 ```python
 # Basic command execution
-result = session.command.execute("ls -la")
+result = session.command.execute_command("ls -la")
 
 # With timeout
-result = session.command.execute("long_running_task", timeout=60)
+result = session.command.execute_command("long_running_task", timeout=60)
 
 # Interactive command
-result = session.command.execute("python3", input_data="print('hello')\nexit()\n")
+result = session.command.execute_command("python3", input_data="print('hello')\nexit()\n")
 ```
 
 ## CodeExecutor
@@ -352,7 +352,7 @@ print(result.data)
 All API calls return result objects that contain `is_error` property and possible error information.
 
 ```python
-result = session.command.execute("invalid_command")
+result = session.command.execute_command("invalid_command")
 if result.is_error:
     print(f"Error: {result.error}")
     print(f"Error code: {result.error_code}")

@@ -123,28 +123,28 @@ func main() {
 
 ```python
 # Python
-command_result = session.command.execute("ls -la")
+command_result = session.command.execute_command("ls -la")
 if command_result.success:
-    print(f"Output: {command_result.data.stdout}")
+    print(f"Output: {command_result.output}")
 ```
 
 ```typescript
 // TypeScript
-const commandResult = await session.command.execute('ls -la');
+const commandResult = await session.command.executeCommand('ls -la');
 if (commandResult.success) {
-    console.log(`Output: ${commandResult.data.stdout}`);
+    console.log(`Output: ${commandResult.output}`);
 }
 ```
 
 ```go
 // Golang
-commandResult, err := session.Command.Execute("ls -la")
+commandResult, err := session.Command.ExecuteCommand("ls -la")
 if err != nil {
     fmt.Printf("Error executing command: %v\n", err)
     return
 }
 
-fmt.Printf("Output: %s\n", commandResult.Data.Stdout)
+fmt.Printf("Output: %s\n", commandResult.Output)
 ```
 
 ### Working with Files

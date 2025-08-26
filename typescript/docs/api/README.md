@@ -29,8 +29,8 @@ async function main() {
     const session = sessionResult.session;
     
     // Execute command
-    const result = await session.command.execute("ls -la");
-    console.log(result.data.stdout);
+    const result = await session.command.executeCommand("ls -la");
+    console.log(result.output);
     
     // Clean up session
     await agentBay.destroy(session.sessionId);
@@ -162,13 +162,13 @@ async execute(command: string, options?: CommandOptions): Promise<CommandResult>
 **Examples:**
 ```typescript
 // Basic command execution
-const result = await session.command.execute("ls -la");
+const result = await session.command.executeCommand("ls -la");
 
 // With timeout
-const result = await session.command.execute("long_running_task", { timeout: 60000 });
+const result = await session.command.executeCommand("long_running_task", { timeout: 60000 });
 
 // Interactive command
-const result = await session.command.execute("python3", {
+const result = await session.command.executeCommand("python3", {
     inputData: "print('hello')\nexit()\n"
 });
 ```
@@ -361,7 +361,7 @@ console.log(result.data);
 All API calls return result objects that contain `isError` property and possible error information.
 
 ```typescript
-const result = await session.command.execute("invalid_command");
+const result = await session.command.executeCommand("invalid_command");
 if (result.isError) {
     console.log(`Error: ${result.error}`);
     console.log(`Error code: ${result.errorCode}`);

@@ -64,13 +64,10 @@ async function commandExecutionExample(session: any): Promise<void> {
     
     for (const cmd of commands) {
         console.log(`\n🔄 执行命令: ${cmd}`);
-        const result = await session.command.execute(cmd);
+        const result = await session.command.executeCommand(cmd);
         
         if (!result.isError) {
-            console.log(`✅ 输出: ${result.data.stdout.trim()}`);
-            if (result.data.stderr) {
-                console.log(`⚠️ 错误: ${result.data.stderr.trim()}`);
-            }
+            console.log(`✅ 输出: ${result.output.trim()}`);
         } else {
             console.log(`❌ 命令失败: ${result.error}`);
         }
@@ -78,7 +75,7 @@ async function commandExecutionExample(session: any): Promise<void> {
     
     // 带超时的命令执行
     console.log('\n🔄 执行带超时的命令...');
-    const timeoutResult = await session.command.execute('sleep 2', { timeout: 5000 });
+    const timeoutResult = await session.command.executeCommand('sleep 2', { timeout: 5000 });
     if (!timeoutResult.isError) {
         console.log('✅ 超时命令执行成功');
     } else {

@@ -26,8 +26,8 @@ from agentbay import AgentBay
 # Create session and execute command
 agent_bay = AgentBay()
 session = agent_bay.create().session
-result = session.command.execute("echo 'Hello AgentBay'")
-print(result.data.stdout)  # Hello AgentBay
+result = session.command.execute_command("echo 'Hello AgentBay'")
+print(result.output)  # Hello AgentBay
 ```
 
 ### TypeScript
@@ -37,8 +37,8 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Create session and execute command
 const agentBay = new AgentBay();
 const session = (await agentBay.create()).session;
-const result = await session.command.execute("echo 'Hello AgentBay'");
-console.log(result.data.stdout);  // Hello AgentBay
+const result = await session.command.executeCommand("echo 'Hello AgentBay'");
+console.log(result.output);  // Hello AgentBay
 ```
 
 ### Golang

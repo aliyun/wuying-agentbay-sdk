@@ -67,18 +67,16 @@ def command_execution_example(session):
     
     for cmd in commands:
         print(f"\n🔄 执行命令: {cmd}")
-        result = session.command.execute(cmd)
+        result = session.command.execute_command(cmd)
         
         if not result.is_error:
-            print(f"✅ 输出: {result.data.stdout.strip()}")
-            if result.data.stderr:
-                print(f"⚠️ 错误: {result.data.stderr.strip()}")
+            print(f"✅ 输出: {result.output.strip()}")
         else:
             print(f"❌ 命令失败: {result.error}")
     
     # 带超时的命令执行
     print(f"\n🔄 执行带超时的命令...")
-    result = session.command.execute("sleep 2", timeout=5)
+    result = session.command.execute_command("sleep 2", timeout=5)
     if not result.is_error:
         print("✅ 超时命令执行成功")
     else:

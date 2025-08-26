@@ -29,8 +29,8 @@ from agentbay import AgentBay
 agent_bay = AgentBay()
 session_result = agent_bay.create()
 session = session_result.session
-result = session.command.execute("echo 'Hello AgentBay'")
-print(result.data.stdout)  # Hello AgentBay
+result = session.command.execute_command("echo 'Hello AgentBay'")
+print(result.output)  # Hello AgentBay
 
 # 清理资源
 agent_bay.delete(session)
@@ -44,8 +44,8 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 const agentBay = new AgentBay();
 const sessionResult = await agentBay.create();
 const session = sessionResult.session;
-const result = await session.command.execute("echo 'Hello AgentBay'");
-console.log(result.data.stdout);  // Hello AgentBay
+const result = await session.command.executeCommand("echo 'Hello AgentBay'");
+console.log(result.output);  // Hello AgentBay
 
 // 清理资源
 await agentBay.delete(session);

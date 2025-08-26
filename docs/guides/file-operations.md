@@ -277,14 +277,14 @@ def upload_large_file(session, local_path, remote_path, chunk_size=1024*1024):  
             
             # Combine chunks (this would require a command execution)
             combine_cmd = f"cat {remote_path}.part* > {remote_path}"
-            cmd_result = session.command.execute(combine_cmd)
+            cmd_result = session.command.execute_command(combine_cmd)
             if not cmd_result.success:
                 print(f"Failed to combine chunks: {cmd_result.error_message}")
                 return False
             
             # Clean up chunk files
             cleanup_cmd = f"rm {remote_path}.part*"
-            session.command.execute(cleanup_cmd)
+            session.command.execute_command(cleanup_cmd)
             
             print(f"Uploaded {chunk_number} chunks successfully")
             return True
@@ -334,11 +334,11 @@ def upload_with_progress(session, local_path, remote_path):
         
         # Combine chunks
         combine_cmd = f"cat {remote_path}.part* > {remote_path}"
-        session.command.execute(combine_cmd)
+        session.command.execute_command(combine_cmd)
         
         # Clean up
         cleanup_cmd = f"rm {remote_path}.part*"
-        session.command.execute(cleanup_cmd)
+        session.command.execute_command(cleanup_cmd)
         
         print("Upload completed successfully!")
         return True

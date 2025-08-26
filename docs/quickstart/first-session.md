@@ -34,7 +34,7 @@ def main():
     # Or specify specific image
     # linux_params = CreateSessionParams(image_id="linux_latest")
     # windows_params = CreateSessionParams(image_id="windows_latest") 
-    # android_params = CreateSessionParams(image_id="android_latest")
+    # mobile_params = CreateSessionParams(image_id="mobile_latest")
     # result = agent_bay.create(linux_params)
     
     if not result.success:
@@ -49,16 +49,16 @@ def main():
     print("\n💻 Executing commands...")
     
     # Check current directory
-    cmd_result = session.command.execute("pwd")
-    print(f"Current directory: {cmd_result.data.stdout.strip()}")
+    cmd_result = session.command.execute_command("pwd")
+    print(f"Current directory: {cmd_result.output.strip()}")
     
     # Check system information
-    cmd_result = session.command.execute("uname -a")
-    print(f"System info: {cmd_result.data.stdout.strip()}")
+    cmd_result = session.command.execute_command("uname -a")
+    print(f"System info: {cmd_result.output.strip()}")
     
     # List files
-    cmd_result = session.command.execute("ls -la /tmp")
-    print(f"Temporary directory contents:\n{cmd_result.data.stdout}")
+    cmd_result = session.command.execute_command("ls -la /tmp")
+    print(f"Temporary directory contents:\n{cmd_result.output}")
     
     # 4. File operations
     print("\n📁 File operations...")
@@ -76,7 +76,7 @@ def main():
     # Read file
     read_result = session.file_system.read_file("/tmp/hello.txt")
     if read_result.success:
-        print(f"📖 File content:\n{read_result.data}")
+        print(f"📖 File content:\n{read_result.content}")
     else:
         print(f"❌ File read failed: {read_result.error_message}")
     
@@ -84,7 +84,7 @@ def main():
     print("\n📂 Creating directory structure...")
     
     # Create directory
-    session.command.execute("mkdir -p /tmp/my_project/data")
+    session.command.execute_command("mkdir -p /tmp/my_project/data")
     
     # Create multiple files
     files_to_create = {
@@ -98,18 +98,18 @@ def main():
         print(f"✅ Created file: {file_path}")
     
     # View directory structure
-    tree_result = session.command.execute("find /tmp/my_project -type f")
-    print(f"\n📋 Project file list:\n{tree_result.data.stdout}")
+    tree_result = session.command.execute_command("find /tmp/my_project -type f")
+    print(f"\n📋 Project file list:\n{tree_result.output}")
     
     # 6. Run Python script
     print("\n🐍 Running Python script...")
-    python_result = session.command.execute("python3 /tmp/my_project/script.py")
-    print(f"Script output: {python_result.data.stdout.strip()}")
+    python_result = session.command.execute_command("python3 /tmp/my_project/script.py")
+    print(f"Script output: {python_result.output.strip()}")
     
     # 7. Network operations example
     print("\n🌐 Network operations...")
-    curl_result = session.command.execute("curl -s https://httpbin.org/json")
-    print(f"Network request result: {curl_result.data.stdout[:100]}...")
+    curl_result = session.command.execute_command("curl -s https://httpbin.org/json")
+    print(f"Network request result: {curl_result.output[:100]}...")
     
     print(f"\n🎉 Congratulations! You have successfully completed your first AgentBay session")
     print(f"Session ID: {session.session_id}")
@@ -145,12 +145,12 @@ async function main() {
     console.log("\n💻 Executing commands...");
     
     // Check current directory
-    let cmdResult = await session.command.execute("pwd");
-    console.log(`Current directory: ${cmdResult.data.stdout.trim()}`);
+    let cmdResult = await session.command.executeCommand("pwd");
+    console.log(`Current directory: ${cmdResult.output.trim()}`);
     
     // Check system information
-    cmdResult = await session.command.execute("uname -a");
-    console.log(`System info: ${cmdResult.data.stdout.trim()}`);
+    cmdResult = await session.command.executeCommand("uname -a");
+    console.log(`System info: ${cmdResult.output.trim()}`);
     
     // 4. File operations
     console.log("\n📁 File operations...");
@@ -169,7 +169,7 @@ async function main() {
     // Read file
     const readResult = await session.fileSystem.readFile("/tmp/hello.txt");
     if (readResult.success) {
-        console.log(`📖 File content:\n${readResult.data}`);
+        console.log(`📖 File content:\n${readResult.content}`);
     }
     
     // 5. Run Node.js code
@@ -182,8 +182,8 @@ console.log("Current time:", new Date().toISOString());
 `;
     
     await session.fileSystem.writeFile("/tmp/script.js", nodeScript);
-    const nodeResult = await session.command.execute("node /tmp/script.js");
-    console.log(`Script output: ${nodeResult.data.stdout}`);
+    const nodeResult = await session.command.executeCommand("node /tmp/script.js");
+    console.log(`Script output: ${nodeResult.output}`);
     
     console.log(`\n🎉 Congratulations! You have successfully completed your first AgentBay session`);
     console.log(`Session ID: ${session.sessionId}`);
@@ -287,10 +287,8 @@ session = result.session     # Get session instance
 
 ### 3. Command Execution
 ```python
-cmd_result = session.command.execute("ls -la")
-print(cmd_result.data.stdout)    # Standard output
-print(cmd_result.data.stderr)    # Error output
-print(cmd_result.data.exit_code) # Exit code
+cmd_result = session.command.execute_command("ls -la")
+print(cmd_result.output)    # Command output
 ```
 
 ### 4. File Operations
@@ -300,7 +298,7 @@ session.file_system.write_file(path, content)
 
 # Read
 result = session.file_system.read_file(path)
-content = result.data
+content = result.content
 ```
 
 ## 🎯 Run This Example
