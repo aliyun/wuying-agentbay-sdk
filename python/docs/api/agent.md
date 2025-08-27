@@ -48,6 +48,7 @@ if session_result.success:
     
     if execution_result.success:
         print(f"Task completed successfully with status: {execution_result.task_status}")
+        print(f"Task completed successfully with result: {execution_result.task_result}")
         print(f"Task ID: {execution_result.task_id}")
     else:
         print(f"Task failed: {execution_result.error_message}")

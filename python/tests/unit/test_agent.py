@@ -39,7 +39,7 @@ class TestAgent(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="""{"task_id": "task-123", "status": "finished"}""",
+            data="""{"task_id": "task-123", "status": "finished", "result":"", "product": "Task completed successfully"}""",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -64,7 +64,7 @@ class TestAgent(unittest.TestCase):
             request_id="request-123",
             success=False,
             error_message="Task execution failed",
-            data="""{"task_id": "task-123", "status": "failed"}""",
+            data="""{"task_id": "task-123", "status": "failed", "result":"", "product": "Task Failed"}""",
         )
         mock_call_mcp_tool.return_value = mock_result
         result = self.agent.execute_task("Say hello", self.max_try_times)
@@ -84,7 +84,7 @@ class TestAgent(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=True,
-            data="""{"task_id": "task-123", "status": "finished"}""",
+            data="""{"task_id": "task-123", "status": "finished", "result":"", "product": "Task completed successfully"}""",
         )
         mock_call_mcp_tool.return_value = mock_result
 
@@ -108,7 +108,7 @@ class TestAgent(unittest.TestCase):
         mock_result = OperationResult(
             request_id="request-123",
             success=False,
-            data="""{"task_id": "task-123", "status": "failed"}""",
+            data="""{"task_id": "task-123", "status": "failed", "result":"", "product": "Task Failed"}""",
         )
         mock_call_mcp_tool.return_value = mock_result
 
