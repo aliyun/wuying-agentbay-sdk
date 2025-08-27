@@ -13,6 +13,7 @@ This document provides a complete API reference for the AgentBay TypeScript SDK.
 | [FileSystem](#filesystem) | File system operations | `FileSystemManager` |
 | [UI](#ui) | UI automation | `UIAutomation` |
 | [Context](#context) | Context management | `ContextManager` |
+| [Extension](extension.md) | Browser extension management | `ExtensionsService`, `Extension`, `ExtensionOption` |
 | [Browser](#browser) | Browser automation | `BrowserAutomation` |
 
 ## 🚀 Quick Start

@@ -26,6 +26,44 @@ export interface DeletePolicy {
   syncLocalFile: boolean;
 }
 
+// ExtractPolicy defines the extract policy for context synchronization
+export interface ExtractPolicy {
+  extract: boolean;
+  deleteSrcFile: boolean;
+  extractToCurrentFolder: boolean;
+}
+
+// ExtractPolicyClass provides a class-based implementation with default values
+export class ExtractPolicyClass implements ExtractPolicy {
+  extract: boolean = true;
+  deleteSrcFile: boolean = true;
+  extractToCurrentFolder: boolean = false;
+
+  constructor(extract: boolean = true, deleteSrcFile: boolean = true, extractToCurrentFolder: boolean = false) {
+    this.extract = extract;
+    this.deleteSrcFile = deleteSrcFile;
+    this.extractToCurrentFolder = extractToCurrentFolder;
+  }
+
+  /**
+   * Creates a new extract policy with default values
+   */
+  static default(): ExtractPolicyClass {
+    return new ExtractPolicyClass();
+  }
+
+  /**
+   * Converts to plain object for JSON serialization
+   */
+  toDict(): Record<string, any> {
+    return {
+      extract: this.extract,
+      deleteSrcFile: this.deleteSrcFile,
+      extractToCurrentFolder: this.extractToCurrentFolder
+    };
+  }
+}
+
 // WhiteList defines the white list configuration
 export interface WhiteList {
   path: string;
@@ -42,6 +80,7 @@ export interface SyncPolicy {
   uploadPolicy?: UploadPolicy;
   downloadPolicy?: DownloadPolicy;
   deletePolicy?: DeletePolicy;
+  extractPolicy?: ExtractPolicy;
   bwList?: BWList;
 }
 
@@ -50,6 +89,7 @@ export class SyncPolicyImpl implements SyncPolicy {
   uploadPolicy?: UploadPolicy;
   downloadPolicy?: DownloadPolicy;
   deletePolicy?: DeletePolicy;
+  extractPolicy?: ExtractPolicy;
   bwList?: BWList;
 
   constructor(policy?: Partial<SyncPolicy>) {
@@ -57,6 +97,7 @@ export class SyncPolicyImpl implements SyncPolicy {
       this.uploadPolicy = policy.uploadPolicy;
       this.downloadPolicy = policy.downloadPolicy;
       this.deletePolicy = policy.deletePolicy;
+      this.extractPolicy = policy.extractPolicy;
       this.bwList = policy.bwList;
     }
     this.ensureDefaults();
@@ -71,6 +112,9 @@ export class SyncPolicyImpl implements SyncPolicy {
     }
     if (!this.deletePolicy) {
       this.deletePolicy = newDeletePolicy();
+    }
+    if (!this.extractPolicy) {
+      this.extractPolicy = newExtractPolicy();
     }
     if (!this.bwList) {
       this.bwList = {
@@ -90,6 +134,7 @@ export class SyncPolicyImpl implements SyncPolicy {
       uploadPolicy: this.uploadPolicy,
       downloadPolicy: this.downloadPolicy,
       deletePolicy: this.deletePolicy,
+      extractPolicy: this.extractPolicy,
       bwList: this.bwList,
     };
   }
@@ -138,12 +183,22 @@ export function newDeletePolicy(): DeletePolicy {
   };
 }
 
+// NewExtractPolicy creates a new extract policy with default values
+export function newExtractPolicy(): ExtractPolicy {
+  return {
+    extract: true,
+    deleteSrcFile: true,
+    extractToCurrentFolder: false,
+  };
+}
+
 // NewSyncPolicy creates a new sync policy with default values
 export function newSyncPolicy(): SyncPolicy {
   return {
     uploadPolicy: newUploadPolicy(),
     downloadPolicy: newDownloadPolicy(),
     deletePolicy: newDeletePolicy(),
+    extractPolicy: newExtractPolicy(),
     bwList: {
       whiteLists: [
         {
