@@ -39,6 +39,7 @@ class ExecutionResult(ApiResponse):
         error_message: str = "",
         task_id: str = "",
         task_status: str = "",
+        task_result: str = "",
     ):
         """
         Initialize a ExecutionResult object.
@@ -53,6 +54,7 @@ class ExecutionResult(ApiResponse):
         self.error_message = error_message
         self.task_id = task_id
         self.task_status = task_status
+        self.task_result = task_result
 
 
 class Agent(BaseService):
@@ -101,6 +103,7 @@ class Agent(BaseService):
                     query = self.get_task_status(task_id)
                     content = json.loads(query.output)
                     task_status = content["status"]
+                    task_result = content["product"]
                     if task_status == "finished":
                         return ExecutionResult(
                             request_id=result.request_id,
@@ -108,6 +111,7 @@ class Agent(BaseService):
                             error_message="",
                             task_id=task_id,
                             task_status=task_status,
+                            task_result=task_result,
                         )
                     elif task_status == "failed":
                         return ExecutionResult(
@@ -116,6 +120,7 @@ class Agent(BaseService):
                             error_message="Failed to execute task.",
                             task_id=task_id,
                             task_status=task_status,
+                            task_result=task_result,
                         )
                     elif task_status == "unsupported":
                         return ExecutionResult(
@@ -124,6 +129,7 @@ class Agent(BaseService):
                             error_message="Unsuppported task.",
                             task_id=task_id,
                             task_status=task_status,
+                            task_result=task_result,
                         )
                     print(f"Task {task_id} is still running, please wait for a while.")
                     # keep waiting unit timeout if the status is running

@@ -10,6 +10,7 @@ import os
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 
+
 def main():
     # Get API key from environment variable
     api_key = os.getenv("AGENTBAY_API_KEY")
@@ -41,6 +42,7 @@ def main():
             print("Task completed successfully!")
             print(f"Task ID: {execution_result.task_id}")
             print(f"Task status: {execution_result.task_status}")
+            print(f"Task result: {execution_result.task_result}")
         else:
             print(f"Task failed: {execution_result.error_message}")
             if execution_result.task_id:
@@ -54,6 +56,7 @@ def main():
             print(f"Failed to delete session: {delete_result.error_message}")
     else:
         print(f"Failed to create session: {session_result.error_message}")
+
 
 if __name__ == "__main__":
     main()
