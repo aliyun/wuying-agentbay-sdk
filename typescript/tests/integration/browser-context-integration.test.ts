@@ -83,10 +83,10 @@ describe("Browser Context - Integration Tests", () => {
       try {
         // Step 1 & 2: Create ContextId and create session with BrowserContext
         log(`Step 1-2: Creating session with browser context ID: ${context.id}`);
-        const browserContext: BrowserContext = {
-          contextId: context.id,
-          autoUpload: true
-        };
+        const browserContext: BrowserContext = new BrowserContext(
+          context.id,
+          true
+        );
         
         const params = new CreateSessionParams()
           .withImageId("browser_latest")

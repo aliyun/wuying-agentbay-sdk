@@ -1,13 +1,159 @@
-import { ContextSync, SyncPolicy } from "./context-sync";
+import { ContextSync, SyncPolicy, newUploadPolicy, newExtractPolicy, WhiteList, BWList } from "./context-sync";
+import { ExtensionOption } from "./extension";
 
 /**
- * Browser context configuration for session.
+ * Browser context configuration for session with optional extension support.
+ * 
+ * This class provides browser context configuration for cloud sessions and supports
+ * automatic extension synchronization when ExtensionOption is provided.
+ * 
+ * Key Features:
+ * - Browser context binding for sessions
+ * - Automatic browser data upload on session end
+ * - Optional extension integration with automatic context sync generation
+ * - Clean API with ExtensionOption encapsulation
+ * 
+ * Extension Configuration:
+ * - **ExtensionOption**: Pass an ExtensionOption object with contextId and extensionIds
+ * - **No Extensions**: Don't provide extensionOption parameter (extensionContextSyncs will be undefined)
+ * 
+ * Usage Examples:
+ * ```typescript
+ * // With extensions using ExtensionOption
+ * import { ExtensionOption } from "./extension";
+ * 
+ * const extOption = new ExtensionOption(
+ *   "my_extensions",
+ *   ["ext1", "ext2"]
+ * );
+ * 
+ * const browserContext = new BrowserContext(
+ *   "browser_session",
+ *   true,
+ *   extOption
+ * );
+ * 
+ * // Without extensions (minimal configuration)
+ * const browserContext = new BrowserContext(
+ *   "browser_session",
+ *   true
+ * );
+ * // extensionContextSyncs will be undefined
+ * ```
  */
-export interface BrowserContext {
+export class BrowserContext {
   /** ID of the browser context to bind to the session */
   contextId: string;
   /** Whether to automatically upload browser data when the session ends */
   autoUpload: boolean;
+  /** Optional extension configuration object containing context_id and extension_ids */
+  extensionOption?: ExtensionOption;
+  /** ID of the extension context for browser extensions. Set automatically from extension_option. */
+  extensionContextId?: string;
+  /** List of extension IDs to synchronize. Set automatically from extension_option. */
+  extensionIds?: string[];
+  /** Auto-generated context syncs for extensions. None if no extension configuration provided. */
+  extensionContextSyncs?: ContextSync[];
+
+  /**
+   * Initialize BrowserContextImpl with optional extension support.
+   * 
+   * @param contextId - ID of the browser context to bind to the session.
+   *                   This identifies the browser instance for the session.
+   * @param autoUpload - Whether to automatically upload browser data
+   *                    when the session ends. Defaults to true.
+   * @param extensionOption - Extension configuration object containing
+   *                         contextId and extensionIds. This encapsulates
+   *                         all extension-related configuration.
+   *                         Defaults to undefined.
+   * 
+   * Extension Configuration:
+   * - **ExtensionOption**: Use extensionOption parameter with an ExtensionOption object
+   * - **No Extensions**: Don't provide extensionOption parameter
+   * 
+   * Auto-generation:
+   * - extensionContextSyncs is automatically generated when extensionOption is provided
+   * - extensionContextSyncs will be undefined if no extensionOption is provided
+   * - extensionContextSyncs will be a ContextSync[] if extensionOption is valid
+   */
+  constructor(
+    contextId: string,
+    autoUpload: boolean = true,
+    extensionOption?: ExtensionOption
+  ) {
+    this.contextId = contextId;
+    this.autoUpload = autoUpload;
+    this.extensionOption = extensionOption;
+
+    // Handle extension configuration from ExtensionOption
+    if (extensionOption) {
+      // Extract extension information from ExtensionOption
+      this.extensionContextId = extensionOption.contextId;
+      this.extensionIds = extensionOption.extensionIds;
+      // Auto-generate extension context syncs
+      this.extensionContextSyncs = this._createExtensionContextSyncs();
+    } else {
+      // No extension configuration provided
+      this.extensionContextId = undefined;
+      this.extensionIds = [];
+      this.extensionContextSyncs = undefined;
+    }
+  }
+
+  /**
+   * Create ContextSync configurations for browser extensions.
+   * 
+   * This method is called only when extensionOption is provided and contains
+   * valid extension configuration (contextId and extensionIds).
+   * 
+   * @returns ContextSync[] - List of context sync configurations for extensions.
+   *                         Returns empty list if extension configuration is invalid.
+   */
+  private _createExtensionContextSyncs(): ContextSync[] {
+    if (!this.extensionIds || this.extensionIds.length === 0 || !this.extensionContextId) {
+      return [];
+    }
+
+    // Create whitelist for each extension ID
+    const whiteLists: WhiteList[] = this.extensionIds.map(extId => ({
+      path: extId,
+      excludePaths: []
+    }));
+
+    // Create sync policy for extensions
+    const syncPolicy: SyncPolicy = {
+      uploadPolicy: {
+        ...newUploadPolicy(),
+        autoUpload: false
+      },
+      extractPolicy: {
+        ...newExtractPolicy(),
+        extract: true,
+        deleteSrcFile: true
+      },
+      bwList: {
+        whiteLists: whiteLists
+      }
+    };
+
+    // Create context sync for extensions
+    const extensionSync = new ContextSync(
+      this.extensionContextId,
+      "/tmp/extensions/",
+      syncPolicy
+    );
+
+    return [extensionSync];
+  }
+
+  /**
+   * Get all context syncs including extension syncs.
+   * 
+   * @returns ContextSync[] - All context sync configurations. Returns empty list if no extensions configured.
+   */
+  getAllContextSyncs(): ContextSync[] {
+    return this.extensionContextSyncs || [];
+  }
 }
 
 /**
@@ -151,10 +297,19 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    * Convert to plain object for JSON serialization
    */
   toJSON(): CreateSessionParamsConfig {
+    // Get base context syncs
+    let allContextSyncs = [...this.contextSync];
+
+    // Add extension context syncs if browser context has them
+    if (this.browserContext && 'getAllContextSyncs' in this.browserContext) {
+      const extensionSyncs = this.browserContext.getAllContextSyncs();
+      allContextSyncs = allContextSyncs.concat(extensionSyncs);
+    }
+
     return {
       labels: this.labels,
       imageId: this.imageId,
-      contextSync: this.contextSync,
+      contextSync: allContextSyncs,
       browserContext: this.browserContext,
       isVpc: this.isVpc,
       mcpPolicyId: this.mcpPolicyId,
@@ -169,7 +324,23 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     params.labels = config.labels || {};
     params.imageId = config.imageId;
     params.contextSync = config.contextSync || [];
-    params.browserContext = config.browserContext;
+    
+    // Handle browser context - convert to BrowserContext class if needed
+    if (config.browserContext) {
+      if ('getAllContextSyncs' in config.browserContext) {
+        // It's already a BrowserContext instance
+        params.browserContext = config.browserContext;
+      } else {
+        // It's a plain object, convert to BrowserContext class
+        const bc = config.browserContext as any; // Type assertion for plain object
+        params.browserContext = new BrowserContext(
+          bc.contextId,
+          bc.autoUpload,
+          bc.extensionOption
+        );
+      }
+    }
+    
     params.isVpc = config.isVpc || false;
     params.mcpPolicyId = config.mcpPolicyId;
     return params;
@@ -182,3 +353,5 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
 export function newCreateSessionParams(): CreateSessionParams {
   return new CreateSessionParams();
 }
+
+

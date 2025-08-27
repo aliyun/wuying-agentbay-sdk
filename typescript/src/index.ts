@@ -7,6 +7,7 @@ export * from "./browser";
 export * from "./command";
 export { Context, ContextService } from "./context";
 export * from "./exceptions";
+export * from "./extension";
 export * from "./filesystem";
 export * from "./oss";
 export { Session } from "./session";
