@@ -2,26 +2,70 @@
   "experimentName": "page_agent_local_run",
   "passed": [
     {
-      "eval": "vanta_h"
+      "eval": "simple_google_search"
+    },
+    {
+      "eval": "nonsense_action"
     }
   ],
-  "failed": [],
+  "failed": [
+    {
+      "eval": "apple",
+      "error": "Locator.wait_for: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"text=\\\"Good News. Your iPhone 13 mini qualifies for credit.\\\"\") to be visible\n"
+    }
+  ],
   "summary": {
-    "total": 1,
-    "passed_count": 1,
-    "failed_count": 0,
-    "success_rate": 100.0
+    "total": 3,
+    "passed_count": 2,
+    "failed_count": 1,
+    "success_rate": 66.66666666666666
   },
   "results": [
     {
-      "task_name": "vanta_h",
+      "task_name": "simple_google_search",
+      "result": {
+        "_success": true,
+        "final_url": "https://browserbase.github.io/stagehand-eval-sites/sites/google/openai.html"
+      },
+      "performance": {
+        "total_duration_s": 20.34,
+        "browser_setup_s": 1.89,
+        "task_duration_s": 18.45,
+        "llm_duration_s": 0,
+        "llm_call_count": 0,
+        "total_tokens": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "llm_time_percentage": 0.0
+      }
+    },
+    {
+      "task_name": "apple",
+      "result": {
+        "_success": false,
+        "error": "Locator.wait_for: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"text=\\\"Good News. Your iPhone 13 mini qualifies for credit.\\\"\") to be visible\n"
+      },
+      "performance": {
+        "total_duration_s": 176.54,
+        "browser_setup_s": 1.36,
+        "task_duration_s": 175.18,
+        "llm_duration_s": 0,
+        "llm_call_count": 0,
+        "total_tokens": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "llm_time_percentage": 0.0
+      }
+    },
+    {
+      "task_name": "nonsense_action",
       "result": {
         "_success": true
       },
       "performance": {
-        "total_duration_s": 90.1,
-        "browser_setup_s": 10.17,
-        "task_duration_s": 79.93,
+        "total_duration_s": 22.85,
+        "browser_setup_s": 1.61,
+        "task_duration_s": 21.24,
         "llm_duration_s": 0,
         "llm_call_count": 0,
         "total_tokens": 0,
