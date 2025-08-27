@@ -300,7 +300,6 @@ class PageAgent:
             logger.info("Starting observation...")
             options = ObserveOptions(
                 instruction=instruction,
-                returnActions=return_actions,
                 dom_settle_timeout_ms=dom_settle_timeout_ms,
             )
             success, observed_elements = await self.session.browser.agent.observe_async(self.current_page, options)
@@ -309,7 +308,7 @@ class PageAgent:
             logger.error(f"Error in observe: {e}", exc_info=True)
             raise
 
-    async def act(self, action_input: Union[str, ObserveResult], context_id: Optional[int] = None, page_id: Optional[str] = None, use_vision: bool = False) -> ActResult:
+    async def act(self, action_input: Union[str, ActOptions, ObserveResult], context_id: Optional[int] = None, page_id: Optional[str] = None, use_vision: bool = False) -> ActResult:
         """
         Performs an action on the current webpage, either inferred from an instruction
         or directly on an ObservedElement.
@@ -317,8 +316,8 @@ class PageAgent:
         Args:
             action_input (Union[str, ActOptions, ObservedElement]):
                 - str: A natural language instruction for the action.
-                - ActOptions: Options for inferring an action from an instruction.
-                - ObservedElement: A pre-identified element to act upon.
+                - ActOptions: Action config with timeouts, DOM settle wait, and variable placeholders.
+                - ObservedElement: A pre-identified element to act on directly.
             use_vision (bool): If True, uses visual (screenshot) information for action inference.
 
         Returns:
@@ -326,13 +325,12 @@ class PageAgent:
         """
         try:
             logger.info(f"Attempting to execute action: {action_input}")
-
             if isinstance(action_input, str):
                 options = ActOptions(
                     action=action_input,    
                 )
                 return await self.session.browser.agent.act_async(self.current_page, options)
-            elif isinstance(action_input, ObserveResult):
+            else:
                 return await self.session.browser.agent.act_async(self.current_page, action_input)
         except Exception as e:
             logger.error(f"Error in act: {e}", exc_info=True)

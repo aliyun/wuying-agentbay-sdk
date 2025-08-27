@@ -13,11 +13,19 @@ class ActOptions:
     """
     Options for configuring the behavior of the act method.
     """
-    def __init__(self, action: str, timeoutMS: Optional[int] = None, iframes: Optional[bool] = None, dom_settle_timeout_ms: Optional[int] = None):
+    def __init__(
+        self,
+        action: str,
+        timeoutMS: Optional[int] = None,
+        iframes: Optional[bool] = None,
+        dom_settle_timeout_ms: Optional[int] = None,
+        variables: Optional[Dict[str, str]] = None,
+    ):
         self.action = action
         self.timeoutMS = timeoutMS
         self.iframes = iframes
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
+        self.variables = variables
 
 class ActResult:
     """
@@ -32,9 +40,8 @@ class ObserveOptions:
     """
     Options for configuring the behavior of the observe method.
     """
-    def __init__(self, instruction: str, returnActions: Optional[int] = None, iframes: Optional[bool] = None, dom_settle_timeout_ms: Optional[int] = None):
+    def __init__(self, instruction: str, iframes: Optional[bool] = None, dom_settle_timeout_ms: Optional[int] = None):
         self.instruction = instruction
-        self.returnActions = returnActions
         self.iframes = iframes
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
 
@@ -91,6 +98,9 @@ class BrowserAgent(BaseService):
                 "page_id": page_index,
             }
             if isinstance(action_input, ActOptions):
+                args["action"] = action_input.action
+                if action_input.variables is not None:
+                    args["variables"] = action_input.variables
                 if action_input.timeoutMS is not None:
                     args["timeout_ms"] = action_input.timeoutMS
                 if action_input.iframes is not None:
@@ -140,6 +150,8 @@ class BrowserAgent(BaseService):
             }
             if isinstance(action_input, ActOptions):
                 args["action"] = action_input.action
+                if action_input.variables is not None:
+                    args["variables"] = action_input.variables
                 if action_input.timeoutMS is not None:
                     args["timeout_ms"] = action_input.timeoutMS
                 if action_input.iframes is not None:
@@ -188,8 +200,6 @@ class BrowserAgent(BaseService):
                 "page_id": page_index,
                 "instruction": options.instruction,
             }
-            if options.returnActions is not None:
-                args["return_actions"] = options.returnActions
             if options.iframes is not None:
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
@@ -247,8 +257,6 @@ class BrowserAgent(BaseService):
                 "page_id": page_index,
                 "instruction": options.instruction,
             }
-            if options.returnActions is not None:
-                args["return_actions"] = options.returnActions
             if options.iframes is not None:
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
