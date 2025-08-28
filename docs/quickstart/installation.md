@@ -3,7 +3,7 @@
 ## System Requirements
 
 ### Python
-- Python 3.8+
+- Python 3.10+
 - pip or poetry
 
 ### TypeScript/JavaScript
@@ -11,7 +11,7 @@
 - npm or yarn
 
 ### Golang
-- Go 1.18+
+- Go 1.24+
 
 ## Installing the SDK
 
@@ -38,10 +38,23 @@ node -e "const {AgentBay} = require('wuying-agentbay-sdk'); console.log('Install
 # Install the package
 go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 
-# Verify installation (create test file)
+# Verify installation (create test file) Use bash command
 echo 'package main
-import "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-func main() { println("Installation successful") }' > test.go
+
+import (
+    "fmt"
+	"testing"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
+)
+
+func main() {
+    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
+
+	agentbay.NewAgentBay(testAPIKey)
+	fmt.Println("Installation successful")
+}' > test.go
 go run test.go
 rm test.go
 ```
@@ -59,27 +72,53 @@ Visit [https://aliyun.com](https://aliyun.com) to register an account
 
 ## Configuring API Keys
 
-### Method 1: Environment Variables (Recommended)
+# Method 1: Environment Variables (Recommended)
+- For Linux/MacOS:
 ```bash
-export AGENTBAY_API_KEY=your_api_key_here
+    export AGENTBAY_API_KEY=your_api_key_here
+```
+- For Windows:
+```cmd
+    setx AGENTBAY_API_KEY your_api_key_here
 ```
 
-### Method 2: Setting in Code
-```python
-# Python
-from agentbay import AgentBay
-agent_bay = AgentBay(api_key="your_api_key_here")
-```
-
-```typescript
-// TypeScript
-import { AgentBay } from 'wuying-agentbay-sdk';
-const agentBay = new AgentBay({ apiKey: 'your_api_key_here' });
-```
-
+## Go
 ```go
-// Golang
-client, err := agentbay.NewAgentBay("your_api_key_here", nil)
+import (
+	"testing"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
+)
+
+    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
+    agentbay.NewAgentBay(testAPIKey, nil)
+```
+
+## TypeScript
+```typescript
+import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
+
+    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+    if (!process.env.AGENTBAY_API_KEY) {
+      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+    }
+    new AgentBay({apiKey});
+```
+
+## Python
+```python
+import os
+from agentbay import AgentBay
+    api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        api_key = "akm-xxx"  # Replace with your actual API key for testing
+        print(
+            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
+        )
+
+    # Create session and execute command
+    AgentBay(api_key=api_key)
 ```
 
 ## Verifying Configuration
@@ -92,51 +131,53 @@ from agentbay import AgentBay
 
 try:
     # Use API key to initialize SDK
-    agent_bay = AgentBay(api_key="your_actual_api_key_here")
+    # apikey by getting os env
+    agent_bay = AgentBay(api_key=apikey)
     print("✅ SDK initialized successfully")
-    
+
     # Create session
     session_result = agent_bay.create()
     session = session_result.session
     print("✅ Session created successfully")
-    
+
     # Execute command
     result = session.command.execute_command("echo Hello AgentBay")
     print("✅ Command executed successfully:", result.output)
-    
+
     # Release session
     agent_bay.delete(session)
     print("✅ Session released successfully")
-    
+
 except Exception as e:
     print(f"❌ Configuration issue: {e}")
 ```
 
 ### TypeScript Test
 ```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
+import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
 
 async function test() {
     try {
         // Use API key to initialize SDK
-        const agentBay = new AgentBay({ apiKey: "your_actual_api_key_here" });
-        console.log("✅ SDK initialized successfully");
-        
+        // apikey by getting os env
+        const agentBay = new AgentBay({ apiKey });
+        log("✅ SDK initialized successfully");
+
         // Create session
         const sessionResult = await agentBay.create();
         const session = sessionResult.session;
-        console.log("✅ Session created successfully");
-        
+        log("✅ Session created successfully");
+
         // Execute command
         const result = await session.command.executeCommand("echo Hello AgentBay");
-        console.log("✅ Command executed successfully:", result.output);
-        
+        log("✅ Command executed successfully:", result.output);
+
         // Release session
         await agentBay.delete(session);
-        console.log("✅ Session released successfully");
-        
+        log("✅ Session released successfully");
+
     } catch (error) {
-        console.log(`❌ Configuration issue: ${error}`);
+        logError(`❌ Configuration issue: ${error}`);
     }
 }
 
@@ -154,7 +195,8 @@ import (
 
 func main() {
     // Use API key to initialize client
-    client, err := agentbay.NewAgentBay("your_actual_api_key_here", nil)
+    // get testAPIKey from os env
+    client, err := agentbay.NewAgentBay(testAPIKey, nil)
     if err != nil {
         fmt.Printf("❌ Failed to initialize SDK: %v\n", err)
         return
@@ -197,4 +239,4 @@ func main() {
 
 If all the above tests pass, congratulations! You have successfully installed and configured the AgentBay SDK!
 
-Next step: [Understanding Basic Concepts](basic-concepts.md) 
+Next step: [Understanding Basic Concepts](basic-concepts.md)

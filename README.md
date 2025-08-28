@@ -17,73 +17,150 @@
 Before using the SDK, you need to:
 
 1. Register an Alibaba Cloud account: [https://aliyun.com](https://aliyun.com)
-2. Get API credentials: [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+2. Get APIKEY credentials: [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+3. Set environment variable:
+   - For Linux/MacOS:
+```bash
+    export AGENTBAY_API_KEY=your_api_key_here
+```
+   - For Windows:
+```cmd
+    setx AGENTBAY_API_KEY your_api_key_here
+```
+
+### Go
+```go
+import (
+	"testing"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
+)
+
+    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
+    agentbay.NewAgentBay(testAPIKey, nil)
+```
+
+### TypeScript
+```typescript
+import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
+
+    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+    if (!process.env.AGENTBAY_API_KEY) {
+      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+    }
+    new AgentBay({apiKey});
+```
+
+### Python
+```python
+import os
+from agentbay import AgentBay
+    api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        api_key = "akm-xxx"  # Replace with your actual API key for testing
+        print(
+            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
+        )
+
+    # Create session and execute command
+    AgentBay(api_key=api_key)
+```
 
 ## 🚀 Quick Start
 
 ### Python
 ```python
+import os
 from agentbay import AgentBay
+def run_agent_bay():
+    # get api key from os env
+    api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        api_key = "akm-xxx"  # Replace with your actual API key for testing
+        print(
+            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
+        )
 
-# Create session and execute command
-agent_bay = AgentBay()
-session_result = agent_bay.create()
-session = session_result.session
-result = session.command.execute_command("echo 'Hello AgentBay'")
-print(result.output)  # Hello AgentBay
+    # Create session and execute command
+    agent_bay = AgentBay(api_key=api_key)
+    #default imageId linux_latest
+    session_result = agent_bay.create()
+    session = session_result.session
+    result = session.command.execute_command("echo 'Hello AgentBay'")
+    print(result.output)  # Hello AgentBay
 
-# Clean up
-agent_bay.delete(session)
+    # Clean up
+    agent_bay.delete(session)
+if __name__ == "__main__":
+    run_agent_bay()
 ```
 
 ### TypeScript
 ```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
+import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
+async function main() {
+    // get api key from os env
+    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
+    if (!process.env.AGENTBAY_API_KEY) {
+      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+    }
+    // Create session and execute command
+    const agentBay = new AgentBay({apiKey});
+    const sessionResult = await agentBay.create();
+    const session = sessionResult.session;
+    const result = await session.command.executeCommand("echo 'Hello AgentBay'");
+    log(result.output);  // Hello AgentBay
 
-// Create session and execute command
-const agentBay = new AgentBay();
-const sessionResult = await agentBay.create();
-const session = sessionResult.session;
-const result = await session.command.executeCommand("echo 'Hello AgentBay'");
-console.log(result.output);  // Hello AgentBay
-
-// Clean up
-await agentBay.delete(session);
+    // Clean up
+    await agentBay.delete(session);
+}
+main().catch(error=>{
+    logError(error)
+})
 ```
 
 ### Golang
 ```go
 import (
-    "fmt"
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"fmt"
+	"testing"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
+func TestAgent_ExecuteTask(t *testing.T) {
+    //get api key from os env
+    testAPIKey := testutil.GetTestAPIKey(t)
+	// Create session and execute command
+	client, err := agentbay.NewAgentBay(testAPIKey,nil)
+	if err != nil {
+		fmt.Printf("Failed to initialize AgentBay client: %v\n", err)
+		return
+	}
+	sessionResult, err := client.Create(nil)
+	if err != nil {
+		fmt.Printf("Failed to create session: %v\n", err)
+		return
+	}
 
-// Create session and execute command
-client, err := agentbay.NewAgentBay("", nil)
-if err != nil {
-    fmt.Printf("Failed to initialize AgentBay client: %v\n", err)
-    return
+	session := sessionResult.Session
+	result, err := session.Command.ExecuteCommand("echo 'Hello AgentBay'")
+	if err != nil {
+		fmt.Printf("Failed to execute command: %v\n", err)
+		return
+	}
+	fmt.Println(result.Output)  // Hello AgentBay
+
+	// Clean up
+	_, err = client.Delete(session, false)
+	if err != nil {
+		fmt.Printf("Failed to delete session: %v\n", err)
+		return
+	}
 }
-
-sessionResult, err := client.Create(nil)
-if err != nil {
-    fmt.Printf("Failed to create session: %v\n", err)
-    return
-}
-
-session := sessionResult.Session
-result, err := session.Command.ExecuteCommand("echo 'Hello AgentBay'")
-if err != nil {
-    fmt.Printf("Failed to execute command: %v\n", err)
-    return
-}
-fmt.Println(result.Output)  // Hello AgentBay
-
-// Clean up
-_, err = client.Delete(session, false)
-if err != nil {
-    fmt.Printf("Failed to delete session: %v\n", err)
-    return
+func main() {
+	TestAgent_ExecuteTask(&testing.T{})
 }
 ```
 
