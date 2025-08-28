@@ -129,20 +129,7 @@ func (mr *MockFileSystemInterfaceMockRecorder) ReadFile(arg0 interface{}, arg1 .
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockFileSystemInterface)(nil).ReadFile), varargs...)
 }
 
-// ReadLargeFile mocks base method.
-func (m *MockFileSystemInterface) ReadLargeFile(arg0 string, arg1 int) (*filesystem.FileReadResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadLargeFile", arg0, arg1)
-	ret0, _ := ret[0].(*filesystem.FileReadResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
 
-// ReadLargeFile indicates an expected call of ReadLargeFile.
-func (mr *MockFileSystemInterfaceMockRecorder) ReadLargeFile(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadLargeFile", reflect.TypeOf((*MockFileSystemInterface)(nil).ReadLargeFile), arg0, arg1)
-}
 
 // ReadMultipleFiles mocks base method.
 func (m *MockFileSystemInterface) ReadMultipleFiles(arg0 []string) (map[string]string, error) {
@@ -189,17 +176,4 @@ func (mr *MockFileSystemInterfaceMockRecorder) WriteFile(arg0, arg1, arg2 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteFile", reflect.TypeOf((*MockFileSystemInterface)(nil).WriteFile), arg0, arg1, arg2)
 }
 
-// WriteLargeFile mocks base method.
-func (m *MockFileSystemInterface) WriteLargeFile(arg0, arg1 string, arg2 int) (*filesystem.FileWriteResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WriteLargeFile", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*filesystem.FileWriteResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
 
-// WriteLargeFile indicates an expected call of WriteLargeFile.
-func (mr *MockFileSystemInterfaceMockRecorder) WriteLargeFile(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteLargeFile", reflect.TypeOf((*MockFileSystemInterface)(nil).WriteLargeFile), arg0, arg1, arg2)
-}

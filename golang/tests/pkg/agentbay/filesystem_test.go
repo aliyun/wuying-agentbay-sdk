@@ -650,25 +650,25 @@ func TestFileSystem_LargeFileOperations(t *testing.T) {
 		testContent := largeContent.String()
 		t.Logf("Generated test content of size: %d bytes", len(testContent))
 
-		// Test 1: Write large file using default chunk size
-		testFilePath1 := TestPathPrefix + "/test_large_default.txt"
-		fmt.Println("Test 1: Writing large file with default chunk size...")
-		writeResult1, err := session.FileSystem.WriteLargeFile(testFilePath1, testContent, 0)
+		// Test 1: Write large file (automatic chunking)
+		testFilePath1 := TestPathPrefix + "/test_large_file1.txt"
+		fmt.Println("Test 1: Writing large file with automatic chunking...")
+		writeResult1, err := session.FileSystem.WriteFile(testFilePath1, testContent, "overwrite")
 		if err != nil {
-			t.Fatalf("WriteLargeFile failed with default chunk size: %v", err)
+			t.Fatalf("WriteFile failed for large file: %v", err)
 		}
 		if !writeResult1.Success {
-			t.Errorf("WriteLargeFile returned false with default chunk size")
+			t.Errorf("WriteFile returned false for large file")
 		} else {
-			t.Logf("Test 1: Large file write successful with default chunk size (RequestID: %s)",
+			t.Logf("Test 1: Large file write successful with automatic chunking (RequestID: %s)",
 				writeResult1.RequestID)
 		}
 
-		// Test 2: Read the file using default chunk size
-		fmt.Println("Test 2: Reading large file with default chunk size...")
-		readResult1, err := session.FileSystem.ReadLargeFile(testFilePath1, 0)
+		// Test 2: Read the large file (automatic chunking)
+		fmt.Println("Test 2: Reading large file with automatic chunking...")
+		readResult1, err := session.FileSystem.ReadFile(testFilePath1)
 		if err != nil {
-			t.Fatalf("ReadLargeFile failed with default chunk size: %v", err)
+			t.Fatalf("ReadFile failed for large file: %v", err)
 		}
 
 		// Verify content
@@ -676,7 +676,7 @@ func TestFileSystem_LargeFileOperations(t *testing.T) {
 			len(readResult1.Content), readResult1.RequestID)
 
 		if readResult1.Content != testContent {
-			t.Errorf("File content mismatch with default chunk size. Expected length: %d, Got length: %d",
+			t.Errorf("File content mismatch for large file. Expected length: %d, Got length: %d",
 				len(testContent), len(readResult1.Content))
 
 			// Find first mismatch position
@@ -693,41 +693,40 @@ func TestFileSystem_LargeFileOperations(t *testing.T) {
 				}
 			}
 		} else {
-			t.Log("Test 2: File content verified successfully with default chunk size")
+			t.Log("Test 2: File content verified successfully for large file")
 		}
 
-		// Test 3: Write large file using custom chunk size
-		customChunkSize := 30 * 1024 // 30KB
-		testFilePath2 := TestPathPrefix + "/test_large_custom.txt"
-		fmt.Printf("Test 3: Writing large file with custom chunk size: %d bytes\n", customChunkSize)
+		// Test 3: Write another large file
+		testFilePath2 := TestPathPrefix + "/test_large_file2.txt"
+		fmt.Println("Test 3: Writing another large file...")
 
-		writeResult2, err := session.FileSystem.WriteLargeFile(testFilePath2, testContent, customChunkSize)
+		writeResult2, err := session.FileSystem.WriteFile(testFilePath2, testContent, "overwrite")
 		if err != nil {
-			t.Fatalf("WriteLargeFile failed with custom chunk size: %v", err)
+			t.Fatalf("WriteFile failed for second large file: %v", err)
 		}
 		if !writeResult2.Success {
-			t.Errorf("WriteLargeFile returned false with custom chunk size")
+			t.Errorf("WriteFile returned false for second large file")
 		} else {
-			t.Logf("Test 3: Large file write successful with custom chunk size (RequestID: %s)",
+			t.Logf("Test 3: Second large file write successful (RequestID: %s)",
 				writeResult2.RequestID)
 		}
 
-		// Test 4: Read the file using custom chunk size
-		fmt.Printf("Test 4: Reading large file with custom chunk size: %d bytes\n", customChunkSize)
-		readResult2, err := session.FileSystem.ReadLargeFile(testFilePath2, customChunkSize)
+		// Test 4: Read the second large file
+		fmt.Println("Test 4: Reading the second large file...")
+		readResult2, err := session.FileSystem.ReadFile(testFilePath2)
 		if err != nil {
-			t.Fatalf("ReadLargeFile failed with custom chunk size: %v", err)
+			t.Fatalf("ReadFile failed for second large file: %v", err)
 		}
 
 		// Verify content
-		t.Logf("Test 4: File read successful, content length: %d bytes (RequestID: %s)",
+		t.Logf("Test 4: Second file read successful, content length: %d bytes (RequestID: %s)",
 			len(readResult2.Content), readResult2.RequestID)
 
 		if readResult2.Content != testContent {
-			t.Errorf("File content mismatch with custom chunk size. Expected length: %d, Got length: %d",
+			t.Errorf("File content mismatch for second large file. Expected length: %d, Got length: %d",
 				len(testContent), len(readResult2.Content))
 		} else {
-			t.Log("Test 4: File content verified successfully with custom chunk size")
+			t.Log("Test 4: Second file content verified successfully")
 		}
 
 		// Verify RequestID for the last operation

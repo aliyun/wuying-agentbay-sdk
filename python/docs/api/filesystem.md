@@ -82,20 +82,21 @@ move_file(source: str, destination: str) -> BoolResult
 - `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
 
-Reads the contents of a file in the cloud environment.
+Reads the contents of a file. Automatically handles large files by chunking.
 
 
 ```python
-read_file(path: str, offset: int = 0, length: int = 0) -> OperationResult
+read_file(path: str) -> FileContentResult
 ```
 
 **Parameters:**
 - `path` (str): The path of the file to read.
-- `offset` (int, optional): Start reading from this byte offset. Default is 0.
-- `length` (int, optional): Number of bytes to read. If 0, read to end of file. Default is 0.
 
 **Returns:**
-- `OperationResult`: A result object containing file content as data, success status, request ID, and error message if any.
+- `FileContentResult`: A result object containing file content, success status, request ID, and error message if any.
+
+**Note:**
+This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
 
 ```python
@@ -125,11 +126,11 @@ search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = No
 - `OperationResult`: A result object containing search results as data, success status, request ID, and error message if any.
 
 
-Writes content to a file.
+Writes content to a file. Automatically handles large files by chunking.
 
 
 ```python
-write_file(path: str, content: str, mode: str = "overwrite") -> bool
+write_file(path: str, content: str, mode: str = "overwrite") -> BoolResult
 ```
 
 **Parameters:**
@@ -138,10 +139,7 @@ write_file(path: str, content: str, mode: str = "overwrite") -> bool
 - `mode` (str, optional): "overwrite" (default) or "append".
 
 **Returns:**
-- `bool`: True if the file was written successfully.
+- `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
-**Raises:**
-- `FileError`: If writing the file fails.
-
-
-Reads a large file in chunks to handle size limitations of the underlying API.
+**Note:**
+This method automatically handles both small and large content. For large content, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.

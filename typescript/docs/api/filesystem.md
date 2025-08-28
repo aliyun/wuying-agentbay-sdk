@@ -83,19 +83,20 @@ moveFile(source: string, destination: string): Promise<string>
 
 
 ```typescript
-readFile(path: string, offset?: number, length?: number): Promise<string>
+readFile(path: string): Promise<FileContentResult>
 ```
 
 **Parameters:**
 - `path` (string): The path of the file to read.
-- `offset` (number, optional): Start reading from this byte offset. Default is 0.
-- `length` (number, optional): Number of bytes to read. If 0, read to end of file. Default is 0.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the contents of the file.
+- `Promise<FileContentResult>`: A promise that resolves to a result object containing file content, success status, request ID, and error message if any.
 
 **Throws:**
 - `APIError`: If the file reading fails.
+
+**Note:**
+This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
 
 ```typescript
@@ -129,7 +130,7 @@ searchFiles(path: string, pattern: string, excludePatterns?: string[]): Promise<
 
 
 ```typescript
-writeFile(path: string, content: string, mode?: string): Promise<string>
+writeFile(path: string, content: string, mode?: string): Promise<BoolResult>
 ```
 
 **Parameters:**
@@ -138,38 +139,17 @@ writeFile(path: string, content: string, mode?: string): Promise<string>
 - `mode` (string, optional): "overwrite" (default), "append", or "create_new".
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text content if the file was written successfully.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status, boolean data (true if successful), request ID, and error message if any.
 
 **Throws:**
 - `APIError`: If writing the file fails.
 
-
-```typescript
-readLargeFile(path: string, chunkSize?: number): Promise<string>
-```
-
-**Parameters:**
-- `path` (string): The path of the file to read.
-- `chunkSize` (number, optional): Size of each chunk in bytes. Default is 60KB.
-
-**Returns:**
-- `Promise<string>`: A promise that resolves to the complete file content.
-
-**Throws:**
-- `APIError`: If reading the file fails.
+**Note:**
+This method automatically handles both small and large content. For large content, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
 
-```typescript
-writeLargeFile(path: string, content: string, chunkSize?: number): Promise<boolean>
-```
+**Deprecated Methods:**
 
-**Parameters:**
-- `path` (string): The path of the file to write.
-- `content` (string): Content to write to the file.
-- `chunkSize` (number, optional): Size of each chunk in bytes. Default is 60KB.
-
-**Returns:**
-- `Promise<boolean>`: A promise that resolves to true if the file was written successfully.
-
-**Throws:**
-- `APIError`: If writing the file fails.
+The following methods have been removed in favor of the unified `readFile` and `writeFile` methods:
+- `readLargeFile` - Use `readFile` instead (automatic chunking)
+- `writeLargeFile` - Use `writeFile` instead (automatic chunking)

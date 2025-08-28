@@ -451,7 +451,7 @@ describe("TestFileSystem", () => {
         content: "chunk3",
       });
 
-      const result = await mockFileSystem.readLargeFile("/path/to/large.txt");
+      const result = await mockFileSystem.readFile("/path/to/large.txt");
 
       // Verify FileContentResult structure
       expect(result.success).toBe(true);
@@ -473,7 +473,7 @@ describe("TestFileSystem", () => {
         errorMessage: "File not found",
       });
 
-      const result = await mockFileSystem.readLargeFile("/path/to/large.txt");
+      const result = await mockFileSystem.readFile("/path/to/large.txt");
 
       // Verify error result structure
       expect(result.success).toBe(false);
@@ -492,7 +492,7 @@ describe("TestFileSystem", () => {
         requestId: "test-request-id",
       });
 
-      const result = await mockFileSystem.writeLargeFile(
+      const result = await mockFileSystem.writeFile(
         "/path/to/large.txt",
         "large content"
       );

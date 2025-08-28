@@ -79,16 +79,16 @@ describe('File Operations Integration Tests', () => {
       expect(fileInfoResult.fileInfo!.size).toBeGreaterThan(0);
       // expect(fileInfoResult.fileInfo!.name).toBe('test.txt');
 
-      // Step 10: Large file writing (62KB)
+      // Step 10: Large file writing (62KB, automatic chunking)
       const largeContent = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(1134); // Approximately 62KB
       expect(largeContent.length).toBeGreaterThan(60000);
 
-      const writeLargeResult = await fileSystem.writeLargeFile('/tmp/user/large_context.txt', largeContent, 62*1024); // 63KB chunks
+      const writeLargeResult = await fileSystem.writeFile('/tmp/user/large_context.txt', largeContent);
       log(`Write large file result: ${JSON.stringify(writeLargeResult)}`);
       expect(writeLargeResult.success).toBe(true);
 
-      // Step 11: Large file reading
-      const largeReadResult = await fileSystem.readLargeFile('/tmp/user/large_context.txt');
+      // Step 11: Large file reading (automatic chunking)
+      const largeReadResult = await fileSystem.readFile('/tmp/user/large_context.txt');
       expect(largeReadResult.success).toBe(true);
       expect(largeReadResult.content).toBe(largeContent);
       expect(largeReadResult.content.length).toBeGreaterThan(60000);

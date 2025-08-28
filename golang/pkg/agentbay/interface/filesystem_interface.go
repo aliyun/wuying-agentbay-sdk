@@ -8,10 +8,10 @@ import (
 
 // FileSystemInterface defines the interface for filesystem operations
 type FileSystemInterface interface {
-	// ReadFile reads content from a file
-	ReadFile(path string, optionalParams ...int) (*filesystem.FileReadResult, error)
+	// ReadFile reads content from a file. Automatically handles large files by chunking.
+	ReadFile(path string) (*filesystem.FileReadResult, error)
 
-	// WriteFile writes content to a file
+	// WriteFile writes content to a file. Automatically handles large files by chunking.
 	WriteFile(path, content string, mode string) (*filesystem.FileWriteResult, error)
 
 	// EditFile edits a file by replacing occurrences of oldText with newText
@@ -34,10 +34,4 @@ type FileSystemInterface interface {
 
 	// SearchFiles searches for files matching a pattern in a directory
 	SearchFiles(path, pattern string, excludePatterns []string) (*filesystem.SearchFilesResult, error)
-
-	// ReadLargeFile reads a large file in chunks
-	ReadLargeFile(path string, chunkSize int) (*filesystem.FileReadResult, error)
-
-	// WriteLargeFile writes a large file in chunks
-	WriteLargeFile(path, content string, chunkSize int) (*filesystem.FileWriteResult, error)
 }
