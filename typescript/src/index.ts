@@ -17,3 +17,4 @@ export * from './context-manager'
 export * from './session-params'
 // Export utility functions
 export { log, logError } from "./utils/logger";
+export { loadConfig, loadDotEnv, type Config } from "./config";
