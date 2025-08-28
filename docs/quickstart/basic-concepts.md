@@ -207,9 +207,9 @@ agent_bay.delete(session)
 ```python
 # Temporary data - will be lost
 # For Linux/Android:
-session.filesystem.write_file("/tmp/temp_data.txt", "temporary content")
+session.file_system.write_file("/tmp/temp_data.txt", "temporary content")
 # For Windows:
-session.filesystem.write_file("C:\\Users\\temp_data.txt", "temporary content")
+session.file_system.write_file("C:\\Users\\temp_data.txt", "temporary content")
 ```
 
 ### Persistent Data (Context)
@@ -218,8 +218,9 @@ session.filesystem.write_file("C:\\Users\\temp_data.txt", "temporary content")
 - Suitable for: configuration files, user data, project files
 
 ```python
-from agentbay import ContextSync, SyncPolicy
-
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay import ContextSync
 # Create persistent context
 context = agent_bay.context.get("my-project", create=True).context
 
@@ -227,12 +228,14 @@ context = agent_bay.context.get("my-project", create=True).context
 context_sync = ContextSync.new(context.id, "/tmp/data")
 
 # Create session with persistent data
-from agent_bay import CreateSessionParams
 params = CreateSessionParams(context_syncs=[context_sync])
 session = agent_bay.create(params).session
 
 # Data written to /tmp/data will persist
-session.filesystem.write_file("/tmp/data/config.json", '{"setting": "value"}')
+session.file_system.write_file("/tmp/data/config.json", '{"setting": "value"}')
+session.file_system.read_file("/tmp/data/config.json")
+# release session
+self.run_delete_session(session)
 ```
 
 ## 🏷️ Labels and Organization
