@@ -24,11 +24,18 @@ export function defaultConfig(): Config {
   };
 }
 
+// Track if .env file has been loaded to avoid duplicate loading
+let dotEnvLoaded = false;
+
 /**
  * Load .env file into process.env if it exists
  * This function should be called early to ensure .env variables are available
  */
 export function loadDotEnv(): void {
+  if (dotEnvLoaded) {
+    return; // Already loaded, skip
+  }
+
   try {
     const envPath = path.resolve(process.cwd(), ".env");
     if (fs.existsSync(envPath)) {
@@ -40,6 +47,7 @@ export function loadDotEnv(): void {
         }
       }
       log(`Loaded .env file at: ${envPath}`);
+      dotEnvLoaded = true;
     }
   } catch (error) {
     log(`Warning: Failed to load .env file: ${error}`);
@@ -63,7 +71,6 @@ export function loadConfig(customConfig?: Config): Config {
   const config = defaultConfig();
 
   // Override with environment variables if they exist
-  // Note: .env file should already be loaded by loadDotEnv() before this function is called
   if (process.env.AGENTBAY_REGION_ID) {
     config.region_id = process.env.AGENTBAY_REGION_ID;
   }
@@ -77,6 +84,33 @@ export function loadConfig(customConfig?: Config): Config {
     if (!isNaN(timeout) && timeout > 0) {
       config.timeout_ms = timeout;
     }
+  }
+
+  // Try to load .env file for values not set by environment variables
+  // This ensures backward compatibility for direct loadConfig() calls
+  const envPath = path.resolve(process.cwd(), ".env");
+
+  if (fs.existsSync(envPath)) {
+    const envConfig = dotenv.parse(fs.readFileSync(envPath));
+    
+    // Only use .env values if corresponding environment variables are not set
+    // This maintains the correct precedence: env vars > .env file > defaults
+    if (!process.env.AGENTBAY_REGION_ID && envConfig.AGENTBAY_REGION_ID) {
+      config.region_id = envConfig.AGENTBAY_REGION_ID;
+    }
+    
+    if (!process.env.AGENTBAY_ENDPOINT && envConfig.AGENTBAY_ENDPOINT) {
+      config.endpoint = envConfig.AGENTBAY_ENDPOINT;
+    }
+    
+    if (!process.env.AGENTBAY_TIMEOUT_MS && envConfig.AGENTBAY_TIMEOUT_MS) {
+      const timeout = parseInt(envConfig.AGENTBAY_TIMEOUT_MS, 10);
+      if (!isNaN(timeout) && timeout > 0) {
+        config.timeout_ms = timeout;
+      }
+    }
+    
+    log(`Loaded .env file at: ${envPath}`);
   }
 
   return config;
