@@ -15,6 +15,61 @@ AgentBay is a cloud computing environment. You can think of it as:
 - **Windows Images**: Windows Server, suitable for .NET development, Windows application testing
 - **Android Images**: Android system, suitable for mobile app testing, automation
 
+## 🏗️ Runtime Environment Types
+
+AgentBay provides different types of cloud runtime environments, each optimized for specific use cases:
+
+### Environment Types
+- **ComputerUse**: Traditional computer environments for general computing tasks
+  - **Linux**: Linux-based environment for development, deployment, and data processing
+  - **Windows**: Windows-based environment for .NET development and Windows application testing
+- **BrowserUse**: Browser-based environment for web automation and testing
+- **CodeSpace**: Specialized development environment with pre-configured development tools
+- **MobileUse**: Mobile environment for Android app testing and automation
+
+### Standard Images
+AgentBay provides five standard images corresponding to these environment types:
+
+| Environment Type | Image ID | Description |
+|------------------|----------|-------------|
+| ComputerUse (Linux) | `linux_latest` | Ubuntu-based Linux environment |
+| ComputerUse (Windows) | `windows_latest` | Windows Server environment |
+| BrowserUse | `browser_latest` | Browser automation environment |
+| CodeSpace | `code_latest` | Development-optimized environment |
+| MobileUse | `mobile_latest` | Android mobile environment |
+
+### Creating Sessions with Different Images
+You can specify the image ID when creating a session to use different environment types:
+
+```python
+from agentbay.session_params import CreateSessionParams
+
+# Linux environment for general computing
+linux_params = CreateSessionParams(image_id="linux_latest")
+linux_session = agent_bay.create(linux_params).session
+
+# Windows environment for Windows-specific tasks
+windows_params = CreateSessionParams(image_id="windows_latest")
+windows_session = agent_bay.create(windows_params).session
+
+# Browser environment for web automation
+browser_params = CreateSessionParams(image_id="browser_latest")
+browser_session = agent_bay.create(browser_params).session
+
+# CodeSpace environment for development
+code_params = CreateSessionParams(image_id="code_latest")
+code_session = agent_bay.create(code_params).session
+
+# Mobile environment for Android automation
+mobile_params = CreateSessionParams(image_id="mobile_latest")
+mobile_session = agent_bay.create(mobile_params).session
+```
+
+### API Compatibility
+Different images provide different capabilities, so the available SDK APIs vary by environment type. If you attempt to call an API that is not supported in the current environment type, the results may not meet expectations.
+
+**Important**: Always choose the appropriate image type for your specific use case to ensure all required APIs are available.
+
 ## 🔗 Session
 
 ### Concept
