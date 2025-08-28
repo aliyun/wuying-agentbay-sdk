@@ -4,7 +4,7 @@ import * as $_client from "./api";
 import { ListSessionRequest, CreateMcpSessionRequestPersistenceDataList } from "./api/models/model";
 import { Client } from "./api/client";
 
-import { loadConfig, Config, BROWSER_DATA_PATH } from "./config";
+import { loadConfig, loadDotEnv, Config, BROWSER_DATA_PATH } from "./config";
 import { ContextService } from "./context";
 import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
@@ -62,6 +62,9 @@ export class AgentBay {
       config?: Config;
     } = {}
   ) {
+    // Load .env file first to ensure AGENTBAY_API_KEY is available
+    loadDotEnv();
+    
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
 
     if (!this.apiKey) {

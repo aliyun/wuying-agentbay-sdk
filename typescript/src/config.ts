@@ -25,6 +25,28 @@ export function defaultConfig(): Config {
 }
 
 /**
+ * Load .env file into process.env if it exists
+ * This function should be called early to ensure .env variables are available
+ */
+export function loadDotEnv(): void {
+  try {
+    const envPath = path.resolve(process.cwd(), ".env");
+    if (fs.existsSync(envPath)) {
+      const envConfig = dotenv.parse(fs.readFileSync(envPath));
+      for (const k in envConfig) {
+        // only load env variables that are not already set in process.env
+        if (!process.env.hasOwnProperty(k)) {
+          process.env[k] = envConfig[k];
+        }
+      }
+      log(`Loaded .env file at: ${envPath}`);
+    }
+  } catch (error) {
+    log(`Warning: Failed to load .env file: ${error}`);
+  }
+}
+
+/**
  * The SDK uses the following precedence order for configuration (highest to lowest):
  * 1. Explicitly passed configuration in code.
  * 2. Environment variables.
@@ -41,6 +63,7 @@ export function loadConfig(customConfig?: Config): Config {
   const config = defaultConfig();
 
   // Override with environment variables if they exist
+  // Note: .env file should already be loaded by loadDotEnv() before this function is called
   if (process.env.AGENTBAY_REGION_ID) {
     config.region_id = process.env.AGENTBAY_REGION_ID;
   }
@@ -56,27 +79,6 @@ export function loadConfig(customConfig?: Config): Config {
     }
   }
 
-  // Try to load .env file
-  const envPath = path.resolve(process.cwd(), ".env");
-
-  if (fs.existsSync(envPath)) {
-    const envConfig = dotenv.parse(fs.readFileSync(envPath));
-    for (const k in envConfig) {
-      // only load env variables that are not already set in process.env
-      if (!process.env.hasOwnProperty(k)) {
-        // update config object to reflect values from .env file
-        if (k === "AGENTBAY_REGION_ID") config.region_id = envConfig[k];
-        else if (k === "AGENTBAY_ENDPOINT") config.endpoint = envConfig[k];
-        else if (k === "AGENTBAY_TIMEOUT_MS") {
-          const timeout = parseInt(envConfig[k], 10);
-          if (!isNaN(timeout) && timeout > 0) {
-            config.timeout_ms = timeout;
-          }
-        }
-      }
-    }
-    log(`Loaded .env file at: ${envPath}`);
-  }
   return config;
 }
 

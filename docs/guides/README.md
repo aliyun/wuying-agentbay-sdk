@@ -11,6 +11,9 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 - [Automation](automation.md) - Command execution and workflow automation
 - [Advanced Features](advanced-features.md) - Advanced capabilities and integrations
 
+### Configuration
+- [SDK Configuration](sdk-configuration.md) - Complete SDK configuration guide including API keys, regions, endpoints, and timeouts
+
 ## 🚀 API Quick Reference
 
 ### Basic Operations
