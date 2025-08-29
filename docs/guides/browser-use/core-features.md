@@ -2,7 +2,7 @@
 
 ## Context
 
-- [BrowserContext](browser-context.md) - Create new or reuse existing browser contexts to speed up web page navigation and reduce anti-bot friction
+- [BrowserContext](core-features/browser-context.md) - Create new or reuse existing browser contexts to speed up web page navigation and reduce anti-bot friction
 
 ## Extension
 
