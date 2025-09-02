@@ -89,6 +89,8 @@ agent_bay.delete(session)
 
 ## 📝 Basic File Operations
 
+**File Size Support**: Both `read_file()` and `write_file()` methods support files of any size through automatic chunked transfer. You don't need to worry about file size limitations - the SDK handles large files transparently.
+
 ### Reading Files
 
 ```python
@@ -482,6 +484,11 @@ if result.success:
     print(f"Is Directory: {info.get('isDirectory', 'N/A')}")
 ```
 ## 📏 Large File Handling
+
+**Note**: Starting from the latest version, `read_file()` and `write_file()` methods automatically handle large files through internal chunked transfer. For most use cases, you can simply use these methods directly without manual chunking.
+
+The following examples show manual chunking approaches for special scenarios where you need custom chunk processing or progress tracking.
+
 ### Manual Chunked File Operations
 
 ```python
@@ -1004,8 +1011,8 @@ content = robust_file_operation(session, "/tmp/example.txt")
 - Be cautious with file editing operations
 
 ### 6. File Operations Strategy
-- **Reading**: Use `read_file()` for small files
-- **Writing**: Use `write_file()` for small files
+- **Reading**: Use `read_file()` for any file size (automatic chunked transfer for large files)
+- **Writing**: Use `write_file()` for any content size (automatic chunked transfer for large content)
 - **Batch Reading**: Use `read_multiple_files()` instead of multiple individual reads
 - **File Search**: Use `search_files()` with partial name patterns (NOT wildcards) and exclusions
 - **Text Editing**: Use `edit_file()` for find-replace operations instead of read-modify-write
@@ -1020,9 +1027,9 @@ content = robust_file_operation(session, "/tmp/example.txt")
 
 | Use Case | Recommended Method | Notes |
 |----------|-------------------|-------|
-| Read single small file | `read_file()` | No longer limited to < 50KB files |
+| Read single file | `read_file()` | Supports files of any size via chunked transfer |
 | Read multiple files | `read_multiple_files()` | More efficient than individual reads |
-| Write small content | `write_file()` | No longer limited to < 50KB content |
+| Write file content | `write_file()` | Supports content of any size via chunked transfer |
 | Find and replace text | `edit_file()` | Better than read-modify-write |
 | Search for files | `search_files()` | Partial name matching, NO wildcards |
 | Move/rename files | `move_file()` | Atomic operation |
