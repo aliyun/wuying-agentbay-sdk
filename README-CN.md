@@ -1,6 +1,6 @@
 # AgentBay SDK
 
-> 在云端环境中执行命令、操作文件、运行代码的多语言SDK
+> AgentBay SDK提供了一整套全面的工具，以便与AgentBay云环境进行高效交互，使您能够创建和管理云会话、执行命令、操作文件以及与用户界面进行交互。
 
 [English](README.md) | [中文](README-CN.md)
 

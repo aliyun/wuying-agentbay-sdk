@@ -1,6 +1,6 @@
 # AgentBay SDK
 
-> Multi-language SDK for executing commands, operating files, and running code in cloud environments
+> The AgentBay SDK provides a comprehensive suite of tools for efficient interaction with AgentBay cloud environments, enabling you to create and manage cloud sessions, execute commands, operate files, and interact with user interfaces.
 
 [English](README.md) | [中文](README-CN.md)
 
