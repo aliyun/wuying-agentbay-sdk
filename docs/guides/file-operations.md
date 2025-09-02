@@ -481,7 +481,55 @@ if result.success:
     print(f"Modified: {info.get('modified', 'N/A')}")
     print(f"Is Directory: {info.get('isDirectory', 'N/A')}")
 ```
+## 📏 Large File Handling
+### Manual Chunked File Operations
 
+```python
+from agentbay import AgentBay
+import base64
+
+def encode_bytes_to_base64(data: bytes) -> str:
+    """Encode bytes data to a base64 string."""
+    return base64.b64encode(data).decode('utf-8')
+
+def decode_base64_to_bytes(encoded_str: str) -> bytes:
+    """Decode a base64 string back to bytes data."""
+    return base64.b64decode(encoded_str)
+
+def upload_large_file_manual(session, local_path, remote_path, chunk_size=1024*1024):  # 1MB chunks
+    """Upload large file in chunks manually"""
+    try:
+        with open(local_path, 'rb') as f:
+            chunk_number = 0
+            first_chunk = True
+            while True:
+                file_content  = f.read(chunk_size)
+                chunk = encode_bytes_to_base64(file_content)
+                if not chunk:
+                    break
+                print(f"Uploading chunk {chunk}")
+                # Write chunk to remote file
+                mode = "overwrite" if first_chunk else "append"
+                write_result = session.file_system.write_file(remote_path, chunk, mode=mode)
+                if not write_result.success:
+                    print(f"Failed to upload chunk {chunk_number}: {write_result.error_message}")
+                    return False
+
+                first_chunk = False
+                chunk_number += 1
+
+            print(f"Uploaded {chunk_number} chunks successfully")
+            return True
+    except Exception as e:
+        print(f"Large file upload failed: {e}")
+        return False
+
+# Usage
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
+upload_large_file_manual(session, "./large_file.txt", "/tmp/large_file.txt")
+agent_bay.delete(session)
+```
 ### Progress Tracking
 
 ```python
@@ -581,7 +629,7 @@ print(f"Successfully read {len(successful_reads)} files concurrently")
 from agentbay import AgentBay
 import re
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session = agent_bay.create().session
 
 def process_files_by_pattern(base_path, pattern, processor_func):
@@ -594,6 +642,7 @@ def process_files_by_pattern(base_path, pattern, processor_func):
 
     processed_files = []
     for file_path in search_result.matches:
+        print(f"Processing file: {file_path}")
         # Read file content
         read_result = session.file_system.read_file(file_path)
         if read_result.success:
@@ -616,14 +665,20 @@ def analyze_text(content):
         'word_count': len(words),
         'char_count': len(content)
     }
-
-# Process all .txt files in /tmp
-results = process_files_by_pattern("/tmp", "*.txt", analyze_text)
+# Create a test file
+initial_content = "This is oldText text with newText content.\nAnother line with newText data."
+result = session.file_system.write_file("/tmp/example.txt", initial_content)
+if result.success:
+    print("Test file created successfully")
+# Process all txt files in /tmp
+results = process_files_by_pattern("/tmp", "txt", analyze_text)
 for result in results:
     print(f"File: {result['path']}")
+    print(f"Original content: {result['original_content']}")
     print(f"  Lines: {result['processed_content']['line_count']}")
     print(f"  Words: {result['processed_content']['word_count']}")
     print(f"  Characters: {result['processed_content']['char_count']}")
+agent_bay.delete(session)
 ```
 
 ### Batch File Processing with Error Recovery
@@ -632,7 +687,7 @@ for result in results:
 from agentbay import AgentBay
 import time
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session = agent_bay.create().session
 
 def batch_process_with_retry(file_operations, max_retries=3):
@@ -724,6 +779,7 @@ print(f"  Failed operations: {len(failed_ops)}")
 
 for failed_op in failed_ops:
     print(f"  Failed: {failed_op['operation']['type']} - {failed_op['result'].error_message}")
+agent_bay.delete(session)
 ```
 
 ### File Content Validation and Processing
@@ -819,50 +875,10 @@ for result in validation_results:
             print(f"  Data: {result['processed_data']}")
     else:
         print(f"  ❌ Invalid: {result['error']}")
+agent_bay.delete(session)
 ```
 
 ## ⚡ Performance Optimization
-
-### Caching Strategies
-
-```python
-import time
-from agentbay import AgentBay
-
-class FileCache:
-    def __init__(self, session, cache_timeout=300):  # 5 minutes
-        self.session = session
-        self.cache = {}
-        self.cache_timeout = cache_timeout
-
-    def read_file(self, file_path):
-        # Check if file is cached and not expired
-        if file_path in self.cache:
-            cached_data, timestamp = self.cache[file_path]
-            if time.time() - timestamp < self.cache_timeout:
-                print(f"Cache hit for {file_path}")
-                return cached_data
-
-        # Read from remote and cache
-        print(f"Cache miss for {file_path}, reading from remote")
-        result = self.session.file_system.read_file(file_path)
-        if result.success:
-            self.cache[file_path] = (result.content, time.time())
-            return result.content
-        else:
-            return None
-
-# Usage
-agent_bay = AgentBay()
-session = agent_bay.create().session
-file_cache = FileCache(session)
-
-# First read - cache miss
-content1 = file_cache.read_file("/tmp/example.txt")
-
-# Second read - cache hit (if within 5 minutes)
-content2 = file_cache.read_file("/tmp/example.txt")
-```
 
 ### Connection Reuse
 
@@ -979,7 +995,6 @@ content = robust_file_operation(session, "/tmp/example.txt")
 - Reuse sessions for multiple operations
 - Use batch operations when possible (read_multiple_files)
 - Implement caching for frequently accessed files
-- Use built-in large file methods for files > 50KB
 - Consider concurrent operations for independent file tasks
 
 ### 5. Security
@@ -1005,9 +1020,9 @@ content = robust_file_operation(session, "/tmp/example.txt")
 
 | Use Case | Recommended Method | Notes |
 |----------|-------------------|-------|
-| Read single small file | `read_file()` | < 50KB files |
+| Read single small file | `read_file()` | No longer limited to < 50KB files |
 | Read multiple files | `read_multiple_files()` | More efficient than individual reads |
-| Write small content | `write_file()` | < 50KB content |
+| Write small content | `write_file()` | No longer limited to < 50KB content |
 | Find and replace text | `edit_file()` | Better than read-modify-write |
 | Search for files | `search_files()` | Partial name matching, NO wildcards |
 | Move/rename files | `move_file()` | Atomic operation |
