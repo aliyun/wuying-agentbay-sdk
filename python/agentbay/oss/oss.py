@@ -2,8 +2,12 @@ import json
 from typing import Any, Dict, Optional
 
 from agentbay.api.base_service import BaseService
+from ..logger import get_logger, log_api_response
 from agentbay.exceptions import AgentBayError, OssError
 from agentbay.model import ApiResponse
+
+# Initialize logger for this module
+logger = get_logger("oss")
 
 
 class OSSClientResult(ApiResponse):
@@ -158,14 +162,12 @@ class Oss(BaseService):
 
             result = self._call_mcp_tool("oss_env_init", args)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        getattr(result, "body", result), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    getattr(result, "body", result), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {result}")
+                logger.debug(f"📥 Response: {result}")
 
             if result.success:
                 try:
@@ -214,7 +216,7 @@ class Oss(BaseService):
             args = {"bucket": bucket, "object": object, "path": path}
 
             result = self._call_mcp_tool("oss_upload", args)
-            print("response =", result)
+            logger.debug(f"📥 OSS Response: {result}")
 
             if result.success:
                 return OSSUploadResult(
@@ -253,7 +255,7 @@ class Oss(BaseService):
             args = {"url": url, "path": path}
 
             result = self._call_mcp_tool("oss_upload_annon", args)
-            print("response =", result)
+            logger.debug(f"📥 OSS Response: {result}")
 
             if result.success:
                 return OSSUploadResult(
@@ -294,7 +296,7 @@ class Oss(BaseService):
             args = {"bucket": bucket, "object": object, "path": path}
 
             result = self._call_mcp_tool("oss_download", args)
-            print("response =", result)
+            logger.debug(f"📥 OSS Response: {result}")
 
             if result.success:
                 return OSSDownloadResult(
@@ -333,7 +335,7 @@ class Oss(BaseService):
             args = {"url": url, "path": path}
 
             result = self._call_mcp_tool("oss_download_annon", args)
-            print("response =", result)
+            logger.debug(f"📥 OSS Response: {result}")
 
             if result.success:
                 return OSSDownloadResult(

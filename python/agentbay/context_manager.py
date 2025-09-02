@@ -1,7 +1,11 @@
 from typing import Optional, List, Dict, Any
 from agentbay.api.models import GetContextInfoRequest, SyncContextRequest
 from agentbay.model.response import ApiResponse, extract_request_id
+from .logger import get_logger, log_api_call, log_api_response
 import json
+
+# Initialize logger for this module
+logger = get_logger("context_manager")
 
 
 class ContextStatusData:
@@ -70,20 +74,18 @@ class ContextManager:
             request.path = path
         if task_type:
             request.task_type = task_type
-        print("API Call: GetContextInfo")
-        print(
-            f"Request: SessionId={self.session.get_session_id()}, ContextId={context_id}, Path={path}, TaskType={task_type}"
+        log_api_call(
+            "GetContextInfo",
+            f"SessionId={self.session.get_session_id()}, ContextId={context_id}, Path={path}, TaskType={task_type}"
         )
         response = self.session.get_client().get_context_info(request)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                response.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {response}")
+            logger.debug(f"📥 Response: {response}")
         request_id = extract_request_id(response)
         response_map = response.to_map()
 
@@ -107,9 +109,9 @@ class ContextManager:
                                     ContextStatusData.from_dict(data_item)
                                 )
                 except json.JSONDecodeError as e:
-                    print(f"Error parsing context status: {e}")
+                    logger.error(f"❌ Error parsing context status: {e}")
                 except Exception as e:
-                    print(f"Unexpected error parsing context status: {e}")
+                    logger.error(f"❌ Unexpected error parsing context status: {e}")
 
         return ContextInfoResult(
             request_id=request_id, context_status_data=context_status_data
@@ -131,20 +133,18 @@ class ContextManager:
             request.path = path
         if mode:
             request.mode = mode
-        print("API Call: SyncContext")
-        print(
-            f"Request: SessionId={self.session.get_session_id()}, ContextId={context_id}, Path={path}, Mode={mode}"
+        log_api_call(
+            "SyncContext",
+            f"SessionId={self.session.get_session_id()}, ContextId={context_id}, Path={path}, Mode={mode}"
         )
         response = self.session.get_client().sync_context(request)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                response.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {response}")
+            logger.debug(f"📥 Response: {response}")
         request_id = extract_request_id(response)
         response_map = response.to_map()
         success = False

@@ -2,8 +2,12 @@ from typing import Any, Dict, List, Optional, Union
 import json
 
 from agentbay.api.base_service import BaseService
+from ..logger import get_logger, log_api_response, log_operation_start, log_operation_success
 from agentbay.exceptions import AgentBayError, FileError
 from agentbay.model import ApiResponse, BoolResult
+
+# Initialize logger for this module
+logger = get_logger("filesystem")
 
 
 class FileInfoResult(ApiResponse):
@@ -186,7 +190,7 @@ class FileSystem(BaseService):
         args = {"path": path}
         try:
             result = self._call_mcp_tool("create_directory", args)
-            print("Response from CallMcpTool - create_directory:", result)
+            logger.debug(f"📥 create_directory response: {result}")
             if result.success:
                 return BoolResult(request_id=result.request_id, success=True, data=True)
             else:
@@ -222,7 +226,7 @@ class FileSystem(BaseService):
         args = {"path": path, "edits": edits, "dryRun": dry_run}
         try:
             result = self._call_mcp_tool("edit_file", args)
-            print("Response from CallMcpTool - edit_file:", result)
+            logger.debug(f"📥 edit_file response: {result}")
             if result.success:
                 return BoolResult(request_id=result.request_id, success=True, data=True)
             else:
@@ -289,14 +293,12 @@ class FileSystem(BaseService):
         try:
             result = self._call_mcp_tool("get_file_info", args)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        getattr(result, "body", result), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    getattr(result, "body", result), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {result}")
+                logger.debug(f"📥 Response: {result}")
             if result.success:
                 file_info = parse_file_info(result.data)
                 return FileInfoResult(
@@ -384,14 +386,12 @@ class FileSystem(BaseService):
         try:
             result = self._call_mcp_tool("list_directory", args)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        getattr(result, "body", result), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    getattr(result, "body", result), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {result}")
+                logger.debug(f"📥 Response: {result}")
             if result.success:
                 entries = parse_directory_listing(result.data)
                 return DirectoryListResult(
@@ -429,7 +429,7 @@ class FileSystem(BaseService):
         args = {"source": source, "destination": destination}
         try:
             result = self._call_mcp_tool("move_file", args)
-            print("Response from CallMcpTool - move_file:", result)
+            logger.debug(f"📥 move_file response: {result}")
             if result.success:
                 return BoolResult(request_id=result.request_id, success=True, data=True)
             else:
@@ -471,14 +471,12 @@ class FileSystem(BaseService):
         try:
             result = self._call_mcp_tool("read_file", args)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        getattr(result, "body", result), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    getattr(result, "body", result), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {result}")
+                logger.debug(f"📥 Response: {result}")
             if result.success:
                 return FileContentResult(
                     request_id=result.request_id,
@@ -571,14 +569,12 @@ class FileSystem(BaseService):
         try:
             result = self._call_mcp_tool("read_multiple_files", args)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        getattr(result, "body", result), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    getattr(result, "body", result), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {result}")
+                logger.debug(f"📥 Response: {result}")
 
             if result.success:
                 files_content = parse_multiple_files_response(result.data)
@@ -629,7 +625,7 @@ class FileSystem(BaseService):
 
         try:
             result = self._call_mcp_tool("search_files", args)
-            print(f"Response from CallMcpTool - search_files: {result}")
+            logger.debug(f"📥 search_files response: {result}")
 
             if result.success:
                 matching_files = result.data.strip().split("\n") if result.data else []
@@ -680,7 +676,7 @@ class FileSystem(BaseService):
         args = {"path": path, "content": content, "mode": mode}
         try:
             result = self._call_mcp_tool("write_file", args)
-            print(f"Response from CallMcpTool - write_file: {result}")
+            logger.debug(f"📥 write_file response: {result}")
             if result.success:
                 return BoolResult(request_id=result.request_id, success=True, data=True)
             else:
@@ -754,9 +750,9 @@ class FileSystem(BaseService):
             while offset < file_size:
                 length = min(chunk_size, file_size - offset)
                 chunk_result = self.read_file(path, offset, length)
-                print(
-                    f"ReadLargeFile: Reading chunk {chunk_count + 1} "
-                    f"({length} bytes at offset {offset}/{file_size})"
+                log_operation_start(
+                    f"ReadLargeFile chunk {chunk_count + 1}",
+                    f"{length} bytes at offset {offset}/{file_size}"
                 )
 
                 if not chunk_result.success:
@@ -802,9 +798,9 @@ class FileSystem(BaseService):
         # Use default chunk size if not specified
         chunk_size = chunk_size if chunk_size > 0 else self.DEFAULT_CHUNK_SIZE
         content_len = len(content)
-        print(
-            f"WriteLargeFile: Starting chunked write to {path} (total size: "
-            f"{content_len} bytes, chunk size: {chunk_size} bytes)"
+        log_operation_start(
+            f"WriteLargeFile to {path}",
+            f"total size: {content_len} bytes, chunk size: {chunk_size} bytes"
         )
 
         # If the content length is less than the chunk size, write it directly

@@ -12,7 +12,11 @@ from agentbay.api.models import (
 )
 from agentbay.exceptions import AgentBayError
 from agentbay.model.response import ApiResponse, OperationResult, extract_request_id
+from .logger import get_logger, log_api_call, log_api_response, log_operation_error
 import json
+
+# Initialize logger for this module
+logger = get_logger("context")
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
@@ -224,12 +228,10 @@ class ContextService:
             if params is None:
                 params = ContextListParams()
             max_results = params.max_results if params.max_results is not None else 10
-            print("API Call: ListContexts")
-            print(f"Request: MaxResults={max_results}", end="")
+            request_details = f"MaxResults={max_results}"
             if params.next_token:
-                print(f", NextToken={params.next_token}")
-            else:
-                print()
+                request_details += f", NextToken={params.next_token}"
+            log_api_call("ListContexts", request_details)
             request = ListContextsRequest(
                 authorization=f"Bearer {self.agent_bay.api_key}",
                 max_results=max_results,
@@ -237,14 +239,12 @@ class ContextService:
             )
             response = self.agent_bay.client.list_contexts(request)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {response}")
+                logger.debug(f"📥 Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map()
@@ -283,12 +283,12 @@ class ContextService:
                     total_count=total_count,
                 )
             except Exception as e:
-                print(f"Error parsing ListContexts response: {e}")
+                log_operation_error("parse ListContexts response", str(e))
                 return ContextListResult(
                     request_id=request_id, success=False, contexts=[]
                 )
         except Exception as e:
-            print(f"Error calling ListContexts: {e}")
+            log_operation_error("ListContexts", str(e))
             return ContextListResult(
                 request_id="",
                 success=False,
@@ -311,8 +311,7 @@ class ContextService:
                 ID.
         """
         try:
-            print("API Call: GetContext")
-            print(f"Request: Name={name}, AllowCreate={create}")
+            log_api_call("GetContext", f"Name={name}, AllowCreate={create}")
             request = GetContextRequest(
                 name=name,
                 allow_create=create,
@@ -320,14 +319,12 @@ class ContextService:
             )
             response = self.agent_bay.client.get_context(request)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {response}")
+                logger.debug(f"📥 Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map()
@@ -361,7 +358,7 @@ class ContextService:
                     context=context,
                 )
             except Exception as e:
-                print(f"Error parsing GetContext response: {e}")
+                log_operation_error("parse GetContext response", str(e))
                 return ContextResult(
                     request_id=request_id,
                     success=False,
@@ -369,7 +366,7 @@ class ContextService:
                     context=None,
                 )
         except Exception as e:
-            print(f"Error calling GetContext: {e}")
+            log_operation_error("GetContext", str(e))
             raise AgentBayError(f"Failed to get context {name}: {e}")
 
     def create(self, name: str) -> ContextResult:
@@ -404,14 +401,12 @@ class ContextService:
             )
             response = self.agent_bay.client.modify_context(request)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {response}")
+                logger.debug(f"📥 Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map() if hasattr(response, "to_map") else {}
@@ -461,14 +456,12 @@ class ContextService:
             )
             response = self.agent_bay.client.delete_context(request)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {response}")
+                logger.debug(f"📥 Response: {response}")
             request_id = extract_request_id(response)
             try:
                 response_map = response.to_map() if hasattr(response, "to_map") else {}

@@ -19,6 +19,10 @@ from agentbay.model import (
 )
 from agentbay.session import Session
 from agentbay.session_params import CreateSessionParams, ListSessionParams
+from .logger import get_logger, log_api_call, log_api_response, log_operation_start, log_operation_success, log_operation_error, log_warning
+
+# Initialize logger for this module
+logger = get_logger("agentbay")
 from typing import Optional
 from agentbay.context_sync import ContextSync
 from agentbay.config import BROWSER_DATA_PATH
@@ -200,20 +204,18 @@ class AgentBay:
                         )
                     else:
                         req_map["Authorization"] = auth[:2] + "****" + auth[-2:]
-                print("CreateMcpSessionRequest body:")
-                print(json.dumps(req_map, ensure_ascii=False, indent=2))
+                request_body = json.dumps(req_map, ensure_ascii=False, indent=2)
+                logger.debug(f"📤 CreateMcpSessionRequest body:\n{request_body}")
             except Exception:
-                print(f"CreateMcpSessionRequest: {request}")
+                logger.debug(f"📤 CreateMcpSessionRequest: {request}")
             response = self.client.create_mcp_session(request)
             try:
-                print("Response body:")
-                print(
-                    json.dumps(
-                        response.to_map().get("body", {}), ensure_ascii=False, indent=2
-                    )
+                response_body = json.dumps(
+                    response.to_map().get("body", {}), ensure_ascii=False, indent=2
                 )
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {response}")
+                logger.debug(f"📥 Response: {response}")
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -265,8 +267,8 @@ class AgentBay:
             # ResourceUrl is optional in CreateMcpSession response
             resource_url = data.get("ResourceUrl")
 
-            print("session_id =", session_id)
-            print("resource_url =", resource_url)
+            logger.info(f"🆔 Session created: {session_id}")
+            logger.debug(f"🔗 Resource URL: {resource_url}")
 
             # Create Session object
             from agentbay.session import Session
@@ -290,17 +292,17 @@ class AgentBay:
 
             # For VPC sessions, automatically fetch MCP tools information
             if params.is_vpc:
-                print("VPC session detected, automatically fetching MCP tools...")
+                log_operation_start("Fetching MCP tools", "VPC session detected")
                 try:
                     tools_result = session.list_mcp_tools()
-                    print(f"Successfully fetched {len(tools_result.tools)} MCP tools for VPC session (RequestID: {tools_result.request_id})")
+                    log_operation_success(f"Fetched {len(tools_result.tools)} MCP tools", f"RequestID: {tools_result.request_id}")
                 except Exception as e:
-                    print(f"Warning: Failed to fetch MCP tools for VPC session: {e}")
+                    log_warning(f"Failed to fetch MCP tools for VPC session: {e}")
                     # Continue with session creation even if tools fetch fails
 
             # If we have persistence data, wait for context synchronization
             if has_persistence_data:
-                print("Waiting for context synchronization to complete...")
+                log_operation_start("Context synchronization", "Waiting for completion")
                 
                 # Wait for context synchronization to complete
                 max_retries = 150  # Maximum number of retries
@@ -316,7 +318,7 @@ class AgentBay:
                     has_failure = False
                     
                     for item in info_result.context_status_data:
-                        print(f"Context {item.context_id} status: {item.status}, path: {item.path}")
+                        logger.info(f"📁 Context {item.context_id} status: {item.status}, path: {item.path}")
                         
                         if item.status != "Success" and item.status != "Failed":
                             all_completed = False
@@ -324,30 +326,30 @@ class AgentBay:
                         
                         if item.status == "Failed":
                             has_failure = True
-                            print(f"Context synchronization failed for {item.context_id}: {item.error_message}")
+                            logger.error(f"❌ Context synchronization failed for {item.context_id}: {item.error_message}")
                     
                     if all_completed or not info_result.context_status_data:
                         if has_failure:
-                            print("Context synchronization completed with failures")
+                            log_warning("Context synchronization completed with failures")
                         else:
-                            print("Context synchronization completed successfully")
+                            log_operation_success("Context synchronization")
                         break
                     
-                    print(f"Waiting for context synchronization, attempt {retry+1}/{max_retries}")
+                    logger.info(f"⏳ Waiting for context synchronization, attempt {retry+1}/{max_retries}")
                     time.sleep(retry_interval)
 
             # Return SessionResult with request ID
             return SessionResult(request_id=request_id, success=True, session=session)
 
         except ClientException as e:
-            print("Aliyun OpenAPI ClientException:", e)
+            log_operation_error("create_mcp_session - ClientException", str(e))
             return SessionResult(
                 request_id="",
                 success=False,
                 error_message=f"Failed to create session: {e}",
             )
         except Exception as e:
-            print("Error calling create_mcp_session:", e)
+            log_operation_error("create_mcp_session", str(e))
             return SessionResult(
                 request_id="",
                 success=False,
@@ -404,10 +406,10 @@ class AgentBay:
             if params.next_token:
                 request.next_token = params.next_token
 
-            print("API Call: list_session")
-            print(f"Request: Labels={labels_json}, MaxResults={params.max_results}")
+            request_details = f"Labels={labels_json}, MaxResults={params.max_results}"
             if request.next_token:
-                print(f"NextToken={request.next_token}")
+                request_details += f", NextToken={request.next_token}"
+            log_api_call("list_session", request_details)
 
             # Make the API call
             response = self.client.list_session(request)
@@ -438,10 +440,10 @@ class AgentBay:
             total_count = 0
 
             try:
-                print("Response body:")
-                print(json.dumps(body, ensure_ascii=False, indent=2))
+                response_body = json.dumps(body, ensure_ascii=False, indent=2)
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {body}")
+                logger.debug(f"📥 Response: {body}")
 
             # Extract pagination information
             if isinstance(body, dict):
@@ -481,7 +483,7 @@ class AgentBay:
             )
 
         except Exception as e:
-            print("Error calling list_session:", e)
+            log_operation_error("list_session", str(e))
             return SessionListResult(
                 request_id="",
                 success=False,
@@ -512,7 +514,7 @@ class AgentBay:
             return delete_result
 
         except Exception as e:
-            print("Error deleting session:", e)
+            log_operation_error("delete_session", str(e))
             return DeleteResult(
                 request_id="",
                 success=False,
