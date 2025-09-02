@@ -139,6 +139,8 @@ export interface BrowserOption {
   screen?: BrowserScreen;
   fingerprint?: BrowserFingerprint;
   proxies?: BrowserProxy[];
+  /** Path to the extensions directory. Defaults to "/tmp/extensions/" */
+  extensionPath?: string;
 }
 
 export class BrowserOptionClass implements BrowserOption {
@@ -149,6 +151,7 @@ export class BrowserOptionClass implements BrowserOption {
   screen?: BrowserScreen;
   fingerprint?: BrowserFingerprint;
   proxies?: BrowserProxy[];
+  extensionPath?: string;
 
   constructor(
     useStealth = false,
@@ -156,7 +159,7 @@ export class BrowserOptionClass implements BrowserOption {
     viewport?: BrowserViewport,
     screen?: BrowserScreen,
     fingerprint?: BrowserFingerprint,
-    proxies?: BrowserProxy[]
+    proxies?: BrowserProxy[],
   ) {
     this.useStealth = useStealth;
     this.userAgent = userAgent;
@@ -164,6 +167,7 @@ export class BrowserOptionClass implements BrowserOption {
     this.screen = screen;
     this.fingerprint = fingerprint;
     this.proxies = proxies;
+    this.extensionPath = "/tmp/extensions/";
 
     // Validate proxies list items
     if (proxies !== undefined) {
@@ -178,6 +182,9 @@ export class BrowserOptionClass implements BrowserOption {
 
   toMap(): Record<string, any> {
     const optionMap: Record<string, any> = {};
+    if (process.env.AGENTBAY_BROWSER_BEHAVIOR_SIMULATE) {
+      optionMap['behaviorSimulate'] = (process.env.AGENTBAY_BROWSER_BEHAVIOR_SIMULATE !== "0") as boolean;
+    }
     if (this.useStealth !== undefined) {
       optionMap['useStealth'] = this.useStealth;
     }
@@ -199,6 +206,9 @@ export class BrowserOptionClass implements BrowserOption {
     }
     if (this.proxies !== undefined) {
       optionMap['proxies'] = this.proxies.map(proxy => proxy.toMap());
+    }
+    if (this.extensionPath !== undefined) {
+      optionMap['extensionPath'] = this.extensionPath;
     }
     return optionMap;
   }
@@ -239,6 +249,9 @@ export class BrowserOptionClass implements BrowserOption {
         // Otherwise, convert from map
         return BrowserProxyClass.fromMap(proxyData);
       }).filter(Boolean) as BrowserProxy[];
+    }
+    if (map.extensionPath !== undefined) {
+      this.extensionPath = map.extensionPath;
     }
     return this;
   }

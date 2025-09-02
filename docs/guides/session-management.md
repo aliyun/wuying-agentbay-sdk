@@ -30,7 +30,7 @@ Creating a session is the first step in using the AgentBay SDK:
 from agentbay import AgentBay
 
 # Initialize the SDK
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = AgentBay(api_key=api_key)
 
 # Create a session with default parameters
 session_result = agent_bay.create()
@@ -58,7 +58,9 @@ params = CreateSessionParams(
 session_result = agent_bay.create(params)
 session = session_result.session
 
-print(f"Session created with ID: {session.session_id}")
+if session_result.success:
+    session = session_result.session
+    print(f"Session created with ID: {session.session_id}")
 ```
 
 ## Session Context Synchronization
@@ -71,7 +73,7 @@ from agentbay.context_sync import ContextSync, SyncPolicy
 from agentbay.session_params import CreateSessionParams
 
 # Initialize the SDK
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = AgentBay(api_key=api_key)
 
 # Get or create a persistent context
 context_result = agent_bay.context.get("my-persistent-context", create=True)
@@ -83,13 +85,14 @@ if context_result.success:
         path="/tmp/data",  # Mount path in the session
         policy=SyncPolicy.default()
     )
-    
+
     # Create a session with context synchronization
     params = CreateSessionParams(context_syncs=[context_sync])
     session_result = agent_bay.create(params)
-    session = session_result.session
-    
-    print(f"Session created with ID: {session.session_id} and synchronized context at /tmp/data")
+
+    if session_result.success:
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id} and synchronized context at /tmp/data")
 ```
 
 ## Listing Sessions with Pagination
@@ -99,26 +102,38 @@ The session management system supports pagination for efficient handling of larg
 ```python
 from agentbay import AgentBay
 from agentbay.session_params import ListSessionParams
+from agentbay.session_params import CreateSessionParams
 
 # Initialize the SDK
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = self.common_code()
+# Create ten sessions
+for i in range(10):
+    # create parameters with labels
+    params = CreateSessionParams(labels={"project": "demo"})
+    agent_bay.create(params)
 
 # List sessions by labels with pagination
 params = ListSessionParams(
     labels={"project": "demo"},
-    max_results=10
+    max_results=5
 )
 result = agent_bay.list_by_labels(params)
 
 print(f"Found {len(result.sessions)} sessions")
-for session in result.sessions:
-    print(f"Session ID: {session.session_id}")
+if(len(result.sessions) > 0):
+    # Handle pagination
+    if result.next_token:
+        params.next_token = result.next_token
+        next_page = agent_bay.list_by_labels(params)
+        print(f"Next page has {len(next_page.sessions)} sessions")
+        if(len(next_page.sessions) > 0):
+            for session in next_page.sessions:
+                agent_bay.delete(session)
+                print(f"Session ID: {session.session_id}")
 
-# Handle pagination
-if result.next_token:
-    params.next_token = result.next_token
-    next_page = agent_bay.list_by_labels(params)
-    print(f"Next page has {len(next_page.sessions)} sessions")
+    for session in result.sessions:
+        print(f"Session ID: {session.session_id}")
+        agent_bay.delete(session)
 ```
 
 ## Session Label Management
@@ -131,7 +146,7 @@ Labels help organize and categorize sessions for easier management:
 from agentbay import AgentBay
 
 # Initialize the SDK and create a session
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = AgentBay(api_key=api_key)
 session_result = agent_bay.create()
 session = session_result.session
 
@@ -151,7 +166,7 @@ else:
 from agentbay import AgentBay
 
 # Initialize the SDK and create a session
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = AgentBay(api_key=api_key)
 session_result = agent_bay.create()
 session = session_result.session
 
@@ -166,6 +181,243 @@ else:
     print(f"Failed to get labels: {result.error_message}")
 ```
 
+## Getting Session Information
+
+The `info()` method provides detailed information about a session, including direct browser access URLs and SDK integration credentials. This API serves two primary purposes:
+
+1. **Cloud Environment Access**: Get the `resource_url` to directly access the cloud environment in a web browser with real-time video streaming and full mouse/keyboard control
+2. **Session Status Validation**: Check if a session is still active and hasn't been released
+3. **SDK Integration**: Extract authentication credentials for Web SDK (desktop) and Android SDK (mobile) integration
+
+### Basic Session Information Retrieval
+
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK and create a session
+agent_bay = AgentBay(api_key=api_key)
+session_result = agent_bay.create()
+session = session_result.session
+
+# Get session information for cloud environment access
+info_result = session.info()
+
+if info_result.success:
+    session_info = info_result.data
+    print(f"Session ID: {session_info.session_id}")
+    print(f"Cloud Environment Access URL: {session_info.resource_url}")
+    print(f"App Type: {session_info.app_id}")
+    print(f"Request ID: {info_result.request_id}")
+    
+    # The resource_url can be directly opened in a browser for immediate access
+    print("\n🌐 You can now open the resource_url in your browser to access the cloud environment!")
+    print("   Features available: Video stream, Mouse control, Keyboard input")
+else:
+    print(f"Failed to get session info: {info_result.error_message}")
+```
+
+### Understanding Session Information Fields
+
+The `SessionInfo` object contains comprehensive session details:
+
+```python
+from agentbay import AgentBay
+
+# Get session information
+info_result = session.info()
+
+if info_result.success:
+    info = info_result.data
+    
+    # Core session identifiers
+    print(f"Session ID: {info.session_id}")
+    print(f"Resource ID: {info.resource_id}")
+    
+    # Access and connection information
+    print(f"Resource URL: {info.resource_url}")
+    print(f"App ID: {info.app_id}")  # e.g., "agentBay-browser-cdp", "mcp-server-ubuntu"
+    print(f"Resource Type: {info.resource_type}")  # e.g., "AIAgent"
+    
+    # Authentication and security
+    print(f"Auth Code: {info.auth_code[:50]}...")  # Truncated for security
+    print(f"Connection Properties: {info.connection_properties}")  # JSON string
+    print(f"Ticket: {info.ticket[:100]}...")  # Contains gateway and token info
+```
+
+### Session Information Field Details
+
+- **session_id**: Unique identifier for the session
+- **resource_id**: Cloud resource identifier (e.g., "p-0cc7s1wz8fpx4kecc")
+- **resource_url**: **Direct browser access URL** - Open this URL in any web browser to access the cloud environment with real-time video stream and full mouse/keyboard control
+- **app_id**: Application type identifier:
+  - `"agentBay-browser-cdp"` for browser sessions
+  - `"mcp-server-ubuntu"` for Linux sessions
+- **resource_type**: Resource classification (typically "AIAgent")
+- **auth_code**: Authentication token required for Web SDK and Android SDK integration
+- **connection_properties**: JSON configuration for SDK connection settings
+- **ticket**: Gateway access ticket containing connection endpoints and tokens for SDK integration
+
+### Practical Use Cases
+
+#### 1. Cloud Environment Access via Browser
+The most common use case is accessing the cloud environment directly through a web browser using the `resource_url`:
+
+```python
+def access_cloud_environment_browser(session):
+    """Get cloud environment access URL for browser-based remote control."""
+    info_result = session.info()
+    
+    if info_result.success:
+        info = info_result.data
+        resource_url = info.resource_url
+        
+        print(f"Cloud environment ready for session: {info.session_id}")
+        print(f"Resource URL: {resource_url}")
+        print("\n🌐 Copy and paste the Resource URL into any web browser to access the cloud environment")
+        print("   Features available:")
+        print("   - Real-time video stream of the desktop")
+        print("   - Mouse and keyboard interaction capabilities")
+        print("   - Full remote desktop experience")
+        
+        return {
+            "session_id": info.session_id,
+            "resource_url": resource_url,
+            "access_method": "browser_direct"
+        }
+    else:
+        print(f"Failed to get session info: {info_result.error_message}")
+        return None
+
+# Usage
+access_info = access_cloud_environment_browser(session)
+if access_info:
+    print("Cloud environment URL is ready - open it in your browser to start using the remote desktop")
+```
+
+#### 2. SDK Integration for Desktop and Mobile Access
+Extract session information for integration with Web SDK and Android SDK:
+
+```python
+import json
+
+def prepare_sdk_integration(session):
+    """Prepare session information for Web SDK and Android SDK integration."""
+    info_result = session.info()
+    
+    if info_result.success:
+        info = info_result.data
+        
+        # Parse connection properties for SDK configuration
+        try:
+            conn_props = json.loads(info.connection_properties)
+        except json.JSONDecodeError:
+            conn_props = {}
+        
+        # Prepare configuration for Web SDK (desktop applications)
+        web_sdk_config = {
+            "session_id": info.session_id,
+            "resource_id": info.resource_id,
+            "app_id": info.app_id,
+            "auth_code": info.auth_code,
+            "connection_properties": conn_props,
+            "ticket": info.ticket,
+            "platform": "web"
+        }
+        
+        # Prepare configuration for Android SDK (mobile applications)
+        android_sdk_config = {
+            "session_id": info.session_id,
+            "resource_id": info.resource_id,
+            "app_id": info.app_id,
+            "auth_code": info.auth_code,
+            "connection_properties": conn_props,
+            "ticket": info.ticket,
+            "platform": "android"
+        }
+        
+        print("SDK Integration Configuration:")
+        print(f"Session ID: {info.session_id}")
+        print(f"App ID: {info.app_id}")
+        print(f"Resource Type: {info.resource_type}")
+        print(f"Authentication Mode: {conn_props.get('authMode', 'Session')}")
+        
+        return {
+            "web_sdk": web_sdk_config,
+            "android_sdk": android_sdk_config,
+            "resource_url": info.resource_url  # For direct browser access
+        }
+    else:
+        print(f"Failed to prepare SDK integration: {info_result.error_message}")
+        return None
+
+# Usage
+sdk_configs = prepare_sdk_integration(session)
+if sdk_configs:
+    print("Configuration ready for Web SDK and Android SDK integration")
+    
+    # Example: Pass to Web SDK for desktop remote control
+    # web_remote_client.connect(sdk_configs["web_sdk"])
+    
+    # Example: Pass to Android SDK for mobile remote control
+    # android_remote_client.connect(sdk_configs["android_sdk"])
+```
+
+#### 3. Session Status Validation and Health Check
+Use `info()` to check if a session is still active and hasn't been released:
+
+```python
+def check_session_status(session):
+    """Check if session is still active and hasn't been released."""
+    try:
+        info_result = session.info()
+        
+        if info_result.success:
+            info = info_result.data
+            print(f"✅ Session {info.session_id} is ACTIVE")
+            print(f"   Resource ID: {info.resource_id}")
+            print(f"   App ID: {info.app_id}")
+            print(f"   Resource Type: {info.resource_type}")
+            return True
+        else:
+            print(f"❌ Session status check failed: {info_result.error_message}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Session has been RELEASED or is inaccessible: {e}")
+        return False
+
+def monitor_session_health(session, check_interval=30):
+    """Continuously monitor session health."""
+    import time
+    
+    print(f"Starting health monitoring for session: {session.session_id}")
+    
+    while True:
+        is_active = check_session_status(session)
+        
+        if not is_active:
+            print("🚨 Session is no longer active - stopping monitoring")
+            break
+        
+        print(f"💚 Session health check passed - next check in {check_interval}s")
+        time.sleep(check_interval)
+
+# Usage examples
+print("=== Session Status Check ===")
+if check_session_status(session):
+    print("Session is ready for use")
+else:
+    print("Session needs to be recreated")
+
+# For continuous monitoring (run in background thread)
+# import threading
+# monitor_thread = threading.Thread(target=monitor_session_health, args=(session, 60))
+# monitor_thread.daemon = True
+# monitor_thread.start()
+```
+
+
+
 ## Deleting Sessions
 
 When you're done with a session, delete it to free up resources:
@@ -174,7 +426,7 @@ When you're done with a session, delete it to free up resources:
 from agentbay import AgentBay
 
 # Initialize the SDK and create a session
-agent_bay = AgentBay(api_key="your_api_key")
+agent_bay = AgentBay(api_key=api_key)
 session_result = agent_bay.create()
 session = session_result.session
 
@@ -196,9 +448,25 @@ To ensure all context changes are synchronized before deletion:
 from agentbay import AgentBay
 
 # Initialize the SDK and create a session
-agent_bay = AgentBay(api_key="your_api_key")
-session_result = agent_bay.create()
-session = session_result.session
+agent_bay = AgentBay(api_key=api_key)
+# Get or create a persistent context
+context_result = agent_bay.context.get("my-persistent-context", create=True)
+
+if context_result.success:
+    # Configure context synchronization
+    context_sync = ContextSync.new(
+        context_id=context_result.context.id,
+        path="/tmp/data",  # Mount path in the session
+        policy=SyncPolicy.default()
+    )
+
+    # Create a session with context synchronization
+    params = CreateSessionParams(context_syncs=[context_sync])
+    session_result = agent_bay.create(params)
+
+    if session_result.success:
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id} and synchronized context at /tmp/data")
 
 # Perform operations on the session and make changes to synchronized contexts...
 

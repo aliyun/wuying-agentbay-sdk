@@ -53,39 +53,57 @@ C:\
 
 ### Python
 ```python
+# Create session
+session = agent_bay.create().session
+ #Create Directory
+session.file_system.create_directory("/path/to")
+print("✅ Directory created successfully")
+
+
+# Write file
+result = session.file_system.write_file("/path/to/file.txt", "content")
+if result.success:
+    print("File written successfully")
 # Read file
 result = session.file_system.read_file("/path/to/file.txt")
 if result.success:
     content = result.content
-
-# Write file
-result = session.file_system.write_file("/path/to/file.txt", "content")
+    print(f"File content: {content}")
 
 # List directory
-result = session.file_system.list_directory("/path/to/directory")
+result = session.file_system.list_directory("/path/to")
 if result.success:
     entries = result.entries
+    for entry in entries:
+        print(f"Name: {entry['name']}")
 
 # Get file info
 result = session.file_system.get_file_info("/path/to/file.txt")
+
 if result.success:
     info = result.file_info
+    print(f"File info: {info}")
+agent_bay.delete(session)
 ```
 
 
 ## 📝 Basic File Operations
+
+**File Size Support**: Both `read_file()` and `write_file()` methods support files of any size through automatic chunked transfer. You don't need to worry about file size limitations - the SDK handles large files transparently.
 
 ### Reading Files
 
 ```python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
 session = agent_bay.create().session
-
+# Write file
+result = session.file_system.write_file("/tmp/file.txt", "content")
+if result.success:
+    print("File written successfully")
 # Read text file
 try:
-    result = session.file_system.read_file("/tmp/example.txt")
+    result = session.file_system.read_file("/tmp/file.txt")
     if result.success:
         content = result.content
         print(f"File content: {content}")
@@ -93,12 +111,6 @@ try:
         print(f"Failed to read file: {result.error_message}")
 except Exception as e:
     print(f"Exception reading file: {e}")
-
-# Read binary file
-result = session.file_system.read_file("/tmp/image.png")
-if result.success:
-    binary_data = result.content
-    # Process binary data
 ```
 
 
@@ -107,7 +119,6 @@ if result.success:
 ```python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
 session = agent_bay.create().session
 
 # Write text file
@@ -118,34 +129,46 @@ if result.success:
 else:
     print(f"Failed to write file: {result.error_message}")
 
-# Write binary file
-binary_data = b"\x89PNG\r\n\x1a\n..."  # PNG header example
-result = session.file_system.write_file("/tmp/image.png", binary_data)
-
 # Append to file
-result = session.file_system.write_file("/tmp/log.txt", "New log entry\n", mode="append")
+result = session.file_system.write_file("/tmp/hello.txt", "New log entry\n", mode="append")
+if result.success:
+    print("File appended successfully")
+result = session.file_system.read_file("/tmp/hello.txt")
+if result.success:
+    content = result.content
+    print(f"File content: {content}")
+agent_bay.delete(session)
 ```
 
 
 ## 📁 Directory Management
 
-### Creating and Removing Directories
+### Creating and moving Directories
 
 ```python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
+agent_bay = self.common_code()
 session = agent_bay.create().session
 
 # Create directory
-result = session.file_system.create_directory("/tmp/my_project")
+result = session.file_system.create_directory("/tmp/data/my_project")
 if result.success:
     print("Directory created successfully")
 else:
     print(f"Failed to create directory: {result.error_message}")
 
-# Create directory with parent directories
-result = session.file_system.create_directory("/tmp/parent/child/grandchild")
+# Remove directory with parent directories
+result = session.file_system.move_file("/tmp/data", "/tmp/test/")
+if result.success:
+    print("Directory moved successfully")
+#List direction
+result = session.file_system.list_directory("/tmp/")
+if result.success:
+    entries = result.entries
+    for entry in entries:
+        print(f"Name: {entry['name']}")
+agent_bay.delete(session)
 ```
 
 ### Listing Directory Contents
@@ -213,11 +236,10 @@ else:
 ```python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
 session = agent_bay.create().session
 
 # Search for files with pattern (partial name matching, NOT wildcards)
-result = session.file_system.search_files("/tmp", "test")
+result = session.file_system.search_files("/tmp", "systemd")
 if result.success:
     print(f"Found {len(result.matches)} files containing 'test':")
     for match in result.matches:
@@ -227,9 +249,9 @@ else:
 
 # Search with exclusion patterns
 result = session.file_system.search_files(
-    "/tmp", 
-    "config", 
-    exclude_patterns=["backup", "temp"]
+    "/tmp",
+    "systemd",
+    exclude_patterns=["geoclue"]
 )
 if result.success:
     print(f"Found {len(result.matches)} files containing 'config' (excluding 'backup' and 'temp'):")
@@ -254,7 +276,7 @@ if result.success:
 session.file_system.search_files("/tmp", "test")
 # Matches: test.txt, my_test_file.py, testing.log, etc.
 
-session.file_system.search_files("/tmp", "config")  
+session.file_system.search_files("/tmp", "config")
 # Matches: config.json, app_config.xml, configuration.ini, etc.
 
 # ❌ INCORRECT: Wildcard patterns (NOT supported)
@@ -268,9 +290,9 @@ session.file_system.search_files("/tmp", "?.log")     # Won't work as expected
 ```python
 # On Windows (case-insensitive)
 result = session.file_system.search_files("/tmp", "TEST")
-# Matches: test.txt, Test.log, TEST.config, MyTest.py
+# Matches: TEST.txt, TEST.log, TEST.config, MyTEST.py
 
-# On Linux/Unix (case-sensitive)  
+# On Linux/Unix (case-sensitive)
 result = session.file_system.search_files("/tmp", "TEST")
 # Matches only: TEST.config, MyTEST.py (exact case match)
 result = session.file_system.search_files("/tmp", "test")
@@ -283,24 +305,25 @@ result = session.file_system.search_files("/tmp", "test")
 from agentbay import AgentBay
 
 agent_bay = AgentBay()
-session = agent_bay.create().session
+params = CreateSessionParams(image_id="linux_latest")
+session = agent_bay.create(params).session
 
 def search_files_by_extension(base_path, extension):
-    """
-    Search for files by extension using partial matching.
-    Note: This is a workaround since wildcards are not supported.
-    """
-    # Search for the extension pattern
-    result = session.file_system.search_files(base_path, f".{extension}")
-    
-    if result.success:
-        # Filter results to ensure they actually end with the extension
-        filtered_matches = [
-            match for match in result.matches 
-            if match.lower().endswith(f".{extension.lower()}")
-        ]
-        return filtered_matches
-    return []
+        """
+        Search for files by extension using partial matching.
+        Note: This is a workaround since wildcards are not supported.
+        """
+        # Search for the extension pattern
+        result = session.file_system.search_files(base_path, f".{extension}")
+
+        if result.success:
+            # Filter results to ensure they actually end with the extension
+            filtered_matches = [
+                match for match in result.matches
+                if match.lower().endswith(f".{extension.lower()}")
+            ]
+            return filtered_matches
+        return []
 
 def case_insensitive_search(base_path, pattern):
     """
@@ -308,16 +331,34 @@ def case_insensitive_search(base_path, pattern):
     """
     # Try both lowercase and uppercase variations
     patterns = [pattern.lower(), pattern.upper(), pattern.capitalize()]
+    for p in patterns:
+        print(f"Searching for {p}")
     all_matches = set()
-    
+
     for p in patterns:
         result = session.file_system.search_files(base_path, p)
         if result.success:
             all_matches.update(result.matches)
-    
+
     return list(all_matches)
 
 # Example usage
+files = [
+    ("/tmp/test.txt", "content"),
+    ("/tmp/config.log", "content"),
+    ("/tmp/MyConfig.py", "content")
+]
+results = []
+for file_path, content in files:
+    result =session.file_system.write_file(file_path, content)
+    results.append((file_path, result))
+# Check results
+for file_path, result in results:
+    if result.success:
+        print(f"✅ {file_path} written successfully")
+    else:
+        print(f"❌ {file_path} failed: {result.error_message}")
+
 txt_files = search_files_by_extension("/tmp", "txt")
 print(f"Found .txt files: {txt_files}")
 
@@ -328,10 +369,11 @@ print(f"Found config files: {config_files}")
 ### File Transfer Operations
 
 ```python
-from agentbay import AgentBay
-
-agent_bay = AgentBay()
 session = agent_bay.create().session
+# Write file
+result = session.file_system.write_file("/tmp/source.txt", "content")
+if result.success:
+    print("File written successfully")
 
 # Copy file (read source and write to destination)
 source_result = session.file_system.read_file("/tmp/source.txt")
@@ -343,11 +385,16 @@ if source_result.success:
         print(f"Failed to copy file: {result.error_message}")
 
 # Move/rename file using move_file method
-result = session.file_system.move_file("/tmp/old_name.txt", "/tmp/new_name.txt")
+result = session.file_system.move_file("/tmp/destination.txt", "/tmp/new_name.txt")
 if result.success:
     print("File moved successfully")
 else:
     print(f"Failed to move file: {result.error_message}")
+result = session.file_system.read_file("/tmp/new_name.txt")
+if result.success:
+    content = result.content
+    print(f"File content: {content}")
+agent_bay.delete(session)
 ```
 
 ## ✏️ File Editing Operations
@@ -373,7 +420,7 @@ edits = [
 result = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
 if result.success:
     print("File edited successfully")
-    
+
     # Verify changes
     read_result = session.file_system.read_file("/tmp/edit_test.txt")
     if read_result.success:
@@ -389,28 +436,37 @@ from agentbay import AgentBay
 
 agent_bay = AgentBay()
 session = agent_bay.create().session
+    # Create a test file
+initial_content = "This is oldText text with newText content.\nAnother line with newText data."
+result = session.file_system.write_file("/tmp/test.txt", initial_content)
 
 # Preview changes without applying them
 edits = [
-    {"oldText": "original", "newText": "modified"}
+    {"oldText": "newText", "newText": "modified"}
 ]
 
 # Use dry_run=True to preview changes
 result = session.file_system.edit_file("/tmp/test.txt", edits, dry_run=True)
 if result.success:
     print("Dry run completed - changes would be applied")
-    
+    result = session.file_system.read_file("/tmp/test.txt")
+    if result.success:
+        print(f"Preview content: {result.content}")
+
     # Apply changes if preview looks good
     actual_result = session.file_system.edit_file("/tmp/test.txt", edits, dry_run=False)
     if actual_result.success:
         print("Changes applied successfully")
+        result = session.file_system.read_file("/tmp/test.txt")
+        if result.success:
+            print(f"updated content: {result.content}")
 else:
     print(f"Dry run failed: {result.error_message}")
 ```
 
 ## 🔐 File Permissions and Attributes
 
-### Managing File Permissions
+### Getting File Permissions Info
 
 ```python
 from agentbay import AgentBay
@@ -427,38 +483,25 @@ if result.success:
     print(f"Modified: {info.get('modified', 'N/A')}")
     print(f"Is Directory: {info.get('isDirectory', 'N/A')}")
 ```
-
 ## 📏 Large File Handling
 
-### Using Built-in Large File Methods
+**Note**: Starting from the latest version, `read_file()` and `write_file()` methods automatically handle large files through internal chunked transfer. For most use cases, you can simply use these methods directly without manual chunking.
 
-```python
-from agentbay import AgentBay
-
-agent_bay = AgentBay()
-session = agent_bay.create().session
-
-# Read large file using built-in method
-result = session.file_system.read_large_file("/tmp/large_file.zip")
-if result.success:
-    content = result.content
-    print(f"Read {len(content)} bytes successfully")
-else:
-    print(f"Failed to read large file: {result.error_message}")
-
-# Write large file using built-in method
-large_content = "x" * (1024 * 1024 * 5)  # 5MB of data
-result = session.file_system.write_large_file("/tmp/large_output.txt", large_content)
-if result.success:
-    print("Large file written successfully")
-else:
-    print(f"Failed to write large file: {result.error_message}")
-```
+The following examples show manual chunking approaches for special scenarios where you need custom chunk processing or progress tracking.
 
 ### Manual Chunked File Operations
 
 ```python
 from agentbay import AgentBay
+import base64
+
+def encode_bytes_to_base64(data: bytes) -> str:
+    """Encode bytes data to a base64 string."""
+    return base64.b64encode(data).decode('utf-8')
+
+def decode_base64_to_bytes(encoded_str: str) -> bytes:
+    """Decode a base64 string back to bytes data."""
+    return base64.b64decode(encoded_str)
 
 def upload_large_file_manual(session, local_path, remote_path, chunk_size=1024*1024):  # 1MB chunks
     """Upload large file in chunks manually"""
@@ -467,20 +510,21 @@ def upload_large_file_manual(session, local_path, remote_path, chunk_size=1024*1
             chunk_number = 0
             first_chunk = True
             while True:
-                chunk = f.read(chunk_size)
+                file_content  = f.read(chunk_size)
+                chunk = encode_bytes_to_base64(file_content)
                 if not chunk:
                     break
-                
+                print(f"Uploading chunk {chunk}")
                 # Write chunk to remote file
                 mode = "overwrite" if first_chunk else "append"
                 write_result = session.file_system.write_file(remote_path, chunk, mode=mode)
                 if not write_result.success:
                     print(f"Failed to upload chunk {chunk_number}: {write_result.error_message}")
                     return False
-                
+
                 first_chunk = False
                 chunk_number += 1
-            
+
             print(f"Uploaded {chunk_number} chunks successfully")
             return True
     except Exception as e:
@@ -488,11 +532,11 @@ def upload_large_file_manual(session, local_path, remote_path, chunk_size=1024*1
         return False
 
 # Usage
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session = agent_bay.create().session
-upload_large_file_manual(session, "/local/large_file.zip", "/tmp/large_file.zip")
+upload_large_file_manual(session, "./large_file.txt", "/tmp/large_file.txt")
+agent_bay.delete(session)
 ```
-
 ### Progress Tracking
 
 ```python
@@ -504,7 +548,7 @@ def upload_with_progress(session, local_path, remote_path):
     file_size = os.path.getsize(local_path)
     chunk_size = 1024 * 1024  # 1MB chunks
     uploaded_bytes = 0
-    
+
     try:
         with open(local_path, 'rb') as f:
             first_chunk = True
@@ -512,26 +556,37 @@ def upload_with_progress(session, local_path, remote_path):
                 chunk = f.read(chunk_size)
                 if not chunk:
                     break
-                
+
                 # Write chunk
                 mode = "overwrite" if first_chunk else "append"
                 write_result = session.file_system.write_file(remote_path, chunk, mode=mode)
                 if not write_result.success:
                     print(f"Failed to upload chunk")
                     return False
-                
+
                 # Update progress
                 uploaded_bytes += len(chunk)
                 progress = (uploaded_bytes / file_size) * 100
                 print(f"Progress: {progress:.1f}% ({uploaded_bytes}/{file_size} bytes)")
-                
-                first_chunk = False
-        
+
+                chunk_number += 1
+
+        # Combine chunks
+        combine_cmd = f"cat {remote_path}.part* > {remote_path}"
+        session.command.execute_command(combine_cmd)
+
+        # Clean up
+        cleanup_cmd = f"rm {remote_path}.part*"
+        session.command.execute_command(cleanup_cmd)
+
         print("Upload completed successfully!")
         return True
     except Exception as e:
         print(f"Upload failed: {e}")
         return False
+    # Usage
+    session = agent_bay.create().session
+    upload_with_progress(session, "./your_file.txt", "/tmp/your_file.txt")
 ```
 
 ## 🚀 Advanced Usage Examples
@@ -581,7 +636,7 @@ print(f"Successfully read {len(successful_reads)} files concurrently")
 from agentbay import AgentBay
 import re
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session = agent_bay.create().session
 
 def process_files_by_pattern(base_path, pattern, processor_func):
@@ -591,9 +646,10 @@ def process_files_by_pattern(base_path, pattern, processor_func):
     if not search_result.success:
         print(f"Search failed: {search_result.error_message}")
         return []
-    
+
     processed_files = []
     for file_path in search_result.matches:
+        print(f"Processing file: {file_path}")
         # Read file content
         read_result = session.file_system.read_file(file_path)
         if read_result.success:
@@ -604,7 +660,7 @@ def process_files_by_pattern(base_path, pattern, processor_func):
                 'original_content': read_result.content,
                 'processed_content': processed_content
             })
-    
+
     return processed_files
 
 # Example processor: count lines and words
@@ -616,14 +672,20 @@ def analyze_text(content):
         'word_count': len(words),
         'char_count': len(content)
     }
-
-# Process all .txt files in /tmp
-results = process_files_by_pattern("/tmp", "*.txt", analyze_text)
+# Create a test file
+initial_content = "This is oldText text with newText content.\nAnother line with newText data."
+result = session.file_system.write_file("/tmp/example.txt", initial_content)
+if result.success:
+    print("Test file created successfully")
+# Process all txt files in /tmp
+results = process_files_by_pattern("/tmp", "txt", analyze_text)
 for result in results:
     print(f"File: {result['path']}")
+    print(f"Original content: {result['original_content']}")
     print(f"  Lines: {result['processed_content']['line_count']}")
     print(f"  Words: {result['processed_content']['word_count']}")
     print(f"  Characters: {result['processed_content']['char_count']}")
+agent_bay.delete(session)
 ```
 
 ### Batch File Processing with Error Recovery
@@ -632,17 +694,17 @@ for result in results:
 from agentbay import AgentBay
 import time
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session = agent_bay.create().session
 
 def batch_process_with_retry(file_operations, max_retries=3):
     """Process multiple file operations with retry logic"""
     results = []
-    
+
     for operation in file_operations:
         operation_type = operation['type']
         operation_args = operation['args']
-        
+
         for attempt in range(max_retries):
             try:
                 if operation_type == 'write':
@@ -655,7 +717,7 @@ def batch_process_with_retry(file_operations, max_retries=3):
                     result = session.file_system.edit_file(**operation_args)
                 else:
                     result = type('Result', (), {'success': False, 'error_message': f'Unknown operation: {operation_type}'})()
-                
+
                 if result.success:
                     results.append({
                         'operation': operation,
@@ -676,7 +738,7 @@ def batch_process_with_retry(file_operations, max_retries=3):
                             'attempts': attempt + 1,
                             'success': False
                         })
-                        
+
             except Exception as e:
                 if attempt < max_retries - 1:
                     print(f"Exception occurred (attempt {attempt + 1}): {e}")
@@ -688,7 +750,7 @@ def batch_process_with_retry(file_operations, max_retries=3):
                         'attempts': attempt + 1,
                         'success': False
                     })
-    
+
     return results
 
 # Example batch operations
@@ -698,7 +760,7 @@ operations = [
         'args': {'path': '/tmp/batch1.txt', 'content': 'Content 1', 'mode': 'overwrite'}
     },
     {
-        'type': 'write', 
+        'type': 'write',
         'args': {'path': '/tmp/batch2.txt', 'content': 'Content 2', 'mode': 'overwrite'}
     },
     {
@@ -724,6 +786,7 @@ print(f"  Failed operations: {len(failed_ops)}")
 
 for failed_op in failed_ops:
     print(f"  Failed: {failed_op['operation']['type']} - {failed_op['result'].error_message}")
+agent_bay.delete(session)
 ```
 
 ### File Content Validation and Processing
@@ -738,11 +801,11 @@ session = agent_bay.create().session
 def validate_and_process_files(file_configs):
     """Validate file content and process based on type"""
     results = []
-    
+
     for config in file_configs:
         file_path = config['path']
         expected_type = config['type']
-        
+
         # Read file
         read_result = session.file_system.read_file(file_path)
         if not read_result.success:
@@ -752,17 +815,17 @@ def validate_and_process_files(file_configs):
                 'error': f"Failed to read file: {read_result.error_message}"
             })
             continue
-        
+
         content = read_result.content
         validation_result = {'path': file_path, 'valid': True, 'processed_data': None}
-        
+
         try:
             if expected_type == 'json':
                 # Validate and parse JSON
                 data = json.loads(content)
                 validation_result['processed_data'] = data
                 validation_result['type'] = 'json'
-                
+
             elif expected_type == 'csv':
                 # Basic CSV validation
                 lines = content.strip().split('\n')
@@ -775,7 +838,7 @@ def validate_and_process_files(file_configs):
                         'column_count': len(headers)
                     }
                     validation_result['type'] = 'csv'
-                    
+
             elif expected_type == 'text':
                 # Text file analysis
                 lines = content.split('\n')
@@ -787,13 +850,13 @@ def validate_and_process_files(file_configs):
                     'empty_lines': len([line for line in lines if not line.strip()])
                 }
                 validation_result['type'] = 'text'
-                
+
         except Exception as e:
             validation_result['valid'] = False
             validation_result['error'] = f"Validation failed: {str(e)}"
-        
+
         results.append(validation_result)
-    
+
     return results
 
 # Example usage
@@ -819,50 +882,10 @@ for result in validation_results:
             print(f"  Data: {result['processed_data']}")
     else:
         print(f"  ❌ Invalid: {result['error']}")
+agent_bay.delete(session)
 ```
 
 ## ⚡ Performance Optimization
-
-### Caching Strategies
-
-```python
-import time
-from agentbay import AgentBay
-
-class FileCache:
-    def __init__(self, session, cache_timeout=300):  # 5 minutes
-        self.session = session
-        self.cache = {}
-        self.cache_timeout = cache_timeout
-    
-    def read_file(self, file_path):
-        # Check if file is cached and not expired
-        if file_path in self.cache:
-            cached_data, timestamp = self.cache[file_path]
-            if time.time() - timestamp < self.cache_timeout:
-                print(f"Cache hit for {file_path}")
-                return cached_data
-        
-        # Read from remote and cache
-        print(f"Cache miss for {file_path}, reading from remote")
-        result = self.session.file_system.read_file(file_path)
-        if result.success:
-            self.cache[file_path] = (result.content, time.time())
-            return result.content
-        else:
-            return None
-
-# Usage
-agent_bay = AgentBay()
-session = agent_bay.create().session
-file_cache = FileCache(session)
-
-# First read - cache miss
-content1 = file_cache.read_file("/tmp/example.txt")
-
-# Second read - cache hit (if within 5 minutes)
-content2 = file_cache.read_file("/tmp/example.txt")
-```
 
 ### Connection Reuse
 
@@ -873,22 +896,22 @@ class FileManager:
     def __init__(self):
         self.agent_bay = AgentBay()
         self.session = None
-    
+
     def get_session(self):
         if not self.session:
             result = self.agent_bay.create()
             if result.success:
                 self.session = result.session
         return self.session
-    
+
     def read_file(self, file_path):
         session = self.get_session()
         return session.file_system.read_file(file_path)
-    
+
     def write_file(self, file_path, content):
         session = self.get_session()
         return session.file_system.write_file(file_path, content)
-    
+
     def close(self):
         if self.session:
             self.agent_bay.delete(self.session)
@@ -927,7 +950,7 @@ def robust_file_operation(session, file_path, max_retries=3):
                 return result.content
             else:
                 print(f"Attempt {attempt + 1} failed: {result.error_message}")
-                
+
                 # Specific error handling
                 if "not found" in str(result.error_message).lower():
                     print("File not found, cannot retry")
@@ -935,18 +958,18 @@ def robust_file_operation(session, file_path, max_retries=3):
                 elif "permission" in str(result.error_message).lower():
                     print("Permission denied, check access rights")
                     break
-                
+
                 # Retry for transient errors
                 if attempt < max_retries - 1:
                     wait_time = 2 ** attempt  # Exponential backoff
                     print(f"Retrying in {wait_time} seconds...")
                     time.sleep(wait_time)
-                    
+
         except Exception as e:
             print(f"Exception on attempt {attempt + 1}: {e}")
             if attempt < max_retries - 1:
                 time.sleep(1)
-    
+
     return None
 
 # Usage
@@ -979,7 +1002,6 @@ content = robust_file_operation(session, "/tmp/example.txt")
 - Reuse sessions for multiple operations
 - Use batch operations when possible (read_multiple_files)
 - Implement caching for frequently accessed files
-- Use built-in large file methods for files > 50KB
 - Consider concurrent operations for independent file tasks
 
 ### 5. Security
@@ -989,8 +1011,8 @@ content = robust_file_operation(session, "/tmp/example.txt")
 - Be cautious with file editing operations
 
 ### 6. File Operations Strategy
-- **Reading**: Use `read_file()` for small files, `read_large_file()` for files > 50KB
-- **Writing**: Use `write_file()` for small files, `write_large_file()` for large content
+- **Reading**: Use `read_file()` for any file size (automatic chunked transfer for large files)
+- **Writing**: Use `write_file()` for any content size (automatic chunked transfer for large content)
 - **Batch Reading**: Use `read_multiple_files()` instead of multiple individual reads
 - **File Search**: Use `search_files()` with partial name patterns (NOT wildcards) and exclusions
 - **Text Editing**: Use `edit_file()` for find-replace operations instead of read-modify-write
@@ -1005,11 +1027,9 @@ content = robust_file_operation(session, "/tmp/example.txt")
 
 | Use Case | Recommended Method | Notes |
 |----------|-------------------|-------|
-| Read single small file | `read_file()` | < 50KB files |
-| Read single large file | `read_large_file()` | > 50KB files |
+| Read single file | `read_file()` | Supports files of any size via chunked transfer |
 | Read multiple files | `read_multiple_files()` | More efficient than individual reads |
-| Write small content | `write_file()` | < 50KB content |
-| Write large content | `write_large_file()` | > 50KB content |
+| Write file content | `write_file()` | Supports content of any size via chunked transfer |
 | Find and replace text | `edit_file()` | Better than read-modify-write |
 | Search for files | `search_files()` | Partial name matching, NO wildcards |
 | Move/rename files | `move_file()` | Atomic operation |

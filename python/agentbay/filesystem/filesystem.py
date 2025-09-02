@@ -447,11 +447,11 @@ class FileSystem(BaseService):
                 error_message=f"Failed to move file: {e}",
             )
 
-    def read_file(
+    def _read_file_chunk(
         self, path: str, offset: int = 0, length: int = 0
     ) -> FileContentResult:
         """
-        Read the contents of a file.
+        Internal method to read a file chunk. Used for chunked file operations.
 
         Args:
             path: The path of the file to read.
@@ -649,11 +649,11 @@ class FileSystem(BaseService):
                 error_message=f"Failed to search files: {e}",
             )
 
-    def write_file(
+    def _write_file_chunk(
         self, path: str, content: str, mode: str = "overwrite"
     ) -> BoolResult:
         """
-        Write content to a file.
+        Internal method to write a file chunk. Used for chunked file operations.
 
         Args:
             path: The path of the file to write.
@@ -694,25 +694,19 @@ class FileSystem(BaseService):
                 error_message=f"Failed to write file: {e}",
             )
 
-    def read_large_file(self, path: str, chunk_size: int = 0) -> FileContentResult:
+    def read_file(self, path: str) -> FileContentResult:
         """
-        Read large files by chunking to handle API size limitations.
-        Automatically splits the read operation into multiple requests of chunk_size
-        bytes each. If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE (60KB) will be
-        used.
+        Read the contents of a file. Automatically handles large files by chunking.
 
         Args:
             path: The path of the file to read.
-            chunk_size: The size of each chunk to read. Default is 0, which uses
-                DEFAULT_CHUNK_SIZE.
 
         Returns:
-            Tuple[bool, Union[str, str]]: A tuple where the first element indicates
-                success (True/False), and the second element contains either the file
-                content (on success) or an error message (on failure).
+            FileContentResult: Result object containing file content and error message
+                if any.
         """
-        # Use default chunk size if not specified
-        chunk_size = chunk_size if chunk_size > 0 else self.DEFAULT_CHUNK_SIZE
+        # Use default chunk size
+        chunk_size = self.DEFAULT_CHUNK_SIZE
 
         try:
             # Get file info to check size
@@ -769,34 +763,31 @@ class FileSystem(BaseService):
             )
 
         except FileError as e:
-            return FileSearchResult(request_id="", success=False, error_message=str(e))
+            return FileContentResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
             return FileContentResult(
                 request_id="",
                 success=False,
-                error_message=f"Failed to read large file: {e}",
+                error_message=f"Failed to read file: {e}",
             )
 
-    def write_large_file(
-        self, path: str, content: str, chunk_size: int = 0
+    def write_file(
+        self, path: str, content: str, mode: str = "overwrite"
     ) -> BoolResult:
         """
-        Write large files by chunking to handle API size limitations.
-        Automatically splits the write operation into multiple requests of chunk_size
-        bytes each. If chunk_size <= 0, the default DEFAULT_CHUNK_SIZE will be used.
+        Write content to a file. Automatically handles large files by chunking.
 
         Args:
             path: The path of the file to write.
             content: The content to write to the file.
-            chunk_size: The size of each chunk to write. Default is 0, which uses
-                DEFAULT_CHUNK_SIZE.
+            mode: The write mode ("overwrite" or "append").
 
         Returns:
             BoolResult: Result object containing success status and error message if
                 any.
         """
-        # Use default chunk size if not specified
-        chunk_size = chunk_size if chunk_size > 0 else self.DEFAULT_CHUNK_SIZE
+        # Use default chunk size
+        chunk_size = self.DEFAULT_CHUNK_SIZE
         content_len = len(content)
         log_operation_start(
             f"WriteLargeFile to {path}",
@@ -805,12 +796,12 @@ class FileSystem(BaseService):
 
         # If the content length is less than the chunk size, write it directly
         if content_len <= chunk_size:
-            return self.write_file(path, content)
+            return self._write_file_chunk(path, content, mode)
 
         try:
             # Write the first chunk (creates or overwrites the file)
             first_chunk = content[:chunk_size]
-            result = self.write_file(path, first_chunk, "overwrite")
+            result = self._write_file_chunk(path, first_chunk, mode)
             if not result.success:
                 return result
 
@@ -819,7 +810,7 @@ class FileSystem(BaseService):
             while offset < content_len:
                 end = min(offset + chunk_size, content_len)
                 current_chunk = content[offset:end]
-                result = self.write_file(path, current_chunk, "append")
+                result = self._write_file_chunk(path, current_chunk, "append")
                 if not result.success:
                     return result
                 offset = end
@@ -827,10 +818,10 @@ class FileSystem(BaseService):
             return BoolResult(request_id=result.request_id, success=True, data=True)
 
         except FileError as e:
-            return FileSearchResult(request_id="", success=False, error_message=str(e))
+            return BoolResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
             return BoolResult(
                 request_id="",
                 success=False,
-                error_message=f"Failed to write large file: {e}",
+                error_message=f"Failed to write file: {e}",
             )

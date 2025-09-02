@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Literal
 import asyncio
 import time
+import os
 from agentbay.api.models import InitBrowserRequest
 from agentbay.browser.browser_agent import BrowserAgent
 from agentbay.api.base_service import BaseService
@@ -229,14 +230,18 @@ class BrowserOption:
         viewport: BrowserViewport = None,
         screen: BrowserScreen = None,
         fingerprint: BrowserFingerprint = None,
+        solve_captchas: bool = False,
         proxies: Optional[list[BrowserProxy]] = None,
+        extension_path: Optional[str] = "/tmp/extensions/",
     ):
         self.use_stealth = use_stealth
         self.user_agent = user_agent
         self.viewport = viewport
         self.screen = screen
         self.fingerprint = fingerprint
+        self.solve_captchas = solve_captchas
         self.proxies = proxies
+        self.extension_path = extension_path
 
         # Validate proxies list items
         if proxies is not None:
@@ -245,8 +250,17 @@ class BrowserOption:
             if len(proxies) > 1:
                 raise ValueError("proxies list length must be limited to 1")
 
+        # Validate extension_path if provided
+        if extension_path is not None:
+            if not isinstance(extension_path, str):
+                raise ValueError("extension_path must be a string")
+            if not extension_path.strip():
+                raise ValueError("extension_path cannot be empty")
+
     def to_map(self):
         option_map = dict()
+        if behavior_simulate_env := os.getenv("AGENTBAY_BROWSER_BEHAVIOR_SIMULATE"):
+            option_map['behaviorSimulate'] = behavior_simulate_env != "0"
         if self.use_stealth is not None:
             option_map['useStealth'] = self.use_stealth
         if self.user_agent is not None:
@@ -257,8 +271,12 @@ class BrowserOption:
             option_map['screen'] = self.screen.to_map()
         if self.fingerprint is not None:
             option_map['fingerprint'] = self.fingerprint.to_map()
+        if self.solve_captchas is not None:
+            option_map['solveCaptchas'] = self.solve_captchas
         if self.proxies is not None:
             option_map['proxies'] = [proxy.to_map() for proxy in self.proxies]
+        if self.extension_path is not None:
+            option_map['extensionPath'] = self.extension_path
         return option_map
 
     def from_map(self, m: dict = None):
@@ -275,6 +293,10 @@ class BrowserOption:
             self.screen = BrowserScreen.from_map(m.get('screen'))
         if m.get('fingerprint') is not None:
             self.fingerprint = BrowserFingerprint.from_map(m.get('fingerprint'))
+        if m.get('solveCaptchas') is not None:
+            self.solve_captchas = m.get('solveCaptchas')
+        else:
+            self.solve_captchas = False
         if m.get('proxies') is not None:
             proxy_list = m.get('proxies')
             if len(proxy_list) > 1:

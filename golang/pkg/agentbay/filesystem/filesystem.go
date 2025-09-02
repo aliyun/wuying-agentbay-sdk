@@ -305,8 +305,8 @@ func (fs *FileSystem) MoveFile(source, destination string) (*FileWriteResult, er
 	}, nil
 }
 
-// ReadFile reads the contents of a file.
-func (fs *FileSystem) ReadFile(path string, optionalParams ...int) (*FileReadResult, error) {
+// readFileChunk reads a file chunk. Internal method used for chunked file operations.
+func (fs *FileSystem) readFileChunk(path string, optionalParams ...int) (*FileReadResult, error) {
 	// Handle optional parameters for backward compatibility
 	offset, length := 0, 0
 	if len(optionalParams) > 0 {
@@ -425,8 +425,8 @@ func (fs *FileSystem) SearchFiles(path, pattern string, excludePatterns []string
 	}, nil
 }
 
-// WriteFile writes content to a file.
-func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteResult, error) {
+// writeFileChunk writes a file chunk. Internal method used for chunked file operations.
+func (fs *FileSystem) writeFileChunk(path, content string, mode string) (*FileWriteResult, error) {
 	// Validate mode parameter
 	if mode != "" && mode != "overwrite" && mode != "append" {
 		return nil, fmt.Errorf("invalid write mode: %s. Must be 'overwrite' or 'append'", mode)
@@ -460,13 +460,9 @@ func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteRe
 // ChunkSize is the default size of chunks for large file operations (50KB)
 const ChunkSize = 50 * 1024
 
-// ReadLargeFile reads a large file in chunks to handle size limitations of the underlying API.
-// It automatically splits the read operation into multiple requests of chunkSize bytes each.
-// If chunkSize is <= 0, the default ChunkSize (60KB) will be used.
-func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult, error) {
-	if chunkSize <= 0 {
-		chunkSize = ChunkSize
-	}
+// ReadFile reads the contents of a file. Automatically handles large files by chunking.
+func (fs *FileSystem) ReadFile(path string) (*FileReadResult, error) {
+	chunkSize := ChunkSize
 
 	// First get the file size
 	fileInfoResult, err := fs.GetFileInfo(path)
@@ -486,7 +482,7 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult
 	offset := 0
 	fileSize := int(size)
 
-	fmt.Printf("ReadLargeFile: Starting chunked read of %s (total size: %d bytes, chunk size: %d bytes)\n",
+	fmt.Printf("ReadFile: Starting chunked read of %s (total size: %d bytes, chunk size: %d bytes)\n",
 		path, fileSize, chunkSize)
 
 	chunkCount := 0
@@ -498,11 +494,11 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult
 			length = fileSize - offset
 		}
 
-		fmt.Printf("ReadLargeFile: Reading chunk %d (%d bytes at offset %d/%d)\n",
+		fmt.Printf("ReadFile: Reading chunk %d (%d bytes at offset %d/%d)\n",
 			chunkCount+1, length, offset, fileSize)
 
 		// Read the chunk
-		chunkResult, err := fs.ReadFile(path, offset, length)
+		chunkResult, err := fs.readFileChunk(path, offset, length)
 		if err != nil {
 			return nil, fmt.Errorf("error reading chunk at offset %d: %w", offset, err)
 		}
@@ -516,7 +512,7 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult
 		chunkCount++
 	}
 
-	fmt.Printf("ReadLargeFile: Successfully read %s in %d chunks (total: %d bytes)\n",
+	fmt.Printf("ReadFile: Successfully read %s in %d chunks (total: %d bytes)\n",
 		path, chunkCount, fileSize)
 
 	return &FileReadResult{
@@ -527,34 +523,29 @@ func (fs *FileSystem) ReadLargeFile(path string, chunkSize int) (*FileReadResult
 	}, nil
 }
 
-// WriteLargeFile writes a large file in chunks to handle size limitations of the underlying API.
-// It automatically splits the write operation into multiple requests of chunkSize bytes each.
-// If chunkSize is <= 0, the default ChunkSize (60KB) will be used.
-func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (*FileWriteResult, error) {
-	if chunkSize <= 0 {
-		chunkSize = ChunkSize
-	}
-
+// WriteFile writes content to a file. Automatically handles large files by chunking.
+func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteResult, error) {
+	chunkSize := ChunkSize
 	contentLen := len(content)
 
-	fmt.Printf("WriteLargeFile: Starting chunked write to %s (total size: %d bytes, chunk size: %d bytes)\n",
+	fmt.Printf("WriteFile: Starting write to %s (total size: %d bytes, chunk size: %d bytes)\n",
 		path, contentLen, chunkSize)
 
-	// If content is small enough, use the regular WriteFile method
+	// If content is small enough, use the regular writeFileChunk method
 	if contentLen <= chunkSize {
-		fmt.Printf("WriteLargeFile: Content size (%d bytes) is smaller than chunk size, using normal WriteFile\n",
+		fmt.Printf("WriteFile: Content size (%d bytes) is smaller than chunk size, using normal writeFileChunk\n",
 			contentLen)
-		return fs.WriteFile(path, content, "overwrite")
+		return fs.writeFileChunk(path, content, mode)
 	}
 
-	// Write the first chunk with "overwrite" mode to create/clear the file
+	// Write the first chunk with the specified mode
 	firstChunkEnd := chunkSize
 	if firstChunkEnd > contentLen {
 		firstChunkEnd = contentLen
 	}
 
-	fmt.Printf("WriteLargeFile: Writing first chunk (0-%d bytes) with overwrite mode\n", firstChunkEnd)
-	result, err := fs.WriteFile(path, content[:firstChunkEnd], "overwrite")
+	fmt.Printf("WriteFile: Writing first chunk (0-%d bytes) with %s mode\n", firstChunkEnd, mode)
+	result, err := fs.writeFileChunk(path, content[:firstChunkEnd], mode)
 	if err != nil {
 		return nil, fmt.Errorf("error writing first chunk: %w", err)
 	}
@@ -567,10 +558,10 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (*File
 			end = contentLen
 		}
 
-		fmt.Printf("WriteLargeFile: Writing chunk %d (%d-%d bytes) with append mode\n",
+		fmt.Printf("WriteFile: Writing chunk %d (%d-%d bytes) with append mode\n",
 			chunkCount+1, offset, end)
 
-		result, err = fs.WriteFile(path, content[offset:end], "append")
+		result, err = fs.writeFileChunk(path, content[offset:end], "append")
 		if err != nil {
 			return nil, fmt.Errorf("error writing chunk at offset %d: %w", offset, err)
 		}
@@ -579,7 +570,7 @@ func (fs *FileSystem) WriteLargeFile(path, content string, chunkSize int) (*File
 		chunkCount++
 	}
 
-	fmt.Printf("WriteLargeFile: Successfully wrote %s in %d chunks (total: %d bytes)\n",
+	fmt.Printf("WriteFile: Successfully wrote %s in %d chunks (total: %d bytes)\n",
 		path, chunkCount, contentLen)
 
 	return result, nil

@@ -78,6 +78,7 @@ class TestBrowser(unittest.TestCase):
                 operating_systems=["windows", "macos"],
                 locales=["zh-CN"],
             ),
+            solve_captchas=True,
             proxies=[test_proxy]
         )
         self.browser.initialize(browser_option)
@@ -92,6 +93,7 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(option.fingerprint.devices, ["desktop"])
         self.assertEqual(option.fingerprint.operating_systems, ["windows", "macos"])
         self.assertEqual(option.fingerprint.locales, ["zh-CN"])
+        self.assertEqual(option.solve_captchas, True)
         
         # Test proxy options
         self.assertIsNotNone(option.proxies)

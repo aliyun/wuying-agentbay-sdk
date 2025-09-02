@@ -2,6 +2,56 @@
 
 All notable changes to the Wuying AgentBay SDK will be documented in this file.
 
+## [0.7.0] - 2025-09-02
+
+### Added
+
+- **AI Browser Extension**: New browser extension capabilities for enhanced automation
+  - **Python Extension Support**: Added `extention.py` module for browser extension functionality
+  - **TypeScript Extension Support**: Complete extension API implementation with examples
+  - **Extension Integration**: Seamless integration with browser automation workflows
+  - **Extension Testing**: Comprehensive test coverage for extension functionality
+- **Enhanced File System API**: Major improvements to file operations across all SDKs
+  - **Streamlined API**: Updated method signatures for better consistency
+  - **Session Integration**: Better integration with session management for file operations
+  - **Comprehensive Testing**: Expanded test coverage with integration and unit tests
+- **Documentation & Guides**: Comprehensive documentation improvements
+  - **Large File Handling Guide**: Detailed guide for handling large files efficiently
+  - **File Operations Guide**: Updated comprehensive guide with session usage examples
+  - **API Documentation**: Complete API reference updates across all SDKs
+  - **Usage Examples**: Updated examples and documentation for better developer experience
+
+### Changed
+
+- **File System API**: Breaking changes to improve consistency and usability
+  - **Method Naming**: Standardized method names across Python, TypeScript, and Golang SDKs
+  - **Return Types**: Enhanced return types for better type safety and error handling
+  - **Session Context**: Improved integration with session management for file operations
+- **Documentation Structure**: Major documentation reorganization
+  - **API Reference**: Updated API documentation to match actual implementation
+  - **Command API**: Updated method names and return value references across all documentation
+  - **Context Manager**: Enhanced documentation with detailed return object information
+
+### Fixed
+
+- **Browser Automation**: Resolved browser-related issues
+  - **Page Variables**: Fixed support for variables in page_use_act functionality
+- **Python Package**: Resolved Python-specific issues
+  - **Module Imports**: Added missing `__init__.py` in agentbay models directory
+  - **API Examples**: Fixed incorrect API usage examples in Python README
+- **Test Infrastructure**: Improved test reliability and organization
+  - **Test Organization**: Moved test files to appropriate integration directories
+  - **Deprecated Tests**: Removed outdated integration tests
+  - **Test Coverage**: Enhanced test coverage for new features
+
+### Documentation
+
+- **Comprehensive Updates**: Major documentation improvements across all areas
+  - **Getting Started**: Updated quickstart documentation and first session guides
+  - **API Reference**: Complete API documentation updates for all modules
+  - **Examples**: Updated SDK usage examples and documentation
+  - **Guides**: New and updated guides for file operations and large file handling
+
 ## [0.6.0] - 2025-08-23
 
 ### Added

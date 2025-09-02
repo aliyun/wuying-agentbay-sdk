@@ -25,7 +25,9 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
         success_message_locator = page.locator(
             'text="Good News. Your iPhone 13 mini qualifies for credit."'
         )
-        is_visible = await success_message_locator.is_visible(timeout=10000)
+        await success_message_locator.wait_for(state="visible", timeout=10000)
+        is_visible = True
+
     except Exception as e:
         logger.error(f"Error during final validation: {e}")
         return {"_success": False, "error": str(e)}

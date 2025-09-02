@@ -145,6 +145,56 @@ class TestBrowserAgentIntegration(unittest.TestCase):
 
         page.close()
 
+    def test_initialize_browser_with_captchas(self):
+        print("solve captchas begin")
+        browser = self.session.browser
+        self.assertIsNotNone(browser)
+        self.assertIsInstance(browser, Browser)
+
+        option = BrowserOption(
+            use_stealth=True,
+            solve_captchas=True,
+            fingerprint=BrowserFingerprint(
+                devices=["desktop"],
+                operating_systems=["windows"],
+                locales=["zh-CN"],
+            )
+        )
+        self.assertTrue(browser.initialize(option))
+
+        endpoint_url = browser.get_endpoint_url()
+        print("endpoint_url =", endpoint_url)
+        self.assertTrue(endpoint_url is not None)
+
+        time.sleep(10)
+
+        p = sync_playwright().start()
+        playwright_browser = p.chromium.connect_over_cdp(endpoint_url)
+        self.assertTrue(playwright_browser is not None)
+        default_context = playwright_browser.contexts[0]
+        self.assertTrue(default_context is not None)
+
+        page = default_context.new_page()
+        # Tongcheng password recovery page with captcha
+        captcha_url = "https://passport.ly.com/Passport/GetPassword"
+        page.goto(captcha_url, timeout=10000, wait_until="domcontentloaded")
+
+        # Wait for phone input and interact
+        input_selector = "#name_in"
+        page.wait_for_selector(input_selector, timeout=10000)
+        page.fill(input_selector, "15011556760")
+        page.click("#next_step1")
+
+        # Wait for potential captcha handling and navigation
+        time.sleep(30)
+        # href changed indicates captcha solved
+        current_url_location = page.evaluate("() => window.location && window.location.href")
+        print("current_url(window.location.href) =", current_url_location)
+        self.assertNotEqual(current_url_location, captcha_url)
+
+        page.close()
+        print("solve captchas end")
+
     def test_act_success(self):
         browser = self.session.browser
         self.assertIsNotNone(browser)

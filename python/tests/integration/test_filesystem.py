@@ -24,12 +24,6 @@ class TestFileSystemComprehensive(unittest.TestCase):
     3. Batch File Operations
     4. File Edit and Move Operations
     5. Directory Management
-    6. Error Handling
-    7. Performance and Boundary Tests
-    8. Path Length Boundary Tests
-    9. File Content Boundary Tests
-    10. Extreme Scenario Tests
-    11. Data Integrity Tests
     """
 
     @classmethod
@@ -207,16 +201,16 @@ class TestFileSystemComprehensive(unittest.TestCase):
         self.assertIn("Invalid", result.error_message)
 
     def test_1_4_handle_large_file_operations(self):
-        """1.4 Large File Tests - should handle large file operations"""
+        """1.4 Large File Tests - should handle large file operations with automatic chunking"""
         large_content = "Large content line. " * 3000
         large_file_path = "/tmp/large_test.txt"
 
-        # Write large file
-        write_result = self.fs.write_large_file(large_file_path, large_content)
+        # Write large file (automatic chunking)
+        write_result = self.fs.write_file(large_file_path, large_content)
         self.assertTrue(write_result.success)
 
-        # Read large file
-        read_result = self.fs.read_large_file(large_file_path)
+        # Read large file (automatic chunking)
+        read_result = self.fs.read_file(large_file_path)
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.content, large_content)
 
@@ -366,14 +360,14 @@ class TestFileSystemComprehensive(unittest.TestCase):
         large_content = "Performance test content line. " * 35000  # ~1MB
 
         write_start = time.time()
-        write_result = self.fs.write_large_file(large_path, large_content)
+        write_result = self.fs.write_file(large_path, large_content)
         write_time = time.time() - write_start
 
         self.assertTrue(write_result.success)
         self.assertLess(write_time, 30)  # Should complete within 30 seconds
 
         read_start = time.time()
-        read_result = self.fs.read_large_file(large_path)
+        read_result = self.fs.read_file(large_path)
         read_time = time.time() - read_start
 
         self.assertTrue(read_result.success)

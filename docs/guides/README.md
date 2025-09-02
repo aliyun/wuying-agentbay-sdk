@@ -9,6 +9,7 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 - [File Operations](file-operations.md) - Upload, download, and manipulate files
 - [Data Persistence](data-persistence.md) - Persistent data storage and synchronization
 - [Automation](automation.md) - Command execution and workflow automation
+- [Browser Extensions](browser-extensions.md) - Browser extension management and testing
 - [Advanced Features](advanced-features.md) - Advanced capabilities and integrations
 
 ### Configuration
@@ -19,7 +20,8 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 ### Basic Operations
 ```python
 # Create session
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_kay)
+# Create session
 result = agent_bay.create()
 if result.success:
     session = result.session
@@ -30,11 +32,13 @@ else:
 result = session.command.execute_command("ls -la")
 
 # File operations
-write_result = session.file_system.write_file("/path/file.txt", "content")
+write_result = session.file_system.write_file("/tmp/file.txt", "content")
 if write_result.success:
-    read_result = session.file_system.read_file("/path/file.txt")
+    read_result = session.file_system.read_file("/tmp/file.txt")
     if read_result.success:
         content = read_result.content
+        print(f"File content: {content}")
+agent_bay.delete(session)
 ```
 
 ### Persistent Storage
@@ -44,20 +48,28 @@ context_result = agent_bay.context.get("project-name", create=True)
 if context_result.success:
     context = context_result.context
 else:
-    print(f"Failed to get context: {context_result.error_message}")
+    print(f"Failed to get context: {context_result.request_id}")
 
 # Create session with context
-context_sync = ContextSync.new(context.id, "/mnt/data", SyncPolicy.default())
+context_sync = ContextSync.new(context.id, "/tmp/data", SyncPolicy.default())
 params = CreateSessionParams(context_syncs=[context_sync])
 session_result = agent_bay.create(params)
 if session_result.success:
     session = session_result.session
+    print(f"Session created successfully, ID: {session.session_id}")
+    agent_bay.delete(session)
 else:
     print(f"Failed to create session: {session_result.error_message}")
 ```
 
 ### Code Execution
 ```python
+# Create session
+result = agent_bay.create()
+if result.success:
+    session = result.session
+else:
+    print(f"Failed to create session: {result.error_message}")
 # Python code execution using command
 python_code = """
 print('Hello World from Python!')
@@ -92,10 +104,19 @@ if write_result.success:
         print(f"JavaScript execution failed: {result.error_message}")
 else:
     print(f"Failed to write JavaScript script: {write_result.error_message}")
+#release session
+agent_bay.delete(session)
 ```
 
 ### UI Automation
 ```python
+ # Create session
+params = CreateSessionParams(image_id="mobile_latest")
+result = agent_bay.create(params)
+if result.success:
+    session = result.session
+else:
+    print(f"Failed to create session: {result.error_message}")
 # Get clickable UI elements
 elements_result = session.ui.get_clickable_ui_elements(timeout_ms=5000)
 if elements_result.success:
@@ -140,6 +161,8 @@ if screenshot_result.success:
     print(f"Screenshot saved to: {screenshot_result.data}")
 else:
     print(f"Screenshot failed: {screenshot_result.error_message}")
+# release session
+agent_bay.delete(session)
 ```
 
 ### Browser Automation
@@ -173,21 +196,21 @@ from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     browser = p.chromium.connect_over_cdp(endpoint_url)
     page = browser.new_page()
-    
+
     # Navigate to page
     page.goto("https://example.com")
     print("Navigation successful")
-    
+
     # Take screenshot
     screenshot = page.screenshot()
     with open("screenshot.png", "wb") as f:
         f.write(screenshot)
     print("Screenshot saved to screenshot.png")
-    
+
     # Execute JavaScript
     title = page.evaluate("() => document.title")
     print("Page title:", title)
-    
+
     # Close browser
     browser.close()
 ```
@@ -266,4 +289,4 @@ Explore advanced capabilities:
 - [Community Discussions](https://github.com/aliyun/wuying-agentbay-sdk/discussions)
 - [Documentation](../README.md)
 
-Happy coding with AgentBay! 🚀 
+Happy coding with AgentBay! 🚀

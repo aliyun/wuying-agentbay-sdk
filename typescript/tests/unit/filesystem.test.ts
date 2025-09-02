@@ -27,11 +27,25 @@ describe("TestFileSystem", () => {
 
   describe("test_read_file_success", () => {
     it("should read file successfully", async () => {
-      callMcpToolStub.resolves({
+      // Mock getFileInfo to return file info
+      const getFileInfoStub = sandbox.stub(mockFileSystem, "getFileInfo").resolves({
         success: true,
-        data: "file content",
-        errorMessage: "",
         requestId: "test-request-id",
+        fileInfo: {
+          name: "file.txt",
+          path: "/path/to/file.txt",
+          size: 12,
+          isDirectory: false,
+          modTime: "2023-01-01T00:00:00Z",
+          mode: "rw-r--r--",
+        },
+      });
+      
+      // Mock readFileChunk to return file content
+      const readFileChunkStub = sandbox.stub(mockFileSystem as any, "readFileChunk").resolves({
+        success: true,
+        requestId: "test-request-id",
+        content: "file content",
       });
 
       const result = await mockFileSystem.readFile("/path/to/file.txt");
@@ -42,13 +56,19 @@ describe("TestFileSystem", () => {
       expect(result.content).toBe("file content");
       expect(result.errorMessage).toBeUndefined();
 
-      expect(callMcpToolStub.calledOnce).toBe(true);
+      expect(getFileInfoStub.calledOnce).toBe(true);
+      expect(readFileChunkStub.calledOnce).toBe(true);
     });
   });
 
   describe("test_read_file_failure", () => {
     it("should handle read file error", async () => {
-      callMcpToolStub.rejects(new Error("some error message"));
+      // Mock getFileInfo to fail
+      const getFileInfoStub = sandbox.stub(mockFileSystem, "getFileInfo").resolves({
+        success: false,
+        requestId: "",
+        errorMessage: "some error message",
+      });
 
       const result = await mockFileSystem.readFile("/path/to/file.txt");
 
@@ -56,7 +76,7 @@ describe("TestFileSystem", () => {
       expect(result.success).toBe(false);
       expect(result.requestId).toBe("");
       expect(result.content).toBe("");
-      expect(result.errorMessage).toContain("Failed to read file");
+      expect(result.errorMessage).toContain("some error message");
     });
   });
 
@@ -433,25 +453,25 @@ describe("TestFileSystem", () => {
         },
       });
 
-      // Mock readFile for chunked reading
-      const readFileStub = sandbox.stub(mockFileSystem, "readFile");
-      readFileStub.onFirstCall().resolves({
+      // Mock readFileChunk for chunked reading
+      const readFileChunkStub = sandbox.stub(mockFileSystem as any, "readFileChunk");
+      readFileChunkStub.onFirstCall().resolves({
         success: true,
         requestId: "test-request-id",
         content: "chunk1",
       });
-      readFileStub.onSecondCall().resolves({
+      readFileChunkStub.onSecondCall().resolves({
         success: true,
         requestId: "test-request-id", 
         content: "chunk2",
       });
-      readFileStub.onThirdCall().resolves({
+      readFileChunkStub.onThirdCall().resolves({
         success: true,
         requestId: "test-request-id",
         content: "chunk3",
       });
 
-      const result = await mockFileSystem.readLargeFile("/path/to/large.txt");
+      const result = await mockFileSystem.readFile("/path/to/large.txt");
 
       // Verify FileContentResult structure
       expect(result.success).toBe(true);
@@ -460,7 +480,7 @@ describe("TestFileSystem", () => {
       expect(result.errorMessage).toBeUndefined();
 
       expect(getFileInfoStub.calledOnce).toBe(true);
-      expect(readFileStub.callCount).toBe(3);
+      expect(readFileChunkStub.callCount).toBe(3);
     });
   });
 
@@ -473,7 +493,7 @@ describe("TestFileSystem", () => {
         errorMessage: "File not found",
       });
 
-      const result = await mockFileSystem.readLargeFile("/path/to/large.txt");
+      const result = await mockFileSystem.readFile("/path/to/large.txt");
 
       // Verify error result structure
       expect(result.success).toBe(false);
@@ -492,7 +512,7 @@ describe("TestFileSystem", () => {
         requestId: "test-request-id",
       });
 
-      const result = await mockFileSystem.writeLargeFile(
+      const result = await mockFileSystem.writeFile(
         "/path/to/large.txt",
         "large content"
       );
@@ -516,7 +536,7 @@ describe("TestFileSystem", () => {
         requestId: "test-request-id",
       });
 
-      const result = await mockFileSystem.writeLargeFile(
+      const result = await mockFileSystem.writeFile(
         "/path/to/small.txt",
         "small content"
       );
@@ -540,7 +560,7 @@ describe("TestFileSystem", () => {
         errorMessage: "Write failed",
       });
 
-      const result = await mockFileSystem.writeLargeFile(
+      const result = await mockFileSystem.writeFile(
         "/path/to/large.txt",
         "large content"
       );

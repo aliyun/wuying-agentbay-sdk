@@ -381,15 +381,14 @@ export class FileSystem {
   }
 
   /**
-   * Reads the content of a file.
-   * Corresponds to Python's read_file() method
+   * Internal method to read a file chunk. Used for chunked file operations.
    *
    * @param path - Path to the file to read.
    * @param offset - Optional: Byte offset to start reading from (0-based).
    * @param length - Optional: Number of bytes to read. If 0, reads the entire file from offset.
    * @returns FileContentResult with file content and requestId
    */
-  async readFile(
+  private async readFileChunk(
     path: string,
     offset = 0,
     length = 0
@@ -595,15 +594,14 @@ export class FileSystem {
   }
 
   /**
-   * Writes content to a file.
-   * Corresponds to Python's write_file() method
+   * Internal method to write a file chunk. Used for chunked file operations.
    *
    * @param path - Path to the file to write.
    * @param content - Content to write to the file.
    * @param mode - Optional: Write mode. One of "overwrite", "append", or "create_new". Default is "overwrite".
    * @returns BoolResult with write result and requestId
    */
-  async writeFile(
+  private async writeFileChunk(
     path: string,
     content: string,
     mode = "overwrite"
@@ -655,17 +653,15 @@ export class FileSystem {
   }
 
   /**
-   * Reads a large file in chunks to handle size limitations of the underlying API.
-   * Corresponds to Python's read_large_file() method
+   * Reads the contents of a file. Automatically handles large files by chunking.
    *
    * @param path - Path to the file to read.
-   * @param chunkSize - Optional: Size of each chunk in bytes. Default is 60KB.
    * @returns FileContentResult with complete file content and requestId
    */
-  async readLargeFile(
-    path: string,
-    chunkSize: number = DEFAULT_CHUNK_SIZE
+  async readFile(
+    path: string
   ): Promise<FileContentResult> {
+    const chunkSize = DEFAULT_CHUNK_SIZE;
     try {
       // First get the file info
       const fileInfoResult = await this.getFileInfo(path);
@@ -714,7 +710,7 @@ export class FileSystem {
 
         try {
           // Read the chunk
-          const chunkResult = await this.readFile(path, offset, length);
+          const chunkResult = await this.readFileChunk(path, offset, length);
 
           if (!chunkResult.success) {
             return chunkResult; // Return the error
@@ -752,34 +748,34 @@ export class FileSystem {
   }
 
   /**
-   * Writes a large file in chunks to handle size limitations of the underlying API.
-   * Corresponds to Python's write_large_file() method
+   * Writes content to a file. Automatically handles large files by chunking.
    *
    * @param path - Path to the file to write.
    * @param content - Content to write to the file.
-   * @param chunkSize - Optional: Size of each chunk in bytes. Default is 60KB.
+   * @param mode - Optional: Write mode. One of "overwrite", "append", or "create_new". Default is "overwrite".
    * @returns BoolResult indicating success or failure with requestId
    */
-  async writeLargeFile(
+  async writeFile(
     path: string,
     content: string,
-    chunkSize: number = DEFAULT_CHUNK_SIZE
+    mode = "overwrite"
   ): Promise<BoolResult> {
+    const chunkSize = DEFAULT_CHUNK_SIZE;
     try {
       const contentLen = content.length;
 
-      // If content is small enough, use the regular WriteFile method
+      // If content is small enough, use the regular writeFileChunk method
       if (contentLen <= chunkSize) {
-        return await this.writeFile(path, content, "overwrite");
+        return await this.writeFileChunk(path, content, mode);
       }
 
-      // Write the first chunk with "overwrite" mode to create/clear the file
+      // Write the first chunk with the specified mode
       const firstChunkEnd = Math.min(chunkSize, contentLen);
 
-      const firstResult = await this.writeFile(
+      const firstResult = await this.writeFileChunk(
         path,
         content.substring(0, firstChunkEnd),
-        "overwrite"
+        mode
       );
 
       if (!firstResult.success) {
@@ -791,7 +787,7 @@ export class FileSystem {
       for (let offset = firstChunkEnd; offset < contentLen; ) {
         const end = Math.min(offset + chunkSize, contentLen);
 
-        const chunkResult = await this.writeFile(
+        const chunkResult = await this.writeFileChunk(
           path,
           content.substring(offset, end),
           "append"

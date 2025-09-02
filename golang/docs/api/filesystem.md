@@ -94,12 +94,11 @@ type FileDirectoryResult struct {
 
 
 ```go
-ReadFile(path string, optionalParams ...int) (*FileReadResult, error)
+ReadFile(path string) (*FileReadResult, error)
 ```
 
 **Parameters:**
 - `path` (string): The path of the file to read.
-- `optionalParams` (int, optional): Optional parameters for offset and length.
 
 **Returns:**
 - `*FileReadResult`: A result object containing the file content and RequestID.
@@ -112,6 +111,9 @@ type FileReadResult struct {
     Content   string // The contents of the file
 }
 ```
+
+**Note:**
+This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
 
 Reads the contents of multiple files.
@@ -172,35 +174,15 @@ type FileWriteResult struct {
 }
 ```
 
-
-```go
-ReadLargeFile(path string, chunkSize int) (string, error)
-```
-
-**Parameters:**
-- `path` (string): The path of the file to read.
-- `chunkSize` (int): Size of each chunk in bytes.
-
-**Returns:**
-- `string`: The complete file content.
-- `error`: An error if reading the file fails.
+**Note:**
+This method automatically handles both small and large content. For large content, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
 
-Writes a large file in chunks to handle size limitations of the underlying API.
+**Deprecated Methods:**
 
-
-```go
-WriteLargeFile(path, content string, chunkSize int) (bool, error)
-```
-
-**Parameters:**
-- `path` (string): The path of the file to write.
-- `content` (string): Content to write to the file.
-- `chunkSize` (int): Size of each chunk in bytes.
-
-**Returns:**
-- `bool`: True if the file was written successfully.
-- `error`: An error if writing the file fails.
+The following methods have been removed in favor of the unified `ReadFile` and `WriteFile` methods:
+- `ReadLargeFile` - Use `ReadFile` instead (automatic chunking)
+- `WriteLargeFile` - Use `WriteFile` instead (automatic chunking)
 
 ## Usage Examples
 

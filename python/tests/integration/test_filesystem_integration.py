@@ -248,9 +248,9 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.assertTrue(any(search_file1_path in match for match in matches))
         self.assertTrue(any(search_file3_path in match for match in matches))
 
-    def test_write_large_file_and_read_large_file(self):
+    def test_write_and_read_large_file(self):
         """
-        Test writing and reading a large file using chunking.
+        Test writing and reading a large file using automatic chunking.
         """
         # Generate approximately 150KB of test content
         line_content = "This is a line of test content for large file testing. It contains enough characters to test the chunking functionality.\n"
@@ -259,16 +259,16 @@ class TestFileSystemIntegration(unittest.TestCase):
 
         print(f"Generated test content size: {len(large_content)} bytes")
 
-        # Test 1: Write large file with default chunk size
-        print("Test 1: Writing large file with default chunk size...")
-        result = self.fs.write_large_file(test_file_path, large_content)
+        # Test 1: Write large file (automatic chunking)
+        print("Test 1: Writing large file with automatic chunking...")
+        result = self.fs.write_file(test_file_path, large_content)
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
         print("Test 1: Large file write successful")
 
-        # Test 2: Read large file with default chunk size
-        print("Test 2: Reading large file with default chunk size...")
-        result = self.fs.read_large_file(test_file_path)
+        # Test 2: Read large file (automatic chunking)
+        print("Test 2: Reading large file with automatic chunking...")
+        result = self.fs.read_file(test_file_path)
         self.assertIsInstance(result, FileContentResult)
         self.assertTrue(result.success)
 
@@ -281,25 +281,18 @@ class TestFileSystemIntegration(unittest.TestCase):
         self.assertEqual(read_content, large_content)
         print("Test 2: File content verification successful")
 
-        # Test 3: Write large file with custom chunk size
-        custom_chunk_size = 30 * 1024  # 30KB
-        test_file_path2 = "/tmp/test_large_custom.txt"
-        print(
-            f"Test 3: Writing large file with custom chunk size ({custom_chunk_size} bytes)..."
-        )
+        # Test 3: Write another large file
+        test_file_path2 = "/tmp/test_large_file2.txt"
+        print("Test 3: Writing another large file...")
 
-        result = self.fs.write_large_file(
-            test_file_path2, large_content, custom_chunk_size
-        )
+        result = self.fs.write_file(test_file_path2, large_content)
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
-        print("Test 3: Large file write with custom chunk size successful")
+        print("Test 3: Second large file write successful")
 
-        # Test 4: Read large file with custom chunk size
-        print(
-            f"Test 4: Reading large file with custom chunk size ({custom_chunk_size} bytes)..."
-        )
-        result = self.fs.read_large_file(test_file_path2, custom_chunk_size)
+        # Test 4: Read the second large file
+        print("Test 4: Reading the second large file...")
+        result = self.fs.read_file(test_file_path2)
         self.assertIsInstance(result, FileContentResult)
         self.assertTrue(result.success)
 
@@ -310,44 +303,38 @@ class TestFileSystemIntegration(unittest.TestCase):
         )
         self.assertEqual(len(read_content2), len(large_content))
         self.assertEqual(read_content2, large_content)
-        print("Test 4: File content verification with custom chunk size successful")
+        print("Test 4: Second file content verification successful")
 
-        # Test 5: Cross-test - Read with custom chunk size a file written with
-        # default chunk size
-        print(
-            "Test 5: Cross-test - Reading with custom chunk size a file written with default chunk size..."
-        )
-        result = self.fs.read_large_file(test_file_path, custom_chunk_size)
+        # Test 5: Re-read the first file to ensure consistency
+        print("Test 5: Re-reading the first file to ensure consistency...")
+        result = self.fs.read_file(test_file_path)
         self.assertIsInstance(result, FileContentResult)
         self.assertTrue(result.success)
 
         # Verify content
         cross_test_content = result.content
         print(
-            f"Test 5: Cross-test read successful, content length: {len(cross_test_content)} bytes"
+            f"Test 5: Re-read successful, content length: {len(cross_test_content)} bytes"
         )
         self.assertEqual(len(cross_test_content), len(large_content))
         self.assertEqual(cross_test_content, large_content)
-        print("Test 5: Cross-test content verification successful")
+        print("Test 5: Consistency verification successful")
 
-    def test_write_small_file_with_large_file_method(self):
+    def test_write_and_read_small_file(self):
         """
-        Test writing a small file using the large file method.
+        Test writing and reading a small file (should use direct write, not chunking).
         """
         # Generate a small file content (10KB)
         small_content = "x" * (10 * 1024)
-        test_file_path = "/tmp/test_small_with_large_method.txt"
+        test_file_path = "/tmp/test_small_file.txt"
 
-        # Use a larger chunk size (50KB)
-        chunk_size = 50 * 1024
-
-        # Use write_large_file method to write small file
-        result = self.fs.write_large_file(test_file_path, small_content, chunk_size)
+        # Use write_file method to write small file
+        result = self.fs.write_file(test_file_path, small_content)
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
 
         # Read and verify content
-        result = self.fs.read_large_file(test_file_path)
+        result = self.fs.read_file(test_file_path)
         self.assertTrue(result.success)
         self.assertEqual(result.content, small_content)
 

@@ -7,18 +7,14 @@ from mcp_server.page_agent import PageAgent
 
 class RecipeDetails(BaseModel):
     title: str = Field(..., description="Title of the recipe")
-    total_ratings: str = Field(
-        ...,
-        description="Total number of ratings for the recipe, as a string (e.g., '19,164 Ratings').",
-    )
+    total_ratings: int | None
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
-
     await agent.goto("https://www.allrecipes.com/")
     await agent.act('Type "chocolate chip cookies" in the search bar')
     await agent.act("press enter")
-    
+
     extract_method = config.get("extract_method", "domExtract")
     use_text_extract = extract_method == "textExtract"
 
@@ -38,11 +34,19 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     expected_title = "Best Chocolate Chip Cookies"
     expected_ratings = 19164
 
-    try:
-        cleaned_ratings_str = re.sub(r"[^\d]", "", extracted_data.total_ratings)
-        extracted_ratings_int = int(cleaned_ratings_str)
-    except (ValueError, TypeError):
+    if extracted_data.total_ratings is None:
         extracted_ratings_int = -1
+    else:
+        if isinstance(extracted_data.total_ratings, int):
+            extracted_ratings_int = extracted_data.total_ratings
+        else:
+            cleaned_ratings_str = re.sub(
+                r"[^\d]", "", str(extracted_data.total_ratings)
+            )
+            try:
+                extracted_ratings_int = int(cleaned_ratings_str)
+            except ValueError:
+                extracted_ratings_int = -1
 
     is_ratings_within_range = (
         expected_ratings - 1000 <= extracted_ratings_int <= expected_ratings + 1000

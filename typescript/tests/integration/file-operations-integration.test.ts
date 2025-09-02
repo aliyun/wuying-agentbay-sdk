@@ -79,16 +79,16 @@ describe('File Operations Integration Tests', () => {
       expect(fileInfoResult.fileInfo!.size).toBeGreaterThan(0);
       // expect(fileInfoResult.fileInfo!.name).toBe('test.txt');
 
-      // Step 10: Large file writing (62KB)
+      // Step 10: Large file writing (62KB, automatic chunking)
       const largeContent = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(1134); // Approximately 62KB
       expect(largeContent.length).toBeGreaterThan(60000);
 
-      const writeLargeResult = await fileSystem.writeLargeFile('/tmp/user/large_context.txt', largeContent, 62*1024); // 63KB chunks
+      const writeLargeResult = await fileSystem.writeFile('/tmp/user/large_context.txt', largeContent);
       log(`Write large file result: ${JSON.stringify(writeLargeResult)}`);
       expect(writeLargeResult.success).toBe(true);
 
-      // Step 11: Large file reading
-      const largeReadResult = await fileSystem.readLargeFile('/tmp/user/large_context.txt');
+      // Step 11: Large file reading (automatic chunking)
+      const largeReadResult = await fileSystem.readFile('/tmp/user/large_context.txt');
       expect(largeReadResult.success).toBe(true);
       expect(largeReadResult.content).toBe(largeContent);
       expect(largeReadResult.content.length).toBeGreaterThan(60000);
@@ -176,6 +176,34 @@ describe('File Operations Integration Tests', () => {
 
     });
   });
+
+    describe('Batch File Operations', () => {
+      it.only('should read multiple files correctly', async () => {
+        const files = ['/tmp/batch1.txt', '/tmp/batch2.txt', '/tmp/batch3.txt'];
+        await session.fileSystem.writeFile(files[0], 'Content 1', 'overwrite');
+        await session.fileSystem.writeFile(files[1], '', 'overwrite');
+        await session.fileSystem.writeFile(files[2], 'Content 3', 'overwrite');
+
+        const result = await session.fileSystem.readMultipleFiles(files);
+        expect(result.success).toBe(true);
+        expect(result.contents[files[0]]).toBe('Content 1');
+        expect(result.contents[files[1]]).toBe('');
+        expect(result.contents[files[2]]).toBe('Content 3');
+      });
+
+      it.only('should search files correctly', async () => {
+        await session.fileSystem.createDirectory('/tmp/search_test');
+        await session.fileSystem.writeFile('/tmp/search_test/test1.txt', 'content', 'overwrite');
+        await session.fileSystem.writeFile('/tmp/search_test/test2.log', 'log', 'overwrite');
+
+        const result1 = await session.fileSystem.searchFiles('/tmp/search_test', 'test1.txt');
+        expect(result1.success).toBe(true);
+        expect(result1.matches).toBeDefined();
+        const result2 = await session.fileSystem.searchFiles('/tmp/search_test', "", ['test2.log']);
+        expect(result2.success).toBe(true);
+        expect(result2.matches).toBeDefined();
+      });
+    });
 
   afterAll(async () => {
     // Step 17: Resource cleanup

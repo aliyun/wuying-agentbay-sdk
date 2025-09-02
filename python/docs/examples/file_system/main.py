@@ -252,9 +252,9 @@ def main():
 
         print(f"Generated test content size: {len(large_content)} bytes")
 
-        # Write the large file
+        # Write the large file (automatic chunking)
         start_time = time.time()
-        result = fs.write_large_file(test_file_path, large_content)
+        result = fs.write_file(test_file_path, large_content)
         write_time = time.time() - start_time
 
         print(f"Write operation completed in {write_time:.2f} seconds")
@@ -263,11 +263,11 @@ def main():
             print(f"Error: {result.error_message}")
         print(f"Request ID: {result.request_id}")
 
-        # Example 12: Read the large file with default chunk size
-        print("\nExample 12: Reading the large file with default chunk size...")
+        # Example 12: Read the large file (automatic chunking)
+        print("\nExample 12: Reading the large file with automatic chunking...")
 
         start_time = time.time()
-        result = fs.read_large_file(test_file_path)
+        result = fs.read_file(test_file_path)
         read_time = time.time() - start_time
 
         if result.success:
@@ -279,18 +279,17 @@ def main():
             print(f"Error reading large file: {result.error_message}")
         print(f"Request ID: {result.request_id}")
 
-        # Example 13: Write a large file with custom chunk size
-        print("\nExample 13: Writing a large file with custom chunk size (100KB)...")
+        # Example 13: Write another large file
+        print("\nExample 13: Writing another large file...")
 
-        custom_chunk_size = 50 * 1024  # 50KB
-        test_file_path2 = "/tmp/large_file_custom.txt"
+        test_file_path2 = "/tmp/large_file_2.txt"
 
         start_time = time.time()
-        result = fs.write_large_file(test_file_path2, large_content, custom_chunk_size)
+        result = fs.write_file(test_file_path2, large_content)
         write_time = time.time() - start_time
 
         print(
-            f"Write operation with custom chunk size completed in "
+            f"Second large file write operation completed in "
             f"{write_time:.2f} seconds"
         )
         print(f"Success: {result.success}")
@@ -298,25 +297,24 @@ def main():
             print(f"Error: {result.error_message}")
         print(f"Request ID: {result.request_id}")
 
-        # Example 14: Read the large file with custom chunk size
-        print("\nExample 14: Reading the large file with custom chunk size (80KB)...")
+        # Example 14: Read the second large file
+        print("\nExample 14: Reading the second large file...")
 
-        read_chunk_size = 80 * 1024  # 80KB
         start_time = time.time()
-        result = fs.read_large_file(test_file_path2, read_chunk_size)
+        result = fs.read_file(test_file_path2)
         read_time = time.time() - start_time
 
         if result.success:
             read_content2 = result.content
             print(
-                f"Read operation with custom chunk size completed in "
+                f"Second large file read operation completed in "
                 f"{read_time:.2f} seconds"
             )
             print(f"Content length: {len(read_content2)} bytes")
             print(f"Content matches original: {read_content2 == large_content}")
         else:
             print(
-                f"Error reading large file with custom chunk size: "
+                f"Error reading second large file: "
                 f"{result.error_message}"
             )
         print(f"Request ID: {result.request_id}")

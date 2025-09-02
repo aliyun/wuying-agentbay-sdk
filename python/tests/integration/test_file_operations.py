@@ -116,16 +116,16 @@ class TestFileOperations(unittest.TestCase):
         self.assertIsNotNone(file_info_result.file_info)
         self.assertGreater(file_info_result.file_info.get('size', 0), 0)
 
-        # Step 10: Large file writing (62KB)
+        # Step 10: Large file writing (62KB, automatic chunking)
         large_content = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' * 1134  # Approximately 62KB
         self.assertGreater(len(large_content), 60000)
 
-        write_large_result = file_system.write_large_file('/tmp/user/large_context.txt', large_content, 62*1024)  # 62KB chunks
+        write_large_result = file_system.write_file('/tmp/user/large_context.txt', large_content)
         print(f'Write large file result: {write_large_result}')
         self.assertTrue(write_large_result.success)
 
-        # Step 11: Large file reading
-        large_read_result = file_system.read_large_file('/tmp/user/large_context.txt')
+        # Step 11: Large file reading (automatic chunking)
+        large_read_result = file_system.read_file('/tmp/user/large_context.txt')
         self.assertTrue(large_read_result.success)
         self.assertEqual(large_read_result.content, large_content)
         self.assertGreater(len(large_read_result.content), 60000)

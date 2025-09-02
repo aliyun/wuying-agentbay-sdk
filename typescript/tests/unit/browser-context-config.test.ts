@@ -15,12 +15,10 @@ describe("BrowserContextConfig", () => {
     it("should create browser context with correct properties", () => {
       const contextId = "test-context-123";
       const autoUpload = true;
-
-      const browserContext: BrowserContext = {
+      const browserContext: BrowserContext = new BrowserContext(
         contextId,
         autoUpload,
-      };
-
+      );
       expect(browserContext.contextId).toBe(contextId);
       expect(browserContext.autoUpload).toBe(autoUpload);
     });
@@ -29,10 +27,10 @@ describe("BrowserContextConfig", () => {
       const contextId = "test-context-456";
       const autoUpload = false;
 
-      const browserContext: BrowserContext = {
+      const browserContext: BrowserContext = new BrowserContext(
         contextId,
         autoUpload,
-      };
+      );
 
       expect(browserContext.contextId).toBe(contextId);
       expect(browserContext.autoUpload).toBe(false);
@@ -42,10 +40,10 @@ describe("BrowserContextConfig", () => {
   describe("CreateSessionParams with browser context", () => {
     it("should accept browser context in constructor", () => {
       const contextId = "test-context-789";
-      const browserContext: BrowserContext = {
+      const browserContext: BrowserContext = new BrowserContext(
         contextId,
-        autoUpload: false,
-      };
+        false,
+      );
 
       const params = new CreateSessionParams();
       params.browserContext = browserContext;
@@ -57,10 +55,10 @@ describe("BrowserContextConfig", () => {
 
     it("should support withBrowserContext fluent method", () => {
       const contextId = "test-context-fluent";
-      const browserContext: BrowserContext = {
+      const browserContext: BrowserContext = new BrowserContext(
         contextId,
-        autoUpload: true,
-      };
+        true,
+      );
 
       const params = new CreateSessionParams().withBrowserContext(browserContext);
 
@@ -71,10 +69,10 @@ describe("BrowserContextConfig", () => {
 
     it("should serialize browser context correctly", () => {
       const contextId = "test-context-serialization";
-      const browserContext: BrowserContext = {
+      const browserContext: BrowserContext = new BrowserContext(
         contextId,
-        autoUpload: true,
-      };
+        true,
+      );
 
       const params = new CreateSessionParams();
       params.browserContext = browserContext;
@@ -91,10 +89,7 @@ describe("BrowserContextConfig", () => {
       const config = {
         labels: {},
         contextSync: [],
-        browserContext: {
-          contextId,
-          autoUpload: false,
-        },
+        browserContext: new BrowserContext(contextId, false),
       };
 
       const params = CreateSessionParams.fromJSON(config);
@@ -112,10 +107,10 @@ describe("BrowserContextConfig", () => {
       // API calls in unit tests
       const agentBay = new AgentBay({ apiKey: "test-api-key" });
       
-      const browserContext: BrowserContext = {
-        contextId: "test-context-agentbay",
-        autoUpload: true,
-      };
+      const browserContext: BrowserContext = new BrowserContext(
+        "test-context-agentbay",
+        true,
+      );
 
       const params = new CreateSessionParams();
       params.browserContext = browserContext;
@@ -133,10 +128,10 @@ describe("BrowserContextConfig", () => {
 
   describe("Browser context JSON serialization", () => {
     it("should serialize browser context to JSON correctly", () => {
-      const browserContext: BrowserContext = {
-        contextId: "test-context-json",
-        autoUpload: true,
-      };
+      const browserContext: BrowserContext = new BrowserContext(
+        "test-context-json",
+        true,
+      );
 
       const jsonString = JSON.stringify(browserContext);
       const parsed = JSON.parse(jsonString);
@@ -146,15 +141,15 @@ describe("BrowserContextConfig", () => {
     });
 
     it("should handle different autoUpload values", () => {
-      const browserContextFalse: BrowserContext = {
-        contextId: "test-context-false",
-        autoUpload: false,
-      };
+      const browserContextFalse: BrowserContext = new BrowserContext(
+        "test-context-false",
+        false,
+      );
 
-      const browserContextTrue: BrowserContext = {
-        contextId: "test-context-true",
-        autoUpload: true,
-      };
+      const browserContextTrue: BrowserContext = new BrowserContext(
+        "test-context-true",
+        true,
+      );
 
       const jsonFalse = JSON.stringify(browserContextFalse);
       const jsonTrue = JSON.stringify(browserContextTrue);

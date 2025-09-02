@@ -2,6 +2,135 @@
 
 All notable changes to the Wuying AgentBay SDK will be documented in this file.
 
+## [0.7.0] - 2025-09-02
+
+### Added
+
+- **AI Browser Extension**: New browser extension capabilities for enhanced automation
+  - **Python Extension Support**: Added `extention.py` module for browser extension functionality
+  - **TypeScript Extension Support**: Complete extension API implementation with examples
+  - **Extension Integration**: Seamless integration with browser automation workflows
+  - **Extension Testing**: Comprehensive test coverage for extension functionality
+- **Enhanced File System API**: Major improvements to file operations across all SDKs
+  - **Streamlined API**: Updated method signatures for better consistency
+  - **Session Integration**: Better integration with session management for file operations
+  - **Comprehensive Testing**: Expanded test coverage with integration and unit tests
+- **Documentation & Guides**: Comprehensive documentation improvements
+  - **Large File Handling Guide**: Detailed guide for handling large files efficiently
+  - **File Operations Guide**: Updated comprehensive guide with session usage examples
+  - **API Documentation**: Complete API reference updates across all SDKs
+  - **Usage Examples**: Updated examples and documentation for better developer experience
+
+### Changed
+
+- **File System API**: Breaking changes to improve consistency and usability
+  - **Method Naming**: Standardized method names across Python, TypeScript, and Golang SDKs
+  - **Return Types**: Enhanced return types for better type safety and error handling
+  - **Session Context**: Improved integration with session management for file operations
+- **Documentation Structure**: Major documentation reorganization
+  - **API Reference**: Updated API documentation to match actual implementation
+  - **Command API**: Updated method names and return value references across all documentation
+  - **Context Manager**: Enhanced documentation with detailed return object information
+
+### Fixed
+
+- **Browser Automation**: Resolved browser-related issues
+  - **Page Variables**: Fixed support for variables in page_use_act functionality
+- **Python Package**: Resolved Python-specific issues
+  - **Module Imports**: Added missing `__init__.py` in agentbay models directory
+  - **API Examples**: Fixed incorrect API usage examples in Python README
+- **Test Infrastructure**: Improved test reliability and organization
+  - **Test Organization**: Moved test files to appropriate integration directories
+  - **Deprecated Tests**: Removed outdated integration tests
+  - **Test Coverage**: Enhanced test coverage for new features
+
+### Documentation
+
+- **Comprehensive Updates**: Major documentation improvements across all areas
+  - **Getting Started**: Updated quickstart documentation and first session guides
+  - **API Reference**: Complete API documentation updates for all modules
+  - **Examples**: Updated SDK usage examples and documentation
+  - **Guides**: New and updated guides for file operations and large file handling
+
+## [0.6.0] - 2025-08-23
+
+### Added
+
+- **Browser Proxy Support**: New proxy configuration for browser automation across Python and TypeScript
+  - **BrowserProxy Class**: Support for custom and wuying proxy types
+    - Custom proxy with server, username, password configuration
+    - Wuying proxy with "restricted" and "polling" strategies
+    - Configurable pool size for polling strategy
+  - **Proxy Integration**: Seamless integration with browser initialization
+    - Automatic proxy configuration during browser setup
+    - Support for both authenticated and anonymous proxy connections
+- **Browser Stealth Mode & Fingerprinting**: Enhanced browser automation capabilities
+  - **Stealth Mode**: Browser stealth mode support to avoid detection
+  - **Browser Fingerprinting**: Configurable browser fingerprint options
+    - Custom user agent, viewport, timezone, and locale settings
+    - Enhanced privacy and anti-detection capabilities
+- **Context File Management APIs**: Complete file operations within contexts across all SDKs
+  - **File URL Operations**: Presigned URL support for secure file access
+    - `get_file_download_url()` / `GetFileDownloadUrl()` for secure file downloads
+    - `get_file_upload_url()` / `GetFileUploadUrl()` for secure file uploads
+  - **File Management**: Full CRUD operations for context files
+    - `list_files()` / `ListFiles()` with pagination support for context file listing
+    - `delete_file()` / `DeleteFile()` for context file deletion
+    - Enhanced error handling and response parsing for all file operations
+- **Session Management Enhancements**: Improved session creation and management
+  - **MCP Policy Support**: Optional `mcp_policy_id` parameter in session creation
+  - **Session List Response Models**: Enhanced session listing with proper response models
+- **Browser Agent Improvements**: Enhanced AI-powered browser interactions
+  - **Direct ObserveResult Support**: PageUse act API can now accept ObserveResult directly
+  - **TypeScript Browser Agent**: Merged browser agent functionality to TypeScript SDK
+  - **Enhanced Parameter Handling**: Improved parameter type conversion and validation
+- **Development & Testing Infrastructure**: Enhanced development experience
+  - **Pre-commit Hooks**: Added secret detection in pre-commit hooks
+  - **Local Benchmark Testing**: Added local benchmark test support for PageUseAgent API
+  - **Page Task Framework**: Initial version of page task framework
+  - **Auto Publishing**: Enhanced CI/CD with auto publishing workflows
+
+### Changed
+
+- **Browser Configuration**: Enhanced browser setup with advanced options
+  - **Breaking Change**: `BrowserOption` now supports proxy, stealth mode, and fingerprinting
+  - Automatic proxy validation and configuration during browser initialization
+  - Better error handling for proxy connection and stealth mode issues
+- **Browser Agent API**: Improved browser automation interface
+  - Enhanced parameter naming and validation in ExtractOptions, ObserveOptions, and ActOptions
+  - Better timeout handling with default MCP tool call timeout for PageUseAgent
+  - Improved error handling and response parsing
+- **Context API Enhancement**: Improved context service implementation
+  - Enhanced error handling and response parsing across all context operations
+  - Better pagination support with `ContextListParams` for large context lists
+  - Improved integration with session creation and context synchronization
+- **Documentation & Examples**: Updated documentation and examples
+  - Updated Python examples with session params
+  - Aligned TypeScript examples with latest API changes
+  - Updated README and examples documentation
+
+### Fixed
+
+- **Browser VPC Environment**: Resolved VPC-specific browser issues
+  - Fixed browser endpoint URL population for VPC environment
+  - Better CDP endpoint management for VPC and non-VPC sessions
+- **Browser Agent API**: Enhanced browser automation reliability
+  - Fixed parameter type conversion in observation API
+  - Fixed bad naming in browser agent methods and options
+  - Improved error handling for browser agent operations
+- **PageUseAgent Integration**: Resolved PageUseAgent API issues
+  - Fixed run_sudoku functionality
+  - Aligned examples with latest PageUseAgent API revision
+  - Fixed benchmark test integration with PageAgent
+- **Context File Operations**: Enhanced context file management reliability
+  - Fixed presigned URL generation and expiration handling
+  - Improved file listing pagination and response parsing
+  - Better error handling for file upload/download operations
+- **Cross-Platform Compatibility**: Improved SDK consistency
+  - Standardized method signatures across Python, TypeScript, and Golang
+  - Fixed async/await patterns in TypeScript and Python implementations
+  - Better error handling and response structure consistency
+
 ## [0.5.0] - 2025-08-06
 
 ### Added
