@@ -18,6 +18,15 @@
 
 1. 注册阿里云账号：[https://aliyun.com](https://aliyun.com)
 2. 获取API密钥：[AgentBay控制台](https://agentbay.console.aliyun.com/service-management)
+3. 设置环境变量：
+   - 对于Linux/MacOS：
+```bash
+    export AGENTBAY_API_KEY=your_api_key_here
+```
+   - 对于Windows：
+```cmd
+    setx AGENTBAY_API_KEY your_api_key_here
+```
 
 ## 🚀 快速开始
 
