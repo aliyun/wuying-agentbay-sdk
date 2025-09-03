@@ -61,7 +61,7 @@ finally:
     agent_bay.delete(session)
 ```
 
-### 5. Use Environment Variables for Configuration
+### 4. Use Environment Variables for Configuration
 ```python
 import os
 from agentbay import AgentBay
@@ -77,7 +77,7 @@ agent_bay = AgentBay(api_key=api_key)
 agent_bay = AgentBay(api_key="sk-1234567890abcdef")  # Never do this!
 ```
 
-### 4. Handle Errors Gracefully
+### 5. Handle Errors Gracefully
 ```python
 from agentbay import AgentBay, AgentBayError
 
@@ -223,6 +223,7 @@ except Exception as e:
     print(f"Exception: {e}")
 agent_bay.delete(session)
 ```
+
 ### 9. Set Appropriate Timeouts
 ```python
 from agentbay import AgentBay
@@ -297,10 +298,20 @@ params = CreateSessionParams(labels={
     'environment': 'development',
     'owner': 'john.doe'
 })
-session = agent_bay.create(params).session
+agent_bay = self.common_code()
+result = agent_bay.create(params)
+session = result.session
 
-# ✅ Find sessions by labels
-sessions = agent_bay.list_by_labels({'project': 'web-scraper'})
+if(result.success):
+    print("Session created successfully")
+    print(f"Session ID: {session.session_id}")
+    # ✅ Find sessions by labels
+    result = agent_bay.list_by_labels({'project': 'web-scraper'})
+    if result.success:
+        sessions = result.sessions
+        for session in sessions:
+            print(f"Session ID: {session.session_id}")
+agent_bay.delete(session)
 ```
 
 **Note**: While you can pass labels directly as a dictionary to the `create()` method, using `CreateSessionParams` is the recommended approach for better type safety and clarity.
@@ -311,7 +322,7 @@ sessions = agent_bay.list_by_labels({'project': 'web-scraper'})
 try:
     session = agent_bay.create().session
     # Do work...
-    result = session.command.execute_command("python script.py")
+    result = session.command.execute_command("ls -a")
 finally:
     # Always clean up
     agent_bay.delete(session)
@@ -339,6 +350,9 @@ with agentbay_session() as session:
 
 ### 14. Monitor Session Resources
 ```python
+from agentbay import AgentBay
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
 # ✅ Check session info periodically
 result = session.info()
 if hasattr(result, 'success') and result.success:
@@ -347,6 +361,11 @@ if hasattr(result, 'success') and result.success:
     session_info = getattr(result, 'data', None)
     if session_info:
         print(f"Session ID: {getattr(session_info, 'session_id', 'N/A')}")
+    else:
+        print("Session info not available")
+else:
+    print("Session is not active or not responding")
+agent_bay.delete(session)
 ```
 
 ## 🔄 Context and Data Persistence
@@ -358,7 +377,7 @@ from agentbay.session_params import CreateSessionParams
 from agentbay.context_sync import ContextSync, SyncPolicy
 
 # ✅ Create a context for data persistence across sessions
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 
 # Create a named context for persistence
 context_name = "my-persistent-context"
@@ -413,83 +432,14 @@ if session_result2.success:
 
     # Clean up
     agent_bay.delete(session2, sync_context=True)
-
+print("Context deleted",context_id)
 # Clean up context when no longer needed
-agent_bay.context.delete(context_id)
-```
-
-### 16. Sync Context When Needed
-```python
-from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
-from agentbay.context_sync import ContextSync, SyncPolicy
-
-# ✅ Create a session with context sync
-agent_bay = AgentBay()
-
-# Create a context for synchronization
-context_name = "sync-context-example"
-context_result = agent_bay.context.create(context_name)
-if context_result.success:
-    context_id = context_result.context_id
-    print(f"Context created with ID: {context_id}")
-
-# Create session with context sync configuration
-context_sync = ContextSync.new(
-    context_id,
-    '/tmp/workspace',
-    SyncPolicy.default()
-)
-
-session_params = CreateSessionParams()
-session_params.context_syncs = [context_sync]
-
-session_result = agent_bay.create(session_params)
-if session_result.success:
-    session = session_result.session
-
-    # Perform some operations that modify the context
-    session.command.execute_command("mkdir -p /tmp/workspace/project")
-    session.command.execute_command("echo 'Initial data' > /tmp/workspace/project/data.txt")
-
-    # ✅ Sync context before important operations or session termination
-    # This ensures all local changes are uploaded to the persistent context storage
-    sync_result = session.context.sync()
-    if hasattr(sync_result, 'success') and sync_result.success:
-        print("Context sync initiated successfully")
-
-        # Wait for sync to complete by checking context info
-        import time
-        max_attempts = 30
-        attempt = 0
-        while attempt < max_attempts:
-            context_info = session.context.info()
-            if context_info and hasattr(context_info, 'context_status_data'):
-                status_data = context_info.context_status_data
-                if status_data and len(status_data) > 0:
-                    task_status = status_data[0].status
-                    if task_status == "Success":
-                        print("Context sync completed successfully")
-                        break
-                    elif task_status == "Failed":
-                        print("Context sync failed")
-                        break
-            attempt += 1
-            time.sleep(2)
-    else:
-        error_msg = getattr(sync_result, 'error_message', 'Unknown error')
-        print(f"Failed to sync context: {error_msg}")
-
-    # Clean up session
-    agent_bay.delete(session)
-
-# Clean up context
-agent_bay.context.delete(context_id)
+agent_bay.context.delete(context_result.context)
 ```
 
 ## 🚨 Common Pitfalls to Avoid
 
-### 17. Don't Ignore Error Handling
+### 16. Don't Ignore Error Handling
 ```python
 # ❌ Bad - Ignoring errors
 result = session.command.execute_command("risky-command")
@@ -502,9 +452,10 @@ if hasattr(result, 'success') and not result.success:
     # Handle error appropriately
 else:
     print(getattr(result, 'output', result))
+agent_bay.delete(session)
 ```
 
-### 18. Don't Create Too Many Sessions
+### 17. Don't Create Too Many Sessions
 ```python
 # ❌ Bad - Creating sessions in loops
 for task in tasks:
@@ -521,20 +472,9 @@ finally:
     agent_bay.delete(session)
 ```
 
-### 19. Don't Hardcode Paths and Values
-```python
-# ❌ Bad - Hardcoded values
-result = session.command.execute_command("cd /home/user/project && python main.py")
-
-# ✅ Good - Use variables and configuration
-project_dir = os.getenv('PROJECT_DIR', '~/project')
-python_script = os.getenv('PYTHON_SCRIPT', 'main.py')
-result = session.command.execute_command(f"cd {project_dir} && python {python_script}")
-```
-
 ## 📊 Performance Tips
 
-### 20. Batch Operations When Possible
+### 18. Batch Operations When Possible
 ```python
 # ✅ Batch commands
 commands = [
@@ -549,24 +489,38 @@ try:
         if hasattr(result, 'success') and not result.success:
             print(f"Command failed: {getattr(result, 'error_message', 'Unknown error')}")
             break
+        else:
+            print(f"Command executed successfully")
+
 finally:
     agent_bay.delete(session)
 ```
 
-### 21. Reuse Sessions
+### 19. Reuse Sessions
 ```python
 # ✅ Reuse sessions for multiple operations
 session = agent_bay.create().session
 try:
+    append_list = []
+
     # Perform multiple operations with the same session
     result1 = session.command.execute_command("ls")
     result2 = session.command.execute_command("pwd")
     result3 = session.command.execute_command("whoami")
+    append_list.extend([{"success": result1.success, "output": result1.output},
+                        {"success": result2.success, "output": result2.output},
+                        {"success": result3.success, "output": result3.output}])
+    if all(item['success'] for item in append_list):
+        print("All commands executed successfully")
+        # Print each output individually
+        for item in append_list:
+            print(item["output"])
+
 finally:
     agent_bay.delete(session)
 ```
 
-### 22. Monitor and Optimize
+### 20. Monitor and Optimize
 ```python
 import time
 
@@ -584,7 +538,7 @@ finally:
 
 ## 🔐 Security Best Practices
 
-### 23. Never Hardcode Credentials
+### 21. Never Hardcode Credentials
 ```python
 # ❌ Never do this
 api_key = "sk-1234567890abcdef"
@@ -592,34 +546,6 @@ api_key = "sk-1234567890abcdef"
 # ✅ Use environment variables
 import os
 api_key = os.getenv('AGENTBAY_API_KEY')
-```
-
-### 24. Validate Input Data
-```python
-import re
-
-def safe_filename(filename):
-    # Remove potentially dangerous characters
-    return re.sub(r'[^\w\-_\.]', '_', filename)
-
-# ✅ Use validated filenames
-user_filename = input("Enter filename: ")
-safe_name = safe_filename(user_filename)
-# Use command execution for file operations
-session.command.execute_command(f"cp {local_file} ~/{safe_name}")
-```
-
-### 25. Be Careful with Command Injection
-```python
-import shlex
-
-# ✅ Safe command construction
-user_input = "file with spaces.txt"
-safe_input = shlex.quote(user_input)
-result = session.command.execute_command(f"cat {safe_input}")
-
-# ❌ Dangerous - Direct interpolation
-result = session.command.execute_command(f"cat {user_input}")  # Vulnerable!
 ```
 
 Following these best practices will help you build more reliable, secure, and maintainable applications with AgentBay SDK.
