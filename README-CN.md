@@ -1,6 +1,6 @@
 # AgentBay SDK
 
-> 在云端环境中执行命令、操作文件、运行代码的多语言SDK
+> AgentBay SDK提供了一整套全面的工具，以便与AgentBay云环境进行高效交互，使您能够创建和管理云会话、执行命令、操作文件以及与用户界面进行交互。
 
 [English](README.md) | [中文](README-CN.md)
 
@@ -18,6 +18,15 @@
 
 1. 注册阿里云账号：[https://aliyun.com](https://aliyun.com)
 2. 获取API密钥：[AgentBay控制台](https://agentbay.console.aliyun.com/service-management)
+3. 设置环境变量：
+   - 对于Linux/MacOS：
+```bash
+    export AGENTBAY_API_KEY=your_api_key_here
+```
+   - 对于Windows：
+```cmd
+    setx AGENTBAY_API_KEY your_api_key_here
+```
 
 ## 🚀 快速开始
 

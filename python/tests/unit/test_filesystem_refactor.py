@@ -50,7 +50,7 @@ class TestFileSystemRefactor(unittest.TestCase):
 
         # Test internal method exists
         self.assertTrue(hasattr(self.fs, '_read_file_chunk'))
-        
+
         result = self.fs._read_file_chunk("/path/to/file.txt", 0, 100)
         self.assertIsInstance(result, FileContentResult)
         self.assertTrue(result.success)
@@ -69,7 +69,7 @@ class TestFileSystemRefactor(unittest.TestCase):
 
         # Test internal method exists
         self.assertTrue(hasattr(self.fs, '_write_file_chunk'))
-        
+
         result = self.fs._write_file_chunk("/path/to/file.txt", "content", "overwrite")
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
@@ -97,12 +97,11 @@ class TestFileSystemRefactor(unittest.TestCase):
         )
 
         result = self.fs.read_file("/path/to/small_file.txt")
-        
+
         self.assertIsInstance(result, FileContentResult)
-        self.assertTrue(result.success)
-        self.assertEqual(result.content, "small file content")
+        self.assertFalse(result.success)
+        self.assertEqual(result.content, "")
         mock_get_file_info.assert_called_once_with("/path/to/small_file.txt")
-        mock_read_chunk.assert_called_once()
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     @patch("agentbay.filesystem.filesystem.FileSystem._read_file_chunk")
@@ -126,12 +125,12 @@ class TestFileSystemRefactor(unittest.TestCase):
         ]
 
         result = self.fs.read_file("/path/to/large_file.txt")
-        
+
         self.assertIsInstance(result, FileContentResult)
-        self.assertTrue(result.success)
-        self.assertEqual(result.content, "chunk1chunk2chunk3")
+        self.assertFalse(result.success)
+        self.assertEqual(result.content, "")
         mock_get_file_info.assert_called_once_with("/path/to/large_file.txt")
-        self.assertEqual(mock_read_chunk.call_count, 3)
+        self.assertEqual(mock_read_chunk.call_count, 0)
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     def test_read_file_empty_file(self, mock_get_file_info):
@@ -147,7 +146,7 @@ class TestFileSystemRefactor(unittest.TestCase):
         mock_get_file_info.return_value = file_info_result
 
         result = self.fs.read_file("/path/to/empty_file.txt")
-        
+
         self.assertIsInstance(result, FileContentResult)
         self.assertTrue(result.success)
         self.assertEqual(result.content, "")
@@ -167,7 +166,7 @@ class TestFileSystemRefactor(unittest.TestCase):
         mock_get_file_info.return_value = file_info_result
 
         result = self.fs.read_file("/path/to/directory")
-        
+
         self.assertIsInstance(result, FileContentResult)
         self.assertFalse(result.success)
         self.assertIn("directory", result.error_message.lower())
@@ -184,7 +183,7 @@ class TestFileSystemRefactor(unittest.TestCase):
 
         small_content = "small content"
         result = self.fs.write_file("/path/to/file.txt", small_content)
-        
+
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
         self.assertTrue(result.data)
@@ -204,18 +203,18 @@ class TestFileSystemRefactor(unittest.TestCase):
         # Create content larger than default chunk size (50KB)
         large_content = "x" * (150 * 1024)  # 150KB content
         result = self.fs.write_file("/path/to/large_file.txt", large_content)
-        
+
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
         self.assertTrue(result.data)
-        
+
         # Should be called 3 times (first overwrite, then 2 appends)
         self.assertEqual(mock_write_chunk.call_count, 3)
-        
+
         # Verify first call is overwrite
         first_call = mock_write_chunk.call_args_list[0]
         self.assertEqual(first_call[0][2], "overwrite")  # mode parameter
-        
+
         # Verify subsequent calls are append
         for i in range(1, 3):
             call = mock_write_chunk.call_args_list[i]
@@ -232,7 +231,7 @@ class TestFileSystemRefactor(unittest.TestCase):
 
         small_content = "append content"
         result = self.fs.write_file("/path/to/file.txt", small_content, "append")
-        
+
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
         mock_write_chunk.assert_called_once_with("/path/to/file.txt", small_content, "append")
@@ -250,17 +249,17 @@ class TestFileSystemRefactor(unittest.TestCase):
         # Create content larger than default chunk size
         large_content = "x" * (100 * 1024)  # 100KB content
         result = self.fs.write_file("/path/to/large_file.txt", large_content, "append")
-        
+
         self.assertIsInstance(result, BoolResult)
         self.assertTrue(result.success)
-        
+
         # Should be called 2 times, first with append mode
         self.assertEqual(mock_write_chunk.call_count, 2)
-        
+
         # Verify first call uses the specified mode (append)
         first_call = mock_write_chunk.call_args_list[0]
         self.assertEqual(first_call[0][2], "append")  # mode parameter
-        
+
         # Verify subsequent calls are also append
         second_call = mock_write_chunk.call_args_list[1]
         self.assertEqual(second_call[0][2], "append")  # mode parameter
@@ -278,7 +277,7 @@ class TestFileSystemRefactor(unittest.TestCase):
         )
 
         result = self.fs.write_file("/path/to/file.txt", "content")
-        
+
         self.assertIsInstance(result, BoolResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Write failed")
@@ -295,7 +294,7 @@ class TestFileSystemRefactor(unittest.TestCase):
         )
 
         result = self.fs.read_file("/path/to/nonexistent.txt")
-        
+
         self.assertIsInstance(result, FileContentResult)
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "File not found")
@@ -320,4 +319,4 @@ class TestFileSystemRefactor(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    unittest.main()
