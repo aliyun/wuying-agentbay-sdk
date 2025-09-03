@@ -244,11 +244,6 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		session.HttpPortNumber = *response.Body.Data.HttpPort
 	}
 
-	// Set the ResourceUrl if available in the response
-	if response.Body.Data.ResourceUrl != nil {
-		session.ResourceUrl = *response.Body.Data.ResourceUrl
-	}
-
 	a.Sessions.Store(session.SessionID, *session)
 
 	// For VPC sessions, automatically fetch MCP tools information

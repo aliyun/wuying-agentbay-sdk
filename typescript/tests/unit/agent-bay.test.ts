@@ -218,7 +218,6 @@ describe("AgentBay", () => {
 
       // Ensure session ID matches mock data
       expect(session.sessionId).toBe(mockSessionData.sessionId);
-      expect(session.resourceUrl).toBe(mockSessionData.resourceUrl);
 
       // Verify session uses mock client
       expect(session.getClient()).toBe(mockClient);

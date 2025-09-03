@@ -115,7 +115,7 @@ class TestAgentBay(unittest.TestCase):
         self.assertEqual(result.request_id, "create-request-id")
         self.assertIsNotNone(result.session)
         self.assertEqual(result.session.session_id, "new-session-id")
-        self.assertEqual(result.session.resource_url, "http://resource.url")
+
 
         # Verify session was added to the internal dictionary
         self.assertIn("new-session-id", agent_bay._sessions)

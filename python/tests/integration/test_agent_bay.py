@@ -123,10 +123,7 @@ class TestSession(unittest.TestCase):
         self.assertIsNotNone(self.session.session_id)
         self.assertEqual(self.session.agent_bay, self.agent_bay)
 
-        # Test resource_url field
-        self.assertIsNotNone(self.session.resource_url)
-        self.assertNotEqual(self.session.resource_url, "")
-        print(f"Session resource_url: {self.session.resource_url}")
+
 
         # Test get_api_key method
         api_key = self.session.get_api_key()

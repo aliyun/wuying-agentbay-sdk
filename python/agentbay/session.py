@@ -64,7 +64,6 @@ class Session:
     def __init__(self, agent_bay: "AgentBay", session_id: str):
         self.agent_bay = agent_bay
         self.session_id = session_id
-        self.resource_url = ""
 
         # VPC-related information
         self.is_vpc = False  # Whether this session uses VPC resources
@@ -414,8 +413,6 @@ class Session:
 
             if "ResourceUrl" in data:
                 session_info.resource_url = data["ResourceUrl"]
-                # Update the session's resource_url with the latest value
-                self.resource_url = data["ResourceUrl"]
             # Transfer DesktopInfo fields to SessionInfo
             if "DesktopInfo" in data:
                 desktop_info = data["DesktopInfo"]

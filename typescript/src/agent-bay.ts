@@ -246,9 +246,6 @@ export class AgentBay {
       log("resource_url =", resourceUrl);
 
       const session = new Session(this, sessionId);
-      if (resourceUrl) {
-        session.resourceUrl = resourceUrl;
-      }
 
       // Set VPC-related information from response
       session.isVpc = params.isVpc || false;

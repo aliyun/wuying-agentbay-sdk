@@ -22,8 +22,7 @@ func TestAgentBay_Create_WithMockClient(t *testing.T) {
 	}
 	expectedResult := &agentbay.SessionResult{
 		Session: &agentbay.Session{
-			SessionID:   "new_session_id",
-			ResourceUrl: "http://example.com",
+			SessionID: "new_session_id",
 		},
 	}
 	mockAgentBay.EXPECT().Create(params).Return(expectedResult, nil)

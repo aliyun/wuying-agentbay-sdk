@@ -102,10 +102,9 @@ type SessionInfo struct {
 
 // Session represents a session in the AgentBay cloud environment.
 type Session struct {
-	AgentBay    *AgentBay
-	SessionID   string
-	ResourceUrl string
-	ImageId     string // ImageId used when creating this session
+	AgentBay  *AgentBay
+	SessionID string
+	ImageId   string // ImageId used when creating this session
 
 	// VPC-related information
 	IsVpcEnabled       bool   // Whether this session uses VPC resources
@@ -520,8 +519,6 @@ func (s *Session) Info() (*InfoResult, error) {
 
 		if response.Body.Data.ResourceUrl != nil {
 			sessionInfo.ResourceUrl = *response.Body.Data.ResourceUrl
-			// Update the session's ResourceUrl with the latest value
-			s.ResourceUrl = *response.Body.Data.ResourceUrl
 		}
 
 		// Transfer DesktopInfo fields to SessionInfo
