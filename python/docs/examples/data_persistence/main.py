@@ -138,14 +138,14 @@ def data_sync_example(agent_bay):
 
 This is an AgentBay data persistence demonstration project (updated).
 
-## 功能特性
-- 数据持久化 ✅
-- 跨会话共享 ✅
-- 版本控制 ✅
-- 实时同步 ✅
+## Features
+- Data persistence ✅
+- Cross-session sharing ✅
+- Version control ✅
+- Real-time sync ✅
 
-## 更新日志
-- 添加了实时同步功能
+## Changelog
+- Added real-time sync functionality
 """
         
         # Create directory first
@@ -167,46 +167,46 @@ This is an AgentBay data persistence demonstration project (updated).
         print("🧹 Session cleaned up")
 
 def cross_session_sharing_example(agent_bay):
-    """跨会话数据共享示例"""
-    print("\n🔗 === 跨会话数据共享示例 ===")
+    """Cross-session data sharing example"""
+    print("\n🔗 === Cross-Session Data Sharing Example ===")
     
-    # 获取项目上下文
+    # Get project context
     context_result = agent_bay.context.get("demo-project", create=False)
     if not context_result.success:
-        print("❌ 项目上下文不存在")
+        print("❌ Project context does not exist")
         return
     
     context = context_result.context
     
-    # 创建两个会话来演示数据共享
-    print("🔄 创建第一个会话...")
+    # Create two sessions to demonstrate data sharing
+    print("🔄 Creating first session...")
     session1_result = agent_bay.create(CreateSessionParams(
         context_syncs=[ContextSync.new(context.id, "/tmp/shared")]
     ))
     
     if not session1_result.success:
-        print(f"❌ 第一个会话创建失败: {session1_result.error_message}")
+        print(f"❌ First session creation failed: {session1_result.error_message}")
         return
     
     session1 = session1_result.session
-    print(f"✅ 第一个会话创建成功: {session1.session_id}")
+    print(f"✅ First session created successfully: {session1.session_id}")
     
-    print("🔄 创建第二个会话...")
+    print("🔄 Creating second session...")
     session2_result = agent_bay.create(CreateSessionParams(
         context_syncs=[ContextSync.new(context.id, "/tmp/shared")]
     ))
     
     if not session2_result.success:
-        print(f"❌ 第二个会话创建失败: {session2_result.error_message}")
+        print(f"❌ Second session creation failed: {session2_result.error_message}")
         agent_bay.delete(session1.session_id)
         return
     
     session2 = session2_result.session
-    print(f"✅ 第二个会话创建成功: {session2.session_id}")
+    print(f"✅ Second session created successfully: {session2.session_id}")
     
     try:
-        # 在第一个会话中创建共享数据
-        print("🔄 在会话1中创建共享数据...")
+        # Create shared data in first session
+        print("🔄 Creating shared data in session 1...")
         shared_data = {
             "message": "Hello from Session 1!",
             "timestamp": time.time(),
@@ -218,26 +218,26 @@ def cross_session_sharing_example(agent_bay):
             json.dumps(shared_data, indent=2)
         )
         
-        # 同步到上下文
+        # Sync to context
         session1.context.sync()
-        print("✅ 数据已从会话1同步到上下文")
+        print("✅ Data synchronized from session 1 to context")
         
-        # 在第二个会话中同步并读取数据
-        print("🔄 在会话2中同步并读取数据...")
+        # Sync and read data in second session
+        print("🔄 Syncing and reading data in session 2...")
         session2.context.sync()
         
         result = session2.file_system.read_file("/tmp/shared/shared_data.json")
         if result.success:
             received_data = json.loads(result.data)
-            print("✅ 会话2成功接收到共享数据:")
-            print(f"  消息: {received_data['message']}")
-            print(f"  时间戳: {received_data['timestamp']}")
-            print(f"  数据: {received_data['data']}")
+            print("✅ Session 2 successfully received shared data:")
+            print(f"  Message: {received_data['message']}")
+            print(f"  Timestamp: {received_data['timestamp']}")
+            print(f"  Data: {received_data['data']}")
         else:
-            print(f"❌ 会话2读取数据失败: {result.error_message}")
+            print(f"❌ Session 2 failed to read data: {result.error_message}")
         
-        # 在第二个会话中修改数据
-        print("🔄 在会话2中修改数据...")
+        # Modify data in second session
+        print("🔄 Modifying data in session 2...")
         received_data["message"] = "Updated from Session 2!"
         received_data["timestamp"] = time.time()
         received_data["data"].append(6)
@@ -248,54 +248,54 @@ def cross_session_sharing_example(agent_bay):
         )
         
         session2.context.sync()
-        print("✅ 修改后的数据已从会话2同步到上下文")
+        print("✅ Modified data synchronized from session 2 to context")
         
-        # 在第一个会话中同步并验证更改
-        print("🔄 在会话1中验证更改...")
+        # Sync and verify changes in first session
+        print("🔄 Verifying changes in session 1...")
         session1.context.sync()
         
         result = session1.file_system.read_file("/tmp/shared/shared_data.json")
         if result.success:
             updated_data = json.loads(result.data)
-            print("✅ 会话1成功接收到更新的数据:")
-            print(f"  消息: {updated_data['message']}")
-            print(f"  数据: {updated_data['data']}")
+            print("✅ Session 1 successfully received updated data:")
+            print(f"  Message: {updated_data['message']}")
+            print(f"  Data: {updated_data['data']}")
         
     finally:
-        # 清理会话
+        # Clean up sessions
         agent_bay.delete(session1)
         agent_bay.delete(session2)
-        print("🧹 所有会话已清理")
+        print("🧹 All sessions cleaned up")
 
 def version_control_example(agent_bay):
-    """版本控制示例"""
-    print("\n📚 === 版本控制示例 ===")
+    """Version control example"""
+    print("\n📚 === Version Control Example ===")
     
-    # 获取项目上下文
+    # Get project context
     context_result = agent_bay.context.get("demo-project", create=False)
     if not context_result.success:
-        print("❌ 项目上下文不存在")
+        print("❌ Project context does not exist")
         return
     
     context = context_result.context
     
-    # 简单版本控制实现
+    # Simple version control implementation
     class SimpleVersionControl:
         def __init__(self, agent_bay, context_id):
             self.agent_bay = agent_bay
             self.context_id = context_id
         
         def create_version(self, version_name, description=""):
-            """创建版本快照"""
-            print(f"🔄 创建版本: {version_name}")
+            """Create version snapshot"""
+            print(f"🔄 Creating version: {version_name}")
             
-            # 获取所有文件
+            # Get all files
             files_result = self.agent_bay.context.list_files(self.context_id)
             if not files_result.success:
-                print(f"❌ 获取文件列表失败: {files_result.error_message}")
+                print(f"❌ Failed to get file list: {files_result.error_message}")
                 return False
             
-            # 创建版本信息
+            # Create version information
             version_info = {
                 "version": version_name,
                 "description": description,
@@ -303,16 +303,16 @@ def version_control_example(agent_bay):
                 "files": []
             }
             
-            # 备份文件
+            # Backup files
             for file in files_result.data:
                 if not file.path.startswith("/versions/"):
-                    # 读取文件内容
+                    # Read file content
                     content_result = self.agent_bay.context.download_file(
                         self.context_id, file.path
                     )
                     
                     if content_result.success:
-                        # 保存到版本目录
+                        # Save to version directory
                         version_path = f"/versions/{version_name}{file.path}"
                         self.agent_bay.context.upload_file(
                             self.context_id, version_path, content_result.data
@@ -324,7 +324,7 @@ def version_control_example(agent_bay):
                             "size": file.size
                         })
             
-            # 保存版本信息
+            # Save version information
             version_info_path = f"/versions/{version_name}/version_info.json"
             self.agent_bay.context.upload_file(
                 self.context_id,
@@ -332,11 +332,11 @@ def version_control_example(agent_bay):
                 json.dumps(version_info, indent=2)
             )
             
-            print(f"✅ 版本 {version_name} 创建成功，包含 {len(version_info['files'])} 个文件")
+            print(f"✅ Version {version_name} created successfully, contains {len(version_info['files'])} files")
             return True
         
         def list_versions(self):
-            """列出所有版本"""
+            """List all versions"""
             files_result = self.agent_bay.context.list_files(self.context_id)
             if not files_result.success:
                 return []
@@ -344,7 +344,7 @@ def version_control_example(agent_bay):
             versions = []
             for file in files_result.data:
                 if file.path.endswith("/version_info.json"):
-                    # 读取版本信息
+                    # Read version information
                     info_result = self.agent_bay.context.download_file(
                         self.context_id, file.path
                     )
@@ -358,19 +358,19 @@ def version_control_example(agent_bay):
             
             return sorted(versions, key=lambda x: x["timestamp"], reverse=True)
     
-    # 使用版本控制
+    # Use version control
     vc = SimpleVersionControl(agent_bay, context.id)
     
-    # 创建初始版本
-    vc.create_version("v1.0", "初始版本")
+    # Create initial version
+    vc.create_version("v1.0", "Initial version")
     
-    # 修改一些文件
-    print("🔄 修改项目文件...")
+    # Modify some files
+    print("🔄 Modifying project files...")
     updated_config = {
         "name": "Demo Project",
         "version": "1.1.0",
-        "description": "AgentBay数据持久化演示项目 - 已更新",
-        "features": ["数据持久化", "版本控制", "跨会话共享"]
+        "description": "AgentBay data persistence demo project - updated",
+        "features": ["Data persistence", "Version control", "Cross-session sharing"]
     }
     
     agent_bay.context.upload_file(
@@ -379,22 +379,22 @@ def version_control_example(agent_bay):
         json.dumps(updated_config, indent=2)
     )
     
-    # 创建新版本
-    vc.create_version("v1.1", "添加新功能和配置更新")
+    # Create new version
+    vc.create_version("v1.1", "Added new features and configuration updates")
     
-    # 列出所有版本
-    print("🔄 列出所有版本...")
+    # List all versions
+    print("🔄 Listing all versions...")
     versions = vc.list_versions()
     
     if versions:
-        print("📚 版本历史:")
+        print("📚 Version history:")
         for version in versions:
             print(f"  - {version['version']}: {version['description']}")
-            print(f"    时间: {time.ctime(version['timestamp'])}")
-            print(f"    文件数: {len(version['files'])}")
+            print(f"    Time: {time.ctime(version['timestamp'])}")
+            print(f"    Files: {len(version['files'])}")
             print()
     else:
-        print("❌ 没有找到版本信息")
+        print("❌ No version information found")
 
 if __name__ == "__main__":
     main() 
