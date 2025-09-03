@@ -14,12 +14,13 @@
 
 ### Upload/Download
 
-### Fingerprint
-
 ### Stealth Mode
+
+### IPProxy
 
 ### Captcha Resolving
 
+### Ads Blocking
 
 ## Advanced Features
 

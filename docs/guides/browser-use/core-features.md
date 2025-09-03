@@ -9,3 +9,11 @@
 ## File Upload/Download
 
 ## Observability
+
+### Stealth Mode
+
+### IPProxy
+
+### Captcha Resolving
+
+### Ads Blocking

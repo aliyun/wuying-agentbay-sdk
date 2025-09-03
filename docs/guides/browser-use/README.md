@@ -7,6 +7,7 @@ Welcome to the AgentBay AIBrowser Guides! This provides complete functionality i
 - [Example](code-example.md) - Index for examples demonstrating core & advance features
 - [Core Features](core-features.md) - Essential browser features and typical workflows
 - [Advance Features](advance-features.md) - Advanced configuration and capabilities
+- [Integrations](integrations.md) - Seamlessly weave with community tools and frameworks, extending your automation reach
 - [API](api.md) - Detailed Python API for Browser, Options, and Agents
 - [Change Log](changelog.md) - Version history, new features, fixes, and breaking changes
 
