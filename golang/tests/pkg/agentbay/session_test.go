@@ -143,7 +143,6 @@ func TestSession_Properties(t *testing.T) {
 	if session.AgentBay != agentBay {
 		t.Errorf("Expected AgentBay to be the same instance")
 	}
-	t.Logf("Session ResourceUrl: %s", session.ResourceUrl)
 
 	// Test GetSessionId method
 	sessionID := session.GetSessionId()
@@ -429,11 +428,6 @@ func TestSession_InfoMethod(t *testing.T) {
 		t.Errorf("Expected non-empty ResourceUrl in SessionInfo")
 	}
 	t.Logf("Session ResourceUrl from Info: %s", infoResult.Info.ResourceUrl)
-
-	// Verify that session.ResourceUrl was updated with the value from the API response
-	if session.ResourceUrl != infoResult.Info.ResourceUrl {
-		t.Errorf("Expected session.ResourceUrl to be updated with the value from sessionInfo.ResourceUrl")
-	}
 
 	// Log DesktopInfo fields (these may be empty depending on the API response)
 	t.Logf("DesktopInfo - AppId: %s", infoResult.Info.AppId)

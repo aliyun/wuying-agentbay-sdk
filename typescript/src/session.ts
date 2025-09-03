@@ -99,7 +99,7 @@ export class SessionInfoClass {
 export class Session {
   private agentBay: AgentBay;
   public sessionId: string;
-  public resourceUrl = "";
+
 
   // VPC-related information
   public isVpc = false; // Whether this session uses VPC resources
@@ -138,7 +138,6 @@ export class Session {
   constructor(agentBay: AgentBay, sessionId: string) {
     this.agentBay = agentBay;
     this.sessionId = sessionId;
-    this.resourceUrl = "";
 
     // Initialize file system, command and code handlers (matching Python naming)
     this.fileSystem = new FileSystem(this);
@@ -519,8 +518,6 @@ export class Session {
       if (data?.resourceUrl) {
         // Capital R and U to match Python
         sessionInfo.resourceUrl = data.resourceUrl;
-        // Update the session's resource_url with the latest value
-        this.resourceUrl = data.resourceUrl;
       }
 
       // Transfer DesktopInfo fields to SessionInfo (matching Python structure)

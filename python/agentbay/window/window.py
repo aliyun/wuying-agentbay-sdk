@@ -205,7 +205,8 @@ class WindowManager(BaseService):
                     error_message=result.error_message,
                 )
 
-            window = Window.from_dict(result.data)
+            data = json.loads(result.data)
+            window = Window.from_dict(data)
             return WindowInfoResult(
                 request_id=result.request_id, success=True, window=window
             )

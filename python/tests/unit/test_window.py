@@ -156,7 +156,7 @@ class TestWindowManager(unittest.TestCase):
         }
 
         # Mock _call_mcp_tool method to return success result
-        self.success_result.data = active_window
+        self.success_result.data = json.dumps(active_window)
         self.window_manager._call_mcp_tool = MagicMock(return_value=self.success_result)
 
         # Call the test method

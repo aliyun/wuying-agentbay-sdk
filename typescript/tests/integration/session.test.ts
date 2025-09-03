@@ -43,11 +43,6 @@ describe("Session", () => {
       expect(session.sessionId.length).toBeGreaterThan(0);
     });
 
-    it.only("should log resourceUrl", () => {
-      // ResourceUrl is optional, so we just log it without checking if it's non-empty
-      log(`Session resourceUrl: ${session.resourceUrl}`);
-    });
-
     it.only("should have filesystem, command, and ui properties", () => {
       expect(session.fileSystem).toBeDefined();
       expect(session.command).toBeDefined();
@@ -233,10 +228,9 @@ describe("Session", () => {
           expect(info).toHaveProperty("resourceId");
           expect(info).toHaveProperty("resourceType");
 
-          // Update session.resourceUrl if present (matching Python behavior)
+          // Log resourceUrl if present
           if (info.resourceUrl) {
             log(`Session ResourceUrl from Info: ${info.resourceUrl}`);
-            expect(session.resourceUrl).toBe(info.resourceUrl);
 
             // Extract resourceId from URL if possible
             const resourceId = extractResourceId(info.resourceUrl);

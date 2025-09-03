@@ -274,8 +274,6 @@ class AgentBay:
             from agentbay.session import Session
 
             session = Session(self, session_id)
-            if resource_url is not None:
-                session.resource_url = resource_url
 
             # Set VPC-related information from response
             session.is_vpc = params.is_vpc
