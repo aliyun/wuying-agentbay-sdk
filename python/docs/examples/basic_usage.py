@@ -86,49 +86,28 @@ def main():
         print(f"Available sessions count: {len(sessions_result)}")
         for s in sessions_result:
             print(f"Session ID: {s.session_id}")
-
-        # Delete the browser session
-        print("\nDeleting the browser session...")
-        delete_result = agent_bay.delete(session)
-        session = None
-        print(f"Delete operation request ID: {delete_result.request_id}")
-        print(f"Delete operation success: {delete_result.success}")
-        print("Browser session deleted successfully")
-
-        # Delete the Linux session
-        print("\nDeleting the Linux session...")
-        linux_delete_result = agent_bay.delete(linux_session)
-        linux_session = None
-        print(f"Linux delete operation request ID: {linux_delete_result.request_id}")
-        print(f"Linux delete operation success: {linux_delete_result.success}")
-        print("Linux session deleted successfully")
-
     except AgentBayError as e:
         print(f"AgentBay error: {e}")
-        if session:
-            try:
-                agent_bay.delete(session)
-                print("Browser session deleted during AgentBayError handling")
-            except Exception as delete_error:
-                print(f"Failed to delete browser session during error handling: {delete_error}")
-        if linux_session:
-            try:
-                agent_bay.delete(linux_session)
-                print("Linux session deleted during AgentBayError handling")
-            except Exception as delete_error:
-                print(f"Failed to delete Linux session during error handling: {delete_error}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+    finally:
         if session:
             try:
-                agent_bay.delete(session)
-                print("Browser session deleted during other error handling")
+                delete_result = agent_bay.delete(session)
+                session = None
+                print(f"Delete operation request ID: {delete_result.request_id}")
+                print(f"Delete operation success: {delete_result.success}")
+                print("Browser session deleted successfully")
             except Exception as delete_error:
-                print(f"Failed to delete browser session during error handling: {delete_error}")
+                print(f"Failed to delete browser session : {delete_error}")
         if linux_session:
             try:
-                agent_bay.delete(linux_session)
-                print("Linux session deleted during other error handling")
+                linux_delete_result = agent_bay.delete(linux_session)
+                linux_session = None
+                print(f"Linux delete operation request ID: {linux_delete_result.request_id}")
+                print(f"Linux delete operation success: {linux_delete_result.success}")
+                print("Linux session deleted successfully")
             except Exception as delete_error:
                 print(f"Failed to delete Linux session during error handling: {delete_error}")
 
