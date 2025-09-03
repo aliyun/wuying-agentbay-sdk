@@ -12,6 +12,7 @@ The session management system provides:
 3. **Session Listing**: Retrieve and filter sessions based on various criteria
 4. **Label Management**: Organize sessions using descriptive labels
 5. **Context Synchronization**: Persist data across sessions using context synchronization
+6. **Session Recovery**: Restore session objects using session IDs for continued operations
 
 ## Getting Started
 
@@ -483,6 +484,122 @@ else:
     print(f"Failed to delete session: {delete_result.error_message}")
 ```
 
+## Session Recovery
+
+In certain scenarios, you may need to recover a Session object after it has been destroyed. This can be accomplished through the following methods:
+
+### Basic Session Recovery
+
+To recover a session, you need:
+1. An AgentBay object (create a new one if it doesn't exist)
+2. Create a new Session object with the AgentBay object and the session ID you want to recover
+
+```python
+from agentbay import AgentBay
+from agentbay.session import Session
+
+# Initialize the SDK (or use existing instance)
+agent_bay = AgentBay(api_key=api_key)
+
+# Recover session using session ID
+session_id = "your_existing_session_id"
+recovered_session = Session(agent_bay, session_id)
+
+# The recovered session can perform most session operations
+print(f"Recovered session with ID: {recovered_session.session_id}")
+
+# Test if the session is still active
+info_result = recovered_session.info()
+if info_result.success:
+    print("Session is active and ready to use")
+    print(f"Resource URL: {info_result.data.resource_url}")
+else:
+    print(f"Session recovery failed: {info_result.error_message}")
+```
+
+### Recovering Session with Additional Fields
+
+While a recovered Session object contains the session ID and can perform most operations, some scenarios may require additional fields to be restored.
+
+For VPC scenarios, you need to restore three specific fields: `is_vpc`, `network_interface_ip`, and `http_port`. Since these fields are not currently stored in the cloud, developers must save and restore them manually:
+
+```python
+from agentbay import AgentBay
+from agentbay.session import Session
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key=api_key)
+
+# Recover session with VPC-specific fields
+session_id = "your_vpc_session_id"
+recovered_session = Session(agent_bay, session_id)
+
+# Manually restore VPC-specific fields (these values must be saved by the developer)
+recovered_session.is_vpc = True
+recovered_session.network_interface_ip = "192.168.1.100"  # Your saved IP
+recovered_session.http_port = 8080  # Your saved port
+
+print(f"VPC session recovered with ID: {recovered_session.session_id}")
+print(f"Network Interface IP: {recovered_session.network_interface_ip}")
+print(f"HTTP Port: {recovered_session.http_port}")
+
+# Verify the session is still active
+info_result = recovered_session.info()
+if info_result.success:
+    print("VPC session is active and ready to use")
+else:
+    print("VPC session is no longer available")
+```
+
+### Session Recovery Validation
+
+Before relying on a recovered session, always validate that the underlying cloud environment is still active:
+
+```python
+def validate_recovered_session(session):
+    """Validate that a recovered session is still active and usable."""
+    try:
+        info_result = session.info()
+        
+        if info_result.success:
+            info = info_result.data
+            print(f"✅ Session {session.session_id} successfully recovered")
+            print(f"   Resource ID: {info.resource_id}")
+            print(f"   App ID: {info.app_id}")
+            print(f"   Resource URL: {info.resource_url}")
+            return True
+        else:
+            print(f"❌ Session recovery validation failed: {info_result.error_message}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Session {session.session_id} is no longer available: {e}")
+        return False
+
+# Usage example
+recovered_session = Session(agent_bay, "your_session_id")
+if validate_recovered_session(recovered_session):
+    print("Session is ready for use")
+    # Continue with session operations...
+else:
+    print("Need to create a new session and restore data from persistence")
+    # Create new session and use data persistence for recovery
+```
+
+### Important Considerations
+
+**Session Recovery Limitations:**
+
+1. **Released Sessions Cannot Be Recovered**: If the session ID corresponds to a cloud environment that has been actually released (either through active deletion via `Session.delete()` or automatic timeout release), it cannot be recovered using the session ID. In such cases, you must:
+   - Create a new session
+   - Use data persistence (see [Data Persistence Guide](data-persistence.md)) to restore your data
+
+2. **Session Status Validation**: Use the `Session.info()` method to determine if a session has been released. Only active (non-released) sessions can return information through the info interface.
+
+3. **Automatic Release Timeout**: Session automatic release timeout can be configured in the console page (https://agentbay.console.aliyun.com/).
+
+4. **Field Persistence**: Additional session fields (like VPC-specific fields) are not stored in the cloud and must be saved and restored manually by the developer.
+
 ## Best Practices
 
 1. **Resource Management**:
@@ -511,6 +628,13 @@ else:
    - Use pagination when listing large numbers of sessions
    - Implement efficient filtering using labels
    - Minimize the number of synchronized contexts per session
+
+7. **Session Recovery**:
+   - Always validate recovered sessions using the `info()` method before performing operations
+   - Save critical session fields (like VPC configurations) externally for recovery purposes
+   - Implement fallback logic to create new sessions when recovery fails
+   - Use data persistence mechanisms to maintain state across session recreations
+   - Monitor session timeout settings in the console to prevent unexpected releases
 
 ## Limitations
 
@@ -542,6 +666,13 @@ else:
    - Confirm the session exists and is active
    - Check for ongoing operations that might prevent deletion
    - Review context synchronization status
+
+5. **Session Recovery Issues**:
+   - Verify the session ID is correct and corresponds to an active session
+   - Use `Session.info()` to check if the session has been released
+   - Ensure all required session fields are manually restored for specialized scenarios (e.g., VPC)
+   - Check session timeout settings in the console if sessions are being released unexpectedly
+   - Implement proper error handling for cases where recovery is not possible
 
 ## API Reference
 
