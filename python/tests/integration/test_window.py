@@ -146,7 +146,6 @@ class TestWindow(unittest.TestCase):
                 result = self.session.window.list_root_windows()
                 root_windows = result.windows
                 print(f"Found {len(root_windows)} root windows")
-                breakpoint()  # 断点
                 if not root_windows:
                     print("No root windows found after starting application")
                     return
@@ -261,7 +260,7 @@ class TestWindow(unittest.TestCase):
                 self.session.window.focus_mode(True)
                 print("Focus mode enabled successfully")
             except Exception as e:
-                print(f"Noteramento: Enabling focus mode failed: {e}")
+                print(f"Note: Enabling focus mode failed: {e}")
 
             # Disable focus mode
             print("Disabling focus mode...")
