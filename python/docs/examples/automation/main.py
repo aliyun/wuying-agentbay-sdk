@@ -1,115 +1,118 @@
 #!/usr/bin/env python3
 """
-AgentBay SDK - 自动化功能示例
+AgentBay SDK - Automation Features Example
 
-本示例展示了如何使用AgentBay SDK的自动化功能，包括：
-- 命令执行
-- 代码执行
-- UI自动化
-- 工作流编排
+This example demonstrates how to use AgentBay SDK automation features with different images:
+- Command execution using linux_latest image
+- Code execution using code_latest image  
+- Linux UI automation using linux_latest image
+- Mobile UI automation using mobile_latest image
 """
 
 import os
 import time
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
-from agentbay.ui.ui import KeyCode
 
 def main():
-    """主函数"""
-    print("🚀 AgentBay 自动化功能示例")
-
-    # 初始化AgentBay客户端
-    api_key = os.environ.get("AGENTBAY_API_KEY") or "your_api_key_here"
-    agent_bay = AgentBay(api_key=api_key)
-
-    # 创建会话
-    print("\n📱 创建会话...")
-    session_params = CreateSessionParams()
-    session_params.image_id = "code_latest"
-    mobile_params = CreateSessionParams(image_id="mobile_latest")
-    session_result = agent_bay.create(session_params)
-    mobile_result = agent_bay.create(mobile_params)
-    if not session_result.success:
-        print(f"❌ 会话创建失败: {session_result.error_message}")
-        return
-    if not mobile_result.success:
-        print(f"❌ 会话创建失败: {mobile_result.error_message}")
-        return
-
-    session = session_result.session
-    mobile_session = mobile_result.session
-    print(f"✅ 会话创建成功: {session.session_id}")
-
+    """Main function"""
+    print("🚀 AgentBay Automation Features Example")
+    
+    # Initialize AgentBay client
+    agent_bay = AgentBay()
+    
     try:
-        # 1. 命令执行示例
-        command_execution_example(session)
-
-        # 2. 代码执行示例
-        code_execution_example(session)
-
-        # 3. UI自动化示例
-        ui_automation_example(mobile_session)
-
-        # 4. 工作流编排示例
-        workflow_example(session)
-
+        # 1. Command execution example with linux_latest image
+        command_execution_example(agent_bay)
+        
+        # 2. Code execution example with code_latest image
+        code_execution_example(agent_bay)
+        
+        # 3. Linux UI automation example with linux_latest image
+        linux_ui_automation_example(agent_bay)
+        
+        # 4. Mobile UI automation example with mobile_latest image
+        mobile_ui_automation_example(agent_bay)
+        
     except Exception as e:
-        print(f"❌ 示例执行失败: {e}")
+        print(f"❌ Example execution failed: {e}")
+    
+    print("✅ All examples completed")
 
-    finally:
-        # 清理会话
-        print(f"\n🧹 清理会话: {session.session_id}")
-        session_result = agent_bay.delete(session)
-        if session_result.success:
-            print("✅ 会话删除成功")
-        mobile_result = agent_bay.delete(mobile_session)
-        if mobile_result.success:
-            print("✅ 会话删除成功")
-        print("✅ 示例执行完成")
-
-def command_execution_example(session):
-    """命令执行示例"""
-    print("\n💻 === 命令执行示例 ===")
-
-    # 基本命令执行
-    commands = [
-        "whoami",
-        "pwd",
-        "ls -la /tmp",
-        "df -h",
-        "free -h"
-    ]
-
-    for cmd in commands:
-        print(f"\n🔄 执行命令: {cmd}")
-        result = session.command.execute_command(cmd)
-
+def command_execution_example(agent_bay):
+    """Command execution example using linux_latest image"""
+    print("\n💻 === Command Execution Example (linux_latest) ===")
+    
+    # Create session with linux_latest image
+    print("📱 Creating session with linux_latest image...")
+    params = CreateSessionParams(image_id="linux_latest")
+    session_result = agent_bay.create(params)
+    
+    if not session_result.success:
+        print(f"❌ Session creation failed: {session_result.error_message}")
+        return
+    
+    session = session_result.session
+    print(f"✅ Session created successfully: {session.session_id}")
+    
+    try:
+        # Basic command execution
+        commands = [
+            "whoami",
+            "pwd", 
+            "ls -la /tmp",
+            "df -h",
+            "free -h",
+            "uname -a"
+        ]
+        
+        for cmd in commands:
+            print(f"\n🔄 Executing command: {cmd}")
+            result = session.command.execute_command(cmd)
+            
+            if result.success:
+                print(f"✅ Output: {result.output.strip()}")
+            else:
+                print(f"❌ Command failed: {result.error_message}")
+        
+        # Command execution with timeout
+        print(f"\n🔄 Executing command with timeout...")
+        result = session.command.execute_command("sleep 2", timeout_ms=5000)
         if result.success:
-            print(f"✅ 输出: {result.output.strip()}")
+            print("✅ Timeout command executed successfully")
         else:
-            print(f"❌ 命令失败: {result.error}")
+            print(f"❌ Timeout command failed: {result.error_message}")
+            
+    finally:
+        # Clean up session
+        print(f"\n🧹 Cleaning up linux session: {session.session_id}")
+        agent_bay.delete(session)
 
-    # 带超时的命令执行
-    print(f"\n🔄 执行带超时的命令...")
-    result = session.command.execute_command("sleep 2", timeout_ms=5000)
-    if result.success:
-        print("✅ 超时命令执行成功")
-    else:
-        print(f"❌ 超时命令失败: {result.error_message}")
-
-def code_execution_example(session):
-    """代码执行示例"""
-    print("\n🐍 === 代码执行示例 ===")
-
-    # Python代码执行
-    python_code = """
+def code_execution_example(agent_bay):
+    """Code execution example using code_latest image"""
+    print("\n🐍 === Code Execution Example (code_latest) ===")
+    
+    # Create session with code_latest image
+    print("📱 Creating session with code_latest image...")
+    params = CreateSessionParams(image_id="code_latest")
+    session_result = agent_bay.create(params)
+    
+    if not session_result.success:
+        print(f"❌ Session creation failed: {session_result.error_message}")
+        return
+    
+    session = session_result.session
+    print(f"✅ Session created successfully: {session.session_id}")
+    
+    try:
+        # Python code execution
+        python_code = """
 import sys
 import os
 import json
 from datetime import datetime
 
-# 系统信息
+# System information
 system_info = {
     "python_version": sys.version,
     "current_directory": os.getcwd(),
@@ -117,28 +120,28 @@ system_info = {
     "environment_vars": len(os.environ)
 }
 
-print("Python代码执行成功!")
-print(f"系统信息: {json.dumps(system_info, indent=2)}")
+print("Python code execution successful!")
+print(f"System info: {json.dumps(system_info, indent=2)}")
 
-# 简单计算
+# Simple calculation
 numbers = list(range(1, 11))
 total = sum(numbers)
-print(f"1到10的和: {total}")
+print(f"Sum of 1 to 10: {total}")
 """
+        
+        print("🔄 Executing Python code...")
+        result = session.code.run_code(python_code, "python")
+        if result.success:
+            print("✅ Python code executed successfully:")
+            print(result.result)
+        else:
+            print(f"❌ Python code execution failed: {result.error_message}")
+        
+        # JavaScript code execution
+        js_code = """
+console.log("JavaScript code execution successful!");
 
-    print("🔄 执行Python代码...")
-    result = session.code.run_code(python_code, "python")
-    if result.success:
-        print("✅ Python代码执行成功:")
-        print(result.result)
-    else:
-        print(f"❌ Python代码执行失败: {result.error_message}")
-
-    # JavaScript代码执行
-    js_code = """
-console.log("JavaScript代码执行成功!");
-
-// 获取系统信息
+// Get system information
 const os = require('os');
 const systemInfo = {
     platform: os.platform(),
@@ -147,216 +150,216 @@ const systemInfo = {
     memory: Math.round(os.totalmem() / 1024 / 1024) + ' MB'
 };
 
-console.log("系统信息:", JSON.stringify(systemInfo, null, 2));
+console.log("System info:", JSON.stringify(systemInfo, null, 2));
 
-// 数组操作
+// Array operations
 const numbers = [1, 2, 3, 4, 5];
 const doubled = numbers.map(n => n * 2);
-console.log("原数组:", numbers);
-console.log("翻倍后:", doubled);
+console.log("Original array:", numbers);
+console.log("Doubled array:", doubled);
 """
+        
+        print("\n🔄 Executing JavaScript code...")
+        result = session.code.run_code(js_code, "javascript")
+        if result.success:
+            print("✅ JavaScript code executed successfully:")
+            print(result.result)
+        else:
+            print(f"❌ JavaScript code execution failed: {result.error_message}")
+            
+        # Simple file operations
+        print("\n🔄 Testing file operations...")
+        test_content = "Hello from AgentBay code execution!"
+        write_result = session.file_system.write_file("/tmp/test_code.txt", test_content)
+        if write_result.success:
+            print("✅ File written successfully")
+            
+            read_result = session.file_system.read_file("/tmp/test_code.txt")
+            if read_result.success:
+                print(f"✅ File content: {read_result.data}")
+            else:
+                print(f"❌ File read failed: {read_result.error_message}")
+        else:
+            print(f"❌ File write failed: {write_result.error_message}")
+            
+    finally:
+        # Clean up session
+        print(f"\n🧹 Cleaning up code session: {session.session_id}")
+        agent_bay.delete(session)
 
-    print("\n🔄 执行JavaScript代码...")
-    result = session.code.run_code(js_code, "javascript")
-    if result.success:
-        print("✅ JavaScript代码执行成功:")
-        print(result.result)
-    else:
-        print(f"❌ JavaScript代码执行失败: {result.error}")
-
-def ui_automation_example(session):
-    """UI自动化示例"""
-    print("\n🖱️ === UI自动化示例 ===")
-
+def linux_ui_automation_example(agent_bay):
+    """Linux UI automation example using linux_latest image"""
+    print("\n🖥️ === Linux UI Automation Example (linux_latest) ===")
+    
+    # Create session with linux_latest image
+    print("📱 Creating session with linux_latest image...")
+    params = CreateSessionParams(image_id="linux_latest")
+    session_result = agent_bay.create(params)
+    
+    if not session_result.success:
+        print(f"❌ Session creation failed: {session_result.error_message}")
+        return
+    
+    session = session_result.session
+    print(f"✅ Session created successfully: {session.session_id}")
+    
     try:
-        # 截图
-        print("🔄 获取屏幕截图...")
+        # Screenshot - Linux desktop screenshot
+        print("🔄 Taking Linux desktop screenshot...")
         screenshot = session.ui.screenshot()
         if screenshot.success:
-            # 保存截图
-            result = session.file_system.write_file("/tmp/screenshot.png", screenshot.data)
-            if result.success:
-                print("✅ 写入文件成功: /tmp/screenshot.png")
+            # Save screenshot
+            write_result = session.file_system.write_file("/tmp/linux_desktop_screenshot.png", screenshot.data)
+            if write_result.success:
+                print("✅ Linux desktop screenshot saved successfully: /tmp/linux_desktop_screenshot.png")
             else:
-                print(f"❌ 写入文件失败: {result.error_message}")
+                print(f"❌ Screenshot save failed: {write_result.error_message}")
         else:
-            print(f"❌ 截图失败: {screenshot.error_message}")
-
-        # 模拟键盘输入
-        print("🔄 模拟键盘输入...")
-        result = session.ui.send_key(KeyCode.MENU)
-        if result.success:
-            print("✅ 键盘输入完成")
+            print(f"❌ Screenshot failed: {screenshot.error_message}")
+        
+        # Test Linux-specific UI capabilities
+        print("🔄 Testing Linux UI capabilities...")
+        
+        # Check available UI methods for Linux
+        ui_methods = []
+        if hasattr(session.ui, 'screenshot'):
+            ui_methods.append("screenshot")
+        if hasattr(session.ui, 'click'):
+            ui_methods.append("click")
+        if hasattr(session.ui, 'type'):
+            ui_methods.append("type")
+        if hasattr(session.ui, 'key'):
+            ui_methods.append("key")
+            
+        print(f"✅ Available Linux UI methods: {', '.join(ui_methods)}")
+        
+        # Test basic file system operations (Linux-specific paths)
+        print("\n🔄 Testing Linux file system operations...")
+        linux_test_content = "Linux UI automation test file"
+        linux_file_path = "/tmp/linux_ui_test.txt"
+        
+        write_result = session.file_system.write_file(linux_file_path, linux_test_content)
+        if write_result.success:
+            print(f"✅ Linux test file created: {linux_file_path}")
+            
+            # List files in /tmp to verify
+            list_result = session.command.execute_command("ls -la /tmp/linux_ui_test.txt")
+            if list_result.success:
+                print(f"✅ File verified: {list_result.output.strip()}")
         else:
-            print(f"❌ 键盘输入失败: {result.error_message}")
-
-        # 模拟鼠标操作
-        print("🔄 模拟鼠标操作...")
-        result = session.ui.click(x=100, y=100, button="left")
-        if result.success:
-            print("✅ 鼠标点击完成")
-        else:
-            print(f"❌ 鼠标点击失败: {result.error_message}")
-
+            print(f"❌ Linux file creation failed: {write_result.error_message}")
+            
     except Exception as e:
-        print(f"⚠️ UI自动化功能可能不可用: {e}")
+        print(f"❌ Linux UI automation error: {e}")
+        
+    finally:
+        # Clean up session
+        print(f"\n🧹 Cleaning up Linux UI session: {session.session_id}")
+        agent_bay.delete(session)
 
-def workflow_example(session):
-    """工作流编排示例"""
-    print("\n🔄 === 工作流编排示例 ===")
-
-    print("🔄 执行数据处理工作流...")
-
-    # 步骤1: 创建测试数据
-    print("步骤1: 创建测试数据...")
-    create_data_code = """
-import json
-import random
-from datetime import datetime, timedelta
-
-# 生成测试数据
-data = []
-base_date = datetime.now()
-
-for i in range(50):
-    record = {
-        "id": i + 1,
-        "name": f"用户{i+1}",
-        "score": random.randint(60, 100),
-        "date": (base_date - timedelta(days=random.randint(0, 30))).isoformat(),
-        "category": random.choice(["A", "B", "C"])
-    }
-    data.append(record)
-
-# 保存数据
-with open('/tmp/test_data.json', 'w', encoding='utf-8') as f:
-    json.dump(data, f, ensure_ascii=False, indent=2)
-
-print(f"生成了 {len(data)} 条测试数据")
-"""
-
-    result = session.code.run_code(create_data_code, "python")
-    if result.success:
-        print("✅ 测试数据创建完成")
-    else:
-        print(f"❌ 测试数据创建失败: {result.error_message}")
-
-
-    # 步骤2: 数据分析
-    print("步骤2: 数据分析...")
-    analysis_code = """
-import json
-import statistics
-
-# 读取数据
-with open('/tmp/test_data.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
-
-# 分析数据
-scores = [record['score'] for record in data]
-categories = {}
-for record in data:
-    cat = record['category']
-    categories[cat] = categories.get(cat, 0) + 1
-
-analysis_result = {
-    "total_records": len(data),
-    "average_score": statistics.mean(scores),
-    "max_score": max(scores),
-    "min_score": min(scores),
-    "category_distribution": categories
-}
-
-# 保存分析结果
-with open('/tmp/analysis_result.json', 'w', encoding='utf-8') as f:
-    json.dump(analysis_result, f, ensure_ascii=False, indent=2)
-
-print("数据分析完成:")
-for key, value in analysis_result.items():
-    print(f"  {key}: {value}")
-"""
-
-    result = session.code.run_code(analysis_code, "python")
-    if not result.success:
-        print(f"❌ 数据分析失败: {result.error_message}")
+def mobile_ui_automation_example(agent_bay):
+    """Mobile UI automation example using mobile_latest image"""
+    print("\n📱 === Mobile UI Automation Example (mobile_latest) ===")
+    
+    # Create session with mobile_latest image
+    print("📱 Creating session with mobile_latest image...")
+    params = CreateSessionParams(image_id="mobile_latest")
+    session_result = agent_bay.create(params)
+    
+    if not session_result.success:
+        print(f"❌ Session creation failed: {session_result.error_message}")
         return
-    print("✅ 数据分析完成")
-
-    # 步骤3: 生成报告
-    print("步骤3: 生成报告...")
-    report_code = """
-import json
-from datetime import datetime
-
-# 读取分析结果
-with open('/tmp/analysis_result.json', 'r', encoding='utf-8') as f:
-    analysis = json.load(f)
-
-# 生成HTML报告
-html_report = f'''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>数据分析报告</title>
-    <meta charset="utf-8">
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 40px; }}
-        .header {{ background-color: #f0f8ff; padding: 20px; border-radius: 8px; }}
-        .metric {{ margin: 10px 0; padding: 10px; background-color: #f9f9f9; border-radius: 5px; }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>数据分析报告</h1>
-        <p>生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-    </div>
-
-    <div class="metric">
-        <h3>基本统计</h3>
-        <p>总记录数: {analysis['total_records']}</p>
-        <p>平均分数: {analysis['average_score']:.2f}</p>
-        <p>最高分数: {analysis['max_score']}</p>
-        <p>最低分数: {analysis['min_score']}</p>
-    </div>
-
-    <div class="metric">
-        <h3>分类分布</h3>
-'''
-
-for category, count in analysis['category_distribution'].items():
-    html_report += f'        <p>类别 {category}: {count} 条记录</p>\\n'
-
-html_report += '''
-    </div>
-</body>
-</html>
-'''
-
-# 保存报告
-with open('/tmp/report.html', 'w', encoding='utf-8') as f:
-    f.write(html_report)
-
-print("HTML报告生成完成: /tmp/report.html")
-"""
-
-    result = session.code.run_code(report_code, "python")
-    if not result.success:
-        print(f"❌ 报告生成失败: {result.error_message}")
-        return
-    print("✅ 报告生成完成")
-
-    # 步骤4: 验证结果
-    print("步骤4: 验证结果...")
-    files_to_check = ["/tmp/test_data.json", "/tmp/analysis_result.json", "/tmp/report.html"]
-
-    for file_path in files_to_check:
-        result = session.file_system.read_file(file_path)
-        if result.success:
-            print(f"✅ 文件存在: {file_path} ({len(result.content)} 字节)")
+    
+    session = session_result.session
+    print(f"✅ Session created successfully: {session.session_id}")
+    
+    try:
+        # Screenshot - Mobile screen screenshot
+        print("🔄 Taking mobile screen screenshot...")
+        screenshot = session.ui.screenshot()
+        if screenshot.success:
+            # Save screenshot with mobile-specific name
+            write_result = session.file_system.write_file("/tmp/mobile_screen_screenshot.png", screenshot.data)
+            if write_result.success:
+                print("✅ Mobile screen screenshot saved successfully: /tmp/mobile_screen_screenshot.png")
+            else:
+                print(f"❌ Screenshot save failed: {write_result.error_message}")
         else:
-            print(f"❌ 文件不存在: {file_path}")
-
-    print("🎉 工作流执行完成!")
+            print(f"❌ Screenshot failed: {screenshot.error_message}")
+        
+        # Test mobile-specific UI interactions
+        print("🔄 Testing mobile UI capabilities...")
+        
+        try:
+            # Check for mobile-specific UI methods
+            mobile_ui_methods = []
+            if hasattr(session.ui, 'click'):
+                mobile_ui_methods.append("click")
+            if hasattr(session.ui, 'tap'):
+                mobile_ui_methods.append("tap")  
+            if hasattr(session.ui, 'swipe'):
+                mobile_ui_methods.append("swipe")
+            if hasattr(session.ui, 'scroll'):
+                mobile_ui_methods.append("scroll")
+            if hasattr(session.ui, 'type'):
+                mobile_ui_methods.append("type")
+                
+            print(f"✅ Available mobile UI methods: {', '.join(mobile_ui_methods)}")
+            
+            # Try mobile touch interaction
+            if hasattr(session.ui, 'click'):
+                print("🔄 Testing mobile touch interaction...")
+                session.ui.click(x=200, y=300)
+                print("✅ Mobile touch interaction completed")
+            
+        except Exception as ui_error:
+            print(f"⚠️ Some mobile UI features may not be available: {ui_error}")
+        
+        # Test mobile application management
+        try:
+            print("🔄 Testing mobile application management...")
+            # Try to get installed apps with proper parameters for mobile
+            try:
+                apps = session.application.get_installed_apps(
+                    start_menu=True, 
+                    desktop=False, 
+                    ignore_system_apps=True
+                )
+                if apps.success:
+                    app_count = len(apps.data) if apps.data else 0
+                    print(f"✅ Found {app_count} mobile applications")
+                else:
+                    print(f"⚠️ App listing limited: {apps.error_message}")
+            except Exception as app_error:
+                print(f"⚠️ Mobile app management may have limitations: {app_error}")
+                
+        except Exception as mobile_error:
+            print(f"⚠️ Mobile-specific features may not be fully available: {mobile_error}")
+        
+        # Test mobile window management
+        try:
+            print("🔄 Testing mobile window management...")
+            # Mobile environments may have different window concepts
+            if hasattr(session.window, 'list_windows'):
+                windows = session.window.list_windows()
+                if windows.success:
+                    window_count = len(windows.data) if windows.data else 0
+                    print(f"✅ Found {window_count} mobile windows/activities")
+                else:
+                    print(f"⚠️ Window listing: {windows.error_message}")
+            else:
+                print("⚠️ Mobile window management uses different methods")
+                
+        except Exception as window_error:
+            print(f"⚠️ Mobile window management may not be available: {window_error}")
+            
+    except Exception as e:
+        print(f"❌ Mobile UI automation error: {e}")
+        
+    finally:
+        # Clean up session
+        print(f"\n🧹 Cleaning up mobile UI session: {session.session_id}")
+        agent_bay.delete(session)
 
 if __name__ == "__main__":
     main()
