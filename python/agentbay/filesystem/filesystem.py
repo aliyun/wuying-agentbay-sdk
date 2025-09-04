@@ -743,7 +743,7 @@ class FileSystem(BaseService):
             chunk_count = 0
             while offset < file_size:
                 length = min(chunk_size, file_size - offset)
-                chunk_result = self.read_file(path, offset, length)
+                chunk_result = self._read_file_chunk(path, offset, length)
                 log_operation_start(
                     f"ReadLargeFile chunk {chunk_count + 1}",
                     f"{length} bytes at offset {offset}/{file_size}"

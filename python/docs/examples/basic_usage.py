@@ -82,9 +82,9 @@ def main():
 
         # List all sessions
         print("\nListing all sessions...")
-        sessions_result = agent_bay.list()
-        print(f"Available sessions count: {len(sessions_result)}")
-        for s in sessions_result:
+        sessions_list = agent_bay.list()
+        print(f"Available sessions count: {len(sessions_list)}")
+        for s in sessions_list:
             print(f"Session ID: {s.session_id}")
     except AgentBayError as e:
         print(f"AgentBay error: {e}")

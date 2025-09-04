@@ -54,8 +54,14 @@ def main():
         # Example 3: Create a session with the context
         print("\nExample 3: Creating a session with the context...")
         try:
-            params = CreateSessionParams(
+            from agentbay.context_sync import ContextSync, SyncPolicy
+            context_sync = ContextSync.new(
                 context_id=context.id,
+                path="/mnt/context",
+                policy=SyncPolicy.default()
+            )
+            params = CreateSessionParams(
+                context_syncs=[context_sync],
                 labels={"username": "alice", "project": "my-project"},
             )
             session_result = agent_bay.create(params)
