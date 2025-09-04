@@ -119,7 +119,7 @@ async function main(): Promise<void> {
         ];
 
         // Connect with Playwright with enhanced error handling
-        let browser;
+        let browser,cdpSession;
         try {
             console.log("Attempting to connect via CDP...");
             browser = await chromium.connectOverCDP(endpointUrl);
@@ -140,6 +140,7 @@ async function main(): Promise<void> {
         }
 
         try {
+            cdpSession = await browser.newBrowserCDPSession()
             const contextP = browser.contexts()[0] || await browser.newContext();
             const page = await contextP.newPage();
 
@@ -172,6 +173,16 @@ async function main(): Promise<void> {
                     console.log(`✗ Test cookie '${cookieName}' not found`);
                 }
             }
+            await cdpSession.send('Browser.close')
+            console.log("First session browser operations completed")
+
+            // Wait for browser to save cookies to file
+            console.log("Waiting for browser to save cookies to file...")
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log("Wait completed")
+
+            await browser.close()
+            console.log("First session browser operations completed")
 
         } finally {
             if (browser) {
@@ -240,7 +251,7 @@ async function main(): Promise<void> {
 
             let context2;
             if (browser2.contexts().length > 0) {
-                context2 = browser2.contexts()[0];
+                context2 = await browser2.contexts()[0];
             } else {
                 context2 = await browser2.newContext();
             }
