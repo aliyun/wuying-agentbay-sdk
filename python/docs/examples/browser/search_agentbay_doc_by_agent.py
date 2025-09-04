@@ -73,6 +73,7 @@ async def main():
                 await browser.close()
         else:
             print("Failed to initialize browser")
+        agent_bay.delete(session)
 
 if __name__ == "__main__":
     asyncio.run(main())

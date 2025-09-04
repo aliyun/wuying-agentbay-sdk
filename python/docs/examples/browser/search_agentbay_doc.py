@@ -55,39 +55,104 @@ async def main():
                 await page.wait_for_timeout(3000)
 
                 # Step 3: Search for the keyword
-                search_input = await page.wait_for_selector("//input[contains(@class, 'search-input')]")
-                await search_input.click()
-                await search_input.fill("Agentbay帮助文档")
-                await page.keyboard.press("Enter")
+                try:
+                    search_input = await page.wait_for_selector("//input[contains(@class, 'search-input')]", timeout=10000)
+                    await search_input.click()
+                    await search_input.fill("Agentbay帮助文档")
+                    await page.keyboard.press("Enter")
+                    print("Search completed")
+                except Exception as e:
+                    print(f"Search failed: {e}")
+                    await browser.close()
+                    return
 
                 await page.wait_for_timeout(3000)
 
                 # Step 4: Get the search results
-                await page.wait_for_selector("//a[contains(@class, 'search-result-title')]")
-                search_results = await page.locator("//a[contains(@class, 'search-result-title')]").all()
+                try:
+                    await page.wait_for_selector("//a[contains(@class, 'search-result-title')]", timeout=10000)
+                    search_results = await page.locator("//a[contains(@class, 'search-result-title')]").all()
+                    print(f"Found {len(search_results)} search results")
+                except Exception as e:
+                    print(f"Failed to get search results: {e}")
+                    await browser.close()
+                    return
 
                 await page.wait_for_timeout(3000)
 
                 # Step 5: Click the search result
                 agentbay_link = None
                 for result in search_results:
-                    text = await result.text_content()
-                    print("result =", text)
-                    if "无影AgentBay" == text:
-                        agentbay_link = result
-                        break
+                    try:
+                        text = await result.text_content()
+                        print("result =", text)
+                        if "无影AgentBay" in text or "AgentBay" in text:
+                            agentbay_link = result
+                            break
+                    except Exception as e:
+                        print(f"Error reading result text: {e}")
+                        continue
+
+                if not agentbay_link:
+                    print("AgentBay link not found in search results")
+                    await browser.close()
+                    return
 
                 await page.wait_for_timeout(3000)
 
                 # Step 6: Click the helper button
-                async with page.context.expect_page() as new_page_info:
-                    await agentbay_link.click()
-                    new_page = await new_page_info.value
-                    await new_page.wait_for_load_state("domcontentloaded")
-                    await new_page.wait_for_selector("a[href*='agentbay-document-index']")
-                    helper_link = new_page.locator("a[href*='agentbay-document-index']").first
-                    print("helper_link =", await helper_link.text_content())
-                    await helper_link.click()
+                try:
+                    async with page.context.expect_page() as new_page_info:
+                        await agentbay_link.click()
+                        new_page = await new_page_info.value
+                        await new_page.wait_for_load_state("domcontentloaded")
+                        print("New page loaded, current URL:", new_page.url)
+
+                        # Wait a bit for the page to fully render
+                        await new_page.wait_for_timeout(5000)
+
+                        # Try multiple selectors for the documentation link
+                        selectors_to_try = [
+                            "a[href*='agentbay-document-index']",
+                            "a[href*='document']",
+                            "a[href*='帮助']",
+                            "a[href*='文档']",
+                            "//a[contains(text(), '文档')]",
+                            "//a[contains(text(), '帮助')]",
+                            "//a[contains(text(), 'AgentBay')]"
+                        ]
+
+                        helper_link = None
+                        for selector in selectors_to_try:
+                            try:
+                                print(f"Trying selector: {selector}")
+                                await new_page.wait_for_selector(selector, timeout=5000)
+                                helper_link = new_page.locator(selector).first
+                                link_text = await helper_link.text_content()
+                                print(f"Found link with text: {link_text}")
+                                break
+                            except Exception as e:
+                                print(f"Selector {selector} failed: {e}")
+                                continue
+
+                        if helper_link:
+                            print("helper_link =", await helper_link.text_content())
+                            await helper_link.click()
+                            print("Successfully clicked the documentation link")
+                        else:
+                            print("Could not find documentation link, listing all links on the page:")
+                            # List all links for debugging
+                            all_links = await new_page.locator("a").all()
+                            for i, link in enumerate(all_links[:10]):  # Show first 10 links
+                                try:
+                                    href = await link.get_attribute("href")
+                                    text = await link.text_content()
+                                    print(f"Link {i+1}: href='{href}', text='{text}'")
+                                except:
+                                    continue
+
+                except Exception as e:
+                    print(f"Error in new page handling: {e}")
 
                 await page.wait_for_timeout(10000)
 
