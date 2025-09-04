@@ -629,6 +629,13 @@ class FileSystem(BaseService):
 
             if result.success:
                 matching_files = result.data.strip().split("\n") if result.data else []
+                if matching_files == ['No matches found']:
+                    return FileSearchResult(
+                        request_id=result.request_id,
+                        success=False,
+                        matches=[],
+                        error_message="No matches found",
+                    )
                 return FileSearchResult(
                     request_id=result.request_id,
                     success=True,

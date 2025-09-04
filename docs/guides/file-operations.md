@@ -434,6 +434,57 @@ if result.success:
 else:
     print(f"Edit failed: {result.error_message}")
 ```
+### Global Character Replacement
+**Note**: Each call to the `edit_file` method will only modify the first matched instance. If you need to globally replace the same string, there are two methods:
+```python
+
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Create a test file
+initial_content = "This is old1 text with old2 content.\nAnother line with old1 data."
+result = session.file_system.write_file("/tmp/edit_test.txt", initial_content)
+
+# Method One: Single Call to `edit_file` for Global Replacement
+edits = [
+    {"oldText": "old1", "newText": "new1"},
+    {"oldText": "old1", "newText": "new1"}
+]
+
+result = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+if result.success:
+    print("File edited successfully")
+
+    # Verify changes
+    read_result = session.file_system.read_file("/tmp/edit_test.txt")
+    if read_result.success:
+        print(f"Updated content: {read_result.content}")
+else:
+    print(f"Edit failed: {result.error_message}")
+# Method Two:Multiple Calls to edit_file for Global Replacement
+# Create a test file
+result = session.file_system.write_file("/tmp/edit_test.txt", initial_content)
+
+# Edit file with multiple find-replace operations
+edits = [
+    {"oldText": "old1", "newText": "new1"},
+]
+
+result1 = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+result2 = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+if result.success and result2.success:
+    print("File edited successfully")
+
+    # Verify changes
+    read_result = session.file_system.read_file("/tmp/edit_test.txt")
+    if read_result.success:
+        print(f"Updated content: {read_result.content}")
+else:
+    print(f"Edit failed: {result.error_message}")
+
+```
 
 ### Dry Run Mode
 
