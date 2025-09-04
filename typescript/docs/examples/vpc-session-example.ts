@@ -7,7 +7,7 @@
  * - Proper session cleanup
  */
 
-import { AgentBay, CreateSessionParams } from 'wuying-agentbay-sdk';
+import { AgentBay, newCreateSessionParams } from 'wuying-agentbay-sdk';
 
 async function main() {
   // Get API key from environment variable
@@ -24,31 +24,31 @@ async function main() {
   try {
     // Create a VPC session
     console.log("Creating a VPC session...");
-    const params = new CreateSessionParams()
-      .withImageId("imgc-07eksy57nw6r759fb")
+    const params = newCreateSessionParams()
+      .withImageId("linux_latest")
       .withIsVpc(true)
       .withLabels({
         "test-type": "vpc-basic-example",
         "purpose": "demonstration",
         "timestamp": Math.floor(Date.now() / 1000).toString()
       });
-    
+
     const sessionResult = await agentBay.create(params);
-    
+
     if (!sessionResult.success) {
       console.log(`Failed to create VPC session: ${sessionResult.errorMessage}`);
       return;
     }
-    
+
     const session = sessionResult.session;
     console.log(`VPC session created successfully with ID: ${session.sessionId}`);
-    
+
     try {
       // Test FileSystem operations
       console.log("\n--- Testing FileSystem operations ---");
       const testFilePath = "/tmp/vpc_example_test.txt";
       const testContent = `Hello from VPC session! Created at ${new Date().toISOString()}`;
-      
+
       // Write file
       const writeResult = await session.fileSystem.writeFile(testFilePath, testContent);
       if (writeResult.success) {
@@ -56,7 +56,7 @@ async function main() {
       } else {
         console.log(`⚠ File write failed: ${writeResult.errorMessage}`);
       }
-      
+
       // Read file
       const readResult = await session.fileSystem.readFile(testFilePath);
       if (readResult.success) {
@@ -64,10 +64,10 @@ async function main() {
       } else {
         console.log(`⚠ File read failed: ${readResult.errorMessage}`);
       }
-      
+
       // Test Command operations
       console.log("\n--- Testing Command operations ---");
-      
+
       // Get current user
       const cmdResult = await session.command.executeCommand("whoami");
       if (cmdResult.success) {
@@ -75,7 +75,7 @@ async function main() {
       } else {
         console.log(`⚠ Command execution failed: ${cmdResult.errorMessage}`);
       }
-      
+
       // List directory contents
       const lsResult = await session.command.executeCommand("ls -la /tmp");
       if (lsResult.success) {
@@ -84,7 +84,7 @@ async function main() {
       } else {
         console.log(`⚠ Directory listing failed: ${lsResult.errorMessage}`);
       }
-        
+
     } finally {
       // Clean up - delete the session
       console.log("\n--- Cleaning up ---");
@@ -95,7 +95,7 @@ async function main() {
         console.log(`⚠ Failed to delete VPC session: ${deleteResult.errorMessage}`);
       }
     }
-    
+
   } catch (error) {
     console.error("Error in main function:", error);
   }

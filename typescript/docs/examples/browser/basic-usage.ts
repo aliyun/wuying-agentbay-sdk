@@ -3,8 +3,7 @@
  * This example demonstrates the core browser operations without external dependencies.
  */
 
-import { AgentBay, CreateSessionParams } from '../../../../typescript/src/agent-bay';
-import { ActOptions, ObserveOptions, ExtractOptions } from '../../../../typescript/src/browser';
+import { AgentBay, CreateSessionParams, ActOptions, ObserveOptions, ExtractOptions } from 'wuying-agentbay-sdk';
 
 // Simple schema for demonstration
 class PageInfo {
@@ -68,7 +67,7 @@ async function main() {
         action: "Click the 'More information...' link",
         timeoutMS: 5000
       };
-      
+
       const actResult = await session.browser.agent.act(mockPage, actOptions);
       console.log("Action result:", {
         success: actResult.success,
@@ -86,11 +85,11 @@ async function main() {
         instruction: "Find all links and buttons on the page",
         returnActions: 5
       };
-      
+
       const [observeSuccess, observations] = await session.browser.agent.observe(mockPage, observeOptions);
       console.log("Observe success:", observeSuccess);
       console.log("Number of observations:", observations.length);
-      
+
       observations.forEach((obs: any, index: number) => {
         console.log(`Observation ${index + 1}:`, {
           selector: obs.selector,
@@ -107,13 +106,14 @@ async function main() {
     try {
       const extractOptions: ExtractOptions<PageInfo> = {
         instruction: "Extract the page title and URL",
-        schema: PageInfo
+        schema: PageInfo,
+        use_text_extract: false
       };
-      
+
       const [extractSuccess, extractedData] = await session.browser.agent.extract(mockPage, extractOptions);
       console.log("Extract success:", extractSuccess);
       console.log("Extracted data count:", extractedData.length);
-      
+
       extractedData.forEach((data: PageInfo, index: number) => {
         console.log(`Extracted item ${index + 1}:`, {
           title: data.title,
@@ -135,4 +135,4 @@ async function main() {
 
 if (require.main === module) {
   main().catch(console.error);
-} 
+}

@@ -65,17 +65,17 @@ async function main() {
       const endpointUrl = await session.browser.getEndpointUrl();
       console.log("endpoint_url =", endpointUrl);
 
-      // Note: Install playwright with: npm install playwright  
-      // const { chromium } = require('playwright');
-      // const browser = await chromium.connectOverCDP(endpointUrl);
+      // Note: Install playwright with: npm install playwright
+      const { chromium } = require('playwright');
+      const browser = await chromium.connectOverCDP(endpointUrl);
       let page = null;
 
       try {
         page = await browser.newPage();
         console.log("🌐 Navigating to 2048...");
-        await page.goto("https://ovolve.github.io/2048-AI/", { 
-          waitUntil: "domcontentloaded", 
-          timeout: 180000 
+        await page.goto("https://ovolve.github.io/2048-AI/", {
+          waitUntil: "domcontentloaded",
+          timeout: 180000
         });
         console.log("🌐 Navigated to 2048 done");
         await page.waitForSelector(".grid-container", { timeout: 10000 });
@@ -94,7 +94,7 @@ async function main() {
             instruction: `
               Extract the current game state:
               1. Score from the score counter
-              2. All tile values and their positions in the 4x4 grid must be extracted. 
+              2. All tile values and their positions in the 4x4 grid must be extracted.
                  Each tile's value and position can be obtained from the tile-position-x-y class, where x (1 to 4) is the column and y (1 to 4) is the row.
                  For example, tile-position-4-1 means the tile is in column 4, row 1.
                  The value of the tile is given by the number in the tile's class.
@@ -104,7 +104,9 @@ async function main() {
                  For instance, if the only tiles present are the two above, the grid should be:[[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
               3. Highest tile value present
             `,
-            schema: GameState
+            schema: GameState,
+            use_text_extract: false
+
           };
 
           const [success, gameStates] = await session.browser.agent.extract(page, gameStateOptions);
@@ -148,7 +150,8 @@ async function main() {
 
             const nextMoveOptions: ExtractOptions<MoveAnalysis> = {
               instruction: instructionStr,
-              schema: MoveAnalysis
+              schema: MoveAnalysis,
+              use_text_extract: false
             };
 
             const [moveSuccess, nextMove] = await session.browser.agent.extract(page, nextMoveOptions);
@@ -165,7 +168,7 @@ async function main() {
 
             const moveKeyMap: { [key: number]: string } = {
               0: "ArrowUp",
-              1: "ArrowDown", 
+              1: "ArrowDown",
               2: "ArrowLeft",
               3: "ArrowRight",
               4: "Escape",
@@ -202,4 +205,4 @@ async function main() {
 
 if (require.main === module) {
   main().catch(console.error);
-} 
+}

@@ -1,5 +1,5 @@
 
-import { AgentBay,log,logError,CreateSessionParams,ContextSync,newSyncPolicy,ContextStatusData } from 'wuying-agentbay-sdk'
+import { AgentBay,log,logError,CreateSessionParams,ContextSync,newSyncPolicy,ContextStatusData, newCreateSessionParams } from 'wuying-agentbay-sdk'
 
 
 
@@ -99,7 +99,7 @@ async function createSessionWithContext() {
       log(`Using context with ID: ${contextResult.context.id}`);
 
       // Create a session linked to the context
-      const params = new CreateSessionParams()
+      const params = newCreateSessionParams()
         .addContextSync(contextResult.context.id, "/home/wuying");
 
       const sessionResult = await agent_bay.create(params);
