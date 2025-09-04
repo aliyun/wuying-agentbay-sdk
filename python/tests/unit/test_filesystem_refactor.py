@@ -99,9 +99,10 @@ class TestFileSystemRefactor(unittest.TestCase):
         result = self.fs.read_file("/path/to/small_file.txt")
 
         self.assertIsInstance(result, FileContentResult)
-        self.assertFalse(result.success)
-        self.assertEqual(result.content, "")
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "small file content")
         mock_get_file_info.assert_called_once_with("/path/to/small_file.txt")
+        mock_read_chunk.assert_called_once_with("/path/to/small_file.txt", 0, 1024)
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     @patch("agentbay.filesystem.filesystem.FileSystem._read_file_chunk")
@@ -127,10 +128,10 @@ class TestFileSystemRefactor(unittest.TestCase):
         result = self.fs.read_file("/path/to/large_file.txt")
 
         self.assertIsInstance(result, FileContentResult)
-        self.assertFalse(result.success)
-        self.assertEqual(result.content, "")
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "chunk1chunk2chunk3")
         mock_get_file_info.assert_called_once_with("/path/to/large_file.txt")
-        self.assertEqual(mock_read_chunk.call_count, 0)
+        self.assertEqual(mock_read_chunk.call_count, 3)
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     def test_read_file_empty_file(self, mock_get_file_info):
