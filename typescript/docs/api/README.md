@@ -34,7 +34,7 @@ async function main() {
     console.log(result.output);
     
     // Clean up session
-    await agentBay.destroy(session.sessionId);
+    await agentBay.delete(session);
 }
 
 main().catch(console.error);
@@ -47,12 +47,12 @@ Main client class that provides session management and advanced features.
 ### Constructor
 
 ```typescript
-constructor(apiKey?: string, config?: AgentBayConfig)
+constructor(options: { apiKey?: string; config?: Config; } = {})
 ```
 
 **Parameters:**
-- `apiKey` (string, optional): API key, defaults to `AGENTBAY_API_KEY` environment variable
-- `config` (AgentBayConfig, optional): Client configuration
+- `options.apiKey` (string, optional): API key, defaults to `AGENTBAY_API_KEY` environment variable
+- `options.config` (Config, optional): Client configuration object
 
 **Examples:**
 ```typescript
@@ -60,10 +60,13 @@ constructor(apiKey?: string, config?: AgentBayConfig)
 const agentBay = new AgentBay();
 
 // Explicitly specify API key
-const agentBay = new AgentBay("your-api-key");
+const agentBay = new AgentBay({ apiKey: "your-api-key" });
 
 // With configuration
-const agentBay = new AgentBay("your-api-key", { timeout: 30000 });
+const agentBay = new AgentBay({ 
+    apiKey: "your-api-key", 
+    config: { timeout_ms: 30000, region_id: "cn-shanghai", endpoint: "wuyingai.cn-shanghai.aliyuncs.com" } 
+});
 ```
 
 ### Methods
@@ -89,39 +92,51 @@ const result = await agentBay.create();
 
 // Create session with parameters
 const params = {
-    image: "ubuntu:20.04",
+    imageId: "ubuntu:20.04",
     labels: { project: "demo" }
 };
 const result = await agentBay.create(params);
 ```
 
-#### destroy()
+#### delete()
 
-Destroy the specified session.
+Delete the specified session.
 
 ```typescript
-async destroy(sessionId: string): Promise<DestroySessionResult>
+async delete(session: Session, syncContext?: boolean): Promise<DeleteResult>
 ```
 
 **Parameters:**
-- `sessionId` (string): Session ID
+- `session` (Session): The session object to delete
+- `syncContext` (boolean, optional): Whether to synchronize context before deletion, defaults to false
 
 **Returns:**
-- `Promise<DestroySessionResult>`: Destruction result
+- `Promise<DeleteResult>`: Deletion result
 
 #### list()
 
-List all sessions.
+List all locally cached sessions.
 
 ```typescript
-async list(params?: ListSessionParams): Promise<ListSessionResult>
+list(): Session[]
+```
+
+**Returns:**
+- `Session[]`: Array of locally cached sessions
+
+#### listByLabels()
+
+List sessions from the server filtered by labels with pagination support.
+
+```typescript
+async listByLabels(params?: ListSessionParams | Record<string, string>): Promise<SessionListResult>
 ```
 
 **Parameters:**
-- `params` (ListSessionParams, optional): List query parameters
+- `params` (ListSessionParams | Record<string, string>, optional): List query parameters or labels object
 
 **Returns:**
-- `Promise<ListSessionResult>`: Session list
+- `Promise<SessionListResult>`: Session list with pagination information
 
 ## Session
 
@@ -134,7 +149,7 @@ Session object that provides access to various functional modules.
 - `createdAt` (Date): Creation time
 - `command` (CommandExecutor): Command executor
 - `code` (CodeExecutor): Code executor
-- `fileSystem` (FileSystemManager): File system manager
+- `fileSystem` (FileSystem): File system manager
 - `ui` (UIAutomation): UI automation
 - `contextSync` (ContextSync): Context synchronization
 - `browser` (BrowserAutomation): Browser automation
@@ -143,19 +158,17 @@ Session object that provides access to various functional modules.
 
 Command execution functionality.
 
-### execute()
+### executeCommand()
 
 Execute Shell commands.
 
 ```typescript
-async execute(command: string, options?: CommandOptions): Promise<CommandResult>
+async executeCommand(command: string, timeoutMs?: number): Promise<CommandResult>
 ```
 
 **Parameters:**
 - `command` (string): Command to execute
-- `options` (CommandOptions, optional): Execution options
-  - `timeout` (number): Timeout in milliseconds
-  - `inputData` (string): Input data
+- `timeoutMs` (number, optional): Timeout in milliseconds, defaults to 1000
 
 **Returns:**
 - `Promise<CommandResult>`: Command execution result
@@ -165,13 +178,8 @@ async execute(command: string, options?: CommandOptions): Promise<CommandResult>
 // Basic command execution
 const result = await session.command.executeCommand("ls -la");
 
-// With timeout
-const result = await session.command.executeCommand("long_running_task", { timeout: 60000 });
-
-// Interactive command
-const result = await session.command.executeCommand("python3", {
-    inputData: "print('hello')\nexit()\n"
-});
+// With timeout (60 seconds)
+const result = await session.command.executeCommand("long_running_task", 60000);
 ```
 
 ## CodeExecutor
@@ -183,17 +191,16 @@ Code execution functionality.
 Execute code in the specified language.
 
 ```typescript
-async runCode(code: string, language: string, options?: CodeOptions): Promise<CodeResult>
+async runCode(code: string, language: string, timeoutS?: number): Promise<CodeExecutionResult>
 ```
 
 **Parameters:**
 - `code` (string): Code to execute
-- `language` (string): Programming language ("python", "javascript", "go")
-- `options` (CodeOptions, optional): Execution options
-  - `timeout` (number): Timeout in milliseconds
+- `language` (string): Programming language ("python", "javascript")
+- `timeoutS` (number, optional): Timeout in seconds, defaults to 300
 
 **Returns:**
-- `Promise<CodeResult>`: Code execution result
+- `Promise<CodeExecutionResult>`: Code execution result
 
 **Examples:**
 ```typescript
@@ -223,7 +230,7 @@ File system operations functionality.
 Read file content.
 
 ```typescript
-async readFile(filePath: string): Promise<FileReadResult>
+async readFile(path: string): Promise<FileContentResult>
 ```
 
 ### writeFile()
@@ -231,23 +238,16 @@ async readFile(filePath: string): Promise<FileReadResult>
 Write file content.
 
 ```typescript
-async writeFile(filePath: string, content: string, encoding?: string): Promise<FileWriteResult>
+async writeFile(path: string, content: string, mode?: string): Promise<BoolResult>
 ```
 
-### deleteFile()
-
-Delete file.
-
-```typescript
-async deleteFile(filePath: string): Promise<FileDeleteResult>
-```
 
 ### listDirectory()
 
 List directory contents.
 
 ```typescript
-async listDirectory(directoryPath: string): Promise<DirectoryListResult>
+async listDirectory(path: string): Promise<DirectoryListResult>
 ```
 
 **Examples:**
@@ -257,11 +257,11 @@ await session.fileSystem.writeFile("/tmp/test.txt", "Hello World!");
 
 // Read file
 const result = await session.fileSystem.readFile("/tmp/test.txt");
-console.log(result.data); // "Hello World!"
+console.log(result.content); // "Hello World!"
 
 // List directory
-const result = await session.fileSystem.listDirectory("/tmp");
-result.data.forEach(file => {
+const listResult = await session.fileSystem.listDirectory("/tmp");
+listResult.entries.forEach(file => {
     console.log(`${file.name} (${file.size} bytes)`);
 });
 ```
@@ -377,11 +377,12 @@ if (result.isError) {
 
 ```typescript
 interface CreateSessionParams {
-    image?: string;
+    imageId?: string;
     labels?: Record<string, string>;
-    contextSyncs?: ContextSync[];
-    sessionType?: string;
-    vpcConfig?: VPCConfig;
+    contextSync?: ContextSync[];
+    browserContext?: BrowserContext;
+    isVpc?: boolean;
+    mcpPolicyId?: string;
 }
 ```
 

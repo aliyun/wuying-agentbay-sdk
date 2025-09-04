@@ -21,63 +21,63 @@ Retrieves all clickable UI elements within the specified timeout.
 
 
 ```typescript
-getClickableUIElements(timeoutMs?: number): Promise<string>
+getClickableUIElements(timeoutMs?: number): Promise<UIElementListResult>
 ```
 
 **Parameters:**
 - `timeoutMs` (number, optional): The timeout in milliseconds. Default is 2000ms.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to a string representation of clickable UI elements.
+- `Promise<UIElementListResult>`: A promise that resolves to a result object containing clickable UI elements, success status, and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-getAllUIElements(timeoutMs?: number): Promise<string>
+getAllUIElements(timeoutMs?: number): Promise<UIElementListResult>
 ```
 
 **Parameters:**
 - `timeoutMs` (number, optional): The timeout in milliseconds. Default is 2000ms.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to a string representation of all UI elements.
+- `Promise<UIElementListResult>`: A promise that resolves to a result object containing all UI elements, success status, and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-sendKey(key: number): Promise<string>
+sendKey(key: number): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `key` (number): The key code to send. Use the `KeyCode` constants.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-inputText(text: string): Promise<string>
+inputText(text: string): Promise<BoolResult>
 ```
 
 **Parameters:**
 - `text` (string): The text to input.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-swipe(startX: number, startY: number, endX: number, endY: number, durationMs?: number): Promise<string>
+swipe(startX: number, startY: number, endX: number, endY: number, durationMs?: number): Promise<BoolResult>
 ```
 
 **Parameters:**
@@ -88,14 +88,14 @@ swipe(startX: number, startY: number, endX: number, endY: number, durationMs?: n
 - `durationMs` (number, optional): The duration of the swipe in milliseconds. Default is 300ms.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-click(x: number, y: number, button?: string): Promise<string>
+click(x: number, y: number, button?: string): Promise<BoolResult>
 ```
 
 **Parameters:**
@@ -104,18 +104,18 @@ click(x: number, y: number, button?: string): Promise<string>
 - `button` (string, optional): The mouse button to use. Default is 'left'.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.
 
 
 ```typescript
-screenshot(): Promise<string>
+screenshot(): Promise<OperationResult>
 ```
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the screenshot data.
+- `Promise<OperationResult>`: A promise that resolves to a result object containing screenshot data, success status, and request ID.
 
 **Throws:**
 - `APIError`: If the operation fails.

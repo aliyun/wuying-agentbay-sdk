@@ -63,7 +63,7 @@ import (
 
 func main() {
 	// Initialize the SDK with default configuration
-	client, err := agentbay.NewAgentBay("your_api_key")
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -160,7 +160,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key")
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -208,7 +208,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key")
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -292,7 +292,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key")
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)

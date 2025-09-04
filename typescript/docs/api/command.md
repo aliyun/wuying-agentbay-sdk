@@ -24,10 +24,12 @@ executeCommand(command: string, timeoutMs: number = 1000): Promise<CommandResult
 interface CommandResult {
     requestId: string;      // Unique identifier for the API request
     success: boolean;       // Whether the operation was successful
-    output: string;         // The command output
+    output: string;         // The command output (stdout)
     errorMessage?: string;  // Error message if the operation failed
 }
 ```
+
+**Note:** The `output` field contains the standard output (stdout) of the executed command. Error output (stderr) is typically included in the `errorMessage` field when the command fails.
 
 **Usage Example:**
 
