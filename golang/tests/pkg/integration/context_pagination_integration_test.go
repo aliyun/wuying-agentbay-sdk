@@ -31,7 +31,7 @@ func TestContextPagination(t *testing.T) {
 				t.Logf("Warning: Error getting context %s for cleanup: %v", name, err)
 				continue
 			}
-			
+
 			context := contextFromResult(getResult)
 			if context != nil {
 				_, err := agentBay.Context.Delete(context)
@@ -48,12 +48,12 @@ func TestContextPagination(t *testing.T) {
 	for i := 0; i < 15; i++ {
 		contextName := fmt.Sprintf("test-pagination-%d-%d", time.Now().Unix(), i)
 		t.Logf("Creating context: %s", contextName)
-		
+
 		_, err := agentBay.Context.Create(contextName)
 		if err != nil {
 			t.Fatalf("Error creating context %s: %v", contextName, err)
 		}
-		
+
 		contextNames = append(contextNames, contextName)
 	}
 
@@ -73,7 +73,7 @@ func TestContextPagination(t *testing.T) {
 	if len(listResult.Contexts) != 10 {
 		t.Errorf("Expected 10 contexts in first page, got %d", len(listResult.Contexts))
 	}
-	
+
 	t.Logf("First page: Got %d contexts (RequestID: %s)", len(listResult.Contexts), listResult.RequestID)
 	t.Logf("NextToken: %s, MaxResults: %d, TotalCount: %d", listResult.NextToken, listResult.MaxResults, listResult.TotalCount)
 
@@ -90,7 +90,7 @@ func TestContextPagination(t *testing.T) {
 	if len(listResult.Contexts) != 5 {
 		t.Errorf("Expected 5 contexts with custom page size, got %d", len(listResult.Contexts))
 	}
-	
+
 	t.Logf("Custom page size: Got %d contexts (RequestID: %s)", len(listResult.Contexts), listResult.RequestID)
 	t.Logf("NextToken: %s, MaxResults: %d, TotalCount: %d", listResult.NextToken, listResult.MaxResults, listResult.TotalCount)
 
@@ -106,13 +106,12 @@ func TestContextPagination(t *testing.T) {
 			t.Fatalf("Error listing contexts second page: %v", err)
 		}
 
-		
 		t.Logf("Second page: Got %d contexts (RequestID: %s)", len(secondPageResult.Contexts), secondPageResult.RequestID)
 		t.Logf("NextToken: %s, MaxResults: %d, TotalCount: %d", secondPageResult.NextToken, secondPageResult.MaxResults, secondPageResult.TotalCount)
-		
+
 		// Note: We're not verifying that the second page has different contexts than the first page
-	// because the API might return the same contexts in different orders or have other behaviors
-	// that are not strictly paginated
+		// because the API might return the same contexts in different orders or have other behaviors
+		// that are not strictly paginated
 	} else {
 		t.Log("No NextToken available for second page test")
 	}
@@ -131,7 +130,7 @@ func TestContextPagination(t *testing.T) {
 	if len(listResult.Contexts) < 10 {
 		t.Errorf("Expected at least 10 contexts with larger page size, got %d", len(listResult.Contexts))
 	}
-	
+
 	t.Logf("Larger page size: Got %d contexts (RequestID: %s)", len(listResult.Contexts), listResult.RequestID)
 	t.Logf("NextToken: %s, MaxResults: %d, TotalCount: %d", listResult.NextToken, listResult.MaxResults, listResult.TotalCount)
 
@@ -151,4 +150,3 @@ func TestContextPagination(t *testing.T) {
 
 	t.Log("TestContextPagination completed successfully")
 }
-

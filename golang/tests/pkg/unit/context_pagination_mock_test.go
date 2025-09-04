@@ -185,10 +185,10 @@ func TestContextPagination_List_NilParams_WithMockClient(t *testing.T) {
 
 	// Test List method call with nil params
 	// Note: Since we're testing with a mock, we can't directly test the nil parameter handling
-	// in the ContextService.List method. In a real scenario, when params is nil, the 
-	// ContextService.List method will create default params. With mocks, we need to 
+	// in the ContextService.List method. In a real scenario, when params is nil, the
+	// ContextService.List method will create default params. With mocks, we need to
 	// explicitly pass the expected parameters.
-	
+
 	// For this test, we'll just verify that the method can be called with nil params
 	// and that it doesn't panic. We'll expect the mock to be called with nil.
 	mockContext.EXPECT().List(gomock.Nil()).Return(nil, nil)

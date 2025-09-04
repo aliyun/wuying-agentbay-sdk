@@ -50,8 +50,6 @@ func main() {
 		return
 	}
 
-
-
 	session := sessionResult.Session
 	fmt.Printf("VPC session created successfully with ID: %s\n", session.SessionID)
 
@@ -74,7 +72,7 @@ func main() {
 	testContent := fmt.Sprintf("Hello from VPC session! Created at %s", time.Now().Format(time.RFC3339))
 
 	// Write file
-	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent,"overwrite")
+	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
 	if err != nil {
 		fmt.Printf("Error writing file: %v\n", err)
 	} else if writeResult.Success {
@@ -87,7 +85,7 @@ func main() {
 	readResult, err := session.FileSystem.ReadFile(testFilePath)
 	if err != nil {
 		fmt.Printf("Error reading file: %v\n", err)
-	} else if len(readResult.Content)>0 {
+	} else if len(readResult.Content) > 0 {
 		fmt.Printf("✓ File read successfully. Content: %s\n", readResult.Content)
 	} else {
 		fmt.Printf("⚠ File read failed: %s\n", readResult.Content)
@@ -100,7 +98,7 @@ func main() {
 	cmdResult, err := session.Command.ExecuteCommand("whoami")
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
-	} else if len(cmdResult.Output)>0 {
+	} else if len(cmdResult.Output) > 0 {
 		fmt.Printf("✓ Current user: %s\n", cmdResult.Output)
 	} else {
 		fmt.Printf("⚠ Command execution failed: %s\n", cmdResult.Output)
@@ -110,7 +108,7 @@ func main() {
 	lsResult, err := session.Command.ExecuteCommand("ls -la /tmp")
 	if err != nil {
 		fmt.Printf("Error executing command: %v\n", err)
-	} else if len(lsResult.Output)>0 {
+	} else if len(lsResult.Output) > 0 {
 		fmt.Println("✓ Directory listing successful")
 		fmt.Printf("  Output:\n%s\n", lsResult.Output)
 	} else {

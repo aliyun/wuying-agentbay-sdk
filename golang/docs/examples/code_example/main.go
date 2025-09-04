@@ -15,7 +15,7 @@ func main() {
 		fmt.Println("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.")
 	}
 	// Initialize AgentBay with API key from environment
-	ab,err := agentbay.NewAgentBay(apiKey)
+	ab, err := agentbay.NewAgentBay(apiKey)
 
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)

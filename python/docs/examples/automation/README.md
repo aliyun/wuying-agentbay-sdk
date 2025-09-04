@@ -1,13 +1,14 @@
 # Automation Feature Examples
 
-This example demonstrates the automation capabilities of the AgentBay SDK, including command execution, code execution, UI automation, and workflow orchestration.
+This example demonstrates the automation capabilities of the AgentBay SDK with different specialized images, including command execution, code execution, and UI automation across different environments.
 
 ## Features
 
-- **Command Execution**: Execute Shell commands in the cloud
-- **Code Execution**: Run Python and JavaScript code
-- **UI Automation**: Screen capture, keyboard input, mouse operations
-- **Workflow Orchestration**: Multi-step automation tasks
+- **Command Execution**: Execute Shell commands using linux_latest image
+- **Code Execution**: Run Python and JavaScript code using code_latest image
+- **Linux UI Automation**: Desktop UI operations using linux_latest image
+- **Mobile UI Automation**: Mobile UI operations using mobile_latest image
+- **Multi-Image Support**: Demonstrates proper image selection for different use cases
 
 ## Running the Example
 
@@ -24,26 +25,44 @@ python main.py
 
 ## Example Content
 
-### 1. Command Execution Example
-- Basic system command execution
-- Command execution with timeout
-- Error handling
-
-### 2. Code Execution Example
-- Python code execution
-- JavaScript code execution
+### 1. Command Execution Example (linux_latest)
+- Basic system command execution in Linux environment
+- File system operations
 - System information retrieval
+- Proper error handling and session cleanup
 
-### 3. UI Automation Example
-- Screen capture
-- Keyboard input simulation
+### 2. Code Execution Example (code_latest)
+- Python code execution with libraries
+- JavaScript code execution
+- System information and environment details
+- Code execution result validation
+
+### 3. Linux UI Automation Example (linux_latest)
+- Desktop screen capture
+- Keyboard input simulation for desktop applications
 - Mouse operation simulation
+- Desktop environment interaction
 
-### 4. Workflow Orchestration Example
-- Data generation
-- Data analysis
-- Report generation
-- Result validation
+### 4. Mobile UI Automation Example (mobile_latest)
+- Mobile interface screen capture
+- Touch gesture simulation
+- Mobile-specific UI interactions
+- Device orientation and touch input handling
+
+## Image Selection Guide
+
+This example demonstrates best practices for selecting appropriate images for different automation tasks:
+
+- **linux_latest**: Best for command execution and Linux desktop UI automation
+- **code_latest**: Optimized for code execution with pre-installed development tools
+- **mobile_latest**: Specialized for mobile UI testing and automation
+
+## Key Changes from Previous Version
+
+- **Separated UI automation**: Split into Linux and Mobile specific examples to prevent execution conflicts
+- **Improved API usage**: Updated to use current SDK API patterns (`.content` for file content, `.data` for response data)
+- **Better error handling**: Enhanced error handling and session cleanup
+- **Image-specific optimization**: Each example uses the most appropriate image type
 
 ## Related Documentation
 
@@ -53,6 +72,8 @@ python main.py
 
 ## Notes
 
-- Ensure the correct API key is set
-- UI automation features require graphical interface support
-- Some features may require specific system permissions
+- Ensure the correct API key is set via `AGENTBAY_API_KEY` environment variable
+- UI automation features require graphical interface support in the target image
+- Mobile UI automation requires mobile_latest image for proper touch input simulation
+- Each automation type uses a separate session to prevent interference
+- All sessions are properly cleaned up after use
