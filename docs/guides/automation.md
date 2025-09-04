@@ -315,85 +315,460 @@ agent_bay.delete(session)
 ### Parallel Workflows
 
 ```python
+"""
+AgentBay SDK - Parallel Workflows Template
+
+This template demonstrates how to use AgentBay SDK to execute multiple tasks in parallel.
+Each task runs in its own isolated session, allowing for concurrent execution of different operations.
+
+🔧 CUSTOMIZATION GUIDE:
+- Replace the example tasks with your own business logic
+- Modify task parameters and execution methods as needed
+- Add or remove tasks based on your requirements
+- Customize error handling and logging to fit your needs
+
+Usage:
+    python parallel_workflows.py
+
+Requirements:
+    - AgentBay SDK installed
+    - Valid API key (set AGENTBAY_API_KEY environment variable)
+"""
+
+import os
 import concurrent.futures
 import threading
+import time
+from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 
-class ParallelWorkflow:
-    def __init__(self, agent_bay):
-        self.agent_bay = agent_bay
 
-    def create_session(self):
-        """Create a new session for parallel execution"""
-        session_params = CreateSessionParams(image_id="code_latest")
+def initialize_agentbay():
+    """
+    Initialize AgentBay SDK with proper API key handling.
+
+    Returns:
+        AgentBay: Initialized AgentBay instance
+
+    Raises:
+        Exception: If API key is not provided and no default is available
+    """
+    api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        # TODO: Replace with your actual API key or ensure environment variable is set
+        api_key = "your-api-key-here"
+        print("⚠️  Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.")
+
+    try:
+        agent_bay = AgentBay(api_key=api_key)
+        print("✅ AgentBay SDK initialized successfully")
+        return agent_bay
+    except Exception as e:
+        print(f"❌ Failed to initialize AgentBay SDK: {e}")
+        raise
+
+
+class ParallelWorkflowManager:
+    """
+    Manages parallel execution of multiple tasks using AgentBay sessions.
+
+    🔧 CUSTOMIZATION:
+    - Add your own task methods following the same pattern
+    - Modify session parameters (image_id, etc.) as needed
+    - Customize error handling and logging
+    """
+
+    def __init__(self, agent_bay, image_id="code_latest"):
+        """
+        Initialize the workflow manager.
+
+        Args:
+            agent_bay (AgentBay): Initialized AgentBay instance
+            image_id (str): Docker image ID to use for sessions
+                          TODO: Replace with your preferred image
+        """
+        self.agent_bay = agent_bay
+        self.image_id = image_id
+        self.session_count = 0
+        self.lock = threading.Lock()
+
+    def create_session(self, task_name=""):
+        """
+        Create a new AgentBay session with proper error handling.
+
+        Args:
+            task_name (str): Optional task name for logging
+
+        Returns:
+            Session: Created session object
+
+        Raises:
+            Exception: If session creation fails
+        """
+        with self.lock:
+            self.session_count += 1
+            session_id = self.session_count
+
+        session_params = CreateSessionParams(image_id=self.image_id)
         result = self.agent_bay.create(session_params)
 
         if result.success:
+            print(f"📦 Session {session_id} created for task: {task_name}")
             return result.session
         else:
-            raise Exception(f"Failed to create session: {result.error_message}")
+            raise Exception(f"Failed to create session for {task_name}: {result.error_message}")
 
-    def task_1(self):
-        """Data processing task"""
-        session = self.create_session()
-        try:
-            # Process data
-            result = session.command.execute_command("python3 data_processor.py")
-            return {"task": "data_processing", "success": result.success}
-        finally:
-            # Clean up session if needed
-            self.agent_bay.delete(session)
+    def cleanup_session(self, session, task_name=""):
+        """
+        Safely cleanup a session with error handling.
 
-    def task_2(self):
-        """Report generation task"""
-        session = self.create_session()
-        try:
-            # Generate report
-            result = session.command.execute_command("python3 report_generator.py")
-            return {"task": "report_generation", "success": result.success}
-        finally:
-            self.agent_bay.delete(session)
+        Args:
+            session: Session to cleanup
+            task_name (str): Task name for logging
+        """
+        if session is not None:
+            try:
+                self.agent_bay.delete(session)
+                print(f"🧹 Session cleaned up for task: {task_name}")
+            except Exception as e:
+                print(f"⚠️  Warning: Failed to cleanup session for {task_name}: {e}")
 
-    def task_3(self):
-        """Notification task"""
-        session = self.create_session()
+    def custom_task_1(self):
+        """
+        🔧 REPLACE THIS: Custom Task 1 Template
+
+        Replace this method with your own business logic.
+        This example shows file-based execution pattern.
+
+        Returns:
+            dict: Task result with success status and details
+        """
+        task_name = "Custom Task 1"  # TODO: Replace with your task name
+        session = None
+
         try:
-            # Send notifications
-            code = """
-import requests
-response = requests.post('https://api.slack.com/webhook', json={'text': 'Task completed'})
-print(f'Notification sent: {response.status_code}')
+            session = self.create_session(task_name)
+
+            # TODO: Replace this with your actual code
+            your_code = """
+# 🔧 REPLACE THIS SECTION WITH YOUR CODE
+print("Starting your custom task 1...")
+
+# Example: Your business logic here
+# - Data processing
+# - API calls
+# - File operations
+# - Database queries
+# etc.
+
+print("Your custom task 1 completed!")
 """
-            result = session.code.run_code(code, "python")
-            return {"task": "notification", "success": result.success}
-        finally:
-            self.agent_bay.delete(session)
 
-    def run_parallel(self):
-        """Run all tasks in parallel"""
-        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            futures = [
-                executor.submit(self.task_1),
-                executor.submit(self.task_2),
-                executor.submit(self.task_3)
-            ]
+            # Write code to file and execute
+            write_result = session.file_system.write_file('/workspace/your_script_1.py', your_code)
+            if not write_result.success:
+                return {
+                    "task": task_name,
+                    "success": False,
+                    "error": f"Failed to write script: {write_result.error_message}"
+                }
+
+            # Execute your script
+            exec_result = session.command.execute_command("python3 /workspace/your_script_1.py")
+
+            return {
+                "task": task_name,
+                "success": exec_result.success,
+                "execution_time": time.time(),
+                "method": "file_execution"
+            }
+
+        except Exception as e:
+            return {
+                "task": task_name,
+                "success": False,
+                "error": str(e),
+                "method": "file_execution"
+            }
+        finally:
+            self.cleanup_session(session, task_name)
+
+    def custom_task_2(self):
+        """
+        🔧 REPLACE THIS: Custom Task 2 Template
+
+        Replace this method with your own business logic.
+        This example shows another file-based execution pattern.
+
+        Returns:
+            dict: Task result with success status and details
+        """
+        task_name = "Custom Task 2"  # TODO: Replace with your task name
+        session = None
+
+        try:
+            session = self.create_session(task_name)
+
+            # TODO: Replace this with your actual code
+            your_code = """
+# 🔧 REPLACE THIS SECTION WITH YOUR CODE
+print("Starting your custom task 2...")
+
+# Example: Your business logic here
+# - Report generation
+# - Data analysis
+# - Image processing
+# - Machine learning inference
+# etc.
+
+print("Your custom task 2 completed!")
+"""
+
+            # Write and execute your script
+            write_result = session.file_system.write_file('/workspace/your_script_2.py', your_code)
+            if not write_result.success:
+                return {
+                    "task": task_name,
+                    "success": False,
+                    "error": f"Failed to write script: {write_result.error_message}"
+                }
+
+            exec_result = session.command.execute_command("python3 /workspace/your_script_2.py")
+
+            return {
+                "task": task_name,
+                "success": exec_result.success,
+                "execution_time": time.time(),
+                "method": "file_execution"
+            }
+
+        except Exception as e:
+            return {
+                "task": task_name,
+                "success": False,
+                "error": str(e),
+                "method": "file_execution"
+            }
+        finally:
+            self.cleanup_session(session, task_name)
+
+    def custom_task_3(self):
+        """
+        🔧 REPLACE THIS: Custom Task 3 Template
+
+        Replace this method with your own business logic.
+        This example shows direct code execution pattern.
+
+        Returns:
+            dict: Task result with success status and details
+        """
+        task_name = "Custom Task 3"  # TODO: Replace with your task name
+        session = None
+
+        try:
+            session = self.create_session(task_name)
+
+            # TODO: Replace this with your actual code
+            your_code = """
+# 🔧 REPLACE THIS SECTION WITH YOUR CODE
+print("Starting your custom task 3...")
+
+# Example: Your business logic here
+# - Send notifications
+# - Update databases
+# - Call external APIs
+# - Generate alerts
+# etc.
+
+print("Your custom task 3 completed!")
+"""
+
+            # Execute code directly (good for shorter scripts)
+            exec_result = session.code.run_code(your_code, "python")
+
+            return {
+                "task": task_name,
+                "success": exec_result.success,
+                "execution_time": time.time(),
+                "method": "direct_execution"
+            }
+
+        except Exception as e:
+            return {
+                "task": task_name,
+                "success": False,
+                "error": str(e),
+                "method": "direct_execution"
+            }
+        finally:
+            self.cleanup_session(session, task_name)
+
+    # 🔧 ADD MORE TASKS: You can add more custom tasks here following the same pattern
+    def your_additional_task(self):
+        """
+        🔧 TEMPLATE: Add your additional tasks here
+
+        Copy this template and modify it for your needs:
+        1. Change the task_name
+        2. Replace the code with your logic
+        3. Choose execution method (file_execution or direct_execution)
+        4. Add the task to run_parallel_workflow method
+        """
+        task_name = "Your Additional Task"
+        session = None
+
+        try:
+            session = self.create_session(task_name)
+
+            # Your code here
+            your_code = """
+print("Your additional task logic here...")
+"""
+
+            # Choose your execution method:
+            # Option 1: Direct execution
+            exec_result = session.code.run_code(your_code, "python")
+
+            # Option 2: File execution (uncomment if needed)
+            # write_result = session.file_system.write_file('/workspace/your_additional_script.py', your_code)
+            # if write_result.success:
+            #     exec_result = session.command.execute_command("python3 /workspace/your_additional_script.py")
+            # else:
+            #     return {"task": task_name, "success": False, "error": "Failed to write file"}
+
+            return {
+                "task": task_name,
+                "success": exec_result.success,
+                "execution_time": time.time(),
+                "method": "direct_execution"  # or "file_execution"
+            }
+
+        except Exception as e:
+            return {
+                "task": task_name,
+                "success": False,
+                "error": str(e)
+            }
+        finally:
+            self.cleanup_session(session, task_name)
+
+    def run_parallel_workflow(self, max_workers=3):
+        """
+        Execute all tasks in parallel using ThreadPoolExecutor.
+
+        🔧 CUSTOMIZATION:
+        - Add or remove tasks from the tasks list
+        - Modify max_workers based on your needs
+        - Add custom result processing logic
+
+        Args:
+            max_workers (int): Maximum number of concurrent threads
+
+        Returns:
+            list: Results from all tasks
+        """
+        print(f"🚀 Starting parallel workflow with {max_workers} workers...")
+        start_time = time.time()
+
+        # 🔧 TODO: Replace these with your actual tasks
+        tasks = [
+            ("Custom Task 1", self.custom_task_1),
+            ("Custom Task 2", self.custom_task_2),
+            ("Custom Task 3", self.custom_task_3),
+            # 🔧 ADD MORE: Uncomment and add your additional tasks
+            # ("Your Additional Task", self.your_additional_task),
+        ]
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            future_to_task = {
+                executor.submit(task_func): task_name
+                for task_name, task_func in tasks
+            }
 
             results = []
-            for future in concurrent.futures.as_completed(futures):
+
+            # Collect results as they complete
+            for future in concurrent.futures.as_completed(future_to_task):
+                task_name = future_to_task[future]
                 try:
                     result = future.result()
                     results.append(result)
+
+                    status_emoji = "✅" if result.get("success", False) else "❌"
+                    print(f"{status_emoji} {task_name} completed")
+
                 except Exception as e:
-                    results.append({"error": str(e)})
+                    error_result = {
+                        "task": task_name,
+                        "success": False,
+                        "error": f"Task execution failed: {str(e)}"
+                    }
+                    results.append(error_result)
+                    print(f"❌ {task_name} failed: {e}")
 
-            return results
+        total_time = round(time.time() - start_time, 2)
+        print(f"🏁 Parallel workflow completed in {total_time} seconds")
 
-# Usage
-agent_bay = AgentBay(api_key=api_key)
-print("✅ SDK initialized successfully")
-workflow = ParallelWorkflow(agent_bay)
-results = workflow.run_parallel()
-print("Parallel execution results:", results)
+        return results
+
+
+def main():
+    """
+    Main function demonstrating the parallel workflow usage.
+
+    🔧 CUSTOMIZATION:
+    - Modify workflow parameters
+    - Add custom result processing
+    - Integrate with your application logic
+    """
+    print("🎯 AgentBay Parallel Workflows - Custom Implementation")
+    print("=" * 60)
+    print("🔧 Remember to replace the example tasks with your own logic!")
+    print("=" * 60)
+
+    try:
+        # Initialize AgentBay SDK
+        agent_bay = initialize_agentbay()
+
+        # Create workflow manager
+        workflow_manager = ParallelWorkflowManager(agent_bay)
+
+        # 🔧 TODO: Customize workflow parameters as needed
+        results = workflow_manager.run_parallel_workflow(max_workers=3)
+
+        # Display final results
+        print("\n📊 Final Results Summary:")
+        print("=" * 50)
+
+        successful_tasks = 0
+        for i, result in enumerate(results, 1):
+            status = "✅ SUCCESS" if result.get("success", False) else "❌ FAILED"
+            task_name = result.get("task", f"Task {i}")
+            method = result.get("method", "unknown")
+
+            print(f"{i}. {task_name}: {status} (Method: {method})")
+
+            if not result.get("success", False) and "error" in result:
+                print(f"   Error: {result['error']}")
+
+            if result.get("success", False):
+                successful_tasks += 1
+
+        print(f"\n🎯 Overall Success Rate: {successful_tasks}/{len(results)} tasks completed successfully")
+
+        # 🔧 TODO: Add your custom result processing logic here
+        # Example: Save results to database, send notifications, etc.
+
+    except Exception as e:
+        print(f"❌ Application failed: {e}")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
 ```
 
 <a id="error-handling-and-retry"></a>
@@ -430,57 +805,9 @@ try:
     result = execute_with_retry(session, "unstable-command")
     if result.success:
         print("Command succeeded:", result.output)
+        agent_bay.delete(session)
 except Exception as e:
     print("Command ultimately failed:", e)
-```
-
-### Circuit Breaker Pattern
-
-```python
-class CircuitBreaker:
-    def __init__(self, failure_threshold=5, timeout=60):
-        self.failure_threshold = failure_threshold
-        self.timeout = timeout
-        self.failure_count = 0
-        self.last_failure_time = None
-        self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
-
-    def call(self, func, *args, **kwargs):
-        if self.state == "OPEN":
-            if time.time() - self.last_failure_time > self.timeout:
-                self.state = "HALF_OPEN"
-            else:
-                raise Exception("Circuit breaker is OPEN")
-
-        try:
-            result = func(*args, **kwargs)
-            if self.state == "HALF_OPEN":
-                self.state = "CLOSED"
-                self.failure_count = 0
-            return result
-        except Exception as e:
-            self.failure_count += 1
-            self.last_failure_time = time.time()
-
-            if self.failure_count >= self.failure_threshold:
-                self.state = "OPEN"
-
-            raise e
-
-# Usage
-breaker = CircuitBreaker()
-
-def unreliable_operation():
-    result = session.command.execute_command("flaky-command")
-    if not result.success:
-        raise Exception(result.error_message)
-    return result
-
-try:
-    result = breaker.call(unreliable_operation)
-    print("Operation succeeded")
-except Exception as e:
-    print("Operation failed:", e)
 ```
 
 <a id="best-practices"></a>
@@ -507,10 +834,12 @@ def managed_session(agent_bay):
 
 # Usage
 try:
+    agent_bay = self.common_code()
     with managed_session(agent_bay) as session:
         result = session.command.execute_command("echo 'Hello'")
         if result.success:
             print("Command output:", result.output)
+            agent_bay.delete(session)
 except Exception as e:
     print("Error:", e)
 ```
@@ -519,6 +848,7 @@ except Exception as e:
 
 ```python
 import logging
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -542,58 +872,9 @@ def execute_with_logging(session, command):
         duration = time.time() - start_time
         logger.exception(f"Command exception in {duration:.2f}s: {e}")
         raise
+execute_with_logging(session, "echo 'Hello'")
+agent_bay.delete(session)
 ```
-
-### 3. Configuration Management
-
-```python
-import os
-from dataclasses import dataclass
-
-@dataclass
-class AutomationConfig:
-    max_retries: int = 3
-    timeout: int = 30
-    log_level: str = "INFO"
-    workspace_dir: str = "/tmp/workspace"
-
-    @classmethod
-    def from_env(cls):
-        return cls(
-            max_retries=int(os.getenv("MAX_RETRIES", "3")),
-            timeout=int(os.getenv("TIMEOUT", "30")),
-            log_level=os.getenv("LOG_LEVEL", "INFO"),
-            workspace_dir=os.getenv("WORKSPACE_DIR", "/tmp/workspace")
-        )
-
-# Usage
-config = AutomationConfig.from_env()
-result = session.command.execute_command("ls", timeout_ms=config.timeout*1000)
-```
-
-### 4. Testing Automation Scripts
-
-```python
-import unittest
-from unittest.mock import Mock, patch
-
-class TestAutomation(unittest.TestCase):
-    def setUp(self):
-        self.mock_session = Mock()
-
-    def test_command_execution(self):
-        # Mock successful command
-        mock_result = Mock()
-        mock_result.success = True
-        mock_result.output = "test output"
-        self.mock_session.command.execute_command.return_value = mock_result
-
-        # Test your automation function
-        result = execute_with_logging(self.mock_session, "test command")
-
-        self.assertTrue(result.success)
-        self.assertEqual(result.output, "test output")
-        self.mock_session.command.execute_command.assert_called_once_with("test command")
 
 if __name__ == "__main__":
     unittest.main()
