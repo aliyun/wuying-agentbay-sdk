@@ -1,66 +1,66 @@
 /**
- * AgentBay SDK - 自动化功能示例 (TypeScript)
+ * AgentBay SDK - Automation Features Example (TypeScript)
  *
- * 本示例展示了如何使用AgentBay SDK的自动化功能，包括：
- * - 命令执行
- * - 代码执行
- * - UI自动化
- * - 工作流编排
+ * This example demonstrates how to use AgentBay SDK automation features, including:
+ * - Command execution
+ * - Code execution
+ * - UI automation
+ * - Workflow orchestration
  */
 
 import { AgentBay,KeyCode } from 'wuying-agentbay-sdk';
 
 async function main(): Promise<void> {
-    console.log('🚀 AgentBay 自动化功能示例 (TypeScript)');
+    console.log('🚀 AgentBay Automation Features Example (TypeScript)');
 
-    // 初始化AgentBay客户端
+    // Initialize AgentBay client
     const agentBay = new AgentBay();
 
-    // 创建会话
-    console.log('\n📱 创建会话...');
+    // Create session
+    console.log('\n📱 Creating session...');
     const sessionResult = await agentBay.create({imageId:'code_latest'});
     const mobileResult = await agentBay.create({imageId:'mobile_latest'})
     if (!sessionResult.success) {
-        console.log(`❌ 会话创建失败: ${sessionResult.errorMessage}`);
+        console.log(`❌ Session creation failed: ${sessionResult.errorMessage}`);
         return;
     }
     if (!mobileResult.success) {
-        console.log(`❌ 会话创建失败: ${mobileResult.errorMessage}`);
+        console.log(`❌ Session creation failed: ${mobileResult.errorMessage}`);
         return;
     }
 
     const session = sessionResult.session;
     const mobileSession = mobileResult.session;
-    console.log(`✅ 会话创建成功: ${session.sessionId}`);
+    console.log(`✅ Session created successfully: ${session.sessionId}`);
 
     try {
-        // 1. 命令执行示例
+        // 1. Command execution example
         await commandExecutionExample(session);
 
-        // 2. 代码执行示例
+        // 2. Code execution example
         await codeExecutionExample(session);
 
-        // 3. UI自动化示例
+        // 3. UI automation example
         await uiAutomationExample(mobileSession);
 
-        // 4. 工作流编排示例
+        // 4. Workflow orchestration example
         await workflowExample(mobileSession);
 
     } catch (error) {
-        console.log(`❌ 示例执行失败: ${error}`);
+        console.log(`❌ Example execution failed: ${error}`);
     } finally {
-        // 清理会话
-        console.log(`\n🧹 清理会话: ${session.sessionId}`);
+        // Clean up session
+        console.log(`\n🧹 Cleaning up session: ${session.sessionId}`);
         await agentBay.delete(session);
         await agentBay.delete(mobileSession);
-        console.log('✅ 示例执行完成');
+        console.log('✅ Example execution completed');
     }
 }
 
 async function commandExecutionExample(session: any): Promise<void> {
-    console.log('\n💻 === 命令执行示例 ===');
+    console.log('\n💻 === Command Execution Example ===');
 
-    // 基本命令执行
+    // Basic command execution
     const commands = [
         'whoami',
         'pwd',
@@ -70,37 +70,37 @@ async function commandExecutionExample(session: any): Promise<void> {
     ];
 
     for (const cmd of commands) {
-        console.log(`\n🔄 执行命令: ${cmd}`);
+        console.log(`\n🔄 Executing command: ${cmd}`);
         const result = await session.command.executeCommand(cmd);
 
         if (!result.isError) {
-            console.log(`✅ 输出: ${result.output.trim()}`);
+            console.log(`✅ Output: ${result.output.trim()}`);
         } else {
-            console.log(`❌ 命令失败: ${result.error}`);
+            console.log(`❌ Command failed: ${result.error}`);
         }
     }
 
-    // 带超时的命令执行
-    console.log('\n🔄 执行带超时的命令...');
+    // Command execution with timeout
+    console.log('\n🔄 Executing command with timeout...');
     const timeoutResult = await session.command.executeCommand('sleep 2', { timeout: 5000 });
     if (!timeoutResult.isError) {
-        console.log('✅ 超时命令执行成功');
+        console.log('✅ Timeout command executed successfully');
     } else {
-        console.log(`❌ 超时命令失败: ${timeoutResult.error}`);
+        console.log(`❌ Timeout command failed: ${timeoutResult.error}`);
     }
 }
 
 async function codeExecutionExample(session: any): Promise<void> {
-    console.log('\n🐍 === 代码执行示例 ===');
+    console.log('\n🐍 === Code Execution Example ===');
 
-    // Python代码执行
+    // Python code execution
     const pythonCode = `
 import sys
 import os
 import json
 from datetime import datetime
 
-# 系统信息
+# System information
 system_info = {
     "python_version": sys.version,
     "current_directory": os.getcwd(),
@@ -108,29 +108,29 @@ system_info = {
     "environment_vars": len(os.environ)
 }
 
-print("Python代码执行成功!")
-print(f"系统信息: {json.dumps(system_info, indent=2)}")
+print("Python code executed successfully!")
+print(f"System info: {json.dumps(system_info, indent=2)}")
 
-# 简单计算
+# Simple calculation
 numbers = list(range(1, 11))
 total = sum(numbers)
-print(f"1到10的和: {total}")
+print(f"Sum of 1 to 10: {total}")
 `;
 
-    console.log('🔄 执行Python代码...');
+    console.log('🔄 Executing Python code...');
     const pythonResult = await session.code.runCode(pythonCode, 'python');
     if (!pythonResult.isError) {
-        console.log('✅ Python代码执行成功:');
+        console.log('✅ Python code executed successfully:');
         console.log(pythonResult.result);
     } else {
-        console.log(`❌ Python代码执行失败: ${pythonResult.error}`);
+        console.log(`❌ Python code execution failed: ${pythonResult.error}`);
     }
 
-    // JavaScript代码执行
+    // JavaScript code execution
     const jsCode = `
-console.log("JavaScript代码执行成功!");
+console.log("JavaScript code executed successfully!");
 
-// 获取系统信息
+// Get system information
 const os = require('os');
 const systemInfo = {
     platform: os.platform(),
@@ -139,105 +139,105 @@ const systemInfo = {
     memory: Math.round(os.totalmem() / 1024 / 1024) + ' MB'
 };
 
-console.log("系统信息:", JSON.stringify(systemInfo, null, 2));
+console.log("System info:", JSON.stringify(systemInfo, null, 2));
 
-// 数组操作
+// Array operations
 const numbers = [1, 2, 3, 4, 5];
 const doubled = numbers.map(n => n * 2);
-console.log("原数组:", numbers);
-console.log("翻倍后:", doubled);
+console.log("Original array:", numbers);
+console.log("Doubled:", doubled);
 `;
 
-    console.log('\n🔄 执行JavaScript代码...');
+    console.log('\n🔄 Executing JavaScript code...');
     const jsResult = await session.code.runCode(jsCode, 'javascript');
     if (!jsResult.isError) {
-        console.log('✅ JavaScript代码执行成功:');
+        console.log('✅ JavaScript code executed successfully:');
         console.log(jsResult.result);
     } else {
-        console.log(`❌ JavaScript代码执行失败: ${jsResult.error}`);
+        console.log(`❌ JavaScript code execution failed: ${jsResult.error}`);
     }
 }
 
 async function uiAutomationExample(session: any): Promise<void> {
-    console.log('\n🖱️ === UI自动化示例 ===');
+    console.log('\n🖱️ === UI Automation Example ===');
 
     try {
-        // 截图
-        console.log('🔄 获取屏幕截图...');
+        // Screenshot
+        console.log('🔄 Taking screenshot...');
         const screenshot = await session.ui.screenshot();
         if (!screenshot.isError) {
-            // 保存截图
+            // Save screenshot
             await session.fileSystem.writeFile('/tmp/screenshot.png', screenshot.data);
-            console.log('✅ 截图保存成功: /tmp/screenshot.png');
+            console.log('✅ Screenshot saved successfully: /tmp/screenshot.png');
         } else {
-            console.log(`❌ 截图失败: ${screenshot.error}`);
+            console.log(`❌ Screenshot failed: ${screenshot.error}`);
         }
 
-        // 模拟键盘输入
-        console.log('🔄 模拟键盘输入...');
+        // Simulate keyboard input
+        console.log('🔄 Simulating keyboard input...');
         await session.ui.sendKey(KeyCode.HOME);
-        console.log('✅ 键盘输入完成');
+        console.log('✅ Keyboard input completed');
 
-        // 模拟鼠标操作
-        console.log('🔄 模拟鼠标操作...');
+        // Simulate mouse operations
+        console.log('🔄 Simulating mouse operations...');
         await session.ui.click({ x: 100, y: 100 });
-        console.log('✅ 鼠标点击完成');
+        console.log('✅ Mouse click completed');
 
     } catch (error) {
-        console.log(`⚠️ UI自动化功能可能不可用: ${error}`);
+        console.log(`⚠️ UI automation features may not be available: ${error}`);
     }
 }
 
 async function workflowExample(session: any): Promise<void> {
-    console.log('\n🔄 === 工作流编排示例 ===');
+    console.log('\n🔄 === Workflow Orchestration Example ===');
 
-    console.log('🔄 执行数据处理工作流...');
+    console.log('🔄 Executing data processing workflow...');
 
-    // 步骤1: 创建测试数据
-    console.log('步骤1: 创建测试数据...');
+    // Step 1: Create test data
+    console.log('Step 1: Creating test data...');
     const createDataCode = `
 import json
 import random
 from datetime import datetime, timedelta
 
-# 生成测试数据
+# Generate test data
 data = []
 base_date = datetime.now()
 
 for i in range(50):
     record = {
         "id": i + 1,
-        "name": f"用户{i+1}",
+        "name": f"User{i+1}",
         "score": random.randint(60, 100),
         "date": (base_date - timedelta(days=random.randint(0, 30))).isoformat(),
         "category": random.choice(["A", "B", "C"])
     }
     data.append(record)
 
-# 保存数据
+# Save data
 with open('/tmp/test_data.json', 'w', encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
 
-print(f"生成了 {len(data)} 条测试数据")
+print(f"Generated {len(data)} test records")
 `;
 
     const createResult = await session.code.runCode(createDataCode, 'python');
     if (createResult.isError) {
-        console.log(`❌ 数据创建失败: ${createResult.error}`);
+        console.log(`❌ Data creation failed: ${createResult.error}`);
         return;
     }
-    console.log('✅ 测试数据创建完成');
+    console.log('✅ Test data creation completed');
 
-    // 步骤2: 数据分析 (使用JavaScript)
-    console.log('步骤2: 数据分析...');
+    // Step 2: Data analysis (using JavaScript)
+    console.log('Step 2: Data analysis...');
     const analysisCode = `
 const fs = require('fs');
 
-// 读取数据
+// Read data
 const rawData = fs.readFileSync('/tmp/test_data.json', 'utf8');
 const data = JSON.parse(rawData);
 
-// 分析数据
+// Analyze data
 const scores = data.map(record => record.score);
 const categories = {};
 data.forEach(record => {
@@ -253,10 +253,10 @@ const analysisResult = {
     category_distribution: categories
 };
 
-// 保存分析结果
+// Save analysis results
 fs.writeFileSync('/tmp/analysis_result.json', JSON.stringify(analysisResult, null, 2));
 
-console.log("数据分析完成:");
+console.log("Data analysis completed:");
 Object.entries(analysisResult).forEach(([key, value]) => {
     console.log(\`  \${key}: \${JSON.stringify(value)}\`);
 });
@@ -264,27 +264,27 @@ Object.entries(analysisResult).forEach(([key, value]) => {
 
     const analysisResult = await session.code.runCode(analysisCode, 'javascript');
     if (analysisResult.isError) {
-        console.log(`❌ 数据分析失败: ${analysisResult.error}`);
+        console.log(`❌ Data analysis failed: ${analysisResult.error}`);
         return;
     }
-    console.log('✅ 数据分析完成');
+    console.log('✅ Data analysis completed');
 
-    // 步骤3: 生成报告
-    console.log('步骤3: 生成报告...');
+    // Step 3: Generate report
+    console.log('Step 3: Generating report...');
     const reportCode = `
 import json
 from datetime import datetime
 
-# 读取分析结果
+# Read analysis results
 with open('/tmp/analysis_result.json', 'r', encoding='utf-8') as f:
     analysis = json.load(f)
 
-# 生成HTML报告
+# Generate HTML report
 html_report = f'''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>数据分析报告</title>
+    <title>Data Analysis Report</title>
     <meta charset="utf-8">
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
@@ -294,24 +294,24 @@ html_report = f'''
 </head>
 <body>
     <div class="header">
-        <h1>数据分析报告 (TypeScript示例)</h1>
-        <p>生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+        <h1>Data Analysis Report (TypeScript Example)</h1>
+        <p>Generated at: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
     </div>
 
     <div class="metric">
-        <h3>基本统计</h3>
-        <p>总记录数: {analysis['total_records']}</p>
-        <p>平均分数: {analysis['average_score']:.2f}</p>
-        <p>最高分数: {analysis['max_score']}</p>
-        <p>最低分数: {analysis['min_score']}</p>
+        <h3>Basic Statistics</h3>
+        <p>Total records: {analysis['total_records']}</p>
+        <p>Average score: {analysis['average_score']:.2f}</p>
+        <p>Max score: {analysis['max_score']}</p>
+        <p>Min score: {analysis['min_score']}</p>
     </div>
 
     <div class="metric">
-        <h3>分类分布</h3>
+        <h3>Category Distribution</h3>
 '''
 
 for category, count in analysis['category_distribution'].items():
-    html_report += f'        <p>类别 {category}: {count} 条记录</p>\\n'
+    html_report += f'        <p>Category {category}: {count} records</p>\\n'
 
 html_report += '''
     </div>
@@ -319,37 +319,37 @@ html_report += '''
 </html>
 '''
 
-# 保存报告
+# Save report
 with open('/tmp/report.html', 'w', encoding='utf-8') as f:
     f.write(html_report)
 
-print("HTML报告生成完成: /tmp/report.html")
+print("HTML report generated: /tmp/report.html")
 `;
 
     const reportResult = await session.code.runCode(reportCode, 'python');
     if (reportResult.isError) {
-        console.log(`❌ 报告生成失败: ${reportResult.error}`);
+        console.log(`❌ Report generation failed: ${reportResult.error}`);
         return;
     }
-    console.log('✅ 报告生成完成');
+    console.log('✅ Report generation completed');
 
-    // 步骤4: 验证结果
-    console.log('步骤4: 验证结果...');
+    // Step 4: Verify results
+    console.log('Step 4: Verifying results...');
     const filesToCheck = ['/tmp/test_data.json', '/tmp/analysis_result.json', '/tmp/report.html'];
 
     for (const filePath of filesToCheck) {
         const result = await session.fileSystem.readFile(filePath);
         if (!result.isError) {
-            console.log(`✅ 文件存在: ${filePath} (${result.content.length} 字节)`);
+            console.log(`✅ File exists: ${filePath} (${result.content.length} bytes)`);
         } else {
-            console.log(`❌ 文件不存在: ${filePath}`);
+            console.log(`❌ File not found: ${filePath}`);
         }
     }
 
-    console.log('🎉 工作流执行完成!');
+    console.log('🎉 Workflow execution completed!');
 }
 
-// 运行示例
+// Run example
 if (require.main === module) {
     main().catch(console.error);
 }
