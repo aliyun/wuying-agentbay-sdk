@@ -187,7 +187,7 @@ def create_session_with_browser_context() -> None:
 
         # Create session parameters with Browser Context
         session_params = CreateSessionParams(
-            image_id="imgc-wucyOiPmeV2Z753lq",  # Browser image ID required
+            image_id="browser_latest",  # Browser image ID required
             browser_context=browser_context
         )
         session_result = agent_bay.create(session_params)

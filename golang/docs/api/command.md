@@ -35,15 +35,17 @@ package main
 
 import (
     "fmt"
-    "os"
     agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
     // Initialize AgentBay and create session
-    ab := agentbay.NewAgentBay()
-    sessionParams := &agentbay.SessionParams{ResourceType: "linux"}
-    sessionResult, err := ab.CreateSession(sessionParams)
+    ab, err := agentbay.NewAgentBay("your-api-key")
+    if err != nil {
+        panic(err)
+    }
+    sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux")
+    sessionResult, err := ab.Create(sessionParams)
     if err != nil {
         panic(err)
     }

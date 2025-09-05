@@ -48,24 +48,25 @@ async def main():
                 page = await browser.new_page()
                 await page.goto("https://www.aliyun.com")
                 print("page.title() =", await page.title())
-            
+
                 await page.wait_for_timeout(5000)
 
                 # Modify page font to Microsoft YaHei
                 await page.evaluate("""
                     document.body.style.fontFamily = 'Microsoft YaHei';
                 """)
-          
+
                 await page.wait_for_timeout(5000)
-            
+
                 # Scale page content to 200%
                 await page.evaluate("""
                     document.body.style.transform = 'scale(2)';
                     document.body.style.transformOrigin = 'top left';
                 """)
-            
+
                 await page.wait_for_timeout(10000)
                 await browser.close()
+        agent_bay.delete(session)
 
 if __name__ == "__main__":
     asyncio.run(main())

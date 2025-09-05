@@ -2,10 +2,9 @@
 
 import os
 
-from agentbay import AgentBay
+from agentbay import AgentBay,ContextSync,SyncPolicy
 from agentbay.exceptions import AgentBayError
 from agentbay.session_params import CreateSessionParams
-
 
 def main():
     # Initialize the AgentBay client
@@ -55,9 +54,14 @@ def main():
         print("\nExample 3: Creating a session with the context...")
         try:
             params = CreateSessionParams(
-                context_id=context.id,
                 labels={"username": "alice", "project": "my-project"},
             )
+            # Fix: context_syncs should be a list, not a single ContextSync object
+            params.context_syncs = [ContextSync.new(
+                context.id,
+                "/tmp/shared",
+                SyncPolicy.default()
+            )]
             session_result = agent_bay.create(params)
             session = session_result.session
             print(f"Session created with ID: {session.session_id}")
@@ -94,7 +98,7 @@ def main():
                 print("Note: The delete() method synchronized the context before session deletion")
                 print("and monitored all context operations until completion.")
                 session = None
-                
+
                 # Alternative method using session's delete method:
                 # delete_result = session.delete(sync_context=True)
         except AgentBayError as e:
@@ -121,6 +125,5 @@ def main():
             except AgentBayError as delete_error:
                 print(f"Error deleting session during cleanup: {delete_error}")
 
-
 if __name__ == "__main__":
-    main() 
+    main()

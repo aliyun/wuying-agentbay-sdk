@@ -129,8 +129,6 @@ func (mr *MockFileSystemInterfaceMockRecorder) ReadFile(arg0 interface{}, arg1 .
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockFileSystemInterface)(nil).ReadFile), varargs...)
 }
 
-
-
 // ReadMultipleFiles mocks base method.
 func (m *MockFileSystemInterface) ReadMultipleFiles(arg0 []string) (map[string]string, error) {
 	m.ctrl.T.Helper()
@@ -175,5 +173,3 @@ func (mr *MockFileSystemInterfaceMockRecorder) WriteFile(arg0, arg1, arg2 interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteFile", reflect.TypeOf((*MockFileSystemInterface)(nil).WriteFile), arg0, arg1, arg2)
 }
-
-

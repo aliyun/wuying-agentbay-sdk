@@ -63,7 +63,7 @@ export class Agent {
    */
   async executeTask(task: string, maxTryTimes: number): Promise<ExecutionResult> {
     try {
-      const args = { task };
+      const args = { task, max_try_times: maxTryTimes };
       const result = await this.session.callMcpTool("flux_execute_task", args);
       
       if (!result.success) {

@@ -143,13 +143,12 @@ func main() {
 				linkResultWithParams.Link, linkResultWithParams.RequestID)
 		}
 
-
 	}
 
 	// Get context information
 	fmt.Println("\nGetting context information...")
 
-	contextResult, err := ab.Context.List( agentbay.NewContextListParams())
+	contextResult, err := ab.Context.List(agentbay.NewContextListParams())
 	if err != nil {
 		fmt.Printf("Error listing contexts: %v\n", err)
 	} else {

@@ -52,8 +52,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a session first
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	session := sessionResult.Session
+
 	// Initialize OSS environment
-	result, err := client.Oss.EnvInit(
+	result, err := session.Oss.EnvInit(
 		"your_access_key_id",
 		"your_access_key_secret",
 		"your_security_token",
@@ -115,8 +123,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a session first
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	session := sessionResult.Session
+
 	// Step 1: Initialize OSS environment
-	_, err = client.Oss.EnvInit(
+	_, err = session.Oss.EnvInit(
 		"your_access_key_id",
 		"your_access_key_secret",
 		"your_security_token",
@@ -129,7 +145,7 @@ func main() {
 	}
 
 	// Step 2: Upload file to OSS
-	result, err := client.Oss.Upload("my-bucket", "my-object", "/path/to/local/file")
+	result, err := session.Oss.Upload("my-bucket", "my-object", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error uploading file: %v\n", err)
 		os.Exit(1)
@@ -176,8 +192,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a session first
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	session := sessionResult.Session
+
 	// Step 1: Initialize OSS environment
-	_, err = client.Oss.EnvInit(
+	_, err = session.Oss.EnvInit(
 		"your_access_key_id",
 		"your_access_key_secret",
 		"your_security_token",
@@ -190,7 +214,7 @@ func main() {
 	}
 
 	// Step 2: Upload file anonymously
-	result, err := client.Oss.UploadAnonymous("https://example.com/upload", "/path/to/local/file")
+	result, err := session.Oss.UploadAnonymous("https://example.com/upload", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error uploading file anonymously: %v\n", err)
 		os.Exit(1)
@@ -246,8 +270,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a session first
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	session := sessionResult.Session
+
 	// Step 1: Initialize OSS environment
-	_, err = client.Oss.EnvInit(
+	_, err = session.Oss.EnvInit(
 		"your_access_key_id",
 		"your_access_key_secret",
 		"your_security_token",
@@ -260,7 +292,7 @@ func main() {
 	}
 
 	// Step 2: Download file from OSS
-	result, err := client.Oss.Download("my-bucket", "my-object", "/path/to/local/file")
+	result, err := session.Oss.Download("my-bucket", "my-object", "/path/to/local/file")
 	if err != nil {
 		fmt.Printf("Error downloading file: %v\n", err)
 		os.Exit(1)
@@ -307,8 +339,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a session first
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	if err != nil {
+		fmt.Printf("Error creating session: %v\n", err)
+		os.Exit(1)
+	}
+	session := sessionResult.Session
+
 	// Step 1: Initialize OSS environment
-	_, err = client.Oss.EnvInit(
+	_, err = session.Oss.EnvInit(
 		"your_access_key_id",
 		"your_access_key_secret",
 		"your_security_token",
@@ -321,7 +361,7 @@ func main() {
 	}
 
 	// Step 2: Download file anonymously
-	result, err := client.Oss.DownloadAnonymous("https://example.com/file.txt", "/path/to/local/file.txt")
+	result, err := session.Oss.DownloadAnonymous("https://example.com/file.txt", "/path/to/local/file.txt")
 	if err != nil {
 		fmt.Printf("Error downloading file anonymously: %v\n", err)
 		os.Exit(1)

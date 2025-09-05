@@ -76,11 +76,11 @@ async def main():
                 # Use selector to locate input field
                 input_element = await page.wait_for_selector('#name_in', timeout=10000)
                 print("Found login name input field: #name_in")
-                
+
                 # Clear input field and enter phone number
                 phone_number = "15011556760"
                 print(f"Entering phone number: {phone_number}")
-                
+
                 await input_element.click()
                 await input_element.fill("")  # Clear input field
                 await input_element.type(phone_number)
@@ -88,7 +88,7 @@ async def main():
 
                 # Wait a moment to ensure input is complete
                 await asyncio.sleep(1)
-                
+
                 print("Clicking next step button...")
                 await page.click('#next_step1')
 
@@ -118,21 +118,20 @@ async def main():
                     await asyncio.sleep(1)
                     await page.wait_for_function("() => window.captchaSolvingStarted === true", timeout=1000)
                     print("🎯 Detected captcha processing started, waiting for completion...")
-                    
+
                     # If start is detected, wait for completion (max 30 seconds)
                     try:
                         await page.wait_for_function("() => window.captchaSolvingFinished === true", timeout=30000)
                         print("✅ Captcha processing completed")
                     except:
                         print("⚠️ Captcha processing timeout, may still be in progress")
-                        
+
                 except:
                     print("⏭️ No captcha processing detected, continuing execution")
-                
+
                 await asyncio.sleep(2)
-                await page.type('#step2_yzm', '1234')
                 print("Test completed")
-                
+
                 # Keep browser open for a while to observe results
                 await asyncio.sleep(5)
 
@@ -143,7 +142,7 @@ async def main():
                     print("page_screenshot_base64 = data:image/png;base64,", b64)
                 except Exception as e:
                     print("screenshot failed:", e)
-                
+
                 await browser.close()
 
 if __name__ == "__main__":

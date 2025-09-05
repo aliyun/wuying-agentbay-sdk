@@ -55,9 +55,9 @@ class TestFileSystem(unittest.TestCase):
 
         result = self.fs.read_file("/path/to/file.txt")
         self.assertIsInstance(result, FileContentResult)
-        self.assertFalse(result.success)
-        self.assertEqual(result.content, "")
-        self.assertEqual(result.request_id, "")
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "file content")
+        self.assertEqual(result.request_id, "request-123")
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     def test_read_file_get_info_error(self, mock_get_file_info):
@@ -102,8 +102,8 @@ class TestFileSystem(unittest.TestCase):
         result = self.fs.read_file("/path/to/file.txt")
         self.assertIsInstance(result, FileContentResult)
         self.assertFalse(result.success)
-        self.assertEqual(result.request_id, "")
-        self.assertEqual(result.error_message, "Failed to read file: FileSystem.read_file() takes 2 positional arguments but 4 were given")
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Invalid response body")
 
     @patch("agentbay.filesystem.filesystem.FileSystem._call_mcp_tool")
     def test_create_directory_success(self, mock_call_mcp_tool):
@@ -421,10 +421,10 @@ class TestFileSystem(unittest.TestCase):
 
         result = self.fs.read_file("/path/to/large_file.txt")
         self.assertIsInstance(result, FileContentResult)
-        self.assertFalse(result.success)
-        self.assertEqual(result.content, "")
+        self.assertTrue(result.success)
+        self.assertEqual(result.content, "chunk1chunk2chunk3")
         mock_get_file_info.assert_called_once()
-        self.assertEqual(mock_read_file_chunk.call_count, 0)
+        self.assertEqual(mock_read_file_chunk.call_count, 3)
 
     @patch("agentbay.filesystem.filesystem.FileSystem.get_file_info")
     def test_read_file_error(self, mock_get_file_info):

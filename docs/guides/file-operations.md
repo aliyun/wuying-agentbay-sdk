@@ -4,19 +4,20 @@ This guide provides a complete introduction to file operations in the AgentBay S
 
 ## 📋 Table of Contents
 
-- [Basic Concepts](#-basic-concepts)
-- [API Quick Reference](#-api-quick-reference)
-- [Basic File Operations](#-basic-file-operations)
-- [Directory Management](#-directory-management)
-- [Batch Operations](#-batch-operations)
-- [File Editing Operations](#️-file-editing-operations)
-- [File Permissions and Attributes](#-file-permissions-and-attributes)
-- [Large File Handling](#-large-file-handling)
-- [Advanced Usage Examples](#-advanced-usage-examples)
-- [Performance Optimization](#-performance-optimization)
-- [Error Handling](#-error-handling)
-- [Best Practices](#-best-practices)
+- [Basic Concepts](#basic-concepts)
+- [API Quick Reference](#api-quick-reference)
+- [Basic File Operations](#basic-file-operations)
+- [Directory Management](#directory-management)
+- [Batch Operations](#batch-operations)
+- [File Editing Operations](#file-editing-operations)
+- [File Permissions and Attributes](#file-permissions-and-attributes)
+- [Large File Handling](#large-file-handling)
+- [Advanced Usage Examples](#advanced-usage-examples)
+- [Performance Optimization](#performance-optimization)
+- [Error Handling](#error-handling)
+- [Best Practices](#best-practices)
 
+<a id="basic-concepts"></a>
 ## 🎯 Basic Concepts
 
 ### File System Structure
@@ -49,6 +50,7 @@ C:\
 - **Windows**: Use backslash `C:\temp\file.txt` or forward slash `C:/temp/file.txt`
 - **Recommendation**: Prefer absolute paths to avoid ambiguity
 
+<a id="api-quick-reference"></a>
 ## 🚀 API Quick Reference
 
 ### Python
@@ -87,6 +89,7 @@ agent_bay.delete(session)
 ```
 
 
+<a id="basic-file-operations"></a>
 ## 📝 Basic File Operations
 
 **File Size Support**: Both `read_file()` and `write_file()` methods support files of any size through automatic chunked transfer. You don't need to worry about file size limitations - the SDK handles large files transparently.
@@ -141,6 +144,7 @@ agent_bay.delete(session)
 ```
 
 
+<a id="directory-management"></a>
 ## 📁 Directory Management
 
 ### Creating and moving Directories
@@ -191,6 +195,7 @@ else:
     print(f"Failed to list directory: {result.error_message}")
 ```
 
+<a id="batch-operations"></a>
 ## 📦 Batch Operations
 
 ### Batch File Operations
@@ -397,6 +402,7 @@ if result.success:
 agent_bay.delete(session)
 ```
 
+<a id="file-editing-operations"></a>
 ## ✏️ File Editing Operations
 
 ### Text Find and Replace
@@ -427,6 +433,57 @@ if result.success:
         print(f"Updated content: {read_result.content}")
 else:
     print(f"Edit failed: {result.error_message}")
+```
+### Global Character Replacement
+**Note**: Each call to the `edit_file` method will only modify the first matched instance. If you need to globally replace the same string, there are two methods:
+```python
+
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Create a test file
+initial_content = "This is old1 text with old2 content.\nAnother line with old1 data."
+result = session.file_system.write_file("/tmp/edit_test.txt", initial_content)
+
+# Method One: Single Call to `edit_file` for Global Replacement
+edits = [
+    {"oldText": "old1", "newText": "new1"},
+    {"oldText": "old1", "newText": "new1"}
+]
+
+result = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+if result.success:
+    print("File edited successfully")
+
+    # Verify changes
+    read_result = session.file_system.read_file("/tmp/edit_test.txt")
+    if read_result.success:
+        print(f"Updated content: {read_result.content}")
+else:
+    print(f"Edit failed: {result.error_message}")
+# Method Two:Multiple Calls to edit_file for Global Replacement
+# Create a test file
+result = session.file_system.write_file("/tmp/edit_test.txt", initial_content)
+
+# Edit file with multiple find-replace operations
+edits = [
+    {"oldText": "old1", "newText": "new1"},
+]
+
+result1 = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+result2 = session.file_system.edit_file("/tmp/edit_test.txt", edits, dry_run=False)
+if result.success and result2.success:
+    print("File edited successfully")
+
+    # Verify changes
+    read_result = session.file_system.read_file("/tmp/edit_test.txt")
+    if read_result.success:
+        print(f"Updated content: {read_result.content}")
+else:
+    print(f"Edit failed: {result.error_message}")
+
 ```
 
 ### Dry Run Mode
@@ -464,6 +521,7 @@ else:
     print(f"Dry run failed: {result.error_message}")
 ```
 
+<a id="file-permissions-and-attributes"></a>
 ## 🔐 File Permissions and Attributes
 
 ### Getting File Permissions Info
@@ -483,6 +541,7 @@ if result.success:
     print(f"Modified: {info.get('modified', 'N/A')}")
     print(f"Is Directory: {info.get('isDirectory', 'N/A')}")
 ```
+<a id="large-file-handling"></a>
 ## 📏 Large File Handling
 
 **Note**: Starting from the latest version, `read_file()` and `write_file()` methods automatically handle large files through internal chunked transfer. For most use cases, you can simply use these methods directly without manual chunking.
@@ -589,6 +648,7 @@ def upload_with_progress(session, local_path, remote_path):
     upload_with_progress(session, "./your_file.txt", "/tmp/your_file.txt")
 ```
 
+<a id="advanced-usage-examples"></a>
 ## 🚀 Advanced Usage Examples
 
 ### Concurrent File Operations
@@ -885,6 +945,7 @@ for result in validation_results:
 agent_bay.delete(session)
 ```
 
+<a id="performance-optimization"></a>
 ## ⚡ Performance Optimization
 
 ### Connection Reuse
@@ -925,6 +986,7 @@ file_manager.write_file("/tmp/output.txt", "Hello World")
 file_manager.close()
 ```
 
+<a id="error-handling"></a>
 ## ❌ Error Handling
 
 ### Common Error Types
@@ -978,6 +1040,7 @@ session = agent_bay.create().session
 content = robust_file_operation(session, "/tmp/example.txt")
 ```
 
+<a id="best-practices"></a>
 ## 🏆 Best Practices
 
 ### 1. Path Management

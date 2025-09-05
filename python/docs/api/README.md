@@ -33,7 +33,7 @@ result = session.command.execute_command("ls -la")
 print(result.output)
 
 # Clean up session
-agent_bay.destroy(session.session_id)
+agent_bay.delete(session)
 ```
 
 ## AgentBay
@@ -43,12 +43,12 @@ Main client class that provides session management and advanced features.
 ### Constructor
 
 ```python
-AgentBay(api_key: Optional[str] = None, config: Optional[Dict] = None)
+AgentBay(api_key: str = "", cfg: Optional[Config] = None)
 ```
 
 **Parameters:**
 - `api_key` (str, optional): API key, defaults to `AGENTBAY_API_KEY` environment variable
-- `config` (dict, optional): Client configuration
+- `cfg` (Config, optional): Client configuration object
 
 **Examples:**
 ```python
@@ -59,7 +59,9 @@ agent_bay = AgentBay()
 agent_bay = AgentBay(api_key="your-api-key")
 
 # With configuration
-agent_bay = AgentBay(config={"timeout": 30})
+from agentbay import Config
+config = Config(region_id="cn-shanghai", endpoint="wuyingai.cn-shanghai.aliyuncs.com", timeout_ms=30000)
+agent_bay = AgentBay(cfg=config)
 ```
 
 ### Methods
@@ -85,39 +87,51 @@ result = agent_bay.create()
 
 # Create session with parameters
 params = CreateSessionParams(
-    image="ubuntu:20.04",
+    image_id="ubuntu:20.04",
     labels={"project": "demo"}
 )
 result = agent_bay.create(params)
 ```
 
-#### destroy()
+#### delete()
 
-Destroy the specified session.
+Delete the specified session.
 
 ```python
-destroy(session_id: str) -> DestroySessionResult
+delete(session: Session, sync_context: bool = False) -> DeleteResult
 ```
 
 **Parameters:**
-- `session_id` (str): Session ID
+- `session` (Session): The session object to delete
+- `sync_context` (bool, optional): Whether to synchronize context before deletion, defaults to False
 
 **Returns:**
-- `DestroySessionResult`: Destruction result
+- `DeleteResult`: Deletion result
 
 #### list()
 
-List all sessions.
+List all locally cached sessions.
 
 ```python
-list(params: Optional[ListSessionParams] = None) -> ListSessionResult
+list() -> List[Session]
+```
+
+**Returns:**
+- `List[Session]`: List of locally cached sessions
+
+#### list_by_labels()
+
+List sessions from the server filtered by labels with pagination support.
+
+```python
+list_by_labels(params: Optional[Union[ListSessionParams, Dict[str, str]]] = None) -> SessionListResult
 ```
 
 **Parameters:**
-- `params` (ListSessionParams, optional): List query parameters
+- `params` (Union[ListSessionParams, Dict[str, str]], optional): List query parameters or a dictionary of labels
 
 **Returns:**
-- `ListSessionResult`: Session list
+- `SessionListResult`: Session list with pagination information
 
 ## Session
 
@@ -139,18 +153,17 @@ Session object that provides access to various functional modules.
 
 Command execution functionality.
 
-### execute()
+### execute_command()
 
 Execute Shell commands.
 
 ```python
-execute(command: str, timeout: Optional[int] = None, input_data: Optional[str] = None) -> CommandResult
+execute_command(command: str, timeout_ms: int = 1000) -> CommandResult
 ```
 
 **Parameters:**
 - `command` (str): Command to execute
-- `timeout` (int, optional): Timeout in seconds
-- `input_data` (str, optional): Input data
+- `timeout_ms` (int, optional): Timeout in milliseconds, defaults to 1000
 
 **Returns:**
 - `CommandResult`: Command execution result
@@ -160,11 +173,9 @@ execute(command: str, timeout: Optional[int] = None, input_data: Optional[str] =
 # Basic command execution
 result = session.command.execute_command("ls -la")
 
-# With timeout
-result = session.command.execute_command("long_running_task", timeout=60)
+# With timeout (60 seconds = 60000ms)
+result = session.command.execute_command("long_running_task", timeout_ms=60000)
 
-# Interactive command
-result = session.command.execute_command("python3", input_data="print('hello')\nexit()\n")
 ```
 
 ## CodeExecutor
@@ -176,16 +187,16 @@ Code execution functionality.
 Execute code in the specified language.
 
 ```python
-run_code(code: str, language: str, timeout: Optional[int] = None) -> CodeResult
+run_code(code: str, language: str, timeout_s: int = 300) -> CodeExecutionResult
 ```
 
 **Parameters:**
 - `code` (str): Code to execute
-- `language` (str): Programming language ("python", "javascript", "go")
-- `timeout` (int, optional): Timeout in seconds
+- `language` (str): Programming language ("python", "javascript")
+- `timeout_s` (int, optional): Timeout in seconds, defaults to 300
 
 **Returns:**
-- `CodeResult`: Code execution result
+- `CodeExecutionResult`: Code execution result
 
 **Examples:**
 ```python
@@ -215,7 +226,7 @@ File system operations functionality.
 Read file content.
 
 ```python
-read_file(file_path: str) -> FileReadResult
+read_file(path: str) -> FileContentResult
 ```
 
 ### write_file()
@@ -223,23 +234,16 @@ read_file(file_path: str) -> FileReadResult
 Write file content.
 
 ```python
-write_file(file_path: str, content: str, encoding: str = "utf-8") -> FileWriteResult
+write_file(path: str, content: str, encoding: str = "utf-8") -> BoolResult
 ```
 
-### delete_file()
-
-Delete file.
-
-```python
-delete_file(file_path: str) -> FileDeleteResult
-```
 
 ### list_directory()
 
 List directory contents.
 
 ```python
-list_directory(directory_path: str) -> DirectoryListResult
+list_directory(path: str) -> DirectoryListResult
 ```
 
 **Examples:**
@@ -249,12 +253,12 @@ result = session.file_system.write_file("/tmp/test.txt", "Hello World!")
 
 # Read file
 result = session.file_system.read_file("/tmp/test.txt")
-print(result.data)  # "Hello World!"
+print(result.content)  # "Hello World!"
 
 # List directory
 result = session.file_system.list_directory("/tmp")
-for file in result.data:
-    print(f"{file.name} ({file.size} bytes)")
+for file in result.entries:
+    print(f"{file['name']} ({file['size']} bytes)")
 ```
 
 ## UIAutomation
@@ -274,7 +278,7 @@ screenshot() -> ScreenshotResult
 Simulate mouse click.
 
 ```python
-click(x: int, y: int) -> ClickResult
+click(x: int, y: int, button: str = "left") -> BoolResult
 ```
 
 ### type()
@@ -438,11 +442,12 @@ else:
 ```python
 @dataclass
 class CreateSessionParams:
-    image: Optional[str] = None
+    image_id: Optional[str] = None
     labels: Optional[Dict[str, str]] = None
     context_syncs: Optional[List[ContextSync]] = None
-    session_type: Optional[str] = None
-    vpc_config: Optional[Dict] = None
+    browser_context: Optional[BrowserContext] = None
+    is_vpc: Optional[bool] = None
+    mcp_policy_id: Optional[str] = None
 ```
 
 ### CommandResult

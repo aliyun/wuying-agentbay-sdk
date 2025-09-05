@@ -24,7 +24,7 @@ func main() {
 
 	// 创建会话
 	fmt.Println("\n📱 创建会话...")
-	sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
+	sessionResult, err := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
 	if err != nil {
 		fmt.Printf("❌ 会话创建失败: %v\n", err)
 		return

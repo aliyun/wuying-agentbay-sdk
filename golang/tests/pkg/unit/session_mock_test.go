@@ -331,7 +331,7 @@ func TestSession_ListMcpTools_WithMockClient(t *testing.T) {
 		Tools: tools,
 	}
 	expectedResult.RequestID = "test-request-id"
-	
+
 	mockSession.EXPECT().ListMcpTools().Return(expectedResult, nil)
 
 	// Test ListMcpTools method call

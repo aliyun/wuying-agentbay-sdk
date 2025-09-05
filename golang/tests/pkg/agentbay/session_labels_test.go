@@ -125,9 +125,9 @@ func TestSession_SetLabels_ValidationCases(t *testing.T) {
 
 	// Test cases for validation
 	testCases := []struct {
-		name        string
-		labels      map[string]string
-		expectError bool
+		name          string
+		labels        map[string]string
+		expectError   bool
 		errorContains string
 	}{
 		{
@@ -204,8 +204,8 @@ func TestSession_SetLabels_ValidationCases(t *testing.T) {
 		{
 			name: "Unicode in key and value",
 			labels: map[string]string{
-				"键名": "值",
-				"key":  "value with 中文 and emoji 🚀",
+				"键名":  "值",
+				"key": "value with 中文 and emoji 🚀",
 			},
 			expectError: false,
 		},

@@ -43,12 +43,12 @@ func main() {
     
     // Execute command
     result, err := session.Command.ExecuteCommand("ls -la")
-    if err == nil && !result.IsError {
-        fmt.Printf("Command output: %s\n", result.Data.Stdout)
+    if err == nil {
+        fmt.Printf("Command output: %s\n", result.Output)
     }
     
     // Clean up session
-    client.Destroy(session.SessionID)
+    client.Delete(session)
 }
 ```
 
@@ -63,12 +63,12 @@ Main client struct that provides session management and advanced features.
 Create a new AgentBay client instance.
 
 ```go
-func NewAgentBay(apiKey string, config *Config) (*AgentBay, error)
+func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error)
 ```
 
 **Parameters:**
 - `apiKey` (string): API key, empty string uses `AGENTBAY_API_KEY` environment variable
-- `config` (*Config): Client configuration, nil uses default configuration
+- `opts` (...Option): Optional configuration functions
 
 **Returns:**
 - `*AgentBay`: Client instance
@@ -84,10 +84,11 @@ client, err := agentbay.NewAgentBay("your-api-key", nil)
 
 // With configuration
 config := &agentbay.Config{
-    Timeout: 30000,
-    Region:  "cn-hangzhou",
+    TimeoutMs: 30000,
+    RegionID:  "cn-shanghai",
+    Endpoint:  "wuyingai.cn-shanghai.aliyuncs.com",
 }
-client, err := agentbay.NewAgentBay("your-api-key", config)
+client, err := agentbay.NewAgentBay("your-api-key", agentbay.WithConfig(config))
 ```
 
 ### Methods
@@ -114,39 +115,52 @@ result, err := client.Create(agentbay.NewCreateSessionParams())
 
 // Create session with parameters
 params := agentbay.NewCreateSessionParams().
-    SetImage("ubuntu:20.04").
-    AddLabel("project", "demo")
+    WithImageId("ubuntu:20.04").
+    WithLabels(map[string]string{"project": "demo"})
 result, err := client.Create(params)
 ```
 
-#### Destroy()
+#### Delete()
 
-Destroy the specified session.
+Delete the specified session.
 
 ```go
-func (ab *AgentBay) Destroy(sessionID string) (*DestroySessionResult, error)
+func (ab *AgentBay) Delete(session *Session, syncContext ...bool) (*DeleteResult, error)
 ```
 
 **Parameters:**
-- `sessionID` (string): Session ID
+- `session` (*Session): The session object to delete
+- `syncContext` (...bool): Whether to synchronize context before deletion, defaults to false
 
 **Returns:**
-- `*DestroySessionResult`: Destruction result
+- `*DeleteResult`: Deletion result
 - `error`: Error information
 
 #### List()
 
-List all sessions.
+List all locally cached sessions.
 
 ```go
-func (ab *AgentBay) List(params *ListSessionParams) (*ListSessionResult, error)
+func (ab *AgentBay) List() (*SessionListResult, error)
+```
+
+**Returns:**
+- `*SessionListResult`: List of locally cached sessions
+- `error`: Error information
+
+#### ListByLabels()
+
+List sessions from the server filtered by labels with pagination support.
+
+```go
+func (ab *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, error)
 ```
 
 **Parameters:**
-- `params` (*ListSessionParams): List query parameters
+- `params` (*ListSessionParams): List query parameters with labels filter
 
 **Returns:**
-- `*ListSessionResult`: Session list
+- `*SessionListResult`: Session list with pagination information
 - `error`: Error information
 
 ## Session
@@ -160,7 +174,7 @@ Session struct that provides access to various functional modules.
 - `CreatedAt` (time.Time): Creation time
 - `Command` (*CommandExecutor): Command executor
 - `Code` (*CodeExecutor): Code executor
-- `FileSystem` (*FileSystemManager): File system manager
+- `FileSystem` (*FileSystem): File system manager
 - `UI` (*UIAutomation): UI automation
 - `ContextSync` (*ContextSync): Context synchronization
 
@@ -259,7 +273,7 @@ console.log(\`2 + 2 = \${result}\`);
 result, err := session.Code.RunCode(jsCode, "javascript")
 ```
 
-## FileSystemManager
+## FileSystem
 
 File system operations functionality.
 
@@ -268,7 +282,7 @@ File system operations functionality.
 Read file content.
 
 ```go
-func (fsm *FileSystemManager) ReadFile(filePath string) (*FileReadResult, error)
+func (fs *FileSystem) ReadFile(path string) (*FileReadResult, error)
 ```
 
 ### WriteFile()
@@ -276,23 +290,16 @@ func (fsm *FileSystemManager) ReadFile(filePath string) (*FileReadResult, error)
 Write file content.
 
 ```go
-func (fsm *FileSystemManager) WriteFile(filePath string, content string) (*FileWriteResult, error)
+func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteResult, error)
 ```
 
-### DeleteFile()
-
-Delete file.
-
-```go
-func (fsm *FileSystemManager) DeleteFile(filePath string) (*FileDeleteResult, error)
-```
 
 ### ListDirectory()
 
 List directory contents.
 
 ```go
-func (fsm *FileSystemManager) ListDirectory(directoryPath string) (*DirectoryListResult, error)
+func (fs *FileSystem) ListDirectory(path string) (*DirectoryListResult, error)
 ```
 
 **Examples:**

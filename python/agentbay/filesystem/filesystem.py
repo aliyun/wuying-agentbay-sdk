@@ -629,6 +629,13 @@ class FileSystem(BaseService):
 
             if result.success:
                 matching_files = result.data.strip().split("\n") if result.data else []
+                if matching_files == ['No matches found']:
+                    return FileSearchResult(
+                        request_id=result.request_id,
+                        success=False,
+                        matches=[],
+                        error_message="No matches found",
+                    )
                 return FileSearchResult(
                     request_id=result.request_id,
                     success=True,
@@ -743,7 +750,7 @@ class FileSystem(BaseService):
             chunk_count = 0
             while offset < file_size:
                 length = min(chunk_size, file_size - offset)
-                chunk_result = self.read_file(path, offset, length)
+                chunk_result = self._read_file_chunk(path, offset, length)
                 log_operation_start(
                     f"ReadLargeFile chunk {chunk_count + 1}",
                     f"{length} bytes at offset {offset}/{file_size}"

@@ -6,8 +6,8 @@
  * - Utilize PageUseAgent to run sudoku game
  */
 
-import { AgentBay, CreateSessionParams } from '../../../typescript/src/agent-bay';
-import { BrowserOption, ExtractOptions, ActOptions } from '../../../typescript/src/browser';
+import { AgentBay, CreateSessionParams,BrowserOption, ExtractOptions, ActOptions } from 'wuying-agentbay-sdk';
+
 import { chromium } from 'playwright';
 
 class SudokuBoard {
@@ -23,7 +23,7 @@ function formatBoardForLlm(board: number[][]): string {
 }
 
 async function main() {
-  // Get API key from environment variable  
+  // Get API key from environment variable
   const apiKey = process.env.AGENTBAY_API_KEY;
   if (!apiKey) {
     console.log("Error: AGENTBAY_API_KEY environment variable not set");
@@ -61,14 +61,15 @@ async function main() {
         // 1. Extract the board
         let success = false;
         let board: number[][] = [];
-        
+
         while (!success) {
           console.log("📊 Extracting sudoku board...");
           const options: ExtractOptions<SudokuBoard> = {
             instruction: "Extract the current sudoku board as a 9x9 array. Each cell should be a number (1-9) if filled, or 0 if empty.",
-            schema: SudokuBoard
+            schema: SudokuBoard,
+            use_text_extract: false
           };
-          
+
           const [extractSuccess, boardObjs] = await session.browser.agent.extract(page, options);
           if (extractSuccess && boardObjs.length > 0) {
             success = true;
@@ -88,7 +89,7 @@ async function main() {
 
 Sudoku rules:
 - Each row must contain the digits 1-9 with no repeats.
-- Each column must contain the digits 1-9 with no repeats. 
+- Each column must contain the digits 1-9 with no repeats.
 - Each of the nine 3x3 subgrids must contain the digits 1-9 with no repeats.
 - Only fill in the cells that are 0.
 - The solution must be unique and valid.
@@ -101,7 +102,8 @@ Return:
 {
   solution: number[][] // 9x9, all filled, valid sudoku
 }`,
-          schema: SudokuSolution
+          schema: SudokuSolution,
+          use_text_extract: false
         };
 
         const [solutionSuccess, solutionObjs] = await session.browser.agent.extract(page, solutionOptions);
@@ -111,7 +113,7 @@ Return:
         }
 
         const solution = solutionObjs[0].solution;
-        console.log("Solved Board:\n" + solution.map(row => row.join(' ')).join('\n'));
+        console.log("Solved Board:\n" + solution.map((row:any) => row.join(' ')).join('\n'));
 
         // 3. Fill the solution
         for (let row = 0; row < 9; row++) {
@@ -119,12 +121,12 @@ Return:
             if (originalBoard[row][col] === 0) {
               const inputId = `f${col}${row}`;
               console.log(`Type '${solution[row][col]}' into the cell with id '${inputId}'`);
-              
+
               // Use the act method for natural language action
               const actOptions: ActOptions = {
                 action: `Enter '${solution[row][col]}' into the input element where the attribute id is exactly '${inputId}' (for example, if id='f53', you must match the full string 'f53', not just the number 53; do not split or extract numbers from the id)`
               };
-              
+
               await session.browser.agent.act(page, actOptions);
               await new Promise(resolve => setTimeout(resolve, 500));
             }
@@ -144,4 +146,4 @@ Return:
 
 if (require.main === module) {
   main().catch(console.error);
-} 
+}

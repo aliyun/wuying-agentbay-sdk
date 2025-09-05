@@ -36,7 +36,7 @@ except Exception as e:
 # ✅ Good practice - Using context manager
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 try:
     session = agent_bay.create().session
     # Perform operations
@@ -61,7 +61,7 @@ finally:
     agent_bay.delete(session)
 ```
 
-### 5. Use Environment Variables for Configuration
+### 4. Use Environment Variables for Configuration
 ```python
 import os
 from agentbay import AgentBay
@@ -77,20 +77,20 @@ agent_bay = AgentBay(api_key=api_key)
 agent_bay = AgentBay(api_key="sk-1234567890abcdef")  # Never do this!
 ```
 
-### 4. Handle Errors Gracefully
+### 5. Handle Errors Gracefully
 ```python
 from agentbay import AgentBay, AgentBayError
 
 try:
-    agent_bay = AgentBay()
+    agent_bay = AgentBay(api_key=api_key)
     session = agent_bay.create().session
     result = session.command.execute_command("some-command")
-    
+
     if hasattr(result, 'success') and not result.success:
         print(f"Command failed: {getattr(result, 'error_message', 'Unknown error')}")
     else:
         print(f"Success: {getattr(result, 'output', result)}")
-        
+
 except AgentBayError as e:
     print(f"AgentBay error: {e}")
 except Exception as e:
@@ -108,17 +108,27 @@ finally:
 
 ### 6. Check File Existence Before Operations
 ```python
+from agentbay import AgentBay
+agent_bay = AgentBay(api_key=api_key)
 # ✅ Good practice
-file_info = session.file_system.get_file_info("/path/to/file")
-if file_info.success and file_info.file_info:
-    # File exists, read it
-    content = session.file_system.read_file("/path/to/file")
-    if content.success:
-        print(content.content)
+session = agent_bay.create().session
+# Write file
+result = session.file_system.write_file("/path/to/file", "content")
+if result.success:
+    print("File written successfully")
+    # ✅ Good practice
+    file_info = session.file_system.get_file_info("/path/to/file")
+    if file_info.success and file_info.file_info:
+        # File exists, read it
+        content = session.file_system.read_file("/path/to/file")
+        if content.success:
+            print(content.content)
+        else:
+            print(f"Failed to read file: {content.error_message}")
     else:
-        print(f"Failed to read file: {content.error_message}")
+        print("File does not exist")
 else:
-    print("File does not exist")
+    print("Failed to write file")
 
 # ❌ Bad practice
 content = session.file_system.read_file("/path/to/file")  # May fail
@@ -127,68 +137,115 @@ print(content.content)
 
 ### 7. Use Appropriate Methods for File Size
 ```python
-# ✅ For small files (< 50KB)
-content = session.file_system.read_file("small_file.txt")
-if content.success:
-    print(content.content)
+from agentbay import AgentBay
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
+
+#large_content >50KB
+large_content = "large_content" * 51000 # 51KB of 'large_content'
 
 # ✅ For large files (≥ 50KB) or when you need chunked reading
-result = session.file_system.read_large_file("large_file.zip")
+result = session.file_system.write_file("/path/to/file",large_content, mode="overwrite")
 if result.success:
-    print(f"Large file read successfully: {len(result.content)} characters")
-else:
-    print(f"Failed to read large file: {result.error_message}")
-
+    print("Large file written successfully")
+    result = session.file_system.read_file("/path/to/file")
+    if result.success:
+        print(f"Large file read successfully: {len(result.content)} characters")
+    else:
+        print(f"Failed to read large file: {result.error_message}")
+else :
+    print("Failed to write large file")
 # ✅ For multiple files
 files = ["file1.txt", "file2.txt", "file3.txt"]
 for file_path in files:
-    content = session.file_system.read_file(file_path)
-    if not content.success:
-        print(f"Failed to read {file_path}: {content.error_message}")
-        break
+    result = session.file_system.write_file(file_path, "content")
+    if result.success:
+        print(f"{file_path} written successfully")
+        content = session.file_system.read_file(file_path)
+        if not content.success:
+            print(f"Failed to read {file_path}: {content.error_message}")
+            break
+        print(f"{file_path} read successfully: {content.content}")
+agent_bay.delete(session)
 ```
 
 **Note on File Size Thresholds:**
-- The `read_file()` method is suitable for small files (less than 50KB) 
-- The `read_large_file()` method is recommended for larger files or when you need chunked reading to handle API size limitations
-- `read_large_file()` automatically splits the read operation into multiple requests with a default chunk size of 50KB
-- For files near the threshold, either method can be used, but `read_large_file()` provides better handling of API limitations
+- Use `read_file()` for any file size (automatic chunked transfer for large files)
+- Use `write_file()` for any content size (automatic chunked transfer for large content)
 
 ### 8. Handle File Paths Correctly
 ```python
 import os
-
 # ✅ Good practice - Use os.path.join
-local_path = os.path.join("data", "input.txt")
-remote_path = "~/input.txt"
+base_dir = '/tmp'
+filename = 'example.txt'
+
+# Construct the path
+file_path = os.path.join(base_dir, filename).replace("\\", "/")
+print(file_path)
 
 # ✅ Check paths before operations
 # Note: In cloud environments, local file operations should be handled carefully
 # For demonstration purposes, we show the pattern but in practice you would
 # either upload existing files or create them programmatically
-print(f"Local path: {local_path}")
-print(f"Remote path: {remote_path}")
 
-# Example of creating and uploading a file (more appropriate for cloud environments)
-content = "Example file content"
-result = session.file_system.write_file(remote_path, content)
-if not result.success:
-    print(f"Failed to create file: {result.error_message}")
-else:
-    print("File created successfully in remote workspace")
+agent_bay = self.common_code()
+session = agent_bay.create().session
+try:
+    result = session.file_system.search_files(base_dir, filename)
+    print(f"Search result success: {result.success}")  # Debug info
+    print(f"Matches count: {len(result.matches)}")  # Debug info
+    print(f"Matches: {result.matches}")
+    if result.success and result.matches:
+        # File exists in remote workspace
+        print("File found in remote workspace")
+        for match in result.matches:
+            print(match)
 
-## 🔧 Command Execution Best Practices
+        result = session.file_system.read_file(file_path)
+        if result.success:
+            print("File read successfully")
+            print(result.content)
+    else:
+        # Example of creating and uploading a file (more appropriate for cloud environments)
+        content = "Example file content"
+        result = session.file_system.write_file(file_path, content,mode="overwrite")
+
+        if not result.success:
+            print(f"Failed to create file: {result.error_message}")
+        else:
+            print("File created successfully in remote workspace")
+            result = session.file_system.read_file(file_path)
+            if result.success:
+                print("File read successfully")
+
+except Exception as e:
+    print(f"Exception: {e}")
+agent_bay.delete(session)
+```
 
 ### 9. Set Appropriate Timeouts
 ```python
+from agentbay import AgentBay
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
 # ✅ For quick commands
-result = session.command.execute_command("ls")
+result = session.command.execute_command("ls -a",timeout_ms=1000)  # 1 second timeout
+if result.success:
+    print("Command executed successfully")
+    print(result.output)
 
 # ✅ For long-running commands
-result = session.command.execute_command("npm install")  # Let system handle timeouts
-
+result = session.command.execute_command("npm install",timeout_ms=60000)  # Let system handle timeouts
+if result.success:
+    print("Command executed successfully")
+    print(result.output)
 # ✅ For potentially infinite commands
-result = session.command.execute_command("tail -f /var/log/app.log")
+result = session.command.execute_command("tail -f /var/log/app.log", timeout_ms=None)  # Let system handle timeouts
+if result.success:
+    print("Command executed successfully")
+    print(result.output)
+agent_bay.delete(session)
 ```
 
 ### 10. Handle Command Output Properly
@@ -205,16 +262,25 @@ elif getattr(result, 'output', None):
         print(f"  {file}")
 else:
     print("No Python files found")
+agent_bay.delete(session)
 ```
 
 ### 11. Use Proper Shell Escaping
+**Note**: In particular, `shlex.quote` is primarily used to ensure that special characters within strings (such as spaces, quotes, and other characters with special meanings) are interpreted correctly. This helps prevent command injection attacks or other unintended behaviors.
 ```python
 import shlex
-
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
 # ✅ Good practice - Escape shell arguments
 filename = "file with spaces.txt"
 escaped_filename = shlex.quote(filename)
 result = session.command.execute_command(f"cat {escaped_filename}")
+if result.success:
+    print("File read successfully")
+    print(result.output)
+else:
+    print(f"Failed to read file: {result.error_message}")
+agent_bay.delete(session)
 
 # ❌ Bad practice - Direct string interpolation
 result = session.command.execute_command(f"cat {filename}")  # Will fail
@@ -232,10 +298,20 @@ params = CreateSessionParams(labels={
     'environment': 'development',
     'owner': 'john.doe'
 })
-session = agent_bay.create(params).session
+agent_bay = self.common_code()
+result = agent_bay.create(params)
+session = result.session
 
-# ✅ Find sessions by labels
-sessions = agent_bay.list_by_labels({'project': 'web-scraper'})
+if(result.success):
+    print("Session created successfully")
+    print(f"Session ID: {session.session_id}")
+    # ✅ Find sessions by labels
+    result = agent_bay.list_by_labels({'project': 'web-scraper'})
+    if result.success:
+        sessions = result.sessions
+        for session in sessions:
+            print(f"Session ID: {session.session_id}")
+agent_bay.delete(session)
 ```
 
 **Note**: While you can pass labels directly as a dictionary to the `create()` method, using `CreateSessionParams` is the recommended approach for better type safety and clarity.
@@ -246,7 +322,7 @@ sessions = agent_bay.list_by_labels({'project': 'web-scraper'})
 try:
     session = agent_bay.create().session
     # Do work...
-    result = session.command.execute_command("python script.py")
+    result = session.command.execute_command("ls -a")
 finally:
     # Always clean up
     agent_bay.delete(session)
@@ -274,6 +350,9 @@ with agentbay_session() as session:
 
 ### 14. Monitor Session Resources
 ```python
+from agentbay import AgentBay
+agent_bay = AgentBay(api_key=api_key)
+session = agent_bay.create().session
 # ✅ Check session info periodically
 result = session.info()
 if hasattr(result, 'success') and result.success:
@@ -282,6 +361,11 @@ if hasattr(result, 'success') and result.success:
     session_info = getattr(result, 'data', None)
     if session_info:
         print(f"Session ID: {getattr(session_info, 'session_id', 'N/A')}")
+    else:
+        print("Session info not available")
+else:
+    print("Session is not active or not responding")
+agent_bay.delete(session)
 ```
 
 ## 🔄 Context and Data Persistence
@@ -293,7 +377,7 @@ from agentbay.session_params import CreateSessionParams
 from agentbay.context_sync import ContextSync, SyncPolicy
 
 # ✅ Create a context for data persistence across sessions
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 
 # Create a named context for persistence
 context_name = "my-persistent-context"
@@ -317,11 +401,11 @@ session_params.context_syncs = [context_sync]
 session_result = agent_bay.create(session_params)
 if session_result.success:
     session1 = session_result.session
-    
+
     # Create and save data in the context
     session1.command.execute_command("mkdir -p /tmp/shared_data")
     session1.command.execute_command("echo '{\"theme\": \"dark\", \"language\": \"en\", \"version\": \"1.0\"}' > /tmp/shared_data/user_preferences.json")
-    
+
     # Session cleanup with automatic context sync
     agent_bay.delete(session1, sync_context=True)
 
@@ -339,92 +423,23 @@ session_params2.context_syncs = [context_sync2]
 session_result2 = agent_bay.create(session_params2)
 if session_result2.success:
     session2 = session_result2.session
-    
+
     # Retrieve the data that was saved in the first session
     result = session2.command.execute_command("cat /tmp/shared_data/user_preferences.json")
     if hasattr(result, 'success') and result.success:
         preferences = getattr(result, 'output', result)
         print(f"Retrieved preferences: {preferences.strip()}")
-    
+
     # Clean up
     agent_bay.delete(session2, sync_context=True)
-
+print("Context deleted",context_id)
 # Clean up context when no longer needed
-agent_bay.context.delete(context_id)
-```
-
-### 16. Sync Context When Needed
-```python
-from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
-from agentbay.context_sync import ContextSync, SyncPolicy
-
-# ✅ Create a session with context sync
-agent_bay = AgentBay()
-
-# Create a context for synchronization
-context_name = "sync-context-example"
-context_result = agent_bay.context.create(context_name)
-if context_result.success:
-    context_id = context_result.context_id
-    print(f"Context created with ID: {context_id}")
-
-# Create session with context sync configuration
-context_sync = ContextSync.new(
-    context_id,
-    '/tmp/workspace',
-    SyncPolicy.default()
-)
-
-session_params = CreateSessionParams()
-session_params.context_syncs = [context_sync]
-
-session_result = agent_bay.create(session_params)
-if session_result.success:
-    session = session_result.session
-    
-    # Perform some operations that modify the context
-    session.command.execute_command("mkdir -p /tmp/workspace/project")
-    session.command.execute_command("echo 'Initial data' > /tmp/workspace/project/data.txt")
-    
-    # ✅ Sync context before important operations or session termination
-    # This ensures all local changes are uploaded to the persistent context storage
-    sync_result = session.context.sync()
-    if hasattr(sync_result, 'success') and sync_result.success:
-        print("Context sync initiated successfully")
-        
-        # Wait for sync to complete by checking context info
-        import time
-        max_attempts = 30
-        attempt = 0
-        while attempt < max_attempts:
-            context_info = session.context.info()
-            if context_info and hasattr(context_info, 'context_status_data'):
-                status_data = context_info.context_status_data
-                if status_data and len(status_data) > 0:
-                    task_status = status_data[0].status
-                    if task_status == "Success":
-                        print("Context sync completed successfully")
-                        break
-                    elif task_status == "Failed":
-                        print("Context sync failed")
-                        break
-            attempt += 1
-            time.sleep(2)
-    else:
-        error_msg = getattr(sync_result, 'error_message', 'Unknown error')
-        print(f"Failed to sync context: {error_msg}")
-    
-    # Clean up session
-    agent_bay.delete(session)
-
-# Clean up context
-agent_bay.context.delete(context_id)
+agent_bay.context.delete(context_result.context)
 ```
 
 ## 🚨 Common Pitfalls to Avoid
 
-### 17. Don't Ignore Error Handling
+### 16. Don't Ignore Error Handling
 ```python
 # ❌ Bad - Ignoring errors
 result = session.command.execute_command("risky-command")
@@ -437,9 +452,10 @@ if hasattr(result, 'success') and not result.success:
     # Handle error appropriately
 else:
     print(getattr(result, 'output', result))
+agent_bay.delete(session)
 ```
 
-### 18. Don't Create Too Many Sessions
+### 17. Don't Create Too Many Sessions
 ```python
 # ❌ Bad - Creating sessions in loops
 for task in tasks:
@@ -456,20 +472,9 @@ finally:
     agent_bay.delete(session)
 ```
 
-### 19. Don't Hardcode Paths and Values
-```python
-# ❌ Bad - Hardcoded values
-result = session.command.execute_command("cd /home/user/project && python main.py")
-
-# ✅ Good - Use variables and configuration
-project_dir = os.getenv('PROJECT_DIR', '~/project')
-python_script = os.getenv('PYTHON_SCRIPT', 'main.py')
-result = session.command.execute_command(f"cd {project_dir} && python {python_script}")
-```
-
 ## 📊 Performance Tips
 
-### 20. Batch Operations When Possible
+### 18. Batch Operations When Possible
 ```python
 # ✅ Batch commands
 commands = [
@@ -484,24 +489,38 @@ try:
         if hasattr(result, 'success') and not result.success:
             print(f"Command failed: {getattr(result, 'error_message', 'Unknown error')}")
             break
+        else:
+            print(f"Command executed successfully")
+
 finally:
     agent_bay.delete(session)
 ```
 
-### 21. Reuse Sessions
+### 19. Reuse Sessions
 ```python
 # ✅ Reuse sessions for multiple operations
 session = agent_bay.create().session
 try:
+    append_list = []
+
     # Perform multiple operations with the same session
     result1 = session.command.execute_command("ls")
     result2 = session.command.execute_command("pwd")
     result3 = session.command.execute_command("whoami")
+    append_list.extend([{"success": result1.success, "output": result1.output},
+                        {"success": result2.success, "output": result2.output},
+                        {"success": result3.success, "output": result3.output}])
+    if all(item['success'] for item in append_list):
+        print("All commands executed successfully")
+        # Print each output individually
+        for item in append_list:
+            print(item["output"])
+
 finally:
     agent_bay.delete(session)
 ```
 
-### 22. Monitor and Optimize
+### 20. Monitor and Optimize
 ```python
 import time
 
@@ -511,7 +530,7 @@ try:
     start_time = time.time()
     result = session.command.execute_command("heavy-computation")
     end_time = time.time()
-    
+
     print(f"Operation took {end_time - start_time:.2f} seconds")
 finally:
     agent_bay.delete(session)
@@ -519,7 +538,7 @@ finally:
 
 ## 🔐 Security Best Practices
 
-### 23. Never Hardcode Credentials
+### 21. Never Hardcode Credentials
 ```python
 # ❌ Never do this
 api_key = "sk-1234567890abcdef"
@@ -529,32 +548,4 @@ import os
 api_key = os.getenv('AGENTBAY_API_KEY')
 ```
 
-### 24. Validate Input Data
-```python
-import re
-
-def safe_filename(filename):
-    # Remove potentially dangerous characters
-    return re.sub(r'[^\w\-_\.]', '_', filename)
-
-# ✅ Use validated filenames
-user_filename = input("Enter filename: ")
-safe_name = safe_filename(user_filename)
-# Use command execution for file operations
-session.command.execute_command(f"cp {local_file} ~/{safe_name}")
-```
-
-### 25. Be Careful with Command Injection
-```python
-import shlex
-
-# ✅ Safe command construction
-user_input = "file with spaces.txt"
-safe_input = shlex.quote(user_input)
-result = session.command.execute_command(f"cat {safe_input}")
-
-# ❌ Dangerous - Direct interpolation
-result = session.command.execute_command(f"cat {user_input}")  # Vulnerable!
-```
-
-Following these best practices will help you build more reliable, secure, and maintainable applications with AgentBay SDK. 
+Following these best practices will help you build more reliable, secure, and maintainable applications with AgentBay SDK.
