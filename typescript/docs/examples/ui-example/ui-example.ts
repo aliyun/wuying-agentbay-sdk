@@ -1,4 +1,4 @@
-import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
+import { AgentBay, log, logError } from 'wuying-agentbay-sdk';
 import * as fs from 'fs';
 
 // Helper function to parse bounds from a bounds string like "[0,100][200,300]"

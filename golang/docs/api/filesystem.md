@@ -10,19 +10,19 @@ Creates a new directory at the specified path.
 
 
 ```go
-CreateDirectory(path string) (bool, error)
+CreateDirectory(path string) (*FileDirectoryResult, error)
 ```
 
 **Parameters:**
 - `path` (string): The path of the directory to create.
 
 **Returns:**
-- `bool`: True if the directory was created successfully.
+- `*FileDirectoryResult`: A result object containing success status and RequestID.
 - `error`: An error if the directory creation fails.
 
 
 ```go
-EditFile(path string, edits []map[string]string, dryRun bool) (bool, error)
+EditFile(path string, edits []map[string]string, dryRun bool) (*FileWriteResult, error)
 ```
 
 **Parameters:**
@@ -31,19 +31,19 @@ EditFile(path string, edits []map[string]string, dryRun bool) (bool, error)
 - `dryRun` (bool): If true, preview changes without applying them.
 
 **Returns:**
-- `bool`: True if the file was edited successfully.
+- `*FileWriteResult`: A result object containing success status and RequestID.
 - `error`: An error if the file editing fails.
 
 
 ```go
-GetFileInfo(path string) (string, error)
+GetFileInfo(path string) (*FileInfoResult, error)
 ```
 
 **Parameters:**
 - `path` (string): The path of the file or directory to inspect.
 
 **Returns:**
-- `string`: Textual information about the file or directory.
+- `*FileInfoResult`: A result object containing file information and RequestID.
 - `error`: An error if getting the file information fails.
 
 
@@ -120,14 +120,14 @@ Reads the contents of multiple files.
 
 
 ```go
-ReadMultipleFiles(paths []string) (string, error)
+ReadMultipleFiles(paths []string) (map[string]string, error)
 ```
 
 **Parameters:**
 - `paths` ([]string): Array of paths to the files to read.
 
 **Returns:**
-- `string`: Textual content mapping file paths to their contents.
+- `map[string]string`: A map with file paths as keys and their contents as values.
 - `error`: An error if reading the files fails.
 
 
@@ -214,11 +214,11 @@ func main() {
     }
 
     // Create a directory
-    success, err := session.FileSystem.CreateDirectory("/tmp/test")
+    createResult, err := session.FileSystem.CreateDirectory("/tmp/test")
     if err != nil {
         log.Printf("Error creating directory: %v", err)
     } else {
-        fmt.Printf("Directory created: %t\n", success)
+        fmt.Printf("Directory created: %t\n", createResult.Success)
     }
 
     // Write a file
@@ -233,19 +233,19 @@ func main() {
     edits := []map[string]string{
         {"oldText": "Hello", "newText": "Hi"},
     }
-    success, err = session.FileSystem.EditFile("/tmp/test/example.txt", edits, false)
+    editResult, err := session.FileSystem.EditFile("/tmp/test/example.txt", edits, false)
     if err != nil {
         log.Printf("Error editing file: %v", err)
     } else {
-        fmt.Printf("File edited successfully: %t\n", success)
+        fmt.Printf("File edited successfully: %t\n", editResult.Success)
     }
 
     // Get file info
-    fileInfo, err := session.FileSystem.GetFileInfo("/tmp/test/example.txt")
+    fileInfoResult, err := session.FileSystem.GetFileInfo("/tmp/test/example.txt")
     if err != nil {
         log.Printf("Error getting file info: %v", err)
     } else {
-        fmt.Printf("File info: %s\n", fileInfo)
+        fmt.Printf("File info: %+v\n", fileInfoResult.FileInfo)
     }
 
     // List directory

@@ -176,7 +176,7 @@ console.log("Doubled array:", doubled);
             
             read_result = session.file_system.read_file("/tmp/test_code.txt")
             if read_result.success:
-                print(f"✅ File content: {read_result.data}")
+                print(f"✅ File content: {read_result.content}")
             else:
                 print(f"❌ File read failed: {read_result.error_message}")
         else:

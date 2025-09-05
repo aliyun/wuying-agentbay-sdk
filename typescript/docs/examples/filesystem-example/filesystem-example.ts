@@ -1,4 +1,4 @@
-import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
+import { AgentBay, logError, log } from 'wuying-agentbay-sdk';
 
 // Define test path prefix
 const TestPathPrefix = '/tmp';
@@ -74,7 +74,6 @@ async function main() {
     try {
       const fileInfoResponse = await session.fileSystem.getFileInfo(testFilePath);
       const fileInfo = fileInfoResponse.fileInfo;
-     log(`File info: ${fileInfo}`);
       log(`File info: Name=${fileInfo.name}, Path=${fileInfo.path}, Size=${fileInfo.size}, IsDirectory=${fileInfo.isDirectory}`);
       log(`Get File Info RequestId: ${fileInfoResponse.requestId}`);
     } catch (error) {

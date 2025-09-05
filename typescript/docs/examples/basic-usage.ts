@@ -1,4 +1,4 @@
-import { AgentBay, ListSessionParams, logError,log } from 'wuying-agentbay-sdk';
+import { AgentBay, ListSessionParams, logError, log } from 'wuying-agentbay-sdk';
 async function main() {
   try {
     // Use the test API key function from test-helpers

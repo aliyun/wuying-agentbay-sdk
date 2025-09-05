@@ -96,7 +96,8 @@ def create_session_with_context() -> None:
             path="/mnt/data",
             policy=SyncPolicy.default()
         )
-        session_params = CreateSessionParams(context_syncs=[context_sync])
+        session_params = CreateSessionParams()
+        session_params.context_syncs = [context_sync]
         session_result = agent_bay.create(session_params)
 
         if session_result.success and session_result.session:
@@ -137,7 +138,8 @@ def create_session_with_context_sync() -> None:
         )
 
         # Create a session with context synchronization
-        session_params = CreateSessionParams(context_syncs=[context_sync])
+        session_params = CreateSessionParams()
+        session_params.context_syncs = [context_sync]
         session_result = agent_bay.create(session_params)
 
         if session_result.success and session_result.session:

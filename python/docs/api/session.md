@@ -7,7 +7,6 @@ The `Session` class represents a session in the AgentBay cloud environment. It p
 ```python
 agent_bay  # The AgentBay instance that created this session
 session_id  # The ID of this session
-resource_url  # The URL of the resource associated with this session
 file_system  # The FileSystem instance for this session
 command  # The Command instance for this session
 code  # The Code instance for this session

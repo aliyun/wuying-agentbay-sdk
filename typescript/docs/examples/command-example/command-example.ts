@@ -1,4 +1,4 @@
-import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
+import { AgentBay, log, logError } from 'wuying-agentbay-sdk';
 
 /**
  * Helper function to truncate long output text

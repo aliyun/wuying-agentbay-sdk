@@ -55,7 +55,7 @@ def main():
         print(f"Link request ID: {link_result.request_id}")
         print(f"Link: {link_result.data}")
 
-         # Test get_link with port 8080
+        # Test get_link with port 8080
         print("\nTesting get_link with port 8080...")
         link_result_port_8080 = session.get_link(None, 8080)
         print(f"Link with port 8080 request ID: {link_result_port_8080.request_id}")

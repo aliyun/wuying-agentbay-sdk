@@ -7,7 +7,6 @@ The `Session` class represents a session in the AgentBay cloud environment. It p
 ```typescript
 agentBay  // The AgentBay instance that created this session
 sessionId  // The ID of this session
-resourceUrl  // The URL of the resource associated with this session
 fileSystem  // The FileSystem instance for this session
 command  // The Command instance for this session
 code  // The Code instance for this session
@@ -18,7 +17,6 @@ ui  // The UI instance for this session
 context  // The ContextManager instance for this session
 browser  // The Browser instance for this session
 agent  // The Agent instance for this session
-imageId  // The image ID used when creating this session
 isVpc  // Whether this session uses VPC resources
 networkInterfaceIp  // Network interface IP for VPC sessions
 httpPort  // HTTP port for VPC sessions
@@ -257,7 +255,7 @@ listMcpTools(imageId?: string): Promise<McpToolsResult>
 ```
 
 **Parameters:**
-- `imageId` (string, optional): The image ID to list tools for. Defaults to the session's imageId or "linux_latest".
+- `imageId` (string, optional): The image ID to list tools for. Defaults to "linux_latest".
 
 **Returns:**
 - `Promise<McpToolsResult>`: A promise that resolves to a result object containing success status, request ID, and the list of MCP tools.

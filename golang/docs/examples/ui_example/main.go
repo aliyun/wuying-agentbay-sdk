@@ -69,8 +69,7 @@ func main() {
 	} else if len(elementsResult.Elements) == 0 {
 		fmt.Println("No UI elements found.")
 	} else {
-		getElement := elementsResult.Elements[0]
-		fmt.Printf("Found %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), getElement.ElementID)
+		fmt.Printf("Found %d UI elements (RequestID: %s)\n", len(elementsResult.Elements), elementsResult.RequestID)
 		// Print details of the first few elements if available
 		elementsToShow := 3
 		if len(elementsResult.Elements) < elementsToShow {
