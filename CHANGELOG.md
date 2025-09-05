@@ -7,7 +7,7 @@ All notable changes to the Wuying AgentBay SDK will be documented in this file.
 ### Added
 
 - **AI Browser Extension**: New browser extension capabilities for enhanced automation
-  - **Python Extension Support**: Added `extention.py` module for browser extension functionality
+  - **Python Extension Support**: Added `extension.py` module for browser extension functionality
   - **TypeScript Extension Support**: Complete extension API implementation with examples
   - **Extension Integration**: Seamless integration with browser automation workflows
   - **Extension Testing**: Comprehensive test coverage for extension functionality

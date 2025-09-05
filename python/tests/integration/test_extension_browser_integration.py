@@ -28,9 +28,9 @@ from urllib.parse import urlparse
 from agentbay import AgentBay
 from agentbay.context_sync import ContextSync, ExtractPolicy, SyncPolicy, UploadPolicy, BWList, WhiteList
 from agentbay.browser.browser import BrowserOption
-from agentbay.extention import ExtensionsService, Extension
+from agentbay.extension import ExtensionsService, Extension
 from agentbay.session_params import CreateSessionParams, BrowserContext
-from agentbay.extention import ExtensionOption
+from agentbay.extension import ExtensionOption
 
 # Optional Playwright import
 try:

@@ -390,7 +390,7 @@ create_extension_option(extension_ids: List[str]) -> ExtensionOption
 
 **Examples:**
 ```python
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 from agentbay.session_params import CreateSessionParams, BrowserContext
 
 # Initialize extensions service

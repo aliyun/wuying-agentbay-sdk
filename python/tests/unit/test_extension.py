@@ -11,7 +11,7 @@ This module contains comprehensive unit tests for:
 import os
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-from agentbay.extention import ExtensionsService, ExtensionOption, Extension
+from agentbay.extension import ExtensionsService, ExtensionOption, Extension
 from agentbay.exceptions import AgentBayError
 
 
