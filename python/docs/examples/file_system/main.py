@@ -66,7 +66,7 @@ def main():
         print("\nExample 2: Reading the file...")
         result = fs.read_file(test_file_path)
         if result.success:
-            content = result.data
+            content = result.content
             print(f"File content ({len(content)} bytes):")
             print(content)
             print(f"Content matches original: {content == test_content}")
@@ -86,7 +86,7 @@ def main():
         # Read the file again to verify append
         result = fs.read_file(test_file_path)
         if result.success:
-            updated_content = result.data
+            updated_content = result.content
             print(f"Updated file content ({len(updated_content)} bytes):")
             print(updated_content)
             print(
@@ -156,7 +156,7 @@ def main():
         # Read the file again to verify edit
         result = fs.read_file(test_file_path)
         if result.success:
-            edited_content = result.data
+            edited_content = result.content
             print(f"Edited file content ({len(edited_content)} bytes):")
             print(edited_content)
         else:
@@ -179,7 +179,7 @@ def main():
         # Verify the file was moved
         result = fs.read_file(dest_path)
         if result.success:
-            moved_content = result.data
+            moved_content = result.content
             print(f"Moved file content length: {len(moved_content)} bytes")
             print(f"Content preserved after move: {moved_content == edited_content}")
         else:
@@ -230,7 +230,7 @@ def main():
         ]
         result = fs.read_multiple_files(file_paths)
         if result.success:
-            multi_file_contents = result.data
+            multi_file_contents = result.content
             print(f"Read {len(multi_file_contents)} files:")
             for path, content in multi_file_contents.items():
                 print(f"  - {path}: {len(content)} bytes")
@@ -271,7 +271,7 @@ def main():
         read_time = time.time() - start_time
 
         if result.success:
-            read_content = result.data
+            read_content = result.content
             print(f"Read operation completed in {read_time:.2f} seconds")
             print(f"Content length: {len(read_content)} bytes")
             print(f"Content matches original: {read_content == large_content}")
@@ -305,7 +305,7 @@ def main():
         read_time = time.time() - start_time
 
         if result.success:
-            read_content2 = result.data
+            read_content2 = result.content
             print(
                 f"Second large file read operation completed in "
                 f"{read_time:.2f} seconds"

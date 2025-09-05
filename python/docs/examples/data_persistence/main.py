@@ -61,7 +61,8 @@ def data_persistence_demo(agent_bay):
     )
     
     # Create session with context sync
-    params1 = CreateSessionParams(context_syncs=[context_sync])
+    params1 = CreateSessionParams()
+    params1.context_syncs = [context_sync]
     session1_result = agent_bay.create(params1)
     
     if not session1_result.success:
@@ -140,7 +141,8 @@ Status: Files created successfully
     print("\n🔧 Step 4: Creating second session to verify data persistence...")
     
     # Create second session with same context sync
-    params2 = CreateSessionParams(context_syncs=[context_sync])
+    params2 = CreateSessionParams()
+    params2.context_syncs = [context_sync]
     session2_result = agent_bay.create(params2)
     
     if not session2_result.success:

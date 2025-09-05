@@ -1,4 +1,4 @@
-import { AgentBay,logError,log, ContextSync } from 'wuying-agentbay-sdk';
+import { AgentBay, logError, log, ContextSync } from 'wuying-agentbay-sdk';
 
 /**
  * Context Management Example

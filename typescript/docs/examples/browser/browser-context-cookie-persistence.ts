@@ -119,7 +119,7 @@ async function main(): Promise<void> {
         ];
 
         // Connect with Playwright with enhanced error handling
-        let browser,cdpSession;
+        let browser, cdpSession;
         try {
             console.log("Attempting to connect via CDP...");
             browser = await chromium.connectOverCDP(endpointUrl);

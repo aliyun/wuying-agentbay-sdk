@@ -82,11 +82,11 @@ async function commandExecutionExample(session: any): Promise<void> {
 
     // Command execution with timeout
     console.log('\n🔄 Executing command with timeout...');
-    const timeoutResult = await session.command.executeCommand('sleep 2', { timeout: 5000 });
-    if (!timeoutResult.isError) {
+    const timeoutResult = await session.command.executeCommand('sleep 2', 5000);
+    if (timeoutResult.success) {
         console.log('✅ Timeout command executed successfully');
     } else {
-        console.log(`❌ Timeout command failed: ${timeoutResult.error}`);
+        console.log(`❌ Timeout command failed: ${timeoutResult.errorMessage}`);
     }
 }
 

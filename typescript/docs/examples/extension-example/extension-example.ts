@@ -12,7 +12,7 @@
  * - Error handling and cleanup
  */
 
-import { AgentBay, ExtensionsService, Extension, ExtensionOption,BrowserContext } from "wuying-agentbay-sdk";
+import { AgentBay, ExtensionsService, Extension, ExtensionOption, BrowserContext } from "wuying-agentbay-sdk";
 import * as fs from "fs";
 
 /**
