@@ -94,7 +94,7 @@ context = agent_bay.context.get("my-project", create=True).context
 # Create session with context
 from agentbay.session_params import CreateSessionParams
 from agentbay.context_sync import ContextSync, SyncPolicy
-context_sync = ContextSync.new(context.id, "/mnt/data", SyncPolicy.default())
+context_sync = ContextSync.new(context.id, "/tmp/data", SyncPolicy.default())
 session = agent_bay.create(CreateSessionParams(context_syncs=[context_sync])).session
 ```
 

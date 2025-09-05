@@ -31,7 +31,7 @@ class InstalledApp:
 class Process:
     pname: str    # The name of the process
     pid: int      # The process ID
-    cmdline: str  # The command line used to start the process (optional)
+    cmdline: Optional[str]  # The command line used to start the process (optional)
 ```
 
 ## Result Types

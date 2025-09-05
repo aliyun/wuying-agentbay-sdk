@@ -113,7 +113,7 @@ context := contextResult.Context
 
 // Create session with context
 policy := agentbay.NewSyncPolicy()
-contextSync := agentbay.NewContextSync(context.ID, "/mnt/data", policy)
+contextSync := agentbay.NewContextSync(context.ID, "/tmp/data", policy)
 params := agentbay.NewCreateSessionParams().AddContextSyncConfig(contextSync)
 sessionResult, _ := client.Create(params)
 ```

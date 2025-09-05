@@ -139,10 +139,7 @@ Status: Files created successfully
         if (listResult.success) {
             console.log(listResult.output);
         }
-        
-        console.log('⏳ Waiting for context synchronization...');
-        // Small delay to allow for processing
-        await new Promise(resolve => setTimeout(resolve, 3000));
+
         
     } finally {
         // Clean up first session

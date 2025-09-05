@@ -93,7 +93,7 @@ def create_session_with_context() -> None:
         # Create a session with context synchronization
         context_sync = ContextSync.new(
             context_id=context.id,
-            path="/mnt/data",
+            path="/tmp/data",
             policy=SyncPolicy.default()
         )
         session_params = CreateSessionParams()

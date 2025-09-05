@@ -5,22 +5,21 @@ The `Session` struct represents a session in the AgentBay cloud environment. It 
 ## Properties
 
 ```go
+AgentBay  // The AgentBay client instance
 SessionID  // The ID of this session
-ResourceURL  // The URL of the resource associated with this session
-FileSystem  // The FileSystem instance for this session
-Command  // The Command instance for this session
-Code  // The Code instance for this session
-Oss  // The Oss instance for this session
-Application  // The ApplicationManager instance for this session
-Window  // The WindowManager instance for this session
-UI  // The UI instance for this session
-Context  // The ContextManager instance for this session
-Browser  // The Browser instance for this session
-Agent  // The Agent instance for this session
 ImageId  // The image ID used when creating this session
 IsVpcEnabled  // Whether this session uses VPC resources
 NetworkInterfaceIP  // Network interface IP for VPC sessions
 HttpPortNumber  // HTTP port for VPC sessions
+FileSystem  // The FileSystem instance for this session
+Command  // The Command instance for this session
+Code  // The Code instance for this session
+Oss  // The Oss instance for this session
+UI  // The UI instance for this session
+Application  // The ApplicationManager instance for this session
+Window  // The WindowManager instance for this session
+Agent  // The Agent instance for this session
+Context  // The ContextManager instance for this session
 McpTools  // MCP tools available for this session
 ```
 

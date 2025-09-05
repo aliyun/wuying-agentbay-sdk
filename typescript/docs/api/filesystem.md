@@ -24,7 +24,7 @@ createDirectory(path: string): Promise<string>
 
 
 ```typescript
-editFile(path: string, edits: Array<{oldText: string, newText: string}>, dryRun?: boolean): Promise<string>
+editFile(path: string, edits: Array<{oldText: string, newText: string}>, dryRun?: boolean): Promise<BoolResult>
 ```
 
 **Parameters:**
@@ -33,7 +33,7 @@ editFile(path: string, edits: Array<{oldText: string, newText: string}>, dryRun?
 - `dryRun` (boolean, optional): If true, preview changes without applying them. Default is false.
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text content if the file was edited successfully.
+- `Promise<BoolResult>`: A promise that resolves to a result object containing success status, boolean data (true if successful), request ID, and error message if any.
 
 **Throws:**
 - `APIError`: If the file editing fails.

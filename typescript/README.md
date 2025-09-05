@@ -100,7 +100,7 @@ const context = (await agentBay.context.get("my-project", true)).context;
 import { ContextSync, SyncPolicy } from 'wuying-agentbay-sdk';
 const contextSync = new ContextSync({
     contextId: context.id,
-    path: "/mnt/data",
+    path: "/tmp/data",
     policy: SyncPolicy.default()
 });
 const session = (await agentBay.create({ contextSync: [contextSync] })).session;
