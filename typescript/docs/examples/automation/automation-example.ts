@@ -73,10 +73,10 @@ async function commandExecutionExample(session: any): Promise<void> {
         console.log(`\n🔄 Executing command: ${cmd}`);
         const result = await session.command.executeCommand(cmd);
 
-        if (!result.isError) {
+        if (result.success) {
             console.log(`✅ Output: ${result.output.trim()}`);
         } else {
-            console.log(`❌ Command failed: ${result.error}`);
+            console.log(`❌ Command failed: ${result.errorMessage}`);
         }
     }
 
@@ -119,11 +119,11 @@ print(f"Sum of 1 to 10: {total}")
 
     console.log('🔄 Executing Python code...');
     const pythonResult = await session.code.runCode(pythonCode, 'python');
-    if (!pythonResult.isError) {
+    if (pythonResult.success) {
         console.log('✅ Python code executed successfully:');
         console.log(pythonResult.result);
     } else {
-        console.log(`❌ Python code execution failed: ${pythonResult.error}`);
+        console.log(`❌ Python code execution failed: ${pythonResult.errorMessage}`);
     }
 
     // JavaScript code execution
@@ -150,11 +150,11 @@ console.log("Doubled:", doubled);
 
     console.log('\n🔄 Executing JavaScript code...');
     const jsResult = await session.code.runCode(jsCode, 'javascript');
-    if (!jsResult.isError) {
+    if (jsResult.success) {
         console.log('✅ JavaScript code executed successfully:');
         console.log(jsResult.result);
     } else {
-        console.log(`❌ JavaScript code execution failed: ${jsResult.error}`);
+        console.log(`❌ JavaScript code execution failed: ${jsResult.errorMessage}`);
     }
 }
 
@@ -165,12 +165,12 @@ async function uiAutomationExample(session: any): Promise<void> {
         // Screenshot
         console.log('🔄 Taking screenshot...');
         const screenshot = await session.ui.screenshot();
-        if (!screenshot.isError) {
+        if (screenshot.success) {
             // Save screenshot
             await session.fileSystem.writeFile('/tmp/screenshot.png', screenshot.data);
             console.log('✅ Screenshot saved successfully: /tmp/screenshot.png');
         } else {
-            console.log(`❌ Screenshot failed: ${screenshot.error}`);
+            console.log(`❌ Screenshot failed: ${screenshot.errorMessage}`);
         }
 
         // Simulate keyboard input
@@ -222,8 +222,8 @@ print(f"Generated {len(data)} test records")
 `;
 
     const createResult = await session.code.runCode(createDataCode, 'python');
-    if (createResult.isError) {
-        console.log(`❌ Data creation failed: ${createResult.error}`);
+    if (!createResult.success) {
+        console.log(`❌ Data creation failed: ${createResult.errorMessage}`);
         return;
     }
     console.log('✅ Test data creation completed');
@@ -263,8 +263,8 @@ Object.entries(analysisResult).forEach(([key, value]) => {
 `;
 
     const analysisResult = await session.code.runCode(analysisCode, 'javascript');
-    if (analysisResult.isError) {
-        console.log(`❌ Data analysis failed: ${analysisResult.error}`);
+    if (!analysisResult.success) {
+        console.log(`❌ Data analysis failed: ${analysisResult.errorMessage}`);
         return;
     }
     console.log('✅ Data analysis completed');
@@ -327,8 +327,8 @@ print("HTML report generated: /tmp/report.html")
 `;
 
     const reportResult = await session.code.runCode(reportCode, 'python');
-    if (reportResult.isError) {
-        console.log(`❌ Report generation failed: ${reportResult.error}`);
+    if (!reportResult.success) {
+        console.log(`❌ Report generation failed: ${reportResult.errorMessage}`);
         return;
     }
     console.log('✅ Report generation completed');
@@ -339,7 +339,7 @@ print("HTML report generated: /tmp/report.html")
 
     for (const filePath of filesToCheck) {
         const result = await session.fileSystem.readFile(filePath);
-        if (!result.isError) {
+        if (result.success) {
             console.log(`✅ File exists: ${filePath} (${result.content.length} bytes)`);
         } else {
             console.log(`❌ File not found: ${filePath}`);

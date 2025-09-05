@@ -160,7 +160,7 @@ write_result = session.file_system.write_file(
 # Read a file
 read_result = session.file_system.read_file(path="/tmp/test.txt")
 if read_result.success:
-    print(f"File content: {read_result.data}")
+    print(f"File content: {read_result.content}")
 ```
 
 ```typescript
@@ -174,7 +174,7 @@ const writeResult = await session.fileSystem.writeFile(
 // Read a file
 const readResult = await session.fileSystem.readFile('/tmp/test.txt');
 if (readResult.success) {
-    console.log(`File content: ${readResult.data}`);
+    console.log(`File content: ${readResult.content}`);
 }
 ```
 
