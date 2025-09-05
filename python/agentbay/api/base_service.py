@@ -8,6 +8,10 @@ from typing import Any, Dict
 from agentbay.api.models import CallMcpToolRequest
 from agentbay.exceptions import AgentBayError
 from agentbay.model import OperationResult, extract_request_id
+from agentbay.logger import get_logger, log_api_call, log_api_response, log_operation_error
+
+# Initialize logger for this module
+logger = get_logger("base_service")
 
 
 class BaseService:
@@ -51,8 +55,7 @@ class BaseService:
         Returns:
             OperationResult: The response from the tool
         """
-        print(f"API Call: CallMcpTool (VPC) - {tool_name}")
-        print(f"Request: Args={args_json}")
+        log_api_call(f"CallMcpTool (VPC) - {tool_name}", f"Args={args_json}")
         
         # Find server for this tool
         server = self.session.find_server_for_tool(tool_name)
@@ -89,7 +92,7 @@ class BaseService:
             
             # Parse response
             response_data = response.json()
-            print(f"Response from VPC CallMcpTool - {tool_name}:", response_data)
+            log_api_response(json.dumps(response_data, ensure_ascii=False))
             
             # Extract the actual result from the nested VPC response structure
             actual_result = None
@@ -124,7 +127,7 @@ class BaseService:
             
         except requests.RequestException as e:
             sanitized_error = self._sanitize_error(str(e))
-            print(f"Error calling VPC CallMcpTool - {tool_name}: {sanitized_error}")
+            log_operation_error(f"CallMcpTool (VPC) - {tool_name}", sanitized_error)
             return OperationResult(
                 request_id="",
                 success=False,
@@ -171,10 +174,10 @@ class BaseService:
 
             body = response_map.get("body", {})
             try:
-                print("Response body:")
-                print(json.dumps(body, ensure_ascii=False, indent=2))
+                response_body = json.dumps(body, ensure_ascii=False, indent=2)
+                log_api_response(response_body)
             except Exception:
-                print(f"Response: {body}")
+                logger.debug(f"Response: {body}")
             if not body:
                 return OperationResult(
                     request_id=request_id,
@@ -262,10 +265,10 @@ class BaseService:
             if body.get("Data", {}).get("isError", False):
                 error_content = body.get("Data", {}).get("content", [])
                 try:
-                    print("error_content =")
-                    print(json.dumps(error_content, ensure_ascii=False, indent=2))
+                    error_content_json = json.dumps(error_content, ensure_ascii=False, indent=2)
+                    logger.debug(f"error_content = {error_content_json}")
                 except Exception:
-                    print(f"error_content: {error_content}")
+                    logger.debug(f"error_content: {error_content}")
                 error_message = "; ".join(
                     item.get("text", "Unknown error")
                     for item in error_content

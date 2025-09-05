@@ -17,6 +17,10 @@ from agentbay.browser import Browser, BrowserOption
 from agentbay.model.response import SessionResult
 from agentbay.browser.browser_agent import BrowserAgent, ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
 from agentbay.browser.eval.local_page_agent import LocalSession
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("page_agent")
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +44,8 @@ class PageAgent:
         api_key = os.environ.get("AGENTBAY_API_KEY")
         if not api_key:
             api_key = "akm-xxx"  # Replace with your test API key
-            print(
-                "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
+            logger.warning(
+                "Using default API key. Set AGENTBAY_API_KEY environment variable for testing."
             )
         return api_key
 
@@ -124,7 +128,7 @@ class PageAgent:
                     try:
                         task_name, arguments, future = await asyncio.wait_for(self._task_queue.get(), timeout=1.0)
                         try:
-                            print(f"Execute task {task_name} with arguments {arguments}")
+                            logger.debug(f"Execute task {task_name} with arguments {arguments}")
                             if task_name == "run_task":
                                 task_module = arguments["task"]
                                 logger = arguments["logger"]
@@ -155,10 +159,10 @@ class PageAgent:
                 try:
                     tool_name, arguments, future = await asyncio.wait_for(self._tool_call_queue.get(), timeout=1.0)
                     try:
-                        print(f"Call tool {tool_name} with arguments {arguments}")
+                        logger.debug(f"Call tool {tool_name} with arguments {arguments}")
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
-                            print("MCP tool response:", response)
+                            logger.debug(f"MCP tool response: {response}")
                             
                             # Extract text content from response
                             if hasattr(response, 'content') and response.content:

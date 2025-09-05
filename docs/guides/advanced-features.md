@@ -23,7 +23,7 @@ VPC (Virtual Private Cloud) sessions provide isolated network environments, suit
 ```python
 from agentbay import AgentBay, CreateSessionParams
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 
 # Create VPC session parameters
 vpc_params = CreateSessionParams(
@@ -38,6 +38,7 @@ if result.success:
     print(f"VPC session created successfully: {vpc_session.session_id}")
 else:
     print(f"VPC session creation failed: {result.error_message}")
+agent_bay.delete(vpc_session)
 ```
 
 ### VPC Session Creation
@@ -76,7 +77,7 @@ session_result = agent_bay.create()
 if session_result.success:
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
-    
+
     # Get default session link (WebSocket connection)
     link_result = session.get_link()
     if link_result.success:
@@ -178,7 +179,7 @@ if session_info.success and session_info.data.app_id == "mcp-server-ubuntu":
     if https_link.success:
         print(f"HTTPS Access: {https_link.data}")
         # Use for web-based applications running in the session
-        
+
     # HTTPS access on custom port
     custom_https = session.get_link(protocol_type="https", port=8443)
     if custom_https.success:
@@ -199,16 +200,16 @@ async def get_multiple_links():
     agent_bay = AgentBay()
     session_result = agent_bay.create()
     session = session_result.session
-    
+
     # Get multiple links asynchronously
     tasks = [
         session.get_link_async(),  # Default WebSocket
         session.get_link_async(protocol_type="https", port=443),  # HTTPS
         session.get_link_async(port=8080)  # WebSocket with port
     ]
-    
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     for i, result in enumerate(results):
         if isinstance(result, Exception):
             print(f"Link {i+1} failed: {result}")
@@ -256,7 +257,7 @@ https_link = session.get_link(protocol_type="https", port=443)
        """Safely get session link with parameter validation."""
        if protocol_type is not None and port is None:
            raise ValueError("When protocol_type is specified, port must also be provided")
-       
+
        try:
            return session.get_link(protocol_type=protocol_type, port=port)
        except Exception as e:
@@ -269,7 +270,7 @@ https_link = session.get_link(protocol_type="https", port=443)
    - Use HTTPS (`https://`) for web applications and REST APIs
    - **Note**: Only `"https"` and `"wss"` protocols are supported
 
-3. **Port Management**: 
+3. **Port Management**:
    - Use standard ports when possible (80 for HTTP, 443 for HTTPS)
    - Document custom port usage for team collaboration
    - Avoid conflicts with system reserved ports (< 1024)
@@ -280,7 +281,7 @@ https_link = session.get_link(protocol_type="https", port=443)
        """Get session link with comprehensive error handling."""
        try:
            result = session.get_link(protocol_type=protocol_type, port=port)
-           
+
            if result.success:
                print(f"Link retrieved successfully: {result.data}")
                print(f"Request ID: {result.request_id}")
@@ -288,7 +289,7 @@ https_link = session.get_link(protocol_type="https", port=443)
            else:
                print(f"API returned failure: {result.error_message}")
                return None
-               
+
        except Exception as e:
            print(f"Exception occurred: {e}")
            return None
@@ -300,18 +301,18 @@ https_link = session.get_link(protocol_type="https", port=443)
        def __init__(self, session):
            self.session = session
            self.link_cache = {}
-       
+
        def get_cached_link(self, protocol_type=None, port=None):
            """Get link with caching to avoid repeated API calls."""
            cache_key = f"{protocol_type}:{port}"
-           
+
            if cache_key not in self.link_cache:
                result = self.session.get_link(protocol_type=protocol_type, port=port)
                if result.success:
                    self.link_cache[cache_key] = result.data
                else:
                    return None
-           
+
            return self.link_cache[cache_key]
    ```
 
@@ -323,7 +324,7 @@ https_link = session.get_link(protocol_type="https", port=443)
    ```python
    # ❌ Wrong: Protocol without port
    # session.get_link(protocol_type="https")
-   
+
    # ✅ Correct: Both protocol and port
    session.get_link(protocol_type="https", port=443)
    ```
@@ -332,7 +333,7 @@ https_link = session.get_link(protocol_type="https", port=443)
    ```python
    # ❌ Wrong: Unsupported protocol
    # session.get_link(protocol_type="http", port=80)
-   
+
    # ✅ Correct: Use supported protocols only
    session.get_link(protocol_type="https", port=443)  # or "wss"
    ```
@@ -352,7 +353,7 @@ https_link = session.get_link(protocol_type="https", port=443)
 def debug_session_links(session):
     """Debug session link generation and accessibility."""
     print(f"Debugging session: {session.session_id}")
-    
+
     # Get session info first
     info_result = session.info()
     if info_result.success:
@@ -363,7 +364,7 @@ def debug_session_links(session):
     else:
         print(f"Failed to get session info: {info_result.error_message}")
         return
-    
+
     # Test different link types (only supported protocols)
     test_cases = [
         ("Default WebSocket", None, None),
@@ -371,7 +372,7 @@ def debug_session_links(session):
         ("HTTPS", "https", 443),
         ("WebSocket Secure", "wss", 443),
     ]
-    
+
     for name, protocol, port in test_cases:
         try:
             if protocol is None and port is None:
@@ -380,12 +381,12 @@ def debug_session_links(session):
                 result = session.get_link(port=port)
             else:
                 result = session.get_link(protocol_type=protocol, port=port)
-            
+
             if result.success:
                 print(f"✅ {name}: {result.data[:80]}...")
             else:
                 print(f"❌ {name}: {result.error_message}")
-                
+
         except Exception as e:
             print(f"❌ {name}: Exception - {e}")
 
@@ -478,7 +479,7 @@ if session_result.success:
         print("Browser initialized successfully")
         endpoint_url = session.browser.get_endpoint_url()
         print(f"Browser endpoint URL: {endpoint_url}")
-        
+
         # Note: Actual browser automation is done using Playwright
         # See examples/browser/visit_aliyun.py for a complete example
     else:
@@ -499,25 +500,25 @@ from playwright.async_api import async_playwright
 async def browser_automation_example():
     # After initializing the browser as shown in the basic example
     endpoint_url = session.browser.get_endpoint_url()
-    
+
     async with async_playwright() as p:
         browser = await p.chromium.connect_over_cdp(endpoint_url)
         page = await browser.new_page()
-        
+
         # Navigate to a webpage
         await page.goto("https://example.com")
         print("Page title:", await page.title())·
-        
+
         # Fill form fields
         await page.fill("#username", "myuser")
         await page.fill("#password", "mypassword")
-        
+
         # Click buttons
         await page.click("#login-button")
-        
+
         # Wait for navigation
         await page.wait_for_url("https://example.com/dashboard")
-        
+
         # Execute custom JavaScript
         dimensions = await page.evaluate("""() => {
             return {
@@ -527,10 +528,10 @@ async def browser_automation_example():
             };
         }""")
         print(f"Browser dimensions: {dimensions['width']}x{dimensions['height']}")
-        
+
         # Take screenshot
         await page.screenshot(path="screenshot.png")
-        
+
         await browser.close()
 
 # Run the example
@@ -562,11 +563,11 @@ class SessionEventManager:
             "session_created": [],
             "session_destroyed": []
         }
-    
+
     def on(self, event, callback):
         if event in self.listeners:
             self.listeners[event].append(callback)
-    
+
     def emit(self, event, *args):
         if event in self.listeners:
             for callback in self.listeners[event]:
@@ -601,7 +602,7 @@ import sqlite3
 def save_session_data(session, db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
             id TEXT PRIMARY KEY,
@@ -609,12 +610,12 @@ def save_session_data(session, db_path):
             status TEXT
         )
     """)
-    
+
     cursor.execute("""
         INSERT OR REPLACE INTO sessions (id, created_at, status)
         VALUES (?, ?, ?)
     """, (session.session_id, session.created_at, session.status))
-    
+
     conn.commit()
     conn.close()
 ```

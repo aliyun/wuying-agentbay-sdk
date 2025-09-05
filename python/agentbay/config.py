@@ -3,6 +3,10 @@ import os
 from typing import Any, Dict
 import dotenv
 from pathlib import Path
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("config")
 
 
 def default_config() -> Dict[str, Any]:
@@ -40,7 +44,7 @@ def load_config(cfg) -> Dict[str, Any]:
             env_path = Path(os.getcwd()) / ".env"
             dotenv.load_dotenv(env_path)
         except:
-            print("Warning: Failed to load .env file")
+            logger.warning("Failed to load .env file")
         if region_id := os.getenv("AGENTBAY_REGION_ID"):
             config["region_id"] = region_id
         if endpoint := os.getenv("AGENTBAY_ENDPOINT"):

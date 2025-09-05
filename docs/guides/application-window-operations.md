@@ -42,16 +42,20 @@ from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 
 # Initialize AgentBay
-api_key = "your-api-key"
+api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    api_key = "akm-xxx"
+    print("Warning: Using default API key.")
 agent_bay = AgentBay(api_key=api_key)
 
 # Create session (use appropriate image_id for your needs)
-params = CreateSessionParams(image_id="linux_latest")  # or "windows_latest"
+params = CreateSessionParams(image_id="linux_latest")  # or "windows_latest" or mobile_latest
 result = agent_bay.create(params)
 
 if result.success:
     session = result.session
     print(f"Session created: {session.session_id}")
+    agent_bay.delete(session)
 else:
     print(f"Failed to create session: {result.error_message}")
 ```
@@ -72,7 +76,7 @@ result = session.application.get_installed_apps(
 if result.success:
     apps = result.data
     print(f"Found {len(apps)} installed applications")
-    
+
     # Display application details
     for app in apps[:5]:  # Show first 5 apps
         print(f"Name: {app.name}")
@@ -80,14 +84,15 @@ if result.success:
         print(f"Stop Command: {app.stop_cmd if app.stop_cmd else 'N/A'}")
         print(f"Work Directory: {app.work_directory if app.work_directory else 'N/A'}")
         print("---")
+    # Don't forget to release the session
 else:
     print(f"Error: {result.error_message}")
 ```
 
 **Key Parameters:**
-- `start_menu`: Include applications from start menu/applications folder
-- `desktop`: Include desktop shortcuts
-- `ignore_system_apps`: Filter out system-level applications
+- `start_menu(bool)`: Whether to include start menu applications.
+- `desktop (bool)`: Whether to include desktop applications.
+- `ignore_system_apps (bool)`: Whether to ignore system applications.
 
 <a id="starting-applications"></a>
 ### Starting Applications
@@ -104,7 +109,7 @@ result = session.application.start_app(start_cmd)
 if result.success:
     processes = result.data
     print(f"Application started successfully with {len(processes)} processes")
-    
+
     for process in processes:
         print(f"Process: {process.pname} (PID: {process.pid})")
 else:
@@ -112,7 +117,7 @@ else:
 ```
 
 ```python
-# Method 1b: Start application with optional parameters
+# Method 2: Start application with optional parameters
 start_cmd = "/usr/bin/google-chrome-stable"
 work_directory = "/tmp"  # Optional working directory (use existing directory)
 activity = ""  # Optional activity (mainly for mobile apps)
@@ -131,25 +136,25 @@ else:
 ```
 
 ```python
-# Method 2: Start application from installed apps list
+# Method 3: Start application from installed apps list
 result = session.application.get_installed_apps(
     start_menu=True, desktop=False, ignore_system_apps=True
 )
 
 if result.success:
     apps = result.data
-    
+
     # Find specific application
     target_app = None
     for app in apps:
         if "chrome" in app.name.lower():
             target_app = app
             break
-    
+
     if target_app:
         print(f"Starting {target_app.name}...")
         start_result = session.application.start_app(target_app.start_cmd)
-        
+
         if start_result.success:
             print("Application started successfully!")
         else:
@@ -165,76 +170,78 @@ Stop applications using process ID or process name:
 
 ```python
 # Method 1: Stop by Process ID (PID)
-pid = 1234  # Replace with actual PID
-result = session.application.stop_app_by_pid(pid)
+start_result = session.application.start_app(your_start_cmd)
+if start_result.success:
+    print("Application started successfully!")
+    print(f"Found {start_result.data}")
+    target_pid = None
+    for process in start_result.data:
+        print(f"Process: {process.pname} (PID: {process.pid})")
+        if 'chrome' in process.pname.lower():
+            target_pid = process.pid
+            break
+    print(f"Application PID: {target_pid}")
+    result = session.application.stop_app_by_pid(target_pid)
 
-if result.success:
-    print(f"Successfully stopped process {pid}")
-else:
-    print(f"Failed to stop process: {result.error_message}")
+    if result.success:
+        print(f"Successfully stopped process {target_pid}")
+    else:
+        print(f"Failed to stop process: {result.error_message}")
+agent_bay.delete(session)
 ```
 
 ```python
 # Method 2: Stop by Process Name
-process_name = "chrome"
-result = session.application.stop_app_by_pname(process_name)
+ start_result = session.application.start_app(your_start_cmd)
+    if start_result.success:
+        print("Application started successfully!")
+        print(f"Found {start_result.data}")
+        target_pname = None
+        for process in start_result.data:
+            print(f"Process: {process.pname} (PID: {process.pid})")
+            target_pname = process.pname
+            break
+        print(f"Application target_pname: {target_pname}")
 
-if result.success:
-    print(f"Successfully stopped {process_name}")
-else:
-    print(f"Failed to stop {process_name}: {result.error_message}")
+        result = session.application.stop_app_by_pname(target_pname)
+
+        if result.success:
+            print(f"Successfully stopped process {target_pname}")
+        else:
+            print(f"Failed to stop process: {result.error_message}")
+agent_bay.delete(session)
 ```
 
 ```python
-# Method 3: Stop by Stop Command
-stop_cmd = "pkill chrome"  # Linux example
-# stop_cmd = "taskkill /f /im chrome.exe"  # Windows example
-
-result = session.application.stop_app_by_cmd(stop_cmd)
-
-if result.success:
-    print("Successfully stopped application using command")
-else:
-    print(f"Failed to stop application: {result.error_message}")
-```
-
-```python
-# Method 3: Complete start-stop workflow
-def start_and_stop_application(session, app_command, process_name):
-    """Complete workflow to start and stop an application"""
-    
-    # Start application
-    print(f"Starting application: {app_command}")
-    start_result = session.application.start_app(app_command)
-    
-    if not start_result.success:
-        print(f"Failed to start: {start_result.error_message}")
-        return False
-    
-    processes = start_result.data
-    print(f"Started {len(processes)} processes")
-    
-    # Wait for application to fully load
-    import time
-    time.sleep(3)
-    
-    # Stop application
-    print(f"Stopping application: {process_name}")
-    stop_result = session.application.stop_app_by_pname(process_name)
-    
-    if stop_result.success:
-        print("Application stopped successfully")
-        return True
-    else:
-        print(f"Failed to stop: {stop_result.error_message}")
-        return False
-
-# Usage
-success = start_and_stop_application(
-    session, 
-    "/usr/bin/google-chrome-stable", 
-    "chrome"
+# Method 3: Stop by Stop Command image_id: mobile_latest
+result = session.application.get_installed_apps(
+start_menu=True, desktop=False, ignore_system_apps=True
 )
+if result.success:
+    apps = result.data
+
+    # Find specific application
+    target_app = None
+    for app in apps:
+        target_app = app
+        break
+    if target_app:
+        print(f"Starting {target_app.start_cmd} {target_app.stop_cmd}...")
+        start_result = session.application.start_app(target_app.start_cmd)
+
+        if start_result.success:
+            print("Application started successfully!")
+            stop_cmd = target_app.stop_cmd
+            result = session.application.stop_app_by_cmd(stop_cmd)
+            if result.success:
+                print("Successfully stopped application using command")
+            else:
+                print(f"Failed to stop application: {result.error_message}")
+        else:
+            print(f"Failed to start application: {start_result.error_message}")
+    else:
+        print(f"Failed to find application: {result.error_message}")
+    agent_bay.delete(session)
 ```
 
 <a id="listing-running-applications"></a>
@@ -249,7 +256,7 @@ result = session.application.list_visible_apps()
 if result.success:
     visible_apps = result.data
     print(f"Found {len(visible_apps)} running applications")
-    
+
     for app in visible_apps:
         print(f"Process: {app.pname}")
         print(f"PID: {app.pid}")
@@ -281,7 +288,7 @@ result = session.window.list_root_windows(timeout_ms=5000)  # 5 second timeout
 if result.success:
     windows = result.windows  # Note: use .windows, not .data
     print(f"Found {len(windows)} windows")
-    
+
     for window in windows:
         print(f"Title: {window.title}")
         print(f"Window ID: {window.window_id}")
@@ -301,7 +308,7 @@ The `Window` object contains the following attributes:
 - `window_id` (int): Unique identifier for the window
 - `title` (str): Window title/caption
 - `absolute_upper_left_x` (Optional[int]): X-coordinate of window's upper-left corner
-- `absolute_upper_left_y` (Optional[int]): Y-coordinate of window's upper-left corner  
+- `absolute_upper_left_y` (Optional[int]): Y-coordinate of window's upper-left corner
 - `width` (Optional[int]): Window width in pixels
 - `height` (Optional[int]): Window height in pixels
 - `pid` (Optional[int]): Process ID that owns the window
@@ -316,63 +323,63 @@ Control window states and positions:
 ```python
 def control_window(session, window_id):
     """Demonstrate various window control operations"""
-    
+
     print(f"Controlling window ID: {window_id}")
-    
+
     # Activate window
     try:
         session.window.activate_window(window_id)
         print("✓ Window activated")
     except Exception as e:
         print(f"✗ Failed to activate: {e}")
-    
+
     # Maximize window
     try:
         session.window.maximize_window(window_id)
         print("✓ Window maximized")
     except Exception as e:
         print(f"✗ Failed to maximize: {e}")
-    
+
     # Wait a moment
     import time
     time.sleep(1)
-    
+
     # Minimize window
     try:
         session.window.minimize_window(window_id)
         print("✓ Window minimized")
     except Exception as e:
         print(f"✗ Failed to minimize: {e}")
-    
+
     time.sleep(1)
-    
+
     # Restore window
     try:
         session.window.restore_window(window_id)
         print("✓ Window restored")
     except Exception as e:
         print(f"✗ Failed to restore: {e}")
-    
+
     # Resize window
     try:
         session.window.resize_window(window_id, 800, 600)
         print("✓ Window resized to 800x600")
     except Exception as e:
         print(f"✗ Failed to resize: {e}")
-    
-    # Close window
-    try:
-        session.window.close_window(window_id)
-        print("✓ Window closed")
-    except Exception as e:
-        print(f"✗ Failed to close: {e}")
-    
+
     # Fullscreen window (alternative to maximize)
     try:
         session.window.fullscreen_window(window_id)
         print("✓ Window set to fullscreen")
     except Exception as e:
         print(f"✗ Failed to set fullscreen: {e}")
+
+    # Close window
+    try:
+        session.window.close_window(window_id)
+        print("✓ Window closed")
+    except Exception as e:
+        print(f"✗ Failed to close: {e}")
 
 # Usage
 windows = session.window.list_root_windows()
@@ -432,121 +439,87 @@ else:
 ```python
 def launch_and_control_application(session, app_name="Google Chrome"):
     """Complete workflow: find app, launch it, control its window"""
-    
+
     # Step 1: Find the application
     print("Step 1: Finding installed applications...")
     apps_result = session.application.get_installed_apps(
         start_menu=True, desktop=False, ignore_system_apps=True
     )
-    
+
     if not apps_result.success:
         print(f"Failed to get apps: {apps_result.error_message}")
         return False
-    
+
     # Find target application
     target_app = None
     for app in apps_result.data:
         if app_name.lower() in app.name.lower():
             target_app = app
             break
-    
+
     if not target_app:
         print(f"Application '{app_name}' not found")
         return False
-    
+
     print(f"Found application: {target_app.name}")
-    
+
     # Step 2: Launch the application
     print("Step 2: Launching application...")
     start_result = session.application.start_app(target_app.start_cmd)
-    
+
     if not start_result.success:
         print(f"Failed to start app: {start_result.error_message}")
         return False
-    
+
     print(f"Application started with {len(start_result.data)} processes")
-    
+
     # Step 3: Wait for application to load
     print("Step 3: Waiting for application to load...")
     import time
     time.sleep(5)
-    
+
     # Step 4: Find and control the application window
     print("Step 4: Finding application window...")
     windows_result = session.window.list_root_windows()
-    
+
     if not windows_result.success:
         print(f"Failed to list windows: {windows_result.error_message}")
         return False
-    
+
     # Find window belonging to our application
     app_window = None
-    for window in windows_result.data:
+    for window in windows_result.windows:
         if hasattr(window, 'pname') and target_app.name.lower() in window.title.lower():
             app_window = window
             break
-    
+
     if not app_window:
         # Try to get any window if specific match fails
         if windows_result.windows:
             app_window = windows_result.windows[0]
             print("Using first available window")
-    
+
     if app_window:
         print(f"Found window: {app_window.title}")
-        
+
         # Control the window
         try:
             session.window.activate_window(app_window.window_id)
             print("✓ Window activated")
-            
+
             time.sleep(1)
             session.window.maximize_window(app_window.window_id)
             print("✓ Window maximized")
-            
+
         except Exception as e:
             print(f"Window control failed: {e}")
-    
+
     return True
 
 # Usage
 success = launch_and_control_application(session, "Google Chrome")
 if success:
     print("Workflow completed successfully!")
-```
-
-### Example 2: Monitor and Manage Running Applications
-
-```python
-def monitor_applications(session, duration_seconds=30):
-    """Monitor running applications for a specified duration"""
-    
-    import time
-    start_time = time.time()
-    
-    print(f"Monitoring applications for {duration_seconds} seconds...")
-    
-    while time.time() - start_time < duration_seconds:
-        # Get current running applications
-        result = session.application.list_visible_apps()
-        
-        if result.success:
-            apps = result.data
-            print(f"\n[{time.strftime('%H:%M:%S')}] Running applications: {len(apps)}")
-            
-            for app in apps[:5]:  # Show top 5
-                print(f"  {app.pname} (PID: {app.pid})")
-        
-        # Check active window
-        active_result = session.window.get_active_window()
-        if active_result.success:
-            active = active_result.data
-            print(f"  Active: {active.title}")
-        
-        time.sleep(5)  # Check every 5 seconds
-
-# Usage
-monitor_applications(session, 30)
 ```
 
 <a id="complete-api-reference"></a>
@@ -560,8 +533,8 @@ monitor_applications(session, 30)
 | `start_app()` | `start_cmd: str`, `work_directory: str = ""`, `activity: str = ""` | `ProcessListResult` | Start an application |
 | `stop_app_by_pid()` | `pid: int` | `AppOperationResult` | Stop application by process ID |
 | `stop_app_by_pname()` | `pname: str` | `AppOperationResult` | Stop application by process name |
-| `stop_app_by_cmd()` | `stop_cmd: str` | `AppOperationResult` | Stop application by command |
-| `list_visible_apps()` | None | `ProcessListResult` | List currently running applications |
+| `stop_app_by_cmd()` | `stop_cmd: str` | `AppOperationResult` | Stop application by stop command |
+| `list_visible_apps()` | None | `ProcessListResult` | List currently visible applications |
 
 ### Window Manager Methods
 
@@ -596,4 +569,4 @@ This guide covered comprehensive application and window management capabilities:
 - **Window Control**: Manage window states, positions, and focus
 - **Process Management**: Monitor and control running processes
 
-These features enable you to build sophisticated desktop automation solutions that can interact with any application in cloud environments, making AgentBay SDK a powerful tool for automated testing, workflow automation, and remote desktop management. 
+These features enable you to build sophisticated desktop automation solutions that can interact with any application in cloud environments, making AgentBay SDK a powerful tool for automated testing, workflow automation, and remote desktop management.

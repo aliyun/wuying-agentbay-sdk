@@ -392,8 +392,7 @@ class ContextService:
             OperationResult: Result object containing success status and request ID.
         """
         try:
-            print("API Call: ModifyContext")
-            print(f"Request: Id={context.id}, Name={context.name}")
+            log_api_call("ModifyContext", f"Id={context.id}, Name={context.name}")
             request = ModifyContextRequest(
                 id=context.id,
                 name=context.name,
@@ -428,14 +427,14 @@ class ContextService:
                     error_message=error_message,
                 )
             except Exception as e:
-                print(f"Error parsing ModifyContext response: {e}")
+                logger.error(f"Error parsing ModifyContext response: {e}")
                 return OperationResult(
                     request_id=request_id,
                     success=False,
                     error_message=f"Failed to parse response: {str(e)}",
                 )
         except Exception as e:
-            print(f"Error calling ModifyContext: {e}")
+            logger.error(f"Error calling ModifyContext: {e}")
             raise AgentBayError(f"Failed to update context {context.id}: {e}")
 
     def delete(self, context: Context) -> OperationResult:
@@ -449,8 +448,7 @@ class ContextService:
             OperationResult: Result object containing success status and request ID.
         """
         try:
-            print("API Call: DeleteContext")
-            print(f"Request: Id={context.id}")
+            log_api_call("DeleteContext", f"Id={context.id}")
             request = DeleteContextRequest(
                 id=context.id, authorization=f"Bearer {self.agent_bay.api_key}"
             )
@@ -483,20 +481,19 @@ class ContextService:
                     error_message=error_message,
                 )
             except Exception as e:
-                print(f"Error parsing DeleteContext response: {e}")
+                logger.error(f"Error parsing DeleteContext response: {e}")
                 return OperationResult(
                     request_id=request_id,
                     success=False,
                     error_message=f"Failed to parse response: {str(e)}",
                 )
         except Exception as e:
-            print(f"Error calling DeleteContext: {e}")
+            logger.error(f"Error calling DeleteContext: {e}")
             raise AgentBayError(f"Failed to delete context {context.id}: {e}")
 
     def get_file_download_url(self, context_id: str, file_path: str) -> FileUrlResult:
         """Get a presigned download URL for a file in a context."""
-        print("API Call: GetContextFileDownloadUrl")
-        print(f"Request: ContextId={context_id}, FilePath={file_path}")
+        log_api_call("GetContextFileDownloadUrl", f"ContextId={context_id}, FilePath={file_path}")
         req = GetContextFileDownloadUrlRequest(
             authorization=f"Bearer {self.agent_bay.api_key}",
             context_id=context_id,
@@ -504,14 +501,12 @@ class ContextService:
         )
         resp = self.agent_bay.client.get_context_file_download_url(req)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                resp.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {resp}")
+            logger.debug(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         data = getattr(body, "data", None)
@@ -524,8 +519,7 @@ class ContextService:
 
     def get_file_upload_url(self, context_id: str, file_path: str) -> FileUrlResult:
         """Get a presigned upload URL for a file in a context."""
-        print("API Call: GetContextFileUploadUrl")
-        print(f"Request: ContextId={context_id}, FilePath={file_path}")
+        log_api_call("GetContextFileUploadUrl", f"ContextId={context_id}, FilePath={file_path}")
         req = GetContextFileUploadUrlRequest(
             authorization=f"Bearer {self.agent_bay.api_key}",
             context_id=context_id,
@@ -533,14 +527,12 @@ class ContextService:
         )
         resp = self.agent_bay.client.get_context_file_upload_url(req)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                resp.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {resp}")
+            logger.debug(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         data = getattr(body, "data", None)
@@ -553,8 +545,7 @@ class ContextService:
 
     def delete_file(self, context_id: str, file_path: str) -> OperationResult:
         """Delete a file in a context."""
-        print("API Call: DeleteContextFile")
-        print(f"Request: ContextId={context_id}, FilePath={file_path}")
+        log_api_call("DeleteContextFile", f"ContextId={context_id}, FilePath={file_path}")
         req = DeleteContextFileRequest(
             authorization=f"Bearer {self.agent_bay.api_key}",
             context_id=context_id,
@@ -562,14 +553,12 @@ class ContextService:
         )
         resp = self.agent_bay.client.delete_context_file(req)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                resp.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {resp}")
+            logger.debug(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         success = bool(body and getattr(body, "success", False))
@@ -589,11 +578,9 @@ class ContextService:
         page_size: int = 50,
     ) -> ContextFileListResult:
         """List files under a specific folder path in a context."""
-        print("API Call: DescribeContextFiles")
-        print(
-            f"Request: ContextId={context_id}, ParentFolderPath={parent_folder_path}, "
-            f"PageNumber={page_number}, PageSize={page_size}"
-        )
+        log_api_call("DescribeContextFiles", 
+            f"ContextId={context_id}, ParentFolderPath={parent_folder_path}, "
+            f"PageNumber={page_number}, PageSize={page_size}")
         req = DescribeContextFilesRequest(
             authorization=f"Bearer {self.agent_bay.api_key}",
             page_number=page_number,
@@ -603,14 +590,12 @@ class ContextService:
         )
         resp = self.agent_bay.client.describe_context_files(req)
         try:
-            print("Response body:")
-            print(
-                json.dumps(
-                    resp.to_map().get("body", {}), ensure_ascii=False, indent=2
-                )
+            response_body = json.dumps(
+                resp.to_map().get("body", {}), ensure_ascii=False, indent=2
             )
+            log_api_response(response_body)
         except Exception:
-            print(f"Response: {resp}")
+            logger.debug(f"Response: {resp}")
         request_id = extract_request_id(resp)
         body = getattr(resp, "body", None)
         raw_list = getattr(body, "data", None) or []

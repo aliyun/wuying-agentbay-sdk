@@ -6,10 +6,14 @@ from typing import TYPE_CHECKING, List, Optional
 
 from agentbay.exceptions import AgentBayError
 from agentbay.model.response import OperationResult
+from agentbay.logger import get_logger
 
 if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
     from agentbay.context import ContextService
+
+# Initialize logger for this module
+logger = get_logger("extension")
 
 # ==============================================================================
 # Constants
@@ -161,7 +165,7 @@ class ExtensionsService:
         if not context_id or context_id.strip() == "":
             import time
             context_id = f"extensions-{int(time.time())}"
-            print(f"Generated default context name: {context_id}")
+            logger.info(f"Generated default context name: {context_id}")
         
         # Context doesn't exist, create it
         context_result = self.context_service.get(context_id, create=True)
@@ -288,7 +292,7 @@ class ExtensionsService:
                     return ext
             return None
         except Exception as e:
-            print(f"An error occurred while getting extension info for '{extension_id}': {e}")
+            logger.error(f"An error occurred while getting extension info for '{extension_id}': {e}")
             return None
 
     def cleanup(self) -> bool:
@@ -309,13 +313,13 @@ class ExtensionsService:
         try:
             delete_result = self.context_service.delete(self.extension_context)
             if delete_result:
-                print(f"Extension context deleted: {self.context_name} (ID: {self.context_id})")
+                logger.info(f"Extension context deleted: {self.context_name} (ID: {self.context_id})")
                 return True
             else:
-                print(f"Warning: Failed to delete extension context: {self.context_name}")
+                logger.warning(f"Failed to delete extension context: {self.context_name}")
                 return False
         except Exception as e:
-            print(f"Warning: Failed to delete extension context: {e}")
+            logger.warning(f"Failed to delete extension context: {e}")
             return False
 
     def delete(self, extension_id: str) -> bool:
@@ -327,7 +331,7 @@ class ExtensionsService:
             
             return delete_result.success
         except Exception as e:
-            print(f"An error occurred while deleting browser extension '{extension_id}': {e}")
+            logger.error(f"An error occurred while deleting browser extension '{extension_id}': {e}")
             return False
     
     def create_extension_option(self, extension_ids: List[str]) -> ExtensionOption:
