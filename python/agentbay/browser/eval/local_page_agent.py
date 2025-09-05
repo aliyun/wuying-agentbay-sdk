@@ -10,8 +10,10 @@ from agentbay.browser import Browser, BrowserOption
 from agentbay.session import Session
 from agentbay.api.base_service import OperationResult
 from agentbay.browser.browser_agent import BrowserAgent
+from agentbay.logger import get_logger
 
-logger = logging.getLogger(__name__)
+# Use the AgentBay logger instead of the standard logger
+logger = get_logger("local_page_agent")
 
 class LocalMCPClient:
     def __init__(self, server: str, command: str, args: list[str]):
@@ -31,7 +33,7 @@ class LocalMCPClient:
                     success = False
                     logger.info("Start connect to mcp server")
                     try:
-                        print(f"command = {self.command}, args = {self.args}")
+                        logger.debug(f"command = {self.command}, args = {self.args}")
                         server_params = StdioServerParameters(command=self.command, args=self.args)
                         async with stdio_client(server_params) as (read_stream, write_stream):
                             async with ClientSession(read_stream, write_stream) as session:
@@ -74,7 +76,7 @@ class LocalMCPClient:
                         logger.info(f"Call tool {tool_name} with arguments {arguments}")
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
-                            print("MCP tool response:", response)
+                            logger.debug(f"MCP tool response: {response}")
 
                             mcp_response = OperationResult(
                                 request_id="local_request_dummy_id",
@@ -85,13 +87,13 @@ class LocalMCPClient:
                             if hasattr(response, 'content') and response.content:
                                 for content_item in response.content:
                                     if hasattr(content_item, 'text') and content_item.text:
-                                        print(f"MCP tool text response: {content_item.text}")
+                                        logger.debug(f"MCP tool text response: {content_item.text}")
                                         mcp_response.data = content_item.text
                                         future.set_result(mcp_response)
                                         break
                                 else:
                                     # If no text content found, use the original response
-                                    print(f"MCP tool original response: {response}")
+                                    logger.debug(f"MCP tool original response: {response}")
                                     future.set_result(response)
                             else:
                                 # Fallback to original response if no content structure

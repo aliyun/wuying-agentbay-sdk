@@ -1,5 +1,9 @@
 from typing import Dict, Optional, List, TYPE_CHECKING
 from agentbay.context_sync import ContextSync, SyncPolicy, UploadPolicy, ExtractPolicy, BWList, WhiteList
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("session_params")
 
 if TYPE_CHECKING:
     from agentbay.extention import ExtensionOption
@@ -220,7 +224,7 @@ class CreateSessionParams:
         # Add extension context syncs from browser_context if available
         if browser_context and browser_context.extension_context_syncs:
             all_context_syncs.extend(browser_context.extension_context_syncs)
-            print(f"Added {len(browser_context.extension_context_syncs)} extension context sync(s) from BrowserContext")
+            logger.info(f"Added {len(browser_context.extension_context_syncs)} extension context sync(s) from BrowserContext")
         
         self.context_syncs = all_context_syncs
         self.browser_context = browser_context

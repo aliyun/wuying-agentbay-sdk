@@ -1,6 +1,10 @@
 from agentbay.api.base_service import BaseService
 from agentbay.exceptions import AgentBayError, CommandError
 from agentbay.model import ApiResponse
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("code")
 
 
 class CodeExecutionResult(ApiResponse):
@@ -81,7 +85,7 @@ class Code(BaseService):
 
             args = {"code": code, "language": language, "timeout_s": timeout_s}
             result = self._call_mcp_tool("run_code", args)
-            print(f"Run code response: {result}")
+            logger.debug(f"Run code response: {result}")
 
             if result.success:
                 return CodeExecutionResult(

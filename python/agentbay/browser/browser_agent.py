@@ -6,6 +6,10 @@ from pydantic import BaseModel
 from agentbay.api.base_service import BaseService, OperationResult
 from agentbay.exceptions import BrowserError, AgentBayError
 from agentbay.api.models import CallMcpToolRequest
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("browser_agent")
 
 T = TypeVar('T', bound=BaseModel)
 
@@ -92,7 +96,7 @@ class BrowserAgent(BaseService):
             raise BrowserError("Browser must be initialized before calling act.")
         try:
             page_index, context_index = self._get_page_and_context_index(page)
-            print(f"Acting on page: {page}, page_index: {page_index}, context_index: {context_index}")
+            logger.info(f"Acting on page: {page}, page_index: {page_index}, context_index: {context_index}")
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
@@ -116,7 +120,7 @@ class BrowserAgent(BaseService):
                 args["action"] = json.dumps(action_dict)
             response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
-                print(f"Response from CallMcpTool - page_use_act:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_act: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
@@ -143,7 +147,7 @@ class BrowserAgent(BaseService):
             raise BrowserError("Browser must be initialized before calling act_async.")
         try:
             page_index, context_index = await self._get_page_and_context_index_async(page)
-            print(f"Acting on page: {page}, page_index: {page_index}, context_index: {context_index}")
+            logger.info(f"Acting on page: {page}, page_index: {page_index}, context_index: {context_index}")
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
@@ -166,7 +170,7 @@ class BrowserAgent(BaseService):
                 args["action"] = json.dumps(action_dict)
             response = self._call_mcp_tool_timeout("page_use_act", args)
             if response.success:
-                print(f"Response from CallMcpTool - page_use_act:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_act: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
@@ -194,7 +198,7 @@ class BrowserAgent(BaseService):
             raise BrowserError("Browser must be initialized before calling observe.")
         try:
             page_index, context_index = self._get_page_and_context_index(page)
-            print(f"Observing page: {page}, page_index: {page_index}, context_index: {context_index}")
+            logger.info(f"Observing page: {page}, page_index: {page_index}, context_index: {context_index}")
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
@@ -205,10 +209,10 @@ class BrowserAgent(BaseService):
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
             response = self._call_mcp_tool_timeout("page_use_observe", args)
-            print("Response from CallMcpTool - page_use_observe:", response)
+            logger.debug(f"Response from CallMcpTool - page_use_observe: {response}")
 
             if response.success:
-                print(f"Response from CallMcpTool - page_use_observe:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_observe: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
@@ -222,7 +226,7 @@ class BrowserAgent(BaseService):
 
                 results = []
                 observeResults = json.loads(data.get("observe_result", ""))
-                print("observeResults =", observeResults)
+                logger.debug(f"observeResults = {observeResults}")
                 
                 for item in observeResults:
                     selector = item.get("selector", "")
@@ -233,7 +237,7 @@ class BrowserAgent(BaseService):
                 
                 return success, results
             else:
-                print(f"Response from CallMcpTool - page_use_observe:", response.error_message)
+                logger.error(f"Response from CallMcpTool - page_use_observe: {response.error_message}")
                 return False, []
 
         except Exception as e:
@@ -251,7 +255,7 @@ class BrowserAgent(BaseService):
             raise BrowserError("Browser must be initialized before calling observe_async.")
         try:
             page_index, context_index = await self._get_page_and_context_index_async(page)
-            print(f"Observing page: {page}, page_index: {page_index}, context_index: {context_index}")
+            logger.info(f"Observing page: {page}, page_index: {page_index}, context_index: {context_index}")
             args = {
                 "context_id": context_index,
                 "page_id": page_index,
@@ -262,10 +266,10 @@ class BrowserAgent(BaseService):
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
             response = self._call_mcp_tool_timeout("page_use_observe", args)
-            print("Response from CallMcpTool - page_use_observe:", response)
+            logger.debug(f"Response from CallMcpTool - page_use_observe: {response}")
 
             if response.success:
-                print(f"Response from CallMcpTool - page_use_observe:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_observe: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
@@ -279,7 +283,7 @@ class BrowserAgent(BaseService):
 
                 results = []
                 observeResults = json.loads(data.get("observe_result", ""))
-                print("observeResults =", observeResults)
+                logger.debug(f"observeResults = {observeResults}")
                 
                 for item in observeResults:
                     selector = item.get("selector", "")
@@ -289,13 +293,13 @@ class BrowserAgent(BaseService):
                     try:
                         arguments_dict = _json.loads(arguments_str)
                     except _json.JSONDecodeError:
-                        print(f"Warning: Could not parse arguments as JSON: {arguments_str}")
+                        logger.warning(f"Could not parse arguments as JSON: {arguments_str}")
                         arguments_dict = arguments_str
                     results.append(ObserveResult(selector, description, method, arguments_dict))
                 
                 return success, results
             else:
-                print(f"Response from CallMcpTool - page_use_observe:", response.error_message)
+                logger.error(f"Response from CallMcpTool - page_use_observe: {response.error_message}")
                 return False, []
                 
         except Exception as e:
@@ -316,7 +320,7 @@ class BrowserAgent(BaseService):
                 "instruction": options.instruction,
                 "schema": 'schema: ' + json.dumps(options.schema.model_json_schema())
             }
-            print(f"Extracting from page: {page}, page_index: {page_index}, context_index: {context_index}, args: {args}")
+            logger.info(f"Extracting from page: {page}, page_index: {page_index}, context_index: {context_index}, args: {args}")
             if options.use_text_extract is not None:
                 args["use_text_extract"] = options.use_text_extract
             if options.selector is not None:
@@ -327,27 +331,27 @@ class BrowserAgent(BaseService):
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
 
             response = self._call_mcp_tool_timeout("page_use_extract", args)
-            print("Response from CallMcpTool - page_use_extract:", response)
+            logger.debug(f"Response from CallMcpTool - page_use_extract: {response}")
 
             if response.success:
-                print(f"Response from CallMcpTool - page_use_extract:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_extract: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
                 else:
                     data = response.data
-                print("extract data =", data)
+                logger.debug(f"extract data = {data}")
                 success = data.get("success", False)
                 extract_result = data.get("extract_result", "")
-                print("extract_result =", extract_result)
+                logger.debug(f"extract_result = {extract_result}")
                 extract_obj = None
                 if success:
                     extract_obj = options.schema.model_validate_json(extract_result)
                 else:
-                    print(f"Extract failed due to: {extract_result}")
+                    logger.error(f"Extract failed due to: {extract_result}")
                 return success, extract_obj
             else:
-                print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
+                logger.error(f"Response from CallMcpTool - page_use_extract: {response.error_message}")
                 return False, None
         except Exception as e:
             raise BrowserError(f"Failed to extract: {e}")
@@ -367,7 +371,7 @@ class BrowserAgent(BaseService):
                 "instruction": options.instruction,
                 "schema": 'schema: ' + json.dumps(options.schema.model_json_schema())
             }
-            print(f"Extracting from page: {page}, page_index: {page_index}, context_index: {context_index}, args: {args}")
+            logger.info(f"Extracting from page: {page}, page_index: {page_index}, context_index: {context_index}, args: {args}")
             if options.use_text_extract is not None:
                 args["use_text_extract"] = options.use_text_extract
             if options.selector is not None:
@@ -378,27 +382,27 @@ class BrowserAgent(BaseService):
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
 
             response = self._call_mcp_tool_timeout("page_use_extract", args)
-            print("Response from CallMcpTool - page_use_extract:", response)
+            logger.debug(f"Response from CallMcpTool - page_use_extract: {response}")
 
             if response.success:
-                print(f"Response from CallMcpTool - page_use_extract:", response.data)
+                logger.debug(f"Response from CallMcpTool - page_use_extract: {response.data}")
                 import json as _json
                 if isinstance(response.data, str):
                     data = _json.loads(response.data)
                 else:
                     data = response.data
-                print("extract data =", data)
+                logger.debug(f"extract data = {data}")
                 success = data.get("success", False)
                 extract_result = data.get("extract_result", "")
-                print("extract_result =", extract_result)
+                logger.debug(f"extract_result = {extract_result}")
                 extract_obj = None
                 if success:
                     extract_obj = options.schema.model_validate_json(extract_result)
                 else:
-                    print(f"Extract failed due to: {extract_result}")
+                    logger.error(f"Extract failed due to: {extract_result}")
                 return success, extract_obj
             else:
-                print(f"Response from CallMcpTool - page_use_extract:", response.error_message)
+                logger.error(f"Response from CallMcpTool - page_use_extract: {response.error_message}")
                 return False, None
         except Exception as e:
             raise BrowserError(f"Failed to extract: {e}")  

@@ -7,6 +7,10 @@ from agentbay.browser.browser_agent import BrowserAgent
 from agentbay.api.base_service import BaseService
 from agentbay.exceptions import BrowserError
 from agentbay.config import BROWSER_DATA_PATH
+from agentbay.logger import get_logger
+
+# Initialize logger for this module
+logger = get_logger("browser")
 
 if TYPE_CHECKING:
     from agentbay.session import Session
@@ -332,7 +336,7 @@ class Browser(BaseService):
             )
             response = self.session.get_client().init_browser(request)
             
-            print(f"Response from init_browser: {response}")
+            logger.debug(f"Response from init_browser: {response}")
             response_map = response.to_map()
             body = response_map.get("body", {})
             data = body.get("Data", {})
@@ -340,11 +344,11 @@ class Browser(BaseService):
             if success:
                 self._initialized = True
                 self._option = option
-                print("Browser instance was successfully initialized.")
+                logger.info("Browser instance was successfully initialized.")
 
             return success
         except Exception as e:
-            print("Failed to initialize browser instance:", e)
+            logger.error(f"Failed to initialize browser instance: {e}")
             self._initialized = False
             self._endpoint_url = None
             self._option = None
@@ -365,7 +369,7 @@ class Browser(BaseService):
                 browser_option=option.to_map(),
             )
             response = await self.session.get_client().init_browser_async(request)
-            print(f"Response from init_browser: {response}")
+            logger.debug(f"Response from init_browser: {response}")
             response_map = response.to_map()
             body = response_map.get("body", {})
             data = body.get("Data", {})
@@ -374,10 +378,10 @@ class Browser(BaseService):
                 self.endpoint_router_port = data.get("Port")
                 self._initialized = True
                 self._option = option
-                print("Browser instance successfully initialized")
+                logger.info("Browser instance successfully initialized")
             return success
         except Exception as e:
-            print("Failed to initialize browser instance:", e)
+            logger.error(f"Failed to initialize browser instance: {e}")
             self._initialized = False
             self._endpoint_url = None
             self._option = None
@@ -401,7 +405,7 @@ class Browser(BaseService):
             raise BrowserError("Browser is not initialized. Cannot access endpoint URL.")
         try:
             if self.session.is_vpc:
-                print(f"VPC mode, endpoint_router_port: {self.endpoint_router_port}")
+                logger.debug(f"VPC mode, endpoint_router_port: {self.endpoint_router_port}")
                 self._endpoint_url = f"ws://{self.session.network_interface_ip}:{self.endpoint_router_port}"
             else:
                 cdp_url = self.session.get_link()
