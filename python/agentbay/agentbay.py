@@ -304,7 +304,7 @@ class AgentBay:
                 
                 # Wait for context synchronization to complete
                 max_retries = 150  # Maximum number of retries
-                retry_interval = 2  # Seconds to wait between retries
+                retry_interval = 1.5  # Seconds to wait between retries
                 
                 import time
                 for retry in range(max_retries):
