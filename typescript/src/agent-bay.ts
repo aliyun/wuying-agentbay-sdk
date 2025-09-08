@@ -282,7 +282,7 @@ export class AgentBay {
 
         // Wait for context synchronization to complete
         const maxRetries = 150; // Maximum number of retries
-        const retryInterval = 2000; // Milliseconds to wait between retries
+        const retryInterval = 1500; // Milliseconds to wait between retries
 
         for (let retry = 0; retry < maxRetries; retry++) {
           try {

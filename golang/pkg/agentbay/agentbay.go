@@ -270,7 +270,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 		// Wait for context synchronization to complete
 		const maxRetries = 150  // Maximum number of retries
-		const retryInterval = 2 // Seconds to wait between retries
+		const retryInterval = 1.5 // Seconds to wait between retries
 
 		for retry := 0; retry < maxRetries; retry++ {
 			// Get context status data
