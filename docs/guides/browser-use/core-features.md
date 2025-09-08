@@ -16,4 +16,6 @@
 
 ### Captcha Resolving
 
+- [CAPTCHA Resolution](core-features/captcha.md) - Automatically resolve slider-type CAPTCHA challenges to ensure uninterrupted automation workflows
+
 ### Ads Blocking
