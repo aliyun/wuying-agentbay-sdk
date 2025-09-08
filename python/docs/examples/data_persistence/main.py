@@ -125,9 +125,6 @@ Status: Files created successfully
         if list_result.success:
             print(list_result.output)
         
-        print("⏳ Waiting for context synchronization...")
-        time.sleep(3)  # Allow time for sync
-        
     finally:
         # Clean up first session
         print("\n🧹 Cleaning up first session...")

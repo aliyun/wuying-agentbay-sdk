@@ -22,6 +22,7 @@ create_directory(path: str) -> BoolResult
 **Note:**
 The return type has been updated from boolean to a structured `BoolResult` object, which provides more detailed information about the operation result.
 
+### edit_file
 
 Edits a file by replacing occurrences of oldText with newText.
 
@@ -43,7 +44,7 @@ Gets information about a file or directory.
 
 
 ```python
-get_file_info(path: str) -> OperationResult
+get_file_info(path: str) -> FileInfoResult
 ```
 
 **Parameters:**
@@ -57,7 +58,7 @@ Lists the contents of a directory.
 
 
 ```python
-list_directory(path: str) -> OperationResult
+list_directory(path: str) -> DirectoryListResult
 ```
 
 **Parameters:**

@@ -183,7 +183,8 @@ if (readResult.success) {
 // Write a file
 _, err = session.FileSystem.WriteFile(
     "/tmp/test.txt",
-    []byte("Hello, World!"),
+    "Hello, World!",
+    "overwrite",
 )
 if err != nil {
     fmt.Printf("Error writing file: %v\n", err)
@@ -197,7 +198,7 @@ if err != nil {
     return
 }
 
-fmt.Printf("File content: %s\n", string(readResult.Data))
+fmt.Printf("File content: %s\n", readResult.Content)
 ```
 
 ### Using Persistent Contexts
@@ -220,7 +221,7 @@ if context_result.success:
     # Create a session with context synchronization
     context_sync = ContextSync.new(
         context_id=context.id,
-        path="/mnt/data",  # Mount path in the session
+        path="/tmp/data",  # Mount path in the session
         policy=SyncPolicy.default()
     )
     
@@ -230,7 +231,7 @@ if context_result.success:
 
 ```typescript
 // TypeScript
-import { AgentBay, ContextSync, SyncPolicy } from 'wuying-agentbay-sdk';
+import { AgentBay, ContextSync, newSyncPolicy } from 'wuying-agentbay-sdk';
 
 // Initialize the client
 const agentBay = new AgentBay();
@@ -242,11 +243,11 @@ if (contextResult.success) {
     const context = contextResult.context;
     
     // Create a session with context synchronization
-    const contextSync = new ContextSync({
-        contextId: context.id,
-        path: '/mnt/data',  // Mount path in the session
-        policy: SyncPolicy.default()
-    });
+    const contextSync = new ContextSync(
+        context.id,
+        '/tmp/data',  // Mount path in the session
+        newSyncPolicy()
+    );
     
     const sessionResult = await agentBay.create({
         contextSync: [contextSync]
@@ -274,7 +275,7 @@ func main() {
     policy := agentbay.NewSyncPolicy()
     contextSync := agentbay.NewContextSync(
         contextResult.Context.ID,
-        "/mnt/data",  // Mount path in the session
+        "/tmp/data",  // Mount path in the session
         policy,
     )
     
