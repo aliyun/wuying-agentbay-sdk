@@ -13,7 +13,7 @@ from agentbay import AgentBay
 
 def quick_diagnosis():
     print("=== AgentBay Quick Diagnosis ===")
-    
+
     # 1. Check API Key
     api_key = os.getenv('AGENTBAY_API_KEY')
     if not api_key:
@@ -21,7 +21,7 @@ def quick_diagnosis():
         return False
     else:
         print(f"✅ API key set (length: {len(api_key)})")
-    
+
     # 2. Initialize Client
     try:
         agent_bay = AgentBay()
@@ -30,7 +30,7 @@ def quick_diagnosis():
     except Exception as e:
         print(f"❌ Client initialization failed: {e}")
         return False
-    
+
     # 3. Test Session Creation
     try:
         result = agent_bay.create()
@@ -43,7 +43,7 @@ def quick_diagnosis():
     except Exception as e:
         print(f"❌ Session creation exception: {e}")
         return False
-    
+
     # 4. Test Basic Commands
     try:
         cmd_result = session.command.execute_command("echo 'Hello AgentBay'")
@@ -56,9 +56,10 @@ def quick_diagnosis():
     except Exception as e:
         print(f"❌ Command execution exception: {e}")
         return False
-    
+
     print("🎉 All basic checks passed!")
     return True
+
 
 # Run diagnosis
 quick_diagnosis()
@@ -130,7 +131,7 @@ agent_bay = AgentBay()
 try:
     sessions = agent_bay.list()
     print(f"Current sessions: {len(sessions)}")
-    
+
     # Clean up old sessions if needed
     for session in sessions[:3]:  # Clean up first 3 as example
         try:
@@ -186,14 +187,14 @@ def check_file_access(session, path):
         if not cmd_result.success:
             print(f"Failed to create directory: {cmd_result.error_message}")
             return False
-        
+
         # Test write access
         test_content = "test"
         write_result = session.file_system.write_file(path, test_content)
         if not write_result.success:
             print(f"Write failed: {write_result.error_message}")
             return False
-        
+
         # Clean up test file
         session.file_system.delete_file(path)
         return True
@@ -294,16 +295,50 @@ long_cmd_result = session.command.execute_command("find / -name '*.log'", timeou
 def process_large_dataset(session):
     # Step 1: Prepare data
     session.command.execute_command("mkdir -p /tmp/processing")
-    
+
     # Step 2: Process in chunks
     for i in range(10):
         cmd_result = session.command.execute_command(
-            f"process_chunk.sh {i}", 
+            f"process_chunk.sh {i}",
             timeout_ms=60000
         )
         if not cmd_result.success:
             print(f"Chunk {i} failed: {cmd_result.error_message}")
             # Decide whether to continue or abort
+```
+
+### 6. Agent Execution Issues
+#### Problem: "tool by name flux_execute_task not found"
+**Cause**: Currently only specific image_id and task can be used, only pre-release environment supports this tool
+
+**Solution**: Use image_id as windows_latest:
+```python
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+# Create a session for Agent module usage
+agent_bay = AgentBay(api_key=api_key)
+agent_params = CreateSessionParams(
+    image_id="windows_latest",
+    labels={"project": "ai-agent", "type": "web-scraper"}
+)
+
+result = agent_bay.create(agent_params)
+if result.success:
+    agent_session = result.session
+    print(f"Session created with ID: {agent_session.session_id}")
+else:
+    print(f"Session creation failed: {result.error_message}")
+# Execute a task using natural language
+task_description = "your_task_description"
+execution_result = agent_session.agent.execute_task(task_description, max_try_times=5)
+
+if execution_result.success:
+    print("Task completed successfully!")
+    print(f"Task ID: {execution_result.task_id}")
+    print(f"Task status: {execution_result.task_status}")
+else:
+    print(f"Task failed: {execution_result.error_message}")
+agent_bay.delete(agent_session)
 ```
 
 ## 🔧 Advanced Debugging
@@ -329,7 +364,7 @@ def detailed_error_analysis(result):
         print(f"Error Message: {result.error_message}")
         print(f"Error Code: {getattr(result, 'error_code', 'N/A')}")
         print(f"Request ID: {getattr(result, 'request_id', 'N/A')}")
-        
+
         # Check if it's a network issue
         if "timeout" in str(result.error_message).lower():
             print("💡 This appears to be a network timeout issue")
@@ -348,14 +383,14 @@ class SessionManager:
     def __init__(self):
         self.agent_bay = AgentBay()
         self.session = None
-    
+
     def get_session(self):
         if not self.session:
             result = self.agent_bay.create()
             if result.success:
                 self.session = result.session
         return self.session
-    
+
     def cleanup(self):
         if self.session:
             self.agent_bay.delete(self.session)

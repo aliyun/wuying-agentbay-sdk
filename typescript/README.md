@@ -24,14 +24,14 @@ async function main() {
     // Create session
     const agentBay = new AgentBay();
     const result = await agentBay.create();
-    
+
     if (result.success) {
         const session = result.session;
-        
+
         // Execute command
         const cmdResult = await session.command.executeCommand("ls -la");
         console.log(cmdResult.output);
-        
+
         // File operations
         await session.fileSystem.writeFile("/tmp/test.txt", "Hello World");
         const content = await session.fileSystem.readFile("/tmp/test.txt");
@@ -45,17 +45,16 @@ main().catch(console.error);
 ## 📖 Complete Documentation
 
 ### 🆕 New Users
-- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart) - Get started in 5 minutes
+- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
 - [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and techniques
 
 ### 🚀 Experienced Users
-- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides) - Complete feature introduction
-- [🔧 TypeScript API Reference](docs/api/) - Detailed API documentation
+- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
+- [🔧 TypeScript API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 TypeScript Examples](docs/examples/) - Complete example code
 
 ### 🆘 Need Help
-- [❓ FAQ](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/faq.md) - Quick answers
 - [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 - [🔧 TypeScript API Reference](docs/api/README.md) - Local API documentation
 - [💡 TypeScript Examples](docs/examples/README.md) - Local example code
@@ -109,7 +108,7 @@ const session = (await agentBay.create({ contextSync: [contextSync] })).session;
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Complete Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs)
+- [Complete Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/README.md)
 
 ## 📄 License
 

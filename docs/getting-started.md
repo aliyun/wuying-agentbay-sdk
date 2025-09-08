@@ -62,7 +62,7 @@ func main() {
 }
 ```
 
-For more details about authentication, see the [Authentication Guide](guides/authentication.md).
+For more details about authentication, see the [Authentication Guide](./guides/sdk-configuration.md).
 
 ## Basic Usage
 
@@ -217,14 +217,14 @@ context_result = agent_bay.context.get("my-persistent-context", create=True)
 
 if context_result.success:
     context = context_result.context
-    
+
     # Create a session with context synchronization
     context_sync = ContextSync.new(
         context_id=context.id,
         path="/tmp/data",  # Mount path in the session
         policy=SyncPolicy.default()
     )
-    
+
     params = CreateSessionParams(context_syncs=[context_sync])
     session_result = agent_bay.create(params)
 ```
@@ -241,14 +241,14 @@ const contextResult = await agentBay.context.get('my-persistent-context', true);
 
 if (contextResult.success) {
     const context = contextResult.context;
-    
+
     // Create a session with context synchronization
-    const contextSync = new ContextSync(
-        context.id,
-        '/tmp/data',  // Mount path in the session
-        newSyncPolicy()
-    );
-    
+    const contextSync = new ContextSync({
+        contextId: context.id,
+        path: '/mnt/data',  // Mount path in the session
+        policy: SyncPolicy.default()
+    });
+
     const sessionResult = await agentBay.create({
         contextSync: [contextSync]
     });
@@ -267,10 +267,10 @@ import (
 func main() {
     // Initialize the client
     client, _ := agentbay.NewAgentBay("", nil)
-    
+
     // Get or create a context
     contextResult, _ := client.Context.Get("my-persistent-context", true)
-    
+
     // Create a session with context synchronization
     policy := agentbay.NewSyncPolicy()
     contextSync := agentbay.NewContextSync(
@@ -278,10 +278,10 @@ func main() {
         "/tmp/data",  // Mount path in the session
         policy,
     )
-    
+
     params := agentbay.NewCreateSessionParams().
         AddContextSyncConfig(contextSync)
-    
+
     sessionResult, _ := client.Create(params)
 }
 ```

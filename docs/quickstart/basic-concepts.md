@@ -345,6 +345,6 @@ Now that you understand the core concepts:
 1. **Try the examples**: Each concept has working code examples
 2. **Create your first session**: Follow the [First Session Guide](first-session.md)
 3. **Learn best practices**: Check out [Best Practices](best-practices.md)
-4. **Explore advanced features**: Browse the [Feature Guides](../guides/README.md)
+4. **Explore advanced features**: Browse the [Feature Guides](../guides/advanced-features.md)
 
 Remember: AgentBay gives you the power of cloud computing with the simplicity of local development!

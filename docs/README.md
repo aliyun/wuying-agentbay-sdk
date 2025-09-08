@@ -60,7 +60,7 @@ If you're new to AgentBay or cloud development:
 - [Quick Start Tutorial](quickstart/README.md) - Get started in 5 minutes
 - [Core Concepts](quickstart/basic-concepts.md) - Understand cloud environments and sessions
 
-### 🚀 Experienced Users  
+### 🚀 Experienced Users
 If you're familiar with Docker, cloud services, or similar products:
 - [Feature Guides](guides/README.md) - Complete feature introduction
 - [API Reference](api-reference.md) - Core API quick lookup
@@ -77,7 +77,6 @@ If you're familiar with Docker, cloud services, or similar products:
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Complete Documentation](README.md)
 - [Changelog](../CHANGELOG.md)
 
 ## 📄 License
