@@ -38,10 +38,9 @@ If no configuration is provided, the SDK uses the following default values:
 
 The SDK uses the following precedence order for configuration (highest to lowest):
 
-1. **Explicitly passed configuration in code**
-2. **Environment variables**
-3. **`.env` configuration file**
-4. **Default configuration**
+1. **Environment variables**
+2. **`.env` configuration file**
+3. **Default configuration**
 
 > **Note:** The Golang implementation is slightly different - it loads the `.env` file into environment variables first, then reads environment variables, but the final precedence order remains consistent.
 
@@ -87,7 +86,11 @@ from agentbay import AgentBay
 
 # SDK will automatically read environment variable configuration
 # API key can also be set via AGENTBAY_API_KEY environment variable
-agent_bay = AgentBay()  # or AgentBay(api_key="your-api-key")
+ api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    api_key = "akm-xxx"
+    print("Warning: Using default API key.")
+agent_bay = AgentBay(api_key=api_key)
 ```
 
 **TypeScript:**
@@ -96,7 +99,8 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 
 // SDK will automatically read environment variable configuration
 // API key can also be set via AGENTBAY_API_KEY environment variable
-const agentBay = new AgentBay();  // or new AgentBay({ apiKey: 'your-api-key' })
+const apiKey = process.env.AGENTBAY_API_KEY
+const agentBay = new AgentBay({apiKey});
 ```
 
 **Golang:**
@@ -104,13 +108,15 @@ const agentBay = new AgentBay();  // or new AgentBay({ apiKey: 'your-api-key' })
 package main
 
 import (
+    "testing"
     "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
     // SDK will automatically read environment variable configuration
     // API key can also be set via AGENTBAY_API_KEY environment variable
-    client, err := agentbay.NewAgentBay("")  // or agentbay.NewAgentBay("your-api-key")
+    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
+    client, err := agentbay.NewAgentBay(testAPIKey, nil)
     if err != nil {
         panic(err)
     }
@@ -160,64 +166,6 @@ func main() {
     // SDK will automatically load .env file
     // No need to specify API key if it's in .env file
     client, err := agentbay.NewAgentBay("")
-    if err != nil {
-        panic(err)
-    }
-}
-```
-
-### 3. Explicit Code Configuration
-
-Pass configuration object directly in code - this method has the highest priority.
-
-**Python:**
-```python
-from agentbay import AgentBay, Config
-
-# Configure Singapore region
-singapore_config = Config(
-    region_id="ap-southeast-1",
-    endpoint="wuyingai.ap-southeast-1.aliyuncs.com",
-    timeout_ms=60000
-)
-
-agent_bay = AgentBay(api_key="your-api-key", cfg=singapore_config)
-```
-
-**TypeScript:**
-```typescript
-import { AgentBay, Config } from 'wuying-agentbay-sdk';
-
-// Configure Singapore region
-const singaporeConfig: Config = {
-  region_id: 'ap-southeast-1',
-  endpoint: 'wuyingai.ap-southeast-1.aliyuncs.com',
-  timeout_ms: 60000,
-};
-
-const agentBay = new AgentBay({
-  apiKey: 'your-api-key',
-  config: singaporeConfig,
-});
-```
-
-**Golang:**
-```go
-package main
-
-import (
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    // Configure Singapore region
-    singaporeConfig := &agentbay.Config{
-        RegionID:  "ap-southeast-1",
-        Endpoint:  "wuyingai.ap-southeast-1.aliyuncs.com",
-        TimeoutMs: 60000,
-    }
-
-    client, err := agentbay.NewAgentBay("your-api-key", agentbay.WithConfig(singaporeConfig))
     if err != nil {
         panic(err)
     }
@@ -274,46 +222,6 @@ export AGENTBAY_REGION_ID=cn-shanghai
 export AGENTBAY_ENDPOINT=wuyingai.cn-shanghai.aliyuncs.com
 ```
 
-## Configuration Verification
-
-You can verify if the configuration is effective through the following methods:
-
-**Python:**
-```python
-from agentbay import AgentBay
-
-agent_bay = AgentBay(api_key="your-api-key")
-print(f"Current region: {agent_bay.region_id}")
-```
-
-**TypeScript:**
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-const agentBay = new AgentBay({ apiKey: 'your-api-key' });
-// Note: regionId is a private property, configuration can be verified through session creation logs or other methods
-console.log('AgentBay client created, configuration loaded');
-```
-
-**Golang:**
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-    client, err := agentbay.NewAgentBay("your-api-key")
-    if err != nil {
-        panic(err)
-    }
-    
-    fmt.Printf("Current region: %s\n", client.RegionId)
-}
-```
-
 ## Troubleshooting
 
 ### Connection Issues
@@ -350,8 +258,7 @@ If configuration is not working, check:
    - Check file format is correct (no spaces, proper equals signs)
 
 3. **Configuration precedence**
-   - Remember explicit code configuration overrides environment variables
-   - Environment variables override `.env` file configuration
+   - Remember environment variables override `.env` file configuration
 
 ### Common Errors
 
@@ -407,4 +314,4 @@ Solutions:
 - [Getting Started](../quickstart/installation.md)
 - [API Reference](../api-reference.md)
 - [Session Management](./session-management.md)
-- [Troubleshooting](../quickstart/troubleshooting.md) 
+- [Troubleshooting](../quickstart/troubleshooting.md)

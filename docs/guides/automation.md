@@ -876,8 +876,5 @@ execute_with_logging(session, "echo 'Hello'")
 agent_bay.delete(session)
 ```
 
-if __name__ == "__main__":
-    unittest.main()
-```
 
 This comprehensive guide covers all aspects of automation with AgentBay SDK. Use these patterns and best practices to build robust, scalable automation solutions!

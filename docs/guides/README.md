@@ -281,13 +281,10 @@ Explore advanced capabilities:
 
 - [API Reference](../api-reference.md) - Complete API documentation
 - [Best Practices](../quickstart/best-practices.md) - Recommended patterns
-- [FAQ](../quickstart/faq.md) - Frequently asked questions
-- [Examples](../../examples/) - Working code examples
 
 ## 🆘 Getting Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Community Discussions](https://github.com/aliyun/wuying-agentbay-sdk/discussions)
 - [Documentation](../README.md)
 
 Happy coding with AgentBay! 🚀
