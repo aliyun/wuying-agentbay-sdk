@@ -1,129 +1,206 @@
-import logging
+import os
 import asyncio
 import json
-from pydantic import BaseModel, Field, HttpUrl
-from typing import List, Optional, Any, Dict
+from pydantic import BaseModel, Field
 from datetime import datetime
-from dotenv import load_dotenv
+from typing import List, Optional
+from urllib.parse import urlparse, urljoin
+import base64
+import logging
+
+
+from agentbay.browser.browser_agent import ActOptions
 from agentbay.browser.eval.page_agent import PageAgent
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator
-from typing import List
-from urllib.parse import urljoin
-
-
 class ProductInfo(BaseModel):
-    name: str
-    price: str
-    link: Optional[HttpUrl] = Field(
-        None, description="The absolute URL to the product's detail page."
+    name: str = Field(..., description="商品名")
+    price: Optional[str] = Field(None, description="价格文本；可为空")
+    link: str = Field(..., description="商品页的相对路径 (如 /products/item1)")
+
+
+class InspectionResult(BaseModel):
+    products: List[ProductInfo] = Field(..., description="页面上的全部商品")
+
+
+def domain_of(url: str) -> str:
+    return urlparse(url).netloc
+
+
+def normalize_abs_link(base_url: str, link: str) -> Optional[str]:
+    link = (link or "").strip()
+    if not link or link.startswith("#"):
+        return None
+    if link.startswith("/"):
+        return urljoin(base_url, link)
+    return link
+
+
+def normalize_links(base_url: str, products: List[ProductInfo]) -> List[ProductInfo]:
+    out: List[ProductInfo] = []
+    for p in products:
+        abs_link = normalize_abs_link(base_url, p.link)
+        if not abs_link:
+            continue
+        out.append(
+            ProductInfo(
+                name=p.name.strip(), price=(p.price or "").strip(), link=abs_link
+            )
+        )
+    return out
+
+
+def is_valid_product(p: ProductInfo) -> bool:
+    has_name = bool(p.name and p.name.strip())
+    has_valid_link = bool(p.link and p.link.strip())
+    has_price = bool(p.price and p.price.strip())
+
+    return has_name and (has_valid_link or has_price)
+
+
+def has_valid_products(products: List[ProductInfo], min_items: int = 2) -> bool:
+    goods = [p for p in products if is_valid_product(p)]
+    return len(goods) >= min_items
+
+
+async def detect_captcha(page) -> bool:
+    try:
+        html = (await page.content()).lower()
+        keys = [
+            "captcha",
+            "are you human",
+            "verify you are human",
+            "hcaptcha",
+            "recaptcha",
+        ]
+        return any(k in html for k in keys)
+    except Exception:
+        return False
+
+
+async def act(agent, page, instruction: str) -> bool:
+    ret = await agent.act(ActOptions(action=instruction))
+    return bool(getattr(ret, "success", False))
+
+
+async def extract_products(
+    agent, page, base_url: str, out_dir: str
+) -> List[ProductInfo]:
+    try:
+        base64_screenshot = await agent.screenshot()
+        if not base64_screenshot.startswith("screenshot failed:"):
+            host = domain_of(base_url)
+            os.makedirs(out_dir, exist_ok=True)
+            screenshot_path = os.path.join(out_dir, f"screenshot_{host}.png")
+            with open(screenshot_path, "wb") as f:
+                f.write(base64.b64decode(base64_screenshot))
+
+            logger.info(f"{base_url} -> Screenshot saved via agent: {screenshot_path}")
+    except Exception as e:
+        logger.warning(f"{base_url} -> Failed to take screenshot: {e}")
+    data = await agent.extract(
+        instruction=(
+            "请提取本页所有商品。价格可为范围（例如 $199–$299）或“from $199”。"
+            "对于商品链接(link)，请仅返回相对路径（例如 /path/to/product），不要包含域名。"
+        ),
+        schema=InspectionResult,
+        use_text_extract=True,
     )
+    if not isinstance(data, InspectionResult) or not data.products:
+        return []
 
-    @field_validator("link", mode="before")
-    @classmethod
-    def validate_and_clean_link(cls, v: Any) -> Optional[str]:
-        if not isinstance(v, str) or not v:
-            return None
-
-        if v.startswith("/"):
-            base_url = "https://tegner.shop"
-            return urljoin(base_url, v)
-
-        if v.startswith("#"):
-            return None
-
-        return v
+    products = normalize_links(base_url, data.products)
+    return products
 
 
-class InspectionResult(BaseModel):
-    products: List[ProductInfo]
+async def ensure_listing_page(
+    agent, page, base_url: str, out_dir: str, max_steps: int = 3
+) -> List[ProductInfo]:
+    await act(agent, page, "如果页面存在弹窗、Cookie 横幅或遮罩，请先关闭。")
+    await asyncio.sleep(0.3)
+
+    for i in range(max_steps):
+        if i > 0:
+            common_action = "前往商品列表页，例如 'Shop'、'Store'、'All products'、'Catalog' 或 'Collections' 等页面。如果当前不是商品列表页，请转到商品列表或目录页面（列表或网格视图）。"
+            await act(agent, page, common_action)
+            await asyncio.sleep(0.6)
+
+        products_found = await extract_products(agent, page, base_url, out_dir)
+
+        if has_valid_products(products_found):
+            valid_count = len([p for p in products_found if is_valid_product(p)])
+            logger.info(f"Found {valid_count} valid products on attempt {i+1}.")
+            return products_found
+
+    return []
 
 
-class InspectionResult(BaseModel):
-    products: List[ProductInfo] = Field(..., description="A list of all products.")
+async def process_site(agent, url: str, out_dir: str = "/tmp") -> None:
+    host = domain_of(url)
+
+    await agent.navigate(url)
+    page = None
+
+    # if await detect_captcha(page):
+    #     logger.info(f"[SKIP] CAPTCHA detected on {host}, skipping.")
+    #     await asyncio.sleep(5)
+    #     await page.close()
+    #     return
+
+    products_from_page = await ensure_listing_page(
+        agent, page, url, out_dir, max_steps=3
+    )
+    products = [p for p in products_from_page if is_valid_product(p)]
+
+    out_path = os.path.join(out_dir, f"inspection_{host}.json")
+    os.makedirs(out_dir, exist_ok=True)
+
+    if products:
+        try:
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    [p.model_dump(mode="json") for p in products],
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            priced_cnt = sum(1 for p in products if p.price)
+            logger.info(
+                f"{host} -> {len(products)} items (with price: {priced_cnt}) saved: {out_path}"
+            )
+        except Exception as e:
+            logger.info(f"{host} -> save failed: {e}")
+    else:
+        logger.info(f"{host} -> no products found (name+link/price)")
+
+    await agent.close()
+
+
+SITES = [
+    "https://aspirebuildingmaterials.com/",
+    "https://mgolightingtech.com/",
+    "https://www.emootoom.com/",
+    "https://www.szcxi.com/",
+    "https://waydoo.com/",
+    "https://welomall.com/",
+    "https://milatech.shop/",
+    "https://tegner.shop/",
+    "https://censlighting.com/",
+]
 
 
 async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]):
     """
     Performs a paginated e-commerce site inspection.
     """
-    try:
-        await agent.goto("https://tegner.shop/")
-        await agent.act("Click 'All products' button or link")
-        all_extracted_products = []
-        page_count = 1
-        while True:
-            page_result: InspectionResult = await agent.extract(
-                instruction="Extract all products visible on the current page. For each product, get its name, price, and the complete, absolute URL to its product page.",
-                schema=InspectionResult,
-                use_text_extract=True,
-            )
-            if page_result and page_result.products:
-                logger.info(
-                    f"  > Found {len(page_result.products)} products on this page."
-                )
-                all_extracted_products.extend(page_result.products)
-            else:
-                logger.warning(
-                    "  > No products found on this page, continuing to next page check."
-                )
-            
-            logger.info("  > Checking for a 'Next' page button...")
-            action_result = await agent.act("Scroll down to the bottom of the page.")
-            action_result = await agent.act(
-                "Click the 'Next' button or a link that navigates to the next page. "
-                "This button is often marked with text 'Next', '>', or '→'."
-            )
-            if action_result and action_result.success:
-                logger.info("  > Successfully navigated to the next page.")
-                page_count += 1
-                await asyncio.sleep(3)
-            else:
-                logger.info(
-                    "> Could not find or click a 'Next' button. Reached the last page."
-                )
-                break
 
-        logger.info("\n--- Final Inspection Report ---")
-        total_products = len(all_extracted_products)
-        logger.info(
-            f"Extraction complete. Scanned {page_count} pages and found a total of {total_products} products."
-        )
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    for url in SITES:
+        try:
+            await process_site(agent, url, out_dir=f"./results_{date_str}")
+        except Exception as e:
+            logger.info(f"[ERR] {domain_of(url)} -> {e}")
 
-        if all_extracted_products:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_filename = f"/Users/hangsu/Downloads/inspection_results_{timestamp}.json"
-
-            logger.info(
-                f"\n--- Saving {total_products} products to file: {output_filename} ---"
-            )
-
-            try:
-                products_as_dicts = [
-                    p.model_dump(mode="json") for p in all_extracted_products
-                ]
-                with open(output_filename, "w", encoding="utf-8") as f:
-                    json.dump(products_as_dicts, f, ensure_ascii=False, indent=2)
-
-                logger.info(f"✅ Successfully saved results to {output_filename}")
-
-            except Exception as e:
-                logger.error(f"❌ Failed to save results to file: {e}")
-
-        logger.info("\n✅ Paginated inspection demo finished successfully.")
-
-        logger.info("\n✅ Paginated inspection demo finished successfully.")
-
-    except Exception as e:
-        logger.error(
-            f"❌ An error occurred during the paginated inspection: {e}", exc_info=True
-        )
-    finally:
-        if "agent" in locals() and hasattr(agent, "close"):
-            await agent.close()
+    return {"_success": True}

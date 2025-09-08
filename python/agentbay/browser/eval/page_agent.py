@@ -1,21 +1,18 @@
 import asyncio
 import base64
 import logging
-import re
-import time
 import os
 from types import ModuleType
 from typing import List, Optional, Type, Union, Literal, Dict, Any
 import concurrent.futures
-import importlib
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel
 from playwright.async_api import Page, async_playwright
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
-from agentbay.browser import Browser, BrowserOption
+from agentbay.browser import BrowserOption
 from agentbay.model.response import SessionResult
-from agentbay.browser.browser_agent import BrowserAgent, ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
+from agentbay.browser.browser_agent import ActOptions, ExtractOptions, ObserveOptions, ActResult, ObserveResult
 from agentbay.browser.eval.local_page_agent import LocalSession
 
 logger = logging.getLogger(__name__)
@@ -244,12 +241,34 @@ class PageAgent:
             logger.error(f"Error in goto: {e}", exc_info=True)
             return f"goto {url} failed: {str(e)}"
 
+    async def navigate(
+        self,
+        url: str) -> str:
+        """Navigates the browser to the specified URL."""
+        logger.info(f"goto {url}")
+        try:
+            await self.session.browser.agent.navigate_async(url)
+            return f"Successfully navigated to {url}"
+        except Exception as e:
+            logger.error(f"Error in goto: {e}", exc_info=True)
+            return f"goto {url} failed: {str(e)}"
+
     async def screenshot(
         self
     ) -> str:
         try:
-            image_bytes = await self.current_page.screenshot(full_page=True)
-            return base64.b64encode(image_bytes).decode("utf-8")    
+            data_url_or_error = await self.session.browser.agent.screenshot_async()
+            if data_url_or_error.startswith("screenshot failed:"):
+                logger.error(data_url_or_error)
+                return data_url_or_error
+            if not data_url_or_error.startswith("data:image/png;base64,"):
+                error_msg = f"screenshot failed: Unexpected format from SDK: {data_url_or_error[:100]}"
+                logger.error(error_msg)
+                return error_msg
+                
+            base64_data = data_url_or_error.split(',', 1)[1]
+            return base64_data
+
         except Exception as e:
             logger.error(f"Error in screenshot: {e}", exc_info=True)
             return f"screenshot failed: {str(e)}"

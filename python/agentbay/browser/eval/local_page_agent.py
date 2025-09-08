@@ -75,27 +75,29 @@ class LocalMCPClient:
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
                             print("MCP tool response:", response)
+                            is_successful = not response.isError
 
                             mcp_response = OperationResult(
                                 request_id="local_request_dummy_id",
-                                success=True,
+                                success=is_successful,
                             )
 
                             # Extract text content from response
+                            text_content = ""
                             if hasattr(response, 'content') and response.content:
                                 for content_item in response.content:
                                     if hasattr(content_item, 'text') and content_item.text:
                                         print(f"MCP tool text response: {content_item.text}")
-                                        mcp_response.data = content_item.text
-                                        future.set_result(mcp_response)
+                                        text_content = content_item.text
                                         break
+                                if is_successful:
+                                    mcp_response.data = text_content
+                                    print(f"MCP tool text response (data): {text_content}")
                                 else:
-                                    # If no text content found, use the original response
-                                    print(f"MCP tool original response: {response}")
-                                    future.set_result(response)
-                            else:
-                                # Fallback to original response if no content structure
-                                future.set_result(response)
+                                    mcp_response.error_message = text_content
+                                    print(f"MCP tool text response (error): {text_content}")
+
+                                future.set_result(mcp_response)
                         else:
                             future.set_exception(RuntimeError("MCP client session is not initialized."))
                     except Exception as e:

@@ -45,7 +45,7 @@ async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) 
     if not usernames_check:
         return {
             "_success": False,
-            "error": f"Username validation failed. Expected 4, got {len(credentials.usernames)}.",
+            "error": f"Username validation failed. Expected 6, got {len(credentials.usernames)}.",
         }
     if not url_check:
         return {
