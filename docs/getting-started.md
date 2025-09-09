@@ -19,7 +19,7 @@ npm install wuying-agentbay-sdk
 ### Golang
 
 ```bash
-go get github.com/aliyun/wuying-agentbay-sdk
+go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 ```
 
 ## Authentication
@@ -28,28 +28,88 @@ To use the AgentBay SDK, you need an API key. You can set the API key in two way
 
 ### 1. Set Environment Variable
 
+**Linux/macOS:**
 ```bash
 export AGENTBAY_API_KEY=your_api_key
 ```
+**Windows (PowerShell):**
+```powershell
+$env:AGENTBAY_API_KEY="your-api-key-here"
+```
+**Windows (Command Prompt):**
+```cmd
+set AGENTBAY_API_KEY=your-api-key-here
+```
+#### Using Environment Variables
+After setting environment variables, create the SDK client directly:
 
-### 2. Pass the API Key Directly
+**Python:**
+```python
+from agentbay import AgentBay
 
+# SDK will automatically read environment variable configuration
+# API key can also be set via AGENTBAY_API_KEY environment variable
+ api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    api_key = "akm-xxx"
+    print("Warning: Using default API key.")
+agent_bay = AgentBay(api_key=api_key)
+```
+
+**TypeScript:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+// SDK will automatically read environment variable configuration
+// API key can also be set via AGENTBAY_API_KEY environment variable
+const apiKey = process.env.AGENTBAY_API_KEY
+const agentBay = new AgentBay({apiKey});
+```
+
+**Golang:**
+```go
+package main
+
+import (
+    "testing"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+)
+
+func main() {
+    // SDK will automatically read environment variable configuration
+    // API key can also be set via AGENTBAY_API_KEY environment variable
+    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
+    client, err := agentbay.NewAgentBay(testAPIKey, nil)
+    if err != nil {
+        panic(err)
+    }
+}
+```
+### 2. Configuration File Method
+
+Create a `.env` file in your project root directory:
+```env
+AGENTBAY_API_KEY=your-api-key-here
+```
+**Python:**
 ```python
 # Python
 from agentbay import AgentBay
 
-agent_bay = AgentBay(api_key="your_api_key")
+# SDK will automatically load .env file
+# No need to specify API key if it's in .env file
+agent_bay = AgentBay()
 ```
-
+**TypeScript:**
 ```typescript
-// TypeScript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+// SDK will automatically load .env file
+// No need to specify API key if it's in .env file
+const agentBay = new AgentBay();
 ```
-
+**Golang:**
 ```go
-// Golang
 package main
 
 import (
@@ -57,8 +117,12 @@ import (
 )
 
 func main() {
-    client, _ := agentbay.NewAgentBay("your_api_key", nil)
-    // Use client...
+    // SDK will automatically load .env file
+    // No need to specify API key if it's in .env file
+    client, err := agentbay.NewAgentBay("")
+    if err != nil {
+        panic(err)
+    }
 }
 ```
 
@@ -72,7 +136,7 @@ For more details about authentication, see the [Authentication Guide](./guides/s
 # Python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 result = agent_bay.create()
 
 if result.success:
@@ -84,7 +148,7 @@ if result.success:
 // TypeScript
 import { AgentBay } from 'wuying-agentbay-sdk';
 
-const agentBay = new AgentBay();
+const agentBay = new AgentBay({apiKey});
 const result = await agentBay.create();
 
 if (result.success) {
@@ -103,7 +167,7 @@ import (
 )
 
 func main() {
-    client, err := agentbay.NewAgentBay("", nil)
+    client, err := agentbay.NewAgentBay("yourApiKey", nil)
     if err != nil {
         fmt.Printf("Error initializing client: %v\n", err)
         return
@@ -198,7 +262,7 @@ if err != nil {
     return
 }
 
-fmt.Printf("File content: %s\n", readResult.Content)
+fmt.Printf("File content: %s\n", string(readResult.Content))
 ```
 
 ### Using Persistent Contexts
@@ -210,7 +274,7 @@ from agentbay.context_sync import ContextSync, SyncPolicy
 from agentbay.session_params import CreateSessionParams
 
 # Initialize the client
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 
 # Get or create a context
 context_result = agent_bay.context.get("my-persistent-context", create=True)
@@ -234,7 +298,7 @@ if context_result.success:
 import { AgentBay, ContextSync, newSyncPolicy } from 'wuying-agentbay-sdk';
 
 // Initialize the client
-const agentBay = new AgentBay();
+const agentBay = new AgentBay({apiKey});
 
 // Get or create a context
 const contextResult = await agentBay.context.get('my-persistent-context', true);
@@ -245,7 +309,7 @@ if (contextResult.success) {
     // Create a session with context synchronization
     const contextSync = new ContextSync({
         contextId: context.id,
-        path: '/mnt/data',  // Mount path in the session
+        path: '/tmp/data',  // Mount path in the session
         policy: SyncPolicy.default()
     });
 
@@ -292,24 +356,6 @@ Now that you know the basics of using the AgentBay SDK, you can explore more fea
 
 ### Tutorials
 
-- [Session Management](tutorials/session-management.md)
-- [Command Execution](tutorials/command-execution.md)
-- [Code Execution](tutorials/code-execution.md)
-- [File Operations](tutorials/file-operations.md)
-- [UI Interaction](tutorials/ui-interaction.md)
-- [Window Management](tutorials/window-management.md)
-- [OSS Integration](tutorials/oss-integration.md)
-- [Application Management](tutorials/application-management.md)
-
-### Feature Guides
-
-- [Session Management](guides/session-management.md)
-- [Code Execution](guides/code-execution.md)
-- [Context Management](guides/context-management.md)
-- [Browser Automation](guides/browser-automation.md)
-- [VPC Sessions](guides/vpc-sessions.md)
-- [Agent Module](guides/agent-module.md)
-
-### Examples
-
-Check out the [examples directory](examples/README.md) for more code examples in Python, TypeScript, and Golang.
+- [Golang Tutorial](../golang/docs/api/README.md)
+- [Python Tutorial](../python/docs/api/README.md)
+- [TypeScript Tutorial](../typescript/docs/api/README.md)

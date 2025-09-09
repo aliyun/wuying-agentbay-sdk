@@ -53,10 +53,9 @@ AgentBay(api_key: str = "", cfg: Optional[Config] = None)
 **Examples:**
 ```python
 # Use API key from environment variable
-agent_bay = AgentBay()
+api_key = os.getenv("AGENTBAY_API_KEY")
+agent_bay = AgentBay(api_key)
 
-# Explicitly specify API key
-agent_bay = AgentBay(api_key="your-api-key")
 
 # With configuration
 from agentbay import Config
@@ -71,14 +70,14 @@ agent_bay = AgentBay(cfg=config)
 Create a new session.
 
 ```python
-create(params: Optional[CreateSessionParams] = None) -> CreateSessionResult
+create(params: Optional[CreateSessionParams] = None) -> SessionResult
 ```
 
 **Parameters:**
 - `params` (CreateSessionParams, optional): Session creation parameters
 
 **Returns:**
-- `CreateSessionResult`: Contains session object or error information
+- `SessionResult`: Contains session object or error information
 
 **Examples:**
 ```python
@@ -87,7 +86,7 @@ result = agent_bay.create()
 
 # Create session with parameters
 params = CreateSessionParams(
-    image_id="ubuntu:20.04",
+    image_id="your_image_id",
     labels={"project": "demo"}
 )
 result = agent_bay.create(params)
@@ -108,31 +107,6 @@ delete(session: Session, sync_context: bool = False) -> DeleteResult
 **Returns:**
 - `DeleteResult`: Deletion result
 
-#### list()
-
-List all locally cached sessions.
-
-```python
-list() -> List[Session]
-```
-
-**Returns:**
-- `List[Session]`: List of locally cached sessions
-
-#### list_by_labels()
-
-List sessions from the server filtered by labels with pagination support.
-
-```python
-list_by_labels(params: Optional[Union[ListSessionParams, Dict[str, str]]] = None) -> SessionListResult
-```
-
-**Parameters:**
-- `params` (Union[ListSessionParams, Dict[str, str]], optional): List query parameters or a dictionary of labels
-
-**Returns:**
-- `SessionListResult`: Session list with pagination information
-
 ## Session
 
 Session object that provides access to various functional modules.
@@ -140,14 +114,16 @@ Session object that provides access to various functional modules.
 ### Properties
 
 - `session_id` (str): Unique session identifier
-- `status` (str): Session status
-- `created_at` (datetime): Creation time
 - `command` (CommandExecutor): Command executor
 - `code` (CodeExecutor): Code executor
 - `file_system` (FileSystemManager): File system manager
 - `ui` (UIAutomation): UI automation
-- `context_sync` (ContextSync): Context synchronization
+- `context` (ContextManager): Context manager
 - `browser` (BrowserAutomation): Browser automation
+- `agent` (Agent): Agent functionality
+- `application` (ApplicationManager): Application manager
+- `window` (WindowManager): Window manager
+- `oss` (Oss): OSS operations
 
 ## CommandExecutor
 
@@ -155,7 +131,7 @@ Command execution functionality.
 
 ### execute_command()
 
-Execute Shell commands.
+Execute a command in the cloud environment with a specified timeout.
 
 ```python
 execute_command(command: str, timeout_ms: int = 1000) -> CommandResult
@@ -166,7 +142,7 @@ execute_command(command: str, timeout_ms: int = 1000) -> CommandResult
 - `timeout_ms` (int, optional): Timeout in milliseconds, defaults to 1000
 
 **Returns:**
-- `CommandResult`: Command execution result
+- `CommandResult`: Result object containing success status, command output,and error message if any.
 
 **Examples:**
 ```python
@@ -184,7 +160,7 @@ Code execution functionality.
 
 ### run_code()
 
-Execute code in the specified language.
+Execute code in the specified language with a timeout.
 
 ```python
 run_code(code: str, language: str, timeout_s: int = 300) -> CodeExecutionResult
@@ -196,7 +172,7 @@ run_code(code: str, language: str, timeout_s: int = 300) -> CodeExecutionResult
 - `timeout_s` (int, optional): Timeout in seconds, defaults to 300
 
 **Returns:**
-- `CodeExecutionResult`: Code execution result
+- `CodeExecutionResult`: Result object containing success status, execution result, and error message if any.
 
 **Examples:**
 ```python
@@ -226,16 +202,30 @@ File system operations functionality.
 Read file content.
 
 ```python
-read_file(path: str) -> FileContentResult
+read_file(path: str,offset: int = 0, length: int = 0) -> FileContentResult
 ```
+**Parameters:**
+- `path` (str): The path of the file to read.
+- `offset` (int): Byte offset to start reading from (0-based).
+- `length` (int): Number of bytes to read. If 0, reads the entire file from offset.
+
+**Returns:**
+- `FileContentResult`: Result object containing file content and error message if any.
 
 ### write_file()
 
 Write file content.
 
 ```python
-write_file(path: str, content: str, encoding: str = "utf-8") -> BoolResult
+write_file(path: str, content: str, mode: str = "overwrite") -> BoolResult
 ```
+**Parameters:**
+- `path` (str): The path of the file to write.
+- `content` (str): The content to write to the file.
+- `encoding` (str, optional): The write mode ("overwrite" or "append").
+**Returns:**
+- `BoolResult`: Result object containing success status and error message if any.
+
 
 
 ### list_directory()
@@ -260,6 +250,10 @@ result = session.file_system.list_directory("/tmp")
 for file in result.entries:
     print(f"{file['name']} ({file['size']} bytes)")
 ```
+**Parameters:**
+- `path` (str): The path of the directory to list.
+**Returns:**
+- `DirectoryListResult`: Result object containing directory entries and error message if any.
 
 ## UIAutomation
 
@@ -267,47 +261,80 @@ UI automation functionality.
 
 ### screenshot()
 
-Take screenshot.
+Takes a screenshot of the current screen using the system_screenshot tool.
 
 ```python
-screenshot() -> ScreenshotResult
+screenshot() -> OperationResult
 ```
+**Returns:**
+- `OperationResult`: Result object containing the path to the screenshot and error message if any.
 
 ### click()
 
-Simulate mouse click.
+Clicks on the screen at the specified coordinates.
 
 ```python
 click(x: int, y: int, button: str = "left") -> BoolResult
 ```
+**Parameters:**
+- `x` (int): X coordinate of the click.
+- `y` (int): Y coordinate of the click.
+- `button` (str, optional):  Button type (left, middle, right), defaults to "left".
+**Returns:**
+- `BoolResult`: Result object containing success status and error message if any.
 
-### type()
-
-Simulate keyboard input.
-
-```python
-type(text: str) -> TypeResult
-```
 
 ### key()
 
 Simulate key press.
 
 ```python
-key(key_name: str) -> KeyResult
+send_key(key: int) -> BoolResult
 ```
+**Parameters:**
+- `key`(int): The key code to send. Supported key codes are:
+    - 3 : HOME
+    - 4 : BACK
+    - 24 : VOLUME UP
+    - 25 : VOLUME DOWN
+    - 26 : POWER
+    - 82 : MENU
+**Returns**
+- `BoolResult`: Result object containing success status and error message if any.
 
 **Examples:**
 ```python
 # Screenshot
+ # Take screenshot
 screenshot = session.ui.screenshot()
-with open("screenshot.png", "wb") as f:
-    f.write(screenshot.data)
+if screenshot.success:
+    # Save screenshot locally
+    with open("screenshot.png", "wb") as f:
+        # Handle different data types
+        if isinstance(screenshot.data, str):
+            # Try to decode as base64 first (common for image data)
+            try:
+                import base64
+                f.write(base64.b64decode(screenshot.data))
+            except:
+                # If not base64, encode as UTF-8
+                f.write(screenshot.data.encode('utf-8'))
+        else:
+            # Already bytes
+            f.write(screenshot.data)
+else:
+    print("Failed to take screenshot:", screenshot.error_message)
 
 # Mouse and keyboard operations
-session.ui.click(100, 200)
+result = session.ui.click(x=100, y=200,button="left")
+if result.success:
+    print("Click successful")
 session.ui.type("Hello AgentBay!")
-session.ui.key("Enter")
+
+from agentbay.ui.ui import KeyCode
+result = session.ui.send_key(KeyCode.MENU)
+if result.success:
+    print("Enter key pressed")
 ```
 
 ## ContextManager
@@ -316,27 +343,28 @@ Context management functionality.
 
 ### get()
 
-Get or create context.
+Gets a context by name. Optionally creates it if it doesn't exist.
 
 ```python
 get(name: str, create: bool = False) -> ContextResult
 ```
+**Parameters:**
+- `name` (str): The name of the context to get.
+- `create` (bool, optional): Whether to create the context if it doesn't exist.
+**Returns:**
+- `ContextResult`: The ContextResult object containing the Context and request ID.
 
-### upload_file()
+### update()
 
 Upload file to context.
 
 ```python
-upload_file(context_id: str, file_path: str, content: str) -> UploadResult
+update(context: Context) -> OperationResult
 ```
-
-### download_file()
-
-Download file from context.
-
-```python
-download_file(context_id: str, file_path: str) -> DownloadResult
-```
+**Parameters:**
+- `context` (Context): The context object to update.
+**Returns:**
+- `OperationResult`: Result object containing success status and request ID.
 
 **Examples:**
 ```python
@@ -344,12 +372,9 @@ download_file(context_id: str, file_path: str) -> DownloadResult
 context_result = agent_bay.context.get("my-project", create=True)
 context = context_result.context
 
-# Upload file
-agent_bay.context.upload_file(context.id, "/config.json", '{"version": "1.0"}')
-
-# Download file
-result = agent_bay.context.download_file(context.id, "/config.json")
-print(result.data)
+# update context
+context.name = "renamed-test-context"
+agent_bay.context.update(context)
 ```
 
 ## ExtensionsService
@@ -370,7 +395,7 @@ ExtensionsService(agent_bay: AgentBay, context_id: str = "")
 
 ### create()
 
-Upload a browser extension.
+Uploads a new browser extension from a local path into the current context.
 
 ```python
 create(local_path: str) -> Extension
@@ -428,11 +453,11 @@ All API calls return result objects that contain `is_error` property and possibl
 
 ```python
 result = session.command.execute_command("invalid_command")
-if result.is_error:
-    print(f"Error: {result.error}")
-    print(f"Error code: {result.error_code}")
+if not result.success:
+    print(f"Error: {result.error_message}")
+    print(f"Error request_id: {result.request_id}")
 else:
-    print(f"Success: {result.data}")
+    print(f"Success: {result.output}")
 ```
 
 ## Type Definitions
@@ -455,37 +480,25 @@ class CreateSessionParams:
 ```python
 @dataclass
 class CommandResult:
-    is_error: bool
-    error: Optional[str] = None
-    error_code: Optional[str] = None
-    data: Optional[CommandData] = None
-
-@dataclass
-class CommandData:
-    stdout: str
-    stderr: str
-    exit_code: int
+    success: bool
+    error_message: str = ""
+    request_id:str = ""
+    output:str = ""
 ```
-
 ### CodeResult
 
 ```python
 @dataclass
-class CodeResult:
-    is_error: bool
-    error: Optional[str] = None
-    data: Optional[CodeData] = None
-
-@dataclass
-class CodeData:
-    stdout: str
-    stderr: str
-    execution_time: float
+class CodeExecutionResult:
+    request_id: str = ""
+    success: bool = False
+    result: str = ""
+    error_message: str = ""
 ```
 
 ## Related Resources
 
-- [Feature Guides](../../../docs/guides/) - Detailed feature usage guides
+- [Feature Guides](../../../docs/guides/README.md) - Detailed feature usage guides
 - [Example Code](../examples/) - Complete example code
 - [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
