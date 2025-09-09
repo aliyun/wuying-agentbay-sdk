@@ -160,7 +160,6 @@ async def main():
 
     passed_tasks = [r for r in all_results if r["result"]["_success"]]
     failed_tasks = [r for r in all_results if not r["result"]["_success"]]
-    performance_data = [r["performance"] for r in all_results]
 
     summary = {
         "experimentName": "page_agent_local_run",
@@ -174,7 +173,7 @@ async def main():
             "passed_count": len(passed_tasks),
             "failed_count": len(failed_tasks),
             "success_rate": (
-                (len(passed_tasks) / len(all_results)) * 100 if all_results else 0
+                len(passed_tasks) / len(all_results) * 100 if all_results else 0
             ),
         },
         "results": all_results,
