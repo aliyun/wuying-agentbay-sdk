@@ -23,10 +23,14 @@ ExecuteCommand(command string, timeoutMs ...int) (*CommandResult, error)
 **CommandResult Structure:**
 ```go
 type CommandResult struct {
-    RequestID string // Unique request identifier for debugging
-    Output    string // The output of the command
+    // Embedded API response with RequestID and common methods
+    models.ApiResponse
+    // Output contains the command execution output
+    Output    string
 }
 ```
+
+**Note:** `CommandResult` embeds `models.ApiResponse` which provides the `RequestID` field and common API response methods.
 
 **Usage Examples:**
 
