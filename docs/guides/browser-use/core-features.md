@@ -6,6 +6,8 @@
 
 ## Extension
 
+- [Extension Management](core-features/extension.md) - Upload, manage, and synchronize browser extensions with your browser sessions for automated testing and web scraping
+
 ## File Upload/Download
 
 ## Observability
