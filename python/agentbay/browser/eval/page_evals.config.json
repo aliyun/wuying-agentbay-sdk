@@ -94,6 +94,13 @@
                 "combination",
                 "experimental"
             ]
+        },
+        {
+            "name": "tegner_shop",
+            "categories": [
+                "combination",
+                "experimental"
+            ]
         }
     ]
 }
