@@ -40,12 +40,12 @@ if result.success:
 ## 📖 Complete Documentation
 
 ### 🆕 New Users
-- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart) - Get started in 5 minutes
+- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 - [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and tips
 
 ### 🚀 Experienced Users
-- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides) - Complete feature introduction
+- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
 - [🔧 Python API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Python Examples](docs/examples/) - Complete example code
 
