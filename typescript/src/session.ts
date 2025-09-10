@@ -1,5 +1,5 @@
-import { Agent } from "./agent/agent";
 import { AgentBay } from "./agent-bay";
+import { Agent } from "./agent/agent";
 import { Client } from "./api/client";
 import {
   CallMcpToolRequest,
@@ -11,10 +11,10 @@ import {
   SetLabelRequest,
 } from "./api/models/model";
 import { Application } from "./application";
+import { Browser } from "./browser";
 import { Code } from "./code";
 import { Command } from "./command";
 import { ContextManager, newContextManager } from "./context-manager";
-import { APIError } from "./exceptions";
 import { FileSystem } from "./filesystem";
 import { Oss } from "./oss";
 import {
@@ -25,7 +25,6 @@ import {
 import { UI } from "./ui";
 import { log, logError } from "./utils/logger";
 import { WindowManager } from "./window";
-import { Browser } from "./browser";
 
 /**
  * Represents an MCP tool with complete information.
@@ -226,68 +225,23 @@ export class Session {
       if (syncContext) {
         log("Triggering context synchronization before session deletion...");
 
-        // Trigger file upload
+        // Use the new sync method without callback (sync mode)
+        const syncStartTime = Date.now();
+        
         try {
           const syncResult = await this.context.sync();
-          if (!syncResult.success) {
-            log("Warning: Context sync operation returned failure status");
+          
+          const syncDuration = Date.now() - syncStartTime;
+          
+          if (syncResult.success) {
+            log(`Context sync completed in ${syncDuration}ms`);
+          } else {
+            log(`Context sync completed with failures after ${syncDuration}ms`);
           }
         } catch (error) {
-          logError("Warning: Failed to trigger context sync:", error);
+          const syncDuration = Date.now() - syncStartTime;
+          logError(`Failed to trigger context sync after ${syncDuration}ms:`, error);
           // Continue with deletion even if sync fails
-        }
-
-        // Wait for uploads to complete
-        const maxRetries = 150; // Maximum number of retries
-        const retryInterval = 2000; // Milliseconds to wait between retries
-
-        for (let retry = 0; retry < maxRetries; retry++) {
-          try {
-            // Get context status data
-            const infoResult = await this.context.info();
-
-            // Check if all upload context items have status "Success" or "Failed"
-            let allCompleted = true;
-            let hasFailure = false;
-            let hasUploads = false;
-
-            for (const item of infoResult.contextStatusData) {
-              // We only care about upload tasks
-              if (item.taskType !== "upload") {
-                continue;
-              }
-
-              hasUploads = true;
-              log(`Upload context ${item.contextId} status: ${item.status}, path: ${item.path}`);
-
-              if (item.status !== "Success" && item.status !== "Failed") {
-                allCompleted = false;
-                break;
-              }
-
-              if (item.status === "Failed") {
-                hasFailure = true;
-                logError(`Upload failed for context ${item.contextId}: ${item.errorMessage}`);
-              }
-            }
-
-            if (allCompleted || !hasUploads) {
-              if (hasFailure) {
-                log("Context upload completed with failures");
-              } else if (hasUploads) {
-                log("Context upload completed successfully");
-              } else {
-                log("No upload tasks found");
-              }
-              break;
-            }
-
-            log(`Waiting for context upload to complete, attempt ${retry+1}/${maxRetries}`);
-            await new Promise(resolve => setTimeout(resolve, retryInterval));
-          } catch (error) {
-            logError(`Error checking context status on attempt ${retry+1}:`, error);
-            await new Promise(resolve => setTimeout(resolve, retryInterval));
-          }
         }
       }
 

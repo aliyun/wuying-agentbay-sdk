@@ -1,5 +1,5 @@
-import { ContextManager, ContextStatusData, SessionInterface } from "../../src/context-manager";
 import * as sinon from "sinon";
+import { ContextManager, SessionInterface } from "../../src/context-manager";
 
 describe("ContextManager", () => {
   let contextManager: ContextManager;
@@ -184,7 +184,7 @@ describe("ContextManager", () => {
   });
 
   describe("sync", () => {
-    it("should sync context successfully", async () => {
+    it("should sync context successfully without callback (await mode)", async () => {
       // Mock the API response
       const mockResponse = {
         body: {
@@ -196,7 +196,19 @@ describe("ContextManager", () => {
       
       mockClient.syncContext.resolves(mockResponse);
       
-      // Call the method
+      // Mock the info method to return completed status
+      const mockInfoResponse = {
+        body: {
+          data: {
+            contextStatus: '[]'
+          },
+          requestId: "test-request-id"
+        },
+        statusCode: 200
+      };
+      mockClient.getContextInfo.resolves(mockInfoResponse);
+      
+      // Call the method without callback (await mode)
       const result = await contextManager.sync();
       
       // Verify the results
@@ -205,6 +217,51 @@ describe("ContextManager", () => {
       
       // Verify the API was called correctly
       expect(mockClient.syncContext.calledOnce).toBe(true);
+    });
+
+    it("should sync context with callback (async mode)", async () => {
+      // Mock the API response
+      const mockResponse = {
+        body: {
+          success: true,
+          requestId: "test-request-id"
+        },
+        statusCode: 200
+      };
+      
+      mockClient.syncContext.resolves(mockResponse);
+      
+      // Mock the info method to return completed status
+      const mockInfoResponse = {
+        body: {
+          data: {
+            contextStatus: '[]'
+          },
+          requestId: "test-request-id"
+        },
+        statusCode: 200
+      };
+      mockClient.getContextInfo.resolves(mockInfoResponse);
+      
+      // Set up callback
+      const callback = sandbox.stub();
+      
+      // Call the method with callback (async mode)
+      const result = await contextManager.sync(undefined, undefined, undefined, callback);
+      
+      // Verify the results
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.success).toBe(true);
+      
+      // Verify the API was called correctly
+      expect(mockClient.syncContext.calledOnce).toBe(true);
+      
+      // Wait for the polling to complete - callback should be called immediately since no sync tasks
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Verify callback was called
+      expect(callback.calledOnce).toBe(true);
+      expect(callback.firstCall.args[0]).toBe(true);
     });
 
     it("should handle API error during sync", async () => {
@@ -227,8 +284,20 @@ describe("ContextManager", () => {
       
       mockClient.syncContext.resolves(mockResponse);
       
+      // Mock the info method to return completed status
+      const mockInfoResponse = {
+        body: {
+          data: {
+            contextStatus: '[]'
+          },
+          requestId: "test-request-id"
+        },
+        statusCode: 200
+      };
+      mockClient.getContextInfo.resolves(mockInfoResponse);
+      
       // Call the method with parameters
-      await contextManager.syncWithParams("ctx-123", "/home/user", "upload");
+      await contextManager.sync("ctx-123", "/home/user", "upload");
       
       // Verify the API was called with the correct parameters
       expect(mockClient.syncContext.calledOnce).toBe(true);

@@ -9,8 +9,8 @@
  * - Context synchronization and file sharing
  */
 
-import { AgentBay, ContextSync, newSyncPolicy, log, logError } from '../../../src/index';
 import type { CreateSessionParams } from '../../../src/agent-bay';
+import { AgentBay, ContextSync, logError, newSyncPolicy } from '../../../src/index';
 
 async function main(): Promise<void> {
     console.log('🗄️ AgentBay Data Persistence Example');

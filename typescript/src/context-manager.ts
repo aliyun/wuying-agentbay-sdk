@@ -1,6 +1,6 @@
-import { ApiResponse, extractRequestId } from "./types/api-response";
 import { Client } from "./api/client";
 import { GetContextInfoRequest, SyncContextRequest } from "./api/models/model";
+import { ApiResponse, extractRequestId } from "./types/api-response";
 import { log, logError } from "./utils/logger";
 
 export interface ContextStatusData {
@@ -25,6 +25,8 @@ export interface ContextInfoResult extends ApiResponse {
 export interface ContextSyncResult extends ApiResponse {
   success: boolean;
 }
+
+export type SyncCallback = (success: boolean) => void;
 
 export interface SessionInterface {
   getAPIKey(): string;
@@ -119,14 +121,13 @@ export class ContextManager {
     }
   }
 
-  async sync(): Promise<ContextSyncResult> {
-    return this.syncWithParams();
-  }
-
-  async syncWithParams(
+  async sync(
     contextId?: string,
     path?: string,
-    mode?: string
+    mode?: string,
+    callback?: SyncCallback,
+    maxRetries: number = 150,
+    retryInterval: number = 1500
   ): Promise<ContextSyncResult> {
     const request = new SyncContextRequest({
       authorization: `Bearer ${this.session.getAPIKey()}`,
@@ -173,6 +174,34 @@ export class ContextManager {
         success = response.body.success;
       }
 
+      // If callback is provided, start polling in background (async mode)
+      if (callback && success) {
+        // Start polling in background without blocking
+        this.pollForCompletion(callback, contextId, path, maxRetries, retryInterval)
+          .catch((error) => {
+            logError("Error in background polling:", error);
+            callback(false);
+          });
+        return {
+          requestId,
+          success,
+        };
+      }
+
+      // If no callback, wait for completion (sync mode)
+      if (success) {
+        const finalSuccess = await this.pollForCompletionAsync(
+          contextId,
+          path,
+          maxRetries,
+          retryInterval
+        );
+        return {
+          requestId,
+          success: finalSuccess,
+        };
+      }
+
       return {
         requestId,
         success,
@@ -181,6 +210,147 @@ export class ContextManager {
       logError("Error calling SyncContext:", error);
       throw new Error(`Failed to sync context: ${error}`);
     }
+  }
+
+  /**
+   * Polls the info interface to check if sync is completed and calls callback.
+   */
+  private async pollForCompletion(
+    callback: SyncCallback,
+    contextId?: string,
+    path?: string,
+    maxRetries: number = 150,
+    retryInterval: number = 1500
+  ): Promise<void> {
+    for (let retry = 0; retry < maxRetries; retry++) {
+      try {
+        // Get context status data
+        const infoResult = await this.infoWithParams(contextId, path);
+
+        // Check if all sync tasks are completed
+        let allCompleted = true;
+        let hasFailure = false;
+        let hasSyncTasks = false;
+
+        for (const item of infoResult.contextStatusData) {
+          // We only care about sync tasks (upload/download)
+          if (item.taskType !== "upload" && item.taskType !== "download") {
+            continue;
+          }
+
+          hasSyncTasks = true;
+          log(`Sync task ${item.contextId} status: ${item.status}, path: ${item.path}`);
+
+          if (item.status !== "Success" && item.status !== "Failed") {
+            allCompleted = false;
+            break;
+          }
+
+          if (item.status === "Failed") {
+            hasFailure = true;
+            logError(`Sync failed for context ${item.contextId}: ${item.errorMessage}`);
+          }
+        }
+
+        if (allCompleted || !hasSyncTasks) {
+          // All tasks completed or no sync tasks found
+          if (hasFailure) {
+            log("Context sync completed with failures");
+            callback(false);
+          } else if (hasSyncTasks) {
+            log("Context sync completed successfully");
+            callback(true);
+          } else {
+            log("No sync tasks found");
+            callback(true);
+          }
+          return; // Exit the function immediately after calling callback
+        }
+
+        log(`Waiting for context sync to complete, attempt ${retry + 1}/${maxRetries}`);
+        await this.sleep(retryInterval);
+      } catch (error) {
+        logError(`Error checking context status on attempt ${retry + 1}:`, error);
+        await this.sleep(retryInterval);
+      }
+    }
+
+    // If we've exhausted all retries, call callback with failure
+    logError(`Context sync polling timed out after ${maxRetries} attempts`);
+    callback(false);
+  }
+
+  /**
+   * Async version of polling for sync completion.
+   */
+  private async pollForCompletionAsync(
+    contextId?: string,
+    path?: string,
+    maxRetries: number = 150,
+    retryInterval: number = 1500
+  ): Promise<boolean> {
+    for (let retry = 0; retry < maxRetries; retry++) {
+      try {
+        // Get context status data
+        const infoResult = await this.infoWithParams(contextId, path);
+
+        // Check if all sync tasks are completed
+        let allCompleted = true;
+        let hasFailure = false;
+        let hasSyncTasks = false;
+
+        for (const item of infoResult.contextStatusData) {
+          // We only care about sync tasks (upload/download)
+          if (item.taskType !== "upload" && item.taskType !== "download") {
+            continue;
+          }
+
+          hasSyncTasks = true;
+          log(`Sync task ${item.contextId} status: ${item.status}, path: ${item.path}`);
+
+          if (item.status !== "Success" && item.status !== "Failed") {
+            allCompleted = false;
+            break;
+          }
+
+          if (item.status === "Failed") {
+            hasFailure = true;
+            logError(`Sync failed for context ${item.contextId}: ${item.errorMessage}`);
+          }
+        }
+
+        if (allCompleted || !hasSyncTasks) {
+          // All tasks completed or no sync tasks found
+          if (hasFailure) {
+            log("Context sync completed with failures");
+            return false;
+          } else if (hasSyncTasks) {
+            log("Context sync completed successfully");
+            return true;
+          } else {
+            log("No sync tasks found");
+            return true;
+          }
+        }
+
+        log(`Waiting for context sync to complete, attempt ${retry + 1}/${maxRetries}`);
+        await this.sleep(retryInterval);
+      } catch (error) {
+        logError(`Error checking context status on attempt ${retry + 1}:`, error);
+        await this.sleep(retryInterval);
+      }
+    }
+
+    // If we've exhausted all retries, return failure
+    logError(`Context sync polling timed out after ${maxRetries} attempts`);
+    return false;
+  }
+
+  /**
+   * Sleep utility function for TypeScript
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
