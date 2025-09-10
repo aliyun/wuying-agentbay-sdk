@@ -127,7 +127,7 @@ class ContextManager:
         mode: Optional[str] = None,
         callback: Optional[Callable[[bool], None]] = None,
         max_retries: int = 150,
-        retry_interval: int = 2,
+        retry_interval: int = 1500,
     ) -> ContextSyncResult:
         """
         Synchronizes context with support for both async and sync calling patterns.
@@ -145,7 +145,7 @@ class ContextManager:
             mode: Sync mode
             callback: Optional callback function that receives success status
             max_retries: Maximum number of retries for polling (default: 150)
-            retry_interval: Seconds to wait between retries (default: 2)
+            retry_interval: Milliseconds to wait between retries (default: 1500)
             
         Returns:
             ContextSyncResult: Result of the sync operation
@@ -217,7 +217,7 @@ class ContextManager:
         context_id: Optional[str] = None,
         path: Optional[str] = None,
         max_retries: int = 150,
-        retry_interval: int = 2,
+        retry_interval: int = 1500,
     ) -> None:
         """
         Polls the info interface to check if sync is completed and calls callback.
@@ -227,7 +227,7 @@ class ContextManager:
             context_id: ID of the context to check
             path: Path to check
             max_retries: Maximum number of retries
-            retry_interval: Seconds to wait between retries
+            retry_interval: Milliseconds to wait between retries
         """
         for retry in range(max_retries):
             try:
@@ -269,11 +269,11 @@ class ContextManager:
                     break
                 
                 logger.info(f"⏳ Waiting for context sync to complete, attempt {retry+1}/{max_retries}")
-                time.sleep(retry_interval)
+                time.sleep(retry_interval / 1000.0)
                 
             except Exception as e:
                 logger.error(f"❌ Error checking context status on attempt {retry+1}: {e}")
-                time.sleep(retry_interval)
+                time.sleep(retry_interval / 1000.0)
         
         # If we've exhausted all retries, call callback with failure
         if retry == max_retries - 1:
@@ -285,7 +285,7 @@ class ContextManager:
         context_id: Optional[str] = None,
         path: Optional[str] = None,
         max_retries: int = 150,
-        retry_interval: int = 2,
+        retry_interval: int = 1500,
     ) -> bool:
         """
         Async version of polling for sync completion.
@@ -294,7 +294,7 @@ class ContextManager:
             context_id: ID of the context to check
             path: Path to check
             max_retries: Maximum number of retries
-            retry_interval: Seconds to wait between retries
+            retry_interval: Milliseconds to wait between retries
             
         Returns:
             bool: True if sync completed successfully, False otherwise
@@ -338,11 +338,11 @@ class ContextManager:
                         return True
                 
                 logger.info(f"⏳ Waiting for context sync to complete, attempt {retry+1}/{max_retries}")
-                await asyncio.sleep(retry_interval)
+                await asyncio.sleep(retry_interval / 1000.0)
                 
             except Exception as e:
                 logger.error(f"❌ Error checking context status on attempt {retry+1}: {e}")
-                await asyncio.sleep(retry_interval)
+                await asyncio.sleep(retry_interval / 1000.0)
         
         # If we've exhausted all retries, return failure
         logger.error(f"❌ Context sync polling timed out after {max_retries} attempts")

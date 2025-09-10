@@ -170,26 +170,22 @@ class TestSession(unittest.TestCase):
         # Set up context mock object
         self.session.context = MagicMock()
 
-        # Mock context.sync return value
+        # Mock context.sync return value (now returns a coroutine)
         sync_result = MagicMock()
         sync_result.success = True
-        self.session.context.sync.return_value = sync_result
-
-        # Mock context.info return value
-        info_result = MagicMock()
-        info_result.context_status_data = [
-            MagicMock(status="Success", task_type="upload", context_id="ctx1")
-        ]
-        self.session.context.info.return_value = info_result
+        # Since context.sync is now async, we need to mock it as a coroutine
+        import asyncio
+        async def mock_sync():
+            return sync_result
+        self.session.context.sync.return_value = mock_sync()
 
         # Call delete method with sync_context=True
         result = self.session.delete(sync_context=True)
         self.assertIsInstance(result, DeleteResult)
         self.assertTrue(result.success)
 
-        # Verify sync and info were called
+        # Verify sync was called (but not info since we're not using callback mode)
         self.session.context.sync.assert_called_once()
-        self.session.context.info.assert_called_once()
 
         # Verify API call is correct
         MockReleaseMcpSessionRequest.assert_called_once_with(
