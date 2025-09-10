@@ -1,155 +1,505 @@
-# FileSystem Class API Reference
+# FileSystem API Reference (TypeScript)
 
-The `FileSystem` class provides methods for file operations within a session in the AgentBay cloud environment. This includes reading, writing, editing, and searching files, as well as directory operations.
+The FileSystem module provides comprehensive file and directory operations within AgentBay sessions, including real-time directory monitoring capabilities.
 
-## Methods
+## Overview
 
-### create_directory / createDirectory / CreateDirectory
+The FileSystem class enables you to:
+- Perform standard file operations (read, write, create, delete)
+- Monitor directories for real-time file changes
+- Handle file uploads and downloads
+- Manage file permissions and metadata
 
-Creates a new directory at the specified path.
+## Core Types
 
+### FileChangeEvent
+
+Represents a single file change event detected during directory monitoring.
 
 ```typescript
-createDirectory(path: string): Promise<string>
+export interface FileChangeEvent {
+  eventType: string; // "create", "modify", "delete"
+  path: string;      // Full path to the changed file/directory
+  pathType: string;  // "file" or "directory"
+}
+```
+
+### FileChangeResult
+
+Contains the result of file change detection operations.
+
+```typescript
+export interface FileChangeResult extends ApiResponse {
+  events: FileChangeEvent[];
+  rawData: string;
+}
+```
+
+## Helper Classes
+
+### FileChangeEventHelper
+
+Static utility methods for working with FileChangeEvent objects.
+
+```typescript
+export class FileChangeEventHelper {
+  static toString(event: FileChangeEvent): string
+  static toDict(event: FileChangeEvent): Record<string, string>
+  static fromDict(data: Record<string, string>): FileChangeEvent
+}
+```
+
+### FileChangeResultHelper
+
+Static utility methods for working with FileChangeResult objects.
+
+```typescript
+export class FileChangeResultHelper {
+  static hasChanges(result: FileChangeResult): boolean
+  static getModifiedFiles(result: FileChangeResult): string[]
+  static getCreatedFiles(result: FileChangeResult): string[]
+  static getDeletedFiles(result: FileChangeResult): string[]
+}
+```
+
+## Directory Monitoring Methods
+
+### getFileChange
+
+Retrieves file changes that occurred in a directory since the last check.
+
+```typescript
+async getFileChange(path: string): Promise<FileChangeResult>
 ```
 
 **Parameters:**
-- `path` (string): The path of the directory to create.
+- `path` (string): Directory path to monitor
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text content if the directory was created successfully.
+- `Promise<FileChangeResult>`: Promise resolving to result containing detected file changes
 
-**Throws:**
-- `APIError`: If the directory creation fails.
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
 
+async function checkFileChanges() {
+  // Initialize AgentBay
+  const agentBay = new AgentBay({ apiKey: 'your-api-key' });
+
+  // Create session
+  const sessionResult = await agentBay.create({
+    imageId: 'code_latest'
+  });
+
+  if (!sessionResult.success || !sessionResult.session) {
+    throw new Error('Failed to create session');
+  }
+
+  const session = sessionResult.session;
+  const fileSystem = session.fileSystem();
+
+  try {
+    // Check for file changes
+    const result = await fileSystem.getFileChange('/tmp/watch_dir');
+
+    if (FileChangeResultHelper.hasChanges(result)) {
+      console.log(`Detected ${result.events.length} changes:`);
+      result.events.forEach(event => {
+        console.log(`- ${FileChangeEventHelper.toString(event)}`);
+      });
+    } else {
+      console.log('No changes detected');
+    }
+  } finally {
+    // Clean up session
+    await agentBay.delete(session);
+  }
+}
+```
+
+### watchDirectory
+
+Continuously monitors a directory for file changes and executes a callback function when changes are detected.
 
 ```typescript
-editFile(path: string, edits: Array<{oldText: string, newText: string}>, dryRun?: boolean): Promise<string>
+async watchDirectory(
+  path: string,
+  callback: (events: FileChangeEvent[]) => void,
+  intervalMs: number = 1000,
+  signal?: AbortSignal
+): Promise<void>
 ```
 
 **Parameters:**
-- `path` (string): The path of the file to edit.
-- `edits` (Array<{oldText: string, newText: string}>): Array of edit operations, each containing oldText and newText.
-- `dryRun` (boolean, optional): If true, preview changes without applying them. Default is false.
+- `path` (string): Directory path to monitor
+- `callback` (function): Function called when changes are detected
+- `intervalMs` (number, optional): Polling interval in milliseconds (default: 1000, minimum: 100)
+- `signal` (AbortSignal, optional): Signal to abort the monitoring
 
 **Returns:**
-- `Promise<string>`: A promise that resolves to the response text content if the file was edited successfully.
+- `Promise<void>`: Promise that resolves when monitoring stops
 
-**Throws:**
-- `APIError`: If the file editing fails.
-
-
+**Example:**
 ```typescript
-getFileInfo(path: string): Promise<string>
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+async function watchDirectoryExample() {
+  // Initialize AgentBay
+  const agentBay = new AgentBay({ apiKey: 'your-api-key' });
+
+  // Create session
+  const sessionResult = await agentBay.create({
+    imageId: 'code_latest'
+  });
+
+  if (!sessionResult.success || !sessionResult.session) {
+    throw new Error('Failed to create session');
+  }
+
+  const session = sessionResult.session;
+  const fileSystem = session.fileSystem();
+
+  // Create test directory
+  const testDir = '/tmp/agentbay_watch_test';
+  await fileSystem.createDirectory(testDir);
+
+  try {
+    // Set up callback function
+    const callback = (events: FileChangeEvent[]) => {
+      console.log(`Detected ${events.length} file changes:`);
+      events.forEach(event => {
+        console.log(`- ${FileChangeEventHelper.toString(event)}`);
+      });
+    };
+
+    // Create AbortController for stopping the watch
+    const controller = new AbortController();
+
+    // Start monitoring
+    const watchPromise = fileSystem.watchDirectory(
+      testDir,
+      callback,
+      1000, // 1 second interval
+      controller.signal
+    );
+
+    // Simulate file operations after a delay
+    setTimeout(async () => {
+      // Create a file
+      const testFile = `${testDir}/test.txt`;
+      await fileSystem.writeFile(testFile, 'Hello, AgentBay!');
+
+      // Modify the file after another delay
+      setTimeout(async () => {
+        await fileSystem.writeFile(testFile, 'Modified content');
+
+        // Stop monitoring after another delay
+        setTimeout(() => {
+          controller.abort();
+        }, 2000);
+      }, 2000);
+    }, 2000);
+
+    // Wait for monitoring to complete
+    await watchPromise;
+    console.log('Monitoring stopped');
+
+  } finally {
+    // Clean up
+    await agentBay.delete(session);
+  }
+}
 ```
 
-**Parameters:**
-- `path` (string): The path of the file or directory to inspect.
+## Helper Method Examples
 
-**Returns:**
-- `Promise<string>`: A promise that resolves to textual information about the file or directory.
-
-**Throws:**
-- `APIError`: If getting the file information fails.
-
+### Using FileChangeEventHelper
 
 ```typescript
-listDirectory(path: string): Promise<any>
+// Create event from dictionary
+const eventData = {
+  eventType: 'create',
+  path: '/tmp/new_file.txt',
+  pathType: 'file'
+};
+const event = FileChangeEventHelper.fromDict(eventData);
+
+// Convert to string
+const eventString = FileChangeEventHelper.toString(event);
+console.log(eventString); // "FileChangeEvent(eventType='create', path='/tmp/new_file.txt', pathType='file')"
+
+// Convert to dictionary
+const eventDict = FileChangeEventHelper.toDict(event);
+console.log(eventDict); // { eventType: 'create', path: '/tmp/new_file.txt', pathType: 'file' }
 ```
 
-**Parameters:**
-- `path` (string): The path of the directory to list.
-
-**Returns:**
-- `Promise<any>`: A promise that resolves to an array of directory entries if parsing is successful, or raw text content.
-
-**Throws:**
-- `APIError`: If listing the directory fails.
-
+### Using FileChangeResultHelper
 
 ```typescript
-moveFile(source: string, destination: string): Promise<string>
+// Assuming you have a FileChangeResult
+const result: FileChangeResult = await fileSystem.getFileChange('/tmp/watch_dir');
+
+// Check if there are changes
+if (FileChangeResultHelper.hasChanges(result)) {
+  // Get specific types of changes
+  const modifiedFiles = FileChangeResultHelper.getModifiedFiles(result);
+  const createdFiles = FileChangeResultHelper.getCreatedFiles(result);
+  const deletedFiles = FileChangeResultHelper.getDeletedFiles(result);
+
+  console.log('Modified files:', modifiedFiles);
+  console.log('Created files:', createdFiles);
+  console.log('Deleted files:', deletedFiles);
+}
 ```
 
-**Parameters:**
-- `source` (string): The path of the source file or directory.
-- `destination` (string): The path of the destination file or directory.
+## Best Practices
 
-**Returns:**
-- `Promise<string>`: A promise that resolves to the response text content if the file was moved successfully.
+### 1. Polling Interval
 
-**Throws:**
-- `APIError`: If moving the file fails.
-
+Choose an appropriate polling interval based on your needs:
 
 ```typescript
-readFile(path: string): Promise<FileContentResult>
+// High-frequency monitoring (higher CPU usage)
+await fileSystem.watchDirectory(path, callback, 100);
+
+// Normal monitoring (balanced)
+await fileSystem.watchDirectory(path, callback, 1000);
+
+// Low-frequency monitoring (lower CPU usage)
+await fileSystem.watchDirectory(path, callback, 5000);
 ```
 
-**Parameters:**
-- `path` (string): The path of the file to read.
+### 2. Error Handling
 
-**Returns:**
-- `Promise<FileContentResult>`: A promise that resolves to a result object containing file content, success status, request ID, and error message if any.
-
-**Throws:**
-- `APIError`: If the file reading fails.
-
-**Note:**
-This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
-
+Always handle errors and implement proper cleanup:
 
 ```typescript
-readMultipleFiles(paths: string[]): Promise<string>
+const controller = new AbortController();
+
+try {
+  await fileSystem.watchDirectory(path, callback, 1000, controller.signal);
+} catch (error) {
+  console.error('Watch error:', error);
+} finally {
+  // Ensure monitoring is stopped
+  controller.abort();
+}
 ```
 
-**Parameters:**
-- `paths` (string[]): Array of paths to the files to read.
+### 3. Callback Function Design
 
-**Returns:**
-- `Promise<string>`: A promise that resolves to the textual content mapping file paths to their contents.
-
-**Throws:**
-- `APIError`: If reading the files fails.
-
+Keep callback functions lightweight and handle errors gracefully:
 
 ```typescript
-searchFiles(path: string, pattern: string, excludePatterns?: string[]): Promise<any[]>
+const callback = (events: FileChangeEvent[]) => {
+  try {
+    events.forEach(event => {
+      // Process event
+      processFileChange(event);
+    });
+  } catch (error) {
+    console.error('Callback error:', error);
+  }
+};
 ```
 
-**Parameters:**
-- `path` (string): The path of the directory to start the search.
-- `pattern` (string): Pattern to match.
-- `excludePatterns` (string[], optional): Patterns to exclude. Default is an empty array.
+### 4. Using AbortController
 
-**Returns:**
-- `Promise<any[]>`: A promise that resolves to an array of search results.
-
-**Throws:**
-- `APIError`: If the search fails.
-
+Use AbortController for better control over monitoring lifecycle:
 
 ```typescript
-writeFile(path: string, content: string, mode?: string): Promise<BoolResult>
+const controller = new AbortController();
+
+// Set up automatic timeout
+setTimeout(() => {
+  controller.abort();
+}, 30000); // Stop after 30 seconds
+
+// Start monitoring
+await fileSystem.watchDirectory(path, callback, 1000, controller.signal);
 ```
 
-**Parameters:**
-- `path` (string): The path of the file to write.
-- `content` (string): Content to write to the file.
-- `mode` (string, optional): "overwrite" (default), "append", or "create_new".
+## Common Use Cases
 
-**Returns:**
-- `Promise<BoolResult>`: A promise that resolves to a result object containing success status, boolean data (true if successful), request ID, and error message if any.
+### 1. Development File Watcher
 
-**Throws:**
-- `APIError`: If writing the file fails.
+Monitor source code changes during development:
 
-**Note:**
-This method automatically handles both small and large content. For large content, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
+```typescript
+const callback = (events: FileChangeEvent[]) => {
+  events.forEach(event => {
+    if (event.path.endsWith('.ts') && event.eventType === 'modify') {
+      console.log(`TypeScript file modified: ${event.path}`);
+      // Trigger rebuild or test
+    }
+  });
+};
+```
 
+### 2. Log File Monitor
 
-**Deprecated Methods:**
+Monitor log files for new entries:
 
-The following methods have been removed in favor of the unified `readFile` and `writeFile` methods:
-- `readLargeFile` - Use `readFile` instead (automatic chunking)
-- `writeLargeFile` - Use `writeFile` instead (automatic chunking)
+```typescript
+const callback = (events: FileChangeEvent[]) => {
+  events.forEach(event => {
+    if (event.path.includes('.log') && event.eventType === 'modify') {
+      console.log(`Log file updated: ${event.path}`);
+      // Process new log entries
+    }
+  });
+};
+```
+
+### 3. Configuration File Watcher
+
+Monitor configuration files for changes:
+
+```typescript
+const callback = (events: FileChangeEvent[]) => {
+  events.forEach(event => {
+    if (event.path.endsWith('config.json')) {
+      console.log(`Configuration changed: ${event.path}`);
+      // Reload configuration
+    }
+  });
+};
+```
+
+### 4. Filtered Monitoring
+
+Monitor only specific file types:
+
+```typescript
+const callback = (events: FileChangeEvent[]) => {
+  const imageEvents = events.filter(event => 
+    /\.(jpg|jpeg|png|gif)$/i.test(event.path)
+  );
+  
+  if (imageEvents.length > 0) {
+    console.log(`Image files changed: ${imageEvents.length}`);
+    imageEvents.forEach(event => {
+      console.log(`- ${event.eventType}: ${event.path}`);
+    });
+  }
+};
+```
+
+## Advanced Usage
+
+### Multiple Directory Monitoring
+
+Monitor multiple directories with different configurations:
+
+```typescript
+async function monitorMultipleDirectories() {
+  const directories = [
+    { path: '/tmp/src', interval: 500 },
+    { path: '/tmp/logs', interval: 2000 },
+    { path: '/tmp/config', interval: 5000 }
+  ];
+
+  const controllers = directories.map(() => new AbortController());
+
+  try {
+    // Start monitoring all directories
+    const promises = directories.map((dir, index) => 
+      fileSystem.watchDirectory(
+        dir.path,
+        (events) => console.log(`${dir.path}: ${events.length} changes`),
+        dir.interval,
+        controllers[index].signal
+      )
+    );
+
+    // Wait for all monitoring to complete
+    await Promise.all(promises);
+  } finally {
+    // Stop all monitoring
+    controllers.forEach(controller => controller.abort());
+  }
+}
+```
+
+### Conditional Monitoring
+
+Start and stop monitoring based on conditions:
+
+```typescript
+let isMonitoring = false;
+const controller = new AbortController();
+
+async function conditionalMonitoring() {
+  if (shouldStartMonitoring() && !isMonitoring) {
+    isMonitoring = true;
+    
+    try {
+      await fileSystem.watchDirectory(
+        '/tmp/watch_dir',
+        (events) => {
+          // Check if we should stop monitoring
+          if (shouldStopMonitoring()) {
+            controller.abort();
+          }
+          
+          // Process events
+          processEvents(events);
+        },
+        1000,
+        controller.signal
+      );
+    } finally {
+      isMonitoring = false;
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **High CPU Usage**: Reduce polling frequency by increasing `intervalMs`
+2. **Missing Events**: Ensure the directory exists and is accessible
+3. **Callback Errors**: Implement proper error handling in callback functions
+4. **Memory Leaks**: Always abort controllers and clean up resources
+
+### Performance Considerations
+
+- Use appropriate polling intervals based on your needs
+- Filter events in callback functions to reduce processing overhead
+- Consider using multiple watchers for different directories with different intervals
+- Monitor memory usage when watching large directories with frequent changes
+
+### Error Handling Examples
+
+```typescript
+// Handle AbortController errors
+try {
+  await fileSystem.watchDirectory(path, callback, 1000, controller.signal);
+} catch (error) {
+  if (error.name === 'AbortError') {
+    console.log('Monitoring was aborted');
+  } else {
+    console.error('Monitoring error:', error);
+  }
+}
+
+// Handle callback errors
+const safeCallback = (events: FileChangeEvent[]) => {
+  try {
+    processEvents(events);
+  } catch (error) {
+    console.error('Error processing events:', error);
+    // Continue monitoring despite callback errors
+  }
+};
+```
+
+## Limitations
+
+- Polling-based detection (not real-time filesystem events)
+- Performance depends on polling interval and directory size
+- May miss very rapid file changes that occur between polls
+- Requires active session connection to AgentBay service
+- AbortController support depends on Node.js version (polyfill may be needed for older versions)

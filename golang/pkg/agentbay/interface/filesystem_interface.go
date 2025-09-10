@@ -1,6 +1,9 @@
 package interfaces
 
 import (
+	"sync"
+	"time"
+
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 )
 
@@ -34,4 +37,13 @@ type FileSystemInterface interface {
 
 	// SearchFiles searches for files matching a pattern in a directory
 	SearchFiles(path, pattern string, excludePatterns []string) (*filesystem.SearchFilesResult, error)
+
+	// GetFileChange gets file change information for a directory
+	GetFileChange(path string) (*filesystem.FileChangeResult, error)
+
+	// WatchDirectory watches a directory for file changes
+	WatchDirectory(path string, callback func([]*filesystem.FileChangeEvent), interval time.Duration, stopCh <-chan struct{}) *sync.WaitGroup
+
+	// WatchDirectoryWithDefaults watches a directory for file changes with default 500ms polling interval
+	WatchDirectoryWithDefaults(path string, callback func([]*filesystem.FileChangeEvent), stopCh <-chan struct{}) *sync.WaitGroup
 }

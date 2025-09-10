@@ -3,172 +3,193 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 )
 
 func main() {
-	// Get API key from environment variable or use a default value for testing
+	// Get API key from environment variable
 	apiKey := os.Getenv("AGENTBAY_API_KEY")
 	if apiKey == "" {
-		apiKey = "akm-xxx" // Replace with your actual API key for testing
-		fmt.Println("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use.")
+		fmt.Println("❌ Please set the AGENTBAY_API_KEY environment variable")
+		return
 	}
 
+	fmt.Println("🚀 Watch Directory Example")
+	fmt.Println(strings.Repeat("=", 50))
 
-	// Initialize the AgentBay client
-	ab, err := agentbay.NewAgentBay(apiKey)
+	// Initialize AgentBay client
+	agentbay, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
-		fmt.Printf("Error initializing AgentBay client: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("❌ Failed to create AgentBay client: %v\n", err)
+		return
 	}
+	fmt.Println("✅ AgentBay client initialized")
 
-	// Create a new session
-	fmt.Println("\nCreating a new session...")
-	params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
-	result, err := ab.Create(params)
+	// Create session with code_latest ImageId
+	sessionParams := &agentbay.CreateSessionParams{
+		ImageId: "code_latest",
+	}
+	sessionResult, err := agentbay.Create(sessionParams)
 	if err != nil {
-		fmt.Printf("\nError creating session: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("❌ Failed to create session: %v\n", err)
+		return
 	}
-	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n",
-		result.Session.SessionID, result.RequestID)
+	// SessionResult doesn't have Success field, check if Session is nil
+	if sessionResult.Session == nil {
+		fmt.Printf("❌ Failed to create session\n")
+		return
+	}
 
-	session := result.Session
+	session := sessionResult.Session
+	fmt.Printf("✅ Session created: %s\n", session.GetSessionId())
 
+	// Ensure cleanup on exit
 	defer func() {
-		// Clean up by deleting the session when we're done
-		fmt.Println("\nDeleting the session...")
-		deleteResult, err := ab.Delete(session)
+		fmt.Println("\n🧹 Cleaning up...")
+		deleteResult, err := agentbay.Delete(session)
 		if err != nil {
-			fmt.Printf("Error deleting session: %v\n", err)
+			fmt.Printf("⚠️  Error during cleanup: %v\n", err)
+		} else if deleteResult.Success {
+			fmt.Println("✅ Session cleaned up successfully")
 		} else {
-			fmt.Printf("Session deleted successfully (RequestID: %s)\n", deleteResult.RequestID)
+			fmt.Println("⚠️  Session cleanup failed")
 		}
 	}()
 
-	// 1. Create a directory
-	testDirPath := "/tmp/test_directory"
-	fmt.Printf("\nCreating directory: %s\n", testDirPath)
-	dirResult, err := session.FileSystem.CreateDirectory(testDirPath)
+	// Create a test directory to monitor
+	testDir := "/tmp/watch_example"
+	fmt.Printf("\n📁 Creating test directory: %s\n", testDir)
+
+	createResult, err := session.FileSystem.CreateDirectory(testDir)
 	if err != nil {
-		fmt.Printf("Error creating directory: %v\n", err)
-	} else {
-		fmt.Printf("Directory created successfully (RequestID: %s)\n", dirResult.RequestID)
+		fmt.Printf("❌ Failed to create directory: %v\n", err)
+		return
 	}
-
-	// 2. Write a file
-	testFilePath := "/tmp/test_directory/sample.txt"
-	testContent := "This is a sample file content.\nThis is the second line.\nThis is the third line."
-	fmt.Printf("\nWriting file: %s\n", testFilePath)
-	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
-	if err != nil {
-		fmt.Printf("Error writing file: %v\n", err)
-	} else {
-		fmt.Printf("File written successfully (RequestID: %s)\n", writeResult.RequestID)
+	if !createResult.Success {
+		fmt.Printf("❌ Failed to create directory\n")
+		return
 	}
+	fmt.Println("✅ Test directory created")
 
-	// 3. Read the file we just created
-	fmt.Printf("\nReading file: %s\n", testFilePath)
-	readResult, err := session.FileSystem.ReadFile(testFilePath)
-	if err != nil {
-		fmt.Printf("Error reading file: %v\n", err)
-	} else {
-		fmt.Printf("File content (RequestID: %s):\n%s\n", readResult.RequestID, readResult.Content)
+	// Set up file change monitoring
+	var detectedChanges []*filesystem.FileChangeEvent
+	var mu sync.Mutex
 
-		// Verify content matches what we wrote
-		if readResult.Content == testContent {
-			fmt.Println("Content verification successful!")
-		} else {
-			fmt.Println("Content verification failed!")
+	onFileChange := func(events []*filesystem.FileChangeEvent) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		fmt.Printf("\n🔔 Detected %d file changes:\n", len(events))
+		for _, event := range events {
+			fmt.Printf("   📄 %s: %s (%s)\n",
+				strings.ToUpper(event.EventType), event.Path, event.PathType)
 		}
+		detectedChanges = append(detectedChanges, events...)
 	}
 
-	// 4. Get file info
-	fmt.Printf("\nGetting file info for: %s\n", testFilePath)
-	fileInfoResult, err := session.FileSystem.GetFileInfo(testFilePath)
-	if err != nil {
-		fmt.Printf("Error getting file info: %v\n", err)
-	} else {
-		fmt.Printf("File info (RequestID: %s): Name=%s, Path=%s, Size=%d, IsDirectory=%t\n",
-			fileInfoResult.RequestID, fileInfoResult.FileInfo.Name, fileInfoResult.FileInfo.Path,
-			fileInfoResult.FileInfo.Size, fileInfoResult.FileInfo.IsDirectory)
-	}
+	fmt.Println("\n👁️  Starting directory monitoring...")
+	fmt.Println("   Press Ctrl+C to stop monitoring")
 
-	// 5. List directory
-	fmt.Printf("\nListing directory: %s\n", "/tmp/test_directory")
-	listResult, err := session.FileSystem.ListDirectory("/tmp/test_directory")
-	if err != nil {
-		fmt.Printf("Error listing directory: %v\n", err)
-	} else {
-		fmt.Printf("Directory entries (RequestID: %s):\n", listResult.RequestID)
-		for _, entry := range listResult.Entries {
-			entryType := "FILE"
-			if entry.IsDirectory {
-				entryType = "DIR"
+	// Start monitoring
+	stopCh := make(chan struct{})
+	wg := session.FileSystem.WatchDirectory(
+		testDir,
+		onFileChange,
+		500*time.Millisecond, // Check every 500ms (updated default)
+		stopCh,
+	)
+	fmt.Println("✅ Directory monitoring started")
+
+	// Set up signal handling for graceful shutdown
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start a goroutine to demonstrate file operations
+	go func() {
+		time.Sleep(2 * time.Second) // Wait for monitoring to start
+
+		fmt.Println("\n🔨 Demonstrating file operations...")
+
+		// Create some files
+		filesToCreate := []struct {
+			name    string
+			content string
+		}{
+			{"example1.txt", "Hello, World!"},
+			{"example2.txt", "This is a test file."},
+			{"config.json", `{"setting": "value"}`},
+		}
+
+		for _, file := range filesToCreate {
+			filepath := fmt.Sprintf("%s/%s", testDir, file.name)
+			fmt.Printf("   Creating: %s\n", file.name)
+
+			writeResult, err := session.FileSystem.WriteFile(filepath, file.content, "")
+			if err != nil {
+				fmt.Printf("   ❌ Failed to create %s: %v\n", file.name, err)
+			} else if writeResult.Success {
+				fmt.Printf("   ✅ Created: %s\n", file.name)
+			} else {
+				fmt.Printf("   ❌ Failed to create %s\n", file.name)
 			}
-			fmt.Printf("  [%s] %s\n", entryType, entry.Name)
+
+			time.Sleep(1500 * time.Millisecond) // Give time for monitoring to detect changes
 		}
-	}
 
-	// 6. Edit file
-	fmt.Printf("\nEditing file: %s\n", testFilePath)
-	edits := []map[string]string{
-		{
-			"oldText": "second line",
-			"newText": "MODIFIED second line",
-		},
-	}
-	editResult, err := session.FileSystem.EditFile(testFilePath, edits, false)
-	if err != nil {
-		fmt.Printf("Error editing file: %v\n", err)
-	} else {
-		fmt.Printf("File edited successfully (RequestID: %s)\n", editResult.RequestID)
-
-		// Read the file again to verify the edit
-		readResult, err := session.FileSystem.ReadFile(testFilePath)
+		// Modify a file
+		fmt.Println("\n   Modifying example1.txt...")
+		modifyResult, err := session.FileSystem.WriteFile(
+			fmt.Sprintf("%s/example1.txt", testDir),
+			"Hello, World! - Modified content",
+			"",
+		)
 		if err != nil {
-			fmt.Printf("Error reading edited file: %v\n", err)
+			fmt.Printf("   ❌ Failed to modify file: %v\n", err)
+		} else if modifyResult.Success {
+			fmt.Println("   ✅ Modified example1.txt")
 		} else {
-			fmt.Printf("Edited file content (RequestID: %s):\n%s\n",
-				readResult.RequestID, readResult.Content)
+			fmt.Printf("   ❌ Failed to modify file\n")
+		}
+
+		// Wait a bit more to capture all events
+		fmt.Println("\n⏳ Waiting for final events...")
+		time.Sleep(3 * time.Second)
+	}()
+
+	// Wait for interrupt signal
+	<-sigCh
+	fmt.Println("\n\n🛑 Stopping directory monitoring...")
+
+	// Stop monitoring
+	close(stopCh)
+	wg.Wait()
+	fmt.Println("✅ Directory monitoring stopped")
+
+	// Summary
+	mu.Lock()
+	defer mu.Unlock()
+
+	fmt.Printf("\n📊 Summary:\n")
+	fmt.Printf("   Total events detected: %d\n", len(detectedChanges))
+
+	if len(detectedChanges) > 0 {
+		fmt.Println("   Event breakdown:")
+		eventTypes := make(map[string]int)
+		for _, event := range detectedChanges {
+			eventTypes[event.EventType]++
+		}
+
+		for eventType, count := range eventTypes {
+			fmt.Printf("     %s: %d\n", eventType, count)
 		}
 	}
 
-	// 7. Search files
-	fmt.Printf("\nSearching for files in /tmp containing 'sample'\n")
-	searchResults, err := session.FileSystem.SearchFiles("/tmp", "sample", nil)
-	if err != nil {
-		fmt.Printf("Error searching files: %v\n", err)
-	} else {
-		fmt.Printf("Search results (RequestID: %s):\n", searchResults.RequestID)
-		for _, result := range searchResults.Results {
-			fmt.Printf("  %s\n", result)
-		}
-	}
-
-	// 8. Move/Rename file
-	newFilePath := "/tmp/test_directory/renamed.txt"
-	fmt.Printf("\nMoving file from %s to %s\n", testFilePath, newFilePath)
-	moveResult, err := session.FileSystem.MoveFile(testFilePath, newFilePath)
-	if err != nil {
-		fmt.Printf("Error moving file: %v\n", err)
-	} else {
-		fmt.Printf("File moved successfully (RequestID: %s)\n", moveResult.RequestID)
-
-		// List directory again to verify the move
-		listResult, err := session.FileSystem.ListDirectory("/tmp/test_directory")
-		if err != nil {
-			fmt.Printf("Error listing directory after move: %v\n", err)
-		} else {
-			fmt.Printf("Directory entries after move (RequestID: %s):\n", listResult.RequestID)
-			for _, entry := range listResult.Entries {
-				entryType := "FILE"
-				if entry.IsDirectory {
-					entryType = "DIR"
-				}
-				fmt.Printf("  [%s] %s\n", entryType, entry.Name)
-			}
-		}
-	}
+	fmt.Println("\n✨ Example completed successfully!")
 }

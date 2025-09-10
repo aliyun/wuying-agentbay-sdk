@@ -26,9 +26,5 @@ module.exports = {
     '/node_modules/',
     '/dist/'
   ],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json'
-    }
-  }
+  // globals configuration moved to transform options above
 };

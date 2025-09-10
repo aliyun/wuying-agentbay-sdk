@@ -5,10 +5,80 @@ import {
   FileContentResult,
   MultipleFileContentResult,
   FileSearchResult,
+  ApiResponse,
 } from "../types/api-response";
 
 // Default chunk size for large file operations (60KB)
 const DEFAULT_CHUNK_SIZE = 60 * 1024;
+
+/**
+ * Represents a single file change event
+ */
+export interface FileChangeEvent {
+  eventType: string; // "create", "modify", "delete"
+  path: string;
+  pathType: string;  // "file", "directory"
+}
+
+/**
+ * Result of file change detection operations
+ */
+export interface FileChangeResult extends ApiResponse {
+  events: FileChangeEvent[];
+  rawData: string;
+}
+
+/**
+ * Helper functions for FileChangeEvent
+ */
+export class FileChangeEventHelper {
+  static toString(event: FileChangeEvent): string {
+    return `FileChangeEvent(eventType='${event.eventType}', path='${event.path}', pathType='${event.pathType}')`;
+  }
+
+  static toDict(event: FileChangeEvent): Record<string, string> {
+    return {
+      eventType: event.eventType,
+      path: event.path,
+      pathType: event.pathType,
+    };
+  }
+
+  static fromDict(data: Record<string, any>): FileChangeEvent {
+    return {
+      eventType: data.eventType || "",
+      path: data.path || "",
+      pathType: data.pathType || "",
+    };
+  }
+}
+
+/**
+ * Helper functions for FileChangeResult
+ */
+export class FileChangeResultHelper {
+  static hasChanges(result: FileChangeResult): boolean {
+    return result.events.length > 0;
+  }
+
+  static getModifiedFiles(result: FileChangeResult): string[] {
+    return result.events
+      .filter(event => event.eventType === "modify" && event.pathType === "file")
+      .map(event => event.path);
+  }
+
+  static getCreatedFiles(result: FileChangeResult): string[] {
+    return result.events
+      .filter(event => event.eventType === "create" && event.pathType === "file")
+      .map(event => event.path);
+  }
+
+  static getDeletedFiles(result: FileChangeResult): string[] {
+    return result.events
+      .filter(event => event.eventType === "delete" && event.pathType === "file")
+      .map(event => event.path);
+  }
+}
 
 /**
  * FileInfo represents information about a file or directory
@@ -813,5 +883,118 @@ export class FileSystem {
         errorMessage: `Failed to write large file: ${error}`,
       };
     }
+  }
+
+  /**
+   * Get file change information for the specified directory path
+   */
+  async getFileChange(path: string): Promise<FileChangeResult> {
+    try {
+      const args = { path };
+      const result = await this.session.callMcpTool("get_file_change", args);
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          events: [],
+          rawData: result.data || "",
+          errorMessage: result.errorMessage,
+        };
+      }
+
+      // Parse the file change events
+      const events = this.parseFileChangeData(result.data);
+
+      return {
+        requestId: result.requestId,
+        success: true,
+        events,
+        rawData: result.data,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        events: [],
+        rawData: "",
+        errorMessage: `Failed to get file change: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Parse raw JSON data into FileChangeEvent array
+   */
+  private parseFileChangeData(rawData: string): FileChangeEvent[] {
+    const events: FileChangeEvent[] = [];
+    
+    try {
+      const changeData = JSON.parse(rawData);
+      if (Array.isArray(changeData)) {
+        for (const eventDict of changeData) {
+          if (typeof eventDict === "object" && eventDict !== null) {
+            const event = FileChangeEventHelper.fromDict(eventDict);
+            events.push(event);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Failed to parse JSON data: ${error}`);
+    }
+    
+    return events;
+  }
+
+  /**
+   * Watch a directory for file changes and call the callback function when changes occur
+   */
+  async watchDirectory(
+    path: string,
+    callback: (events: FileChangeEvent[]) => void,
+    interval = 500,
+    signal?: AbortSignal
+  ): Promise<void> {
+    console.log(`Starting directory monitoring for: ${path}`);
+    console.log(`Polling interval: ${interval} ms`);
+
+    const monitor = async () => {
+      while (!signal?.aborted) {
+        try {
+          const result = await this.getFileChange(path);
+
+          if (result.success && result.events.length > 0) {
+            console.log(`Detected ${result.events.length} file changes:`);
+            for (const event of result.events) {
+              console.log(`  - ${FileChangeEventHelper.toString(event)}`);
+            }
+
+            try {
+              callback(result.events);
+            } catch (error) {
+              console.error(`Error in callback function: ${error}`);
+            }
+          } else if (!result.success) {
+            console.error(`Error monitoring directory: ${result.errorMessage}`);
+          }
+
+          // Wait for next poll
+          await new Promise((resolve) => {
+            const timeoutId = setTimeout(resolve, interval);
+            signal?.addEventListener("abort", () => {
+              clearTimeout(timeoutId);
+              resolve(void 0);
+            });
+          });
+        } catch (error) {
+          console.error(`Unexpected error in directory monitoring: ${error}`);
+          await new Promise((resolve) => setTimeout(resolve, interval));
+        }
+      }
+
+      console.log(`Stopped monitoring directory: ${path}`);
+    };
+
+    return monitor();
   }
 }
