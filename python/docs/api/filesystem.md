@@ -39,9 +39,9 @@ edit_file(path: str, edits: List[Dict[str, str]], dry_run: bool = False) -> Bool
 **Returns:**
 - `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
+### get_file_info
 
 Gets information about a file or directory.
-
 
 ```python
 get_file_info(path: str) -> FileInfoResult
@@ -53,9 +53,9 @@ get_file_info(path: str) -> FileInfoResult
 **Returns:**
 - `FileInfoResult`: A result object containing file information, success status, request ID, and error message if any.
 
+### list_directory
 
 Lists the contents of a directory.
-
 
 ```python
 list_directory(path: str) -> DirectoryListResult

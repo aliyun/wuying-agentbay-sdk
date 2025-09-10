@@ -187,10 +187,10 @@ class Agent(BaseService):
         except AgentError as e:
             return QueryResult(request_id="", success=False, error_message=str(e))
         except Exception as e:
-            return ExecutionResult(
+            return QueryResult(
                 request_id="",
                 success=False,
-                error_message=f"Failed to terminate: {e}",
+                error_message=f"Failed to get task status: {e}",
             )
 
     def terminate_task(self, task_id: str) -> ExecutionResult:

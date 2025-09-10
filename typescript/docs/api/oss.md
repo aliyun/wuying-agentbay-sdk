@@ -17,7 +17,7 @@ async envInit(
   securityToken: string,
   endpoint?: string,
   region?: string
-): Promise<string>
+): Promise<OSSClientResult>
 ```
 
 **Parameters:**
@@ -28,7 +28,7 @@ async envInit(
 - `region`: The OSS region. If not specified, the default is used.
 
 **Returns:**
-- `Promise<string>`: The result of the environment initialization operation.
+- `Promise<OSSClientResult>`: Result object containing client configuration, request ID, success status, and error message if any.
 
 **Throws:**
 - `APIError`: If the environment initialization fails.
@@ -59,55 +59,6 @@ async function initializeOSS() {
 initializeOSS();
 ```
 
-### createClient
-
-Creates an OSS client with the provided credentials.
-
-```typescript
-async createClient(
-  accessKeyId: string,
-  accessKeySecret: string,
-  endpoint?: string,
-  region?: string
-): Promise<string>
-```
-
-**Parameters:**
-- `accessKeyId`: The Access Key ID for OSS authentication.
-- `accessKeySecret`: The Access Key Secret for OSS authentication.
-- `endpoint`: The OSS service endpoint. If not specified, the default is used.
-- `region`: The OSS region. If not specified, the default is used.
-
-**Returns:**
-- `Promise<string>`: The result of the client creation operation.
-
-**Throws:**
-- `APIError`: If the client creation fails.
-
-**Example:**
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// Create OSS client
-async function createOSSClient() {
-  try {
-    const result = await agentBay.oss.createClient(
-      'your_access_key_id',
-      'your_access_key_secret',
-      'oss-cn-hangzhou.aliyuncs.com',
-      'cn-hangzhou'
-    );
-    console.log('OSS client created successfully:', result);
-  } catch (error) {
-    console.error('Error creating OSS client:', error);
-  }
-}
-
-createOSSClient();
-```
 
 ### upload
 
