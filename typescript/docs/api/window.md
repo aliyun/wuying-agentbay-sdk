@@ -26,50 +26,64 @@ interface Window {
 }
 ```
 
+## Methods
+
+### listRootWindows
 
 ```typescript
-async listRootWindows(): Promise<WindowListResult>
+async listRootWindows(timeoutMs?: number): Promise<WindowListResult>
 ```
+
+**Parameters:**
+- `timeoutMs` (number, optional): The timeout in milliseconds. Default is 3000ms.
 
 **Returns:**
 - `Promise<WindowListResult>`: A promise that resolves to a result object containing the list of root windows and request ID.
 
 
+### getActiveWindow
+
 ```typescript
 async getActiveWindow(): Promise<WindowInfoResult>
 ```
 
-**Returns:**
+**Returns:
 - `Promise<WindowInfoResult>`: A promise that resolves to a result object containing the active window and request ID.
 
+
+### activateWindow
 
 ```typescript
 async activateWindow(windowId: number): Promise<BoolResult>
 ```
 
-**Parameters:**
+**Parameters:
 - `windowId` (number): The ID of the window to activate.
 
 **Returns:**
 - `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
+### minimizeWindow
+
 ```typescript
 async minimizeWindow(windowId: number): Promise<BoolResult>
 ```
 
-**Parameters:**
+**Parameters:
 - `windowId` (number): The ID of the window to minimize.
 
 **Returns:**
 - `Promise<BoolResult>`: A promise that resolves to a result object containing the success status and request ID.
 
 
+### maximizeWindow
+
 ```typescript
 async maximizeWindow(windowId: number): Promise<BoolResult>
 ```
 
-**Parameters:**
+**Parameters:
 - `windowId` (number): The ID of the window to maximize.
 
 **Returns:**

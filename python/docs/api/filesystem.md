@@ -67,6 +67,7 @@ list_directory(path: str) -> DirectoryListResult
 **Returns:**
 - `DirectoryListResult`: A result object containing a list of directory entries, success status, request ID, and error message if any.
 
+### move_file
 
 Moves a file or directory from source to destination.
 
@@ -82,6 +83,7 @@ move_file(source: str, destination: str) -> BoolResult
 **Returns:**
 - `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
+### read_file
 
 Reads the contents of a file. Automatically handles large files by chunking.
 
@@ -99,6 +101,7 @@ read_file(path: str) -> FileContentResult
 **Note:**
 This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
+### read_multiple_files
 
 ```python
 read_multiple_files(paths: List[str]) -> MultipleFileContentResult
@@ -110,6 +113,7 @@ read_multiple_files(paths: List[str]) -> MultipleFileContentResult
 **Returns:**
 - `MultipleFileContentResult`: A result object containing a dictionary mapping file paths to their contents, success status, request ID, and error message if any.
 
+### search_files
 
 Searches for files matching a pattern in a directory.
 
@@ -126,6 +130,7 @@ search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = No
 **Returns:**
 - `FileSearchResult`: A result object containing search results, success status, request ID, and error message if any.
 
+### write_file
 
 Writes content to a file. Automatically handles large files by chunking.
 
