@@ -25,7 +25,7 @@ func main() {
 	fmt.Println(strings.Repeat("=", 50))
 
 	// Initialize AgentBay client
-	agentbay, err := agentbay.NewAgentBay(apiKey)
+	agentBayClient, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
 		fmt.Printf("❌ Failed to create AgentBay client: %v\n", err)
 		return
@@ -36,7 +36,7 @@ func main() {
 	sessionParams := &agentbay.CreateSessionParams{
 		ImageId: "code_latest",
 	}
-	sessionResult, err := agentbay.Create(sessionParams)
+	sessionResult, err := agentBayClient.Create(sessionParams)
 	if err != nil {
 		fmt.Printf("❌ Failed to create session: %v\n", err)
 		return
@@ -53,7 +53,7 @@ func main() {
 	// Ensure cleanup on exit
 	defer func() {
 		fmt.Println("\n🧹 Cleaning up...")
-		deleteResult, err := agentbay.Delete(session)
+		deleteResult, err := agentBayClient.Delete(session)
 		if err != nil {
 			fmt.Printf("⚠️  Error during cleanup: %v\n", err)
 		} else if deleteResult.Success {
