@@ -77,10 +77,11 @@ class LocalMCPClient:
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
                             logger.debug(f"MCP tool response: {response}")
+                            is_successful = not response.isError
 
                             mcp_response = OperationResult(
                                 request_id="local_request_dummy_id",
-                                success=True,
+                                success=is_successful,
                             )
 
                             # Extract text content from response
@@ -88,16 +89,16 @@ class LocalMCPClient:
                                 for content_item in response.content:
                                     if hasattr(content_item, 'text') and content_item.text:
                                         logger.debug(f"MCP tool text response: {content_item.text}")
-                                        mcp_response.data = content_item.text
-                                        future.set_result(mcp_response)
+                                        text_content = content_item.text
                                         break
+                                if is_successful:
+                                    mcp_response.data = text_content
+                                    print(f"MCP tool text response (data): {text_content}")
                                 else:
-                                    # If no text content found, use the original response
-                                    logger.debug(f"MCP tool original response: {response}")
-                                    future.set_result(response)
-                            else:
-                                # Fallback to original response if no content structure
-                                future.set_result(response)
+                                    mcp_response.error_message = text_content
+                                    print(f"MCP tool text response (error): {text_content}")
+
+                                future.set_result(mcp_response)
                         else:
                             future.set_exception(RuntimeError("MCP client session is not initialized."))
                     except Exception as e:
@@ -159,14 +160,14 @@ class LocalBrowser(Browser):
                             chrome_cdp_ports_path = "/tmp/chrome_cdp_ports.json"
                             with open(chrome_cdp_ports_path, "w") as f:
                                 json.dump({"chrome": str(self._cdp_port), "router": str(self._cdp_port)}, f)
-                            
+
                             # Launch headless browser and create a page for all tests
                             self._browser = await p.chromium.launch_persistent_context(
                                 headless=False,
                                 viewport={"width": 1280, "height": 1200},
                                 args=[
                                     f'--remote-debugging-port={self._cdp_port}',
-                                ], 
+                                ],
                                 user_data_dir="/tmp/browser_user_data")
 
                             logger.info("Local browser launched successfully:")
@@ -183,7 +184,7 @@ class LocalBrowser(Browser):
 
         self.agent.initialize()
         return True
-    
+
     def is_initialized(self) -> bool:
         return True
 
