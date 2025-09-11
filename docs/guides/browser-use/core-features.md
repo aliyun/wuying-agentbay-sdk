@@ -13,6 +13,7 @@
 ### Stealth Mode
 
 ### IPProxy
+- [Browser Proxy](core-features/browser-proxies.md) - Configure proxy servers to route browser traffic for IP rotation and geographical distribution
 
 ### Captcha Resolving
 
