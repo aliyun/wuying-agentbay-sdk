@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 import json
-import asyncio
 
 from agentbay.context_manager import (
     ContextManager,
@@ -167,22 +166,15 @@ class TestContextManager(unittest.TestCase):
         }
         self.mock_client.sync_context.return_value = mock_response
 
-        # Mock the info method to return completed status
-        with patch.object(self.context_manager, 'info') as mock_info:
-            mock_info.return_value = ContextInfoResult(
-                request_id="test-request-id",
-                context_status_data=[]
-            )
+        # Call the method
+        result = self.context_manager.sync()
 
-            # Call the method using asyncio.run
-            result = asyncio.run(self.context_manager.sync())
+        # Verify the results
+        self.assertEqual(result.request_id, "test-request-id")
+        self.assertTrue(result.success)
 
-            # Verify the results
-            self.assertEqual(result.request_id, "test-request-id")
-            self.assertTrue(result.success)
-
-            # Verify the API was called correctly
-            self.mock_client.sync_context.assert_called_once()
+        # Verify the API was called correctly
+        self.mock_client.sync_context.assert_called_once()
 
     def test_sync_with_params(self):
         """Test sync method with optional parameters."""
@@ -193,26 +185,19 @@ class TestContextManager(unittest.TestCase):
         }
         self.mock_client.sync_context.return_value = mock_response
 
-        # Mock the info method to return completed status
-        with patch.object(self.context_manager, 'info') as mock_info:
-            mock_info.return_value = ContextInfoResult(
-                request_id="test-request-id",
-                context_status_data=[]
-            )
+        # Call the method with parameters
+        result = self.context_manager.sync("ctx-123", "/home/user", "upload")
 
-            # Call the method with parameters using asyncio.run
-            result = asyncio.run(self.context_manager.sync("ctx-123", "/home/user", "upload"))
+        # Verify the results
+        self.assertEqual(result.request_id, "test-request-id")
+        self.assertTrue(result.success)
 
-            # Verify the results
-            self.assertEqual(result.request_id, "test-request-id")
-            self.assertTrue(result.success)
-
-            # Verify the API was called with the correct parameters
-            self.mock_client.sync_context.assert_called_once()
-            call_args = self.mock_client.sync_context.call_args[0][0]
-            self.assertEqual(call_args.context_id, "ctx-123")
-            self.assertEqual(call_args.path, "/home/user")
-            self.assertEqual(call_args.mode, "upload")
+        # Verify the API was called with the correct parameters
+        self.mock_client.sync_context.assert_called_once()
+        call_args = self.mock_client.sync_context.call_args[0][0]
+        self.assertEqual(call_args.context_id, "ctx-123")
+        self.assertEqual(call_args.path, "/home/user")
+        self.assertEqual(call_args.mode, "upload")
 
 
 if __name__ == "__main__":
