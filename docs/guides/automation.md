@@ -834,7 +834,7 @@ def managed_session(agent_bay):
 
 # Usage
 try:
-    agent_bay = self.common_code()
+    agent_bay = AgentBay()
     with managed_session(agent_bay) as session:
         result = session.command.execute_command("echo 'Hello'")
         if result.success:

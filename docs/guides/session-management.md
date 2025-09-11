@@ -106,7 +106,7 @@ from agentbay.session_params import ListSessionParams
 from agentbay.session_params import CreateSessionParams
 
 # Initialize the SDK
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 # Create ten sessions
 for i in range(10):
     # create parameters with labels

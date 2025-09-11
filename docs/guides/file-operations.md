@@ -152,7 +152,7 @@ agent_bay.delete(session)
 ```python
 from agentbay import AgentBay
 
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 session = agent_bay.create().session
 
 # Create directory
