@@ -32,21 +32,21 @@ func main() {
         fmt.Printf("Initialization failed: %v\n", err)
         return
     }
-    
+
     result, err := client.Create(nil)
     if err != nil {
         fmt.Printf("Session creation failed: %v\n", err)
         return
     }
-    
+
     session := result.Session
-    
+
     // Execute command
     cmdResult, err := session.Command.ExecuteCommand("ls -la")
     if err == nil {
         fmt.Printf("Command output: %s\n", cmdResult.Output)
     }
-    
+
     // File operations
     session.FileSystem.WriteFile("/tmp/test.txt", []byte("Hello World"))
     fileResult, err := session.FileSystem.ReadFile("/tmp/test.txt")
@@ -59,17 +59,16 @@ func main() {
 ## 📖 Complete Documentation
 
 ### 🆕 New Users
-- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart) - Get started in 5 minutes
+- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
 - [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and techniques
 
 ### 🚀 Experienced Users
-- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides) - Complete feature introduction
-- [🔧 Golang API Reference](docs/api/) - Detailed API documentation
+- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
+- [🔧 Golang API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Golang Examples](docs/examples/) - Complete example code
 
 ### 🆘 Need Help
-- [❓ FAQ](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/faq.md) - Quick answers
 - [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 
 ## 🔧 Core Features Quick Reference
@@ -121,7 +120,7 @@ sessionResult, _ := client.Create(params)
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Complete Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs)
+- [Complete Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/README.md)
 
 ## 📄 License
 

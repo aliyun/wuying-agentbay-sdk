@@ -22,7 +22,7 @@ package main
 import (
     "fmt"
     "log"
-    
+
     "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
@@ -32,21 +32,21 @@ func main() {
     if err != nil {
         log.Fatalf("Initialization failed: %v", err)
     }
-    
+
     // Create session
     sessionResult, err := client.Create(agentbay.NewCreateSessionParams())
     if err != nil {
         log.Fatalf("Session creation failed: %v", err)
     }
-    
+
     session := sessionResult.Session
-    
+
     // Execute command
     result, err := session.Command.ExecuteCommand("ls -la")
     if err == nil {
         fmt.Printf("Command output: %s\n", result.Output)
     }
-    
+
     // Clean up session
     client.Delete(session)
 }
@@ -407,10 +407,10 @@ func (cm *ContextManager) DownloadFile(contextID, filePath string) (*DownloadRes
 contextResult, err := client.Context.Get("my-project", true)
 if err == nil && !contextResult.IsError {
     context := contextResult.Context
-    
+
     // Upload file
     client.Context.UploadFile(context.ID, "/config.json", `{"version": "1.0"}`)
-    
+
     // Download file
     result, err := client.Context.DownloadFile(context.ID, "/config.json")
     if err == nil && !result.IsError {
@@ -484,7 +484,7 @@ type CodeData struct {
 
 ## Related Resources
 
-- [Feature Guides](../../../docs/guides/) - Detailed feature usage guides
+- [Feature Guides](../../../docs/guides/README.md) - Detailed feature usage guides
 - [Example Code](../examples/) - Complete example code
 - [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
