@@ -12,6 +12,8 @@
 
 ### Stealth Mode
 
+- [StealthMode](core-features/stealth-mode.md) - Using stealth-mode to make the browser harder to detect by the anti-bot system
+
 ### IPProxy
 
 ### Captcha Resolving
