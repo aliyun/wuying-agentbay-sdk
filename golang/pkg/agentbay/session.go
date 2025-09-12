@@ -111,6 +111,9 @@ type Session struct {
 	NetworkInterfaceIP string // Network interface IP for VPC sessions
 	HttpPortNumber     string // HTTP port for VPC sessions
 
+	// Recording functionality
+	EnableRecord bool // Whether screen recording is enabled for this session
+
 	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
 	Command    *command.Command

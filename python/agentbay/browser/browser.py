@@ -32,7 +32,7 @@ class BrowserProxy:
     ):
         """
         Initialize a BrowserProxy.
-        
+
         Args:
             proxy_type: Type of proxy - "custom" or "wuying"
             server: Proxy server address (required for custom type)
@@ -41,7 +41,7 @@ class BrowserProxy:
             strategy: Strategy for wuying support "restricted" and "polling"
             pollsize: Pool size (optional for proxy_type wuying and strategy polling)
 
-            example: 
+            example:
             # custom proxy
             proxy_type: custom
             server: "127.0.0.1:9090"
@@ -63,27 +63,27 @@ class BrowserProxy:
         self.password = password
         self.strategy = strategy
         self.pollsize = pollsize
-        
+
         # Validation
         if proxy_type not in ["custom", "wuying"]:
             raise ValueError("proxy_type must be custom or wuying")
-        
+
         if proxy_type == "custom" and not server:
             raise ValueError("server is required for custom proxy type")
-        
+
         if proxy_type == "wuying" and not strategy:
             raise ValueError("strategy is required for wuying proxy type")
-        
+
         if proxy_type == "wuying" and strategy not in ["restricted", "polling"]:
             raise ValueError("strategy must be restricted or polling for wuying proxy type")
-        
+
         if proxy_type == "wuying" and strategy == "polling" and pollsize <= 0:
             raise ValueError("pollsize must be greater than 0 for polling strategy")
     def to_map(self):
         proxy_map = {
             "type": self.type
         }
-        
+
         if self.type == "custom":
             proxy_map["server"] = self.server
             if self.username:
@@ -95,18 +95,18 @@ class BrowserProxy:
             if self.strategy == "polling":
                 proxy_map["pollsize"] = self.pollsize
 
-            
+
         return proxy_map
 
     @classmethod
     def from_map(cls, m: dict = None):
         if not m:
             return None
-            
+
         proxy_type = m.get("type")
         if not proxy_type:
             raise ValueError("type is required in proxy configuration")
-            
+
         if proxy_type == "custom":
             return cls(
                 proxy_type=proxy_type,
@@ -187,7 +187,7 @@ class BrowserFingerprint:
 
 
         # Validation
-        
+
 
         if devices is not None:
             if not isinstance(devices, list):
@@ -202,7 +202,7 @@ class BrowserFingerprint:
             for operating_system in operating_systems:
                 if operating_system not in ["windows", "macos", "linux", "android", "ios"]:
                     raise ValueError("operating_system must be windows, macos, linux, android or ios")
-        
+
     def to_map(self):
         fingerprint_map = dict()
         if self.devices is not None:
@@ -328,15 +328,21 @@ class Browser(BaseService):
         if self.is_initialized():
             return True
         try:
+            browser_option_dict = option.to_map()
+
+            # Enable record if session.enableRecord is True
+            if hasattr(self.session, 'enableRecord') and self.session.enableRecord:
+                browser_option_dict['enableRecord'] = True
+
             request = InitBrowserRequest(
                 authorization=f"Bearer {self.session.get_api_key()}",
                 session_id=self.session.get_session_id(),
                 persistent_path=BROWSER_DATA_PATH,
-                browser_option=option.to_map(),
+                browser_option=browser_option_dict,
             )
             response = self.session.get_client().init_browser(request)
-            
-            logger.debug(f"Response from init_browser: {response}")
+
+            logger.info(f"Response from init_browser: {response}")
             response_map = response.to_map()
             body = response_map.get("body", {})
             data = body.get("Data", {})

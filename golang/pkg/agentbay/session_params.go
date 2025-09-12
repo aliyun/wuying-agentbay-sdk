@@ -22,6 +22,9 @@ type CreateSessionParams struct {
 
 	// McpPolicyId specifies the MCP policy ID to apply when creating the session.
 	McpPolicyId string
+
+	// EnableRecord specifies whether to enable screen recording for the session. Defaults to false.
+	EnableRecord bool
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -53,6 +56,12 @@ func (p *CreateSessionParams) WithIsVpc(isVpc bool) *CreateSessionParams {
 // WithMcpPolicyId sets the MCP policy ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithMcpPolicyId(mcpPolicyId string) *CreateSessionParams {
 	p.McpPolicyId = mcpPolicyId
+	return p
+}
+
+// WithEnableRecord sets the screen recording flag for the session parameters and returns the updated parameters.
+func (p *CreateSessionParams) WithEnableRecord(enableRecord bool) *CreateSessionParams {
+	p.EnableRecord = enableRecord
 	return p
 }
 

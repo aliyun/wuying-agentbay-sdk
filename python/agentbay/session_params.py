@@ -186,6 +186,7 @@ class CreateSessionParams:
         browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.
         is_vpc (Optional[bool]): Whether to create a VPC-based session. Defaults to False.
         mcp_policy_id (Optional[str]): MCP policy id to apply when creating the session.
+        enable_record (Optional[bool]): Whether to enable screen recording for the session. Defaults to False.
     """
 
     def __init__(
@@ -196,6 +197,7 @@ class CreateSessionParams:
         browser_context: Optional[BrowserContext] = None,
         is_vpc: Optional[bool] = None,
         mcp_policy_id: Optional[str] = None,
+        enable_record: Optional[bool] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -214,6 +216,8 @@ class CreateSessionParams:
                 Defaults to False.
             mcp_policy_id (Optional[str], optional): MCP policy id to apply when creating the session.
                 Defaults to None.
+            enable_record (Optional[bool], optional): Whether to enable screen recording for the session.
+                Defaults to False.
         """
         self.labels = labels or {}
         self.image_id = image_id
@@ -230,6 +234,7 @@ class CreateSessionParams:
         self.browser_context = browser_context
         self.is_vpc = is_vpc if is_vpc is not None else False
         self.mcp_policy_id = mcp_policy_id
+        self.enable_record = enable_record if enable_record is not None else False
 
 
 class ListSessionParams:

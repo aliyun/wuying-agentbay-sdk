@@ -23,6 +23,22 @@ import {
 import { log, logError } from "./utils/logger";
 
 /**
+ * Generate a random context ID using alphanumeric characters with timestamp.
+ * This function is similar to the Python version's generate_random_context_id.
+ */
+function generateRandomContextId(length: number = 16, includeTimestamp: boolean = true): string {
+  const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
+
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomPart = '';
+  for (let i = 0; i < length; i++) {
+    randomPart += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return includeTimestamp ? `${timestamp}_${randomPart}` : randomPart;
+}
+
+/**
  * Parameters for creating a session.
  */
 export interface CreateSessionParams {
@@ -32,6 +48,7 @@ export interface CreateSessionParams {
   browserContext?: BrowserContext;
   isVpc?: boolean;
   mcpPolicyId?: string;
+  enableRecord?: boolean;
 }
 
 /**
@@ -64,7 +81,7 @@ export class AgentBay {
   ) {
     // Load .env file first to ensure AGENTBAY_API_KEY is available
     loadDotEnv();
-    
+
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
 
     if (!this.apiKey) {
@@ -175,6 +192,24 @@ export class AgentBay {
         hasPersistenceData = true;
       }
 
+      // Add screen recording persistence if enabled
+      if (params.enableRecord) {
+        // Create screen recording persistence configuration
+        const recordPath = "/home/guest/record";
+        const recordContextId = generateRandomContextId();
+        const recordPersistence = new CreateMcpSessionRequestPersistenceDataList({
+          contextId: recordContextId,
+          path: recordPath,
+        });
+
+        // Add to persistence data list or create new one if not exists
+        if (!request.persistenceDataList) {
+          request.persistenceDataList = [];
+        }
+        request.persistenceDataList.push(recordPersistence);
+        hasPersistenceData = true;
+      }
+
       // Log API request
       log("API Call: CreateMcpSession");
       let requestLog = "Request: ";
@@ -200,10 +235,10 @@ export class AgentBay {
       log(requestLog);
 
       const response = await this.client.createMcpSession(request);
-      
+
       // Extract request ID
       const requestId = extractRequestId(response) || "";
-      
+
       // Log response data with requestId
       log("response data =", response.body?.data);
       if (requestId) {
@@ -256,6 +291,9 @@ export class AgentBay {
         session.httpPort = data.httpPort;
       }
 
+      // Set screen recording state
+      session.enableRecord = params.enableRecord || false;
+
       // Store imageId used for this session
       (session as any).imageId = params.imageId;
 
@@ -297,7 +335,7 @@ export class AgentBay {
                 allCompleted = false;
                 break;
               }
-              
+
               if (item.status === "Failed") {
                 hasFailure = true;
                 logError(`Context synchronization failed for ${item.contextId}: ${item.errorMessage}`);

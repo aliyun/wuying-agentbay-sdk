@@ -106,6 +106,9 @@ export class Session {
   public networkInterfaceIp = ""; // Network interface IP for VPC sessions
   public httpPort = ""; // HTTP port for VPC sessions
 
+  // Recording functionality
+  public enableRecord = false; // Whether screen recording is enabled for this session
+
   // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
   public command: Command;
@@ -750,7 +753,7 @@ export class Session {
   async callMcpTool(toolName: string, args: any): Promise<import("./agent/agent").McpToolResult> {
     try {
       const argsJSON = JSON.stringify(args);
-      
+
       // Check if this is a VPC session
       if (this.isVpcEnabled()) {
         // VPC mode: Use HTTP request to the VPC endpoint
@@ -772,7 +775,7 @@ export class Session {
             requestId: "",
           };
         }
-        
+
         const baseURL = `http://${this.networkInterfaceIp}:${this.httpPort}/callTool`;
         const url = new URL(baseURL);
         url.searchParams.append("server", server);
@@ -800,7 +803,7 @@ export class Session {
         }
 
                  const responseData = await response.json() as any;
-         
+
          // Extract the actual result from the nested VPC response structure
          let actualResult: any = responseData;
          if (typeof responseData.data === "string") {
@@ -859,7 +862,7 @@ export class Session {
           const errorMessage = errorContent
             .map((item: any) => item.text || "Unknown error")
             .join("; ");
-          
+
           return {
             success: false,
             data: "",

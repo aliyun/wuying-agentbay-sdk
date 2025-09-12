@@ -44,15 +44,6 @@ class Client(OpenApiClient):
             self._endpoint_map,
             self._endpoint,
         )
-        self._endpoint = self.get_endpoint(
-            "wuyingai",
-            self._region_id,
-            self._endpoint_rule,
-            self._network,
-            self._suffix,
-            self._endpoint_map,
-            self._endpoint,
-        )
 
     def get_endpoint(
         self,

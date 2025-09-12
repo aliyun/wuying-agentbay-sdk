@@ -1,5 +1,7 @@
 import json
 import os
+import random
+import string
 from enum import Enum
 from threading import Lock
 from typing import Dict, List, Optional, Union
@@ -26,6 +28,33 @@ logger = get_logger("agentbay")
 from typing import Optional
 from agentbay.context_sync import ContextSync
 from agentbay.config import BROWSER_DATA_PATH
+
+
+def generate_random_context_id(length: int = 16, include_timestamp: bool = True) -> str:
+    """
+    Generate a random context ID using alphanumeric characters with optional timestamp.
+
+    Args:
+        length (int): Length of the random part. Defaults to 16.
+        include_timestamp (bool): Whether to include timestamp. Defaults to True.
+
+    Returns:
+        str: Random alphanumeric string with optional timestamp prefix
+
+    Examples:
+        generate_random_context_id()  # Returns: "20250912143025_kG8hN2pQ7mX9vZ1L"
+        generate_random_context_id(8, False)  # Returns: "kG8hN2pQ"
+    """
+    import time
+
+    random_part = ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+    if include_timestamp:
+        # Format: YYYYMMDDHHMMSS
+        timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
+        return f"{timestamp}_{random_part}"
+    else:
+        return random_part
 
 
 class Config:
@@ -71,10 +100,10 @@ class AgentBay:
     def _safe_serialize(self, obj):
         """
         Helper function to serialize objects to JSON-compatible format.
-        
+
         Args:
             obj: The object to serialize.
-            
+
         Returns:
             JSON-serializable representation of the object.
         """
@@ -154,7 +183,7 @@ class AgentBay:
 
                 # Create a new SyncPolicy with default values for browser context
                 upload_policy = UploadPolicy(auto_upload=params.browser_context.auto_upload)
-                
+
                 # Create BWList with white lists for browser data paths
                 white_lists = [
                     WhiteList(path="/Local State", exclude_paths=[]),
@@ -162,7 +191,7 @@ class AgentBay:
                     WhiteList(path="/Default/Cookies-journal", exclude_paths=[])
                 ]
                 bw_list = BWList(white_lists=white_lists)
-                
+
                 sync_policy = SyncPolicy(upload_policy=upload_policy, bw_list=bw_list)
 
                 # Serialize policy to JSON string
@@ -192,6 +221,26 @@ class AgentBay:
 
             if params.image_id:
                 request.image_id = params.image_id
+
+            # Add screen recording persistence if enabled
+            if hasattr(params, "enable_record") and params.enable_record:
+                from agentbay.api.models import (
+                    CreateMcpSessionRequestPersistenceDataList,
+                )
+
+                # Create screen recording persistence configuration
+                record_path = "/home/guest/record"
+                record_context_id = generate_random_context_id()
+                record_persistence = CreateMcpSessionRequestPersistenceDataList(
+                    context_id=record_context_id,
+                    path=record_path
+                )
+
+                # Add to persistence data list or create new one if not exists
+                if not hasattr(request, 'persistence_data_list') or request.persistence_data_list is None:
+                    request.persistence_data_list = []
+                request.persistence_data_list.append(record_persistence)
+                has_persistence_data = True
             try:
                 req_map = request.to_map()
                 if "Authorization" in req_map and isinstance(
@@ -282,6 +331,9 @@ class AgentBay:
             if data.get("HttpPort"):
                 session.http_port = data["HttpPort"]
 
+            # Set screen recording state
+            session.enableRecord = params.enable_record
+
             # Store image_id used for this session
             session.image_id = params.image_id
 
@@ -301,38 +353,38 @@ class AgentBay:
             # If we have persistence data, wait for context synchronization
             if has_persistence_data:
                 log_operation_start("Context synchronization", "Waiting for completion")
-                
+
                 # Wait for context synchronization to complete
                 max_retries = 150  # Maximum number of retries
                 retry_interval = 2  # Seconds to wait between retries
-                
+
                 import time
                 for retry in range(max_retries):
                     # Get context status data
                     info_result = session.context.info()
-                    
+
                     # Check if all context items have status "Success" or "Failed"
                     all_completed = True
                     has_failure = False
-                    
+
                     for item in info_result.context_status_data:
                         logger.info(f"📁 Context {item.context_id} status: {item.status}, path: {item.path}")
-                        
+
                         if item.status != "Success" and item.status != "Failed":
                             all_completed = False
                             break
-                        
+
                         if item.status == "Failed":
                             has_failure = True
                             logger.error(f"❌ Context synchronization failed for {item.context_id}: {item.error_message}")
-                    
+
                     if all_completed or not info_result.context_status_data:
                         if has_failure:
                             log_warning("Context synchronization completed with failures")
                         else:
                             log_operation_success("Context synchronization")
                         break
-                    
+
                     logger.info(f"⏳ Waiting for context synchronization, attempt {retry+1}/{max_retries}")
                     time.sleep(retry_interval)
 
@@ -495,7 +547,7 @@ class AgentBay:
 
         Args:
             session (Session): The session to delete.
-            sync_context (bool): Whether to sync context data (trigger file uploads) 
+            sync_context (bool): Whether to sync context data (trigger file uploads)
                 before deleting the session. Defaults to False.
 
         Returns:

@@ -3,6 +3,7 @@ package agentbay
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 	"sync"
@@ -36,6 +37,23 @@ type AgentBay struct {
 	Client   *mcp.Client
 	Sessions sync.Map
 	Context  *ContextService
+}
+
+// generateRandomContextId generates a random context ID using alphanumeric characters with timestamp.
+// This function is similar to the Python version's generate_random_context_id.
+func generateRandomContextId() string {
+	// Generate timestamp prefix
+	timestamp := time.Now().Format("20060102150405")
+
+	// Generate random alphanumeric string
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	length := 16
+	randomPart := make([]byte, length)
+	for i := range randomPart {
+		randomPart[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return fmt.Sprintf("%s_%s", timestamp, string(randomPart))
 }
 
 // NewAgentBay creates a new AgentBay client.
@@ -154,6 +172,18 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		}
 	}
 
+	// Add screen recording persistence if enabled
+	if params.EnableRecord {
+		// Create screen recording persistence configuration
+		recordPath := "/home/guest/record"
+		recordContextId := generateRandomContextId()
+		recordPersistence := &mcp.CreateMcpSessionRequestPersistenceDataList{
+			ContextId: tea.String(recordContextId),
+			Path:      tea.String(recordPath),
+		}
+		persistenceDataList = append(persistenceDataList, recordPersistence)
+	}
+
 	if len(persistenceDataList) > 0 {
 		createSessionRequest.PersistenceDataList = persistenceDataList
 		hasPersistenceData = true
@@ -243,6 +273,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if response.Body.Data.HttpPort != nil {
 		session.HttpPortNumber = *response.Body.Data.HttpPort
 	}
+
+	// Set screen recording state
+	session.EnableRecord = params.EnableRecord
 
 	a.Sessions.Store(session.SessionID, *session)
 

@@ -70,6 +70,9 @@ class Session:
         self.network_interface_ip = ""  # Network interface IP for VPC sessions
         self.http_port = ""  # HTTP port for VPC sessions
 
+        # Recording functionality
+        self.enableRecord = False  # Whether screen recording is enabled for this session
+
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
 

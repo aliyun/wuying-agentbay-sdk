@@ -77,7 +77,8 @@ if default_result.success:
 # Create a session with custom parameters
 params = CreateSessionParams(
     image_id="linux_latest",
-    labels={"project": "demo", "environment": "testing"}
+    labels={"project": "demo", "environment": "testing"},
+    enable_record=True  # Enable browser replay for browser sessions
 )
 custom_result = agent_bay.create(params)
 if custom_result.success:
@@ -98,6 +99,17 @@ sync_result = agent_bay.create(sync_params)
 if sync_result.success:
     sync_session = sync_result.session
     print(f"Created session with context sync: {sync_session.session_id}")
+
+# Create a browser session with browser replay enabled
+browser_params = CreateSessionParams(
+    image_id="browser_latest",
+    enable_record=True,  # Enable browser replay
+)
+browser_result = agent_bay.create(browser_params)
+if browser_result.success:
+    browser_session = browser_result.session
+    print(f"Created browser session with replay: {browser_session.session_id}")
+    # Browser replay files are automatically generated for internal processing
 ```
 
 
@@ -209,9 +221,9 @@ result = agent_bay.create()
 if result.success:
     session = result.session
     print(f"Created session with ID: {session.session_id}")
-    
+
     # Use the session for operations...
-    
+
     # Delete the session when done
     delete_result = agent_bay.delete(session)
     if delete_result.success:

@@ -167,4 +167,153 @@ describe("Session Parameters", () => {
       expect(createResponse.errorMessage).toContain("Failed to create session");
     });
   });
+
+  describe("enableRecord functionality", () => {
+    it("should support enableRecord parameter in CreateSessionParams", async () => {
+      const options = {
+        labels: { example: "browser_replay", session_type: "browser", replay: "enabled" },
+        imageId: "browser_latest",
+        enableRecord: true,
+      };
+
+      // Mock create response with enableRecord option
+      const mockCreateResponse = {
+        requestId: "create-with-enable-record-request-id",
+        success: true,
+        session: mockSession,
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create(options);
+
+      // Verify SessionResult structure
+      expect(createResponse.success).toBe(true);
+      expect(createResponse.requestId).toBe("create-with-enable-record-request-id");
+      expect(createResponse.session).toBe(mockSession);
+      expect(createResponse.errorMessage).toBeUndefined();
+      expect(mockAgentBay.create.calledOnceWith(options)).toBe(true);
+    });
+
+    it("should default enableRecord to false when not specified", async () => {
+      const options = {
+        labels: { session_type: "standard" },
+        imageId: "linux_latest",
+      };
+
+      // Mock create response without enableRecord
+      const mockCreateResponse = {
+        requestId: "create-no-record-request-id",
+        success: true,
+        session: mockSession,
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create(options);
+
+      // Verify SessionResult structure
+      expect(createResponse.success).toBe(true);
+      expect(createResponse.requestId).toBe("create-no-record-request-id");
+      expect(createResponse.session).toBe(mockSession);
+      expect(createResponse.errorMessage).toBeUndefined();
+    });
+
+    it("should handle enableRecord false explicitly", async () => {
+      const options = {
+        labels: { session_type: "test" },
+        imageId: "browser_latest",
+        enableRecord: false,
+      };
+
+      // Mock create response with enableRecord explicitly false
+      const mockCreateResponse = {
+        requestId: "create-record-false-request-id",
+        success: true,
+        session: mockSession,
+      };
+      mockAgentBay.create.resolves(mockCreateResponse);
+
+      const createResponse = await mockAgentBay.create(options);
+
+      // Verify SessionResult structure
+      expect(createResponse.success).toBe(true);
+      expect(createResponse.requestId).toBe("create-record-false-request-id");
+      expect(createResponse.session).toBe(mockSession);
+      expect(createResponse.errorMessage).toBeUndefined();
+      expect(mockAgentBay.create.calledOnceWith(options)).toBe(true);
+    });
+  });
+
+  describe("CreateSessionParams class enableRecord functionality", () => {
+    it("should have enableRecord field with default false value", () => {
+      const params = new (require("../../src/session-params").CreateSessionParams)();
+
+      expect(params.enableRecord).toBe(false);
+    });
+
+    it("should support withEnableRecord method", () => {
+      const params = new (require("../../src/session-params").CreateSessionParams)();
+
+      const result = params.withEnableRecord(true);
+
+      expect(result.enableRecord).toBe(true);
+      expect(result).toBe(params); // Should return same instance for chaining
+    });
+
+    it("should support method chaining with enableRecord", () => {
+      const params = new (require("../../src/session-params").CreateSessionParams)();
+
+      const result = params
+        .withLabels({ project: "test", env: "development" })
+        .withImageId("browser_latest")
+        .withEnableRecord(true)
+        .withIsVpc(false);
+
+      expect(result.labels).toEqual({ project: "test", env: "development" });
+      expect(result.imageId).toBe("browser_latest");
+      expect(result.enableRecord).toBe(true);
+      expect(result.isVpc).toBe(false);
+      expect(result).toBe(params); // Should return same instance for chaining
+    });
+
+    it("should include enableRecord in toJSON output", () => {
+      const params = new (require("../../src/session-params").CreateSessionParams)();
+      params.withEnableRecord(true);
+
+      const json = params.toJSON();
+
+      expect(json.enableRecord).toBe(true);
+    });
+
+    it("should handle enableRecord in fromJSON", () => {
+      const config = {
+        labels: { test: "value" },
+        imageId: "test_image",
+        contextSync: [],
+        isVpc: false,
+        enableRecord: true,
+      };
+
+      const params = (require("../../src/session-params").CreateSessionParams).fromJSON(config);
+
+      expect(params.enableRecord).toBe(true);
+      expect(params.labels).toEqual({ test: "value" });
+      expect(params.imageId).toBe("test_image");
+    });
+  });
+
+  describe("Session enableRecord field", () => {
+    it("should have enableRecord field with default false value", () => {
+      const session = new Session(mockAgentBay, "test-session-id");
+
+      expect(session.enableRecord).toBe(false);
+    });
+
+    it("should allow setting enableRecord field", () => {
+      const session = new Session(mockAgentBay, "test-session-id");
+
+      session.enableRecord = true;
+
+      expect(session.enableRecord).toBe(true);
+    });
+  });
 });

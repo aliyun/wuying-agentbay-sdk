@@ -3,36 +3,36 @@ import { ExtensionOption } from "./extension";
 
 /**
  * Browser context configuration for session with optional extension support.
- * 
+ *
  * This class provides browser context configuration for cloud sessions and supports
  * automatic extension synchronization when ExtensionOption is provided.
- * 
+ *
  * Key Features:
  * - Browser context binding for sessions
  * - Automatic browser data upload on session end
  * - Optional extension integration with automatic context sync generation
  * - Clean API with ExtensionOption encapsulation
- * 
+ *
  * Extension Configuration:
  * - **ExtensionOption**: Pass an ExtensionOption object with contextId and extensionIds
  * - **No Extensions**: Don't provide extensionOption parameter (extensionContextSyncs will be undefined)
- * 
+ *
  * Usage Examples:
  * ```typescript
  * // With extensions using ExtensionOption
  * import { ExtensionOption } from "./extension";
- * 
+ *
  * const extOption = new ExtensionOption(
  *   "my_extensions",
  *   ["ext1", "ext2"]
  * );
- * 
+ *
  * const browserContext = new BrowserContext(
  *   "browser_session",
  *   true,
  *   extOption
  * );
- * 
+ *
  * // Without extensions (minimal configuration)
  * const browserContext = new BrowserContext(
  *   "browser_session",
@@ -57,7 +57,7 @@ export class BrowserContext {
 
   /**
    * Initialize BrowserContextImpl with optional extension support.
-   * 
+   *
    * @param contextId - ID of the browser context to bind to the session.
    *                   This identifies the browser instance for the session.
    * @param autoUpload - Whether to automatically upload browser data
@@ -66,11 +66,11 @@ export class BrowserContext {
    *                         contextId and extensionIds. This encapsulates
    *                         all extension-related configuration.
    *                         Defaults to undefined.
-   * 
+   *
    * Extension Configuration:
    * - **ExtensionOption**: Use extensionOption parameter with an ExtensionOption object
    * - **No Extensions**: Don't provide extensionOption parameter
-   * 
+   *
    * Auto-generation:
    * - extensionContextSyncs is automatically generated when extensionOption is provided
    * - extensionContextSyncs will be undefined if no extensionOption is provided
@@ -102,10 +102,10 @@ export class BrowserContext {
 
   /**
    * Create ContextSync configurations for browser extensions.
-   * 
+   *
    * This method is called only when extensionOption is provided and contains
    * valid extension configuration (contextId and extensionIds).
-   * 
+   *
    * @returns ContextSync[] - List of context sync configurations for extensions.
    *                         Returns empty list if extension configuration is invalid.
    */
@@ -148,7 +148,7 @@ export class BrowserContext {
 
   /**
    * Get all context syncs including extension syncs.
-   * 
+   *
    * @returns ContextSync[] - All context sync configurations. Returns empty list if no extensions configured.
    */
   getAllContextSyncs(): ContextSync[] {
@@ -169,6 +169,8 @@ export interface CreateSessionParamsConfig {
   isVpc?: boolean;
   /** MCP policy id to apply when creating the session. */
   mcpPolicyId?: string;
+  /** Whether to enable screen recording for the session. Defaults to false. */
+  enableRecord?: boolean;
 }
 
 /**
@@ -197,10 +199,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   /** MCP policy id to apply when creating the session. */
   public mcpPolicyId?: string;
 
+  /** Whether to enable screen recording for the session. Defaults to false. */
+  public enableRecord: boolean;
+
   constructor() {
     this.labels = {};
     this.contextSync = [];
     this.isVpc = false;
+    this.enableRecord = false;
   }
 
   /**
@@ -241,6 +247,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   withMcpPolicyId(mcpPolicyId: string): CreateSessionParams {
     this.mcpPolicyId = mcpPolicyId;
+    return this;
+  }
+
+  /**
+   * WithEnableRecord sets the screen recording flag for the session parameters and returns the updated parameters.
+   */
+  withEnableRecord(enableRecord: boolean): CreateSessionParams {
+    this.enableRecord = enableRecord;
     return this;
   }
 
@@ -313,6 +327,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
       browserContext: this.browserContext,
       isVpc: this.isVpc,
       mcpPolicyId: this.mcpPolicyId,
+      enableRecord: this.enableRecord,
     };
   }
 
@@ -324,7 +339,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     params.labels = config.labels || {};
     params.imageId = config.imageId;
     params.contextSync = config.contextSync || [];
-    
+
     // Handle browser context - convert to BrowserContext class if needed
     if (config.browserContext) {
       if ('getAllContextSyncs' in config.browserContext) {
@@ -340,9 +355,10 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
         );
       }
     }
-    
+
     params.isVpc = config.isVpc || false;
     params.mcpPolicyId = config.mcpPolicyId;
+    params.enableRecord = config.enableRecord || false;
     return params;
   }
 }
