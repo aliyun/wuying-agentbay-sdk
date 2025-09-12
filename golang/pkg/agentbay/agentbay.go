@@ -129,7 +129,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 
 	// Flag to indicate if we need to wait for context synchronization
-	hasPersistenceData := false
+	needsContextSync := false
 
 	// Add context sync configurations if provided
 	var persistenceDataList []*mcp.CreateMcpSessionRequestPersistenceDataList
@@ -156,7 +156,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 
 	if len(persistenceDataList) > 0 {
 		createSessionRequest.PersistenceDataList = persistenceDataList
-		hasPersistenceData = true
+		needsContextSync = true
 	}
 
 	// Log API request
@@ -263,7 +263,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 
 	// If we have persistence data, wait for context synchronization
-	if hasPersistenceData {
+	if needsContextSync {
 		fmt.Println("Waiting for context synchronization to complete...")
 
 		// Wait for context synchronization to complete

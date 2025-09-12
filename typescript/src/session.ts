@@ -106,6 +106,9 @@ export class Session {
   public httpPort = ""; // HTTP port for VPC sessions
   public token = ""; // Token for VPC sessions
 
+  // Recording functionality
+  public enableBrowserReplay = false; // Whether browser recording is enabled for this session
+
   // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
   public command: Command;
@@ -235,12 +238,12 @@ export class Session {
 
         // Use the new sync method without callback (sync mode)
         const syncStartTime = Date.now();
-        
+
         try {
           const syncResult = await this.context.sync();
-          
+
           const syncDuration = Date.now() - syncStartTime;
-          
+
           if (syncResult.success) {
             log(`Context sync completed in ${syncDuration}ms`);
           } else {
