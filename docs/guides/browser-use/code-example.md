@@ -33,6 +33,8 @@
 - [Browser Proxy (TypeScript)](../../../typescript/docs/examples/browser/browser-proxies.ts) - A typescript example showing how to configure custom and Wuying proxy servers for IP rotation
 
 ### Captcha Resolving
+- [CAPTCHA Resolution (Python)](../../../python/docs/examples/browser/captcha_tongcheng.py) - A python example showing how to use AIBrowser to automatically solve slider-type CAPTCHAs
+- [CAPTCHA Resolution (TypeScript)](../../../typescript/docs/examples/browser/captcha_tongcheng.ts) - A typescript example showing how to use AIBrowser to automatically solve slider-type CAPTCHAs
 
 ### Ads Blocking
 
