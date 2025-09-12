@@ -138,6 +138,7 @@ export interface BrowserOption {
   viewport?: BrowserViewport;
   screen?: BrowserScreen;
   fingerprint?: BrowserFingerprint;
+  solveCaptchas?: boolean;
   proxies?: BrowserProxy[];
   /** Path to the extensions directory. Defaults to "/tmp/extensions/" */
   extensionPath?: string;
@@ -150,6 +151,7 @@ export class BrowserOptionClass implements BrowserOption {
   viewport?: BrowserViewport;
   screen?: BrowserScreen;
   fingerprint?: BrowserFingerprint;
+  solveCaptchas?: boolean;
   proxies?: BrowserProxy[];
   extensionPath?: string;
 
@@ -159,6 +161,7 @@ export class BrowserOptionClass implements BrowserOption {
     viewport?: BrowserViewport,
     screen?: BrowserScreen,
     fingerprint?: BrowserFingerprint,
+    solveCaptchas = false,
     proxies?: BrowserProxy[],
   ) {
     this.useStealth = useStealth;
@@ -166,6 +169,7 @@ export class BrowserOptionClass implements BrowserOption {
     this.viewport = viewport;
     this.screen = screen;
     this.fingerprint = fingerprint;
+    this.solveCaptchas = solveCaptchas;
     this.extensionPath = "/tmp/extensions/";
 
     // Validate proxies list items
@@ -206,6 +210,9 @@ export class BrowserOptionClass implements BrowserOption {
       if (this.fingerprint.locales) fp['locales'] = this.fingerprint.locales;
       optionMap['fingerprint'] = fp;
     }
+    if (this.solveCaptchas !== undefined) {
+      optionMap['solveCaptchas'] = this.solveCaptchas;
+    }
     if (this.proxies !== undefined) {
       optionMap['proxies'] = this.proxies.map(proxy => proxy.toMap());
     }
@@ -237,6 +244,9 @@ export class BrowserOptionClass implements BrowserOption {
       if (map.fingerprint.operatingSystems) fp.operatingSystems = map.fingerprint.operatingSystems;
       if (map.fingerprint.locales) fp.locales = map.fingerprint.locales;
       this.fingerprint = fp;
+    }
+    if (map.solveCaptchas !== undefined) {
+      this.solveCaptchas = map.solveCaptchas;
     }
     if (map.proxies !== undefined) {
       const proxyList = map.proxies;
