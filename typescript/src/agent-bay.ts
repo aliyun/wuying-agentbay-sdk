@@ -23,6 +23,22 @@ import {
 import { log, logError } from "./utils/logger";
 
 /**
+ * Generate a random context ID using alphanumeric characters with timestamp.
+ * This function is similar to the Python version's generate_random_context_id.
+ */
+function generateRandomContextId(length = 16, includeTimestamp = true): string {
+  const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
+
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let randomPart = '';
+  for (let i = 0; i < length; i++) {
+    randomPart += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return includeTimestamp ? `${timestamp}_${randomPart}` : randomPart;
+}
+
+/**
  * Parameters for creating a session.
  */
 export interface CreateSessionParams {
@@ -32,6 +48,7 @@ export interface CreateSessionParams {
   browserContext?: BrowserContext;
   isVpc?: boolean;
   mcpPolicyId?: string;
+  enableBrowserReplay?: boolean;
 }
 
 /**
@@ -64,7 +81,7 @@ export class AgentBay {
   ) {
     // Load .env file first to ensure AGENTBAY_API_KEY is available
     loadDotEnv();
-    
+
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
 
     if (!this.apiKey) {
@@ -128,7 +145,7 @@ export class AgentBay {
       request.vpcResource = params.isVpc || false;
 
       // Flag to indicate if we need to wait for context synchronization
-      let hasPersistenceData = false;
+      let needsContextSync = false;
 
       // Add context sync configurations if provided
       if (params.contextSync && params.contextSync.length > 0) {
@@ -147,7 +164,7 @@ export class AgentBay {
           persistenceDataList.push(persistenceItem);
         }
         request.persistenceDataList = persistenceDataList;
-        hasPersistenceData = persistenceDataList.length > 0;
+        needsContextSync = persistenceDataList.length > 0;
       }
 
       // Add BrowserContext as a ContextSync if provided
@@ -172,7 +189,24 @@ export class AgentBay {
           request.persistenceDataList = [];
         }
         request.persistenceDataList.push(browserContextSync);
-        hasPersistenceData = true;
+        needsContextSync = true;
+      }
+
+      // Add browser recording persistence if enabled
+      if (params.enableBrowserReplay) {
+        // Create browser recording persistence configuration
+        const recordPath = "/home/guest/record";
+        const recordContextId = generateRandomContextId();
+        const recordPersistence = new CreateMcpSessionRequestPersistenceDataList({
+          contextId: recordContextId,
+          path: recordPath,
+        });
+
+        // Add to persistence data list or create new one if not exists
+        if (!request.persistenceDataList) {
+          request.persistenceDataList = [];
+        }
+        request.persistenceDataList.push(recordPersistence);
       }
 
       // Log API request
@@ -200,10 +234,10 @@ export class AgentBay {
       log(requestLog);
 
       const response = await this.client.createMcpSession(request);
-      
+
       // Extract request ID
       const requestId = extractRequestId(response) || "";
-      
+
       // Log response data with requestId
       log("response data =", response.body?.data);
       if (requestId) {
@@ -259,6 +293,9 @@ export class AgentBay {
         session.token = data.token;
       }
 
+      // Set browser recording state
+      session.enableBrowserReplay = params.enableBrowserReplay || false;
+
       // Store imageId used for this session
       (session as any).imageId = params.imageId;
 
@@ -277,7 +314,7 @@ export class AgentBay {
       }
 
       // If we have persistence data, wait for context synchronization
-      if (hasPersistenceData) {
+      if (needsContextSync) {
         log("Waiting for context synchronization to complete...");
 
         // Wait for context synchronization to complete
@@ -300,7 +337,7 @@ export class AgentBay {
                 allCompleted = false;
                 break;
               }
-              
+
               if (item.status === "Failed") {
                 hasFailure = true;
                 logError(`Context synchronization failed for ${item.contextId}: ${item.errorMessage}`);

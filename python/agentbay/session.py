@@ -71,6 +71,9 @@ class Session:
         self.http_port = ""  # HTTP port for VPC sessions
         self.token = ""
 
+        # Recording functionality
+        self.enableBrowserReplay = False  # Whether browser recording is enabled for this session
+
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
 
@@ -113,7 +116,7 @@ class Session:
     def get_http_port(self) -> str:
         """Return the HTTP port for VPC sessions."""
         return self.http_port
-    
+
     def get_token(self) -> str:
         """Return the token for VPC sessions."""
         return self.token
@@ -147,16 +150,16 @@ class Session:
                     # Use asyncio.run to call the async context.sync synchronously (no callback)
                     import asyncio
                     sync_result = asyncio.run(self.context.sync())
-                    
+
                     sync_duration = time.time() - sync_start_time
-                    
+
                     if sync_result.success:
                         log_operation_success("Context sync")
                         logger.info(f"⏱️  Context sync completed in {sync_duration:.2f} seconds")
                     else:
                         log_warning("Context sync completed with failures")
                         logger.warning(f"⏱️  Context sync failed after {sync_duration:.2f} seconds")
-                        
+
                 except Exception as e:
                     sync_duration = time.time() - sync_start_time
                     log_warning(f"Failed to trigger context sync: {e}")

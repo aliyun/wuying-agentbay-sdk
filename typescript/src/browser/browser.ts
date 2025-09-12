@@ -181,7 +181,7 @@ export class BrowserOptionClass implements BrowserOption {
         throw new Error('proxies list length must be limited to 1');
       }
     }
-    
+
     // Set proxies after validation
     this.proxies = proxies;
   }
@@ -309,13 +309,19 @@ export class Browser {
 
       // Map BrowserOption to API BrowserOption payload
       const browserOptionMap = browserOption.toMap();
+
+      // Enable record if session.enableBrowserReplay is true
+      if (this.session.enableBrowserReplay) {
+        browserOptionMap['enableRecord'] = true;
+      }
+
       if (Object.keys(browserOptionMap).length > 0) {
         request.browserOption = browserOptionMap;
       }
 
       const response = this.session.getClient().initBrowserSync(request);
       log(`Response from init_browser data:`, response.body?.data);
-      
+
       const success = response.body?.data?.port !== null && response.body?.data?.port !== undefined;
       if (success) {
         this._initialized = true;
@@ -361,13 +367,19 @@ export class Browser {
 
       // Map BrowserOption to API BrowserOption payload
       const browserOptionMap = browserOption.toMap();
+
+      // Enable record if session.enableBrowserReplay is true
+      if (this.session.enableBrowserReplay) {
+        browserOptionMap['enableRecord'] = true;
+      }
+
       if (Object.keys(browserOptionMap).length > 0) {
         request.browserOption = browserOptionMap;
       }
 
       const response = await this.session.getClient().initBrowser(request);
       log(`Response from init_browser data:`, response.body?.data);
-      
+
       const success = response.body?.data?.port !== null && response.body?.data?.port !== undefined;
       if (success) {
         this._initialized = true;
@@ -427,4 +439,4 @@ export class Browser {
       throw new BrowserError("Browser is not initialized. Cannot stop browser.");
     }
   }
-} 
+}
