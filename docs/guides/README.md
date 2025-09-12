@@ -8,6 +8,7 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 - [Session Management](session-management.md) - Create, connect, and manage cloud sessions
 - [File Operations](file-operations.md) - Upload, download, and manipulate files
 - [Data Persistence](data-persistence.md) - Persistent data storage and synchronization
+- [Network Operations](network-operations.md) - Network creation, management, and monitoring
 - [Automation](automation.md) - Command execution and workflow automation
 - [Application & Window Operations](application-window-operations.md) - Application management and window control
 - [Browser Extensions](browser-extensions.md) - Browser extension management and testing

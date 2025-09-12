@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from agentbay.agentbay import AgentBay
 
 from agentbay.browser import Browser
+from agentbay.network import NetworkManager
 
 # Initialize logger for this module
 logger = get_logger("session")
@@ -86,6 +87,7 @@ class Session:
         self.ui = UI(self)
         self.context = ContextManager(self)
         self.browser = Browser(self)
+        self.network = NetworkManager(self)
 
         self.agent = Agent(self)
 

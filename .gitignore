@@ -63,3 +63,4 @@ vendor/
 *.patch
 *.lock
 CLAUDE.md
+docs/private/

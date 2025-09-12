@@ -1,7 +1,7 @@
 from .agentbay import AgentBay, Config
 from .application import ApplicationManager, InstalledApp, Process
 from .command import Command
-from .exceptions import AgentBayError, APIError, AuthenticationError
+from .exceptions import AgentBayError, APIError, AuthenticationError, NetworkError
 from .filesystem import FileSystem
 from .oss import Oss
 from .session import Session
@@ -23,6 +23,7 @@ from .context_sync import (
 )
 from .context_manager import ContextManager, ContextInfoResult, ContextSyncResult
 from .extension import ExtensionsService, ExtensionOption, Extension
+from .network import NetworkManager, NetworkInfo, CreateNetworkResult, DescribeNetworkResult
 from .logger import AgentBayLogger, get_logger, log
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "AgentBayError",
     "AuthenticationError",
     "APIError",
+    "NetworkError",
     "UI",
     "Oss",
     "FileSystem",
@@ -59,6 +61,10 @@ __all__ = [
     "ExtensionsService",
     "ExtensionOption",
     "Extension",
+    "NetworkManager",
+    "NetworkInfo",
+    "CreateNetworkResult",
+    "DescribeNetworkResult",
     "AgentBayLogger",
     "get_logger",
     "log",

@@ -198,6 +198,8 @@ class Client(OpenApiClient):
             body["Labels"] = request.labels
         if not DaraCore.is_null(request.mcp_policy_id):
             body["McpPolicyId"] = request.mcp_policy_id
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
@@ -247,6 +249,8 @@ class Client(OpenApiClient):
             body["Labels"] = request.labels
         if not DaraCore.is_null(request.mcp_policy_id):
             body["McpPolicyId"] = request.mcp_policy_id
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
         if not DaraCore.is_null(request.persistence_data_list_shrink):
             body["PersistenceDataList"] = request.persistence_data_list_shrink
         if not DaraCore.is_null(request.session_id):
@@ -1631,3 +1635,145 @@ class Client(OpenApiClient):
     ) -> main_models.GetContextFileUploadUrlResponse:
         runtime = RuntimeOptions()
         return await self.get_context_file_upload_url_with_options_async(request, runtime)
+
+    def create_network_with_options(
+        self,
+        request: main_models.CreateNetworkRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.CreateNetworkResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.image_id):
+            body["ImageId"] = request.image_id
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="CreateNetwork",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.CreateNetworkResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def create_network_with_options_async(
+        self,
+        request: main_models.CreateNetworkRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.CreateNetworkResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.image_id):
+            body["ImageId"] = request.image_id
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="CreateNetwork",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.CreateNetworkResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def create_network(
+        self,
+        request: main_models.CreateNetworkRequest,
+    ) -> main_models.CreateNetworkResponse:
+        runtime = RuntimeOptions()
+        return self.create_network_with_options(request, runtime)
+
+    async def create_network_async(
+        self,
+        request: main_models.CreateNetworkRequest,
+    ) -> main_models.CreateNetworkResponse:
+        runtime = RuntimeOptions()
+        return await self.create_network_with_options_async(request, runtime)
+
+    def describe_network_with_options(
+        self,
+        request: main_models.DescribeNetworkRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DescribeNetworkResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DescribeNetwork",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DescribeNetworkResponse(), self.call_api(params, req, runtime)
+        )
+
+    async def describe_network_with_options_async(
+        self,
+        request: main_models.DescribeNetworkRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DescribeNetworkResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.network_id):
+            body["NetworkId"] = request.network_id
+        req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
+        params = open_api_util_models.Params(
+            action="DescribeNetwork",
+            version="2025-05-06",
+            protocol="HTTPS",
+            pathname="/",
+            method="POST",
+            auth_type="Anonymous",
+            style="RPC",
+            req_body_type="formData",
+            body_type="json",
+        )
+        return DaraCore.from_map(
+            main_models.DescribeNetworkResponse(),
+            await self.call_api_async(params, req, runtime),
+        )
+
+    def describe_network(
+        self,
+        request: main_models.DescribeNetworkRequest,
+    ) -> main_models.DescribeNetworkResponse:
+        runtime = RuntimeOptions()
+        return self.describe_network_with_options(request, runtime)
+
+    async def describe_network_async(
+        self,
+        request: main_models.DescribeNetworkRequest,
+    ) -> main_models.DescribeNetworkResponse:
+        runtime = RuntimeOptions()
+        return await self.describe_network_with_options_async(request, runtime)

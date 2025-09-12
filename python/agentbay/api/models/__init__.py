@@ -80,6 +80,14 @@ from ._describe_context_files_response_body import DescribeContextFilesResponseB
 from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBodyData
 from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBodyData
 
+# Network-related models
+from ._create_network_request import CreateNetworkRequest
+from ._create_network_response_body import CreateNetworkResponseBody, CreateNetworkResponseBodyData
+from ._create_network_response import CreateNetworkResponse
+from ._describe_network_request import DescribeNetworkRequest
+from ._describe_network_response_body import DescribeNetworkResponseBody, DescribeNetworkResponseBodyData
+from ._describe_network_response import DescribeNetworkResponse
+
 # Add these lines at the appropriate place
 from ._list_session_response import ListSessionResponse
 from ._list_session_response_body import ListSessionResponseBody
@@ -159,6 +167,15 @@ __all__ = [
     DescribeContextFilesResponseBodyData,
     GetContextFileDownloadUrlResponseBodyData,
     GetContextFileUploadUrlResponseBodyData,
+    # Network-related models
+    CreateNetworkRequest,
+    CreateNetworkResponseBody,
+    CreateNetworkResponseBodyData,
+    CreateNetworkResponse,
+    DescribeNetworkRequest,
+    DescribeNetworkResponseBody,
+    DescribeNetworkResponseBodyData,
+    DescribeNetworkResponse,
     # Add these lines at the appropriate place
     ListSessionResponse,
     ListSessionResponseBody,
