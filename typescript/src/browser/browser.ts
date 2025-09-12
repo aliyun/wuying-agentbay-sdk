@@ -166,7 +166,6 @@ export class BrowserOptionClass implements BrowserOption {
     this.viewport = viewport;
     this.screen = screen;
     this.fingerprint = fingerprint;
-    this.proxies = proxies;
     this.extensionPath = "/tmp/extensions/";
 
     // Validate proxies list items
@@ -178,6 +177,9 @@ export class BrowserOptionClass implements BrowserOption {
         throw new Error('proxies list length must be limited to 1');
       }
     }
+    
+    // Set proxies after validation
+    this.proxies = proxies;
   }
 
   toMap(): Record<string, any> {
