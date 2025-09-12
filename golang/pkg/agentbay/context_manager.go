@@ -3,6 +3,7 @@ package agentbay
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -37,6 +38,9 @@ type ContextSyncResult struct {
 	models.ApiResponse
 	Success bool
 }
+
+// SyncCallback defines the callback function type for async sync operations
+type SyncCallback func(success bool)
 
 // ContextManager handles context operations for a specific session.
 type ContextManager struct {
@@ -149,6 +153,39 @@ func (cm *ContextManager) Sync() (*ContextSyncResult, error) {
 	return cm.SyncWithParams("", "", "")
 }
 
+// SyncWithCallback synchronizes the context with callback support (dual-mode).
+// If callback is provided, it runs in background and calls callback when complete.
+// If callback is nil, it waits for completion before returning.
+func (cm *ContextManager) SyncWithCallback(contextId, path, mode string, callback SyncCallback, maxRetries int, retryInterval int) (*ContextSyncResult, error) {
+	// First, trigger the sync operation
+	syncResult, err := cm.SyncWithParams(contextId, path, mode)
+	if err != nil {
+		return nil, err
+	}
+
+	// If sync failed, return immediately
+	if !syncResult.Success {
+		return syncResult, nil
+	}
+
+	// If callback is provided, start polling in background (async mode)
+	if callback != nil {
+		go cm.pollForCompletion(callback, contextId, path, maxRetries, retryInterval)
+		return syncResult, nil
+	}
+
+	// If no callback, wait for completion (sync mode)
+	finalSuccess, err := cm.pollForCompletionSync(contextId, path, maxRetries, retryInterval)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ContextSyncResult{
+		ApiResponse: syncResult.ApiResponse,
+		Success:     finalSuccess,
+	}, nil
+}
+
 // SyncWithParams synchronizes the context for the current session with optional parameters.
 func (cm *ContextManager) SyncWithParams(contextId, path, mode string) (*ContextSyncResult, error) {
 	request := &mcp.SyncContextRequest{
@@ -163,23 +200,24 @@ func (cm *ContextManager) SyncWithParams(contextId, path, mode string) (*Context
 	if path != "" {
 		request.Path = tea.String(path)
 	}
-	if mode != "" {
-		request.Mode = tea.String(mode)
+	// Set mode, default to "upload" if empty or not provided
+	if mode == "" {
+		mode = "upload"
 	}
+	request.Mode = tea.String(mode)
 
 	// Log API request
-	fmt.Println("API Call: SyncContext")
-	fmt.Printf("Request: SessionId=%s", *request.SessionId)
+	requestInfo := fmt.Sprintf("API Call: SyncContext - Request: SessionId=%s", *request.SessionId)
 	if request.ContextId != nil {
-		fmt.Printf(", ContextId=%s", *request.ContextId)
+		requestInfo += fmt.Sprintf(", ContextId=%s", *request.ContextId)
 	}
 	if request.Path != nil {
-		fmt.Printf(", Path=%s", *request.Path)
+		requestInfo += fmt.Sprintf(", Path=%s", *request.Path)
 	}
 	if request.Mode != nil {
-		fmt.Printf(", Mode=%s", *request.Mode)
+		requestInfo += fmt.Sprintf(", Mode=%s", *request.Mode)
 	}
-	fmt.Println()
+	fmt.Println(requestInfo)
 
 	response, err := cm.Session.GetClient().SyncContext(request)
 
@@ -207,4 +245,123 @@ func (cm *ContextManager) SyncWithParams(contextId, path, mode string) (*Context
 		},
 		Success: success,
 	}, nil
+}
+
+// pollForCompletion polls the info interface to check if sync is completed and calls callback.
+func (cm *ContextManager) pollForCompletion(callback SyncCallback, contextId, path string, maxRetries, retryInterval int) {
+	for retry := 0; retry < maxRetries; retry++ {
+		// Get context status data
+		infoResult, err := cm.InfoWithParams(contextId, path, "")
+		if err != nil {
+			fmt.Printf("Error checking context status on attempt %d: %v\n", retry+1, err)
+			time.Sleep(time.Duration(retryInterval) * time.Millisecond)
+			continue
+		}
+
+		// Check if all sync tasks are completed
+		allCompleted := true
+		hasFailure := false
+		hasSyncTasks := false
+
+		for _, item := range infoResult.ContextStatusData {
+			// We only care about sync tasks (upload/download)
+			if item.TaskType != "upload" && item.TaskType != "download" {
+				continue
+			}
+
+			hasSyncTasks = true
+			fmt.Printf("Sync task %s status: %s, path: %s\n", item.ContextId, item.Status, item.Path)
+
+			if item.Status != "Success" && item.Status != "Failed" {
+				allCompleted = false
+				break
+			}
+
+			if item.Status == "Failed" {
+				hasFailure = true
+				fmt.Printf("Sync failed for context %s: %s\n", item.ContextId, item.ErrorMessage)
+			}
+		}
+
+		if allCompleted || !hasSyncTasks {
+			// All tasks completed or no sync tasks found
+			if hasFailure {
+				fmt.Println("Context sync completed with failures")
+				callback(false)
+			} else if hasSyncTasks {
+				fmt.Println("Context sync completed successfully")
+				callback(true)
+			} else {
+				fmt.Println("No sync tasks found")
+				callback(true)
+			}
+			return // Exit the function immediately after calling callback
+		}
+
+		fmt.Printf("Waiting for context sync to complete, attempt %d/%d\n", retry+1, maxRetries)
+		time.Sleep(time.Duration(retryInterval) * time.Millisecond)
+	}
+
+	// If we've exhausted all retries, call callback with failure
+	fmt.Printf("Context sync polling timed out after %d attempts\n", maxRetries)
+	callback(false)
+}
+
+// pollForCompletionSync is the synchronous version of polling for sync completion.
+func (cm *ContextManager) pollForCompletionSync(contextId, path string, maxRetries, retryInterval int) (bool, error) {
+	for retry := 0; retry < maxRetries; retry++ {
+		// Get context status data
+		infoResult, err := cm.InfoWithParams(contextId, path, "")
+		if err != nil {
+			fmt.Printf("Error checking context status on attempt %d: %v\n", retry+1, err)
+			time.Sleep(time.Duration(retryInterval) * time.Millisecond)
+			continue
+		}
+
+		// Check if all sync tasks are completed
+		allCompleted := true
+		hasFailure := false
+		hasSyncTasks := false
+
+		for _, item := range infoResult.ContextStatusData {
+			// We only care about sync tasks (upload/download)
+			if item.TaskType != "upload" && item.TaskType != "download" {
+				continue
+			}
+
+			hasSyncTasks = true
+			fmt.Printf("Sync task %s status: %s, path: %s\n", item.ContextId, item.Status, item.Path)
+
+			if item.Status != "Success" && item.Status != "Failed" {
+				allCompleted = false
+				break
+			}
+
+			if item.Status == "Failed" {
+				hasFailure = true
+				fmt.Printf("Sync failed for context %s: %s\n", item.ContextId, item.ErrorMessage)
+			}
+		}
+
+		if allCompleted || !hasSyncTasks {
+			// All tasks completed or no sync tasks found
+			if hasFailure {
+				fmt.Println("Context sync completed with failures")
+				return false, nil
+			} else if hasSyncTasks {
+				fmt.Println("Context sync completed successfully")
+				return true, nil
+			} else {
+				fmt.Println("No sync tasks found")
+				return true, nil
+			}
+		}
+
+		fmt.Printf("Waiting for context sync to complete, attempt %d/%d\n", retry+1, maxRetries)
+		time.Sleep(time.Duration(retryInterval) * time.Millisecond)
+	}
+
+	// If we've exhausted all retries, return failure
+	fmt.Printf("Context sync polling timed out after %d attempts\n", maxRetries)
+	return false, nil
 }

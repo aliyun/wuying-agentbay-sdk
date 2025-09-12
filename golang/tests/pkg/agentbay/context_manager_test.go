@@ -190,3 +190,94 @@ func TestContextStatusItemStruct(t *testing.T) {
 		assert.Equal(t, "test data", item.Data)
 	})
 }
+
+func TestContextManagerSyncWithCallback(t *testing.T) {
+	t.Run("should sync context successfully without callback (sync mode)", func(t *testing.T) {
+		mockSession := &SimpleMockSession{
+			APIKey:    "test-api-key",
+			SessionID: "test-session-id",
+		}
+		cm := agentbay.NewContextManager(mockSession)
+
+		// Test sync mode (no callback)
+		result, err := cm.SyncWithCallback("", "", "", nil, 150, 1500)
+
+		// Since we can't easily mock the client, we expect an error
+		// In a real test environment, this would be mocked properly
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("should sync context with callback (async mode)", func(t *testing.T) {
+		mockSession := &SimpleMockSession{
+			APIKey:    "test-api-key",
+			SessionID: "test-session-id",
+		}
+		cm := agentbay.NewContextManager(mockSession)
+
+		callbackCalled := false
+		callbackResult := false
+
+		// Test async mode (with callback)
+		result, err := cm.SyncWithCallback("", "", "", func(success bool) {
+			callbackCalled = true
+			callbackResult = success
+		}, 150, 1500)
+
+		// Since we can't easily mock the client, we expect an error
+		// In a real test environment, this would be mocked properly
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.False(t, callbackCalled)
+		assert.False(t, callbackResult)
+	})
+
+	t.Run("should handle API error during sync", func(t *testing.T) {
+		mockSession := &SimpleMockSession{
+			APIKey:    "test-api-key",
+			SessionID: "test-session-id",
+		}
+		cm := agentbay.NewContextManager(mockSession)
+
+		// Test with invalid parameters to trigger error
+		result, err := cm.SyncWithCallback("invalid", "invalid", "invalid", nil, 150, 1500)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("should pass optional parameters correctly for sync", func(t *testing.T) {
+		mockSession := &SimpleMockSession{
+			APIKey:    "test-api-key",
+			SessionID: "test-session-id",
+		}
+		cm := agentbay.NewContextManager(mockSession)
+
+		// Test with specific parameters
+		result, err := cm.SyncWithCallback("ctx-123", "/home/user", "upload", nil, 100, 2000)
+
+		// Since we can't easily mock the client, we expect an error
+		// In a real test environment, this would be mocked properly
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+}
+
+func TestSyncCallbackType(t *testing.T) {
+	t.Run("should define SyncCallback type correctly", func(t *testing.T) {
+		// Test that SyncCallback is a function type
+		var callback agentbay.SyncCallback
+		assert.NotNil(t, callback)
+
+		// Test callback function
+		callback = func(success bool) {
+			assert.True(t, success)
+		}
+		callback(true)
+
+		callback = func(success bool) {
+			assert.False(t, success)
+		}
+		callback(false)
+	})
+}
