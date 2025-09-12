@@ -161,14 +161,14 @@ class LocalBrowser(Browser):
                             chrome_cdp_ports_path = "/tmp/chrome_cdp_ports.json"
                             with open(chrome_cdp_ports_path, "w") as f:
                                 json.dump({"chrome": str(self._cdp_port), "router": str(self._cdp_port)}, f)
-                            
+
                             # Launch headless browser and create a page for all tests
                             self._browser = await p.chromium.launch_persistent_context(
                                 headless=False,
                                 viewport={"width": 1280, "height": 1200},
                                 args=[
                                     f'--remote-debugging-port={self._cdp_port}',
-                                ], 
+                                ],
                                 user_data_dir="/tmp/browser_user_data")
 
                             logger.info("Local browser launched successfully:")
@@ -185,7 +185,7 @@ class LocalBrowser(Browser):
 
         self.agent.initialize()
         return True
-    
+
     def is_initialized(self) -> bool:
         return True
 

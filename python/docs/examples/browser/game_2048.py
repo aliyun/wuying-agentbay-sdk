@@ -1,9 +1,8 @@
 """
-Example demonstrating AIBrowser capabilites with AgentBay SDK.
-This example shows how to use PageUseAgent to run 2048 game, including:
-- Create AIBrowser session
-- Use playwright to connect to AIBrowser instance through CDP protocol
-- Utilize PageUseAgent to run 2048 game
+示例：2048（提取）
+提取棋盘状态
+以极小极大算法决策下一步并循环执行
+重点：提取与策略结合；按键动作
 """
 
 import os
@@ -15,10 +14,11 @@ import random
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 from agentbay.browser.browser import BrowserOption
-from agentbay.browser.browser_agent import ExtractOptions, BrowserError
+from agentbay.browser.browser_agent import ExtractOptions
 
 from playwright.async_api import async_playwright
 from pydantic import BaseModel, Field
+
 
 async def main():
     # Get API key from environment variable
@@ -52,7 +52,11 @@ async def main():
                 try:
                     page = await browser.new_page()
                     print("🌐 Navigating to 2048...")
-                    await page.goto("https://ovolve.github.io/2048-AI/", wait_until="domcontentloaded", timeout=180000)
+                    await page.goto(
+                        "https://ovolve.github.io/2048-AI/",
+                        wait_until="domcontentloaded",
+                        timeout=180000,
+                    )
                     print("🌐 Navigated to 2048 done")
                     await page.wait_for_selector(".grid-container", timeout=10000)
 
@@ -69,42 +73,59 @@ async def main():
                         # Get current game state
                         print("📊 Extracting game state...")
                         options = ExtractOptions(
-                            instruction=
-                            """
-                            Extract the current game state:
-                            1. Score from the score counter
-                            2. All tile values and their positions in the 4x4 grid must be extracted. 
-                               Each tile's value and position can be obtained from the tile-position-x-y class, where x (1 to 4) is the column and y (1 to 4) is the row.
-                               For example, tile-position-4-1 means the tile is in column 4, row 1.
-                               The value of the tile is given by the number in the tile's class.
-                               For example, <div class='tile tile-2 tile-position-1-4 tile-new'>2</div> means a tile with value 2 at column 1, row 4;
-                               and <div class='tile tile-2 tile-position-4-1 tile-new'>2</div> means a tile with value 2 at column 4, row 1.
-                               Empty spaces should be represented as 0 in the grid.
-                               For instance, if the only tiles present are the two above, the grid should be:[[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
-                            3. Highest tile value present
-                            """,
-                            schema=GameState
+                            instruction="""
+Extract the current game state:
+1. Score from the score counter
+2. All tile values and their positions in the 4x4 grid must be extracted. 
+    Each tile's value and position can be obtained from the tile-position-x-y class, where x (1 to 4) is the column and y (1 to 4) is the row.
+    For example, tile-position-4-1 means the tile is in column 4, row 1.
+    The value of the tile is given by the number in the tile's class.
+    For example, <div class='tile tile-2 tile-position-1-4 tile-new'>2</div> means a tile with value 2 at column 1, row 4;
+    and <div class='tile tile-2 tile-position-4-1 tile-new'>2</div> means a tile with value 2 at column 4, row 1.
+    Empty spaces should be represented as 0 in the grid.
+    For instance, if the only tiles present are the two above, the grid should be:[[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
+3. Highest tile value present
+""",
+                            schema=GameState,
+                            use_text_extract=False,
                         )
                         # Calculate time cost， average time cost, min & max time cost
-                        success, gameState = await session.browser.agent.extract_async(page, options)
+                        success, gameState = await session.browser.agent.extract_async(
+                            page=page, options=options
+                        )
                         if success:
                             transposed_grid = transpose_grid(gameState.grid)
                             print(f"transposed grid: {transposed_grid}")
                             print("🤔 Analyzing board for next move...")
-                            current_grid_flat = tuple(tile for row in transposed_grid for tile in row)
+                            current_grid_flat = tuple(
+                                tile for row in transposed_grid for tile in row
+                            )
 
-                            if last_grid_state is not None and current_grid_flat == last_grid_state:
-                                print("Grid has not changed from the last iteration. This might indicate a stuck state.")
+                            if (
+                                last_grid_state is not None
+                                and current_grid_flat == last_grid_state
+                            ):
+                                print(
+                                    "Grid has not changed from the last iteration. This might indicate a stuck state."
+                                )
                             last_grid_state = current_grid_flat
 
-                            helper.grid = [tile for row in transposed_grid for tile in row]
+                            helper.grid = [
+                                tile for row in transposed_grid for tile in row
+                            ]
                             helper.StartSearch()
 
                             moves_map = {0: "left", 1: "up", 2: "right", 3: "down"}
-                            best_move_str = moves_map.get(helper.best_operation, "no_move")
+                            best_move_str = moves_map.get(
+                                helper.best_operation, "no_move"
+                            )
                             selected_move = best_move_str
-                            print(f"Calculated mini max move: {best_move_str} (explored {helper.node} nodes, max_depth={helper.max_depth}).")
-                            current_grid_tuple = tuple(tuple(row) for row in gameState.grid)
+                            print(
+                                f"Calculated mini max move: {best_move_str} (explored {helper.node} nodes, max_depth={helper.max_depth})."
+                            )
+                            current_grid_tuple = tuple(
+                                tuple(row) for row in gameState.grid
+                            )
 
                             move_history.append((current_grid_tuple, best_move_str))
 
@@ -112,14 +133,21 @@ async def main():
                                 recent_combinations = list(move_history)
                                 is_cycling = False
                                 if (
-                                    all(item == recent_combinations[0] for item in recent_combinations)
+                                    all(
+                                        item == recent_combinations[0]
+                                        for item in recent_combinations
+                                    )
                                     and best_move_str != "no_move"
                                 ):
                                     is_cycling = True
-                                    print(f"Detected a continuous cycle! The pattern {recent_combinations[0]} repeated {3} times.")
+                                    print(
+                                        f"Detected a continuous cycle! The pattern {recent_combinations[0]} repeated {3} times."
+                                    )
 
                                 if is_cycling:
-                                    print("Breaking out of cycle with alternative moves!")
+                                    print(
+                                        "Breaking out of cycle with alternative moves!"
+                                    )
                                     move_history.clear()
 
                                     available_moves = [
@@ -160,6 +188,7 @@ async def main():
         else:
             print("Failed to initialize browser")
 
+
 class GameState(BaseModel):
     score: Optional[int] = Field(
         None, description="Current score from the score counter."
@@ -171,6 +200,7 @@ class GameState(BaseModel):
         ..., description="4x4 grid of tile values (empty spaces as 0)."
     )
 
+
 class MoveAnalysis(BaseModel):
     move: Literal["up", "down", "left", "right"] = Field(
         ..., description="The best move to make (up/down/left/right)."
@@ -180,7 +210,9 @@ class MoveAnalysis(BaseModel):
     )
     reasoning: str = Field(..., description="Detailed reasoning for the chosen move.")
 
+
 MoveHistoryEntry = Tuple[Tuple[Tuple[int, ...], ...], str]
+
 
 def transpose_grid(grid: List[List[int]]) -> List[List[int]]:
     if not grid:
@@ -188,17 +220,20 @@ def transpose_grid(grid: List[List[int]]) -> List[List[int]]:
 
     return list(map(list, zip(*grid)))
 
+
 def format_grid_for_llm_instruction(grid_data: List[List[int]]) -> str:
     formatted_rows = []
     for i, row in enumerate(grid_data):
         formatted_rows.append(f"row{i+1}: {row}")
     return "\n".join(formatted_rows)
 
+
 def format_original_grid_for_llm_instruction(grid_data: List[List[int]]) -> str:
     lines = []
     for i, row in enumerate(grid_data):
         lines.append(f"             row{i + 1}: {', '.join(map(str, row))}")
     return "\n".join(lines)
+
 
 class MiniMax:
     def __init__(self):
@@ -246,7 +281,24 @@ class MiniMax:
         return [new_grid_1d, total_score]
 
     def Rotate(self, s: List[int]) -> List[int]:
-        return [s[12], s[8], s[4], s[0], s[13], s[9], s[5], s[1], s[14], s[10], s[6], s[2], s[15], s[11], s[7], s[3],]
+        return [
+            s[12],
+            s[8],
+            s[4],
+            s[0],
+            s[13],
+            s[9],
+            s[5],
+            s[1],
+            s[14],
+            s[10],
+            s[6],
+            s[2],
+            s[15],
+            s[11],
+            s[7],
+            s[3],
+        ]
 
     def Estimate(self, s: List[int]) -> float:
         diff = 0
@@ -319,6 +371,7 @@ class MiniMax:
             if self.node >= 10000 or self.max_depth >= 8:
                 break
             self.max_depth += 1
+
 
 if __name__ == "__main__":
     asyncio.run(main())

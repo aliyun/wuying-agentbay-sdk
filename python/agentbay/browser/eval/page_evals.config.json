@@ -96,7 +96,7 @@
             ]
         },
         {
-            "name": "tegner_shop",
+            "name": "extract_products",
             "categories": [
                 "combination",
                 "experimental"

@@ -1,12 +1,14 @@
-import os
-import asyncio
-import json
+"""
+示例：多站点商品巡检与抽取
+批量访问站点，抽取商品名称/价格/相对链接，并归一化
+保存 JSON 结果与截图
+重点：ExtractOptions + Pydantic schema
+"""
+import os, asyncio, json
 from datetime import datetime
 from typing import List, Optional
 from urllib.parse import urlparse, urljoin
 import base64
-
-from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from agentbay import AgentBay
@@ -16,7 +18,7 @@ from agentbay.browser.browser import (
     BrowserScreen,
     BrowserProxy,
 )
-from agentbay.browser.browser_agent import ActOptions, ExtractOptions, BrowserAgent
+from agentbay.browser.browser_agent import ActOptions, ExtractOptions
 from agentbay.model import SessionResult
 from playwright.async_api import async_playwright
 
@@ -115,7 +117,7 @@ async def take_and_save_screenshot(agent, base_url: str, out_dir: str) -> Option
 
 
 async def extract_products(
-    agent, page, base_url: str, out_dir: str
+    agent, page, base_url: str
 ) -> List[ProductInfo]:
     opts = ExtractOptions(
         instruction=(
@@ -135,6 +137,8 @@ async def extract_products(
             f"Extracted products from {base_url} but none were valid after normalization."
         )
         return None
+    
+    
     return products
 
 
@@ -153,7 +157,7 @@ async def ensure_listing_page(
                 f"Extraction successful on attempt {i+1}. Found {valid_count} valid products."
             )
 
-            # await take_and_save_screenshot(agent, base_url, out_dir)
+            await take_and_save_screenshot(agent, base_url, out_dir)
             return products_found
 
         if i < max_steps - 1:
@@ -208,24 +212,17 @@ async def process_site(session, browser, url: str, out_dir: str = "/tmp") -> Non
 
 
 SITES = [
-    "https://milatech.shop/",
-    "https://waydoo.com/",
-    "https://aspirebuildingmaterials.com/",
-    "https://mgolightingtech.com/",
-    "https://www.emootoom.com/",
-    "https://censlighting.com/",
-    "https://welomall.com/",
-    "https://www.szcxi.com/",
-    "https://tegner.shop/",
+    "https://www.example.com/",
+    "https://www.shop.com/",
+    "https://www.tao.com/",
 ]
 
 CAPTURE_DETECT_URL = [
-    "https://censlighting.com/",
+    "https://www.shop.com/",
 ]
 
 
 async def main():
-    load_dotenv()
     api_key = os.getenv("AGENTBAY_API_KEY")
     if not api_key:
         print("Error: AGENTBAY_API_KEY is not set")

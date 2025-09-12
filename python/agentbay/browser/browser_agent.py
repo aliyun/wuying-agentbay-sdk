@@ -3,7 +3,6 @@ from typing import List, Dict, Union, Any, Optional, Tuple, TypeVar, Generic, Ty
 from pydantic import BaseModel
 from agentbay.api.base_service import BaseService, OperationResult
 from agentbay.exceptions import BrowserError, AgentBayError
-from agentbay.api.models import CallMcpToolRequest
 from agentbay.logger import get_logger
 
 # Initialize logger for this module
@@ -155,7 +154,11 @@ class BrowserAgent(BaseService):
 
     def screenshot(
         self,
-        page: Any = None,
+        page=None,
+        full_page: bool = True,
+        quality: int = 80,
+        clip: Optional[Dict[str, float]] = None,
+        timeout: Optional[int] = None,
     ) -> str:
         """
         Takes a screenshot of the specified page.
@@ -163,6 +166,11 @@ class BrowserAgent(BaseService):
         Args:
             page (Optional[Page]): The Playwright Page object to take a screenshot of. If None,
                                    the agent's currently focused page will be used.
+            full_page (bool): Whether to capture the full scrollable page.
+            quality (int): The quality of the image (0-100), for JPEG format.
+            clip (Optional[Dict[str, float]]): An object specifying the clipping region {x, y, width, height}.
+            timeout (Optional[int]): Custom timeout for the operation in milliseconds.
+
         Returns:
             str: A base64 encoded data URL of the screenshot, or an error message.
         """
@@ -173,7 +181,13 @@ class BrowserAgent(BaseService):
             args = {
                 "context_id": context_id,
                 "page_id": page_id,
+                "full_page": full_page,
+                "quality": quality,
             }
+            if clip:
+                args["clip"] = clip
+            if timeout:
+                args["timeout"] = timeout
 
             response = self._call_mcp_tool_timeout("page_use_screenshot", args)
             if response.success:
@@ -185,7 +199,11 @@ class BrowserAgent(BaseService):
 
     async def screenshot_async(
         self,
-        page: Any = None,
+        page=None,
+        full_page: bool = True,
+        quality: int = 80,
+        clip: Optional[Dict[str, float]] = None,
+        timeout: Optional[int] = None,
     ) -> str:
         """
         Asynchronously takes a screenshot of the specified page.
@@ -210,7 +228,13 @@ class BrowserAgent(BaseService):
             args = {
                 "context_id": context_id,
                 "page_id": page_id,
+                "full_page": full_page,
+                "quality": quality,
             }
+            if clip:
+                args["clip"] = clip
+            if timeout:
+                args["timeout"] = timeout
 
             response = self._call_mcp_tool_timeout("page_use_screenshot", args)
             if response.success:
@@ -239,8 +263,8 @@ class BrowserAgent(BaseService):
 
     def act(
         self,
-        page,
         action_input: Union[ObserveResult, ActOptions],
+        page=None,
     ) -> "ActResult":
         """
         Perform an action on a web page, using ActOptions to configure behavior.
@@ -307,8 +331,8 @@ class BrowserAgent(BaseService):
 
     async def act_async(
         self,
-        page,
         action_input: Union[ObserveResult, ActOptions],
+        page=None,
     ) -> "ActResult":
         """
         Asynchronously perform an action on a web page.
@@ -376,8 +400,8 @@ class BrowserAgent(BaseService):
 
     def observe(
         self,
-        page,
         options: ObserveOptions,
+        page=None,
     ) -> Tuple[bool, List[ObserveResult]]:
         """
         Observe elements or state on a web page.
@@ -445,8 +469,8 @@ class BrowserAgent(BaseService):
 
     async def observe_async(
         self,
-        page,
         options: ObserveOptions,
+        page=None,
     ) -> Tuple[bool, List[ObserveResult]]:
         """
         Asynchronously observe elements or state on a web page.
@@ -523,7 +547,7 @@ class BrowserAgent(BaseService):
         except Exception as e:
             raise BrowserError(f"Failed to observe: {e}")
 
-    def extract(self, page, options: ExtractOptions) -> Tuple[bool, T]:
+    def extract(self, options: ExtractOptions, page=None) -> Tuple[bool, T]:
         """
         Extract information from a web page.
 
@@ -587,8 +611,8 @@ class BrowserAgent(BaseService):
 
     async def extract_async(
         self,
-        page,
         options: ExtractOptions,
+        page=None,
     ) -> Tuple[bool, T]:
         """
         Asynchronously extract information from a web page.
@@ -644,7 +668,7 @@ class BrowserAgent(BaseService):
                 print("extract data =", data)
                 extract_result = data.get("extract_result", "")
                 print("extract_result =", extract_result)
-                extract_obj = extract_obj = options.schema.model_validate_json(extract_result)
+                extract_obj = options.schema.model_validate_json(extract_result)
                 return True, extract_obj
             else:
                 print(

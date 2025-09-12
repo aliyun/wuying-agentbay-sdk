@@ -190,7 +190,7 @@ CAPTURE_DETECT_URL = [
 ]
 
 
-async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]):
+async def run(agent: PageAgent, logger: logging.Logger, config: Dict[str, Any]) -> dict:
     """
     Performs a paginated e-commerce site inspection.
     """
