@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import logging
 import os
 from types import ModuleType
@@ -94,7 +93,7 @@ class PageAgent:
                             asyncio.run(_connect_browser())
                         self._worker_thread = concurrent.futures.ThreadPoolExecutor().submit(thread_target)
                         promise.result()
-                    
+
                     # Get pwd
                     # Find and modify all py files under page_tasks, replace mcp_server.page_agent with agentbay.browser.eval.page_agent in py files
                     pwd = os.getcwd()
@@ -105,7 +104,7 @@ class PageAgent:
                             content = content.replace("mcp_server.page_agent", "agentbay.browser.eval.page_agent")
                             with open(f"{pwd}/page_tasks/{file}", "w") as f:
                                 f.write(content)
-                    
+
                     logger.info("Import page_tasks successfully")
                 else:
                     logger.error("Failed to initialize browser")
@@ -160,7 +159,7 @@ class PageAgent:
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
                             logger.debug(f"MCP tool response: {response}")
-                            
+
                             # Extract text content from response
                             if hasattr(response, 'content') and response.content:
                                 for content_item in response.content:
@@ -299,7 +298,7 @@ class PageAgent:
                 use_text_extract=use_text_extract,
             )
 
-            success, extracted_data = await self.session.browser.agent.extract_async(self.current_page, options)
+            success, extracted_data = await self.session.browser.agent.extract_async(page=self.current_page, options=options)
             return extracted_data if success else None
         except Exception as e:
             logger.error(f"Error in extract: {e}", exc_info=True)
@@ -325,7 +324,7 @@ class PageAgent:
                 instruction=instruction,
                 dom_settle_timeout_ms=dom_settle_timeout_ms,
             )
-            success, observed_elements = await self.session.browser.agent.observe_async(self.current_page, options)
+            success, observed_elements = await self.session.browser.agent.observe_async(page=self.current_page, options=options)
             return observed_elements
         except Exception as e:
             logger.error(f"Error in observe: {e}", exc_info=True)
@@ -352,9 +351,9 @@ class PageAgent:
                 options = ActOptions(
                     action=action_input,    
                 )
-                return await self.session.browser.agent.act_async(self.current_page, options)
+                return await self.session.browser.agent.act_async(page=self.current_page, action_input=options)
             else:
-                return await self.session.browser.agent.act_async(self.current_page, action_input)
+                return await self.session.browser.agent.act_async(page=self.current_page, action_input=action_input)
         except Exception as e:
             logger.error(f"Error in act: {e}", exc_info=True)
             raise

@@ -57,7 +57,7 @@ class LocalMCPClient:
                 asyncio.run(_connect_and_list_tools())
             self.worker_thread = concurrent.futures.ThreadPoolExecutor().submit(thread_target)
             promise.result()
-        
+
     async def call_tool(self, tool_name: str, arguments: dict):
         if not self.session or not self._tool_call_queue or not self._loop:
             raise RuntimeError("MCP client is not connected. Call connect() and ensure it returns True before calling callTool.")
@@ -94,10 +94,10 @@ class LocalMCPClient:
                                         break
                                 if is_successful:
                                     mcp_response.data = text_content
-                                    print(f"MCP tool text response (data): {text_content}")
+                                    logger.info(f"MCP tool text response (data): {text_content}")
                                 else:
                                     mcp_response.error_message = text_content
-                                    print(f"MCP tool text response (error): {text_content}")
+                                    logger.info(f"MCP tool text response (error): {text_content}")
 
                                 future.set_result(mcp_response)
                         else:
