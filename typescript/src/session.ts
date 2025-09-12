@@ -105,6 +105,7 @@ export class Session {
   public isVpc = false; // Whether this session uses VPC resources
   public networkInterfaceIp = ""; // Network interface IP for VPC sessions
   public httpPort = ""; // HTTP port for VPC sessions
+  public token = ""; // Token for VPC sessions
 
   // File, command, code, and oss handlers (matching Python naming)
   public fileSystem: FileSystem; // file_system in Python
@@ -200,6 +201,13 @@ export class Session {
    */
   getHttpPort(): string {
     return this.httpPort;
+  }
+
+  /**
+   * Return the token for VPC sessions.
+   */
+  getToken(): string {
+    return this.token;
   }
 
   /**
@@ -796,7 +804,7 @@ export class Session {
         url.searchParams.append("server", server);
         url.searchParams.append("tool", toolName);
         url.searchParams.append("args", argsJSON);
-        url.searchParams.append("apiKey", this.getAPIKey());
+        url.searchParams.append("token", this.getToken());
         // Add requestId for debugging purposes
         const requestId = `vpc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         url.searchParams.append("requestId", requestId);

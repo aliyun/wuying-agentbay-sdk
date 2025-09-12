@@ -107,6 +107,7 @@ type CreateMcpSessionResponseBodyData struct {
 	ResourceUrl        *string `json:"ResourceUrl,omitempty" xml:"ResourceUrl,omitempty"`
 	SessionId          *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	Success            *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
+	Token              *string `json:"Token,omitempty" xml:"Token,omitempty"`
 	VpcResource        *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
 }
 
@@ -150,6 +151,10 @@ func (s *CreateMcpSessionResponseBodyData) GetNetworkInterfaceIp() *string {
 	return s.NetworkInterfaceIp
 }
 
+func (s *CreateMcpSessionResponseBodyData) GetToken() *string {
+	return s.Token
+}
+
 func (s *CreateMcpSessionResponseBodyData) GetVpcResource() *bool {
 	return s.VpcResource
 }
@@ -191,6 +196,11 @@ func (s *CreateMcpSessionResponseBodyData) SetHttpPort(v string) *CreateMcpSessi
 
 func (s *CreateMcpSessionResponseBodyData) SetNetworkInterfaceIp(v string) *CreateMcpSessionResponseBodyData {
 	s.NetworkInterfaceIp = &v
+	return s
+}
+
+func (s *CreateMcpSessionResponseBodyData) SetToken(v string) *CreateMcpSessionResponseBodyData {
+	s.Token = &v
 	return s
 }
 

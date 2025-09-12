@@ -281,6 +281,8 @@ class AgentBay:
                 session.network_interface_ip = data["NetworkInterfaceIp"]
             if data.get("HttpPort"):
                 session.http_port = data["HttpPort"]
+            if data.get("Token"):
+                session.token = data["Token"]
 
             # Store image_id used for this session
             session.image_id = params.image_id

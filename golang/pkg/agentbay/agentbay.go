@@ -243,6 +243,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if response.Body.Data.HttpPort != nil {
 		session.HttpPortNumber = *response.Body.Data.HttpPort
 	}
+	if response.Body.Data.Token != nil {
+		session.Token = *response.Body.Data.Token
+	}
 
 	a.Sessions.Store(session.SessionID, *session)
 

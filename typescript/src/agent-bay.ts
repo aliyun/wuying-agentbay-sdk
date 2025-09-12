@@ -255,6 +255,9 @@ export class AgentBay {
       if (data.httpPort) {
         session.httpPort = data.httpPort;
       }
+      if (data.token) {
+        session.token = data.token;
+      }
 
       // Store imageId used for this session
       (session as any).imageId = params.imageId;

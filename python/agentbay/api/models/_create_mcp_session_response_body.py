@@ -86,6 +86,7 @@ class CreateMcpSessionResponseBodyData(DaraModel):
         resource_url: Optional[str] = None,
         session_id: Optional[str] = None,
         success: Optional[bool] = None,
+        token: Optional[str] = None,
         vpc_resource: Optional[bool] = None,
     ):
         self.app_instance_id = app_instance_id
@@ -96,6 +97,7 @@ class CreateMcpSessionResponseBodyData(DaraModel):
         self.resource_url = resource_url
         self.session_id = session_id
         self.success = success
+        self.token = token
         self.vpc_resource = vpc_resource
 
     def validate(self):
@@ -130,6 +132,9 @@ class CreateMcpSessionResponseBodyData(DaraModel):
         if self.success is not None:
             result['Success'] = self.success
 
+        if self.token is not None:
+            result['Token'] = self.token
+
         if self.vpc_resource is not None:
             result['VpcResource'] = self.vpc_resource
 
@@ -160,6 +165,9 @@ class CreateMcpSessionResponseBodyData(DaraModel):
 
         if m.get('Success') is not None:
             self.success = m.get('Success')
+
+        if m.get('Token') is not None:
+            self.token = m.get('Token')
 
         if m.get('VpcResource') is not None:
             self.vpc_resource = m.get('VpcResource')

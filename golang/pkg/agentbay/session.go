@@ -110,6 +110,7 @@ type Session struct {
 	IsVpcEnabled       bool   // Whether this session uses VPC resources
 	NetworkInterfaceIP string // Network interface IP for VPC sessions
 	HttpPortNumber     string // HTTP port for VPC sessions
+	Token              string // Token for VPC sessions
 
 	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
@@ -609,6 +610,11 @@ func (s *Session) HttpPort() string {
 	return s.HttpPortNumber
 }
 
+// GetToken returns the token for VPC sessions
+func (s *Session) GetToken() string {
+	return s.Token
+}
+
 // GetMcpTools returns the MCP tools available for this session
 func (s *Session) GetMcpTools() []interface{} {
 	result := make([]interface{}, len(s.McpTools))
@@ -687,7 +693,7 @@ func (s *Session) callMcpToolVPC(toolName, argsJSON string) (*models.McpToolResu
 	params.Add("server", server)
 	params.Add("tool", toolName)
 	params.Add("args", argsJSON)
-	params.Add("apiKey", s.GetAPIKey())
+	params.Add("token", s.GetToken())
 	// Add requestId for debugging purposes
 	requestID := fmt.Sprintf("vpc-%d-%d", time.Now().UnixMilli(), rand.Intn(1000000000))
 	params.Add("requestId", requestID)

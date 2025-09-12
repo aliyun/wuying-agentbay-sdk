@@ -69,6 +69,7 @@ class Session:
         self.is_vpc = False  # Whether this session uses VPC resources
         self.network_interface_ip = ""  # Network interface IP for VPC sessions
         self.http_port = ""  # HTTP port for VPC sessions
+        self.token = ""
 
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
@@ -112,6 +113,10 @@ class Session:
     def get_http_port(self) -> str:
         """Return the HTTP port for VPC sessions."""
         return self.http_port
+    
+    def get_token(self) -> str:
+        """Return the token for VPC sessions."""
+        return self.token
 
     def find_server_for_tool(self, tool_name: str) -> str:
         """Find the server that provides the given tool."""
