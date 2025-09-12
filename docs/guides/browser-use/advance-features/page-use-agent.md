@@ -1,4 +1,4 @@
-# PageUse Agent
+# PageUseAgent Guide 
 
 An AI-powered, natural-language web agent that performs precise, reliable page operations via AgentBay’s managed browser. It exposes simple SDK methods to navigate, observe, act, extract.
 
