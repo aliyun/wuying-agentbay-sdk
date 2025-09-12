@@ -6,8 +6,8 @@
 
 - [Simple visit](../../../python/docs/examples/browser/visit_aliyun.py) - A minimal example showing how to initialize the browser with basic AIBrowser API call
 
-- [Viewport and UserAgent](../../../python/docs/examples/browser/browser_viewport.py) - A python example showing how to initialize the browser with custom viewport and user-agent settings
-- [Viewport and UserAgent](../../../typescript/docs/examples/browser/browser-viewport.ts) - A typescript example showing how to initialize the browser with custom viewport and user-agent settings
+- [Viewport and UserAgent (Python)](../../../python/docs/examples/browser/browser_viewport.py) - A python example showing how to initialize the browser with custom viewport and user-agent settings
+- [Viewport and UserAgent (TypeScript)](../../../typescript/docs/examples/browser/browser-viewport.ts) - A typescript example showing how to initialize the browser with custom viewport and user-agent settings
 
 ## Core Features
 

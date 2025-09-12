@@ -12,20 +12,13 @@ Stealth Mode is an core feature of the AgentBay SDK, designed to help developers
 
 ## Key Features
 
-### 1. Browser Fingerprint Randomized
+### Browser Fingerprint Randomized
 Stealth Mode supports to randomize browser fingerprints and can be configured when initializing a browser via AgentBay AIBrowser API. The `BrowserFingerprint` options include:
 - **Devices**: Specify desktop or mobile device
 - **Operating Systems**: Specify operating systems like windows, macos, linux, ios, android
 - **Locales**: Customize browser language and locale settings (e.g. zh-CN, en-US, fr-FR)
 
 When the `use_stealth` and `BrowserFingerprint` option are both set, AgentBay AIBrowser will rotate the browser fingerprints releated to these options.
-
-
-### 2. Behavior Simulation
-When the use_stealth option is set to `true`, AgentBay AIBrowser will perform behavior simulation to make website browsing tasks appear more like human operations. The mainly behaviors include:
-- **Mouse Movement Simulation**: Simulate real user mouse movement patterns
-- **Scrolling Simulation**: Simulate natural page scrolling patterns
-- **Keyboard Input Simulation**: Simulate human typing patterns
 
 
 ## Python Implementation
@@ -201,8 +194,7 @@ page = await context.new_page()
 **Why this matters:**
 - The AgentBay SDK pre-configures `contexts[0]` with stealth mode settings
 - Creating a new context with `new_context()` bypasses these configurations
-- This results in reduced anti-bot detection effectiveness
-- Browser fingerprinting and behavior simulation may not work properly
+- This results in reduced anti-bot detection effectiveness and browser fingerprinting may not work properly
 
 ### 2. Fingerprint Configuration Strategy
 
