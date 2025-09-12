@@ -1,4 +1,4 @@
-# Agentbay AIBrowser Guide
+# AgentBay AIBrowser Guide
 
 Welcome to the AgentBay AIBrowser Guides! This provides complete functionality introduction and best practices for experienced developers.
 
@@ -8,10 +8,8 @@ Welcome to the AgentBay AIBrowser Guides! This provides complete functionality i
 - [Core Features](core-features.md) - Essential browser features and typical workflows
 - [Advance Features](advance-features.md) - Advanced configuration and capabilities
 - [Integrations](integrations.md) - Seamlessly weave with community tools and frameworks, extending your automation reach
-- [API](api.md) - Detailed Python API for Browser, Options, and Agents
-- [Change Log](changelog.md) - Version history, new features, fixes, and breaking changes
 
-## 🚀 What is Agentbay AIBrowser?
+## 🚀 What is AgentBay AIBrowser?
 
 Agentbay AIBrowser is a managed platform for running headless/non-headless browsers at scale. It provides infrastructure to create and manage sessions, initialize browser instances, and allocate the underlying hardware resources on demand. It is designed for webpage automation scenarios such as filling out forms, simulating user actions, and orchestrating complex multi-step tasks across modern, dynamic websites.
 

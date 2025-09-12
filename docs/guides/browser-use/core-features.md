@@ -8,19 +8,13 @@
 
 - [Extension Management](core-features/extension.md) - Upload, manage, and synchronize browser extensions with your browser sessions for automated testing and web scraping
 
-## File Upload/Download
-
-## Observability
-
-### Stealth Mode
+## Stealth Mode
 
 - [StealthMode](core-features/stealth-mode.md) - Using stealth-mode to make the browser harder to detect by the anti-bot system
 
-### IPProxy
+## IPProxy
 - [Browser Proxy](core-features/browser-proxies.md) - Configure proxy servers to route browser traffic for IP rotation and geographical distribution
 
-### Captcha Resolving
+## Captcha Resolving
 
 - [CAPTCHA Resolution](core-features/captcha.md) - Automatically resolve slider-type CAPTCHA challenges to ensure uninterrupted automation workflows
-
-### Ads Blocking
