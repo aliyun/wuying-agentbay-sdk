@@ -105,6 +105,33 @@ func main() {
 	}
 	fmt.Printf("Created custom session with ID: %s\n", customResult.Session.SessionID)
 
+	// Create a session with network functionality (requires custom image)
+	// Step 1: Create network first
+	networkResult, err := client.Network.CreateNetwork(nil)
+	if err != nil {
+		fmt.Printf("Error creating network: %v\n", err)
+		os.Exit(1)
+	}
+	
+	if networkResult.Success && networkResult.NetworkInfo != nil {
+		networkID := networkResult.NetworkInfo.NetworkID
+		fmt.Printf("Network created: %s\n", networkID)
+		
+		// Step 2: Create session with network ID (requires custom image)
+		networkParams := agentbay.NewCreateSessionParams().
+			WithImageId("imgc-12345678"). // Custom image required for network functionality
+			WithNetworkId(networkID).
+			WithLabels(map[string]string{"network": "enabled"})
+			
+		networkSession, err := client.Create(networkParams)
+		if err != nil {
+			fmt.Printf("Error creating session with network: %v\n", err)
+			// Note: This will fail with standard images like linux_latest
+		} else {
+			fmt.Printf("Created session with network: %s\n", networkSession.Session.SessionID)
+		}
+	}
+
 	// RECOMMENDED: Create a session with context synchronization
 	policy := agentbay.SyncPolicy{
 		UploadPolicy: &agentbay.UploadPolicy{

@@ -21,6 +21,8 @@ type iCreateMcpSessionRequest interface {
 	GetLabels() *string
 	SetMcpPolicyId(v string) *CreateMcpSessionRequest
 	GetMcpPolicyId() *string
+	SetNetworkId(v string) *CreateMcpSessionRequest
+	GetNetworkId() *string
 	SetPersistenceDataList(v []*CreateMcpSessionRequestPersistenceDataList) *CreateMcpSessionRequest
 	GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList
 	SetSessionId(v string) *CreateMcpSessionRequest
@@ -36,6 +38,7 @@ type CreateMcpSessionRequest struct {
 	ImageId             *string                                       `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels              *string                                       `json:"Labels,omitempty" xml:"Labels,omitempty"`
 	McpPolicyId         *string                                       `json:"McpPolicyId,omitempty" xml:"McpPolicyId,omitempty"`
+	NetworkId           *string                                       `json:"NetworkId,omitempty" xml:"NetworkId,omitempty"`
 	PersistenceDataList []*CreateMcpSessionRequestPersistenceDataList `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty" type:"Repeated"`
 	SessionId           *string                                       `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	VpcResource         *bool                                         `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
@@ -71,6 +74,10 @@ func (s *CreateMcpSessionRequest) GetLabels() *string {
 
 func (s *CreateMcpSessionRequest) GetMcpPolicyId() *string {
 	return s.McpPolicyId
+}
+
+func (s *CreateMcpSessionRequest) GetNetworkId() *string {
+	return s.NetworkId
 }
 
 func (s *CreateMcpSessionRequest) GetPersistenceDataList() []*CreateMcpSessionRequestPersistenceDataList {
@@ -112,6 +119,11 @@ func (s *CreateMcpSessionRequest) SetLabels(v string) *CreateMcpSessionRequest {
 
 func (s *CreateMcpSessionRequest) SetMcpPolicyId(v string) *CreateMcpSessionRequest {
 	s.McpPolicyId = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequest) SetNetworkId(v string) *CreateMcpSessionRequest {
+	s.NetworkId = &v
 	return s
 }
 

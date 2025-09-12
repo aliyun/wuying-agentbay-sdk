@@ -36,6 +36,7 @@ type AgentBay struct {
 	Client   *mcp.Client
 	Sessions sync.Map
 	Context  *ContextService
+	Network  *NetworkManager
 }
 
 // NewAgentBay creates a new AgentBay client.
@@ -81,10 +82,14 @@ func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error) {
 		RegionId: config.RegionID,
 		Client:   client,
 		Context:  nil, // Will be initialized after creation
+		Network:  nil, // Will be initialized after creation
 	}
 
 	// Initialize context service
 	agentBay.Context = &ContextService{AgentBay: agentBay}
+	
+	// Initialize network manager
+	agentBay.Network = &NetworkManager{AgentBay: agentBay}
 
 	return agentBay, nil
 }
@@ -117,6 +122,11 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	// Add McpPolicyId if provided
 	if params.McpPolicyId != "" {
 		createSessionRequest.McpPolicyId = tea.String(params.McpPolicyId)
+	}
+
+	// Add NetworkId if provided
+	if params.NetworkId != "" {
+		createSessionRequest.NetworkId = tea.String(params.NetworkId)
 	}
 
 	// Add labels if provided
@@ -170,6 +180,9 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 	if createSessionRequest.McpPolicyId != nil {
 		fmt.Printf("McpPolicyId=%s, ", *createSessionRequest.McpPolicyId)
+	}
+	if createSessionRequest.NetworkId != nil {
+		fmt.Printf("NetworkId=%s, ", *createSessionRequest.NetworkId)
 	}
 	if createSessionRequest.VpcResource != nil {
 		fmt.Printf("VpcResource=%t, ", *createSessionRequest.VpcResource)

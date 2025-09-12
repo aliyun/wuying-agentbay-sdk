@@ -115,9 +115,19 @@ result, err := client.Create(agentbay.NewCreateSessionParams())
 
 // Create session with parameters
 params := agentbay.NewCreateSessionParams().
-    WithImageId("ubuntu:20.04").
+    WithImageId("linux_latest").
     WithLabels(map[string]string{"project": "demo"})
 result, err := client.Create(params)
+
+// Create session with network functionality (requires custom image)
+networkResult, err := client.Network.CreateNetwork(nil)
+if err == nil && networkResult.Success {
+    networkParams := agentbay.NewCreateSessionParams().
+        WithImageId("imgc-12345678").        // Custom image required
+        WithNetworkId(networkResult.NetworkInfo.NetworkID).
+        WithLabels(map[string]string{"network": "enabled"})
+    result, err := client.Create(networkParams)
+}
 ```
 
 #### Delete()
@@ -441,13 +451,35 @@ if err != nil {
 
 ```go
 type CreateSessionParams struct {
-    Image        string            `json:"image,omitempty"`
-    Labels       map[string]string `json:"labels,omitempty"`
-    ContextSyncs []ContextSync     `json:"context_syncs,omitempty"`
-    SessionType  string            `json:"session_type,omitempty"`
-    VPCConfig    *VPCConfig        `json:"vpc_config,omitempty"`
+    // Labels are custom labels for the Session
+    Labels map[string]string
+
+    // ImageId specifies the image ID to use for the session
+    ImageId string
+
+    // ContextSync is a list of context synchronization configurations
+    ContextSync []*ContextSync
+
+    // IsVpc specifies whether to create a VPC-based session
+    IsVpc bool
+
+    // McpPolicyId specifies the MCP policy ID to apply when creating the session
+    McpPolicyId string
+
+    // NetworkId specifies the network ID to use for the session
+    // Note: Requires custom image (imgc-xxxxx format) and advanced network option
+    NetworkId string
 }
 ```
+
+**Methods:**
+- `NewCreateSessionParams() *CreateSessionParams`: Creates a new instance with default values
+- `WithLabels(labels map[string]string) *CreateSessionParams`: Sets labels
+- `WithImageId(imageId string) *CreateSessionParams`: Sets image ID
+- `WithIsVpc(isVpc bool) *CreateSessionParams`: Sets VPC flag
+- `WithMcpPolicyId(mcpPolicyId string) *CreateSessionParams`: Sets MCP policy ID
+- `WithNetworkId(networkId string) *CreateSessionParams`: Sets network ID
+- `AddContextSync(contextID, path string, policy *SyncPolicy) *CreateSessionParams`: Adds context sync configuration
 
 ### CommandResult
 

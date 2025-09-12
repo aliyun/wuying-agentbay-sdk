@@ -17,9 +17,11 @@ golang/tests/
 │   │   ├── adb_test.go           # Tests for Adb functionality
 │   │   ├── context_test.go       # Tests for Context functionality
 │   │   ├── application_test.go   # Tests for Application functionality
-│   │   └── window_test.go        # Tests for Window functionality
+│   │   ├── window_test.go        # Tests for Window functionality
+│   │   └── network_test.go       # Tests for Network functionality
 │   └── integration/
-│       └── context_persistence_integration_test.go  # Integration tests for context persistence
+│       ├── context_persistence_integration_test.go  # Integration tests for context persistence
+│       └── network_integration_test.go              # Integration tests for network functionality
 ```
 
 ## Running Tests
@@ -42,6 +44,7 @@ cd golang
 go test ./tests/pkg/agentbay/agentbay_test.go  # Run AgentBay client tests
 go test ./tests/pkg/agentbay/session_test.go   # Run Session tests
 go test ./tests/pkg/agentbay/command_test.go   # Run Command tests
+go test ./tests/pkg/agentbay/network_test.go   # Run Network tests
 # ... and so on
 ```
 
@@ -115,6 +118,16 @@ Tests the Window functionality, including:
 - Window operations (activate, maximize, minimize, restore, resize)
 - Focus mode
 
+#### Network Tests
+
+Tests the Network functionality, including:
+- Creating networks
+- Retrieving tokens for existing networks
+- Querying network status and details
+- NetworkManager integration with AgentBay
+- NetworkInfo helper methods
+- Smart error handling for non-existent networks
+
 ### Integration Tests
 
 #### Context Persistence Integration Test
@@ -122,3 +135,13 @@ Tests the Window functionality, including:
 Tests the integration between different components, including:
 - Context persistence across sessions
 - File isolation between contexts
+
+#### Network Integration Test
+
+Tests the network functionality in real environment, including:
+- Complete network workflow (create, describe, session integration)
+- Smart handling of real vs test network IDs
+- Token retrieval for existing networks
+- Error handling for non-existent networks
+- Session creation with network IDs
+- NetworkManager integration verification

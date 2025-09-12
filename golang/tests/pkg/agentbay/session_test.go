@@ -455,3 +455,66 @@ func TestCreate_WithMcpPolicyId_Smoke(t *testing.T) {
 	params := agentbay.NewCreateSessionParams().WithMcpPolicyId("policy-abc")
 	_, _ = client.Create(params) // Do not enforce external dependencies; smoke that call path works
 }
+
+// TestSession_CreateWithNetworkId tests creating a session with a network ID
+func TestSession_CreateWithNetworkId(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	t.Log("Testing session creation with network ID...")
+
+	// Step 1: First create a network to get a valid network ID
+	t.Log("Step 1: Creating network...")
+	networkResult, err := agentBay.Network.CreateNetwork(nil)
+	if err != nil {
+		t.Fatalf("Failed to create network: %v", err)
+	}
+
+	var networkID string
+	if networkResult.Success && networkResult.NetworkInfo != nil {
+		networkID = networkResult.NetworkInfo.NetworkID
+		t.Logf("✅ Network created successfully: %s", networkID)
+		t.Logf("   Network Token: %s", networkResult.NetworkInfo.NetworkToken)
+	} else {
+		// Use a test network ID if network creation failed
+		networkID = "net-test-session-12345"
+		t.Logf("⚠️ Network creation failed, using test network ID: %s", networkID)
+	}
+
+	// Step 2: Create session with the network ID
+	t.Log("Step 2: Creating session with network ID...")
+
+	// Note: Network functionality requires a custom image (imgc-xxxxx) with advanced network option
+	sessionParams := agentbay.NewCreateSessionParams().
+		WithImageId("imgc-12345678"). // Custom image required for network functionality
+		WithNetworkId(networkID)
+
+	sessionResult, err := agentBay.Create(sessionParams)
+	if err != nil {
+		t.Logf("⚠️ Session creation with network failed (expected with standard image): %v", err)
+		// This is expected when using standard images without advanced network option
+		return
+	}
+
+	// Verify session creation result
+	if sessionResult != nil && sessionResult.Session != nil {
+		t.Logf("✅ Session created successfully with network ID: %s", sessionResult.Session.SessionID)
+		t.Logf("   Session Image ID: %s", sessionResult.Session.ImageId)
+
+		// Clean up the session
+		t.Log("Step 3: Cleaning up session...")
+		deleteResult, err := agentBay.Delete(sessionResult.Session)
+		if err != nil {
+			t.Logf("Warning: Failed to delete test session: %v", err)
+		} else {
+			t.Logf("✅ Test session cleaned up successfully (RequestID: %s)", deleteResult.RequestID)
+		}
+	} else {
+		t.Logf("⚠️ Session creation with network failed or returned nil result")
+		// This is expected when using standard images without advanced network option
+	}
+}

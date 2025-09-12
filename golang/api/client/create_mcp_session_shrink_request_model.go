@@ -21,6 +21,8 @@ type iCreateMcpSessionShrinkRequest interface {
 	GetLabels() *string
 	SetMcpPolicyId(v string) *CreateMcpSessionShrinkRequest
 	GetMcpPolicyId() *string
+	SetNetworkId(v string) *CreateMcpSessionShrinkRequest
+	GetNetworkId() *string
 	SetPersistenceDataListShrink(v string) *CreateMcpSessionShrinkRequest
 	GetPersistenceDataListShrink() *string
 	SetSessionId(v string) *CreateMcpSessionShrinkRequest
@@ -36,6 +38,7 @@ type CreateMcpSessionShrinkRequest struct {
 	ImageId                   *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels                    *string `json:"Labels,omitempty" xml:"Labels,omitempty"`
 	McpPolicyId               *string `json:"McpPolicyId,omitempty" xml:"McpPolicyId,omitempty"`
+	NetworkId                 *string `json:"NetworkId,omitempty" xml:"NetworkId,omitempty"`
 	PersistenceDataListShrink *string `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty"`
 	SessionId                 *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	VpcResource               *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
@@ -71,6 +74,10 @@ func (s *CreateMcpSessionShrinkRequest) GetLabels() *string {
 
 func (s *CreateMcpSessionShrinkRequest) GetMcpPolicyId() *string {
 	return s.McpPolicyId
+}
+
+func (s *CreateMcpSessionShrinkRequest) GetNetworkId() *string {
+	return s.NetworkId
 }
 
 func (s *CreateMcpSessionShrinkRequest) GetPersistenceDataListShrink() *string {
@@ -112,6 +119,11 @@ func (s *CreateMcpSessionShrinkRequest) SetLabels(v string) *CreateMcpSessionShr
 
 func (s *CreateMcpSessionShrinkRequest) SetMcpPolicyId(v string) *CreateMcpSessionShrinkRequest {
 	s.McpPolicyId = &v
+	return s
+}
+
+func (s *CreateMcpSessionShrinkRequest) SetNetworkId(v string) *CreateMcpSessionShrinkRequest {
+	s.NetworkId = &v
 	return s
 }
 

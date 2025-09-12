@@ -22,6 +22,9 @@ type CreateSessionParams struct {
 
 	// McpPolicyId specifies the MCP policy ID to apply when creating the session.
 	McpPolicyId string
+
+	// NetworkId specifies the network ID to use for the session.
+	NetworkId string
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -53,6 +56,12 @@ func (p *CreateSessionParams) WithIsVpc(isVpc bool) *CreateSessionParams {
 // WithMcpPolicyId sets the MCP policy ID for the session parameters and returns the updated parameters.
 func (p *CreateSessionParams) WithMcpPolicyId(mcpPolicyId string) *CreateSessionParams {
 	p.McpPolicyId = mcpPolicyId
+	return p
+}
+
+// WithNetworkId sets the network ID for the session parameters and returns the updated parameters.
+func (p *CreateSessionParams) WithNetworkId(networkId string) *CreateSessionParams {
+	p.NetworkId = networkId
 	return p
 }
 
