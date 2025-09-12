@@ -13,13 +13,13 @@
 
 ### Context
 
-- [Cookie Persistence (Python)](code-example/context-cookie-persistence.py) - Demonstrate how to persist cookies across multiple browser sessions using Browser Context
-- [Cookie Persistence (TypeScript)](code-example/context-cookie-persistence.ts) - TypeScript version of cookie persistence example
+- [Cookie Persistence (Python)](../../../python/docs/examples/browser/browser_context_cookie_persistence.py) - Demonstrate how to persist cookies across multiple browser sessions using Browser Context
+- [Cookie Persistence (TypeScript)](../../../typescript/docs/examples/browser/browser-context-cookie-persistence.ts) - TypeScript version of cookie persistence example
 
 ### Extension
 
-- [Extension Management (Python)](code-example/extension-management.py) - Complete workflow for managing browser extensions and integrating them with browser sessions
-- [Extension Management (TypeScript)](code-example/extension-management.ts) - TypeScript version of extension management example
+- [Basic Extension Usage (Python)](../../../python/docs/examples/extension/basic_extension_usage.py) - Basic extension upload and browser session creation with extensions
+- [Basic Extension Usage (TypeScript)](../../../typescript/docs/examples/extension-example/extension-example.ts) - Comprehensive extension management in TypeScript
 
 ### Upload/Download
 
