@@ -118,6 +118,10 @@ class AgentBay:
             # Add VPC resource if specified
             request.vpc_resource = params.is_vpc
 
+            # Add network_id if specified
+            if hasattr(params, "network_id") and params.network_id:
+                request.network_id = params.network_id
+
             # Flag to indicate if we need to wait for context synchronization
             has_persistence_data = False
 

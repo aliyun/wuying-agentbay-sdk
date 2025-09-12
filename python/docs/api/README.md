@@ -91,6 +91,14 @@ params = CreateSessionParams(
     labels={"project": "demo"}
 )
 result = agent_bay.create(params)
+
+# Create session with network_id
+params = CreateSessionParams(
+    image_id="ubuntu:20.04",
+    labels={"project": "demo"},
+    network_id="net-123456"
+)
+result = agent_bay.create(params)
 ```
 
 #### delete()
@@ -448,6 +456,7 @@ class CreateSessionParams:
     browser_context: Optional[BrowserContext] = None
     is_vpc: Optional[bool] = None
     mcp_policy_id: Optional[str] = None
+    network_id: Optional[str] = None
 ```
 
 ### CommandResult

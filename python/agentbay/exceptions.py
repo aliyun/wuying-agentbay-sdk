@@ -75,3 +75,10 @@ class AgentError(AgentBayError):
 
     def __init__(self, message="Agent action error", *args, **kwargs):
         super().__init__(message, *args, **kwargs)
+
+
+class NetworkError(AgentBayError):
+    """Raised for errors related to network operations."""
+
+    def __init__(self, message="Network operation error", *args, **kwargs):
+        super().__init__(message, *args, **kwargs)

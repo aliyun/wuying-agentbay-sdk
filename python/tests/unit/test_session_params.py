@@ -33,6 +33,33 @@ class TestCreateSessionParams(unittest.TestCase):
         params = CreateSessionParams(mcp_policy_id="policy-xyz")
         self.assertEqual(params.mcp_policy_id, "policy-xyz")
 
+    def test_network_id(self):
+        """Test that network_id can be carried by CreateSessionParams."""
+        params = CreateSessionParams(network_id="net-123456")
+        self.assertEqual(params.network_id, "net-123456")
+
+    def test_network_id_none(self):
+        """Test that network_id defaults to None."""
+        params = CreateSessionParams()
+        self.assertIsNone(params.network_id)
+
+    def test_all_parameters(self):
+        """Test CreateSessionParams with all parameters including network_id."""
+        labels = {"env": "test", "project": "demo"}
+        params = CreateSessionParams(
+            labels=labels,
+            image_id="linux_latest",
+            is_vpc=True,
+            mcp_policy_id="policy-123",
+            network_id="net-456789"
+        )
+        
+        self.assertEqual(params.labels, labels)
+        self.assertEqual(params.image_id, "linux_latest")
+        self.assertTrue(params.is_vpc)
+        self.assertEqual(params.mcp_policy_id, "policy-123")
+        self.assertEqual(params.network_id, "net-456789")
+
 
 if __name__ == "__main__":
     unittest.main()

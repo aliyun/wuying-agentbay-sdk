@@ -121,6 +121,54 @@ class TestAgentBay(unittest.TestCase):
         self.assertIn("new-session-id", agent_bay._sessions)
         self.assertEqual(agent_bay._sessions["new-session-id"], result.session)
 
+    @patch("agentbay.agentbay.extract_request_id")
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_create_session_with_network_id(
+        self, mock_mcp_client, mock_load_config, mock_extract_request_id
+    ):
+        """Test creating a session with network_id parameter"""
+        # Mock configuration and request ID
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+        }
+        mock_extract_request_id.return_value = "create-request-id"
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {
+                    "SessionId": "new-session-id",
+                    "ResourceUrl": "http://resource.url",
+                }
+            }
+        }
+        mock_client.create_mcp_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance and session parameters with network_id
+        agent_bay = AgentBay(api_key="test-key")
+        params = CreateSessionParams(
+            labels={"env": "test"},
+            network_id="net-123456"
+        )
+
+        # Test creating a session
+        result = agent_bay.create(params)
+
+        # Verify the request was made with network_id
+        create_call_args = mock_client.create_mcp_session.call_args[0][0]
+        self.assertEqual(create_call_args.network_id, "net-123456")
+
+        # Verify results
+        self.assertEqual(result.request_id, "create-request-id")
+        self.assertIsNotNone(result.session)
+        self.assertEqual(result.session.session_id, "new-session-id")
+
     @patch("agentbay.agentbay.load_config")
     @patch("agentbay.agentbay.mcp_client")
     def test_create_session_invalid_response(self, mock_mcp_client, mock_load_config):
