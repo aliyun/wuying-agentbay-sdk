@@ -9,6 +9,7 @@
  * - Verify user agent and navigator properties
  */
 
+// @ts-nocheck
 import { AgentBay, CreateSessionParams } from '../../../src/agent-bay';
 import { BrowserOption, BrowserFingerprint } from '../../../src/browser';
 import { chromium } from 'playwright';

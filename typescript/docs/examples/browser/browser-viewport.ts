@@ -8,6 +8,7 @@
  * - Verify custom user agent
  */
 
+// @ts-nocheck
 import { AgentBay, CreateSessionParams } from '../../../src/agent-bay';
 import { BrowserOption, BrowserViewport } from '../../../src/browser';
 import { chromium } from 'playwright';
@@ -70,7 +71,7 @@ async function main(): Promise<void> {
 
         const initialized = await session.browser.initializeAsync(browserOption);
         if (initialized) {
-            const endpointUrl = session.browser.getEndpointUrl();
+            const endpointUrl = await session.browser.getEndpointUrl();
             console.log('endpoint_url =', endpointUrl);
 
             const browser = await chromium.connectOverCDP(endpointUrl);

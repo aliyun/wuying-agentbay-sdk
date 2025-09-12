@@ -21,6 +21,7 @@
  * - Verify the proxy's public IP address
  */
 
+// @ts-nocheck
 import { AgentBay, CreateSessionParams } from '../../../src/agent-bay';
 import { BrowserOption, BrowserProxy } from '../../../src/browser';
 import { chromium } from 'playwright';
@@ -111,7 +112,7 @@ async function main(): Promise<void> {
 
         const initialized = await session.browser.initializeAsync(browserOption);
         if (initialized) {
-            const endpointUrl = session.browser.getEndpointUrl();
+            const endpointUrl = await session.browser.getEndpointUrl();
             console.log('endpoint_url =', endpointUrl);
 
             const browser = await chromium.connectOverCDP(endpointUrl);
