@@ -26,11 +26,11 @@ result = agent_bay.create()
 
 if result.success:
     session = result.session
-    
+
     # Execute command
     cmd_result = session.command.execute_command("ls -la")
     print(cmd_result.output)
-    
+
     # File operations
     session.file_system.write_file("/tmp/test.txt", "Hello World")
     content = session.file_system.read_file("/tmp/test.txt")
@@ -40,17 +40,16 @@ if result.success:
 ## 📖 Complete Documentation
 
 ### 🆕 New Users
-- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart) - Get started in 5 minutes
+- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 - [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and tips
 
 ### 🚀 Experienced Users
-- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides) - Complete feature introduction
+- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
 - [🔧 Python API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Python Examples](docs/examples/) - Complete example code
 
 ### 🆘 Need Help
-- [❓ FAQ](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/faq.md) - Quick answers
 - [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 
 ## 🔧 Core Features Quick Reference
@@ -101,7 +100,7 @@ session = agent_bay.create(CreateSessionParams(context_syncs=[context_sync])).se
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs)
+- [Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/README.md)
 
 ## 📄 License
 

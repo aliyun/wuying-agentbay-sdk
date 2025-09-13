@@ -8,7 +8,6 @@ This guide integrates the advanced features of the AgentBay SDK, including VPC s
 - [Session Access Links](#session-access-links)
 - [Agent Modules](#agent-modules)
 - [Browser Automation](#browser-automation)
-- [Integration and Extensions](#integration-and-extensions)
 - [Best Practices](#best-practices)
 
 <a id="vpc-sessions"></a>
@@ -69,25 +68,33 @@ The `get_link()` method provides access URLs for connecting to your session thro
 
 ```python
 from agentbay import AgentBay
+ # When get_link has no parameters, a special image_id needs to be specified, image_id should be browser_latest
 
 # Initialize the SDK and create a session
-agent_bay = AgentBay()
-session_result = agent_bay.create()
+session_params = CreateSessionParams(image_id="browser_latest")
+
+session_result = agent_bay.create(session_params)
 
 if session_result.success:
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
 
-    # Get default session link (WebSocket connection)
-    link_result = session.get_link()
-    if link_result.success:
-        print(f"Default session link: {link_result.data}")
-        print(f"Request ID: {link_result.request_id}")
-        # Output: wss://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/websocket_ai/...
-    else:
-        print(f"Failed to get link: {link_result.error_message}")
+    # Get default session link (WebSocket connection) with exception handling
+    try:
+        link_result = session.get_link()
+
+
+        if link_result.success:
+            print(f"Default session link: {link_result.data}")
+            print(f"Request ID: {link_result.request_id}")
+            # Output: wss://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/websocket_ai/...
+        else:
+            print(f"Failed to get link: {link_result.error_message}")
+    except Exception as e:
+        print(f"Exception occurred while getting session link: {str(e)}")
 else:
     print(f"Session creation failed: {session_result.error_message}")
+agent_bay.delete(session)
 ```
 
 ### Parameter Usage and Constraints
@@ -108,7 +115,7 @@ else:
 ```python
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key=api_key)
 session_result = agent_bay.create()
 session = session_result.session
 
@@ -164,64 +171,29 @@ if ws_link.success:
 # WebSocket with specific port configuration
 ws_port_link = session.get_link(port=8080)
 if ws_port_link.success:
-    print(f"WebSocket (port 8080): {ws_port_link.data}")
     # Port information is encoded in the WebSocket URL
+    print(f"WebSocket (port 8080): {ws_port_link.data}")
+
+agent_bay.delete(session)
 ```
 
 #### HTTPS Access for Web Applications
 ```python
-# Get HTTPS links for web-based access
-session_info = session.info()
+# Get WebSocket links for real-time applications
+ session = agent_bay.create().session
 
-if session_info.success and session_info.data.app_id == "mcp-server-ubuntu":
-    # Linux sessions support HTTPS access
-    https_link = session.get_link(protocol_type="https", port=443)
-    if https_link.success:
-        print(f"HTTPS Access: {https_link.data}")
-        # Use for web-based applications running in the session
+# Linux sessions support HTTPS access
+https_link = session.get_link(protocol_type="https", port=443)
+if https_link.success:
+    print(f"HTTPS Access: {https_link.data}")
+    # Use for web-based applications running in the session
 
-    # HTTPS access on custom port
-    custom_https = session.get_link(protocol_type="https", port=8443)
-    if custom_https.success:
-        print(f"Custom HTTPS: {custom_https.data}")
+# HTTPS access on custom port
+custom_https = session.get_link(protocol_type="https", port=8443)
+if custom_https.success:
+    print(f"Custom HTTPS: {custom_https.data}")
+agent_bay.delete(session)
 ```
-
-
-
-### Asynchronous Link Retrieval
-
-For applications requiring asynchronous operations, use the `get_link_async()` method:
-
-```python
-import asyncio
-from agentbay import AgentBay
-
-async def get_multiple_links():
-    agent_bay = AgentBay()
-    session_result = agent_bay.create()
-    session = session_result.session
-
-    # Get multiple links asynchronously
-    tasks = [
-        session.get_link_async(),  # Default WebSocket
-        session.get_link_async(protocol_type="https", port=443),  # HTTPS
-        session.get_link_async(port=8080)  # WebSocket with port
-    ]
-
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    for i, result in enumerate(results):
-        if isinstance(result, Exception):
-            print(f"Link {i+1} failed: {result}")
-        elif result.success:
-            print(f"Link {i+1}: {result.data}")
-        else:
-            print(f"Link {i+1} failed: {result.error_message}")
-
-# Run the async example
-asyncio.run(get_multiple_links())
-```
-
 ### Understanding Link Types and Formats
 
 Based on the parameters, `get_link()` returns different types of URLs:
@@ -337,13 +309,22 @@ https_link = session.get_link(protocol_type="https", port=443)
    # ✅ Correct: Use supported protocols only
    session.get_link(protocol_type="https", port=443)  # or "wss"
    ```
-
-2. **Link Not Accessible**:
+3. **"no port specified, cdp default, but only BrowserUse image support cdp"Error**:
+   ```python
+   # ❌ Wrong: BrowserUse image does not support cdp
+   session = agent_bay.create().session
+   session.get_link()
+   # ✅ Correct: Use supported image
+   create_session_params = CreateSessionParams(image_id="browser_latest")
+   session = agent_bay.create(create_session_params).session
+   session.get_link()
+   ```
+4. **Link Not Accessible**:
    - Verify the service is running on the specified port within the session
    - Check if the session is still active using `session.info()`
    - Ensure firewall rules allow the specified port
 
-3. **Connection Timeouts**:
+5. **Connection Timeouts**:
    - Verify network connectivity to the gateway domain
    - Check if the session has been terminated
    - Review VPC and subnet configurations for VPC sessions
@@ -465,16 +446,15 @@ Browser automation enables programmatic control of web browsers for tasks such a
 ### Basic Browser Operations
 
 ```python
-from agentbay import AgentBay
+from agentbay.browser.browser import BrowserOption
+session_params = CreateSessionParams(image_id="browser_latest")
 
-agent_bay = AgentBay()
-session_result = agent_bay.create()
+session_result = agent_bay.create(session_params)
 if session_result.success:
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
 
     # Initialize browser
-    from agentbay.browser.browser import BrowserOption
     if session.browser.initialize(BrowserOption()):
         print("Browser initialized successfully")
         endpoint_url = session.browser.get_endpoint_url()
@@ -486,6 +466,7 @@ if session_result.success:
         print("Failed to initialize browser")
 else:
     print(f"Session creation failed: {session_result.error_message}")
+agent_bay.delete(session)
 ```
 
 ### Browser Automation Implementation
@@ -494,45 +475,52 @@ Browser automation in AgentBay SDK is implemented using Playwright connected thr
 
 ```python
 # Complete example of browser automation with Playwright
+from agentbay.browser.browser import BrowserOption
+# Complete example of browser automation with Playwright
 import asyncio
 from playwright.async_api import async_playwright
 
 async def browser_automation_example():
-    # After initializing the browser as shown in the basic example
-    endpoint_url = session.browser.get_endpoint_url()
+    session_params = CreateSessionParams(image_id="browser_latest")
+    session_result = agent_bay.create(session_params)
+    session = session_result.session
+    if session.browser.initialize(BrowserOption()):
+        # After initializing the browser as shown in the basic example
+        endpoint_url = session.browser.get_endpoint_url()
 
-    async with async_playwright() as p:
-        browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await browser.new_page()
+        async with async_playwright() as p:
+            browser = await p.chromium.connect_over_cdp(endpoint_url)
+            page = await browser.new_page()
 
-        # Navigate to a webpage
-        await page.goto("https://example.com")
-        print("Page title:", await page.title())·
+            # Navigate to a webpage
+            await page.goto("https://example.com")
+            print("Page title:", await page.title())
 
-        # Fill form fields
-        await page.fill("#username", "myuser")
-        await page.fill("#password", "mypassword")
+            # Fill form fields
+            await page.fill("#username", "myuser")
+            await page.fill("#password", "mypassword")
 
-        # Click buttons
-        await page.click("#login-button")
+            # Click buttons
+            await page.click("#login-button")
 
-        # Wait for navigation
-        await page.wait_for_url("https://example.com/dashboard")
+            # Wait for navigation
+            await page.wait_for_url("https://example.com/dashboard")
 
-        # Execute custom JavaScript
-        dimensions = await page.evaluate("""() => {
-            return {
-                width: window.innerWidth,
-                height: window.innerHeight,
-                userAgent: navigator.userAgent
-            };
-        }""")
-        print(f"Browser dimensions: {dimensions['width']}x{dimensions['height']}")
+            # Execute custom JavaScript
+            dimensions = await page.evaluate("""() => {
+                return {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    userAgent: navigator.userAgent
+                };
+            }""")
+            print(f"Browser dimensions: {dimensions['width']}x{dimensions['height']}")
 
-        # Take screenshot
-        await page.screenshot(path="screenshot.png")
+            # Take screenshot
+            await page.screenshot(path="screenshot.png")
 
-        await browser.close()
+            await browser.close()
+        agent_bay.delete(session)
 
 # Run the example
 asyncio.run(browser_automation_example())
@@ -546,103 +534,6 @@ For a complete working example, see `examples/browser/visit_aliyun.py` in the SD
 2. **Error Handling**: Implement retry logic for flaky network conditions
 3. **Resource Cleanup**: Close browser sessions to free resources
 4. **Performance**: Use efficient selectors and minimize screenshot captures
-
-<a id="integration-and-extensions"></a>
-## 🔌 Integration and Extensions
-
-### Custom Integration Framework
-
-The AgentBay SDK can be integrated with custom systems and third-party services. While the SDK doesn't provide built-in event listeners or middleware, you can implement these patterns in your application code:
-
-#### Custom Event Handling
-```python
-# Python example of custom event handling
-class SessionEventManager:
-    def __init__(self):
-        self.listeners = {
-            "session_created": [],
-            "session_destroyed": []
-        }
-
-    def on(self, event, callback):
-        if event in self.listeners:
-            self.listeners[event].append(callback)
-
-    def emit(self, event, *args):
-        if event in self.listeners:
-            for callback in self.listeners[event]:
-                callback(*args)
-
-# Usage
-event_manager = SessionEventManager()
-
-def on_session_created(session):
-    print(f"Session created: {session.session_id}")
-    # Custom initialization logic
-
-def on_session_destroyed(session_id):
-    print(f"Session destroyed: {session_id}")
-    # Cleanup logic
-
-event_manager.on("session_created", on_session_created)
-event_manager.on("session_destroyed", on_session_destroyed)
-
-# Emit events in your application code
-# event_manager.emit("session_created", session)
-# event_manager.emit("session_destroyed", session_id)
-```
-
-### Third-Party Service Integration
-
-#### Database Integration
-```python
-# Python example with database integration
-import sqlite3
-
-def save_session_data(session, db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            created_at TIMESTAMP,
-            status TEXT
-        )
-    """)
-
-    cursor.execute("""
-        INSERT OR REPLACE INTO sessions (id, created_at, status)
-        VALUES (?, ?, ?)
-    """, (session.session_id, session.created_at, session.status))
-
-    conn.commit()
-    conn.close()
-```
-
-#### CI/CD Pipeline Integration
-```yaml
-# GitHub Actions example
-name: AgentBay Integration Test
-on: [push]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - name: Install dependencies
-      run: |
-        pip install wuying-agentbay-sdk
-    - name: Run integration test
-      run: |
-        python test_agentbay.py
-      env:
-        AGENTBAY_API_KEY: ${{ secrets.AGENTBAY_API_KEY }}
-```
 
 <a id="best-practices"></a>
 ## 🏆 Best Practices
@@ -680,15 +571,14 @@ jobs:
 - [Session Management Guide](session-management.md)
 - [Data Persistence Guide](data-persistence.md)
 - [API Reference](../api-reference.md)
-- [Example Code](../../examples/)
 
 ## 🆘 Getting Help
 
 If you encounter issues with advanced features:
 
 1. Check the [Documentation](../README.md) for detailed information
-2. Review [Example Code](../../examples/) for implementation patterns
-3. Search [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues) for similar problems
-4. Contact support with detailed error information and reproduction steps
+
+2. Search [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues) for similar problems
+3. Contact support with detailed error information and reproduction steps
 
 Remember: Advanced features provide powerful capabilities but require careful planning and implementation. Start with simple use cases and gradually increase complexity! 🚀

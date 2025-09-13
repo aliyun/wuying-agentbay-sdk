@@ -25,10 +25,10 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Extract base version from setup.py
+      - name: Extract base version from pyproject.toml
         run: |
           cd python
-          BASE_VERSION=$(grep "version='" setup.py | head -n 1 | cut -d "'" -f 2)
+          BASE_VERSION=$(grep "version = " pyproject.toml | head -n 1 | cut -d '"' -f 2)
           echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
 
       - name: Generate final version with timestamp
@@ -51,20 +51,21 @@ jobs:
             rm -rf dist/
           fi
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-          pip install . --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          pip install poetry
           echo "Using version: $FINAL_VERSION"
-          sed -i "s/version='.*'/version='$FINAL_VERSION'/" setup.py
-          python setup.py sdist bdist_wheel
-          ls dist/
+          poetry version $FINAL_VERSION
 
-      - name: Publish to TestPyPI
+
+      - name: Build and Publish to TestPyPI
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          POETRY_PYPI_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
           cd python
-          twine upload --repository-url https://test.pypi.org/legacy/ --verbose dist/*
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry config pypi-token.test-pypi $POETRY_PYPI_TOKEN
+          poetry build
+          ls dist/
+          poetry publish -r test-pypi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

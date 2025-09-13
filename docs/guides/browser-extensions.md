@@ -124,18 +124,17 @@ class ExtensionDevelopmentWorkflow:
         self.agent_bay = AgentBay(api_key=api_key)
         self.extensions_service = ExtensionsService(self.agent_bay, "dev_extensions")
         self.extension_id = None
-  
     def upload_extension(self, extension_path: str) -> str:
         """Upload extension for development testing."""
         extension = self.extensions_service.create(extension_path)
         self.extension_id = extension.id
         print(f"✅ Extension uploaded: {extension.name}")
         return extension.id
-  
+
     def create_test_session(self) -> 'Session':
         """Create a browser session for testing."""
         ext_option = self.extensions_service.create_extension_option([self.extension_id])
-      
+
         session_params = CreateSessionParams(
             labels={"purpose": "extension_development"},
             browser_context=BrowserContext(
@@ -143,18 +142,18 @@ class ExtensionDevelopmentWorkflow:
                 extension_option=ext_option
             )
         )
-      
+
         return self.agent_bay.create(session_params).session
-  
+
     def update_and_test(self, new_extension_path: str):
         """Update extension and create new test session."""
         # Update existing extension
         updated_ext = self.extensions_service.update(self.extension_id, new_extension_path)
         print(f"✅ Extension updated: {updated_ext.name}")
-      
+
         # Create new test session with updated extension
         return self.create_test_session()
-  
+
     def cleanup(self):
         """Clean up development resources."""
         if self.extension_id:
@@ -168,11 +167,11 @@ try:
     workflow.upload_extension("/path/to/extension-v1.zip")
     session1 = workflow.create_test_session()
     # Test extension functionality...
-  
+
     # Update and test again
     session2 = workflow.update_and_test("/path/to/extension-v2.zip")
     # Test updated functionality...
-  
+
 finally:
     workflow.cleanup()
 ```
@@ -182,10 +181,10 @@ finally:
 ```python
 def run_extension_tests(extension_paths: List[str]) -> bool:
     """Run automated tests on multiple extensions."""
-  
+
     agent_bay = AgentBay()
     extensions_service = ExtensionsService(agent_bay)
-  
+
     try:
         # Upload all test extensions
         extension_ids = []
@@ -193,10 +192,10 @@ def run_extension_tests(extension_paths: List[str]) -> bool:
             ext = extensions_service.create(path)
             extension_ids.append(ext.id)
             print(f"📦 Uploaded test extension: {ext.name}")
-      
+
         # Create test session
         ext_option = extensions_service.create_extension_option(extension_ids)
-      
+
         session_params = CreateSessionParams(
             labels={"test_type": "automated_extension_testing"},
             browser_context=BrowserContext(
@@ -204,18 +203,18 @@ def run_extension_tests(extension_paths: List[str]) -> bool:
                 extension_option=ext_option
             )
         )
-      
+
         session = agent_bay.create(session_params).session
-      
+
         # Wait for extension synchronization
         print("⏳ Waiting for extension synchronization...")
-      
+
         # Run your extension tests here
         # Extensions are available at /tmp/extensions/ in the session
         test_results = run_test_suite(session)
-      
+
         return test_results.all_passed
-      
+
     except Exception as e:
         print(f"❌ Test failed: {e}")
         return False
@@ -287,31 +286,29 @@ def robust_extension_workflow():
     try:
         agent_bay = AgentBay()
         extensions_service = ExtensionsService(agent_bay, "production_extensions")
-      
         # Validate extension file
         extension_path = "/path/to/production-extension.zip"
         if not os.path.exists(extension_path):
             raise FileNotFoundError(f"Extension not found: {extension_path}")
-      
+
         # Upload with error handling
         extension = extensions_service.create(extension_path)
         print(f"✅ Extension uploaded: {extension.id}")
-      
+
         # Create session with validation
         ext_option = extensions_service.create_extension_option([extension.id])
         if not ext_option.validate():
             raise ValueError("Invalid extension configuration")
-      
         session_params = CreateSessionParams(
             browser_context=BrowserContext(
                 context_id="production_session",
                 extension_option=ext_option
             )
         )
-      
+
         session = agent_bay.create(session_params).session
         return session
-      
+
     except FileNotFoundError as e:
         print(f"❌ File error: {e}")
         return None
@@ -387,26 +384,26 @@ endpoint_url = session.browser.get_endpoint_url()
 with sync_playwright() as p:
     browser = p.chromium.connect_over_cdp(endpoint_url)
     page = browser.new_page()
-  
+
     # Extensions are already loaded and available
     page.goto("https://example.com")
-  
+
     # Your extension should be active here
     # Test extension functionality...
-  
+
     browser.close()
 ```
 
 ## Next Steps
 
-- Review the [Extension API Reference](../python/docs/api/extension.md) for detailed method documentation
-- Check out [Extension Examples](../python/docs/examples/browser/extensions/) for more code samples
+- Review the [Extension API Reference](../../python/docs/api/extension.md) for detailed method documentation
+- Check out [Extension Examples](../../python/docs/examples/browser/README.md) for more code samples
 - Explore [Browser Automation Guide](./automation.md) for integration patterns
 
 ## Resources
 
-- [Extension API Reference](../python/docs/api/extension.md)
-- [Example Code](../python/docs/examples/browser/extensions/)
+- [Extension API Reference](../../python/docs/api/extension.md)
+- [Example Code](../../python/docs/examples/browser/README.md)
 - [Browser Automation Guide](./automation.md)
 - [Session Management Guide](./session-management.md)
 
