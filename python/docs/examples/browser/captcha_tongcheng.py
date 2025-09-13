@@ -51,15 +51,7 @@ async def main():
 
         browser_option = BrowserOption(
             use_stealth=True,
-            user_agent="User-Agent(By Mock)",
-            viewport=BrowserViewport(width=1920, height=1080),
-            screen=BrowserScreen(width=1920, height=1080),
             solve_captchas=True,
-            fingerprint=BrowserFingerprint(
-                devices=["desktop"],
-                operating_systems=["windows", "macos"],
-                locales=["zh-CN"],
-            )
         )
         if await session.browser.initialize_async(browser_option):
             print("Browser initialized successfully")

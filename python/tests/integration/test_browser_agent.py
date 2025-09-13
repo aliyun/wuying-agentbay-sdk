@@ -310,7 +310,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("https://httpbin.org/ip")
         
         try:
-            response = page.evaluate("() => JSON.parse(document.body.textContent)")
+            response = await page.evaluate("() => JSON.parse(document.body.textContent)")
             original_ip = response.get("origin", "").strip()
             print(f"original IP: {original_ip}")
         except Exception as e:
@@ -361,7 +361,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page2.goto("https://httpbin.org/ip")
         
         try:
-            response2 = page2.evaluate("() => JSON.parse(document.body.textContent)")
+            response2 = await page2.evaluate("() => JSON.parse(document.body.textContent)")
             proxy_ip = response2.get("origin", "").strip()
             print(f"proxy IP: {proxy_ip}")
         except Exception as e:
