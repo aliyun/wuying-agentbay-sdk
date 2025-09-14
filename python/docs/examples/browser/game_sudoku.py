@@ -74,7 +74,7 @@ Each cell should be a number (1-9) if filled, or 0 if empty.
                             schema=SudokuBoard,
                             use_text_extract=False,
                         )
-                        success, board_obj = await session.browser.agent.extract_async(page=page, options=options)
+                        success, board_obj = await session.browser.agent.extract_async(options=options, page=page)
                         if not success:
                             print("❌ Failed to extract sudoku board, retry extracting")
                             await asyncio.sleep(3)

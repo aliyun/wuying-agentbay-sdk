@@ -23,19 +23,19 @@ async def main():
         agent = session.browser.agent
         await agent.navigate_async("https://www.gv.com.sg/")
 
-        await agent.act_async(page=None, action_input=ActOptions(
+        await agent.act_async(action_input=ActOptions(
             action='点击 "Quick Buy" 按钮', dom_settle_timeout_ms=3000
         ))
-        await agent.act_async(page=None, action_input=ActOptions(
+        await agent.act_async(action_input=ActOptions(
             action="在 Quick-Buy 面板中选择任意影院、任意影片，日期选择 2025-08-12", dom_settle_timeout_ms=4000
         ))
-        await agent.act_async(page=None, action_input=ActOptions(
+        await agent.act_async(action_input=ActOptions(
             action='点击 "Go" 进入选座页面', dom_settle_timeout_ms=4000
         ))
-        await agent.act_async(page=None, action_input=ActOptions(
+        await agent.act_async(action_input=ActOptions(
             action='点击 "12:55 PM" 的场次', dom_settle_timeout_ms=4000
         ))
-        await agent.act_async(page=None, action_input=ActOptions(
+        await agent.act_async(action_input=ActOptions(
             action="选择任意可用座位，确保只选择一个，如有两座被选中则取消多余的",
             dom_settle_timeout_ms=5000
         ))

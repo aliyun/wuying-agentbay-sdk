@@ -138,7 +138,7 @@ describe('BrowserAgent Integration Tests', () => {
     };
 
     try {
-      const result = await browser.agent.act(mockPage, { action: "Click search button" });
+      const result = await browser.agent.act({ action: "Click search button" }, mockPage);
       log("Act result:", result);
       expect(result).toBeDefined();
     } catch (error: any) {
@@ -167,7 +167,7 @@ describe('BrowserAgent Integration Tests', () => {
 
     // Test observe operation
     try {
-      const [success, observeResults] = await browser.agent.observe(mockPage, { instruction: "Find the search button" });
+      const [success, observeResults] = await browser.agent.observe({ instruction: "Find the search button" }, mockPage);
       log("Observe success:", success);
       log("Observe results count:", observeResults.length);
       expect(typeof success).toBe('boolean');
@@ -205,10 +205,10 @@ describe('BrowserAgent Integration Tests', () => {
         } 
       }
 
-      const [success, objects] = await browser.agent.extract(mockPage, { 
+      const [success, objects] = await browser.agent.extract({ 
         instruction: "Extract the title", 
         schema: TestSchema 
-      });
+      }, mockPage);
       
       log("Extract success:", success);
       log("Extract objects count:", objects.length);

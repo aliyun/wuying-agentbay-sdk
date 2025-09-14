@@ -215,7 +215,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result = browser.agent.act(page, ActOptions(action="Click search button"))
+        result = browser.agent.act(ActOptions(action="Click search button"), page)
         print("result =", result)
 
         self.assertTrue(result.success)
@@ -243,7 +243,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result, observe_results = browser.agent.observe(page, ObserveOptions(instruction="Find the search button"))
+        result, observe_results = browser.agent.observe(ObserveOptions(instruction="Find the search button"), page)
         print("result =", result)
         print("observe_results =", observe_results)
 
@@ -272,7 +272,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result, obj = browser.agent.extract(page, ExtractOptions(instruction="Extract the title", schema=DummySchema))
+        result, obj = browser.agent.extract(ExtractOptions(instruction="Extract the title", schema=DummySchema), page)
         print("result =", result)
         print("obj =", obj)
         self.assertTrue(result)

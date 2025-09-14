@@ -67,7 +67,7 @@ export class BrowserAgent {
    * Perform an action on the given Playwright Page object, using ActOptions to configure behavior.
    * Returns the result of the action.
    */
-  async act(page: any, options: ActOptions): Promise<ActResult> {
+  async act(options: ActOptions, page: any): Promise<ActResult> {
     if (!this.browser.isInitialized()) {
       throw new BrowserError("Browser must be initialized before calling act.");
     }
@@ -120,15 +120,15 @@ export class BrowserAgent {
   /**
    * Async version of act method for performing actions on the given Playwright Page object.
    */
-  async actAsync(page: any, options: ActOptions): Promise<ActResult> {
-    return this.act(page, options);
+  async actAsync(options: ActOptions, page: any): Promise<ActResult> {
+    return this.act(options, page);
   }
 
   /**
    * Observe elements or state on the given Playwright Page object.
    * Returns a tuple containing (success, results).
    */
-  async observe(page: any, options: ObserveOptions): Promise<[boolean, ObserveResult[]]> {
+  async observe(options: ObserveOptions, page: any): Promise<[boolean, ObserveResult[]]> {
     if (!this.browser.isInitialized()) {
       throw new BrowserError("Browser must be initialized before calling observe.");
     }
@@ -196,14 +196,14 @@ export class BrowserAgent {
   /**
    * Async version of observe method.
    */
-  async observeAsync(page: any, options: ObserveOptions): Promise<[boolean, ObserveResult[]]> {
-    return this.observe(page, options);
+  async observeAsync(options: ObserveOptions, page: any): Promise<[boolean, ObserveResult[]]> {
+    return this.observe(options, page);
   }
 
   /**
    * Extract information from the given Playwright Page object.
    */
-  async extract<T>(page: any, options: ExtractOptions<T>): Promise<[boolean, T[]]> {
+  async extract<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T[]]> {
     if (!this.browser.isInitialized()) {
       throw new BrowserError("Browser must be initialized before calling extract.");
     }
@@ -277,8 +277,8 @@ export class BrowserAgent {
   /**
    * Async version of extract method.
    */
-  async extractAsync<T>(page: any, options: ExtractOptions<T>): Promise<[boolean, T[]]> {
-    return this.extract<T>(page, options);
+  async extractAsync<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T[]]> {
+    return this.extract<T>(options, page);
   }
 
   private _getPageAndContextIndex(page: any): [string, number] {

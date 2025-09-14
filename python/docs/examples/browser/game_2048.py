@@ -91,7 +91,7 @@ Extract the current game state:
                         )
                         # Calculate time cost， average time cost, min & max time cost
                         success, gameState = await session.browser.agent.extract_async(
-                            page=page, options=options
+                            options=options, page=page
                         )
                         if success:
                             transposed_grid = transpose_grid(gameState.grid)
