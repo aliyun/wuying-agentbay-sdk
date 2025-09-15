@@ -230,6 +230,7 @@ describe('BrowserOptionClass with Proxies', () => {
       { width: 1920, height: 1080 },
       { width: 1920, height: 1080 },
       { devices: ['desktop'], operatingSystems: ['windows'], locales: ['en-US'] },
+      false,
       [customProxy]
     );
 
@@ -249,6 +250,7 @@ describe('BrowserOptionClass with Proxies', () => {
       undefined,
       undefined,
       undefined,
+      false,
       [wuyingProxy]
     );
 
@@ -263,7 +265,7 @@ describe('BrowserOptionClass with Proxies', () => {
     const proxy2 = new BrowserProxyClass('custom', 'http://proxy2.com');
 
     expect(() => {
-      new BrowserOptionClass(false, undefined, undefined, undefined, undefined, [proxy1, proxy2]);
+      new BrowserOptionClass(false, undefined, undefined, undefined, undefined, false, [proxy1, proxy2]);
     }).toThrow('proxies list length must be limited to 1');
   });
 
@@ -271,13 +273,13 @@ describe('BrowserOptionClass with Proxies', () => {
     const proxy = new BrowserProxyClass('custom', 'http://proxy.com');
 
     expect(() => {
-      new BrowserOptionClass(false, undefined, undefined, undefined, undefined, proxy);
+      new BrowserOptionClass(false, undefined, undefined, undefined, undefined, false, proxy);
     }).toThrow('proxies must be a list');
   });
 
   test('should serialize BrowserOption with proxies correctly', () => {
     const customProxy = new BrowserProxyClass('custom', 'http://proxy.example.com:8080');
-    const option = new BrowserOptionClass(true, undefined, undefined, undefined, undefined, [customProxy]);
+    const option = new BrowserOptionClass(true, undefined, undefined, undefined, undefined, false, [customProxy]);
 
     const optionMap = option.toMap();
 
