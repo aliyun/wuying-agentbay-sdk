@@ -228,8 +228,6 @@ class PageAgent:
     async def goto(
         self,
         url: str,
-        context_id: Optional[int] = None,
-        page_id: Optional[str] = None,
         wait_until: Optional[
             Literal["load", "domcontentloaded", "networkidle", "commit"]
         ] = "load",
@@ -276,7 +274,7 @@ class PageAgent:
             logger.error(f"Error in screenshot: {e}", exc_info=True)
             return f"screenshot failed: {str(e)}"
 
-    async def extract(self, instruction: str, schema: Type[BaseModel], context_id: Optional[int] = None, page_id: Optional[str] = None, use_text_extract: Optional[bool] = False, dom_settle_timeout_ms: Optional[int] = 5000, use_vision: Optional[bool] = False, selector: Optional[str] = None) -> BaseModel:
+    async def extract(self, instruction: str, schema: Type[BaseModel], use_text_extract: Optional[bool] = False, dom_settle_timeout_ms: Optional[int] = 5000, use_vision: Optional[bool] = False, selector: Optional[str] = None) -> BaseModel:
         """
         Extracts structured data from the current webpage based on an instruction.
 
@@ -296,22 +294,23 @@ class PageAgent:
                 instruction=instruction,
                 schema=schema,
                 use_text_extract=use_text_extract,
+                dom_settle_timeout_ms=dom_settle_timeout_ms,
+                use_vision=use_vision,
+                selector=selector,
             )
 
-            success, extracted_data = await self.session.browser.agent.extract_async(page=self.current_page, options=options)
+            success, extracted_data = await self.session.browser.agent.extract_async(options=options, page=self.current_page)
             return extracted_data if success else None
         except Exception as e:
             logger.error(f"Error in extract: {e}", exc_info=True)
             raise
 
-    async def observe(self, instruction: str, return_actions: bool = True, only_visible: bool = False, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
+    async def observe(self, instruction: str, dom_settle_timeout_ms: Optional[int] = None, use_vision: bool = False) -> List[ObserveResult]:
         """
         Observes the current webpage to identify and describe elements.
 
         Args:
             instruction (Optional[str]): Natural language goal for observation.
-            return_actions (bool): If True, action suggestions for observed elements are returned.
-            only_visible (bool): If True, only visible elements are considered.
             dom_settle_timeout_ms (Optional[int]): Max time to wait for DOM stability.
             use_vision (bool): If True, uses visual (screenshot) information for observation.
 
@@ -323,14 +322,15 @@ class PageAgent:
             options = ObserveOptions(
                 instruction=instruction,
                 dom_settle_timeout_ms=dom_settle_timeout_ms,
+                use_vision=use_vision,
             )
-            success, observed_elements = await self.session.browser.agent.observe_async(page=self.current_page, options=options)
+            success, observed_elements = await self.session.browser.agent.observe_async(options=options, page=self.current_page)
             return observed_elements
         except Exception as e:
             logger.error(f"Error in observe: {e}", exc_info=True)
             raise
 
-    async def act(self, action_input: Union[str, ActOptions, ObserveResult], context_id: Optional[int] = None, page_id: Optional[str] = None, use_vision: bool = False) -> ActResult:
+    async def act(self, action_input: Union[str, ActOptions, ObserveResult], use_vision: bool = False) -> ActResult:
         """
         Performs an action on the current webpage, either inferred from an instruction
         or directly on an ObservedElement.
@@ -349,11 +349,12 @@ class PageAgent:
             logger.info(f"Attempting to execute action: {action_input}")
             if isinstance(action_input, str):
                 options = ActOptions(
-                    action=action_input,    
+                    action=action_input,
+                    use_vision=use_vision,    
                 )
-                return await self.session.browser.agent.act_async(page=self.current_page, action_input=options)
+                return await self.session.browser.agent.act_async(action_input=options, page=self.current_page)
             else:
-                return await self.session.browser.agent.act_async(page=self.current_page, action_input=action_input)
+                return await self.session.browser.agent.act_async(action_input=action_input, page=self.current_page)
         except Exception as e:
             logger.error(f"Error in act: {e}", exc_info=True)
             raise

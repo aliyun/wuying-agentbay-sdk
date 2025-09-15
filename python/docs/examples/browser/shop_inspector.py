@@ -75,7 +75,7 @@ def has_valid_products(products: List[ProductInfo], min_items: int = 2) -> bool:
 
 async def act(agent, page, instruction: str) -> bool:
     print(f"Acting: {instruction}")
-    ret = await agent.act_async(page, action_input=ActOptions(action=instruction))
+    ret = await agent.act_async(action_input=ActOptions(action=instruction), page=page)
     return bool(getattr(ret, "success", False))
 
 
@@ -127,7 +127,7 @@ async def extract_products(
         schema=InspectionResult,
         use_text_extract=True,
     )
-    ok, data = await agent.extract_async(page, opts)
+    ok, data = await agent.extract_async(options=opts, page=page)
     if not ok or not isinstance(data, InspectionResult) or not data.products:
         return []
 

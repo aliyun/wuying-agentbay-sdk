@@ -109,7 +109,7 @@ async function main() {
 
           };
 
-          const [success, gameStates] = await session.browser.agent.extract(page, gameStateOptions);
+          const [success, gameStates] = await session.browser.agent.extract(gameStateOptions, page);
           if (success && gameStates.length > 0) {
             const gameState = gameStates[0];
             const transposedGrid = transposeGrid(gameState.grid);
@@ -154,7 +154,7 @@ async function main() {
               use_text_extract: false
             };
 
-            const [moveSuccess, nextMove] = await session.browser.agent.extract(page, nextMoveOptions);
+            const [moveSuccess, nextMove] = await session.browser.agent.extract(nextMoveOptions, page);
             let selectedMove = 4; // Default to no move
 
             if (moveSuccess && nextMove.length > 0) {

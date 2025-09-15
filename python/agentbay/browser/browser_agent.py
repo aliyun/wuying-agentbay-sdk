@@ -23,12 +23,14 @@ class ActOptions:
         iframes: Optional[bool] = None,
         dom_settle_timeout_ms: Optional[int] = None,
         variables: Optional[Dict[str, str]] = None,
+        use_vision: Optional[bool] = None,
     ):
         self.action = action
         self.timeoutMS = timeoutMS
         self.iframes = iframes
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
         self.variables = variables
+        self.use_vision = use_vision
 
 
 class ActResult:
@@ -52,10 +54,12 @@ class ObserveOptions:
         instruction: str,
         iframes: Optional[bool] = None,
         dom_settle_timeout_ms: Optional[int] = None,
+        use_vision: Optional[bool] = None,
     ):
         self.instruction = instruction
         self.iframes = iframes
         self.dom_settle_timeout_ms = dom_settle_timeout_ms
+        self.use_vision = use_vision
 
 
 class ObserveResult:
@@ -298,6 +302,8 @@ class BrowserAgent(BaseService):
                     args["iframes"] = action_input.iframes
                 if action_input.dom_settle_timeout_ms is not None:
                     args["dom_settle_timeout_ms"] = action_input.dom_settle_timeout_ms
+                if action_input.use_vision is not None:
+                    args["use_vision"] = action_input.use_vision
                 args["action"] = action_input.action
             elif isinstance(action_input, ObserveResult):
                 action_dict = {
@@ -368,6 +374,8 @@ class BrowserAgent(BaseService):
                     args["iframes"] = action_input.iframes
                 if action_input.dom_settle_timeout_ms is not None:
                     args["dom_settle_timeout_ms"] = action_input.dom_settle_timeout_ms
+                if action_input.use_vision is not None:
+                    args["use_vision"] = action_input.use_vision
             elif isinstance(action_input, ObserveResult):
                 action_dict = {
                     "method": action_input.method,
@@ -431,6 +439,8 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
+            if options.use_vision is not None:
+                args["use_vision"] = options.use_vision
             response = self._call_mcp_tool_timeout("page_use_observe", args)
             logger.debug(f"Response from CallMcpTool - page_use_observe: {response}")
 
@@ -504,6 +514,8 @@ class BrowserAgent(BaseService):
                 args["iframes"] = options.iframes
             if options.dom_settle_timeout_ms is not None:
                 args["dom_settle_timeout_ms"] = options.dom_settle_timeout_ms
+            if options.use_vision is not None:
+                args["use_vision"] = options.use_vision
             response = self._call_mcp_tool_timeout("page_use_observe", args)
             logger.debug(f"Response from CallMcpTool - page_use_observe: {response}")
 
