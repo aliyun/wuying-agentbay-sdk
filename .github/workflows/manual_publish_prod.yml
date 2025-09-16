@@ -1,7 +1,7 @@
 name: Manual Publish to PyPI
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:  # Manual trigger
     inputs:
       version:
         description: "Stable version (e.g., 1.0.0)"
@@ -27,10 +27,10 @@ jobs:
           fi
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
-          # 使用用户指定的版本号
+          # Use user-specified version number
           echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
           sed -i "s/version='.*'/version='${{ inputs.version }}'/" setup.py
-          # 验证替换结果
+          # Verify replacement results
           cat setup.py | grep version
           python setup.py sdist bdist_wheel
           ls dist/
@@ -48,7 +48,7 @@ jobs:
         run: |
           SUMMARY_PATH=$GITHUB_STEP_SUMMARY
 
-          # 写入测试内容
+          # Write test content
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 

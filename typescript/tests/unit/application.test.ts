@@ -7,20 +7,20 @@ import * as sinon from "sinon";
 
 const mockInstalledAppsData: InstalledApp[] = [
   {
-    name: "美团",
+    name: "Meituan",
     start_cmd:
       "monkey -p com.sankuai.meituan -c android.intent.category.LAUNCHER 1",
     stop_cmd: "am force-stop com.sankuai.meituan",
     work_directory: "",
   },
   {
-    name: "小红书",
+    name: "Xiaohongshu",
     start_cmd: "monkey -p com.xingin.xhs -c android.intent.category.LAUNCHER 1",
     stop_cmd: "am force-stop com.xingin.xhs",
     work_directory: "",
   },
   {
-    name: "高德地图",
+    name: "Amap",
     start_cmd:
       "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1",
     stop_cmd: "am force-stop com.autonavi.minimap",
@@ -91,9 +91,9 @@ describe("ApplicationApi", () => {
       expect(result.errorMessage).toBeUndefined();
 
       expect(result.data[0]).toBeInstanceOf(Object);
-      expect(result.data[0].name).toBe("美团");
-      expect(result.data[1].name).toBe("小红书");
-      expect(result.data[2].name).toBe("高德地图");
+      expect(result.data[0].name).toBe("Meituan");
+      expect(result.data[1].name).toBe("Xiaohongshu");
+      expect(result.data[2].name).toBe("Amap");
 
       expect(callMcpToolStub.calledOnce).toBe(true);
       const callArgs = callMcpToolStub.getCall(0).args;

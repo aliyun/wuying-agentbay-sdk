@@ -104,7 +104,7 @@ jobs:
 
       - name: Get commit info
         run: |
-          # 获取 Commit ID 和时间
+          # Get Commit ID and time
           LATEST_COMMIT=$(git log -1 --pretty=format:"%H")
           COMMIT_TIME=$(git log -1 --pretty=format:"%cd")
           echo "LATEST_COMMIT=$LATEST_COMMIT" >> $GITHUB_ENV
@@ -123,7 +123,7 @@ jobs:
         run: |
           SUMMARY_PATH=$GITHUB_STEP_SUMMARY
 
-          # 写入测试内容
+          # Write test content
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 

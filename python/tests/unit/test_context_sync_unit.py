@@ -399,18 +399,18 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertEqual(white_list.path, "/test")
         self.assertEqual(white_list.exclude_paths, [])
 
-        # Test with None exclude_paths - 修复初始化
+        # Test with None exclude_paths - fix initialization
         white_list = WhiteList(path="/test")
         self.assertEqual(white_list.path, "/test")
-        self.assertEqual(white_list.exclude_paths, [])  # 默认为空列表，而不是None
+        self.assertEqual(white_list.exclude_paths, [])  # Default to empty list, not None
 
         # Test with empty white_lists
         bw_list = BWList(white_lists=[])
         self.assertEqual(len(bw_list.white_lists), 0)
 
-        # Test with None white_lists - 修复初始化
+        # Test with None white_lists - fix initialization
         bw_list = BWList()
-        self.assertEqual(bw_list.white_lists, [])  # 默认为空列表，而不是None
+        self.assertEqual(bw_list.white_lists, [])  # Default to empty list, not None
 
         print("Edge cases test passed")
 

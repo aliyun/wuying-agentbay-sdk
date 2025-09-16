@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-文档链接验证脚本
-检查所有markdown文件中的内部链接是否有效
+Documentation Link Validation Script
+Check if all internal links in markdown files are valid
 """
 
 import os
@@ -10,155 +10,167 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse, urljoin
 
+
 def find_markdown_files(base_path):
-    """查找所有markdown文件"""
+    """Find all markdown files"""
     markdown_files = []
     for root, dirs, files in os.walk(base_path):
-        # 跳过隐藏目录和node_modules等
-        dirs[:] = [d for d in dirs if not d.startswith('.') and d != 'node_modules']
-        
+        # Skip hidden directories and node_modules etc
+        dirs[:] = [d for d in dirs if not d.startswith(".") and d != "node_modules"]
+
         for file in files:
-            if file.endswith('.md'):
+            if file.endswith(".md"):
                 filepath = os.path.join(root, file)
                 markdown_files.append(filepath)
-    
+
     return markdown_files
 
+
 def extract_links(content):
-    """提取markdown文件中的所有链接"""
-    # 匹配 [text](link) 格式的链接
-    link_pattern = r'\[([^\]]*)\]\(([^)]+)\)'
+    """Extract all links from markdown files"""
+    # Match format links
+    link_pattern = r"\[([^\]]*)\]\(([^)]+)\)"
     links = re.findall(link_pattern, content)
     return [(text, link) for text, link in links]
 
+
 def is_internal_link(link):
-    """判断是否为内部链接"""
+    """Determine if it is an internal link"""
     parsed = urlparse(link)
-    # 如果有scheme（http/https）则为外部链接
+    # If has scheme (http/https) then it is external link
     if parsed.scheme:
         return False
-    # 如果以#开头则为锚点链接
-    if link.startswith('#'):
+    # If starts with # then it is anchor link
+    if link.startswith("#"):
         return False
     return True
 
+
 def resolve_link_path(base_file, link):
-    """解析链接的绝对路径"""
+    """Parse absolute path of link"""
     base_dir = os.path.dirname(base_file)
-    
-    # 处理锚点
-    if '#' in link:
-        link = link.split('#')[0]
-    
-    # 如果链接为空（纯锚点），则指向当前文件
+
+    # Handle anchor
+    if "#" in link:
+        link = link.split("#")[0]
+
+    # If link is empty (pure anchor), then points to current file
     if not link:
         return base_file
-    
-    # 解析相对路径
-    if link.startswith('/'):
-        # 绝对路径（相对于项目根目录）
+
+    # Parse relative path
+    if link.startswith("/"):
+        # Absolute path (relative to project root)
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        target_path = os.path.join(project_root, link.lstrip('/'))
+        target_path = os.path.join(project_root, link.lstrip("/"))
     else:
-        # 相对路径
+        # Relative path
         target_path = os.path.join(base_dir, link)
-    
-    # 规范化路径
+
+    # Normalize path
     target_path = os.path.normpath(target_path)
-    
-    # 如果是目录，尝试找README.md
+
+    # If it is a directory, try to find README.md
     if os.path.isdir(target_path):
-        readme_path = os.path.join(target_path, 'README.md')
+        readme_path = os.path.join(target_path, "README.md")
         if os.path.exists(readme_path):
             return readme_path
-    
+
     return target_path
 
+
 def validate_internal_links(base_path):
-    """验证内部链接"""
+    """Validate internal links"""
     errors = []
     markdown_files = find_markdown_files(base_path)
-    
-    print(f"检查 {len(markdown_files)} 个markdown文件...")
-    
+
+    print(f"Check markdown files...")
+
     for filepath in markdown_files:
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
-            errors.append(f"{filepath}: 无法读取文件 - {e}")
+            errors.append(f"{filepath}: Unable to read file - {e}")
             continue
-        
+
         links = extract_links(content)
-        
+
         for text, link in links:
             if is_internal_link(link):
                 target_path = resolve_link_path(filepath, link)
-                
+
                 if not os.path.exists(target_path):
                     relative_filepath = os.path.relpath(filepath, base_path)
-                    errors.append(f"{relative_filepath}: 链接不存在 [{text}]({link}) -> {target_path}")
-    
+                    errors.append(
+                        f"{relative_filepath}: Link does not exist [{text}]({link}) -> {target_path}"
+                    )
+
     return errors
 
+
 def check_github_links():
-    """检查GitHub链接的格式是否正确"""
+    """Check if GitHub link format is correct"""
     errors = []
     expected_repo = "https://github.com/aliyun/wuying-agentbay-sdk"
-    
-    # 检查主要README文件中的GitHub链接
+
+    # Check GitHub links in main README files
     readme_files = [
         "README.md",
-        "python/README.md", 
+        "python/README.md",
         "typescript/README.md",
-        "golang/README.md"
+        "golang/README.md",
     ]
-    
+
     for readme_file in readme_files:
         if os.path.exists(readme_file):
             try:
-                with open(readme_file, 'r', encoding='utf-8') as f:
+                with open(readme_file, "r", encoding="utf-8") as f:
                     content = f.read()
-                
-                # 查找GitHub链接
-                github_links = re.findall(r'https://github\.com/[^)\s]+', content)
-                
+
+                # Find GitHub links
+                github_links = re.findall(r"https://github\.com/[^)\s]+", content)
+
                 for link in github_links:
                     if not link.startswith(expected_repo):
-                        errors.append(f"{readme_file}: GitHub链接可能不正确 - {link}")
-                        
+                        errors.append(
+                            f"{readme_file}: GitHub link may be incorrect - {link}"
+                        )
+
             except Exception as e:
-                errors.append(f"{readme_file}: 无法检查GitHub链接 - {e}")
-    
+                errors.append(f"{readme_file}: Unable to check GitHub links - {e}")
+
     return errors
 
+
 def main():
-    """主函数"""
+    """Main function"""
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
-    print("🔍 开始验证文档链接...")
-    print(f"项目根目录: {base_path}")
+
+    print("🔍 Start validating document links...")
+    print(f"Project root directory: {base_path}")
     print()
-    
-    # 验证内部链接
-    print("📋 验证内部链接...")
+
+    # Validate internal links
+    print("📋 Validate internal links...")
     internal_errors = validate_internal_links(base_path)
-    
-    # 验证GitHub链接
-    print("🔗 验证GitHub链接...")
+
+    # Validate GitHub links
+    print("🔗 Validating GitHub links...")
     github_errors = check_github_links()
-    
-    # 汇总结果
+
+    # Summary results
     all_errors = internal_errors + github_errors
-    
+
     if all_errors:
-        print(f"\n❌ 发现 {len(all_errors)} 个链接问题:")
+        print(f"\n❌ Found link issues:")
         for error in all_errors:
             print(f"  - {error}")
         return 1
     else:
-        print("\n✅ 所有链接验证通过!")
+        print("\n✅ All links validation passed!")
         return 0
 
+
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

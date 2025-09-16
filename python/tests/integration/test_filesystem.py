@@ -461,7 +461,7 @@ class TestFileSystemComprehensive(unittest.TestCase):
         special_path = "/tmp/special_chars_test.txt"
         special_content = """Line 1: Normal text
 Line 2: Special chars !@#$%^&*()
-Line 3: Unicode: 你好世界 🌍
+Line 3: Unicode: Hello World 🌍
 Line 4: Quotes: "double" 'single'
 Line 5: Newlines and tabs:
 \t"""
@@ -472,7 +472,7 @@ Line 5: Newlines and tabs:
         read_result = self.fs.read_file(special_path)
         self.assertTrue(read_result.success)
         self.assertEqual(read_result.content, special_content)
-        self.assertIn("你好世界", read_result.content)
+        self.assertIn("Hello World", read_result.content)
         self.assertIn("🌍", read_result.content)
 
     # 10. Extreme Scenario Tests

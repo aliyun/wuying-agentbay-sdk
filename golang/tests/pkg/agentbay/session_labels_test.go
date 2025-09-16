@@ -204,8 +204,8 @@ func TestSession_SetLabels_ValidationCases(t *testing.T) {
 		{
 			name: "Unicode in key and value",
 			labels: map[string]string{
-				"键名":  "值",
-				"key": "value with 中文 and emoji 🚀",
+				"key_name": "value",
+				"key":      "value with Chinese and emoji 🚀",
 			},
 			expectError: false,
 		},

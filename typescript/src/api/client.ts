@@ -50,7 +50,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 调用mcp工具
+   * Call MCP tool
    *
    * @param request - CallMcpToolRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -115,7 +115,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 调用mcp工具
+   * Call MCP tool
    *
    * @param request - CallMcpToolRequest
    * @returns CallMcpToolResponse
@@ -128,7 +128,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 创建 mcp session
+   * Create MCP session
    *
    * @param tmpReq - CreateMcpSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -208,7 +208,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 创建 mcp session
+   * Create MCP session
    *
    * @param request - CreateMcpSessionRequest
    * @returns CreateMcpSessionResponse
@@ -221,7 +221,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 删除持久化上下文
+   * Delete persistent context
    *
    * @param request - DeleteContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -262,7 +262,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 删除持久化上下文
+   * Delete persistent context
    *
    * @param request - DeleteContextRequest
    * @returns DeleteContextResponse
@@ -275,7 +275,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文
+   * Get context
    *
    * @param request - GetContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -320,7 +320,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文
+   * Get context
    *
    * @param request - GetContextRequest
    * @returns GetContextResponse
@@ -333,7 +333,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文信息
+   * Get context information
    *
    * @param request - GetContextInfoRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -386,7 +386,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文信息
+   * Get context information
    *
    * @param request - GetContextInfoRequest
    * @returns GetContextInfoResponse
@@ -399,7 +399,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取标签
+   * Get labels
    *
    * @param request - GetLabelRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -448,7 +448,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取标签
+   * Get labels
    *
    * @param request - GetLabelRequest
    * @returns GetLabelResponse
@@ -461,7 +461,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取特定端口的转发链接
+   * Get forwarding link for specific port
    *
    * @param request - GetLinkRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -510,7 +510,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取特定端口的转发链接
+   * Get forwarding link for specific port
    *
    * @param request - GetLinkRequest
    * @returns GetLinkResponse
@@ -523,7 +523,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取mcp资源信息
+   * Get MCP resource information
    *
    * @param request - GetMcpResourceRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -564,7 +564,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取mcp资源信息
+   * Get MCP resource information
    *
    * @param request - GetMcpResourceRequest
    * @returns GetMcpResourceResponse
@@ -577,7 +577,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文列表
+   * Get context list
    *
    * @param request - ListContextsRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -622,7 +622,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上下文列表
+   * Get context list
    *
    * @param request - ListContextsRequest
    * @returns ListContextsResponse
@@ -689,7 +689,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 根据Lable查询Session列表
+   * Query session list by label
    *
    * @param request - ListSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -738,7 +738,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 根据Lable查询Session列表
+   * Query session list by label
    *
    * @param request - ListSessionRequest
    * @returns ListSessionResponse
@@ -751,7 +751,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 修改上下文
+   * Modify context
    *
    * @param request - ModifyContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -796,7 +796,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 修改上下文
+   * Modify context
    *
    * @param request - ModifyContextRequest
    * @returns ModifyContextResponse
@@ -809,7 +809,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 释放 mcp session
+   * Release MCP session
    *
    * @param request - ReleaseMcpSessionRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -850,7 +850,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 释放 mcp session
+   * Release MCP session
    *
    * @param request - ReleaseMcpSessionRequest
    * @returns ReleaseMcpSessionResponse
@@ -863,7 +863,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 设置标签
+   * Set labels
    *
    * @param request - SetLabelRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -908,7 +908,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 设置标签
+   * Set labels
    *
    * @param request - SetLabelRequest
    * @returns SetLabelResponse
@@ -921,7 +921,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 同步上下文
+   * Sync context
    *
    * @param request - SyncContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -976,7 +976,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 同步上下文
+   * Sync context
    *
    * @param request - SyncContextRequest
    * @returns SyncContextResponse
@@ -989,7 +989,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 初始化浏览器
+   * Initialize browser
    *
    * @param tmpReq - InitBrowserRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -1034,7 +1034,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 初始化浏览器
+   * Initialize browser
    *
    * @param request - InitBrowserRequest
    * @returns InitBrowserResponse
@@ -1047,7 +1047,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 初始化浏览器（同步版本）
+   * Initialize browser (sync version)
    *
    * @param request - InitBrowserRequest
    * @returns InitBrowserResponse
@@ -1092,7 +1092,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - DeleteContextFileRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -1137,7 +1137,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - DeleteContextFileRequest
    * @returns DeleteContextFileResponse
@@ -1150,7 +1150,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 查询context特定目录文件
+   * Query context specific directory files
    *
    * @param request - DescribeContextFilesRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -1203,7 +1203,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 查询context特定目录文件
+   * Query context specific directory files
    *
    * @param request - DescribeContextFilesRequest
    * @returns DescribeContextFilesResponse
@@ -1216,7 +1216,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - GetContextFileDownloadUrlRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -1261,7 +1261,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - GetContextFileDownloadUrlRequest
    * @returns GetContextFileDownloadUrlResponse
@@ -1274,7 +1274,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - GetContextFileUploadUrlRequest
    * @param runtime - runtime options for this request RuntimeOptions
@@ -1319,7 +1319,7 @@ export class Client extends OpenApi {
   }
 
   /**
-   * 获取上传context文件url
+   * Get context file upload URL
    *
    * @param request - GetContextFileUploadUrlRequest
    * @returns GetContextFileUploadUrlResponse

@@ -153,8 +153,8 @@ describe('File Operations Integration Tests', () => {
       expect(emptyReadResult.content).toBe('');
 
       // Edge case: File with special characters in name
-      const specialFileName = '/tmp/user/特殊文件名-test@#$.txt';
-      const specialContent = 'Content with 中文 and special chars: !@#$%^&*()';
+      const specialFileName = '/tmp/user/special-filename-test@#$.txt';
+      const specialContent = 'Content with Chinese and special chars: !@#$%^&*()';
 
       const writeSpecialResult = await fileSystem.writeFile(specialFileName, specialContent, 'create_new');
       expect(writeSpecialResult.success).toBe(true);

@@ -7,50 +7,50 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
-// AgentBay SDK - 自动化功能示例 (Golang)
+// AgentBay SDK - Automation Features Example (Golang)
 //
-// 本示例展示了如何使用AgentBay SDK的自动化功能，包括：
-// - 命令执行
-// - 代码执行
+// This example demonstrates how to use AgentBay SDK automation features, including:
+// - Command execution
+// - Code execution
 
 func main() {
-	fmt.Println("🚀 AgentBay 自动化功能示例 (Golang)")
+	fmt.Println("🚀 AgentBay Automation Features Example (Golang)")
 
-	// 初始化AgentBay客户端
+	// Initialize AgentBay client
 	client, err := agentbay.NewAgentBay("", nil)
 	if err != nil {
-		log.Fatalf("❌ 客户端初始化失败: %v", err)
+		log.Fatalf("❌ Client initialization failed: %v", err)
 	}
 
-	// 创建会话
-	fmt.Println("\n📱 创建会话...")
+	// Create session
+	fmt.Println("\n📱 Creating session...")
 	sessionResult, err := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
 	if err != nil {
-		fmt.Printf("❌ 会话创建失败: %v\n", err)
+		fmt.Printf("❌ Session creation failed: %v\n", err)
 		return
 	}
 
 	session := sessionResult.Session
-	fmt.Printf("✅ 会话创建成功: %s\n", session.SessionID)
+	fmt.Printf("✅ Session created successfully: %s\n", session.SessionID)
 
 	defer func() {
-		// 清理会话
-		fmt.Printf("\n🧹 清理会话: %s\n", session.SessionID)
+		// Clean up session
+		fmt.Printf("\n🧹 Cleaning up session: %s\n", session.SessionID)
 		client.Delete(session)
-		fmt.Println("✅ 示例执行完成")
+		fmt.Println("✅ Example execution completed")
 	}()
 
-	// 1. 命令执行示例
+	// 1. Command execution example
 	commandExecutionExample(session)
 
-	// 2. 代码执行示例
+	// 2. Code execution example
 	codeExecutionExample(session)
 }
 
 func commandExecutionExample(session *agentbay.Session) {
-	fmt.Println("\n💻 === 命令执行示例 ===")
+	fmt.Println("\n💻 === Command Execution Example ===")
 
-	// 基本命令执行
+	// Basic command execution
 	commands := []string{
 		"whoami",
 		"pwd",
@@ -59,38 +59,38 @@ func commandExecutionExample(session *agentbay.Session) {
 	}
 
 	for _, cmd := range commands {
-		fmt.Printf("\n🔄 执行命令: %s\n", cmd)
+		fmt.Printf("\n🔄 Executing command: %s\n", cmd)
 		result, err := session.Command.ExecuteCommand(cmd)
 
 		if err == nil {
-			fmt.Printf("✅ 输出: %s\n", result.Output)
+			fmt.Printf("✅ Output: %s\n", result.Output)
 		} else {
-			fmt.Printf("❌ 命令失败: %v\n", err)
+			fmt.Printf("❌ Command failed: %v\n", err)
 		}
 	}
 
-	// 带超时的命令执行
-	fmt.Println("\n🔄 执行带超时的命令...")
-	timeoutResult, err := session.Command.ExecuteCommand("sleep 2", 5000) // 5秒超时，单位毫秒
+	// Command execution with timeout
+	fmt.Println("\n🔄 Executing command with timeout...")
+	timeoutResult, err := session.Command.ExecuteCommand("sleep 2", 5000) // 5 second timeout, in milliseconds
 	if err == nil {
-		fmt.Println("✅ 超时命令执行成功")
-		fmt.Printf("输出: %s\n", timeoutResult.Output)
+		fmt.Println("✅ Timeout command execution successful")
+		fmt.Printf("Output: %s\n", timeoutResult.Output)
 	} else {
-		fmt.Printf("❌ 超时命令失败: %v\n", err)
+		fmt.Printf("❌ Timeout command failed: %v\n", err)
 	}
 }
 
 func codeExecutionExample(session *agentbay.Session) {
-	fmt.Println("\n🐍 === 代码执行示例 ===")
+	fmt.Println("\n🐍 === Code Execution Example ===")
 
-	// Python代码执行
+	// Python code execution
 	pythonCode := `
 import sys
 import os
 import json
 from datetime import datetime
 
-# 系统信息
+# System information
 system_info = {
     "python_version": sys.version,
     "current_directory": os.getcwd(),
@@ -98,29 +98,29 @@ system_info = {
     "environment_vars": len(os.environ)
 }
 
-print("Python代码执行成功!")
-print(f"系统信息: {json.dumps(system_info, indent=2)}")
+print("Python code execution successful!")
+print(f"System info: {json.dumps(system_info, indent=2)}")
 
-# 简单计算
+# Simple calculation
 numbers = list(range(1, 11))
 total = sum(numbers)
-print(f"1到10的和: {total}")
+print(f"Sum of 1 to 10: {total}")
 `
 
-	fmt.Println("🔄 执行Python代码...")
+	fmt.Println("🔄 Executing Python code...")
 	pythonResult, err := session.Code.RunCode(pythonCode, "python")
 	if err == nil {
-		fmt.Println("✅ Python代码执行成功:")
+		fmt.Println("✅ Python code execution successful:")
 		fmt.Println(pythonResult.Output)
 	} else {
-		fmt.Printf("❌ Python代码执行失败: %v\n", err)
+		fmt.Printf("❌ Python code execution failed: %v\n", err)
 	}
 
-	// JavaScript代码执行
+	// JavaScript code execution
 	jsCode := `
-console.log("JavaScript代码执行成功!");
+console.log("JavaScript code execution successful!");
 
-// 获取系统信息
+// Get system information
 const os = require('os');
 const systemInfo = {
     platform: os.platform(),
@@ -129,21 +129,21 @@ const systemInfo = {
     memory: Math.round(os.totalmem() / 1024 / 1024) + ' MB'
 };
 
-console.log("系统信息:", JSON.stringify(systemInfo, null, 2));
+console.log("System info:", JSON.stringify(systemInfo, null, 2));
 
-// 数组操作
+// Array operations
 const numbers = [1, 2, 3, 4, 5];
 const doubled = numbers.map(n => n * 2);
-console.log("原数组:", numbers);
-console.log("翻倍后:", doubled);
+console.log("Original array:", numbers);
+console.log("After doubling:", doubled);
 `
 
-	fmt.Println("\n🔄 执行JavaScript代码...")
+	fmt.Println("\n🔄 Executing JavaScript code...")
 	jsResult, err := session.Code.RunCode(jsCode, "javascript")
 	if err == nil {
-		fmt.Println("✅ JavaScript代码执行成功:")
+		fmt.Println("✅ JavaScript code execution successful:")
 		fmt.Println(jsResult.Output)
 	} else {
-		fmt.Printf("❌ JavaScript代码执行失败: %v\n", err)
+		fmt.Printf("❌ JavaScript code execution failed: %v\n", err)
 	}
 }
