@@ -26,13 +26,13 @@ jobs:
             rm -rf dist/
           fi
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+          pip install poetry
           # Use user-specified version number
           echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
-          sed -i "s/version='.*'/version='${{ inputs.version }}'/" setup.py
+
+          poetry version $PACKAGE_VERSION --no-git-tag
           # Verify replacement results
-          cat setup.py | grep version
-          python setup.py sdist bdist_wheel
+          cat pyproject.toml | grep version
           ls dist/
 
       - name: Publish to PyPI
@@ -51,7 +51,7 @@ jobs:
         run: |
           SUMMARY_PATH=$GITHUB_STEP_SUMMARY
 
-          # Write test content
+          #  Write test content
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 

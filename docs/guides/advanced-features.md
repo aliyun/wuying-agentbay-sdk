@@ -64,6 +64,8 @@ VPC sessions are created by setting the `is_vpc` parameter to `True` in the `Cre
 
 The `get_link()` method provides access URLs for connecting to your session through different protocols and ports. This is essential for accessing web applications, development servers, and custom services running within your sessions.
 
+**Important Port Range Restriction**: All port parameters must be integers in the range **[30100, 30199]**. Ports outside this range will result in validation errors.
+
 ### Basic Link Retrieval
 
 ```python
@@ -97,6 +99,42 @@ else:
 agent_bay.delete(session)
 ```
 
+### Port Range Validation
+
+**Valid Port Range**: **[30100, 30199]**
+
+All port parameters passed to `get_link()` must be integers within this range. Common ports like 80, 443, 8080, etc. are **not allowed** and will result in validation errors.
+
+```python
+from agentbay import AgentBay
+from agentbay.exceptions import SessionError
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# ✅ Valid ports (within range [30100, 30199])
+valid_ports = [30100, 30150, 30199]
+
+for port in valid_ports:
+    try:
+        result = session.get_link(port=port)
+        if result.success:
+            print(f"✅ Port {port}: {result.data}")
+    except SessionError as e:
+        print(f"❌ Port {port}: {e}")
+
+# ❌ Invalid ports (outside range [30100, 30199])
+invalid_ports = [80, 443, 8080, 30099, 30200]
+
+for port in invalid_ports:
+    try:
+        result = session.get_link(port=port)
+        print(f"Unexpected success for invalid port {port}")
+    except SessionError as e:
+        print(f"✅ Expected error for port {port}: {e}")
+        # Output: "Invalid port value: 8080. Port must be an integer in the range [30100, 30199]."
+```
+
 ### Parameter Usage and Constraints
 
 **Important**: The `get_link()` method has specific parameter requirements:
@@ -108,8 +146,8 @@ agent_bay.delete(session)
 
 **Valid Parameter Combinations:**
 - **No parameters**: Returns default WebSocket Secure link (`wss://`)
-- **Port only**: Specify port without protocol_type (returns `wss://` with port info)
-- **Both parameters**: Must specify both `protocol_type` and `port` together
+- **Port only**: Specify port without protocol_type (returns `wss://` with port info) - **Port must be in range [30100, 30199]**
+- **Both parameters**: Must specify both `protocol_type` and `port` together - **Port must be in range [30100, 30199]**
 - **Protocol only**: ❌ **NOT ALLOWED** - Will cause "port is not valid: null" error
 
 ```python
@@ -124,18 +162,18 @@ default_link = session.get_link()
 print(f"Default: {default_link.data}")
 # Output: wss://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/websocket_ai/...
 
-# ✅ Valid: Port only (WebSocket Secure with port info)
-port_link = session.get_link(port=8080)
-print(f"Port 8080: {port_link.data}")
+# ✅ Valid: Port only (WebSocket Secure with port info) - using valid port
+port_link = session.get_link(port=30150)  # Valid port in range [30100, 30199]
+print(f"Port 30150: {port_link.data}")
 # Output: wss://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/websocket_ai/...
 
-# ✅ Valid: HTTPS with port
-https_link = session.get_link(protocol_type="https", port=443)
+# ✅ Valid: HTTPS with valid port
+https_link = session.get_link(protocol_type="https", port=30199)  # Valid port
 print(f"HTTPS: {https_link.data}")
 # Output: https://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/request_ai/.../path/
 
-# ✅ Valid: WebSocket Secure with port
-wss_link = session.get_link(protocol_type="wss", port=443)
+# ✅ Valid: WebSocket Secure with valid port
+wss_link = session.get_link(protocol_type="wss", port=30100)  # Valid port
 print(f"WSS: {wss_link.data}")
 # Output: wss://gw-ap-southeast-1-ai-linux.wuyinggwintl.com:8008/websocket_ai/...
 
@@ -147,9 +185,15 @@ except SessionError as e:
 
 # ❌ Invalid: Unsupported protocol (will raise SessionError)
 try:
-    invalid_link = session.get_link(protocol_type="http", port=80)
+    invalid_link = session.get_link(protocol_type="http", port=30150)
 except SessionError as e:
     print(f"Error: {e}")  # "No enum constant ProtocolTypeEnum.http"
+
+# ❌ Invalid: Port outside valid range (will raise SessionError)
+try:
+    invalid_port_link = session.get_link(port=8080)  # Invalid port
+except SessionError as e:
+    print(f"Error: {e}")  # "Invalid port value: 8080. Port must be an integer in the range [30100, 30199]."
 ```
 
 ### Use Cases
@@ -194,6 +238,41 @@ if custom_https.success:
     print(f"Custom HTTPS: {custom_https.data}")
 agent_bay.delete(session)
 ```
+
+### Asynchronous Link Retrieval
+
+For applications requiring asynchronous operations, use the `get_link_async()` method:
+
+```python
+import asyncio
+from agentbay import AgentBay
+
+async def get_multiple_links():
+    agent_bay = AgentBay()
+    session_result = agent_bay.create()
+    session = session_result.session
+
+    # Get multiple links asynchronously
+    tasks = [
+        session.get_link_async(),  # Default WebSocket
+        session.get_link_async(protocol_type="https", port=443),  # HTTPS
+        session.get_link_async(port=8080)  # WebSocket with port
+    ]
+
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            print(f"Link {i+1} failed: {result}")
+        elif result.success:
+            print(f"Link {i+1}: {result.data}")
+        else:
+            print(f"Link {i+1} failed: {result.error_message}")
+
+# Run the async example
+asyncio.run(get_multiple_links())
+```
+
 ### Understanding Link Types and Formats
 
 Based on the parameters, `get_link()` returns different types of URLs:
@@ -339,7 +418,7 @@ def debug_session_links(session):
     info_result = session.info()
     if info_result.success:
         info = info_result.data
-        print(f"Session Type: {info.app_id}")
+        print(f"Session Type: {info. app_id}")
         print(f"Resource Type: {info.resource_type}")
         print(f"Resource URL: {info.resource_url[:100]}...")
     else:
