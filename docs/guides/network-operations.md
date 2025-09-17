@@ -1,16 +1,32 @@
-# Network Operations Guide
+# Network Redirection Guide
 
-This guide provides comprehensive guidance on using network management capabilities in the AgentBay Go SDK, including network creation, status monitoring, and lifecycle management.
+This guide provides comprehensive guidance on using network redirection capabilities in the AgentBay Go SDK to route cloud session traffic through your local network IP, preventing account suspensions caused by cloud IP reputation issues.
+
+## 🎯 Background & Use Cases
+
+### Problem: IP Reputation Issues in AI Scenarios
+Cloud-based AI operations often trigger account suspensions because services detect and block requests from cloud data center IPs, considering them "unusual" or risky traffic.
+
+### Solution: Network Redirection to Local IP
+Route all cloud session traffic through your local network, making requests appear to originate from your trusted local IP address instead of cloud data centers.
+
+**Key Benefits:**
+- ✅ Prevent account suspensions and service blocking
+- ✅ Maintain consistent network identity across AI operations  
+- ✅ Transparent integration without code changes
 
 > **Important**: Network functionality is only available with custom images (imgc-xxxxx format) and when the advanced network option is selected during session creation.
 
 ## 📋 Table of Contents
 
-- [Network Operations Guide](#network-operations-guide)
+- [Network Redirection Guide](#network-redirection-guide)
+  - [🎯 Background \& Use Cases](#-background--use-cases)
+    - [Problem: IP Reputation Issues in AI Scenarios](#problem-ip-reputation-issues-in-ai-scenarios)
+    - [Solution: Network Redirection to Local IP](#solution-network-redirection-to-local-ip)
   - [📋 Table of Contents](#-table-of-contents)
   - [🎯 Core Concepts](#-core-concepts)
-    - [What is Network Management?](#what-is-network-management)
-    - [Complete Network Workflow](#complete-network-workflow)
+    - [What is Network Redirection?](#what-is-network-redirection)
+    - [Network Redirection Workflow](#network-redirection-workflow)
       - [1. Network Creation](#1-network-creation)
       - [2. Local Client Setup](#2-local-client-setup)
       - [3. Session Creation](#3-session-creation)
@@ -23,7 +39,7 @@ This guide provides comprehensive guidance on using network management capabilit
       - [Online Status](#online-status)
   - [📚 API Quick Reference](#-api-quick-reference)
     - [Session Integration](#session-integration)
-  - [📡 Network Creation](#-network-creation)
+  - [📡 Network Redirection Setup](#-network-redirection-setup)
     - [Basic Network Creation](#basic-network-creation)
   - [📊 Network Status Monitoring](#-network-status-monitoring)
     - [Basic Status Query](#basic-status-query)
@@ -31,23 +47,25 @@ This guide provides comprehensive guidance on using network management capabilit
     - [Creating Sessions with Specific Networks](#creating-sessions-with-specific-networks)
     - [Complete End-to-End Example](#complete-end-to-end-example)
   - [📝 Summary](#-summary)
+    - [Core API Operations](#core-api-operations)
+    - [Ideal Use Cases](#ideal-use-cases)
 
 <a id="core-concepts"></a>
 ## 🎯 Core Concepts
 
-### What is Network Management?
+### What is Network Redirection?
 
-AgentBay's network management functionality provides a complete network redirection solution for cloud computing environments. The complete workflow includes:
+AgentBay's network redirection provides the following core capabilities:
 
-- **Network Creation**: Create or retrieve advanced office networks with redirection capabilities
-- **Local Client Setup**: Use network tokens to establish local redirection services
-- **Session Integration**: Create cloud sessions that can access local services through network redirection
-- **Tool Execution**: Execute MCP tools in cloud sessions with local network access
-- **Lifecycle Management**: Manage the complete network and session lifecycle
+- **Network Creation**: Create or retrieve networks with redirection capabilities
+- **Local Client Setup**: Use network tokens to establish local redirection services (Rick Plugin)  
+- **Session Integration**: Create cloud sessions that route traffic through your local network IP
+- **Status Monitoring**: Query network status and configuration
+- **Lifecycle Management**: Manage networks and sessions throughout their lifecycle
 
-### Complete Network Workflow
+### Network Redirection Workflow
 
-The network functionality follows a comprehensive workflow that enables cloud sessions to access local services through network redirection:
+The network redirection functionality follows a comprehensive workflow that routes cloud session traffic through your local network:
 
 #### 1. Network Creation
 ```go
@@ -194,7 +212,7 @@ if err != nil {
 ```
 
 <a id="network-creation"></a>
-## 📡 Network Creation
+## 📡 Network Redirection Setup
 
 ### Basic Network Creation
 
@@ -427,13 +445,13 @@ func main() {
 
 ## 📝 Summary
 
-This guide covers the basic network operations available in AgentBay Go SDK:
+### Core API Operations
+- **Create Network**: `agentBay.Network.CreateNetwork(nil)` 
+- **Query Status**: `agentBay.Network.DescribeNetwork(networkID)`
+- **Session Integration**: Pass `networkId` when creating sessions
+- **Local Setup**: Use Rick Plugin with network tokens
 
-- **Network Creation**: Use `agentBay.Network.CreateNetwork(nil)` to create new networks
-- **Status Query**: Use `agentBay.Network.DescribeNetwork(networkID)` to check network status
-- **Session Integration**: Pass `networkId` when creating sessions to associate networks
-- **Rick Plugin Integration**: Use network tokens with the Rick plugin to enable network redirection from cloud sessions to local client environment
-
-**Use Case**: The network functionality is particularly powerful when combined with the Rick plugin, enabling hybrid development workflows where cloud compute resources can seamlessly access local development services through secure network redirection.
+### Ideal Use Cases
+AI automation, web scraping, account management, and scenarios requiring consistent IP identity to avoid service restrictions.
 
 For more details, refer to the API documentation.
