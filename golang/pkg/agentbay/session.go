@@ -378,6 +378,13 @@ func (s *Session) GetLabels() (*LabelResult, error) {
 
 // GetLink gets the link for this session.
 func (s *Session) GetLink(protocolType *string, port *int32) (*LinkResult, error) {
+	// Validate port range if port is provided
+	if port != nil {
+		if *port < 30100 || *port > 30199 {
+			return nil, fmt.Errorf("invalid port value: %d. Port must be an integer in the range [30100, 30199]", *port)
+		}
+	}
+
 	getLinkRequest := &mcp.GetLinkRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
 		SessionId:     tea.String(s.SessionID),

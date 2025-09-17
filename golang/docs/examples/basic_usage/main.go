@@ -106,15 +106,27 @@ func main() {
 		fmt.Printf("Session link: %s (RequestID: %s)\n",
 			linkResult.Link, linkResult.RequestID)
 	}
-	// Test GetLink with port 8080
-	fmt.Println("\nTesting GetLink with port 8080...")
-	var port8080 int32 = 8080
-	linkResultPort8080, err := session.GetLink(nil, &port8080)
+
+	// Test GetLink with valid port in range [30100, 30199]
+	fmt.Println("\nTesting GetLink with valid port 30150...")
+	var validPort int32 = 30150
+	linkResultValidPort, err := session.GetLink(nil, &validPort)
 	if err != nil {
-		fmt.Printf("Error getting link with port 8080: %v\n", err)
+		fmt.Printf("Error getting link with valid port 30150: %v\n", err)
 	} else {
-		fmt.Printf("Link with port 8080: %s (RequestID: %s)\n",
-			linkResultPort8080.Link, linkResultPort8080.RequestID)
+		fmt.Printf("Link with valid port 30150: %s (RequestID: %s)\n",
+			linkResultValidPort.Link, linkResultValidPort.RequestID)
+	}
+
+	// Test GetLink with invalid port (for demonstration)
+	fmt.Println("\nTesting GetLink with invalid port 8080 (should fail)...")
+	var invalidPort int32 = 8080
+	linkResultInvalidPort, err := session.GetLink(nil, &invalidPort)
+	if err != nil {
+		fmt.Printf("Expected error with invalid port 8080: %v\n", err)
+	} else {
+		fmt.Printf("Unexpected success with invalid port: %s (RequestID: %s)\n",
+			linkResultInvalidPort.Link, linkResultInvalidPort.RequestID)
 	}
 
 	// Create a new Linux session for testing GetLink with parameters
@@ -131,18 +143,28 @@ func main() {
 		// Store Linux session for convenience
 		linuxSession = linuxResult.Session
 
-		// Test GetLink with parameters (protocol_type="https", port=443)
-		fmt.Println("\nTesting GetLink with parameters (https, 443)...")
+		// Test GetLink with valid parameters (protocol_type="https", port=30199)
+		fmt.Println("\nTesting GetLink with valid parameters (https, 30199)...")
 		httpsProtocol := "https"
-		var httpsPort int32 = 443
-		linkResultWithParams, err := linuxSession.GetLink(&httpsProtocol, &httpsPort)
+		var validHttpsPort int32 = 30199
+		linkResultWithValidParams, err := linuxSession.GetLink(&httpsProtocol, &validHttpsPort)
 		if err != nil {
-			fmt.Printf("Error getting link with params: %v\n", err)
+			fmt.Printf("Error getting link with valid params: %v\n", err)
 		} else {
-			fmt.Printf("Link with params: %s (RequestID: %s)\n",
-				linkResultWithParams.Link, linkResultWithParams.RequestID)
+			fmt.Printf("Link with valid params: %s (RequestID: %s)\n",
+				linkResultWithValidParams.Link, linkResultWithValidParams.RequestID)
 		}
 
+		// Test GetLink with invalid parameters (for demonstration)
+		fmt.Println("\nTesting GetLink with invalid parameters (https, 443) - should fail...")
+		var invalidHttpsPort int32 = 443
+		linkResultWithInvalidParams, err := linuxSession.GetLink(&httpsProtocol, &invalidHttpsPort)
+		if err != nil {
+			fmt.Printf("Expected error with invalid port 443: %v\n", err)
+		} else {
+			fmt.Printf("Unexpected success with invalid port: %s (RequestID: %s)\n",
+				linkResultWithInvalidParams.Link, linkResultWithInvalidParams.RequestID)
+		}
 	}
 
 	// Get context information

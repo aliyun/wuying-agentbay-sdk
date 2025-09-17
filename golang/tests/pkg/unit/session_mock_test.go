@@ -1,6 +1,7 @@
 package agentbay_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
@@ -137,11 +138,11 @@ func TestSession_GetLink_WithMockClient(t *testing.T) {
 	// Create mock Session
 	mockSession := mock.NewMockSessionInterface(ctrl)
 
-	// Set expected behavior
-	protocolType := "http"
-	port := int32(8080)
+	// Set expected behavior with valid port in range [30100, 30199]
+	protocolType := "https"
+	port := int32(30150)
 	expectedResult := &agentbay.LinkResult{
-		Link: "http://example.com:8080",
+		Link: "https://example.com:30150",
 	}
 	mockSession.EXPECT().GetLink(&protocolType, &port).Return(expectedResult, nil)
 
@@ -151,7 +152,146 @@ func TestSession_GetLink_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Equal(t, "http://example.com:8080", result.Link)
+	assert.Equal(t, "https://example.com:30150", result.Link)
+}
+
+func TestSession_GetLink_ValidPortRange_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Test cases for valid port range [30100, 30199]
+	testCases := []struct {
+		name         string
+		protocolType string
+		port         int32
+		expectedLink string
+	}{
+		{
+			name:         "MinValidPort",
+			protocolType: "http",
+			port:         30100,
+			expectedLink: "http://example.com:30100",
+		},
+		{
+			name:         "MaxValidPort",
+			protocolType: "https",
+			port:         30199,
+			expectedLink: "https://example.com:30199",
+		},
+		{
+			name:         "MidValidPort",
+			protocolType: "wss",
+			port:         30150,
+			expectedLink: "wss://example.com:30150",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Set expected behavior
+			expectedResult := &agentbay.LinkResult{
+				Link: tc.expectedLink,
+			}
+			mockSession.EXPECT().GetLink(&tc.protocolType, &tc.port).Return(expectedResult, nil)
+
+			// Test GetLink method call
+			result, err := mockSession.GetLink(&tc.protocolType, &tc.port)
+
+			// Verify call success
+			assert.NoError(t, err)
+			assert.NotNil(t, result)
+			assert.Equal(t, tc.expectedLink, result.Link)
+		})
+	}
+}
+
+func TestSession_GetLink_InvalidPortRange_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Test cases for invalid port range (outside [30100, 30199])
+	testCases := []struct {
+		name         string
+		protocolType string
+		port         int32
+		expectedErr  string
+	}{
+		{
+			name:         "PortTooLow",
+			protocolType: "http",
+			port:         30099,
+			expectedErr:  "invalid port value: 30099. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:         "PortTooHigh",
+			protocolType: "https",
+			port:         30200,
+			expectedErr:  "invalid port value: 30200. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:         "CommonPort80",
+			protocolType: "http",
+			port:         80,
+			expectedErr:  "invalid port value: 80. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:         "CommonPort443",
+			protocolType: "https",
+			port:         443,
+			expectedErr:  "invalid port value: 443. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:         "CommonPort8080",
+			protocolType: "http",
+			port:         8080,
+			expectedErr:  "invalid port value: 8080. Port must be an integer in the range [30100, 30199]",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Set expected behavior - return error for invalid port
+			expectedErr := errors.New(tc.expectedErr)
+			mockSession.EXPECT().GetLink(&tc.protocolType, &tc.port).Return(nil, expectedErr)
+
+			// Test GetLink method call
+			result, err := mockSession.GetLink(&tc.protocolType, &tc.port)
+
+			// Verify error handling
+			assert.Error(t, err)
+			assert.Nil(t, result)
+			assert.Equal(t, tc.expectedErr, err.Error())
+		})
+	}
+}
+
+func TestSession_GetLink_NilPort_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock Session
+	mockSession := mock.NewMockSessionInterface(ctrl)
+
+	// Test with nil port (should be valid)
+	protocolType := "https"
+	expectedResult := &agentbay.LinkResult{
+		Link: "https://example.com",
+	}
+	mockSession.EXPECT().GetLink(&protocolType, nil).Return(expectedResult, nil)
+
+	// Test GetLink method call
+	result, err := mockSession.GetLink(&protocolType, nil)
+
+	// Verify call success
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "https://example.com", result.Link)
 }
 
 func TestSession_Info_WithMockClient(t *testing.T) {

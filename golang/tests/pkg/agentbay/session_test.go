@@ -315,43 +315,213 @@ func TestSession_GetLinkMethod(t *testing.T) {
 		}
 	}
 
-	// Test GetLink method with port parameter
-	fmt.Println("Testing session.GetLink method with port parameter...")
-	port := int32(8080)
+	// Test GetLink method with valid port parameter (in range [30100, 30199])
+	fmt.Println("Testing session.GetLink method with valid port parameter...")
+	port := int32(30150)
 	linkWithPortResult, err := session.GetLink(nil, &port)
 	if err != nil {
-		t.Errorf("Error getting session link with port: %v", err)
+		t.Errorf("Error getting session link with valid port: %v", err)
 	} else {
 		if linkWithPortResult.RequestID == "" {
-			t.Errorf("GetLink with port did not return RequestID")
+			t.Errorf("GetLink with valid port did not return RequestID")
 		} else {
-			t.Logf("Session link with port 8080 retrieved (RequestID: %s)", linkWithPortResult.RequestID)
+			t.Logf("Session link with port 30150 retrieved (RequestID: %s)", linkWithPortResult.RequestID)
 		}
 		if linkWithPortResult.Link == "" {
-			t.Errorf("Expected non-empty link from GetLink with port")
+			t.Errorf("Expected non-empty link from GetLink with valid port")
 		} else {
-			t.Logf("Session link with port 8080: %s", linkWithPortResult.Link)
+			t.Logf("Session link with port 30150: %s", linkWithPortResult.Link)
 		}
 	}
 
-	// Test GetLink method with both protocol_type and port parameters
-	fmt.Println("Testing session.GetLink method with both protocol_type and port parameters...")
+	// Test GetLink method with both protocol_type and valid port parameters
+	fmt.Println("Testing session.GetLink method with both protocol_type and valid port parameters...")
 	protocolTypeHttps := "https"
-	portHttps := int32(443)
+	portHttps := int32(30199)
 	linkWithBothResult, err := session.GetLink(&protocolTypeHttps, &portHttps)
 	if err != nil {
-		t.Errorf("Error getting session link with protocol and port: %v", err)
+		t.Errorf("Error getting session link with protocol and valid port: %v", err)
 	} else {
 		if linkWithBothResult.RequestID == "" {
-			t.Errorf("GetLink with protocol and port did not return RequestID")
+			t.Errorf("GetLink with protocol and valid port did not return RequestID")
 		} else {
-			t.Logf("Session link with protocol https and port 443 retrieved (RequestID: %s)", linkWithBothResult.RequestID)
+			t.Logf("Session link with protocol https and port 30199 retrieved (RequestID: %s)", linkWithBothResult.RequestID)
 		}
 		if linkWithBothResult.Link == "" {
-			t.Errorf("Expected non-empty link from GetLink with protocol and port")
+			t.Errorf("Expected non-empty link from GetLink with protocol and valid port")
 		} else {
-			t.Logf("Session link with protocol https and port 443: %s", linkWithBothResult.Link)
+			t.Logf("Session link with protocol https and port 30199: %s", linkWithBothResult.Link)
 		}
+	}
+}
+
+func TestSession_GetLink_ValidPortRange(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create a session
+	fmt.Println("Creating a new session for valid port range testing...")
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("browser_latest")
+	sessionResult, err := agentBay.Create(sessionParams)
+	if err != nil {
+		t.Fatalf("Error creating session: %v", err)
+	}
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s", session.SessionID)
+
+	defer func() {
+		// Clean up the session after test
+		fmt.Println("Cleaning up: Deleting the session...")
+		deleteResult, err := agentBay.Delete(session)
+		if err != nil {
+			t.Logf("Warning: Error deleting session: %v", err)
+		} else {
+			t.Logf("Session deleted (RequestID: %s)", deleteResult.RequestID)
+		}
+	}()
+
+	// Test cases for valid port range [30100, 30199]
+	testCases := []struct {
+		name         string
+		protocolType *string
+		port         int32
+	}{
+		{
+			name:         "MinValidPort",
+			protocolType: nil,
+			port:         30100,
+		},
+		{
+			name:         "MaxValidPort",
+			protocolType: nil,
+			port:         30199,
+		},
+		{
+			name:         "MidValidPort",
+			protocolType: nil,
+			port:         30150,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			fmt.Printf("Testing GetLink with valid port %d...\n", tc.port)
+			result, err := session.GetLink(tc.protocolType, &tc.port)
+
+			// Verify no error for valid ports
+			if err != nil {
+				t.Errorf("Expected no error for valid port %d, got: %v", tc.port, err)
+				return
+			}
+
+			// Verify RequestID is returned
+			if result.RequestID == "" {
+				t.Errorf("GetLink with valid port %d did not return RequestID", tc.port)
+			} else {
+				t.Logf("GetLink with valid port %d returned RequestID: %s", tc.port, result.RequestID)
+			}
+
+			// Verify link is returned
+			if result.Link == "" {
+				t.Errorf("Expected non-empty link for valid port %d", tc.port)
+			} else {
+				t.Logf("GetLink with valid port %d returned link: %s", tc.port, result.Link)
+			}
+		})
+	}
+}
+
+func TestSession_GetLink_InvalidPortRange(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create a session
+	fmt.Println("Creating a new session for invalid port range testing...")
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("browser_latest")
+	sessionResult, err := agentBay.Create(sessionParams)
+	if err != nil {
+		t.Fatalf("Error creating session: %v", err)
+	}
+
+	session := sessionResult.Session
+	t.Logf("Session created with ID: %s", session.SessionID)
+
+	defer func() {
+		// Clean up the session after test
+		fmt.Println("Cleaning up: Deleting the session...")
+		deleteResult, err := agentBay.Delete(session)
+		if err != nil {
+			t.Logf("Warning: Error deleting session: %v", err)
+		} else {
+			t.Logf("Session deleted (RequestID: %s)", deleteResult.RequestID)
+		}
+	}()
+
+	// Test cases for invalid port range (outside [30100, 30199])
+	testCases := []struct {
+		name        string
+		port        int32
+		expectedErr string
+	}{
+		{
+			name:        "PortTooLow",
+			port:        30099,
+			expectedErr: "invalid port value: 30099. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:        "PortTooHigh",
+			port:        30200,
+			expectedErr: "invalid port value: 30200. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:        "CommonPort80",
+			port:        80,
+			expectedErr: "invalid port value: 80. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:        "CommonPort443",
+			port:        443,
+			expectedErr: "invalid port value: 443. Port must be an integer in the range [30100, 30199]",
+		},
+		{
+			name:        "CommonPort8080",
+			port:        8080,
+			expectedErr: "invalid port value: 8080. Port must be an integer in the range [30100, 30199]",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			fmt.Printf("Testing GetLink with invalid port %d...\n", tc.port)
+			result, err := session.GetLink(nil, &tc.port)
+
+			// Verify error is returned for invalid ports
+			if err == nil {
+				t.Errorf("Expected error for invalid port %d, but got success with result: %v", tc.port, result)
+				return
+			}
+
+			// Verify error message matches TypeScript version
+			if err.Error() != tc.expectedErr {
+				t.Errorf("Expected error message '%s' for invalid port %d, got: '%s'", tc.expectedErr, tc.port, err.Error())
+			} else {
+				t.Logf("GetLink with invalid port %d correctly returned error: %s", tc.port, err.Error())
+			}
+
+			// Verify result is nil when error occurs
+			if result != nil {
+				t.Errorf("Expected nil result when error occurs for invalid port %d, got: %v", tc.port, result)
+			}
+		})
 	}
 }
 

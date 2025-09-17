@@ -79,19 +79,19 @@ func main() {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	session := createResult.Session
 	fmt.Printf("Session created with ID: %s\n", session.SessionID)
-	
+
 	// Use the session...
-	
+
 	// Delete the session with context synchronization
 	deleteResult, err := session.Delete(true)
 	if err != nil {
 		fmt.Printf("Error deleting session: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	fmt.Println("Session deleted successfully with synchronized context")
 	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
 }
@@ -197,36 +197,51 @@ fmt.Printf("App ID: %s\n", info.AppID)
 Gets a link for this session.
 
 ```go
-GetLink(protocolType string, port int) (string, error)
+GetLink(protocolType *string, port *int32) (*LinkResult, error)
 ```
 
 **Parameters:**
-- `protocolType` (string): The protocol type for the link. If empty, the default protocol will be used.
-- `port` (int): The port for the link. If 0, the default port will be used.
+- `protocolType` (*string): The protocol type for the link. If nil, the default protocol will be used.
+- `port` (*int32): The port for the link. If nil, the default port will be used. **Port must be an integer in the range [30100, 30199]**.
 
 **Returns:**
-- `string`: The link for the session.
-- `error`: An error if getting the link fails.
+- `*LinkResult`: A result object containing the link and request ID.
+- `error`: An error if getting the link fails or if the port is outside the valid range.
+
+**Port Range Validation:**
+- Valid port range: **[30100, 30199]**
+- If a port outside this range is provided, the method will return an error with the message: `"invalid port value: {port}. Port must be an integer in the range [30100, 30199]"`
+- Common ports like 80, 443, 8080, etc. are **not allowed** and will result in validation errors
 
 **Example:**
 ```go
 // Get session link with default protocol and port
-link, err := session.GetLink("", 0)
+linkResult, err := session.GetLink(nil, nil)
 if err != nil {
 	fmt.Printf("Error getting link: %v\n", err)
 	os.Exit(1)
 }
 
-fmt.Printf("Session link: %s\n", link)
+fmt.Printf("Session link: %s (RequestID: %s)\n", linkResult.Link, linkResult.RequestID)
 
-// Get link with specific protocol and port
-customLink, err := session.GetLink("https", 8443)
+// Get link with specific protocol and valid port
+protocolType := "https"
+var validPort int32 = 30150  // Valid port in range [30100, 30199]
+customLinkResult, err := session.GetLink(&protocolType, &validPort)
 if err != nil {
 	fmt.Printf("Error getting custom link: %v\n", err)
 	os.Exit(1)
 }
 
-fmt.Printf("Custom link: %s\n", customLink)
+fmt.Printf("Custom link: %s (RequestID: %s)\n", customLinkResult.Link, customLinkResult.RequestID)
+
+// Example of invalid port usage (will fail)
+var invalidPort int32 = 8080  // Invalid port - outside [30100, 30199] range
+_, err = session.GetLink(nil, &invalidPort)
+if err != nil {
+	fmt.Printf("Expected error with invalid port: %v\n", err)
+	// Output: "invalid port value: 8080. Port must be an integer in the range [30100, 30199]"
+}
 ```
 
 ### ListMcpTools
@@ -264,4 +279,4 @@ for _, tool := range toolsResult.Tools {
 - [Window API Reference](window.md)
 - [OSS API Reference](oss.md)
 - [Application API Reference](application.md)
-- [Context API Reference](context-manager.md) 
+- [Context API Reference](context-manager.md)
