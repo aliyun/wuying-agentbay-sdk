@@ -295,73 +295,61 @@ if access_info:
     print("Cloud environment URL is ready - open it in your browser to start using the remote desktop")
 ```
 
-#### 2. SDK Integration for Desktop and Mobile Access
-Extract session information for integration with Web SDK and Android SDK:
+#### 2. Android SDK Configuration for Cloud Environment Access
+The session information obtained from `session.info()` can be used as configuration parameters for the Alibaba Cloud Android SDK, enabling users to connect to the session's cloud environment through the Android SDK:
 
 ```python
-import json
-
-def prepare_sdk_integration(session):
-    """Prepare session information for Web SDK and Android SDK integration."""
+def prepare_android_sdk_config(session):
+    """Prepare Android SDK configuration for cloud environment connection."""
     info_result = session.info()
-
+    
     if info_result.success:
         info = info_result.data
-
-        # Parse connection properties for SDK configuration
-        try:
-            conn_props = json.loads(info.connection_properties)
-        except json.JSONDecodeError:
-            conn_props = {}
-
-        # Prepare configuration for Web SDK (desktop applications)
-        web_sdk_config = {
-            "session_id": info.session_id,
-            "resource_id": info.resource_id,
-            "app_id": info.app_id,
-            "auth_code": info.auth_code,
-            "connection_properties": conn_props,
-            "ticket": info.ticket,
-            "platform": "web"
+        
+        # Android SDK configuration mapping
+        # info.resource_id corresponds to StreamView.CONFIG_DESKTOP_ID
+        # info.ticket corresponds to StreamView.CONFIG_CONNECTION_TICKET
+        android_config = {
+            "CONFIG_DESKTOP_ID": info.resource_id,      # Desktop/Resource ID for connection
+            "CONFIG_CONNECTION_TICKET": info.ticket,    # Connection ticket for authentication
+            "CONFIG_USE_VPC": False,                     # VPC configuration (adjust as needed)
+            "OS_TYPE": "android",                        # Operating system type
+            "CONFIG_USER": info.session_id,             # User identifier
+            "CONFIG_UUID": info.session_id              # Unique identifier
         }
-
-        # Prepare configuration for Android SDK (mobile applications)
-        android_sdk_config = {
-            "session_id": info.session_id,
-            "resource_id": info.resource_id,
-            "app_id": info.app_id,
-            "auth_code": info.auth_code,
-            "connection_properties": conn_props,
-            "ticket": info.ticket,
-            "platform": "android"
-        }
-
-        print("SDK Integration Configuration:")
+        
+        print("Android SDK Configuration:")
+        print(f"Desktop ID (CONFIG_DESKTOP_ID): {info.resource_id}")
+        print(f"Connection Ticket: {info.ticket[:50]}...")  # Truncated for security
         print(f"Session ID: {info.session_id}")
-        print(f"App ID: {info.app_id}")
-        print(f"Resource Type: {info.resource_type}")
-        print(f"Authentication Mode: {conn_props.get('authMode', 'Session')}")
-
-        return {
-            "web_sdk": web_sdk_config,
-            "android_sdk": android_sdk_config,
-            "resource_url": info.resource_url  # For direct browser access
-        }
+        
+        return android_config
     else:
-        print(f"Failed to prepare SDK integration: {info_result.error_message}")
+        print(f"Failed to prepare Android SDK config: {info_result.error_message}")
         return None
 
-# Usage
-sdk_configs = prepare_sdk_integration(session)
-if sdk_configs:
-    print("Configuration ready for Web SDK and Android SDK integration")
-
-    # Example: Pass to Web SDK for desktop remote control
-    # web_remote_client.connect(sdk_configs["web_sdk"])
-
-    # Example: Pass to Android SDK for mobile remote control
-    # android_remote_client.connect(sdk_configs["android_sdk"])
+# Usage example for Android SDK integration
+android_config = prepare_android_sdk_config(session)
+if android_config:
+    print("Android SDK configuration ready for StreamView connection")
+    
+    # In Android application, use these values to configure StreamView:
+    # ConnectionConfig cc = new ConnectionConfig();
+    # cc.id = android_config["CONFIG_DESKTOP_ID"];
+    # cc.connectionTicket = android_config["CONFIG_CONNECTION_TICKET"];
+    # cc.useVPC = android_config["CONFIG_USE_VPC"];
+    # cc.type = android_config["OS_TYPE"];
+    # cc.user = android_config["CONFIG_USER"];
+    # cc.uuid = android_config["CONFIG_UUID"];
+    # engine.start(cc);
 ```
+
+**Android SDK Integration Notes:**
+
+- **`info.resource_id`** maps to **`StreamView.CONFIG_DESKTOP_ID`** - This is the unique identifier for the cloud desktop/resource that the Android client will connect to
+- **`info.ticket`** maps to **`StreamView.CONFIG_CONNECTION_TICKET`** - This is the authentication ticket required to establish a secure connection to the cloud environment
+- The Android SDK uses these parameters to establish a connection through the StreamView component, enabling real-time interaction with the cloud environment
+- For detailed Android SDK integration steps, refer to the [Alibaba Cloud Android SDK documentation](https://help.aliyun.com/zh/ecp/android-sdk-of-cloud-phone)
 
 #### 3. Session Status Validation and Health Check
 Use `info()` to check if a session is still active and hasn't been released:
