@@ -306,22 +306,24 @@ def prepare_android_sdk_config(session):
     if info_result.success:
         info = info_result.data
         
-        # Android SDK configuration mapping
-        # info.resource_id corresponds to StreamView.CONFIG_DESKTOP_ID
-        # info.ticket corresponds to StreamView.CONFIG_CONNECTION_TICKET
+        # Android SDK Config parameters based on Alibaba Cloud Android SDK documentation
+        # Reference: https://help.aliyun.com/zh/ecp/android-sdk-of-cloud-phone section 4.1 Config
+        # info.resource_id maps to CONFIG_DESKTOP_ID
+        # info.ticket maps to CONFIG_CONNECTION_TICKET
         android_config = {
-            "CONFIG_DESKTOP_ID": info.resource_id,      # Desktop/Resource ID for connection
+            "CONFIG_DESKTOP_ID": info.resource_id,      # Desktop ID for connection
             "CONFIG_CONNECTION_TICKET": info.ticket,    # Connection ticket for authentication
-            "CONFIG_USE_VPC": False,                     # VPC configuration (adjust as needed)
-            "OS_TYPE": "android",                        # Operating system type
-            "CONFIG_USER": info.session_id,             # User identifier
-            "CONFIG_UUID": info.session_id              # Unique identifier
+            "CONFIG_USE_VPC": False,                     # VPC configuration (set based on your network setup)
+            "OS_TYPE": "android",                        # OS type for the connection
+            "CONFIG_USER": "",                           # User identifier (optional)
+            "CONFIG_UUID": ""                            # UUID identifier (optional)
         }
         
         print("Android SDK Configuration:")
-        print(f"Desktop ID (CONFIG_DESKTOP_ID): {info.resource_id}")
-        print(f"Connection Ticket: {info.ticket[:50]}...")  # Truncated for security
-        print(f"Session ID: {info.session_id}")
+        print(f"CONFIG_DESKTOP_ID: {info.resource_id}")
+        print(f"CONFIG_CONNECTION_TICKET: {info.ticket[:50]}...")  # Truncated for security
+        print(f"CONFIG_USE_VPC: {android_config['CONFIG_USE_VPC']}")
+        print(f"OS_TYPE: {android_config['OS_TYPE']}")
         
         return android_config
     else:
@@ -333,22 +335,37 @@ android_config = prepare_android_sdk_config(session)
 if android_config:
     print("Android SDK configuration ready for StreamView connection")
     
-    # In Android application, use these values to configure StreamView:
+    # Method 1: Using StreamView.start() with mConfigs (reference section 2.2)
+    # Map<String, Object> mConfigs = new HashMap<>();
+    # mConfigs.put("CONFIG_DESKTOP_ID", android_config.get("CONFIG_DESKTOP_ID"));
+    # mConfigs.put("CONFIG_CONNECTION_TICKET", android_config.get("CONFIG_CONNECTION_TICKET"));
+    # mConfigs.put("CONFIG_USE_VPC", android_config.get("CONFIG_USE_VPC"));
+    # mConfigs.put("OS_TYPE", android_config.get("OS_TYPE"));
+    # mConfigs.put("CONFIG_USER", android_config.get("CONFIG_USER"));
+    # mConfigs.put("CONFIG_UUID", android_config.get("CONFIG_UUID"));
+    # mStreamView.start(mConfigs);
+    
+    # Method 2: Using IAspEngine with ConnectionConfig (reference section 2.5)
     # ConnectionConfig cc = new ConnectionConfig();
-    # cc.id = android_config["CONFIG_DESKTOP_ID"];
-    # cc.connectionTicket = android_config["CONFIG_CONNECTION_TICKET"];
-    # cc.useVPC = android_config["CONFIG_USE_VPC"];
-    # cc.type = android_config["OS_TYPE"];
-    # cc.user = android_config["CONFIG_USER"];
-    # cc.uuid = android_config["CONFIG_UUID"];
+    # cc.id = android_config.get("CONFIG_DESKTOP_ID");
+    # cc.connectionTicket = android_config.get("CONFIG_CONNECTION_TICKET");
+    # cc.useVPC = android_config.get("CONFIG_USE_VPC");
+    # cc.type = android_config.get("OS_TYPE");
+    # cc.user = android_config.get("CONFIG_USER");
+    # cc.uuid = android_config.get("CONFIG_UUID");
     # engine.start(cc);
 ```
 
 **Android SDK Integration Notes:**
 
-- **`info.resource_id`** maps to **`StreamView.CONFIG_DESKTOP_ID`** - This is the unique identifier for the cloud desktop/resource that the Android client will connect to
-- **`info.ticket`** maps to **`StreamView.CONFIG_CONNECTION_TICKET`** - This is the authentication ticket required to establish a secure connection to the cloud environment
-- The Android SDK uses these parameters to establish a connection through the StreamView component, enabling real-time interaction with the cloud environment
+- **`info.resource_id`** maps to **`CONFIG_DESKTOP_ID`** - This is the unique identifier for the cloud desktop/resource that the Android client will connect to
+- **`info.ticket`** maps to **`CONFIG_CONNECTION_TICKET`** - This is the authentication ticket required to establish a secure connection to the cloud environment
+- **`CONFIG_USE_VPC`** - Set to `true` if your cloud environment uses VPC networking, `false` for standard networking
+- **`OS_TYPE`** - Specifies the OS type, typically set to "android" for mobile connections
+- **`CONFIG_USER`** and **`CONFIG_UUID`** - Optional parameters that can be set based on your specific requirements
+- The Android SDK supports two connection methods:
+  1. **StreamView.start(mConfigs)** - Direct connection using configuration map (section 2.2)
+  2. **IAspEngine with ConnectionConfig** - Multi-StreamView mode for advanced scenarios (section 2.5)
 - For detailed Android SDK integration steps, refer to the [Alibaba Cloud Android SDK documentation](https://help.aliyun.com/zh/ecp/android-sdk-of-cloud-phone)
 
 #### 3. Session Status Validation and Health Check
