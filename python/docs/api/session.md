@@ -59,9 +59,9 @@ result = agent_bay.create()
 if result.success:
     session = result.session
     print(f"Session created with ID: {session.session_id}")
-    
+
     # Use the session...
-    
+
     # Delete the session with context synchronization
     delete_result = session.delete(sync_context=True)
     if delete_result.success:
@@ -111,7 +111,7 @@ get_labels() -> OperationResult
 ```
 
 **Returns:**
-- `OperationResult`: A result object containing success status, request ID, error message if any, and the labels data.
+- `OperationResult`: A result object containing success status, request ID, and error message if any, and the labels data.
 
 **Raises:**
 - `AgentBayError`: If getting labels fails due to API errors or other issues.
@@ -169,17 +169,18 @@ get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> Ope
 
 **Parameters:**
 - `protocol_type` (str, optional): The protocol type for the link.
-- `port` (int, optional): The port for the link.
+- `port` (int, optional): The port for the link. Must be an integer in the range [30100, 30199]. If not specified, the default port will be used.
 
 **Returns:**
 - `OperationResult`: A result object containing success status, request ID, and the link URL as data.
 
 **Raises:**
+- `SessionError`: If the port value is invalid (not an integer or outside the valid range [30100, 30199]).
 - `AgentBayError`: If getting the link fails due to API errors or other issues.
 
 **Example:**
 ```python
-# Get session link
+# Get session link with default settings
 try:
     result = session.get_link()
     if result.success:
@@ -187,14 +188,21 @@ try:
         print(f"Session link: {link}")
     else:
         print(f"Failed to get link: {result.error_message}")
-    
-    # Get link with specific protocol and port
-    custom_result = session.get_link("https", 8443)
+
+    # Get link with specific protocol and valid port
+    custom_result = session.get_link("https", 30150)
     if custom_result.success:
         custom_link = custom_result.data
         print(f"Custom link: {custom_link}")
     else:
         print(f"Failed to get custom link: {custom_result.error_message}")
+
+    # Example with invalid port (will raise SessionError)
+    try:
+        invalid_result = session.get_link(port=8080)  # Invalid: outside [30100, 30199]
+    except SessionError as e:
+        print(f"Port validation error: {e}")
+
 except AgentBayError as e:
     print(f"Failed to get link: {e}")
 ```
@@ -209,13 +217,45 @@ async get_link_async(protocol_type: Optional[str] = None, port: Optional[int] = 
 
 **Parameters:**
 - `protocol_type` (str, optional): The protocol type for the link.
-- `port` (int, optional): The port for the link.
+- `port` (int, optional): The port for the link. Must be an integer in the range [30100, 30199]. If not specified, the default port will be used.
 
 **Returns:**
 - `OperationResult`: A result object containing success status, request ID, and the link URL as data.
 
 **Raises:**
+- `SessionError`: If the port value is invalid (not an integer or outside the valid range [30100, 30199]).
 - `AgentBayError`: If getting the link fails due to API errors or other issues.
+
+**Example:**
+```python
+import asyncio
+
+async def get_session_link():
+    try:
+        # Get session link with default settings
+        result = await session.get_link_async()
+        if result.success:
+            link = result.data
+            print(f"Session link: {link}")
+        else:
+            print(f"Failed to get link: {result.error_message}")
+
+        # Get link with specific protocol and valid port
+        custom_result = await session.get_link_async("wss", 30199)
+        if custom_result.success:
+            custom_link = custom_result.data
+            print(f"Custom WebSocket link: {custom_link}")
+        else:
+            print(f"Failed to get custom link: {custom_result.error_message}")
+
+    except SessionError as e:
+        print(f"Port validation error: {e}")
+    except AgentBayError as e:
+        print(f"Failed to get link: {e}")
+
+# Run the async function
+asyncio.run(get_session_link())
+```
 
 ### list_mcp_tools
 
@@ -242,4 +282,4 @@ list_mcp_tools(image_id: Optional[str] = None) -> McpToolsResult
 - [Window API Reference](window.md)
 - [OSS API Reference](oss.md)
 - [Application API Reference](application.md)
-- [Context API Reference](context-manager.md) 
+- [Context API Reference](context-manager.md)

@@ -417,7 +417,8 @@ class Session:
         Args:
             protocol_type (Optional[str], optional): The protocol type to use for the
                 link. Defaults to None.
-            port (Optional[int], optional): The port to use for the link.
+            port (Optional[int], optional): The port to use for the link. Must be an integer in the range [30100, 30199].
+                Defaults to None.
 
         Returns:
             OperationResult: Result containing the link as data and request ID.
@@ -426,6 +427,13 @@ class Session:
             SessionError: If the request fails or the response is invalid.
         """
         try:
+            # Validate port range if port is provided
+            if port is not None:
+                if not isinstance(port, int) or port < 30100 or port > 30199:
+                    raise SessionError(
+                        f"Invalid port value: {port}. Port must be an integer in the range [30100, 30199]."
+                    )
+
             request = GetLinkRequest(
                 authorization=f"Bearer {self.get_api_key()}",
                 session_id=self.get_session_id(),
@@ -478,7 +486,7 @@ class Session:
         Args:
             protocol_type (Optional[str], optional): The protocol type to use for the
                 link. Defaults to None.
-            port (Optional[int], optional): The port to use for the link.
+            port (Optional[int], optional): The port to use for the link. Must be an integer in the range [30100, 30199].
                 Defaults to None.
 
         Returns:
@@ -488,6 +496,13 @@ class Session:
             SessionError: If the request fails or the response is invalid.
         """
         try:
+            # Validate port range if port is provided
+            if port is not None:
+                if not isinstance(port, int) or port < 30100 or port > 30199:
+                    raise SessionError(
+                        f"Invalid port value: {port}. Port must be an integer in the range [30100, 30199]."
+                    )
+
             request = GetLinkRequest(
                 authorization=f"Bearer {self.get_api_key()}",
                 session_id=self.get_session_id(),
