@@ -215,7 +215,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result = browser.agent.act(page, ActOptions(action="Click search button"))
+        result = browser.agent.act(ActOptions(action="Click search button"), page)
         print("result =", result)
 
         self.assertTrue(result.success)
@@ -243,7 +243,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result, observe_results = browser.agent.observe(page, ObserveOptions(instruction="Find the search button"))
+        result, observe_results = browser.agent.observe(ObserveOptions(instruction="Find the search button"), page)
         print("result =", result)
         print("observe_results =", observe_results)
 
@@ -272,7 +272,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("http://www.baidu.com")
         self.assertTrue(page.title() is not None)
 
-        result, obj = browser.agent.extract(page, ExtractOptions(instruction="Extract the title", schema=DummySchema))
+        result, obj = browser.agent.extract(ExtractOptions(instruction="Extract the title", schema=DummySchema), page)
         print("result =", result)
         print("obj =", obj)
         self.assertTrue(result)
@@ -310,7 +310,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page.goto("https://httpbin.org/ip")
         
         try:
-            response = page.evaluate("() => JSON.parse(document.body.textContent)")
+            response = await page.evaluate("() => JSON.parse(document.body.textContent)")
             original_ip = response.get("origin", "").strip()
             print(f"original IP: {original_ip}")
         except Exception as e:
@@ -361,7 +361,7 @@ class TestBrowserAgentIntegration(unittest.TestCase):
         page2.goto("https://httpbin.org/ip")
         
         try:
-            response2 = page2.evaluate("() => JSON.parse(document.body.textContent)")
+            response2 = await page2.evaluate("() => JSON.parse(document.body.textContent)")
             proxy_ip = response2.get("origin", "").strip()
             print(f"proxy IP: {proxy_ip}")
         except Exception as e:

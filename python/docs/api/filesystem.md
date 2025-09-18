@@ -1,6 +1,6 @@
 # FileSystem Class API Reference
 
-The `FileSystem` class provides methods for file operations within a session in the AgentBay cloud environment. This includes reading, writing, editing, and searching files, as well as directory operations.
+The `FileSystem` class provides methods for file operations within a session in the AgentBay cloud environment. This includes reading, writing, editing, and searching files, as well as directory operations and real-time directory monitoring.
 
 ## Methods
 
@@ -67,6 +67,7 @@ list_directory(path: str) -> DirectoryListResult
 **Returns:**
 - `DirectoryListResult`: A result object containing a list of directory entries, success status, request ID, and error message if any.
 
+### move_file
 
 Moves a file or directory from source to destination.
 
@@ -82,6 +83,7 @@ move_file(source: str, destination: str) -> BoolResult
 **Returns:**
 - `BoolResult`: A result object containing success status, boolean data (True if successful), request ID, and error message if any.
 
+### read_file
 
 Reads the contents of a file. Automatically handles large files by chunking.
 
@@ -99,6 +101,7 @@ read_file(path: str) -> FileContentResult
 **Note:**
 This method automatically handles both small and large files. For large files, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
 
+### read_multiple_files
 
 ```python
 read_multiple_files(paths: List[str]) -> MultipleFileContentResult
@@ -110,6 +113,7 @@ read_multiple_files(paths: List[str]) -> MultipleFileContentResult
 **Returns:**
 - `MultipleFileContentResult`: A result object containing a dictionary mapping file paths to their contents, success status, request ID, and error message if any.
 
+### search_files
 
 Searches for files matching a pattern in a directory.
 
@@ -126,6 +130,7 @@ search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = No
 **Returns:**
 - `FileSearchResult`: A result object containing search results, success status, request ID, and error message if any.
 
+### write_file
 
 Writes content to a file. Automatically handles large files by chunking.
 
@@ -144,3 +149,81 @@ write_file(path: str, content: str, mode: str = "overwrite") -> BoolResult
 
 **Note:**
 This method automatically handles both small and large content. For large content, it uses internal chunking with a default chunk size of 50KB to overcome API size limitations. No manual chunk size configuration is needed.
+
+## Directory Monitoring
+
+### watch_directory
+
+Watches a directory for file changes and calls a callback function when changes occur.
+
+```python
+watch_directory(
+    path: str,
+    callback: Callable[[List[FileChangeEvent]], None],
+    interval: float = 0.5,
+    stop_event: Optional[threading.Event] = None
+) -> threading.Thread
+```
+
+**Parameters:**
+- `path` (str): The directory path to monitor for file changes.
+- `callback` (Callable): Callback function that will be called with a list of FileChangeEvent objects when changes are detected.
+- `interval` (float, optional): Polling interval in seconds. Default is 0.5.
+- `stop_event` (threading.Event, optional): Optional threading.Event to stop the monitoring. If not provided, a new Event will be created and attached to the returned thread.
+
+**Returns:**
+- `threading.Thread`: The monitoring thread. Call `thread.start()` to begin monitoring. Use `thread.stop_event.set()` to stop monitoring.
+
+**Example:**
+```python
+import threading
+import time
+
+def on_file_change(events):
+    for event in events:
+        print(f"{event.event_type}: {event.path} ({event.path_type})")
+
+# Start monitoring
+monitor_thread = session.file_system.watch_directory(
+    path="/tmp/my_directory",
+    callback=on_file_change,
+    interval=0.5  # Check every 0.5 seconds
+)
+monitor_thread.start()
+
+# Do some work...
+time.sleep(10)
+
+# Stop monitoring
+monitor_thread.stop_event.set()
+monitor_thread.join()
+```
+
+### FileChangeEvent
+
+Represents a single file change event.
+
+**Attributes:**
+- `event_type` (str): Type of the file change event ("create", "modify", "delete").
+- `path` (str): Path of the file or directory that changed.
+- `path_type` (str): Type of the path ("file" or "directory").
+
+**Methods:**
+- `to_dict()`: Convert to dictionary representation.
+- `from_dict(data)`: Create FileChangeEvent from dictionary (class method).
+
+### FileChangeResult
+
+Result of file change detection operations.
+
+**Attributes:**
+- `success` (bool): Whether the operation was successful.
+- `events` (List[FileChangeEvent]): List of file change events.
+- `raw_data` (str): Raw response data for debugging.
+- `error_message` (str): Error message if the operation failed.
+
+**Methods:**
+- `has_changes()`: Check if there are any file changes.
+- `get_modified_files()`: Get list of modified file paths.
+- `get_created_files()`: Get list of created file paths.
+- `get_deleted_files()`: Get list of deleted file paths.

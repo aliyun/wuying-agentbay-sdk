@@ -1,9 +1,8 @@
 """
-Example demonstrating AIBrowser capabilites with AgentBay SDK.
-This example shows how to use PageUseAgent to run sudoku game, including:
-- Create AIBrowser session
-- Use playwright to connect to AIBrowser instance through CDP protocol
-- Utilize PageUseAgent to run sudoku game
+示例：数独（提取 + 输入框填写）
+提取 9×9 棋盘
+使用本地算法求解，在页面逐格回填
+重点：复杂结构提取；输入框填写
 """
 
 import os
@@ -69,12 +68,13 @@ async def main():
                         print("📊 Extracting sudoku board...")
                         options = ExtractOptions(
                             instruction="""
-                            Extract the current sudoku board as a 9x9 array. 
-                            Each cell should be a number (1-9) if filled, or 0 if empty.
-                            """,
-                            schema=SudokuBoard
+Extract the current sudoku board as a 9x9 array. 
+Each cell should be a number (1-9) if filled, or 0 if empty.
+""",
+                            schema=SudokuBoard,
+                            use_text_extract=False,
                         )
-                        success, board_obj = await session.browser.agent.extract_async(page, options)
+                        success, board_obj = await session.browser.agent.extract_async(options=options, page=page)
                         if not success:
                             print("❌ Failed to extract sudoku board, retry extracting")
                             await asyncio.sleep(3)

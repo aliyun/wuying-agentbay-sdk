@@ -1,21 +1,20 @@
 """
-Example demonstrating AIBrowser capabilites with AgentBay SDK.
-This example shows how to use AIBrowser to visit aliyun.com, including:
-- Create AIBrowser session
-- Use playwright to connect to AIBrowser instance through CDP protocol
-- Utilize playwright to visit aliyun.com
+示例：使用PageUse Agent的AgentBay接口访问阿里云并搜索“AgentBay帮助文档”
+打开 https://www.aliyun.com
+搜索“AgentBay帮助文档”，点击第一条搜索结果并进入“帮助文档”，滚动到页面底部
+重点：全程使用 BrowserAgent API
 """
 
 import os
-import time
 import asyncio
 
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 from agentbay.browser.browser import BrowserOption
-from agentbay.browser.browser_agent import ActOptions, ObserveOptions
+from agentbay.browser.browser_agent import ActOptions
 
 from playwright.async_api import async_playwright
+
 
 async def main():
     # Get API key from environment variable
@@ -46,34 +45,23 @@ async def main():
 
             async with async_playwright() as p:
                 browser = await p.chromium.connect_over_cdp(endpoint_url)
-                page = await browser.new_page()
-                await page.goto("https://www.aliyun.com")
+                agent = session.browser.agent
 
-                # 1. Input search keyword
-                await session.browser.agent.act_async(page, ActOptions(
-                    action="在搜索框中输入'AgentBay帮助文档'",
-                ))
+                await agent.navigate_async("https://www.aliyun.com")
 
-                # 2. Press Enter
-                await page.keyboard.press("Enter")
+                await agent.act_async(
+                    ActOptions(action="搜索框输入'AgentBay帮助文档'并回车")
+                )
+                await agent.act_async(ActOptions(action="点击搜索结果中的第一项"))
+                await agent.act_async(ActOptions(action="点击'帮助文档'"))
+                await agent.act_async(ActOptions(action="滚动页面到底部"))
 
-                # 3. Click the first search result
-                await session.browser.agent.act_async(page, ActOptions(
-                    action="点击搜索结果中的第一项",
-                ))
-
-                # 4. Click '帮助文档'
-                await session.browser.agent.act_async(page, ActOptions(
-                    action="点击'帮助文档'",
-                ))
-
-                # 5. Wait for 10 seconds
-                await page.wait_for_timeout(10000)
-
+                await asyncio.sleep(5)
                 await browser.close()
         else:
             print("Failed to initialize browser")
         agent_bay.delete(session)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

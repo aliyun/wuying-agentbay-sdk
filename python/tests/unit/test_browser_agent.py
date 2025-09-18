@@ -202,37 +202,37 @@ class TestBrowser(unittest.TestCase):
         """Test act method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.act(page, ActOptions(action="Click search button"))
+        self.browser.agent.act(ActOptions(action="Click search button"), page)
 
     def test_observe(self):
         """Test observe method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.observe(page, ObserveOptions(instruction="Find the search button"))
+        self.browser.agent.observe(ObserveOptions(instruction="Find the search button"), page)
 
     def test_extract(self):
         """Test extract method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.extract(page, ExtractOptions(instruction="Extract the title", schema=TestSchema))
+        self.browser.agent.extract(ExtractOptions(instruction="Extract the title", schema=TestSchema), page)
 
     def test_act_async(self):
         """Test act_async method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.act_async(page, ActOptions(action="Click search button"))
+        self.browser.agent.act_async(ActOptions(action="Click search button"), page)
 
     def test_observe_async(self):
         """Test observe_async method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.observe_async(page, ObserveOptions(instruction="Find the search button"))
+        self.browser.agent.observe_async(ObserveOptions(instruction="Find the search button"), page)
 
     def test_extract_async(self):
         """Test extract_async method."""
         page = MagicMock()
         self.browser.initialize(BrowserOption())
-        self.browser.agent.extract_async(page, ExtractOptions(instruction="Extract the title", schema=TestSchema))
+        self.browser.agent.extract_async(ExtractOptions(instruction="Extract the title", schema=TestSchema), page)
 
 if __name__ == '__main__':
     unittest.main()

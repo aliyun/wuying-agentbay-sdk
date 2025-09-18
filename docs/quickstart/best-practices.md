@@ -189,7 +189,7 @@ print(file_path)
 # For demonstration purposes, we show the pattern but in practice you would
 # either upload existing files or create them programmatically
 
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 session = agent_bay.create().session
 try:
     result = session.file_system.search_files(base_dir, filename)
@@ -298,7 +298,7 @@ params = CreateSessionParams(labels={
     'environment': 'development',
     'owner': 'john.doe'
 })
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 result = agent_bay.create(params)
 session = result.session
 

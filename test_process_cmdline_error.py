@@ -11,9 +11,9 @@ try:
     process2 = Process("test_process2", 5678, "python test.py")
     print(f"✓ Process created with cmdline string: {process2}")
     
-    print("\n=== 错误确认 ===")
-    print("文档说cmdline是str类型，但实际实现允许None值")
-    print("这证明文档中的类型标注是错误的，应该是Optional[str]")
+    print("\n=== Error Confirmation ===")
+    print("Documentation says cmdline is str type, but actual implementation allows None values")
+    print("This proves that the type annotation in the documentation is incorrect, should be Optional[str]")
     
 except Exception as e:
     print(f"✗ Error: {e}")

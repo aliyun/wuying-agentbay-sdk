@@ -106,7 +106,7 @@ from agentbay.session_params import ListSessionParams
 from agentbay.session_params import CreateSessionParams
 
 # Initialize the SDK
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 # Create ten sessions
 for i in range(10):
     # create parameters with labels
@@ -209,7 +209,7 @@ if info_result.success:
     print(f"Cloud Environment Access URL: {session_info.resource_url}")
     print(f"App Type: {session_info.app_id}")
     print(f"Request ID: {info_result.request_id}")
-    
+
     # The resource_url can be directly opened in a browser for immediate access
     print("\n🌐 You can now open the resource_url in your browser to access the cloud environment!")
     print("   Features available: Video stream, Mouse control, Keyboard input")
@@ -229,16 +229,16 @@ info_result = session.info()
 
 if info_result.success:
     info = info_result.data
-    
+
     # Core session identifiers
     print(f"Session ID: {info.session_id}")
     print(f"Resource ID: {info.resource_id}")
-    
+
     # Access and connection information
     print(f"Resource URL: {info.resource_url}")
     print(f"App ID: {info.app_id}")  # e.g., "agentBay-browser-cdp", "mcp-server-ubuntu"
     print(f"Resource Type: {info.resource_type}")  # e.g., "AIAgent"
-    
+
     # Authentication and security
     print(f"Auth Code: {info.auth_code[:50]}...")  # Truncated for security
     print(f"Connection Properties: {info.connection_properties}")  # JSON string
@@ -267,11 +267,11 @@ The most common use case is accessing the cloud environment directly through a w
 def access_cloud_environment_browser(session):
     """Get cloud environment access URL for browser-based remote control."""
     info_result = session.info()
-    
+
     if info_result.success:
         info = info_result.data
         resource_url = info.resource_url
-        
+
         print(f"Cloud environment ready for session: {info.session_id}")
         print(f"Resource URL: {resource_url}")
         print("\n🌐 Copy and paste the Resource URL into any web browser to access the cloud environment")
@@ -279,7 +279,7 @@ def access_cloud_environment_browser(session):
         print("   - Real-time video stream of the desktop")
         print("   - Mouse and keyboard interaction capabilities")
         print("   - Full remote desktop experience")
-        
+
         return {
             "session_id": info.session_id,
             "resource_url": resource_url,
@@ -295,73 +295,78 @@ if access_info:
     print("Cloud environment URL is ready - open it in your browser to start using the remote desktop")
 ```
 
-#### 2. SDK Integration for Desktop and Mobile Access
-Extract session information for integration with Web SDK and Android SDK:
+#### 2. Android SDK Configuration for Cloud Environment Access
+The session information obtained from `session.info()` can be used as configuration parameters for the Alibaba Cloud Android SDK, enabling users to connect to the session's cloud environment through the Android SDK:
 
 ```python
-import json
-
-def prepare_sdk_integration(session):
-    """Prepare session information for Web SDK and Android SDK integration."""
+def prepare_android_sdk_config(session):
+    """Prepare Android SDK configuration for cloud environment connection."""
     info_result = session.info()
     
     if info_result.success:
         info = info_result.data
         
-        # Parse connection properties for SDK configuration
-        try:
-            conn_props = json.loads(info.connection_properties)
-        except json.JSONDecodeError:
-            conn_props = {}
-        
-        # Prepare configuration for Web SDK (desktop applications)
-        web_sdk_config = {
-            "session_id": info.session_id,
-            "resource_id": info.resource_id,
-            "app_id": info.app_id,
-            "auth_code": info.auth_code,
-            "connection_properties": conn_props,
-            "ticket": info.ticket,
-            "platform": "web"
+        # Android SDK Config parameters based on Alibaba Cloud Android SDK documentation
+        # Reference: https://help.aliyun.com/zh/ecp/android-sdk-of-cloud-phone section 4.1 Config
+        # info.resource_id maps to CONFIG_DESKTOP_ID
+        # info.ticket maps to CONFIG_CONNECTION_TICKET
+        android_config = {
+            "CONFIG_DESKTOP_ID": info.resource_id,      # Desktop ID for connection
+            "CONFIG_CONNECTION_TICKET": info.ticket,    # Connection ticket for authentication
+            "CONFIG_USE_VPC": False,                     # VPC configuration (set based on your network setup)
+            "OS_TYPE": "android",                        # OS type for the connection
+            "CONFIG_USER": "",                           # User identifier (optional)
+            "CONFIG_UUID": ""                            # UUID identifier (optional)
         }
         
-        # Prepare configuration for Android SDK (mobile applications)
-        android_sdk_config = {
-            "session_id": info.session_id,
-            "resource_id": info.resource_id,
-            "app_id": info.app_id,
-            "auth_code": info.auth_code,
-            "connection_properties": conn_props,
-            "ticket": info.ticket,
-            "platform": "android"
-        }
+        print("Android SDK Configuration:")
+        print(f"CONFIG_DESKTOP_ID: {info.resource_id}")
+        print(f"CONFIG_CONNECTION_TICKET: {info.ticket[:50]}...")  # Truncated for security
+        print(f"CONFIG_USE_VPC: {android_config['CONFIG_USE_VPC']}")
+        print(f"OS_TYPE: {android_config['OS_TYPE']}")
         
-        print("SDK Integration Configuration:")
-        print(f"Session ID: {info.session_id}")
-        print(f"App ID: {info.app_id}")
-        print(f"Resource Type: {info.resource_type}")
-        print(f"Authentication Mode: {conn_props.get('authMode', 'Session')}")
-        
-        return {
-            "web_sdk": web_sdk_config,
-            "android_sdk": android_sdk_config,
-            "resource_url": info.resource_url  # For direct browser access
-        }
+        return android_config
     else:
-        print(f"Failed to prepare SDK integration: {info_result.error_message}")
+        print(f"Failed to prepare Android SDK config: {info_result.error_message}")
         return None
 
-# Usage
-sdk_configs = prepare_sdk_integration(session)
-if sdk_configs:
-    print("Configuration ready for Web SDK and Android SDK integration")
+# Usage example for Android SDK integration
+android_config = prepare_android_sdk_config(session)
+if android_config:
+    print("Android SDK configuration ready for StreamView connection")
     
-    # Example: Pass to Web SDK for desktop remote control
-    # web_remote_client.connect(sdk_configs["web_sdk"])
+    # Method 1: Using StreamView.start() with mConfigs (reference section 2.2)
+    # Map<String, Object> mConfigs = new HashMap<>();
+    # mConfigs.put("CONFIG_DESKTOP_ID", android_config.get("CONFIG_DESKTOP_ID"));
+    # mConfigs.put("CONFIG_CONNECTION_TICKET", android_config.get("CONFIG_CONNECTION_TICKET"));
+    # mConfigs.put("CONFIG_USE_VPC", android_config.get("CONFIG_USE_VPC"));
+    # mConfigs.put("OS_TYPE", android_config.get("OS_TYPE"));
+    # mConfigs.put("CONFIG_USER", android_config.get("CONFIG_USER"));
+    # mConfigs.put("CONFIG_UUID", android_config.get("CONFIG_UUID"));
+    # mStreamView.start(mConfigs);
     
-    # Example: Pass to Android SDK for mobile remote control
-    # android_remote_client.connect(sdk_configs["android_sdk"])
+    # Method 2: Using IAspEngine with ConnectionConfig (reference section 2.5)
+    # ConnectionConfig cc = new ConnectionConfig();
+    # cc.id = android_config.get("CONFIG_DESKTOP_ID");
+    # cc.connectionTicket = android_config.get("CONFIG_CONNECTION_TICKET");
+    # cc.useVPC = android_config.get("CONFIG_USE_VPC");
+    # cc.type = android_config.get("OS_TYPE");
+    # cc.user = android_config.get("CONFIG_USER");
+    # cc.uuid = android_config.get("CONFIG_UUID");
+    # engine.start(cc);
 ```
+
+**Android SDK Integration Notes:**
+
+- **`info.resource_id`** maps to **`CONFIG_DESKTOP_ID`** - This is the unique identifier for the cloud desktop/resource that the Android client will connect to
+- **`info.ticket`** maps to **`CONFIG_CONNECTION_TICKET`** - This is the authentication ticket required to establish a secure connection to the cloud environment
+- **`CONFIG_USE_VPC`** - Set to `true` if your cloud environment uses VPC networking, `false` for standard networking
+- **`OS_TYPE`** - Specifies the OS type, typically set to "android" for mobile connections
+- **`CONFIG_USER`** and **`CONFIG_UUID`** - Optional parameters that can be set based on your specific requirements
+- The Android SDK supports two connection methods:
+  1. **StreamView.start(mConfigs)** - Direct connection using configuration map (section 2.2)
+  2. **IAspEngine with ConnectionConfig** - Multi-StreamView mode for advanced scenarios (section 2.5)
+- For detailed Android SDK integration steps, refer to the [Alibaba Cloud Android SDK documentation](https://help.aliyun.com/zh/ecp/android-sdk-of-cloud-phone)
 
 #### 3. Session Status Validation and Health Check
 Use `info()` to check if a session is still active and hasn't been released:
@@ -371,7 +376,7 @@ def check_session_status(session):
     """Check if session is still active and hasn't been released."""
     try:
         info_result = session.info()
-        
+
         if info_result.success:
             info = info_result.data
             print(f"✅ Session {info.session_id} is ACTIVE")
@@ -382,7 +387,7 @@ def check_session_status(session):
         else:
             print(f"❌ Session status check failed: {info_result.error_message}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Session has been RELEASED or is inaccessible: {e}")
         return False
@@ -390,16 +395,16 @@ def check_session_status(session):
 def monitor_session_health(session, check_interval=30):
     """Continuously monitor session health."""
     import time
-    
+
     print(f"Starting health monitoring for session: {session.session_id}")
-    
+
     while True:
         is_active = check_session_status(session)
-        
+
         if not is_active:
             print("🚨 Session is no longer active - stopping monitoring")
             break
-        
+
         print(f"💚 Session health check passed - next check in {check_interval}s")
         time.sleep(check_interval)
 
@@ -560,7 +565,7 @@ def validate_recovered_session(session):
     """Validate that a recovered session is still active and usable."""
     try:
         info_result = session.info()
-        
+
         if info_result.success:
             info = info_result.data
             print(f"✅ Session {session.session_id} successfully recovered")
@@ -571,7 +576,7 @@ def validate_recovered_session(session):
         else:
             print(f"❌ Session recovery validation failed: {info_result.error_message}")
             return False
-            
+
     except Exception as e:
         print(f"❌ Session {session.session_id} is no longer available: {e}")
         return False
@@ -677,9 +682,9 @@ else:
 ## API Reference
 
 For detailed API documentation, see:
-- [Python Session API](../api-reference/python/session.md)
-- [TypeScript Session API](../api-reference/typescript/session.md)
-- [Golang Session API](../api-reference/golang/session.md)
-- [Python AgentBay API](../api-reference/python/agentbay.md)
-- [TypeScript AgentBay API](../api-reference/typescript/agentbay.md)
-- [Golang AgentBay API](../api-reference/golang/agentbay.md)
+- [Python Session API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/python/docs/api/session.md)
+- [TypeScript Session API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/typescript/docs/api/session.md)
+- [Golang Session API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/golang/docs/api/session.md)
+- [Python AgentBay API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/python/docs/api/agentbay.md)
+- [TypeScript AgentBay API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/typescript/docs/api/agentbay.md)
+- [Golang AgentBay API](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/golang/docs/api/agentbay.md)

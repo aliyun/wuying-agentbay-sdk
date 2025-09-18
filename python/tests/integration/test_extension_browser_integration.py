@@ -28,9 +28,9 @@ from urllib.parse import urlparse
 from agentbay import AgentBay
 from agentbay.context_sync import ContextSync, ExtractPolicy, SyncPolicy, UploadPolicy, BWList, WhiteList
 from agentbay.browser.browser import BrowserOption
-from agentbay.extention import ExtensionsService, Extension
+from agentbay.extension import ExtensionsService, Extension
 from agentbay.session_params import CreateSessionParams, BrowserContext
-from agentbay.extention import ExtensionOption
+from agentbay.extension import ExtensionOption
 
 # Optional Playwright import
 try:
@@ -64,9 +64,9 @@ async def list_loaded_extensions(cdp_ws_url: str):
         List[dict]: List of extension information dictionaries
     """
     async with async_playwright() as p:
-        # 连接到远程浏览器
+        # Connect to remote browser
         browser = await p.chromium.connect_over_cdp(cdp_ws_url)
-        # 建立一个CDP会话（取第一窗口做绑定）
+        # Establish a CDP session (bind to the first window)
         session = await browser.new_browser_cdp_session()
 
         targets = await session.send("Target.getTargets")
@@ -77,7 +77,7 @@ async def list_loaded_extensions(cdp_ws_url: str):
             url = info.get("url", "")
             print(f" targets.url =  {url}")
             if url.startswith("chrome-extension://"):
-                # 提取 EXT_ID
+                # Extract EXT_ID
                 ext_id = urlparse(url).netloc
                 extensions.append({
                     "id": ext_id,
@@ -611,12 +611,12 @@ console.log('Content script fully initialized for {manifest['name']} on', window
         1. Extension file synchronization to browser session
         2. Browser initialization with extension loading
         3. Real extension ID extraction via CDP Target.getTargets API
-        4. Extension detection using actual loaded extension IDs (不能mock扩展ID)
+        4. Extension detection using actual loaded extension IDs (cannot mock extension ID)
         5. Extension functionality testing with webpage interactions
         6. Browser session lifecycle management
         
         Key Feature: Uses real extension IDs extracted from browser instead of mocked IDs
-        核心特性: 使用从浏览器中提取的真实扩展ID，而不是模拟的ID
+        Core feature: Use real extension IDs extracted from browser, not simulated IDs
         """
         if not PLAYWRIGHT_AVAILABLE:
             self.skipTest("Playwright not available")
@@ -986,14 +986,14 @@ console.log('Content script fully initialized for {manifest['name']} on', window
             print(f"    🔍 Connecting to browser CDP endpoint: {endpoint_url}")
             
             async with async_playwright() as p:
-                # 连接到远程浏览器
+                # Connect to remote browser
                 browser = await p.chromium.connect_over_cdp(endpoint_url)
                 
-                # 建立一个CDP会话（取第一窗口做绑定）
+                # Establish a CDP session (bind to the first window)
                 cdp_session = await browser.new_browser_cdp_session()
                 
                 try:
-                    # 获取所有targets
+                    # Get all targets
                     print(f"    📡 Fetching browser targets via CDP...")
                     targets = await cdp_session.send("Target.getTargets")
                     
@@ -1003,7 +1003,7 @@ console.log('Content script fully initialized for {manifest['name']} on', window
                     for info in targets["targetInfos"]:
                         url = info.get("url", "")
                         if url.startswith("chrome-extension://"):
-                            # 提取 EXT_ID
+                            # Extract EXT_ID
                             ext_id = urlparse(url).netloc
                             
                             extension_data = {
@@ -1022,7 +1022,7 @@ console.log('Content script fully initialized for {manifest['name']} on', window
                             print(f"      - Type: {extension_data['type']}")
                             print(f"      - URL: {url}")
                     
-                    # 去重
+                    # Deduplicate
                     extracted_ids = list(set(extracted_ids))
                     
                     if extracted_ids:
@@ -1047,11 +1047,11 @@ console.log('Content script fully initialized for {manifest['name']} on', window
         
         IMPORTANT: This method uses REAL extension IDs extracted from the browser via CDP.
         
-        核心要点：
-        - 不能mock扩展ID，必须使用真实加载的扩展ID
-        - 通过CDP (Chrome DevTools Protocol) Target.getTargets API获取真实扩展
-        - 从chrome-extension://协议的URL中提取真实的扩展ID
-        - 扩展ID必须是浏览器实际加载的扩展，否则测试无意义
+        Key points:
+        - Cannot mock extension ID, must use real loaded extension ID
+        - Get real extensions through CDP (Chrome DevTools Protocol) Target.getTargets API
+        - Extract real extension ID from chrome-extension:// protocol URL
+        - Extension ID must be actually loaded by browser, otherwise test is meaningless
         
         The extension detection process:
         1. Extract real extension IDs using CDP Target.getTargets API
@@ -1122,12 +1122,12 @@ console.log('Content script fully initialized for {manifest['name']} on', window
     
     async def _check_basic_extension_environment(self, page, extension_id: Optional[str] = None) -> bool:
         """
-        在扩展上下文中检查基础扩展 API 环境。
-        如果 extension_id 传入，将自动打开该扩展的页面进行检测。
+        Check basic extension API environment in extension context.
+        If extension_id is provided, will automatically open that extension page for detection.
         """
         try:
             target_page = page
-            # 如果提供了 extension_id，则打开扩展页面检测
+            # If extension_id is provided, open extension page for detection
             if extension_id:
                 ext_url = f"chrome-extension://{extension_id}/popup.html"
                 print(f"      Navigating to extension page for detection: {ext_url}")
@@ -1144,7 +1144,7 @@ console.log('Content script fully initialized for {manifest['name']} on', window
                         apis: typeof chrome !== 'undefined' ? Object.keys(chrome).sort() : [],
                         manifest: null
                     };
-                    // 读取 manifest
+                    // Read manifest
                     try {
                         if (chrome && chrome.runtime && chrome.runtime.getManifest) {
                             info.manifest = chrome.runtime.getManifest();
@@ -1172,7 +1172,7 @@ console.log('Content script fully initialized for {manifest['name']} on', window
                 print(f"        - Manifest name: {manifest.get('name')} | version: {manifest.get('version')}")
                 print(f"        - Manifest permissions: {manifest.get('permissions')}")
 
-            # 判定标准：在扩展上下文下拿到 chrome.runtime 且 manifest 存在视为成功
+            # Criteria: Success if chrome.runtime is available in extension context and manifest exists
             has_basic_env = chrome_exists and runtime_exists and manifest is not None
             print(f"        - Extension Environment Ready: {'✅' if has_basic_env else '❌'}")
 

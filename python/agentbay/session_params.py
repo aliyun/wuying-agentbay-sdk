@@ -6,7 +6,7 @@ from agentbay.logger import get_logger
 logger = get_logger("session_params")
 
 if TYPE_CHECKING:
-    from agentbay.extention import ExtensionOption
+    from agentbay.extension import ExtensionOption
 
 
 class BrowserContext:
@@ -42,7 +42,7 @@ class BrowserContext:
     Usage Examples:
         ```python
         # With extensions using ExtensionOption
-        from agentbay.extention import ExtensionOption
+        from agentbay.extension import ExtensionOption
         
         ext_option = ExtensionOption(
             context_id="my_extensions",
@@ -93,7 +93,7 @@ class BrowserContext:
         Examples:
             ```python
             # With extensions using ExtensionOption
-            from agentbay.extention import ExtensionOption
+            from agentbay.extension import ExtensionOption
             
             ext_option = ExtensionOption(
                 context_id="my_extensions",

@@ -1,7 +1,7 @@
 name: Manual Publish to PyPI
 
 on:
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:  # Manual trigger
     inputs:
       version:
         description: "Stable version (e.g., 1.0.0)"
@@ -26,13 +26,13 @@ jobs:
             rm -rf dist/
           fi
           python -m pip install --upgrade pip
-          pip install poetry
-          # 使用用户指定的版本号
+          pip install setuptools wheel twine
+          # Use user-specified version number
           echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
-
-          poetry version $PACKAGE_VERSION --no-git-tag
-          # 验证替换结果
-          cat pyproject.toml | grep version
+          sed -i "s/version='.*'/version='${{ inputs.version }}'/" setup.py
+          # Verify replacement results
+          cat setup.py | grep version
+          python setup.py sdist bdist_wheel
           ls dist/
 
       - name: Publish to PyPI
@@ -51,7 +51,7 @@ jobs:
         run: |
           SUMMARY_PATH=$GITHUB_STEP_SUMMARY
 
-          # 写入测试内容
+          # Write test content
           echo "## INSTALL COMMAND " > $SUMMARY_PATH
           echo "### CONTENT" >> $SUMMARY_PATH
 

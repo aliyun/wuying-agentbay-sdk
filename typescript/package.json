@@ -1,6 +1,6 @@
 {
     "name": "wuying-agentbay-sdk",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "TypeScript SDK for interacting with the Wuying AgentBay cloud runtime environment",
     "main": "./dist/index.cjs",
     "module": "./dist/index.mjs",
@@ -55,6 +55,7 @@
         "@types/sinon": "^10.0.0",
         "@typescript-eslint/eslint-plugin": "^5.54.0",
         "@typescript-eslint/parser": "^5.54.0",
+        "abort-controller": "^3.0.0",
         "axios-mock-adapter": "^2.1.0",
         "chai": "^4.3.7",
         "dotenv": "^16.5.0",

@@ -36,7 +36,7 @@ After completing this quick start guide, you will be able to:
 ## 🚀 Next Steps After Completion
 
 - Check out the [Feature Guides](../guides/README.md) to learn about complete functionality
-- Browse [Example Code](../examples/) for inspiration
+- Browse [Example Code](../guides/browser-extensions.md) for inspiration
 - Join community discussions
 
 ## ❓ Having Issues?
@@ -48,4 +48,4 @@ After completing this quick start guide, you will be able to:
 
 - Each step includes complete code examples
 - Don't worry if you don't understand everything at first
-- The community is here to help! 
+- The community is here to help!

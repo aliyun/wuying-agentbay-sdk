@@ -152,7 +152,7 @@ agent_bay.delete(session)
 ```python
 from agentbay import AgentBay
 
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 session = agent_bay.create().session
 
 # Create directory
@@ -1103,7 +1103,7 @@ content = robust_file_operation(session, "/tmp/example.txt")
 ## 📚 Related Resources
 
 - [Session Management Guide](session-management.md)
-- [Command Execution Guide](command-execution.md)
+- [Command Execution Guide](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/python/docs/api/command.md)
 - [Data Persistence Guide](data-persistence.md)
 - [API Reference](../api-reference.md)
 

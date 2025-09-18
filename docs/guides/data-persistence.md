@@ -45,7 +45,7 @@ from agentbay import AgentBay
 agent_bay = AgentBay(api_key=api_key)
 
  # Initialize AgentBay client (requires valid API key)
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 
 # Get or create context
 context_result = agent_bay.context.get("my-project", create=True)
@@ -167,7 +167,7 @@ custom_policy = SyncPolicy(
 ```python
 from agentbay import SyncPolicy
 from agentbay import UploadPolicy, DownloadPolicy
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 # Create session with manual sync policy
 manual_policy = SyncPolicy(
     upload_policy=UploadPolicy(auto_upload=False),
@@ -346,7 +346,7 @@ else:
 # Use compression and selective sync for large data transfers
 from agentbay import SyncPolicy, BWList, WhiteList,UploadPolicy,DownloadPolicy
 
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 # Create a policy that only syncs specific file types
 selective_sync_policy = SyncPolicy(
     upload_policy=UploadPolicy(auto_upload=True),
@@ -431,7 +431,7 @@ for context_name in contexts:
 
 ```python
  import datetime
-agent_bay = self.common_code()
+agent_bay = AgentBay()
 session = agent_bay.create().session
 # Organize data in logical directories
 session.file_system.write_file("/tmp/data/config/app.json", 'app_config')

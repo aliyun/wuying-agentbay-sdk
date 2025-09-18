@@ -9,21 +9,21 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
-// TestSessionDeleteWithoutParams 测试不带参数Delete的集成测试
+// TestSessionDeleteWithoutParams integration test for Delete without parameters
 func TestSessionDeleteWithoutParams(t *testing.T) {
-	// 获取API Key
+	// Get API Key
 	apiKey := os.Getenv("AGENTBAY_API_KEY")
 	if apiKey == "" {
 		t.Fatal("AGENTBAY_API_KEY environment variable is not set")
 	}
 
-	// 初始化AgentBay客户端
+	// Initialize AgentBay client
 	client, err := agentbay.NewAgentBay(apiKey, nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize AgentBay client: %v", err)
 	}
 
-	// 创建一个会话
+	// Create a session
 	fmt.Println("Creating a new session for delete testing...")
 	result, err := client.Create(nil)
 	if err != nil {
@@ -32,7 +32,7 @@ func TestSessionDeleteWithoutParams(t *testing.T) {
 	session := result.Session
 	t.Logf("Session created with ID: %s", session.SessionID)
 
-	// 使用默认参数删除会话
+	// Delete session using default parameters
 	fmt.Println("Deleting session without parameters...")
 	deleteResult, err := session.Delete()
 	if err != nil {
@@ -40,7 +40,7 @@ func TestSessionDeleteWithoutParams(t *testing.T) {
 	}
 	t.Logf("Session deleted (RequestID: %s)", deleteResult.RequestID)
 
-	// 验证会话已被删除
+	// Verify session has been deleted
 	listResult, err := client.List()
 	if err != nil {
 		t.Fatalf("Failed to list sessions: %v", err)
@@ -53,21 +53,21 @@ func TestSessionDeleteWithoutParams(t *testing.T) {
 	}
 }
 
-// TestAgentBayDeleteWithSyncContext 测试AgentBay.Delete带syncContext参数的集成测试
+// TestAgentBayDeleteWithSyncContext integration test for AgentBay.Delete with syncContext parameter
 func TestAgentBayDeleteWithSyncContext(t *testing.T) {
-	// 获取API Key
+	// Get API Key
 	apiKey := os.Getenv("AGENTBAY_API_KEY")
 	if apiKey == "" {
 		t.Fatal("AGENTBAY_API_KEY environment variable is not set")
 	}
 
-	// 初始化AgentBay客户端
+	// Initialize AgentBay client
 	client, err := agentbay.NewAgentBay(apiKey, nil)
 	if err != nil {
 		t.Fatalf("Failed to initialize AgentBay client: %v", err)
 	}
 
-	// 创建上下文
+	// Create context
 	contextName := "test-context-" + time.Now().Format("20060102150405")
 	fmt.Println("Creating a new context...")
 	createResult, err := client.Context.Create(contextName)
@@ -77,7 +77,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 	contextID := createResult.ContextID
 	t.Logf("Context created with ID: %s", contextID)
 
-	// 创建持久化配置
+	// Create persistence configuration
 	persistenceData := []*agentbay.ContextSync{
 		{
 			ContextID: contextID,
@@ -85,7 +85,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 		},
 	}
 
-	// 创建带上下文的会话
+	// Create session with context
 	params := agentbay.NewCreateSessionParams()
 	params.ImageId = "linux_latest"
 	params.ContextSync = persistenceData
@@ -98,7 +98,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 	session := result.Session
 	t.Logf("Session created with ID: %s", session.SessionID)
 
-	// 在会话中创建1GB大小的测试文件
+	// Create 1GB test file in session
 	fmt.Println("Creating a 1GB test file for agentbay delete...")
 	testCmd := "dd if=/dev/zero of=/home/wuying/test/testfile2.txt bs=1M count=1024"
 	cmdResult, err := session.Command.ExecuteCommand(testCmd)
@@ -108,7 +108,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 		t.Logf("Created 1GB test file: %s", cmdResult)
 	}
 
-	// 使用client.Delete带syncContext=true删除会话
+	// Delete session using client.Delete with syncContext=true
 	fmt.Println("Deleting session with AgentBay.Delete and syncContext=true...")
 	deleteResult, err := client.Delete(session, true)
 	if err != nil {
@@ -116,7 +116,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 	}
 	t.Logf("Session deleted with client.Delete and syncContext=true (RequestID: %s)", deleteResult.RequestID)
 
-	// 验证会话已被删除
+	// Verify session has been deleted
 	listResult, err := client.List()
 	if err != nil {
 		t.Fatalf("Failed to list sessions: %v", err)
@@ -128,8 +128,8 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 		}
 	}
 
-	// 清理上下文
-	// 创建Context对象用于删除
+	// Clean up context
+	// Create Context object for deletion
 	getResult, err := client.Context.Get(contextName, false)
 	if err == nil && getResult != nil && getResult.Context != nil {
 		_, err = client.Context.Delete(getResult.Context)

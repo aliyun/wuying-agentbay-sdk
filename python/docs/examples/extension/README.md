@@ -78,7 +78,7 @@ python extension_testing_automation.py
 ### Basic Extension Management
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 
 agent_bay = AgentBay(api_key="your_api_key")
 extensions_service = ExtensionsService(agent_bay)

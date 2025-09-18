@@ -83,7 +83,7 @@ describe('Browser Unit Tests', () => {
     const mockPage = { url: () => 'http://example.com' };
     const options = { action: 'Click search button' };
     
-    const result = await browser.agent.act(mockPage, options);
+    const result = await browser.agent.act(options, mockPage);
     
     expect(result.success).toBe(true);
     expect(mockSession.callMcpTool).toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe('Browser Unit Tests', () => {
     const mockPage = { url: () => 'http://example.com' };
     const options = { instruction: 'Find the search button' };
     
-    const [success, results] = await browser.agent.observe(mockPage, options);
+    const [success, results] = await browser.agent.observe(options, mockPage);
     
     expect(success).toBe(true);
     expect(Array.isArray(results)).toBe(true);
@@ -131,7 +131,7 @@ describe('Browser Unit Tests', () => {
       schema: TestSchema 
     };
     
-    const [success, objects] = await browser.agent.extract(mockPage, options);
+    const [success, objects] = await browser.agent.extract(options, mockPage);
     
     expect(success).toBe(true);
     expect(Array.isArray(objects)).toBe(true);
@@ -154,7 +154,7 @@ describe('Browser Unit Tests', () => {
     const mockPage = { url: () => 'http://example.com' };
     const options = { action: 'Click search button' };
     
-    const result = await browser.agent.act(mockPage, options);
+    const result = await browser.agent.act(options, mockPage);
     
     expect(result.success).toBe(false);
     expect(result.message).toBe('Test error');
@@ -163,9 +163,9 @@ describe('Browser Unit Tests', () => {
   test('should throw error when browser not initialized for operations', async () => {
     const mockPage = { url: () => 'http://example.com' };
     
-    await expect(browser.agent.act(mockPage, { action: 'test' })).rejects.toThrow('Browser must be initialized');
-    await expect(browser.agent.observe(mockPage, { instruction: 'test' })).rejects.toThrow('Browser must be initialized');
-    await expect(browser.agent.extract(mockPage, { instruction: 'test', schema: TestSchema })).rejects.toThrow('Browser must be initialized');
+    await expect(browser.agent.act({ action: 'test' }, mockPage)).rejects.toThrow('Browser must be initialized');
+    await expect(browser.agent.observe({ instruction: 'test' }, mockPage)).rejects.toThrow('Browser must be initialized');
+    await expect(browser.agent.extract({ instruction: 'test', schema: TestSchema }, mockPage)).rejects.toThrow('Browser must be initialized');
   });
 
   describe('Browser Options', () => {

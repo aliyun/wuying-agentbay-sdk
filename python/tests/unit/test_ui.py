@@ -35,7 +35,7 @@ class TestUIApi(unittest.TestCase):
             {
                 "bounds": "48,90,1032,630",
                 "className": "LinearLayout",
-                "text": "digital_widget 5月31日周六",
+                "text": "digital_widget May 31st Saturday",
                 "type": "clickable",
                 "resourceId": "com.android.deskclock:id/digital_widget",
                 "index": 11,
@@ -51,7 +51,7 @@ class TestUIApi(unittest.TestCase):
         self.assertEqual(len(elements), 1)
         self.assertEqual(elements[0]["bounds"], "48,90,1032,630")
         self.assertEqual(elements[0]["className"], "LinearLayout")
-        self.assertEqual(elements[0]["text"], "digital_widget 5月31日周六")
+        self.assertEqual(elements[0]["text"], "digital_widget May 31st Saturday")
         self.assertEqual(elements[0]["type"], "clickable")
         self.assertEqual(
             elements[0]["resourceId"],

@@ -58,7 +58,7 @@ func (client *Client) GetEndpoint(productId *string, regionId *string, endpointR
 
 // Summary:
 //
-// 调用mcp工具
+// # Call MCP tool
 //
 // @param request - CallMcpToolRequest
 //
@@ -128,7 +128,7 @@ func (client *Client) CallMcpToolWithOptions(request *CallMcpToolRequest, runtim
 
 // Summary:
 //
-// 调用mcp工具
+// # Call MCP tool
 //
 // @param request - CallMcpToolRequest
 //
@@ -146,7 +146,7 @@ func (client *Client) CallMcpTool(request *CallMcpToolRequest) (_result *CallMcp
 
 // Summary:
 //
-// 创建 mcp session
+// Create MCP session
 //
 // @param tmpReq - CreateMcpSessionRequest
 //
@@ -226,7 +226,7 @@ func (client *Client) CreateMcpSessionWithOptions(tmpReq *CreateMcpSessionReques
 
 // Summary:
 //
-// 创建 mcp session
+// Create MCP session
 //
 // @param request - CreateMcpSessionRequest
 //
@@ -244,7 +244,7 @@ func (client *Client) CreateMcpSession(request *CreateMcpSessionRequest) (_resul
 
 // Summary:
 //
-// 删除持久化上下文
+// Delete persistent context
 //
 // @param request - DeleteContextRequest
 //
@@ -290,7 +290,7 @@ func (client *Client) DeleteContextWithOptions(request *DeleteContextRequest, ru
 
 // Summary:
 //
-// 删除持久化上下文
+// Delete persistent context
 //
 // @param request - DeleteContextRequest
 //
@@ -308,7 +308,7 @@ func (client *Client) DeleteContext(request *DeleteContextRequest) (_result *Del
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - DeleteContextFileRequest
 //
@@ -358,7 +358,7 @@ func (client *Client) DeleteContextFileWithOptions(request *DeleteContextFileReq
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - DeleteContextFileRequest
 //
@@ -376,7 +376,7 @@ func (client *Client) DeleteContextFile(request *DeleteContextFileRequest) (_res
 
 // Summary:
 //
-// 查询context特定目录文件
+// Query context specific directory files
 //
 // @param request - DescribeContextFilesRequest
 //
@@ -434,7 +434,7 @@ func (client *Client) DescribeContextFilesWithOptions(request *DescribeContextFi
 
 // Summary:
 //
-// 查询context特定目录文件
+// Query context specific directory files
 //
 // @param request - DescribeContextFilesRequest
 //
@@ -452,7 +452,7 @@ func (client *Client) DescribeContextFiles(request *DescribeContextFilesRequest)
 
 // Summary:
 //
-// 获取上下文
+// Get context
 //
 // @param request - GetContextRequest
 //
@@ -502,7 +502,7 @@ func (client *Client) GetContextWithOptions(request *GetContextRequest, runtime 
 
 // Summary:
 //
-// 获取上下文
+// Get context
 //
 // @param request - GetContextRequest
 //
@@ -520,7 +520,7 @@ func (client *Client) GetContext(request *GetContextRequest) (_result *GetContex
 
 // Summary:
 //
-// 获取上下文信息
+// Get context information
 //
 // @param request - GetContextInfoRequest
 //
@@ -578,7 +578,7 @@ func (client *Client) GetContextInfoWithOptions(request *GetContextInfoRequest, 
 
 // Summary:
 //
-// 获取上下文信息
+// Get context information
 //
 // @param request - GetContextInfoRequest
 //
@@ -596,7 +596,7 @@ func (client *Client) GetContextInfo(request *GetContextInfoRequest) (_result *G
 
 // Summary:
 //
-// 获取标签
+// Get labels
 //
 // @param request - GetLabelRequest
 //
@@ -650,7 +650,7 @@ func (client *Client) GetLabelWithOptions(request *GetLabelRequest, runtime *dar
 
 // Summary:
 //
-// 获取标签
+// Get labels
 //
 // @param request - GetLabelRequest
 //
@@ -668,7 +668,7 @@ func (client *Client) GetLabel(request *GetLabelRequest) (_result *GetLabelRespo
 
 // Summary:
 //
-// 获取特定端口的转发链接
+// Get forwarding link for specific port
 //
 // @param request - GetLinkRequest
 //
@@ -722,7 +722,7 @@ func (client *Client) GetLinkWithOptions(request *GetLinkRequest, runtime *dara.
 
 // Summary:
 //
-// 获取特定端口的转发链接
+// Get forwarding link for specific port
 //
 // @param request - GetLinkRequest
 //
@@ -740,7 +740,7 @@ func (client *Client) GetLink(request *GetLinkRequest) (_result *GetLinkResponse
 
 // Summary:
 //
-// 获取mcp资源信息
+// Get MCP resource information
 //
 // @param request - GetMcpResourceRequest
 //
@@ -786,7 +786,7 @@ func (client *Client) GetMcpResourceWithOptions(request *GetMcpResourceRequest, 
 
 // Summary:
 //
-// 获取mcp资源信息
+// Get MCP resource information
 //
 // @param request - GetMcpResourceRequest
 //
@@ -804,7 +804,7 @@ func (client *Client) GetMcpResource(request *GetMcpResourceRequest) (_result *G
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - GetContextFileDownloadUrlRequest
 //
@@ -854,7 +854,7 @@ func (client *Client) GetContextFileDownloadUrlWithOptions(request *GetContextFi
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - GetContextFileDownloadUrlRequest
 //
@@ -872,7 +872,7 @@ func (client *Client) GetContextFileDownloadUrl(request *GetContextFileDownloadU
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - GetContextFileUploadUrlRequest
 //
@@ -922,7 +922,7 @@ func (client *Client) GetContextFileUploadUrlWithOptions(request *GetContextFile
 
 // Summary:
 //
-// 获取上传context文件url
+// Get context file upload URL
 //
 // @param request - GetContextFileUploadUrlRequest
 //
@@ -940,7 +940,7 @@ func (client *Client) GetContextFileUploadUrl(request *GetContextFileUploadUrlRe
 
 // Summary:
 //
-// 获取上下文列表
+// Get context list
 //
 // @param request - ListContextsRequest
 //
@@ -990,7 +990,7 @@ func (client *Client) ListContextsWithOptions(request *ListContextsRequest, runt
 
 // Summary:
 //
-// 获取上下文列表
+// Get context list
 //
 // @param request - ListContextsRequest
 //
@@ -1072,7 +1072,7 @@ func (client *Client) ListMcpTools(request *ListMcpToolsRequest) (_result *ListM
 
 // Summary:
 //
-// 根据Lable查询Session列表
+// Query session list by label
 //
 // @param request - ListSessionRequest
 //
@@ -1126,7 +1126,7 @@ func (client *Client) ListSessionWithOptions(request *ListSessionRequest, runtim
 
 // Summary:
 //
-// 根据Lable查询Session列表
+// Query session list by label
 //
 // @param request - ListSessionRequest
 //
@@ -1144,7 +1144,7 @@ func (client *Client) ListSession(request *ListSessionRequest) (_result *ListSes
 
 // Summary:
 //
-// 修改上下文
+// Modify context
 //
 // @param request - ModifyContextRequest
 //
@@ -1194,7 +1194,7 @@ func (client *Client) ModifyContextWithOptions(request *ModifyContextRequest, ru
 
 // Summary:
 //
-// 修改上下文
+// Modify context
 //
 // @param request - ModifyContextRequest
 //
@@ -1212,7 +1212,7 @@ func (client *Client) ModifyContext(request *ModifyContextRequest) (_result *Mod
 
 // Summary:
 //
-// 释放 mcp session
+// Release MCP session
 //
 // @param request - ReleaseMcpSessionRequest
 //
@@ -1258,7 +1258,7 @@ func (client *Client) ReleaseMcpSessionWithOptions(request *ReleaseMcpSessionReq
 
 // Summary:
 //
-// 释放 mcp session
+// Release MCP session
 //
 // @param request - ReleaseMcpSessionRequest
 //
@@ -1276,7 +1276,7 @@ func (client *Client) ReleaseMcpSession(request *ReleaseMcpSessionRequest) (_res
 
 // Summary:
 //
-// 设置标签
+// Set labels
 //
 // @param request - SetLabelRequest
 //
@@ -1326,7 +1326,7 @@ func (client *Client) SetLabelWithOptions(request *SetLabelRequest, runtime *dar
 
 // Summary:
 //
-// 设置标签
+// Set labels
 //
 // @param request - SetLabelRequest
 //
@@ -1344,7 +1344,7 @@ func (client *Client) SetLabel(request *SetLabelRequest) (_result *SetLabelRespo
 
 // Summary:
 //
-// 同步上下文
+// Sync context
 //
 // @param request - SyncContextRequest
 //
@@ -1404,7 +1404,7 @@ func (client *Client) SyncContextWithOptions(request *SyncContextRequest, runtim
 
 // Summary:
 //
-// 同步上下文
+// Sync context
 //
 // @param request - SyncContextRequest
 //

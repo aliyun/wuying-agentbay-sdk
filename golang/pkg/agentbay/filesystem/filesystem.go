@@ -5,10 +5,94 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
+
+// FileChangeEvent represents a single file change event
+type FileChangeEvent struct {
+	EventType string `json:"eventType"` // "create", "modify", "delete"
+	Path      string `json:"path"`
+	PathType  string `json:"pathType"` // "file", "directory"
+}
+
+// String returns string representation of FileChangeEvent
+func (e *FileChangeEvent) String() string {
+	return fmt.Sprintf("FileChangeEvent(eventType='%s', path='%s', pathType='%s')",
+		e.EventType, e.Path, e.PathType)
+}
+
+// ToDict converts FileChangeEvent to map
+func (e *FileChangeEvent) ToDict() map[string]string {
+	return map[string]string{
+		"eventType": e.EventType,
+		"path":      e.Path,
+		"pathType":  e.PathType,
+	}
+}
+
+// FileChangeEventFromDict creates FileChangeEvent from map
+func FileChangeEventFromDict(data map[string]interface{}) *FileChangeEvent {
+	event := &FileChangeEvent{}
+	if eventType, ok := data["eventType"].(string); ok {
+		event.EventType = eventType
+	}
+	if path, ok := data["path"].(string); ok {
+		event.Path = path
+	}
+	if pathType, ok := data["pathType"].(string); ok {
+		event.PathType = pathType
+	}
+	return event
+}
+
+// FileChangeResult wraps file change detection result
+type FileChangeResult struct {
+	models.ApiResponse
+	Events  []*FileChangeEvent
+	RawData string
+}
+
+// HasChanges checks if there are any file changes
+func (r *FileChangeResult) HasChanges() bool {
+	return len(r.Events) > 0
+}
+
+// GetModifiedFiles returns list of modified file paths
+func (r *FileChangeResult) GetModifiedFiles() []string {
+	var files []string
+	for _, event := range r.Events {
+		if event.EventType == "modify" && event.PathType == "file" {
+			files = append(files, event.Path)
+		}
+	}
+	return files
+}
+
+// GetCreatedFiles returns list of created file paths
+func (r *FileChangeResult) GetCreatedFiles() []string {
+	var files []string
+	for _, event := range r.Events {
+		if event.EventType == "create" && event.PathType == "file" {
+			files = append(files, event.Path)
+		}
+	}
+	return files
+}
+
+// GetDeletedFiles returns list of deleted file paths
+func (r *FileChangeResult) GetDeletedFiles() []string {
+	var files []string
+	for _, event := range r.Events {
+		if event.EventType == "delete" && event.PathType == "file" {
+			files = append(files, event.Path)
+		}
+	}
+	return files
+}
 
 // FileReadResult wraps file read operation result and RequestID
 type FileReadResult struct {
@@ -574,4 +658,123 @@ func (fs *FileSystem) WriteFile(path, content string, mode string) (*FileWriteRe
 		path, chunkCount, contentLen)
 
 	return result, nil
+}
+
+// parseFileChangeData parses raw JSON data into FileChangeEvent slice
+func parseFileChangeData(rawData string) ([]*FileChangeEvent, error) {
+	var events []*FileChangeEvent
+	var changeData []map[string]interface{}
+
+	if err := json.Unmarshal([]byte(rawData), &changeData); err != nil {
+		return events, fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	for _, eventDict := range changeData {
+		event := FileChangeEventFromDict(eventDict)
+		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+// GetFileChange gets file change information for the specified directory path
+func (fs *FileSystem) GetFileChange(path string) (*FileChangeResult, error) {
+	args := map[string]string{
+		"path": path,
+	}
+
+	result, err := fs.Session.CallMcpTool("get_file_change", args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file change: %w", err)
+	}
+
+	if !result.Success {
+		return &FileChangeResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: result.RequestID,
+			},
+			RawData: result.Data,
+		}, fmt.Errorf("get file change failed: %s", result.ErrorMessage)
+	}
+
+	// Parse the file change events
+	events, err := parseFileChangeData(result.Data)
+	if err != nil {
+		return &FileChangeResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: result.RequestID,
+			},
+			RawData: result.Data,
+		}, fmt.Errorf("failed to parse file change data: %w", err)
+	}
+
+	return &FileChangeResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Events:  events,
+		RawData: result.Data,
+	}, nil
+}
+
+// WatchDirectoryWithDefaults watches a directory for file changes with default 500ms polling interval
+func (fs *FileSystem) WatchDirectoryWithDefaults(
+	path string,
+	callback func([]*FileChangeEvent),
+	stopCh <-chan struct{},
+) *sync.WaitGroup {
+	return fs.WatchDirectory(path, callback, 500*time.Millisecond, stopCh)
+}
+
+// WatchDirectory watches a directory for file changes and calls the callback function when changes occur
+func (fs *FileSystem) WatchDirectory(
+	path string,
+	callback func([]*FileChangeEvent),
+	interval time.Duration,
+	stopCh <-chan struct{},
+) *sync.WaitGroup {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		fmt.Printf("Starting directory monitoring for: %s\n", path)
+		fmt.Printf("Polling interval: %v\n", interval)
+
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-stopCh:
+				fmt.Printf("Stopped monitoring directory: %s\n", path)
+				return
+			case <-ticker.C:
+				result, err := fs.GetFileChange(path)
+				if err != nil {
+					fmt.Printf("Error monitoring directory: %v\n", err)
+					continue
+				}
+
+				if len(result.Events) > 0 {
+					fmt.Printf("Detected %d file changes:\n", len(result.Events))
+					for _, event := range result.Events {
+						fmt.Printf("  - %s\n", event.String())
+					}
+
+					// Call callback in a separate goroutine to avoid blocking
+					go func(events []*FileChangeEvent) {
+						defer func() {
+							if r := recover(); r != nil {
+								fmt.Printf("Error in callback function: %v\n", r)
+							}
+						}()
+						callback(events)
+					}(result.Events)
+				}
+			}
+		}
+	}()
+
+	return &wg
 }

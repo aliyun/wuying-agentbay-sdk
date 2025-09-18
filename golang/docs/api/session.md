@@ -20,7 +20,7 @@ Application  // The ApplicationManager instance for this session
 Window  // The WindowManager instance for this session
 Agent  // The Agent instance for this session
 Context  // The ContextManager instance for this session
-McpTools  // MCP tools available for this session
+McpTools []McpTool  // MCP tools available for this session
 ```
 
 **Accessor Methods:**

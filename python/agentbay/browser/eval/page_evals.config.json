@@ -94,6 +94,13 @@
                 "combination",
                 "experimental"
             ]
+        },
+        {
+            "name": "extract_products",
+            "categories": [
+                "combination",
+                "experimental"
+            ]
         }
     ]
 }

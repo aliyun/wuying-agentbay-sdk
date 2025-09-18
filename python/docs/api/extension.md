@@ -6,7 +6,7 @@ The Extension API provides functionality for managing browser extensions in the 
 
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService, ExtensionOption, Extension
+from agentbay.extension import ExtensionsService, ExtensionOption, Extension
 from agentbay.session_params import CreateSessionParams, BrowserContext
 ```
 
@@ -130,7 +130,7 @@ create(local_path: str) -> Extension
 **Example:**
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 
 # Initialize the SDK
 agent_bay = AgentBay(api_key="your_api_key")
@@ -323,7 +323,7 @@ When `extension_option` is None:
 
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 
 # Initialize service
 agent_bay = AgentBay(api_key="your_api_key")
@@ -347,7 +347,7 @@ finally:
 
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 from agentbay.session_params import CreateSessionParams, BrowserContext
 
 # Initialize and upload extensions
@@ -386,7 +386,7 @@ finally:
 
 ```python
 from agentbay import AgentBay
-from agentbay.extention import ExtensionsService
+from agentbay.extension import ExtensionsService
 from agentbay.exceptions import AgentBayError
 
 try:

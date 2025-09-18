@@ -834,7 +834,7 @@ def managed_session(agent_bay):
 
 # Usage
 try:
-    agent_bay = self.common_code()
+    agent_bay = AgentBay()
     with managed_session(agent_bay) as session:
         result = session.command.execute_command("echo 'Hello'")
         if result.success:
@@ -876,8 +876,5 @@ execute_with_logging(session, "echo 'Hello'")
 agent_bay.delete(session)
 ```
 
-if __name__ == "__main__":
-    unittest.main()
-```
 
 This comprehensive guide covers all aspects of automation with AgentBay SDK. Use these patterns and best practices to build robust, scalable automation solutions!

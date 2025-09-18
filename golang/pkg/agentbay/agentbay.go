@@ -264,15 +264,15 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		fmt.Println("Waiting for context synchronization to complete...")
 
 		// Wait for context synchronization to complete
-		const maxRetries = 150  // Maximum number of retries
-		const retryInterval = 2 // Seconds to wait between retries
+		const maxRetries = 150                        // Maximum number of retries
+		const retryInterval = 1500 * time.Millisecond // 1.5 seconds between retries
 
 		for retry := 0; retry < maxRetries; retry++ {
 			// Get context status data
 			infoResult, err := session.Context.Info()
 			if err != nil {
 				fmt.Printf("Error getting context info on attempt %d: %v\n", retry+1, err)
-				time.Sleep(time.Duration(retryInterval) * time.Second)
+				time.Sleep(retryInterval)
 				continue
 			}
 
@@ -304,7 +304,7 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 			}
 
 			fmt.Printf("Waiting for context synchronization, attempt %d/%d\n", retry+1, maxRetries)
-			time.Sleep(time.Duration(retryInterval) * time.Second)
+			time.Sleep(retryInterval)
 		}
 	}
 
