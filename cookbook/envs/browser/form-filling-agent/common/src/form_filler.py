@@ -214,12 +214,12 @@ def get_default_form_instructions():
         list: List of default instructions for filling the sample form
     """
     return [
-        "在id为firstName的输入框中输入'John'",
-        "在id为lastName的输入框中输入'Doe'",
-        "在id为email的输入框中输入'john.doe@example.com'",
-        "在id为phone的输入框中输入'+1-555-123-4567'",
-        "在id为subject的下拉框中选择'support'",
-        "在id为message的文本域中输入'This is a test message from the form-filling agent.'",
-        "点击id为newsletter的复选框",
-        "点击提交按钮"
+        "Enter 'John' in the input field with id firstName",
+        "Enter 'Doe' in the input field with id lastName",
+        "Enter 'john.doe@example.com' in the input field with id email",
+        "Enter '+1-555-123-4567' in the input field with id phone",
+        "Select 'support' in the dropdown with id subject",
+        "Enter 'This is a test message from the form-filling agent.' in the textarea with id message",
+        "Click the checkbox with id newsletter",
+        "Click the submit button"
     ]

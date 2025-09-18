@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 ### 3. Configure Environment Variables
 
-Create a `.env` file in the project root with your API keys:
+Create a `.env` file in the n the folder of testing-agent/ with your API keys:
 
 ```env
 # AgentBay API Key (required)

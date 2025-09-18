@@ -1,153 +1,153 @@
 """
-简单计算器模块
-包含基本的数学运算函数，用于演示测试用例的编写
+Simple calculator module
+Provides basic mathematical functions for demonstrating test case writing
 """
 
 class Calculator:
-    """计算器类，提供基本的数学运算功能"""
+    """Calculator class that provides basic mathematical operations"""
     
     def add(self, a, b):
         """
-        计算两个数的和
+        Calculate the sum of two numbers
         
         Args:
-            a (int/float): 第一个数
-            b (int/float): 第二个数
+            a (int/float): First number
+            b (int/float): Second number
         
         Returns:
-            int/float: 两个数的和
+            int/float: Sum of the two numbers
         """
         return a + b
 
     def subtract(self, a, b):
         """
-        计算两个数的差
+        Calculate the difference of two numbers
         
         Args:
-            a (int/float): 被减数
-            b (int/float): 减数
+            a (int/float): Minuend
+            b (int/float): Subtrahend
         
         Returns:
-            int/float: 两个数的差
+            int/float: Difference of the two numbers
         """
         return a - b
 
     def multiply(self, a, b):
         """
-        计算两个数的积
+        Calculate the product of two numbers
         
         Args:
-            a (int/float): 第一个数
-            b (int/float): 第二个数
+            a (int/float): First number
+            b (int/float): Second number
         
         Returns:
-            int/float: 两个数的积
+            int/float: Product of the two numbers
         """
         return a * b
 
     def divide(self, a, b):
         """
-        计算两个数的商
+        Calculate the quotient of two numbers
         
         Args:
-            a (int/float): 被除数
-            b (int/float): 除数
+            a (int/float): Dividend
+            b (int/float): Divisor
         
         Returns:
-            float: 两个数的商
+            float: Quotient of the two numbers
         
         Raises:
-            ValueError: 当除数为0时抛出异常
+            ValueError: When divisor is zero
         """
         if b == 0:
-            raise ValueError("除数不能为零")
+            raise ValueError("Divisor cannot be zero")
         return a / b
 
 
 def add(a, b):
     """
-    计算两个数的和
+    Calculate the sum of two numbers
     
     Args:
-        a (int/float): 第一个数
-        b (int/float): 第二个数
+        a (int/float): First number
+        b (int/float): Second number
     
     Returns:
-        int/float: 两个数的和
+        int/float: Sum of the two numbers
     """
     return a + b
 
 def subtract(a, b):
     """
-    计算两个数的差
+    Calculate the difference of two numbers
     
     Args:
-        a (int/float): 被减数
-        b (int/float): 减数
+        a (int/float): Minuend
+        b (int/float): Subtrahend
     
     Returns:
-        int/float: 两个数的差
+        int/float: Difference of the two numbers
     """
     return a - b
 
 def multiply(a, b):
     """
-    计算两个数的积
+    Calculate the product of two numbers
     
     Args:
-        a (int/float): 第一个数
-        b (int/float): 第二个数
+        a (int/float): First number
+        b (int/float): Second number
     
     Returns:
-        int/float: 两个数的积
+        int/float: Product of the two numbers
     """
     return a * b
 
 def divide(a, b):
     """
-    计算两个数的商
+    Calculate the quotient of two numbers
     
     Args:
-        a (int/float): 被除数
-        b (int/float): 除数
+        a (int/float): Dividend
+        b (int/float): Divisor
     
     Returns:
-        float: 两个数的商
+        float: Quotient of the two numbers
     
     Raises:
-        ZeroDivisionError: 当除数为0时抛出异常
+        ZeroDivisionError: When divisor is zero
     """
     if b == 0:
-        raise ZeroDivisionError("除数不能为零")
+        raise ZeroDivisionError("Divisor cannot be zero")
     return a / b
 
 def is_even(number):
     """
-    判断一个数是否为偶数
+    Check if a number is even
     
     Args:
-        number (int): 待判断的数
+        number (int): Number to check
     
     Returns:
-        bool: 如果是偶数返回True，否则返回False
+        bool: True if the number is even, False otherwise
     """
     if not isinstance(number, int):
         raise TypeError("Input must be an integer")
     return number % 2 == 0
 
 if __name__ == "__main__":
-    # 简单的演示
+    # Simple demonstration
     calc = Calculator()
-    print("使用Calculator类:")
-    print("加法: 3 + 5 =", calc.add(3, 5))
-    print("减法: 10 - 3 =", calc.subtract(10, 3))
-    print("乘法: 4 * 6 =", calc.multiply(4, 6))
-    print("除法: 15 / 3 =", calc.divide(15, 3))
+    print("Using Calculator class:")
+    print("Addition: 3 + 5 =", calc.add(3, 5))
+    print("Subtraction: 10 - 3 =", calc.subtract(10, 3))
+    print("Multiplication: 4 * 6 =", calc.multiply(4, 6))
+    print("Division: 15 / 3 =", calc.divide(15, 3))
     
-    print("\n使用独立函数:")
-    print("加法: 3 + 5 =", add(3, 5))
-    print("减法: 10 - 3 =", subtract(10, 3))
-    print("乘法: 4 * 6 =", multiply(4, 6))
-    print("除法: 15 / 3 =", divide(15, 3))
-    print("判断偶数: 4是偶数吗?", is_even(4))
-    print("判断偶数: 5是偶数吗?", is_even(5))
+    print("\nUsing standalone functions:")
+    print("Addition: 3 + 5 =", add(3, 5))
+    print("Subtraction: 10 - 3 =", subtract(10, 3))
+    print("Multiplication: 4 * 6 =", multiply(4, 6))
+    print("Division: 15 / 3 =", divide(15, 3))
+    print("Even number check: Is 4 even?", is_even(4))
+    print("Even number check: Is 5 even?", is_even(5))

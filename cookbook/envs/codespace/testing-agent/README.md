@@ -1,6 +1,6 @@
 # Testing Agent
 
-A testing agent that can generate test cases for projects and execute them using the AgentBay SDK. This project is designed with a modular architecture to support multiple agent frameworks.
+This project demonstrates how to create a testing agent using LangChain and Agent-Bay SDK. The agent can scan Python projects, generate test cases using LLMs, and execute them in isolated cloud environments.
 
 ## Features
 
@@ -49,20 +49,13 @@ The [common](./common/) directory contains all the core functionality that can b
 
 Framework-specific directories (like [langchain](./langchain/)) contain the integration code that uses the core functionality from the common module and wraps it in framework-specific components.
 
-## How It Works
+## Customization
 
-1. **Project Scanning**: The agent scans the project directory to identify all Python files that need testing.
+You can modify the code in the [common/sample_project/](./common/sample_project/) directory to test with your own Python projects, and update the instructions in the example script to match your specific testing requirements.
 
-2. **Test Generation**: It uses an LLM (via supported frameworks) to generate appropriate test cases for each module based on the project structure.
+## Agent-Bay SDK Features Used
 
-3. **Session Creation**: Creates an isolated AgentBay session with the project files synchronized.
-
-4. **Test Execution**: Executes the generated test cases in the cloud environment.
-
-5. **Result Saving**: Saves the test execution results to a local log file.
-
-## Learn More
-
-- [Agent-Bay Documentation](../../../wuying-agentbay-sdk/docs/getting-started.md)
-- [Session Management Guide](../../../wuying-agentbay-sdk/docs/guides/session-management.md)
-- [Code Automation Guide](../../../wuying-agentbay-sdk/docs/guides/automation.md)
+- Session management
+- File system operations (synchronizing project files)
+- Command execution (running tests)
+- Context management (isolated testing environments)
