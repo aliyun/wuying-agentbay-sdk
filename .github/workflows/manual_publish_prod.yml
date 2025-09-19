@@ -30,7 +30,7 @@ jobs:
           # Use user-specified version number
           echo "PACKAGE_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
 
-          poetry version $PACKAGE_VERSION --no-git-tag
+          poetry version $PACKAGE_VERSION
           # Verify replacement results
           cat pyproject.toml | grep version
           ls dist/
