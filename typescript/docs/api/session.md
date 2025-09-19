@@ -61,9 +61,9 @@ async function createAndDeleteSession() {
     if (result.success) {
       const session = result.session;
       console.log(`Session created with ID: ${session.sessionId}`);
-      
+
       // Use the session...
-      
+
       // Delete the session with context synchronization
       const deleteResult = await session.delete(true);
       if (deleteResult.success) {
@@ -104,7 +104,7 @@ async function setSessionLabels(session) {
       environment: 'testing',
       version: '1.0.0'
     };
-    
+
     const result = await session.setLabels(labels);
     console.log(`Labels set successfully, request ID: ${result.requestId}`);
     return result;
@@ -185,10 +185,13 @@ getLink(protocolType?: string, port?: number): Promise<LinkResult>
 
 **Parameters:**
 - `protocolType` (string, optional): The protocol type for the link.
-- `port` (number, optional): The port for the link.
+- `port` (number, optional): The port for the link. Must be an integer in the range [30100, 30199].
 
 **Returns:**
 - `Promise<LinkResult>`: A promise that resolves to a result object containing the session link, request ID, and success status.
+
+**Throws:**
+- `Error`: If the port value is not an integer or is outside the valid range [30100, 30199].
 
 **Example:**
 ```typescript
@@ -198,11 +201,11 @@ async function getSessionLink(session) {
     const result = await session.getLink();
     console.log(`Session link: ${result.data}`);
     console.log(`Request ID: ${result.requestId}`);
-    
-    // Get link with specific protocol and port
-    const customResult = await session.getLink('https', 8443);
+
+    // Get link with specific protocol and port (port must be in range [30100, 30199])
+    const customResult = await session.getLink('https', 30150);
     console.log(`Custom link: ${customResult.data}`);
-    
+
     return result.data;
   } catch (error) {
     console.error(`Failed to get link: ${error}`);
@@ -221,10 +224,13 @@ getLinkAsync(protocolType?: string, port?: number): Promise<LinkResult>
 
 **Parameters:**
 - `protocolType` (string, optional): The protocol type for the link.
-- `port` (number, optional): The port for the link.
+- `port` (number, optional): The port for the link. Must be an integer in the range [30100, 30199].
 
 **Returns:**
 - `Promise<LinkResult>`: A promise that resolves to a result object containing the session link, request ID, and success status.
+
+**Throws:**
+- `Error`: If the port value is not an integer or is outside the valid range [30100, 30199].
 
 **Example:**
 ```typescript
@@ -234,11 +240,11 @@ async function getSessionLinkAsync(session) {
     const result = await session.getLinkAsync();
     console.log(`Session link: ${result.data}`);
     console.log(`Request ID: ${result.requestId}`);
-    
-    // Get link with specific protocol and port
-    const customResult = await session.getLinkAsync('https', 8443);
+
+    // Get link with specific protocol and port (port must be in range [30100, 30199])
+    const customResult = await session.getLinkAsync('https', 30150);
     console.log(`Custom link: ${customResult.data}`);
-    
+
     return result.data;
   } catch (error) {
     console.error(`Failed to get link: ${error}`);
@@ -269,11 +275,11 @@ async function listMcpTools(session) {
     const result = await session.listMcpTools();
     console.log(`Found ${result.tools.length} MCP tools`);
     console.log(`Request ID: ${result.requestId}`);
-    
+
     for (const tool of result.tools) {
       console.log(`Tool: ${tool.name} - ${tool.description}`);
     }
-    
+
     return result.tools;
   } catch (error) {
     console.error(`Failed to list MCP tools: ${error}`);
@@ -290,4 +296,4 @@ async function listMcpTools(session) {
 - [Window API Reference](window.md)
 - [OSS API Reference](oss.md)
 - [Application API Reference](application.md)
-- [Context API Reference](context-manager.md) 
+- [Context API Reference](context-manager.md)

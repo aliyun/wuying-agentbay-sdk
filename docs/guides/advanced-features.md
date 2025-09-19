@@ -135,6 +135,42 @@ for port in invalid_ports:
         # Output: "Invalid port value: 8080. Port must be an integer in the range [30100, 30199]."
 ```
 
+### Port Range Validation
+
+**Valid Port Range**: **[30100, 30199]**
+
+All port parameters passed to `get_link()` must be integers within this range. Common ports like 80, 443, 8080, etc. are **not allowed** and will result in validation errors.
+
+```python
+from agentbay import AgentBay
+from agentbay.exceptions import SessionError
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# ✅ Valid ports (within range [30100, 30199])
+valid_ports = [30100, 30150, 30199]
+
+for port in valid_ports:
+    try:
+        result = session.get_link(port=port)
+        if result.success:
+            print(f"✅ Port {port}: {result.data}")
+    except SessionError as e:
+        print(f"❌ Port {port}: {e}")
+
+# ❌ Invalid ports (outside range [30100, 30199])
+invalid_ports = [80, 443, 8080, 30099, 30200]
+
+for port in invalid_ports:
+    try:
+        result = session.get_link(port=port)
+        print(f"Unexpected success for invalid port {port}")
+    except SessionError as e:
+        print(f"✅ Expected error for port {port}: {e}")
+        # Output: "Invalid port value: 8080. Port must be an integer in the range [30100, 30199]."
+```
+
 ### Parameter Usage and Constraints
 
 **Important**: The `get_link()` method has specific parameter requirements:

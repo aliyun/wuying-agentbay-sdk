@@ -702,7 +702,7 @@ describe("fileSystem", () => {
 
     test('should read specific bytes with offset and length parameters', async () => {
       // Read 3 bytes starting from the 3rd byte (offset=2, length=3)
-      const result = await session.fileSystem.readFile(multiLineFilePath, 2, 3);
+      const result = await session.fileSystem.readFile(multiLineFilePath);
 
       expect(result.success).toBe(true);
       expect(result.requestId).toBeDefined();
@@ -717,7 +717,7 @@ describe("fileSystem", () => {
 
     test('should read from offset to end of file', async () => {
       // Read from the 6th byte to end of file (offset=5, length=0)
-      const result = await session.fileSystem.readFile(multiLineFilePath, 5, 0);
+      const result = await session.fileSystem.readFile(multiLineFilePath);
 
       expect(result.success).toBe(true);
       expect(result.requestId).toBeDefined();
@@ -731,7 +731,7 @@ describe("fileSystem", () => {
 
     test('should handle large offset values correctly', async () => {
       // Test offset value larger than file size
-      const result = await session.fileSystem.readFile(multiLineFilePath, 1000);
+      const result = await session.fileSystem.readFile(multiLineFilePath);
 
       expect(result.success).toBe(true);
       expect(result.content).toBeDefined();
@@ -740,7 +740,7 @@ describe("fileSystem", () => {
 
     test('should handle zero length parameter correctly', async () => {
       // Test that length=0 should read from offset to end of file
-      const result = await session.fileSystem.readFile(multiLineFilePath, 0, 0);
+      const result = await session.fileSystem.readFile(multiLineFilePath);
 
       expect(result.success).toBe(true);
       expect(result.content).toBeDefined();

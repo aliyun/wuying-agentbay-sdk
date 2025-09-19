@@ -561,7 +561,7 @@ export class Session {
    * Get a link associated with the current session.
    *
    * @param protocolType - Optional protocol type to use for the link
-   * @param port - Optional port to use for the link
+   * @param port - Optional port to use for the link (must be in range [30100, 30199])
    * @returns OperationResult containing the link as data and request ID
    * @throws Error if the operation fails (matching Python SessionError)
    */
@@ -570,6 +570,15 @@ export class Session {
     port?: number
   ): Promise<OperationResult> {
     try {
+      // Validate port range if port is provided
+      if (port) {
+        if (!Number.isInteger(port) || port < 30100 || port > 30199) {
+          throw new Error(
+            `Invalid port value: ${port}. Port must be an integer in the range [30100, 30199].`
+          );
+        }
+      }
+
       const request = new GetLinkRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.getSessionId(),
@@ -623,7 +632,7 @@ export class Session {
    * Asynchronously get a link associated with the current session.
    *
    * @param protocolType - Optional protocol type to use for the link
-   * @param port - Optional port to use for the link
+   * @param port - Optional port to use for the link (must be in range [30100, 30199])
    * @returns OperationResult containing the link as data and request ID
    * @throws Error if the operation fails (matching Python SessionError)
    */
@@ -632,6 +641,15 @@ export class Session {
     port?: number
   ): Promise<OperationResult> {
     try {
+      // Validate port range if port is provided
+      if (port !== undefined) {
+        if (!Number.isInteger(port) || port < 30100 || port > 30199) {
+          throw new Error(
+            `Invalid port value: ${port}. Port must be an integer in the range [30100, 30199].`
+          );
+        }
+      }
+
       const request = new GetLinkRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.getSessionId(),
@@ -750,7 +768,7 @@ export class Session {
   async callMcpTool(toolName: string, args: any): Promise<import("./agent/agent").McpToolResult> {
     try {
       const argsJSON = JSON.stringify(args);
-      
+
       // Check if this is a VPC session
       if (this.isVpcEnabled()) {
         // VPC mode: Use HTTP request to the VPC endpoint
@@ -772,7 +790,7 @@ export class Session {
             requestId: "",
           };
         }
-        
+
         const baseURL = `http://${this.networkInterfaceIp}:${this.httpPort}/callTool`;
         const url = new URL(baseURL);
         url.searchParams.append("server", server);
@@ -800,7 +818,7 @@ export class Session {
         }
 
                  const responseData = await response.json() as any;
-         
+
          // Extract the actual result from the nested VPC response structure
          let actualResult: any = responseData;
          if (typeof responseData.data === "string") {
@@ -859,7 +877,7 @@ export class Session {
           const errorMessage = errorContent
             .map((item: any) => item.text || "Unknown error")
             .join("; ");
-          
+
           return {
             success: false,
             data: "",

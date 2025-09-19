@@ -55,11 +55,22 @@ def main():
         print(f"Link request ID: {link_result.request_id}")
         print(f"Link: {link_result.data}")
 
-        # Test get_link with port 8080
-        print("\nTesting get_link with port 8080...")
-        link_result_port_8080 = session.get_link(None, 8080)
-        print(f"Link with port 8080 request ID: {link_result_port_8080.request_id}")
-        print(f"Link with port 8080: {link_result_port_8080.data}")
+        # Test get_link with valid port in range [30100, 30199]
+        print("\nTesting get_link with valid port 30150...")
+        try:
+            link_result_port_30150 = session.get_link(None, 30150)
+            print(f"Link with port 30150 request ID: {link_result_port_30150.request_id}")
+            print(f"Link with port 30150: {link_result_port_30150.data}")
+        except Exception as e:
+            print(f"Error getting link with port 30150: {e}")
+
+        # Test get_link with invalid port (for demonstration)
+        print("\nTesting get_link with invalid port 8080 (should fail)...")
+        try:
+            link_result_invalid = session.get_link(None, 8080)
+            print(f"Unexpected success with invalid port: {link_result_invalid.data}")
+        except Exception as e:
+            print(f"Expected error with invalid port 8080: {e}")
 
         # Create a new Linux session for testing get_link with parameters
         print("\n=== Testing Linux Session with get_link parameters ===")
@@ -74,11 +85,22 @@ def main():
         # Get the Linux session object from the result
         linux_session = linux_session_result.session
 
-        # Test get_link with parameters (protocol_type="https", port=443)
-        print("\nTesting get_link with parameters (https, 443)...")
-        link_result_with_params = linux_session.get_link("https", 443)
-        print(f"Link with params request ID: {link_result_with_params.request_id}")
-        print(f"Link with params: {link_result_with_params.data}")
+        # Test get_link with valid parameters (protocol_type="https", port=30199)
+        print("\nTesting get_link with valid parameters (https, 30199)...")
+        try:
+            link_result_with_params = linux_session.get_link("https", 30199)
+            print(f"Link with params request ID: {link_result_with_params.request_id}")
+            print(f"Link with params: {link_result_with_params.data}")
+        except Exception as e:
+            print(f"Error getting link with parameters: {e}")
+
+        # Test get_link with invalid parameters (for demonstration)
+        print("\nTesting get_link with invalid parameters (https, 443) - should fail...")
+        try:
+            link_result_invalid_params = linux_session.get_link("https", 443)
+            print(f"Unexpected success with invalid port: {link_result_invalid_params.data}")
+        except Exception as e:
+            print(f"Expected error with invalid port 443: {e}")
 
         # List all sessions
         print("\nListing all sessions...")
