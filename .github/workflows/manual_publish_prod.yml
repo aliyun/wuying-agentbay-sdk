@@ -33,7 +33,6 @@ jobs:
           poetry version $PACKAGE_VERSION
           # Verify replacement results
           cat pyproject.toml | grep version
-          ls dist/
 
       - name: Publish to PyPI
         env:
