@@ -77,6 +77,9 @@ class Session:
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
 
+        # File transfer context ID
+        self.file_transfer_context_id: Optional[str] = None
+
         # Initialize file system, command and code handlers
         self.file_system = FileSystem(self)
         self.command = Command(self)

@@ -1,6 +1,12 @@
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any, Dict, Tuple, List, Optional, Union, Callable
 import json
 import threading
+import os
+import asyncio
+import time
+import httpx
+
+from dataclasses import dataclass
 
 from agentbay.api.base_service import BaseService
 from ..logger import get_logger, log_api_response, log_operation_start, log_operation_success
@@ -10,6 +16,497 @@ from agentbay.model import ApiResponse, BoolResult
 # Initialize logger for this module
 logger = get_logger("filesystem")
 
+
+# Result structures
+@dataclass
+class UploadResult:
+    """Result structure for file upload operations."""
+    success: bool
+    request_id_upload_url: Optional[str]
+    request_id_sync: Optional[str]
+    http_status: Optional[int]
+    etag: Optional[str]
+    bytes_sent: int
+    path: str
+    error: Optional[str] = None
+
+@dataclass
+class DownloadResult:
+    """Result structure for file download operations."""
+    success: bool
+    request_id_download_url: Optional[str]
+    request_id_sync: Optional[str]
+    http_status: Optional[int]
+    bytes_received: int
+    path: str
+    local_path: str
+    error: Optional[str] = None
+
+class FileTransfer:
+    """
+    FileTransfer provides pre-signed URL upload/download functionality between local and OSS,
+    with integration to Session Context synchronization.
+    
+    Prerequisites and Constraints:
+    - Session must be associated with the corresponding context_id and path through 
+      CreateSessionParams.context_syncs, and remote_path should fall within that 
+      synchronization path (or conform to backend path rules).
+    - Requires available AgentBay context service (agent_bay.context) and session context.
+    """
+
+    def __init__(
+        self,
+        agent_bay,           # AgentBay instance (for using agent_bay.context service)
+        session,             # Created session object (for session.context.sync/info)
+        *,
+        http_timeout: float = 60.0,
+        follow_redirects: bool = True,
+    ):
+        """
+        Initialize FileTransfer with AgentBay client and session.
+        
+        Args:
+            agent_bay: AgentBay instance for context service access
+            session: Created session object for context operations
+            http_timeout: HTTP request timeout in seconds (default: 60.0)
+            follow_redirects: Whether to follow HTTP redirects (default: True)
+        """
+        self._agent_bay = agent_bay
+        self._context_svc = agent_bay.context
+        self._session = session
+        self._http_timeout = http_timeout
+        self._follow_redirects = follow_redirects
+        self._context_id: str = self._session.file_transfer_context_id
+
+        # Task completion states (for compatibility)
+        self._finished_states = {"success", "successful", "ok", "finished", "done", "completed", "complete"}
+
+    async def upload(
+        self,
+        local_path: str,
+        remote_path: str,
+        *,
+        content_type: Optional[str] = None,
+        wait: bool = True,
+        wait_timeout: float = 30.0,
+        poll_interval: float = 1.5,
+        progress_cb: Optional[Callable[[int], None]] = None,  # Callback with cumulative bytes transferred
+    ) -> UploadResult:
+        """
+        Upload workflow:
+        1) Get OSS pre-signed URL via context.get_file_upload_url
+        2) Upload local file to OSS using the URL (HTTP PUT)
+        3) Trigger session.context.sync(mode="upload") to sync OSS objects to cloud disk
+        4) If wait=True, poll session.context.info until upload task reaches completion or timeout
+
+        Returns UploadResult containing request_ids, HTTP status, ETag and other information.
+        """
+        # 0. Parameter validation
+        if not os.path.isfile(local_path):
+            return UploadResult(
+                success=False, request_id_upload_url=None, request_id_sync=None,
+                http_status=None, etag=None, bytes_sent=0, path=remote_path,
+                error=f"Local file not found: {local_path}"
+            )
+        if self._context_id is None:
+            return UploadResult(
+                success=False, request_id_upload_url=None, request_id_sync=None,
+                http_status=None, etag=None, bytes_sent=0, path=remote_path,
+                error="No context ID"
+            )
+        # 1. Get pre-signed upload URL
+        url_res = self._context_svc.get_file_upload_url(self._context_id, remote_path)
+        if not getattr(url_res, "success", False) or not getattr(url_res, "url", None):
+            return UploadResult(
+                success=False, request_id_upload_url=getattr(url_res, "request_id", None), request_id_sync=None,
+                http_status=None, etag=None, bytes_sent=0, path=remote_path,
+                error=f"get_file_upload_url failed: {getattr(url_res, 'message', 'unknown error')}"
+            )
+
+        upload_url = url_res.url
+        req_id_upload = getattr(url_res, "request_id", None)
+
+        print(f"Uploading {local_path} to {upload_url}")
+
+        # 2. PUT upload to pre-signed URL
+        try:
+            http_status, etag, bytes_sent = await asyncio.to_thread(
+                self._put_file_sync,
+                upload_url,
+                local_path,
+                self._http_timeout,
+                self._follow_redirects,
+                content_type,
+                progress_cb,
+            )
+            print(f"Upload completed with HTTP {http_status}")
+            if http_status not in (200, 201, 204):
+                return UploadResult(
+                    success=False,
+                    request_id_upload_url=req_id_upload,
+                    request_id_sync=None,
+                    http_status=http_status,
+                    etag=etag,
+                    bytes_sent=bytes_sent,
+                    path=remote_path,
+                    error=f"Upload failed with HTTP {http_status}",
+                )
+        except Exception as e:
+            return UploadResult(
+                success=False,
+                request_id_upload_url=req_id_upload,
+                request_id_sync=None,
+                http_status=None,
+                etag=None,
+                bytes_sent=0,
+                path=remote_path,
+                error=f"Upload exception: {e}",
+            )
+
+        # 3. Trigger sync to cloud disk (download mode),download from oss to cloud disk
+        req_id_sync = None
+        try:
+            print("Triggering sync to cloud disk")
+            req_id_sync = await self._await_sync("download", remote_path, self._context_id)
+        except Exception as e:
+            return UploadResult(
+                success=False,
+                request_id_upload_url=req_id_upload,
+                request_id_sync=req_id_sync,
+                http_status=http_status,
+                etag=etag,
+                bytes_sent=bytes_sent,
+                path=remote_path,
+                error=f"session.context.sync(upload) failed: {e}",
+            )
+
+        print(f"Sync request ID: {req_id_sync}")
+        # 4. Optionally wait for task completion
+        if wait:
+            ok, err = await self._wait_for_task(
+                context_id=self._context_id,
+                remote_path=remote_path,
+                task_type="download",
+                timeout=wait_timeout,
+                interval=poll_interval,
+            )
+            if not ok:
+                return UploadResult(
+                    success=False,
+                    request_id_upload_url=req_id_upload,
+                    request_id_sync=req_id_sync,
+                    http_status=http_status,
+                    etag=etag,
+                    bytes_sent=bytes_sent,
+                    path=remote_path,
+                    error=f"Upload sync not finished: {err or 'timeout or unknown'}",
+                )
+
+        return UploadResult(
+            success=True,
+            request_id_upload_url=req_id_upload,
+            request_id_sync=req_id_sync,
+            http_status=http_status,
+            etag=etag,
+            bytes_sent=bytes_sent,
+            path=remote_path,
+            error=None,
+        )
+
+    async def download(
+        self,
+        remote_path: str,
+        local_path: str,
+        *,
+        overwrite: bool = True,
+        wait: bool = True,
+        wait_timeout: float = 300.0,
+        poll_interval: float = 1.5,
+        progress_cb: Optional[Callable[[int], None]] = None,  # Callback with cumulative bytes received
+    ) -> DownloadResult:
+        """
+        Download workflow:
+        1) Trigger session.context.sync(mode="upload") to sync cloud disk data to OSS
+        2) Get pre-signed download URL via context.get_file_download_url
+        3) Download the file and save to local local_path
+        4) If wait=True, wait for download task to reach completion after step 1 
+           (ensuring backend has prepared the download object)
+
+        Returns DownloadResult containing sync and download request_ids, HTTP status, byte count, etc.
+        """
+        # Use default context if none provided
+        if self._context_id is None:
+            return DownloadResult(success=False, request_id_download_url=None, request_id_sync=None, http_status=None, bytes_received=0, path=remote_path, local_path=local_path, error="No context ID")
+        # 1. Trigger cloud disk to OSS download sync
+        req_id_sync = None
+        try:
+            req_id_sync = await self._await_sync("upload", remote_path, self._context_id)
+        except Exception as e:
+            return DownloadResult(
+                success=False,
+                request_id_download_url=None,
+                request_id_sync=req_id_sync,
+                http_status=None,
+                bytes_received=0,
+                path=remote_path,
+                local_path=local_path,
+                error=f"session.context.sync(download) failed: {e}",
+            )
+
+        # Optionally wait for task completion (ensure object is ready in OSS)
+        if wait:
+            ok, err = await self._wait_for_task(
+                context_id=self._context_id,
+                remote_path=remote_path,
+                task_type="upload",
+                timeout=wait_timeout,
+                interval=poll_interval,
+            )
+            if not ok:
+                return DownloadResult(
+                    success=False,
+                    request_id_download_url=None,
+                    request_id_sync=req_id_sync,
+                    http_status=None,
+                    bytes_received=0,
+                    path=remote_path,
+                    local_path=local_path,
+                    error=f"Download sync not finished: {err or 'timeout or unknown'}",
+                )
+
+        # 2. Get pre-signed download URL
+        url_res = self._context_svc.get_file_download_url(self._context_id, remote_path)
+        if not getattr(url_res, "success", False) or not getattr(url_res, "url", None):
+            return DownloadResult(
+                success=False,
+                request_id_download_url=getattr(url_res, "request_id", None),
+                request_id_sync=req_id_sync,
+                http_status=None,
+                bytes_received=0,
+                path=remote_path,
+                local_path=local_path,
+                error=f"get_file_download_url failed: {getattr(url_res, 'message', 'unknown error')}",
+            )
+
+        download_url = url_res.url
+        req_id_download = getattr(url_res, "request_id", None)
+
+        # 3. Download and save to local
+        try:
+            os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)
+            if os.path.exists(local_path) and not overwrite:
+                return DownloadResult(
+                    success=False,
+                    request_id_download_url=req_id_download,
+                    request_id_sync=req_id_sync,
+                    http_status=None,
+                    bytes_received=0,
+                    path=remote_path,
+                    local_path=local_path,
+                    error=f"Destination exists and overwrite=False: {local_path}",
+                )
+
+            http_status, bytes_received = await asyncio.to_thread(
+                self._get_file_sync,
+                download_url,
+                local_path,
+                self._http_timeout,
+                self._follow_redirects,
+                progress_cb,
+            )
+            if http_status != 200:
+                return DownloadResult(
+                    success=False,
+                    request_id_download_url=req_id_download,
+                    request_id_sync=req_id_sync,
+                    http_status=http_status,
+                    bytes_received=bytes_received,
+                    path=remote_path,
+                    local_path=local_path,
+                    error=f"Download failed with HTTP {http_status}",
+                )
+        except Exception as e:
+            return DownloadResult(
+                success=False,
+                request_id_download_url=req_id_download,
+                request_id_sync=req_id_sync,
+                http_status=None,
+                bytes_received=0,
+                path=remote_path,
+                local_path=local_path,
+                error=f"Download exception: {e}",
+            )
+
+        return DownloadResult(
+            success=True,
+            request_id_download_url=req_id_download,
+            request_id_sync=req_id_sync,
+            http_status=200,
+            bytes_received=os.path.getsize(local_path) if os.path.exists(local_path) else 0,
+            path=remote_path,
+            local_path=local_path,
+            error=None,
+        )
+
+    # ========== Internal Utilities ==========
+
+    async def _await_sync(self, mode: str, remote_path: str = "", context_id: str = "") -> Optional[str]:
+        """
+        Compatibility wrapper for session.context.sync which may be sync or async:
+        - Try async call first
+        - Fall back to sync call using asyncio.to_thread
+        Returns request_id if available
+        """
+        mode = mode.lower().strip()
+
+        sync_fn = getattr(self._session.context, "sync")
+        print(f"session.context.sync(mode={mode}, path={remote_path}, context_id={context_id})")
+        # Try as coroutine with mode, path, and context_id parameters
+        try:
+            result = sync_fn(mode=mode, path=remote_path if remote_path else None, context_id=context_id if context_id else None)
+            if asyncio.iscoroutine(result):
+                out = await result
+            else:
+                # Sync: run in thread pool
+                out = await asyncio.to_thread(sync_fn, mode=mode, path=remote_path if remote_path else None, context_id=context_id if context_id else None)
+        except TypeError:
+            # Backend may not support all parameters, try with mode and path only
+            try:
+                result = sync_fn(mode=mode, path=remote_path if remote_path else None)
+                if asyncio.iscoroutine(result):
+                    out = await result
+                else:
+                    # Sync: run in thread pool
+                    out = await asyncio.to_thread(sync_fn, mode=mode, path=remote_path if remote_path else None)
+            except TypeError:
+                # Backend may not support mode or path parameter
+                try:
+                    result = sync_fn(mode=mode)
+                    if asyncio.iscoroutine(result):
+                        out = await result
+                    else:
+                        # Sync: run in thread pool
+                        out = await asyncio.to_thread(sync_fn, mode=mode)
+                except TypeError:
+                    # Backend may not support mode parameter
+                    result = sync_fn()
+                    if asyncio.iscoroutine(result):
+                        out = await result
+                    else:
+                        out = await asyncio.to_thread(sync_fn)
+        # Return request_id if available
+        success = getattr(out, "success", False)
+        print(f"   Result: {success}")
+        return getattr(out, "request_id", None)
+
+    async def _wait_for_task(
+        self,
+        *,
+        context_id: str,
+        remote_path: str,
+        task_type: Optional[str],
+        timeout: float,
+        interval: float,
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Poll session.context.info within timeout to check if specified task is completed.
+        Returns (True, None) on success, (False, error_msg) on failure.
+        """
+        deadline = time.time() + timeout
+        last_err = None
+
+        while time.time() < deadline:
+            try:
+                info_fn = getattr(self._session.context, "info")
+                # Try calling with filter parameters
+                try:
+                    res = info_fn(context_id=context_id, path=remote_path, task_type=task_type)
+                except TypeError:
+                    res = info_fn()
+
+                if asyncio.iscoroutine(res):
+                    res = await res  # Compatibility with async info
+
+                # Parse response
+                status_list = getattr(res, "context_status_data", None) or []
+                for item in status_list:
+                    cid = getattr(item, "context_id", None)
+                    path = getattr(item, "path", None)
+                    ttype = getattr(item, "task_type", None)
+                    status = getattr(item, "status", None)
+                    err = getattr(item, "error_message", None)
+
+                    if cid == context_id and path == remote_path and (task_type is None or ttype == task_type):
+                        if err:
+                            return False, f"Task error: {err}"
+                        if status and status.lower() in self._finished_states:
+                            return True, None
+                        # Otherwise continue waiting
+                last_err = "task not finished"
+            except Exception as e:
+                last_err = f"info error: {e}"
+
+            await asyncio.sleep(interval)
+
+        return False, last_err or "timeout"
+
+    @staticmethod
+    def _put_file_sync(
+        url: str,
+        file_path: str,
+        timeout: float,
+        follow_redirects: bool,
+        content_type: Optional[str],
+        progress_cb: Optional[Callable[[int], None]],
+    ) -> Tuple[int, Optional[str], int]:
+        """
+        Synchronously PUT file in background thread using httpx.
+        Returns (status_code, etag, bytes_sent)
+        """
+        headers: Dict[str, str] = {}
+        if content_type:
+            headers["Content-Type"] = content_type
+
+        file_size = os.path.getsize(file_path)
+
+        with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
+            with open(file_path, "rb") as f:
+                resp = client.put(url, content=f, headers=headers)
+            status = resp.status_code
+            etag = resp.headers.get("ETag")
+            return status, etag, file_size
+
+    @staticmethod
+    def _get_file_sync(
+        url: str,
+        dest_path: str,
+        timeout: float,
+        follow_redirects: bool,
+        progress_cb: Optional[Callable[[int], None]],
+    ) -> Tuple[int, int]:
+        """
+        Synchronously GET download to local file in background thread using httpx.
+        Returns (status_code, bytes_received)
+        """
+        bytes_recv = 0
+        with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
+            with client.stream("GET", url) as resp:
+                status = resp.status_code
+                if status != 200:
+                    # Still consume content to release connection
+                    _ = resp.read()
+                    return status, 0
+                with open(dest_path, "wb") as f:
+                    for chunk in resp.iter_bytes():
+                        if chunk:
+                            f.write(chunk)
+                            bytes_recv += len(chunk)
+                            if progress_cb:
+                                try:
+                                    progress_cb(bytes_recv)
+                                except Exception:
+                                    pass
+        return 200, bytes_recv
 
 class FileChangeEvent:
     """Represents a single file change event."""
@@ -259,6 +756,39 @@ class FileSystem(BaseService):
     """
     Handles file operations in the AgentBay cloud environment.
     """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize FileSystem with FileTransfer capability.
+        
+        Args:
+            *args: Arguments to pass to BaseService
+            **kwargs: Keyword arguments to pass to BaseService
+        """
+        super().__init__(*args, **kwargs)
+        self._file_transfer: Optional[FileTransfer] = None
+
+    def _ensure_file_transfer(self) -> FileTransfer:
+        """
+        Ensure FileTransfer is initialized with the current session.
+        
+        Returns:
+            FileTransfer: The FileTransfer instance
+        """
+        if self._file_transfer is None:
+            # Get the agent_bay instance from the session
+            agent_bay = getattr(self.session, 'agent_bay', None)
+            if agent_bay is None:
+                raise FileError("FileTransfer requires an AgentBay instance")
+            
+            # Get the session from the service
+            session = self.session
+            if session is None:
+                raise FileError("FileTransfer requires a session")
+                
+            self._file_transfer = FileTransfer(agent_bay, session)
+        
+        return self._file_transfer
 
     # Default chunk size is 50KB
     DEFAULT_CHUNK_SIZE = 50 * 1024
@@ -724,7 +1254,7 @@ class FileSystem(BaseService):
         """
         args = {"path": path, "pattern": pattern}
         if exclude_patterns:
-            args["excludePatterns"] = exclude_patterns
+            args["excludePatterns"] = ",".join(exclude_patterns)
 
         try:
             result = self._call_mcp_tool("search_files", args)
@@ -934,6 +1464,143 @@ class FileSystem(BaseService):
                 request_id="",
                 success=False,
                 error_message=f"Failed to write file: {e}",
+            )
+
+    def upload_file(
+        self,
+        local_path: str,
+        remote_path: str,
+        *,
+        content_type: Optional[str] = None,
+        wait: bool = True,
+        wait_timeout: float = 30.0,
+        poll_interval: float = 1.5,
+        progress_cb: Optional[Callable[[int], None]] = None,
+    ) -> UploadResult:
+        """
+        Upload a file from local to remote path using pre-signed URLs.
+        
+        This is a synchronous wrapper around the async FileTransfer.upload method.
+        
+        Args:
+            local_path: Local file path to upload
+            remote_path: Remote file path to upload to
+            content_type: Optional content type for the file
+            wait: Whether to wait for the sync operation to complete
+            wait_timeout: Timeout for waiting for sync completion
+            poll_interval: Interval between polling for sync completion
+            progress_cb: Callback for upload progress updates
+            
+        Returns:
+            UploadResult: Result of the upload operation
+        """ 
+        try:
+            file_transfer = self._ensure_file_transfer()
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(
+                file_transfer.upload(
+                    local_path=local_path,
+                    remote_path=remote_path,
+                    content_type=content_type,
+                    wait=wait,
+                    wait_timeout=wait_timeout,
+                    poll_interval=poll_interval,
+                    progress_cb=progress_cb,
+                )
+            )
+            loop.close()
+            # If upload was successful, delete the file from OSS
+            if result.success and hasattr(self.session, 'file_transfer_context_id'):
+                context_id = self.session.file_transfer_context_id
+                if context_id:
+                    try:
+                        # Delete the uploaded file from OSS
+                        delete_result = self.session.agent_bay.context.delete_file(context_id, remote_path)
+                        if not delete_result.success:
+                            logger.warning(f"Failed to delete uploaded file from OSS: {delete_result.error_message}")
+                    except Exception as delete_error:
+                        logger.warning(f"Error deleting uploaded file from OSS: {delete_error}")
+            return result
+        except Exception as e:
+            return UploadResult(
+                success=False,
+                request_id_upload_url=None,
+                request_id_sync=None,
+                http_status=None,
+                etag=None,
+                bytes_sent=0,
+                path=remote_path,
+                error=f"Upload failed: {str(e)}",
+            )
+
+    def download_file(
+        self,
+        remote_path: str,
+        local_path: str,
+        *,
+        overwrite: bool = True,
+        wait: bool = True,
+        wait_timeout: float = 30.0,
+        poll_interval: float = 1.5,
+        progress_cb: Optional[Callable[[int], None]] = None,
+    ) -> DownloadResult:
+        """
+        Download a file from remote path to local path using pre-signed URLs.
+        
+        This is a synchronous wrapper around the async FileTransfer.download method.
+        
+        Args:
+            remote_path: Remote file path to download from
+            local_path: Local file path to download to
+            overwrite: Whether to overwrite existing local file
+            wait: Whether to wait for the sync operation to complete
+            wait_timeout: Timeout for waiting for sync completion
+            poll_interval: Interval between polling for sync completion
+            progress_cb: Callback for download progress updates
+            
+        Returns:
+            DownloadResult: Result of the download operation
+        """
+            
+        try:
+            file_transfer = self._ensure_file_transfer()
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(
+                file_transfer.download(
+                    remote_path=remote_path,
+                    local_path=local_path,
+                    overwrite=overwrite,
+                    wait=wait,
+                    wait_timeout=wait_timeout,
+                    poll_interval=poll_interval,
+                    progress_cb=progress_cb,
+                )
+            )
+            loop.close()
+            # If download was successful, delete the file from OSS
+            if result.success and hasattr(self.session, 'file_transfer_context_id'):
+                context_id = self.session.file_transfer_context_id
+                if context_id:
+                    try:
+                        # Delete the downloaded file from OSS
+                        delete_result = self.session.agent_bay.context.delete_file(context_id, remote_path)
+                        if not delete_result.success:
+                            logger.warning(f"Failed to delete downloaded file from OSS: {delete_result.error_message}")
+                    except Exception as delete_error:
+                        logger.warning(f"Error deleting downloaded file from OSS: {delete_error}")
+            return result
+        except Exception as e:
+            return DownloadResult(
+                success=False,
+                request_id_download_url=None,
+                request_id_sync=None,
+                http_status=None,
+                bytes_received=0,
+                path=remote_path,
+                local_path=local_path,
+                error=f"Download failed: {str(e)}",
             )
 
     def _get_file_change(self, path: str) -> FileChangeResult:
