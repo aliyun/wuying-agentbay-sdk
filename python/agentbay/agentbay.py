@@ -4,7 +4,7 @@ import random
 import string
 from enum import Enum
 from threading import Lock
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_openapi.exceptions._client import ClientException
@@ -96,6 +96,7 @@ class AgentBay:
 
         # Initialize context service
         self.context = ContextService(self)
+        self._file_transfer_context: Optional[Any] = None
 
     def _safe_serialize(self, obj):
         """
@@ -137,6 +138,24 @@ class AgentBay:
         try:
             if params is None:
                 params = CreateSessionParams()
+
+            # Create a default context for file transfer operations if none provided
+            # and no context_syncs are specified
+            import time
+            context_name = f"file-transfer-context-{int(time.time())}"
+            context_result = self.context.get(context_name, create=True)
+            if context_result.success and context_result.context:
+                self._file_transfer_context = context_result.context
+                # Add the context to the session params for file transfer operations
+                from agentbay.context_sync import ContextSync
+                file_transfer_context_sync = ContextSync(
+                    context_id=context_result.context.id,
+                    path="/temp/file-transfer",
+                )
+                if not hasattr(params, "context_syncs") or params.context_syncs is None:
+                    params.context_syncs = []
+                logger.info(f"Adding context sync for file transfer operations: {file_transfer_context_sync}")
+                params.context_syncs.append(file_transfer_context_sync)
 
             request = CreateMcpSessionRequest(authorization=f"Bearer {self.api_key}")
 
@@ -334,6 +353,8 @@ class AgentBay:
 
             # Set browser recording state
             session.enableBrowserReplay = params.enable_browser_replay
+            # Store the file transfer context ID if we created one
+            session.file_transfer_context_id = self._file_transfer_context.id if self._file_transfer_context else None
 
             # Store image_id used for this session
             session.image_id = params.image_id
