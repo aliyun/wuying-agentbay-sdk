@@ -1,84 +1,99 @@
-# AgentBay SDK Documentation
+# AgentBay SDK Documentation Center
 
-> Multi-language SDK for executing commands, operating files, and running code in cloud environments
+> Complete documentation and development guides for the AgentBay SDK
 
-## 📦 Installation
+## 📖 Getting Started
 
-| Language | Install Command | Documentation |
-|----------|----------------|---------------|
-| Python | `pip install wuying-agentbay-sdk` | [Python Docs](../python/README.md) |
-| TypeScript | `npm install wuying-agentbay-sdk` | [TypeScript Docs](../typescript/README.md) |
-| Golang | `go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay` | [Golang Docs](../golang/README.md) |
+### New to AgentBay
+- [Installation Guide](quickstart/installation.md) - SDK installation and environment setup
+- [Basic Concepts](quickstart/basic-concepts.md) - Understand cloud environments and sessions
+- [First Session](quickstart/first-session.md) - Create your first cloud environment
+- [Quick Start Tutorial](quickstart/README.md) - Complete getting started guide
 
-## 🚀 Prerequisites
+### Best Practices
+- [Development Best Practices](quickstart/best-practices.md) - Recommended development patterns
+- [Troubleshooting](quickstart/troubleshooting.md) - Common issues and solutions
 
-Before using the SDK, you need to:
+## 🔧 Feature Guides
 
-1. Register an Alibaba Cloud account: [https://aliyun.com](https://aliyun.com)
-2. Get API credentials: [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
+### Core Features
+- [Session Management](guides/session-management.md) - Cloud environment lifecycle management
+- [File Operations](guides/file-operations.md) - File upload, download, and management
+- [Data Persistence](guides/data-persistence.md) - Cross-session data storage
+- [SDK Configuration](guides/sdk-configuration.md) - Configuration options and settings
 
-## 🚀 Quick Start
+### Automation Features
+- [Automation Overview](guides/automation.md) - Introduction to automation capabilities
+- [Application Window Operations](guides/application-window-operations.md) - Desktop application interaction
+- [Directory Monitoring](guides/directory-monitoring.md) - File system monitoring
 
-### Python
-```python
-from agentbay import AgentBay
+### Browser Automation
+- [Browser Usage Guide](guides/browser-use/README.md) - Complete browser automation guide
+- [Core Features](guides/browser-use/core-features.md) - Basic browser operations
+- [Advanced Features](guides/browser-use/advance-features.md) - Advanced browser capabilities
+- [Code Examples](guides/browser-use/code-example.md) - Practical code samples
+- [Integrations](guides/browser-use/integrations.md) - Third-party integrations
 
-# Create session and execute command
-agent_bay = AgentBay()
-session = agent_bay.create().session
-result = session.command.execute_command("echo 'Hello AgentBay'")
-print(result.output)  # Hello AgentBay
-```
+#### Advanced Browser Features
+- [Page Agent](guides/browser-use/advance-features/page-use-agent.md) - AI-driven page operations
 
-### TypeScript
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
+#### Core Browser Features  
+- [Browser Context](guides/browser-use/core-features/browser-context.md) - Context management
+- [Browser Proxies](guides/browser-use/core-features/browser-proxies.md) - Network proxy configuration
+- [CAPTCHA Handling](guides/browser-use/core-features/captcha.md) - Automated CAPTCHA solving
+- [Extension Support](guides/browser-use/core-features/extension.md) - Browser extension management
+- [Stealth Mode](guides/browser-use/core-features/stealth-mode.md) - Anti-detection techniques
 
-// Create session and execute command
-const agentBay = new AgentBay();
-const session = (await agentBay.create()).session;
-const result = await session.command.executeCommand("echo 'Hello AgentBay'");
-console.log(result.output);  // Hello AgentBay
-```
+### Extended Features
+- [Browser Extensions](guides/browser-extensions.md) - Extension development and management
+- [Advanced Features](guides/advanced-features.md) - Advanced functionality usage
 
-### Golang
-```go
-import "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+## 📚 API Reference
 
-// Create session and execute command
-client, _ := agentbay.NewAgentBay("", nil)
-sessionResult, _ := client.Create(nil)
-session := sessionResult.Session
-result, _ := session.Command.ExecuteCommand("echo 'Hello AgentBay'")
-fmt.Println(result.Output)  // Hello AgentBay
-```
+- [API Documentation](api-reference.md) - Complete API reference
+- [Python SDK](../python/README.md) - Python version documentation
+- [TypeScript SDK](../typescript/README.md) - TypeScript version documentation
+- [Golang SDK](../golang/README.md) - Golang version documentation
 
-## 👋 Choose Your Learning Path
+## 🚀 Learning Paths
 
-### 🆕 New Users
-If you're new to AgentBay or cloud development:
-- [Quick Start Tutorial](quickstart/README.md) - Get started in 5 minutes
-- [Core Concepts](quickstart/basic-concepts.md) - Understand cloud environments and sessions
+Choose the appropriate learning path based on your experience level:
 
-### 🚀 Experienced Users
-If you're familiar with Docker, cloud services, or similar products:
-- [Feature Guides](guides/README.md) - Complete feature introduction
-- [API Reference](api-reference.md) - Core API quick lookup
+### 🆕 Complete Beginners
+If you've never used cloud services or automation tools:
+1. [Basic Concepts](quickstart/basic-concepts.md) - Understand core concepts
+2. [Installation Guide](quickstart/installation.md) - Environment setup
+3. [First Session](quickstart/first-session.md) - Hands-on practice
+4. [Best Practices](quickstart/best-practices.md) - Learn conventions
 
-## 🔧 Core Features
+### 🚀 Experienced Developers
+If you're familiar with Docker, cloud services, or automation tools:
+1. [Quick Start](quickstart/README.md) - Get up and running quickly
+2. [Feature Guides Overview](guides/README.md) - Explore all capabilities
+3. [API Reference](api-reference.md) - Interface documentation
+4. [Advanced Features](guides/advanced-features.md) - Discover advanced capabilities
 
-- **Session Management** - Create and manage cloud environments
-- **Command Execution** - Execute Shell commands in the cloud
-- **File Operations** - Upload, download, and edit cloud files
-- **Code Execution** - Run Python, JavaScript code
-- **UI Automation** - Interact with cloud application interfaces
-- **Data Persistence** - Save data across sessions
+## 🔍 Common Use Cases
 
-## 🆘 Get Help
+### Web Automation
+- [Browser Usage Guide](guides/browser-use/README.md)
+- [Stealth Mode](guides/browser-use/core-features/stealth-mode.md)
+- [CAPTCHA Handling](guides/browser-use/core-features/captcha.md)
 
-- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Changelog](../CHANGELOG.md)
+### File and Data Processing
+- [File Operations](guides/file-operations.md)
+- [Directory Monitoring](guides/directory-monitoring.md)
+- [Data Persistence](guides/data-persistence.md)
 
-## 📄 License
+### Application Integration
+- [SDK Configuration](guides/sdk-configuration.md)
+- [Integration Solutions](guides/browser-use/integrations.md)
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](../LICENSE) file for details.
+## 📞 Getting Help
+
+- [Troubleshooting](quickstart/troubleshooting.md) - Resolve common issues
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues) - Report bugs or request features
+
+---
+
+💡 **Tip**: We recommend starting with the [Quick Start Tutorial](quickstart/README.md), then exploring specific feature guides as needed.
