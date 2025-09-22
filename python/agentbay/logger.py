@@ -25,7 +25,7 @@ class AgentBayLogger:
         level: str = "INFO",
         log_file: Optional[Union[str, Path]] = None,
         enable_console: bool = True,
-        enable_file: bool = False,
+        enable_file: bool = True,
         rotation: str = "10 MB",
         retention: str = "30 days"
     ) -> None:
@@ -54,6 +54,7 @@ class AgentBayLogger:
                 "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
                 "<bold><blue>AgentBay</blue></bold> | "
                 "<level>{level}</level> | "
+                "<yellow>{process.id}:{thread.id}</yellow> | "
                 "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
                 "<level>{message}</level>"
             )
@@ -68,14 +69,21 @@ class AgentBayLogger:
             )
         
         # File handler with structured formatting
-        if enable_file and log_file:
-            cls._log_file = Path(log_file) if isinstance(log_file, str) else log_file
+        if enable_file:
+            if log_file:
+                cls._log_file = Path(log_file) if isinstance(log_file, str) else log_file
+            else:
+                # Default log file path in python/ directory
+                current_dir = Path(__file__).parent.parent  # Go up from agentbay/ to python/
+                cls._log_file = current_dir / "agentbay.log"
+            
             cls._log_file.parent.mkdir(parents=True, exist_ok=True)
             
             file_format = (
                 "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
-                "[AgentBay] | "
+                "AgentBay | "
                 "{level: <8} | "
+                "{process.id}:{thread.id} | "
                 "{name}:{function}:{line} | "
                 "{message}"
             )
@@ -93,7 +101,7 @@ class AgentBayLogger:
         cls._initialized = True
     
     @classmethod
-    def get_logger(cls, name: Optional[str] = None) -> "logger":
+    def get_logger(cls, name: Optional[str] = None):
         """
         Get a logger instance.
         
@@ -129,15 +137,15 @@ class AgentBayLogger:
 AgentBayLogger.setup(
     level=os.getenv("AGENTBAY_LOG_LEVEL", "INFO"),
     enable_console=True,
-    enable_file=os.getenv("AGENTBAY_LOG_FILE") is not None,
-    log_file=os.getenv("AGENTBAY_LOG_FILE")
+    enable_file=True,  # Always enable file logging by default
+    log_file=os.getenv("AGENTBAY_LOG_FILE")  # Use custom path if specified, otherwise use default
 )
 
 # Export the logger instance for easy import
 log = AgentBayLogger.get_logger("agentbay")
 
 
-def get_logger(name: str) -> "logger":
+def get_logger(name: str):
     """
     Convenience function to get a named logger.
     

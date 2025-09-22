@@ -69,6 +69,7 @@ class Session:
         self.is_vpc = False  # Whether this session uses VPC resources
         self.network_interface_ip = ""  # Network interface IP for VPC sessions
         self.http_port = ""  # HTTP port for VPC sessions
+        self.token = ""
 
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
@@ -112,6 +113,10 @@ class Session:
     def get_http_port(self) -> str:
         """Return the HTTP port for VPC sessions."""
         return self.http_port
+    
+    def get_token(self) -> str:
+        """Return the token for VPC sessions."""
+        return self.token
 
     def find_server_for_tool(self, tool_name: str) -> str:
         """Find the server that provides the given tool."""
@@ -135,61 +140,28 @@ class Session:
             # If sync_context is True, trigger file uploads first
             if sync_context:
                 log_operation_start("Context synchronization", "Before session deletion")
-
-                # Trigger file upload
-                try:
-                    sync_result = self.context.sync()
-                    if not sync_result.success:
-                        log_warning("Context sync operation returned failure status")
-                except Exception as e:
-                    log_warning(f"Failed to trigger context sync: {e}")
-                    # Continue with deletion even if sync fails
-
-                # Wait for uploads to complete
-                max_retries = 150  # Maximum number of retries
-                retry_interval = 2  # Seconds to wait between retries
-
                 import time
-                for retry in range(max_retries):
-                    try:
-                        # Get context status data
-                        info_result = self.context.info()
+                sync_start_time = time.time()
 
-                        # Check if all upload context items have status "Success" or "Failed"
-                        all_completed = True
-                        has_failure = False
-                        has_uploads = False
-
-                        for item in info_result.context_status_data:
-                            # We only care about upload tasks
-                            if item.task_type != "upload":
-                                continue
-
-                            has_uploads = True
-                            logger.info(f"📤 Upload context {item.context_id} status: {item.status}, path: {item.path}")
-
-                            if item.status != "Success" and item.status != "Failed":
-                                all_completed = False
-                                break
-
-                            if item.status == "Failed":
-                                has_failure = True
-                                logger.error(f"❌ Upload failed for context {item.context_id}: {item.error_message}")
-
-                        if all_completed or not has_uploads:
-                            if has_failure:
-                                log_warning("Context upload completed with failures")
-                            elif has_uploads:
-                                log_operation_success("Context upload")
-                            else:
-                                logger.info("ℹ️  No upload tasks found")
-                            break
-
-                        logger.info(f"⏳ Waiting for context upload to complete, attempt {retry+1}/{max_retries}")
-                        time.sleep(retry_interval)
-                    except Exception as e:
-                        logger.error(f"❌ Error checking context status on attempt {retry+1}: {e}")
-                        time.sleep(retry_interval)
+                try:
+                    # Use asyncio.run to call the async context.sync synchronously (no callback)
+                    import asyncio
+                    sync_result = asyncio.run(self.context.sync())
+                    
+                    sync_duration = time.time() - sync_start_time
+                    
+                    if sync_result.success:
+                        log_operation_success("Context sync")
+                        logger.info(f"⏱️  Context sync completed in {sync_duration:.2f} seconds")
+                    else:
+                        log_warning("Context sync completed with failures")
+                        logger.warning(f"⏱️  Context sync failed after {sync_duration:.2f} seconds")
+                        
+                except Exception as e:
+                    sync_duration = time.time() - sync_start_time
+                    log_warning(f"Failed to trigger context sync: {e}")
+                    logger.warning(f"⏱️  Context sync failed after {sync_duration:.2f} seconds")
+                    # Continue with deletion even if sync fails
 
             # Proceed with session deletion
             request = ReleaseMcpSessionRequest(

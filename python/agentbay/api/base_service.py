@@ -76,7 +76,7 @@ class BaseService:
             'server': server,
             'tool': tool_name,
             'args': args_json,
-            'apiKey': self.session.get_api_key(),
+            'token': self.session.get_token(),
             'requestId': request_id
         }
         
