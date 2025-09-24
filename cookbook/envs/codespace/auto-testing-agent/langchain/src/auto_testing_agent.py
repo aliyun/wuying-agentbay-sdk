@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LangChain Testing Agent Module
+LangChain Auto Testing Agent Module
 A testing agent that uses LangChain to orchestrate the testing process.
 """
 
@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 # Add the common directory to sys.path to enable imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'common', 'src'))
 
-from base_testing_agent import BaseTestingAgent
+from base_auto_testing_agent import BaseTestingAgent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class LangChainTestingAgent(BaseTestingAgent):
-    """A testing agent that uses LangChain to orchestrate the testing process."""
+    """A testing agent that uses LangChain to orchestrate the auto testing process."""
     
     def generate_test_cases_with_llm(self, project_structure: Dict[str, Any]) -> List[tuple]:
         """
