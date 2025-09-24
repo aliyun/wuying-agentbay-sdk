@@ -1,4 +1,4 @@
-name: pypi构建与上传
+name: PyPI Build and Upload
 
 triggers:
   merge_request:
@@ -11,23 +11,23 @@ triggers:
 
 params:
   python-version:
-    name: "python版本"
+    name: "Python Version"
     type: string
     required: false
     options:
       - "3.10"
       - "3.11"
       - "3.12"
-    description: 用于构建pypi的python版本
+    description: Python version for building PyPI package
     default: "3.10"
   
   repository-url:
-    name: "自定义仓库url"
+    name: "Custom Repository URL"
     advanced: true
     type: string
     required: false
     default: "http://opsx.vip.tbsite.net/aliyun-pypi/simple/"
-    description: "上传仓库url，需要上传到自定义仓库时填写。默认上传到artlab"
+    description: "Upload repository URL, fill in when uploading to custom repository. Default upload to artlab"
   
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
       - id: modify-version
         run: |
           cd python
-          echo "修改版本号和包名..."
+          echo "Modifying version number and package name..."
           BASE_VERSION=$(grep "version = " pyproject.toml | head -n 1 | cut -d '"' -f 2)
           echo "BASE_VERSION=${BASE_VERSION}" > $AONE_CI_WORKSPACE/BASE_VERSION
           TIMESTAMP=$(TZ='Asia/Shanghai' date "+%Y%m%d%H%M%S")
@@ -66,32 +66,32 @@ jobs:
       - id: pypi-install--build-publish
         run: | 
           cd python
-          echo "安装依赖..."
+          echo "Installing dependencies..."
           python -m pip install --upgrade pip
           pip install twine build poetry
-          echo "构建pypi包..."
+          echo "Building PyPI package..."
           cat $AONE_CI_WORKSPACE/FINAL_VERSION
-          # 检查build模块是否可导入
+          # Check if build module can be imported
           echo $FINAL_VERSION_ENV
-          python -c "import build; print('✅ build模块可用，版本:', build.__version__)" || (echo "❌ build模块导入失败" && exit 1)
-          # 使用poetry构建
+          python -c "import build; print('✅ Build module available, version:', build.__version__)" || (echo "❌ Build module import failed" && exit 1)
+          # Build using poetry
           poetry build
-          echo "要上传的文件："
+          echo "Files to upload:"
           ls -la dist/
-          echo "上传pypi包..."
+          echo "Uploading PyPI package..."
           twine --version
           twine upload --repository-url ${{params.repository-url}} --username ${{secrets.username}} --password ${{secrets.password}} dist/*
-          echo "✅ 上传完成"
+          echo "✅ Upload completed"
   summary:
     continue-on-error: true
     needs: [pypi-build]
     steps:
       - run: |
-          echo "✅源分支：${{git.branch}}" >> $AONE_CI_SUMMARY
-          echo "✅安装命令">> $AONE_CI_SUMMARY
+          echo "✅Source branch: ${{git.branch}}" >> $AONE_CI_SUMMARY
+          echo "✅Installation command">> $AONE_CI_SUMMARY
           echo "pip install -i http://yum.tbsite.net/aliyun-pypi/simple/ --trusted-host yum.tbsite.net wuying-agentbay-sdk-test==${{jobs.pypi-build.outputs.string-output}}" >> $AONE_CI_SUMMARY
       - run: |
           echo "=========================================="
-          echo "      Wuying AgentBay SDK 打包发布完成"
+          echo "      Wuying AgentBay SDK Package Release Completed"
           echo "=========================================="
           cat $AONE_CI_SUMMARY 
