@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Base Testing Agent Module
+Base Auto Testing Agent Module
 Contains shared functionality for both LangChain and direct implementations.
 """
 

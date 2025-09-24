@@ -1,4 +1,4 @@
-# Testing Agent
+# Auto Testing Agent
 
 This project demonstrates how to create a testing agent using LangChain and Agent-Bay SDK. The agent can scan Python projects, generate test cases using LLMs, and execute them in isolated cloud environments.
 
@@ -26,12 +26,12 @@ This project follows a modular structure that separates core functionality from 
 ├── common/                # Public core functionality
 │   ├── sample_project/    # Sample project for testing
 │   └── src/               # Framework-agnostic code
-│       └── base_testing_agent.py # Base testing agent class
+│       └── base_auto_testing_agent.py # Base testing agent class
 ├── langchain/             # LangChain integration
 │   ├── data/              # Data directory for outputs (test results, etc.)
 │   ├── src/               # LangChain-specific code
-│   │   ├── testing_agent.py          # LangChain-specific implementation
-│   │   └── testing_agent_example.py  # Example script for LangChain orchestration
+│   │   ├── auto_testing_agent.py          # LangChain-specific implementation
+│   │   └── auto_testing_agent_example.py  # Example script for LangChain orchestration
 │   └── requirements.txt   # Python dependencies
 ```
 

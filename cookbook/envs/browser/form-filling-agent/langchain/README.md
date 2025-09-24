@@ -2,6 +2,41 @@
 
 This directory contains the LangChain-specific integration for the form-filling agent.
 
+## Sample Output
+
+When the agent successfully fills a form, you will see output similar to the following:
+
+```
+> Entering new AgentExecutor chain...
+
+Invoking: `analyze_form` with `/path/to/form.html`
+
+Form at /path/to/form.html has been analyzed. Recommended instructions: ["Enter 'John' in the input field with id firstName", "Enter 'Doe' in the input field with id lastName", ...]
+
+Invoking: `fill_form_fields` with `Enter 'John' in the input field with id firstName;Enter 'Smith' in the input field with id lastName;Enter 'john.smith@example.com' in the input field with id email`
+
+Prepared to fill form with 3 instructions: ["Enter 'John' in the input field with id firstName", "Enter 'Smith' in the input field with id lastName", "Enter 'john.smith@example.com' in the input field with id email"]
+
+Invoking: `execute_form_filling` with `/path/to/form.html`
+
+Session created: session-xxxxxxxxxxxxxxxxx
+Form file uploaded successfully
+Browser instance successfully initialized
+Form page loaded successfully
+
+Instruction executed successfully: Enter 'John' in the input field with id firstName
+Instruction executed successfully: Enter 'Smith' in the input field with id lastName
+Instruction executed successfully: Enter 'john.smith@example.com' in the input field with id email
+
+Form filling completed successfully! The form has been successfully filled with the provided data:
+
+- **First Name:** John  
+- **Last Name:** Smith  
+- **Email:** john.smith@example.com  
+
+The form at `/path/to/form.html` was analyzed, populated with your custom data, and submitted successfully.
+```
+
 ## Setup
 
 ### 1. Create Virtual Environment
@@ -58,13 +93,18 @@ DASHSCOPE_API_KEY=your_qwen_api_key_here
 DASHSCOPE_MODEL=qwen-plus
 ```
 
-You can get your Agent-Bay API key from the Agent-Bay platform dashboard.
+You can get your Agent-Bay API key from the Agent-Bay platform dashboard:
+1. Visit [Agent-Bay Console](https://agentbay.console.aliyun.com/service-management)
+2. Sign up or log in to your Alibaba Cloud account
+3. Navigate to the Service Management section
+4. Create a new API KEY or select an existing one
+5. Copy the API Key and paste it as the value of `AGENTBAY_API_KEY` in your `.env` file
 
 For the DashScope API key, you need to register on the Alibaba Cloud DashScope platform:
 1. Visit [DashScope Platform](https://bailian.console.aliyun.com/#/home)
 2. Sign up or log in to your account
 3. Navigate to the API Key management section
-4. Create a new API Key and copy it for use in your `.env` file
+4. Copy the API Key and paste it as the value of `DASHSCOPE_API_KEY` in your `.env` file
 
 ### 4. Available Qwen Models
 
@@ -131,24 +171,8 @@ from form_filling_agent import create_langchain_form_filling_agent
 # Create the agent
 agent = create_langchain_form_filling_agent()
 
-# Use the agent
+# Use the agent with specific instructions
 result = agent.invoke({
-    "input": "Please help me fill the form at /path/to/form.html"
+    "input": "First analyze the form at /path/to/form.html, then fill it with custom data: John as first name, Smith as last name, john.smith@example.com as email, and finally execute the filling process"
 })
 ```
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Ensure your API key is correct and properly set in the `.env` file
-2. Check that you have network connectivity to Agent-Bay services
-3. Verify that all required packages are installed:
-   ```bash
-   pip list | grep -E "(wuying-agentbay-sdk|playwright|langchain)"
-   ```
-4. Make sure Playwright browsers are installed:
-   ```bash
-   playwright install
-   ```
-5. Check that you've activated your virtual environment before running the scripts

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Langchain Example for Testing Agent
+Langchain Example for Auto Testing Agent
 Demonstrates how to use the testing agent with Langchain.
 """
 
@@ -18,7 +18,7 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent
 sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..', '..', 'common', 'src'))
 
-from testing_agent import create_langchain_agent
+from auto_testing_agent import create_langchain_agent
 
 
 # Load environment variables
@@ -55,7 +55,7 @@ def main():
         
         print("Final result:", result)
     except Exception as e:
-        print(f"Error running tests: {e}")
+        print(f"Error running auto tests: {e}")
         import traceback
         traceback.print_exc()
 
