@@ -1,0 +1,217 @@
+# agentbay SDK Multi-Language CI/CD Pipeline
+name: "agentbay SDK Multi-Language Quality Assurance"
+
+triggers:
+  push:
+    branches:
+    - "**"
+
+# 防止作业被意外取消的策略配置
+strategy:
+  cancel-in-progress: false
+  fail-fast: false
+
+params:
+  python_enabled:
+    name: 启用Python测试
+    type: boolean
+    default: true
+  typescript_enabled:
+    name: 启用TypeScript测试
+    type: boolean
+    default: true
+  golang_enabled:
+    name: 启用Golang测试
+    type: boolean
+    default: true
+  runs_on_resources:
+    name: 资源规格
+    description: "运行时容器资源规格"
+    default: "4-16Gi"
+    options:
+      - "4-16Gi"
+      - "8-32Gi"
+      - "16-64Gi"
+
+jobs:
+  # Python测试作业
+  python-lint-test:
+    name: "Python代码检查"
+    when: "${{params.python_enabled}}"
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    image: alios-8u
+    timeout: 1h
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          python-version: '3.10'
+      - id: python-lint
+        continue-on-error: true
+        name: "Python代码格式检查&安全检查"
+        when: "${{params.python_enabled}}"
+        run: |
+          cd python
+          python -m pip config set global.timeout 300
+          python -m pip config set global.retries 3
+          python -m pip install --upgrade pip 
+          pip install black && black agentbay tests --check --diff
+          pip install isort && isort --check-only --diff --verbose agentbay tests
+          echo "格式检查完成"
+          pip install flake8 && flake8 agentbay tests --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=agentbay/modules/browser/eval
+          echo "质量检查完成"
+          pip install mypy
+          pip install types-requests types-aiohttp types-Pillow types-setuptools types-pydantic || true
+          mypy agentbay --install-types --no-error-summary --install-types --non-interactive
+          echo "类型检查完成"
+          pip install bandit
+          python -m bandit -r agentbay/ -v --skip B105,B106,B107
+          echo "Bandit扫描完成"
+           echo "执行pip-audit依赖漏洞扫描..."
+          pip install pip-audit && pip-audit --desc
+          echo "依赖漏洞扫描完成"
+      - id: python-test
+        continue-on-error: true
+        when: "${{params.python_enabled}}"
+        name: "Python单元测试"
+        run: |
+          cd python
+          python -m pip install --upgrade pip
+          
+          pip install pytest && python -m pytest tests/unit -v
+
+
+  # TypeScript测试作业
+  typescript-lint-test:
+    name: "TypeScript代码检查&安全检查"
+    when: "${{params.typescript_enabled}}"
+    image: alios-8u
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          node-version: "18"
+          npm-version: "10"
+          npm-cache: true
+        
+      - id: typescript-lint
+        continue-on-error: true
+        name: "TypeScript代码格式检查"
+        when: "${{params.typescript_enabled}}"
+        run: |
+          cd typescript
+          # 设置npm超时和重试策略
+          npm config set fetch-timeout 300000
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm ci --prefer-offline --no-audit
+          npm run lint
+      - id: typescript-test-unit
+        continue-on-error: true
+        when: "${{params.typescript_enabled}}"
+        name: "TypeScript 单元测试"
+        run: |
+          cd typescript
+          # 复用已安装的依赖，避免重复安装
+          npm run build
+          npm run test:unit
+
+  # Golang测试作业
+  golang-lint-test:
+    name: "Golang代码检查&安全检查"
+    when: "${{params.golang_enabled}}"
+    image: alios-8u
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          go-version: "1.23.2"
+          go-mod-cache: true
+          go-cache: false
+      - id: golang-lint
+        continue-on-error: true
+        name: "Golang代码格式检查"
+        when: "${{params.golang_enabled}}"
+        run: |
+          # 配置Go环境
+          go env -w GOPROXY=https://proxy.golang.org,direct
+          go env -w GOSUMDB=sum.golang.org
+          go env -w GONOSUMDB=""
+          cd golang
+          # 清理模块缓存
+          go clean -modcache
+          # 升级依赖
+          go get github.com/alibabacloud-go/darabonba-openapi/v2@latest
+          go mod tidy
+          go mod download
+          go mod verify
+          # 安装linting工具
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+          curl -sfL https://raw.githubusercontent.com/securecodewarrior/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          # 验证依赖
+          go build -v ./api/client/...
+          # 代码检查
+          go vet ./...
+          # Linting
+          golangci-lint run --timeout=5m --config=.golangci.yml || echo "Linting completed with issues found."
+          # 安全扫描
+          gosec -fmt json -out gosec-results.json ./... || true
+          # 漏洞检查
+          govulncheck ./... || true
+      - id: golang-unit-test
+        continue-on-error: true
+        when: "${{params.golang_enabled}}"
+        name: "Golang 单元测试"
+        run: |
+          go env -w GOPROXY=https://proxy.golang.org,direct
+          go env -w GOSUMDB=sum.golang.org
+          go env -w GONOSUMDB=""
+          cd golang
+          go clean -modcache
+          go get github.com/alibabacloud-go/darabonba-openapi/v2@latest
+          go mod tidy
+          go mod download
+          go mod verify
+          go build -v ./...
+          go test -race -v ./tests/pkg/unit/...
+
+  summary:
+    name: "多语言质量检查总结"
+    needs: ["python-lint-test", "typescript-lint-test", "golang-lint-test"]
+    runs-on:
+      - "4-16Gi"
+    steps:
+      - run: |
+          echo "=========================================="
+          echo "    agentbay SDK 多语言质量检查完成"
+          echo "=========================================="
+          echo "✅ Python测试: 已完成"
+          echo "✅ TypeScript测试: 已完成"
+          echo "✅ Golang测试: 已完成"
+          echo "=========================================="
+          echo "请查看各个任务的详细报告获取更多信息"
+          echo "=========================================="
