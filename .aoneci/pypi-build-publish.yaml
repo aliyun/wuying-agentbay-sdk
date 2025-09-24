@@ -1,0 +1,97 @@
+name: pypi构建与上传
+
+triggers:
+  merge_request:
+    target-branches: 
+    - main
+    - cicd_verify
+    types:
+    - merged
+
+
+params:
+  python-version:
+    name: "python版本"
+    type: string
+    required: false
+    options:
+      - "3.10"
+      - "3.11"
+      - "3.12"
+    description: 用于构建pypi的python版本
+    default: "3.10"
+  
+  repository-url:
+    name: "自定义仓库url"
+    advanced: true
+    type: string
+    required: false
+    default: "http://opsx.vip.tbsite.net/aliyun-pypi/simple/"
+    description: "上传仓库url，需要上传到自定义仓库时填写。默认上传到artlab"
+  
+
+jobs:
+  pypi-build:
+    image: alios-8u
+    outputs:
+      string-output: ${{steps.modify-version.outputs.env}}
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          python-version: ${{params.python-version}}
+      - id: rm-dist
+        run: |
+          cd python
+          if [ -d "dist" ]; then
+              rm -rf dist/
+          fi
+      - id: modify-version
+        run: |
+          cd python
+          echo "修改版本号和包名..."
+          BASE_VERSION=$(grep "version = " pyproject.toml | head -n 1 | cut -d '"' -f 2)
+          echo "BASE_VERSION=${BASE_VERSION}" > $AONE_CI_WORKSPACE/BASE_VERSION
+          TIMESTAMP=$(TZ='Asia/Shanghai' date "+%Y%m%d%H%M%S")
+          FINAL_VERSION="0.0.0.${TIMESTAMP}"
+          echo "FINAL_VERSION=${FINAL_VERSION}" > $AONE_CI_WORKSPACE/FINAL_VERSION
+          echo "${FINAL_VERSION}" > ${{outputs.env.path}}
+          cat $AONE_CI_WORKSPACE/BASE_VERSION
+          cat $AONE_CI_WORKSPACE/FINAL_VERSION
+          sed -i "s/version = .*/version = \"${FINAL_VERSION}\"/" pyproject.toml
+          sed -i 's/wuying-agentbay-sdk/wuying-agentbay-sdk-test/g' pyproject.toml
+          cat pyproject.toml | grep name
+          grep "version" pyproject.toml
+      
+      - id: pypi-install--build-publish
+        run: | 
+          cd python
+          echo "安装依赖..."
+          python -m pip install --upgrade pip
+          pip install twine build poetry
+          echo "构建pypi包..."
+          cat $AONE_CI_WORKSPACE/FINAL_VERSION
+          # 检查build模块是否可导入
+          echo $FINAL_VERSION_ENV
+          python -c "import build; print('✅ build模块可用，版本:', build.__version__)" || (echo "❌ build模块导入失败" && exit 1)
+          # 使用poetry构建
+          poetry build
+          echo "要上传的文件："
+          ls -la dist/
+          echo "上传pypi包..."
+          twine --version
+          twine upload --repository-url ${{params.repository-url}} --username ${{secrets.username}} --password ${{secrets.password}} dist/*
+          echo "✅ 上传完成"
+  summary:
+    continue-on-error: true
+    needs: [pypi-build]
+    steps:
+      - run: |
+          echo "✅源分支：${{git.branch}}" >> $AONE_CI_SUMMARY
+          echo "✅安装命令">> $AONE_CI_SUMMARY
+          echo "pip install -i http://yum.tbsite.net/aliyun-pypi/simple/ --trusted-host yum.tbsite.net wuying-agentbay-sdk-test==${{jobs.pypi-build.outputs.string-output}}" >> $AONE_CI_SUMMARY
+      - run: |
+          echo "=========================================="
+          echo "      Wuying AgentBay SDK 打包发布完成"
+          echo "=========================================="
+          cat $AONE_CI_SUMMARY 
