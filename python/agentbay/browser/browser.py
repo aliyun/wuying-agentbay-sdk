@@ -330,8 +330,8 @@ class Browser(BaseService):
         try:
             browser_option_dict = option.to_map()
 
-            # Enable record if session.enableRecord is True
-            if hasattr(self.session, 'enableRecord') and self.session.enableRecord:
+            # Enable record if session.enableBrowserReplay is True
+            if hasattr(self.session, 'enableBrowserReplay') and self.session.enableBrowserReplay:
                 browser_option_dict['enableRecord'] = True
 
             request = InitBrowserRequest(
@@ -370,8 +370,8 @@ class Browser(BaseService):
         try:
             browser_option_dict = option.to_map()
 
-            # Enable record if session.enableRecord is True
-            if hasattr(self.session, 'enableRecord') and self.session.enableRecord:
+            # Enable record if session.enableBrowserReplay is True
+            if hasattr(self.session, 'enableBrowserReplay') and self.session.enableBrowserReplay:
                 browser_option_dict['enableRecord'] = True
 
             request = InitBrowserRequest(

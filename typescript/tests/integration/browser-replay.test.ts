@@ -49,7 +49,7 @@ describe('Browser Replay Integration Tests', () => {
         if (session) {
             log("Cleaning up: Deleting the session...");
             try {
-                // await agentBay.delete(session);
+                await agentBay.delete(session);
                 log("Session deleted successfully");
             } catch (error: any) {
                 log(`Warning: Error deleting session: ${error?.message || error}`);
