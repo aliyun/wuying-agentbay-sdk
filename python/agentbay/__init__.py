@@ -1,6 +1,7 @@
 from .agentbay import AgentBay, Config
 from .application import ApplicationManager, InstalledApp, Process
 from .command import Command
+from .mobile import Mobile
 from .exceptions import AgentBayError, APIError, AuthenticationError
 from .filesystem import FileSystem
 from .oss import Oss
@@ -38,6 +39,7 @@ __all__ = [
     "Window",
     "Agent",
     "Command",
+    "Mobile",
     "ApplicationManager",
     "InstalledApp",
     "Process",

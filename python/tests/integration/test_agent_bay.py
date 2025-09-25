@@ -3,6 +3,8 @@ import sys
 import unittest
 
 from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -207,6 +209,139 @@ class TestSession(unittest.TestCase):
                 # Don't fail the test if filesystem operations are not supported
         else:
             print("Note: FileSystem interface is nil, skipping file test")
+
+    def test_create_session_with_mobile_config_integration(self):
+        """Integration test for creating a session with mobile configuration."""
+        print("Testing session creation with mobile configuration...")
+        
+        api_key = get_test_api_key()
+        agent_bay = AgentBay(api_key=api_key)
+
+        # Create mobile configuration with whitelist
+        app_rule = AppManagerRule(
+            rule_type="White",
+            app_package_name_list=[
+                "com.android.settings",
+                "com.example.test.app",
+                "com.trusted.service"
+            ]
+        )
+        mobile_config = MobileExtraConfig(
+            lock_resolution=True,
+            app_manager_rule=app_rule
+        )
+        extra_configs = ExtraConfigs(mobile=mobile_config)
+
+        # Create session parameters
+        params = CreateSessionParams(
+            labels={
+                "test_type": "mobile_config_integration",
+                "config_type": "whitelist",
+                "created_by": "integration_test"
+            },
+            extra_configs=extra_configs
+        )
+
+        # Create session
+        result = agent_bay.create(params)
+        print(f"Session creation result: {result.success}")
+        
+        if result.success:
+            self.assertIsNotNone(result.session)
+            session = result.session
+            print(f"Mobile session created with ID: {session.session_id}")
+            
+            # Verify session properties
+            self.assertIsNotNone(session.session_id)
+            
+            # Test session info
+            info_result = session.info()
+            if info_result.success:
+                print(f"Session info retrieved successfully")
+                print(f"Resource URL: {info_result.data.resource_url}")
+            else:
+                print(f"Failed to get session info: {info_result.error_message}")
+
+            # Clean up
+            delete_result = agent_bay.delete(session)
+            if delete_result.success:
+                print("Mobile session deleted successfully")
+            else:
+                print(f"Failed to delete mobile session: {delete_result.error_message}")
+                
+            self.assertTrue(delete_result.success, "Session deletion should succeed")
+        else:
+            print(f"Failed to create mobile session: {result.error_message}")
+            # Don't fail the test if mobile sessions are not available in test environment
+            print("Note: Mobile session creation may not be supported in test environment")
+
+    def test_create_session_with_mobile_blacklist_integration(self):
+        """Integration test for creating a session with mobile blacklist configuration."""
+        print("Testing session creation with mobile blacklist configuration...")
+        
+        api_key = get_test_api_key()
+        agent_bay = AgentBay(api_key=api_key)
+
+        # Create mobile configuration with blacklist
+        app_rule = AppManagerRule(
+            rule_type="Black",
+            app_package_name_list=[
+                "com.malware.suspicious",
+                "com.unwanted.adware",
+                "com.blocked.app"
+            ]
+        )
+        mobile_config = MobileExtraConfig(
+            lock_resolution=False,  # Allow flexible resolution
+            app_manager_rule=app_rule
+        )
+        extra_configs = ExtraConfigs(mobile=mobile_config)
+
+        # Create session parameters
+        params = CreateSessionParams(
+            labels={
+                "test_type": "mobile_config_integration", 
+                "config_type": "blacklist",
+                "security": "enabled",
+                "created_by": "integration_test"
+            },
+            extra_configs=extra_configs
+        )
+
+        # Create session
+        result = agent_bay.create(params)
+        print(f"Secure session creation result: {result.success}")
+        
+        if result.success:
+            self.assertIsNotNone(result.session)
+            session = result.session
+            print(f"Secure mobile session created with ID: {session.session_id}")
+            
+            # Verify session properties
+            self.assertIsNotNone(session.session_id)
+            
+            # Verify labels were set
+            labels_result = session.get_labels()
+            if labels_result.success:
+                labels = labels_result.data
+                print(f"Session labels: {labels}")
+                self.assertEqual(labels.get("config_type"), "blacklist")
+                self.assertEqual(labels.get("security"), "enabled")
+            else:
+                print(f"Failed to get session labels: {labels_result.error_message}")
+
+            # Clean up
+            delete_result = agent_bay.delete(session)
+            if delete_result.success:
+                print("Secure mobile session deleted successfully")
+            else:
+                print(f"Failed to delete secure mobile session: {delete_result.error_message}")
+                
+            self.assertTrue(delete_result.success, "Session deletion should succeed")
+        else:
+            print(f"Failed to create secure mobile session: {result.error_message}")
+            # Don't fail the test if mobile sessions are not available in test environment
+            print("Note: Secure mobile session creation may not be supported in test environment")
 
 
 if __name__ == "__main__":

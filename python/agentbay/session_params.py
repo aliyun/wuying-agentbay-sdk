@@ -1,6 +1,7 @@
 from typing import Dict, Optional, List, TYPE_CHECKING
 from agentbay.context_sync import ContextSync, SyncPolicy, UploadPolicy, ExtractPolicy, BWList, WhiteList
 from agentbay.logger import get_logger
+from agentbay.api.models._create_mcp_session_request import ExtraConfigs
 
 # Initialize logger for this module
 logger = get_logger("session_params")
@@ -187,6 +188,7 @@ class CreateSessionParams:
         is_vpc (Optional[bool]): Whether to create a VPC-based session. Defaults to False.
         mcp_policy_id (Optional[str]): MCP policy id to apply when creating the session.
         enable_browser_replay (Optional[bool]): Whether to enable browser recording for the session. Defaults to False.
+        extra_configs (Optional[ExtraConfigs]): Advanced configuration parameters for mobile environments.
     """
 
     def __init__(
@@ -198,6 +200,7 @@ class CreateSessionParams:
         is_vpc: Optional[bool] = None,
         mcp_policy_id: Optional[str] = None,
         enable_browser_replay: Optional[bool] = None,
+        extra_configs: Optional[ExtraConfigs] = None,
     ):
         """
         Initialize CreateSessionParams.
@@ -218,6 +221,8 @@ class CreateSessionParams:
                 Defaults to None.
             enable_browser_replay (Optional[bool], optional): Whether to enable browser recording for the session.
                 Defaults to False.
+            extra_configs (Optional[ExtraConfigs], optional): Advanced configuration parameters for mobile environments.
+                Defaults to None.
         """
         self.labels = labels or {}
         self.image_id = image_id
@@ -235,6 +240,7 @@ class CreateSessionParams:
         self.is_vpc = is_vpc if is_vpc is not None else False
         self.mcp_policy_id = mcp_policy_id
         self.enable_browser_replay = enable_browser_replay if enable_browser_replay is not None else False
+        self.extra_configs = extra_configs
 
 
 class ListSessionParams:

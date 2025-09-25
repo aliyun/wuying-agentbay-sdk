@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams, ListSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 
 class TestAgentBay(unittest.TestCase):
@@ -267,6 +268,124 @@ class TestAgentBay(unittest.TestCase):
         # Ensure mcp_policy_id is carried on the request object; client will include it in request body
         self.assertEqual(getattr(call_arg, "mcp_policy_id", None) or getattr(call_arg, "McpPolicyId", None), "policy-xyz")
         # Basic success assertion remains; deep body behavior is validated in client integration tests
+
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_create_with_mobile_extra_configs(self, mock_mcp_client, mock_load_config):
+        """Test creating a session with mobile extra configurations"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+        }
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = {
+            "body": {
+                "Data": {
+                    "SessionId": "mobile-session-id",
+                    "ResourceUrl": "http://mobile.resource.url",
+                },
+                "RequestId": "mobile-create-request-id",
+            }
+        }
+        mock_client.create_mcp_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create mobile configuration
+        app_rule = AppManagerRule(
+            rule_type="White",
+            app_package_name_list=["com.allowed.app", "com.trusted.service"]
+        )
+        mobile_config = MobileExtraConfig(
+            lock_resolution=True,
+            app_manager_rule=app_rule
+        )
+        extra_configs = ExtraConfigs(mobile=mobile_config)
+
+        agent_bay = AgentBay(api_key="test-key")
+        params = CreateSessionParams(
+            labels={"project": "mobile-testing"},
+            extra_configs=extra_configs
+        )
+
+        result = agent_bay.create(params)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.session)
+        if result.session:
+            self.assertEqual(result.session.session_id, "mobile-session-id")
+        
+        # Verify the client was called with extra configs
+        mock_client.create_mcp_session.assert_called_once()
+        call_arg = mock_client.create_mcp_session.call_args[0][0]
+        
+        # Check that extra_configs is present in the request
+        self.assertIsNotNone(call_arg.extra_configs)
+        self.assertIsNotNone(call_arg.extra_configs.mobile)
+        self.assertTrue(call_arg.extra_configs.mobile.lock_resolution)
+        self.assertEqual(call_arg.extra_configs.mobile.app_manager_rule.rule_type, "White")
+        self.assertEqual(len(call_arg.extra_configs.mobile.app_manager_rule.app_package_name_list), 2)
+
+    @patch("agentbay.agentbay.load_config")
+    @patch("agentbay.agentbay.mcp_client")
+    def test_create_with_mobile_blacklist_config(self, mock_mcp_client, mock_load_config):
+        """Test creating a session with mobile blacklist configuration"""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "region_id": "cn-shanghai",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+        }
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = {
+            "body": {
+                "Data": {
+                    "SessionId": "secure-session-id",
+                    "ResourceUrl": "http://secure.resource.url",
+                },
+                "RequestId": "secure-create-request-id",
+            }
+        }
+        mock_client.create_mcp_session.return_value = mock_response
+        mock_mcp_client.return_value = mock_client
+
+        # Create mobile blacklist configuration
+        app_rule = AppManagerRule(
+            rule_type="Black",
+            app_package_name_list=["com.malware.app", "com.blocked.service"]
+        )
+        mobile_config = MobileExtraConfig(
+            lock_resolution=False,
+            app_manager_rule=app_rule
+        )
+        extra_configs = ExtraConfigs(mobile=mobile_config)
+
+        agent_bay = AgentBay(api_key="test-key")
+        params = CreateSessionParams(
+            labels={"project": "security-testing"},
+            extra_configs=extra_configs
+        )
+
+        result = agent_bay.create(params)
+        self.assertTrue(result.success)
+        self.assertIsNotNone(result.session)
+        if result.session:
+            self.assertEqual(result.session.session_id, "secure-session-id")
+        
+        # Verify the client was called with blacklist extra configs
+        mock_client.create_mcp_session.assert_called_once()
+        call_arg = mock_client.create_mcp_session.call_args[0][0]
+        
+        # Check that extra_configs with blacklist is present in the request
+        self.assertIsNotNone(call_arg.extra_configs)
+        self.assertIsNotNone(call_arg.extra_configs.mobile)
+        self.assertFalse(call_arg.extra_configs.mobile.lock_resolution)
+        self.assertEqual(call_arg.extra_configs.mobile.app_manager_rule.rule_type, "Black")
+        self.assertIn("com.malware.app", call_arg.extra_configs.mobile.app_manager_rule.app_package_name_list)
 
 
 if __name__ == "__main__":

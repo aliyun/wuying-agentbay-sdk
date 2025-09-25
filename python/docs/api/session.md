@@ -22,6 +22,7 @@ network_interface_ip  # Network interface IP for VPC sessions
 http_port  # HTTP port for VPC sessions
 mcp_tools  # MCP tools available for this session
 image_id  # The image ID used for this session
+extra_configs  # ExtraConfigs used when creating this session
 ```
 
 ## Methods

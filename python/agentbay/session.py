@@ -13,6 +13,7 @@ from agentbay.api.models import (
 from agentbay.application import ApplicationManager
 from agentbay.code import Code
 from agentbay.command import Command
+from agentbay.mobile import Mobile
 from agentbay.exceptions import SessionError
 from agentbay.filesystem import FileSystem
 from agentbay.model import DeleteResult, OperationResult, extract_request_id
@@ -82,6 +83,7 @@ class Session:
         self.command = Command(self)
         self.code = Code(self)
         self.oss = Oss(self)
+        self.mobile = Mobile(self)
 
         # Initialize application and window managers
         self.application = ApplicationManager(self)

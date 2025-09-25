@@ -52,6 +52,9 @@ from ._sync_context_request import SyncContextRequest
 from ._sync_context_response_body import SyncContextResponseBody
 from ._sync_context_response import SyncContextResponse
 from ._create_mcp_session_request import CreateMcpSessionRequestPersistenceDataList
+from ._create_mcp_session_request import AppManagerRule
+from ._create_mcp_session_request import MobileExtraConfig  
+from ._create_mcp_session_request import ExtraConfigs
 from ._create_mcp_session_response_body import CreateMcpSessionResponseBodyData
 from ._get_context_response_body import GetContextResponseBodyData
 from ._get_context_info_response_body import GetContextInfoResponseBodyData
@@ -133,6 +136,9 @@ __all__ = [
     SyncContextResponseBody,
     SyncContextResponse,
     CreateMcpSessionRequestPersistenceDataList,
+    AppManagerRule,
+    MobileExtraConfig,
+    ExtraConfigs,
     CreateMcpSessionResponseBodyData,
     GetContextResponseBodyData,
     GetContextInfoResponseBodyData,
