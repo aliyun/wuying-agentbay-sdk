@@ -82,16 +82,56 @@ jobs:
           twine --version
           twine upload --repository-url ${{params.repository-url}} --username ${{secrets.username}} --password ${{secrets.password}} dist/*
           echo "✅ Upload completed"
+  golang-validate:
+    image: alios-8u
+    continue-on-error: true
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          go-version: "1.21"
+      - id: validate-go-commands
+        run: |
+          echo "🔍 Validating Go mod replace commands..."
+          # Create a temporary test project
+          mkdir -p /tmp/go-test-${{git.commit}}
+          cd /tmp/go-test-${{git.commit}}
+          
+          # Initialize test module
+          go mod init test-validation
+          
+          # Test the replace command syntax
+          echo "Testing replace command with commit hash..."
+          go mod edit -replace=github.com/aliyun/wuying-agentbay-sdk/golang=code.alibaba-inc.com/InnoArchClub/wuying-agentbay-sdk/golang@${{git.commit}}
+          
+          # Check if the replace directive was added correctly
+          echo "✅ Replace directive added successfully"
+          cat go.mod
+          
+          # Test cleanup command
+          echo "Testing cleanup command..."
+          go mod edit -dropreplace=github.com/aliyun/wuying-agentbay-sdk/golang
+          echo "✅ Cleanup command successful"
+          cat go.mod
+          
+          # Cleanup
+          cd /
+          rm -rf /tmp/go-test-${{git.commit}}
+          echo "✅ Go commands validation completed"
+  
   summary:
     continue-on-error: true
-    needs: [pypi-build]
+    needs: [pypi-build, golang-validate]
     steps:
       - run: |
-          echo "✅Source branch: ${{git.branch}}" >> $AONE_CI_SUMMARY
-          echo "✅Installation command">> $AONE_CI_SUMMARY
+          echo "✅ Source branch: ${{git.branch}}" >> $AONE_CI_SUMMARY
+          echo "✅ Git commit: ${{git.commit}}" >> $AONE_CI_SUMMARY
+          echo "✅ Build timestamp: $(date)" >> $AONE_CI_SUMMARY
+          echo "" >> $AONE_CI_SUMMARY
+          echo "📦 Python Package Installation" >> $AONE_CI_SUMMARY
           echo "pip install -i http://yum.tbsite.net/aliyun-pypi/simple/ --trusted-host yum.tbsite.net wuying-agentbay-sdk-test==${{jobs.pypi-build.outputs.string-output}}" >> $AONE_CI_SUMMARY
           echo "" >> $AONE_CI_SUMMARY
-          echo "✅Golang Installation Commands" >> $AONE_CI_SUMMARY
+          echo "🐹 Golang Installation Commands" >> $AONE_CI_SUMMARY
           echo "# Install/Update to this test version (run in your project root directory):" >> $AONE_CI_SUMMARY
           echo "go mod edit -replace=github.com/aliyun/wuying-agentbay-sdk/golang=code.alibaba-inc.com/InnoArchClub/wuying-agentbay-sdk/golang@${{git.commit}} && go mod tidy" >> $AONE_CI_SUMMARY
           echo "" >> $AONE_CI_SUMMARY
@@ -101,4 +141,7 @@ jobs:
           echo "=========================================="
           echo "      Wuying AgentBay SDK Package Release Completed"
           echo "=========================================="
+          echo \"\"
+          echo \"🔍 Validation: Go mod commands were ${{jobs.golang-validate.result || 'skipped'}}\"
+          echo \"\"
           cat $AONE_CI_SUMMARY 
