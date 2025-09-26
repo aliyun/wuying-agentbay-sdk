@@ -99,6 +99,8 @@ export class Session {
   private agentBay: AgentBay;
   public sessionId: string;
 
+  // File transfer context ID
+  public fileTransferContextId: string | null = null;
 
   // VPC-related information
   public isVpc = false; // Whether this session uses VPC resources
@@ -161,6 +163,13 @@ export class Session {
 
     // Initialize context manager (matching Go version)
     this.context = newContextManager(this);
+  }
+
+  /**
+   * Return the AgentBay instance that created this session.
+   */
+  getAgentBay(): AgentBay {
+    return this.agentBay;
   }
 
   /**

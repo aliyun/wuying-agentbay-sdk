@@ -1,13 +1,13 @@
 # FileSystem API Reference (TypeScript)
 
-The FileSystem module provides comprehensive file and directory operations within AgentBay sessions, including real-time directory monitoring capabilities.
+The FileSystem module provides comprehensive file and directory operations within AgentBay sessions, including real-time directory monitoring capabilities and file transfer functionality.
 
 ## Overview
 
 The FileSystem class enables you to:
 - Perform standard file operations (read, write, create, delete)
 - Monitor directories for real-time file changes
-- Handle file uploads and downloads
+- Handle file uploads and downloads between local and remote environments
 - Manage file permissions and metadata
 
 ## Core Types
@@ -35,30 +35,151 @@ export interface FileChangeResult extends ApiResponse {
 }
 ```
 
-## Helper Classes
+## File Transfer Methods
 
-### FileChangeEventHelper
+### uploadFile
 
-Static utility methods for working with FileChangeEvent objects.
+Uploads a local file to a remote path using pre-signed URLs.
 
 ```typescript
-export class FileChangeEventHelper {
-  static toString(event: FileChangeEvent): string
-  static toDict(event: FileChangeEvent): Record<string, string>
-  static fromDict(data: Record<string, string>): FileChangeEvent
+async uploadFile(
+  localPath: string,
+  remotePath: string,
+  options?: {
+    contentType?: string;
+    wait?: boolean;
+    waitTimeout?: number;
+    pollInterval?: number;
+    progressCb?: (bytesTransferred: number) => void;
+  }
+): Promise<UploadResult>
+```
+
+**Parameters:**
+- `localPath` (string): Local file path to upload
+- `remotePath` (string): Remote file path to upload to
+- `options` (object, optional): Upload options
+  - `contentType` (string): Content type of the file
+  - `wait` (boolean): Whether to wait for sync completion (default: true)
+  - `waitTimeout` (number): Timeout for waiting in seconds (default: 30.0)
+  - `pollInterval` (number): Polling interval in seconds (default: 1.5)
+  - `progressCb` (function): Progress callback function
+
+**Returns:**
+- `Promise<UploadResult>`: Promise resolving to upload result
+
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+async function uploadFileExample() {
+  // Initialize AgentBay
+  const agentBay = new AgentBay({ apiKey: 'your-api-key' });
+
+  // Create session with context sync for file transfer
+  const sessionResult = await agentBay.create({
+    imageId: 'code_latest'
+  });
+
+  if (!sessionResult.success || !sessionResult.session) {
+    throw new Error('Failed to create session');
+  }
+
+  const session = sessionResult.session;
+  const fileSystem = session.fileSystem();
+
+  try {
+    // Upload a file
+    const uploadResult = await fileSystem.uploadFile(
+      '/local/path/to/file.txt',
+      '/remote/path/to/file.txt'
+    );
+
+    if (uploadResult.success) {
+      console.log(`Upload successful!`);
+      console.log(`Bytes sent: ${uploadResult.bytesSent}`);
+      console.log(`Request ID (upload URL): ${uploadResult.requestIdUploadUrl}`);
+      console.log(`Request ID (sync): ${uploadResult.requestIdSync}`);
+    } else {
+      console.error(`Upload failed: ${uploadResult.error}`);
+    }
+  } finally {
+    // Clean up session
+    await agentBay.delete(session);
+  }
 }
 ```
 
-### FileChangeResultHelper
+### downloadFile
 
-Static utility methods for working with FileChangeResult objects.
+Downloads a remote file to a local path using pre-signed URLs.
 
 ```typescript
-export class FileChangeResultHelper {
-  static hasChanges(result: FileChangeResult): boolean
-  static getModifiedFiles(result: FileChangeResult): string[]
-  static getCreatedFiles(result: FileChangeResult): string[]
-  static getDeletedFiles(result: FileChangeResult): string[]
+async downloadFile(
+  remotePath: string,
+  localPath: string,
+  options?: {
+    overwrite?: boolean;
+    wait?: boolean;
+    waitTimeout?: number;
+    pollInterval?: number;
+    progressCb?: (bytesReceived: number) => void;
+  }
+): Promise<DownloadResult>
+```
+
+**Parameters:**
+- `remotePath` (string): Remote file path to download from
+- `localPath` (string): Local file path to download to
+- `options` (object, optional): Download options
+  - `overwrite` (boolean): Whether to overwrite existing file (default: true)
+  - `wait` (boolean): Whether to wait for sync completion (default: true)
+  - `waitTimeout` (number): Timeout for waiting in seconds (default: 30.0)
+  - `pollInterval` (number): Polling interval in seconds (default: 1.5)
+  - `progressCb` (function): Progress callback function
+
+**Returns:**
+- `Promise<DownloadResult>`: Promise resolving to download result
+
+**Example:**
+```typescript
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+async function downloadFileExample() {
+  // Initialize AgentBay
+  const agentBay = new AgentBay({ apiKey: 'your-api-key' });
+
+  // Create session
+  const sessionResult = await agentBay.create({
+    imageId: 'code_latest'
+  });
+
+  if (!sessionResult.success || !sessionResult.session) {
+    throw new Error('Failed to create session');
+  }
+
+  const session = sessionResult.session;
+  const fileSystem = session.fileSystem();
+
+  try {
+    // Download a file
+    const downloadResult = await fileSystem.downloadFile(
+      '/remote/path/to/file.txt',
+      '/local/path/to/file.txt'
+    );
+
+    if (downloadResult.success) {
+      console.log(`Download successful!`);
+      console.log(`Bytes received: ${downloadResult.bytesReceived}`);
+      console.log(`Request ID (download URL): ${downloadResult.requestIdDownloadUrl}`);
+      console.log(`Request ID (sync): ${downloadResult.requestIdSync}`);
+    } else {
+      console.error(`Download failed: ${downloadResult.error}`);
+    }
+  } finally {
+    // Clean up session
+    await agentBay.delete(session);
+  }
 }
 ```
 

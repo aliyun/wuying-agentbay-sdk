@@ -7,6 +7,10 @@ import {
   FileSearchResult,
   ApiResponse,
 } from "../types/api-response";
+import { UploadResult, DownloadResult } from "./file-transfer";
+import { FileTransfer } from "./file-transfer";
+import { Session } from "../session";
+import { log } from "../utils/logger";
 
 // Default chunk size for large file operations (60KB)
 const DEFAULT_CHUNK_SIZE = 60 * 1024;
@@ -191,33 +195,36 @@ function parseDirectoryListing(text: string): DirectoryEntry[] {
  * Handles file operations in the AgentBay cloud environment.
  */
 export class FileSystem {
-  private session: {
-    getAPIKey(): string;
-    getSessionId(): string;
-    callMcpTool(toolName: string, args: any): Promise<{
-      success: boolean;
-      data: string;
-      errorMessage: string;
-      requestId: string;
-    }>;
-  };
+  private session: Session;
+  
+  private _fileTransfer: FileTransfer | null = null;
 
   /**
    * Initialize a FileSystem object.
    *
    * @param session - The Session instance that this FileSystem belongs to.
    */
-  constructor(session: {
-    getAPIKey(): string;
-    getSessionId(): string;
-    callMcpTool(toolName: string, args: any): Promise<{
-      success: boolean;
-      data: string;
-      errorMessage: string;
-      requestId: string;
-    }>;
-  }) {
+  constructor(session: Session) {
     this.session = session;
+  }
+
+  /**
+   * Ensure FileTransfer is initialized with the current session.
+   * 
+   * @returns The FileTransfer instance
+   */
+  private _ensureFileTransfer(): FileTransfer {
+    if (this._fileTransfer === null) {
+      // Get the agent_bay instance from the session
+      const agentBay = this.session.getAgentBay();
+      if (agentBay === undefined) {
+        throw new Error("FileTransfer requires an AgentBay instance");
+      }
+      
+      this._fileTransfer = new FileTransfer(agentBay, this.session);
+    }
+    
+    return this._fileTransfer;
   }
 
   /**
@@ -996,5 +1003,114 @@ export class FileSystem {
     };
 
     return monitor();
+  }
+
+  /**
+   * Upload a file from local to remote path using pre-signed URLs.
+   * This is a synchronous wrapper around the FileTransfer.upload method.
+   *
+   * @param localPath - Local file path to upload
+   * @param remotePath - Remote file path to upload to
+   * @param options - Optional parameters
+   * @returns UploadResult with upload result and requestId
+   */
+  async uploadFile(
+    localPath: string,
+    remotePath: string,
+    options?: {
+      contentType?: string;
+      wait?: boolean;
+      waitTimeout?: number;
+      pollInterval?: number;
+      progressCb?: (bytesTransferred: number) => void;
+    }
+  ): Promise<any> {
+    try {
+      // Ensure FileTransfer is initialized
+      const fileTransfer = this._ensureFileTransfer();
+      
+      // Perform upload
+      const result = await fileTransfer.upload(localPath, remotePath, options);
+      
+      // If upload was successful, delete the file from OSS
+      if (result.success && (this.session as any).fileTransferContextId) {
+        const contextId = (this.session as any).fileTransferContextId;
+        if (contextId) {
+          try {
+            // Delete the uploaded file from OSS
+            const deleteResult = await (this.session as any).agentBay.context.deleteFile(contextId, remotePath);
+            if (!deleteResult.success) {
+              log(`Warning: Failed to delete uploaded file from OSS: ${deleteResult}`);
+            }
+          } catch (deleteError: any) {
+            log(`Warning: Error deleting uploaded file from OSS: ${deleteError}`);
+          }
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        bytesSent: 0,
+        path: remotePath,
+        error: `Upload failed: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Download a file from remote path to local path using pre-signed URLs.
+   * This is a synchronous wrapper around the FileTransfer.download method.
+   *
+   * @param remotePath - Remote file path to download from
+   * @param localPath - Local file path to download to
+   * @param options - Optional parameters
+   * @returns DownloadResult with download result and requestId
+   */
+  async downloadFile(
+    remotePath: string,
+    localPath: string,
+    options?: {
+      overwrite?: boolean;
+      wait?: boolean;
+      waitTimeout?: number;
+      pollInterval?: number;
+      progressCb?: (bytesReceived: number) => void;
+    }
+  ): Promise<any> {
+    try {
+      // Ensure FileTransfer is initialized
+      const fileTransfer = this._ensureFileTransfer();
+      
+      // Perform download
+      const result = await fileTransfer.download(remotePath, localPath, options);
+      
+      // If download was successful, delete the file from OSS
+      if (result.success && (this.session as any).fileTransferContextId) {
+        const contextId = (this.session as any).fileTransferContextId;
+        if (contextId) {
+          try {
+            // Delete the downloaded file from OSS
+            const deleteResult = await (this.session as any).agentBay.context.deleteFile(contextId, remotePath);
+            if (!deleteResult.success) {
+              log(`Warning: Failed to delete downloaded file from OSS: ${deleteResult}`);
+            }
+          } catch (deleteError: any) {
+            log(`Warning: Error deleting downloaded file from OSS: ${deleteError}`);
+          }
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        bytesReceived: 0,
+        path: remotePath,
+        localPath,
+        error: `Download failed: ${error}`,
+      };
+    }
   }
 }
