@@ -36,6 +36,10 @@
 - [CAPTCHA Resolution (Python)](../../../python/docs/examples/browser/captcha_tongcheng.py) - A python example showing how to use AIBrowser to automatically solve slider-type CAPTCHAs
 - [CAPTCHA Resolution (TypeScript)](../../../typescript/docs/examples/browser/captcha_tongcheng.ts) - A typescript example showing how to use AIBrowser to automatically solve slider-type CAPTCHAs
 
+### Call For User
+- [Call For User (Python)](../../../python/docs/examples/browser/call_for_user_jd.py) - A python example showing how to handle wuying-call-for-user messages that require human intervention during browser automation
+- [Call For User (TypeScript)](../../../typescript/docs/examples/browser/call_for_user_jd.ts) - A typescript example showing how to handle wuying-call-for-user messages that require human intervention during browser automation
+
 ## Advanced Features
 
 ### PageUseAgent

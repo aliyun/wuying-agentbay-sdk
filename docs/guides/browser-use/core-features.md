@@ -18,3 +18,7 @@
 ## Captcha Resolving
 
 - [CAPTCHA Resolution](core-features/captcha.md) - Automatically resolve slider-type CAPTCHA challenges to ensure uninterrupted automation workflows
+
+## Call For User
+
+- [Call For User](core-features/call-for-user.md) - Handle scenarios that require human intervention when the browser encounters user information requests or unsolvable problems
