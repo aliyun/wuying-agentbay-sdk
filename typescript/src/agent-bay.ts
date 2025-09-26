@@ -23,10 +23,10 @@ import {
 import { log, logError } from "./utils/logger";
 
 /**
- * Generate a random context ID using alphanumeric characters with timestamp.
- * This function is similar to the Python version's generate_random_context_id.
+ * Generate a random context name using alphanumeric characters with timestamp.
+ * This function is similar to the Python version's generate_random_context_name.
  */
-function generateRandomContextId(length = 16, includeTimestamp = true): string {
+function generateRandomContextName(length = 8, includeTimestamp = true): string {
   const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
 
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -196,7 +196,9 @@ export class AgentBay {
       if (params.enableBrowserReplay) {
         // Create browser recording persistence configuration
         const recordPath = "/home/guest/record";
-        const recordContextId = generateRandomContextId();
+        const recordContextName = generateRandomContextName();
+        const result = await this.context.get(recordContextName, true);
+        const recordContextId = result.success ? result.contextId : "";
         const recordPersistence = new CreateMcpSessionRequestPersistenceDataList({
           contextId: recordContextId,
           path: recordPath,
@@ -512,6 +514,9 @@ export class AgentBay {
   async delete(session: Session, syncContext = false): Promise<DeleteResult> {
     try {
       // Delete the session and get the result
+      if (session.enableBrowserReplay) {
+        syncContext = true;
+      }
       const deleteResult = await session.delete(syncContext);
 
       this.sessions.delete(session.sessionId);
