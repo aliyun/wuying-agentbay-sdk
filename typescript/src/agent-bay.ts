@@ -10,6 +10,7 @@ import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
 import { BrowserContext } from "./session-params";
+import { Context } from "./context";
 
 import {
   DeleteResult,
@@ -60,6 +61,7 @@ export class AgentBay {
   private regionId: string;
   private endpoint: string;
   private sessions: Map<string, Session> = new Map();
+  private fileTransferContext: Context | null = null;
 
   /**
    * Context service for managing persistent contexts.
@@ -122,6 +124,24 @@ export class AgentBay {
    */
   async create(params: CreateSessionParams = {}): Promise<SessionResult> {
     try {
+      // Create a default context for file transfer operations if none provided
+      // and no context_syncs are specified
+      const contextName = `file-transfer-context-${Date.now()}`;
+      const contextResult = await this.context.get(contextName, true);
+      if (contextResult.success && contextResult.context) {
+        this.fileTransferContext = contextResult.context;
+        // Add the context to the session params for file transfer operations
+        const fileTransferContextSync = new ContextSync(
+          contextResult.context.id,
+          "/temp/file-transfer"
+        );
+        if (!params.contextSync) {
+          params.contextSync = [];
+        }
+        log(`Adding context sync for file transfer operations: ${fileTransferContextSync}`);
+        params.contextSync.push(fileTransferContextSync);
+      }
+
       const request = new $_client.CreateMcpSessionRequest({
         authorization: "Bearer " + this.apiKey,
       });
@@ -298,6 +318,8 @@ export class AgentBay {
       // Set browser recording state
       session.enableBrowserReplay = params.enableBrowserReplay || false;
 
+      // Store the file transfer context ID if we created one
+      session.fileTransferContextId = this.fileTransferContext ? this.fileTransferContext.id : null;
       // Store imageId used for this session
       (session as any).imageId = params.imageId;
 
