@@ -30,9 +30,9 @@ from agentbay.context_sync import ContextSync
 from agentbay.config import BROWSER_DATA_PATH
 
 
-def generate_random_context_id(length: int = 16, include_timestamp: bool = True) -> str:
+def generate_random_context_name(length: int = 8, include_timestamp: bool = True) -> str:
     """
-    Generate a random context ID using alphanumeric characters with optional timestamp.
+    Generate a random context name string using alphanumeric characters with optional timestamp.
 
     Args:
         length (int): Length of the random part. Defaults to 16.
@@ -42,8 +42,8 @@ def generate_random_context_id(length: int = 16, include_timestamp: bool = True)
         str: Random alphanumeric string with optional timestamp prefix
 
     Examples:
-        generate_random_context_id()  # Returns: "20250912143025_kG8hN2pQ7mX9vZ1L"
-        generate_random_context_id(8, False)  # Returns: "kG8hN2pQ"
+        generate_random_context_name()  # Returns: "20250912143025_kG8hN2pQ7mX9vZ1L"
+        generate_random_context_name(8, False)  # Returns: "kG8hN2pQ"
     """
     import time
 
@@ -249,7 +249,9 @@ class AgentBay:
 
                 # Create browser recording persistence configuration
                 record_path = "/home/guest/record"
-                record_context_id = generate_random_context_id()
+                record_context_name = generate_random_context_name()
+                result = self.context.get(record_context_name, True)
+                record_context_id = result.context_id if result.success else ""
                 record_persistence = CreateMcpSessionRequestPersistenceDataList(
                     context_id=record_context_id,
                     path=record_path
@@ -577,6 +579,8 @@ class AgentBay:
         """
         try:
             # Delete the session and get the result
+            if hasattr(session, 'enableBrowserReplay') and session.enableBrowserReplay:
+                sync_context = True
             delete_result = session.delete(sync_context=sync_context)
 
             with self._lock:
