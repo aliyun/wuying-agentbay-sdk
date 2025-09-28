@@ -3,8 +3,7 @@ name: Test Build and Upload
 triggers:
   merge_request:
     target-branches: 
-    - main
-    - cicd_verify
+    - "**"
     types:
     - merged
 
