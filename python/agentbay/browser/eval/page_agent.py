@@ -18,7 +18,6 @@ from agentbay.logger import get_logger
 # Initialize logger for this module
 logger = get_logger("page_agent")
 
-logger = logging.getLogger(__name__)
 
 class PageAgent:
     def __init__(
@@ -127,9 +126,9 @@ class PageAgent:
                             logger.debug(f"Execute task {task_name} with arguments {arguments}")
                             if task_name == "run_task":
                                 task_module = arguments["task"]
-                                logger = arguments["logger"]
+                                task_logger = arguments["logger"]
                                 config = arguments["config"]
-                                ret = await task_module.run(self, logger, config)
+                                ret = await task_module.run(self, task_logger, config)
                             else:
                                 raise RuntimeError(f"Unknown task: {task_name}")
                             future.set_result(ret)

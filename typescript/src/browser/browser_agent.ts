@@ -9,34 +9,33 @@ export interface ActOptions {
   timeoutMS?: number;
   iframes?: boolean;
   domSettleTimeoutMS?: number;
+  variables?: Record<string, string>;
+  use_vision?: boolean;
 }
 
 export interface ObserveOptions {
   instruction: string;
-  returnActions?: number;
   iframes?: boolean;
   domSettleTimeoutMS?: number;
+  use_vision?: boolean;
 }
 
 export interface ExtractOptions<T = any> {
   instruction: string;
   schema: new (...args: any[]) => T;
-  use_text_extract: boolean;
+  use_text_extract?: boolean;
   selector?: string;
   iframe?: boolean;
-  domSettleTimeoutsMS?: number;
+  domSettleTimeoutMS?: number;
+  use_vision?: boolean;
 }
 
-// Result classes
 export class ActResult {
   success: boolean;
   message: string;
-  action: string;
-
-  constructor(success: boolean, message: string, action: string) {
+  constructor(success: boolean, message: string) {
     this.success = success;
     this.message = message;
-    this.action = action;
   }
 }
 
@@ -45,7 +44,6 @@ export class ObserveResult {
   description: string;
   method: string;
   args: Record<string, any>;
-
   constructor(selector: string, description: string, method: string, args: Record<string, any>) {
     this.selector = selector;
     this.description = description;
@@ -63,237 +61,172 @@ export class BrowserAgent {
     this.browser = browser;
   }
 
-  /**
-   * Perform an action on the given Playwright Page object, using ActOptions to configure behavior.
-   * Returns the result of the action.
-   */
+  /** ------------------ ACT ------------------ **/
   async act(options: ActOptions, page: any): Promise<ActResult> {
-    if (!this.browser.isInitialized()) {
-      throw new BrowserError("Browser must be initialized before calling act.");
+    if (!this.browser.isInitialized()) throw new BrowserError("Browser must be initialized before calling act.");
+    const [pageId, contextId] = await this._getPageAndContextIndexAsync(page);
+
+    const args: Record<string, any> = {
+      context_id: contextId,
+      page_id: pageId,
+      action: options.action,
+      variables: options.variables,
+      timeout_ms: options.timeoutMS,
+      iframes: options.iframes,
+      dom_settle_timeout_ms: options.domSettleTimeoutMS,
+      use_vision: options.use_vision
+    };
+    const response = await this._callMcpTool("page_use_act", args);
+
+    if (response.success && response.data) {
+      const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      return new ActResult(true, JSON.stringify(data), options.action);
     }
-
-    try {
-      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
-      log(`Acting on page: ${page}, pageIndex: ${pageIndex}, contextIndex: ${contextIndex}`);
-
-      const args: Record<string, any> = {
-        context_id: contextIndex,
-        page_id: pageIndex,
-        action: options.action,
-      };
-
-      if (options.timeoutMS !== undefined) {
-        args.timeout_ms = options.timeoutMS;
-      }
-      if (options.iframes !== undefined) {
-        args.iframes = options.iframes;
-      }
-      if (options.domSettleTimeoutMS !== undefined) {
-        args.dom_settle_timeout_ms = options.domSettleTimeoutMS;
-      }
-
-      const response = await this._callMcpTool("page_use_act", args);
-      
-      if (response.success) {
-        log(`Response from CallMcpTool - page_use_act:`, response.data);
-        
-        let data: any;
-        if (typeof response.data === 'string') {
-          data = JSON.parse(response.data);
-        } else {
-          data = response.data;
-        }
-
-        const success = data.success || false;
-        const message = data.message || "";
-        const action = data.action || "";
-
-        return new ActResult(success, message, action);
-      } else {
-        return new ActResult(false, response.errorMessage, "");
-      }
-    } catch (error) {
-      throw new BrowserError(`Failed to get page/context index: ${error}`);
-    }
+    return new ActResult(false, response.errorMessage || "");
   }
 
-  /**
-   * Async version of act method for performing actions on the given Playwright Page object.
-   */
   async actAsync(options: ActOptions, page: any): Promise<ActResult> {
-    return this.act(options, page);
-  }
+    if (!this.browser.isInitialized()) throw new BrowserError("Browser must be initialized before calling actAsync.");
 
-  /**
-   * Observe elements or state on the given Playwright Page object.
-   * Returns a tuple containing (success, results).
-   */
-  async observe(options: ObserveOptions, page: any): Promise<[boolean, ObserveResult[]]> {
-    if (!this.browser.isInitialized()) {
-      throw new BrowserError("Browser must be initialized before calling observe.");
-    }
+    const [pageId, contextId] = await this._getPageAndContextIndexAsync(page);
+    const args: Record<string, any> = {
+      context_id: contextId,
+      page_id: pageId,
+      action: options.action,
+      variables: options.variables,
+      timeout_ms: options.timeoutMS,
+      iframes: options.iframes,
+      dom_settle_timeout_ms: options.domSettleTimeoutMS,
+      use_vision: options.use_vision
+    };
 
-    try {
-      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
-      log(`Observing page: ${page}, pageIndex: ${pageIndex}, contextIndex: ${contextIndex}`);
+    const startResp = await this._callMcpTool("page_use_act_async", args);
+    if (!startResp.success) throw new BrowserError("Failed to start act task");
 
-      const args: Record<string, any> = {
-        context_id: contextIndex,
-        page_id: pageIndex,
-        instruction: options.instruction,
-      };
+    const { task_id } = JSON.parse(startResp.data);
+    let retries = 30;
 
-      if (options.returnActions !== undefined) {
-        args.return_actions = options.returnActions;
-      }
-      if (options.iframes !== undefined) {
-        args.iframes = options.iframes;
-      }
-      if (options.domSettleTimeoutMS !== undefined) {
-        args.dom_settle_timeout_ms = options.domSettleTimeoutMS;
-      }
+    while (retries-- > 0) {
+      await this._delay(5000);
+      const pollResp = await this._callMcpTool("page_use_get_act_result", { task_id });
 
-      const response = await this._callMcpTool("page_use_observe", args);
-      log("Response from CallMcpTool - page_use_observe data:", response.data);
-
-      if (response.success) {
-        log(`Response from CallMcpTool - page_use_observe:`, response.data);
-        
-        let data: any;
-        if (typeof response.data === 'string') {
-          data = JSON.parse(response.data);
+      if (pollResp.success && pollResp.data) {
+        const data = typeof pollResp.data === 'string' ? JSON.parse(pollResp.data) : pollResp.data;
+        const steps = data.steps || [];
+        const is_done = data.is_done || false;
+        const success = !!data.success;
+        if (is_done) {
+          const msg = steps.length ? JSON.stringify(steps) : "No actions have been executed.";
+          log(`Task ${task_id} is done. Success=${success}. ${msg}`);
+          return new ActResult(success, msg, options.action);
         } else {
-          throw new BrowserError("Observe response data is not a json!!!");
+          if (steps.length) {
+            log(`Task ${task_id} progress: ${steps.length} steps done. Details: ${JSON.stringify(steps)}`);
+          } else {
+            log(`Task ${task_id}: No actions have been executed yet.`);
+          }
         }
-
-        const success = data.success || false;
-        if (!success) {
-          return [false, []];
-        }
-
-        const results: ObserveResult[] = [];
-        const observeResults = JSON.parse(data.observe_result || "");
-        log("observeResults =", observeResults);
-
-        for (const item of observeResults) {
-          const selector = item.selector || "";
-          const description = item.description || "";
-          const method = item.method || "";
-          const itemArgs = item.arguments || {};
-          results.push(new ObserveResult(selector, description, method, itemArgs));
-        }
-
-        return [success, results];
-      } else {
-        log(`Response from CallMcpTool - page_use_observe:`, response.errorMessage);
-        return [false, []];
       }
-    } catch (error) {
-      throw new BrowserError(`Failed to get page/context index: ${error}`);
     }
+    throw new BrowserError(`Task ${task_id}: Act timed out`);
   }
 
-  /**
-   * Async version of observe method.
-   */
+  /** ------------------ OBSERVE ------------------ **/
+  async observe(options: ObserveOptions, page: any): Promise<[boolean, ObserveResult[]]> {
+    if (!this.browser.isInitialized()) throw new BrowserError("Browser must be initialized before calling observe.");
+    const [pageId, contextId] = await this._getPageAndContextIndexAsync(page);
+
+    const args: Record<string, any> = {
+      context_id: contextId,
+      page_id: pageId,
+      instruction: options.instruction,
+      iframes: options.iframes,
+      dom_settle_timeout_ms: options.domSettleTimeoutMS,
+      use_vision: options.use_vision
+    };
+
+    const response = await this._callMcpTool("page_use_observe", args);
+    if (response.success && response.data) {
+      const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      const results: ObserveResult[] = [];
+
+      for (const item of data) {
+        let argsParsed: any;
+        try {
+          argsParsed = typeof item.arguments === 'string' ? JSON.parse(item.arguments) : item.arguments;
+        } catch {
+          log(`Warning: Could not parse arguments JSON: ${item.arguments}`);
+          argsParsed = item.arguments;
+        }
+        results.push(new ObserveResult(item.selector || "", item.description || "", item.method || "", argsParsed));
+      }
+      return [true, results];
+    }
+    return [false, []];
+  }
+
   async observeAsync(options: ObserveOptions, page: any): Promise<[boolean, ObserveResult[]]> {
     return this.observe(options, page);
   }
 
-  /**
-   * Extract information from the given Playwright Page object.
-   */
-  async extract<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T[]]> {
-    if (!this.browser.isInitialized()) {
-      throw new BrowserError("Browser must be initialized before calling extract.");
+  /** ------------------ EXTRACT ------------------ **/
+  async extract<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T | null]> {
+    if (!this.browser.isInitialized()) throw new BrowserError("Browser must be initialized before calling extract.");
+    const [pageId, contextId] = await this._getPageAndContextIndexAsync(page);
+
+    const args: Record<string, any> = {
+      context_id: contextId,
+      page_id: pageId,
+      instruction: options.instruction,
+      schema: `schema: ${JSON.stringify({ name: options.schema.name })}`, // 模拟 Python 的 model_json_schema
+      use_text_extract: options.use_text_extract,
+      use_vision: options.use_vision,
+      selector: options.selector,
+      iframe: options.iframe,
+      dom_settle_timeout_ms: options.domSettleTimeoutMS
+    };
+
+    const response = await this._callMcpTool("page_use_extract", args);
+    if (response.success && response.data) {
+      const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+      return [true, data as T];
     }
-
-    try {
-      const [pageIndex, contextIndex] = await this._getPageAndContextIndexAsync(page);
-      
-      // Create a temporary instance to get the schema
-      const tempInstance = new options.schema();
-      const schema = (tempInstance as any).constructor.name; // This is a simplified approach
-
-      const args: Record<string, any> = {
-        context_id: contextIndex,
-        page_id: pageIndex,
-        instruction: options.instruction,
-        schema: `schema: ${JSON.stringify(schema)}` // Simplified schema handling
-      };
-
-      log(`Extracting from page: ${page}, pageIndex: ${pageIndex}, contextIndex: ${contextIndex}, args:`, args);
-
-      if (options.selector !== undefined) {
-        args.selector = options.selector;
-      }
-      if (options.iframe !== undefined) {
-        args.iframe = options.iframe;
-      }
-      if (options.domSettleTimeoutsMS !== undefined) {
-        args.dom_settle_timeouts_ms = options.domSettleTimeoutsMS;
-      }
-
-      const response = await this._callMcpTool("page_use_extract", args);
-      log("Response from CallMcpTool - page_use_extract data:", response.data);
-
-      if (response.success) {
-        log(`Response from CallMcpTool - page_use_extract:`, response.data);
-        
-        let data: any;
-        if (typeof response.data === 'string') {
-          data = JSON.parse(response.data);
-        } else {
-          data = response.data;
-        }
-
-        log("extract data =", data);
-        const success = data.success || false;
-        const extractObjs: T[] = [];
-
-        if (success) {
-          const extractResults = JSON.parse(data.extract_result || "");
-          for (const extractResult of extractResults) {
-            log("extractResult =", extractResult);
-            // Create instance from the constructor - simplified approach
-            const instance = extractResult as T;
-            extractObjs.push(instance);
-          }
-        } else {
-          const extractResults = data.extract_result || "";
-          log("Extract failed due to:", extractResults);
-        }
-
-        return [success, extractObjs];
-      } else {
-        log(`Response from CallMcpTool - page_use_extract:`, response.errorMessage);
-        return [false, []];
-      }
-    } catch (error) {
-      throw new BrowserError(`Failed to get page/context index: ${error}`);
-    }
+    return [false, null];
   }
 
-  /**
-   * Async version of extract method.
-   */
-  async extractAsync<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T[]]> {
-    return this.extract<T>(options, page);
-  }
+  async extractAsync<T>(options: ExtractOptions<T>, page: any): Promise<[boolean, T | null]> {
+    if (!this.browser.isInitialized()) throw new BrowserError("Browser must be initialized before calling extractAsync.");
+    const [pageId, contextId] = await this._getPageAndContextIndexAsync(page);
 
-  private _getPageAndContextIndex(page: any): [string, number] {
-    if (!page) {
-      throw new BrowserError("Page is null");
-    }
+    const args: Record<string, any> = {
+      context_id: contextId,
+      page_id: pageId,
+      instruction: options.instruction,
+      schema: `schema: ${JSON.stringify({ name: options.schema.name })}`,
+      use_text_extract: options.use_text_extract,
+      use_vision: options.use_vision,
+      selector: options.selector,
+      iframe: options.iframe,
+      dom_settle_timeout_ms: options.domSettleTimeoutMS
+    };
 
-    try {
-      // Fallback implementation - prefer async version where CDP is available
-      const pageIndex = "default-page-id";
-      const contextIndex = 0;
-      return [pageIndex, contextIndex];
-    } catch (error) {
-      throw new BrowserError(`Failed to get page/context index: ${error}`);
+    const startResp = await this._callMcpTool("page_use_extract_async", args);
+    if (!startResp.success) throw new BrowserError("Failed to start extract task");
+
+    const { task_id } = JSON.parse(startResp.data);
+    let retries = 20;
+
+    while (retries-- > 0) {
+      await this._delay(8000);
+      const pollResp = await this._callMcpTool("page_use_get_extract_result", { task_id });
+
+      if (pollResp.success && pollResp.data) {
+        const data = typeof pollResp.data === 'string' ? JSON.parse(pollResp.data) : pollResp.data;
+        return [true, data as T];
+      }
+      log(`Task ${task_id}: No extract result yet (attempt ${20 - retries}/20)`);
     }
+    throw new BrowserError(`Task ${task_id}: Extract timed out`);
   }
 
   private async _getPageAndContextIndexAsync(page: any): Promise<[string, number]> {
@@ -340,4 +273,8 @@ export class BrowserAgent {
   private async _callMcpTool(toolName: string, args: Record<string, any>) {
     return this.session.callMcpTool(toolName, args);
   }
-} 
+
+  private _delay(ms: number) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+}

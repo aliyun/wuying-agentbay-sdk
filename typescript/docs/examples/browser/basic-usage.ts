@@ -72,7 +72,6 @@ async function main() {
       console.log("Action result:", {
         success: actResult.success,
         message: actResult.message,
-        action: actResult.action
       });
     } catch (error) {
       console.log("Action failed:", error);
@@ -82,8 +81,7 @@ async function main() {
     console.log("\n--- Example 2: Observing page elements ---");
     try {
       const observeOptions: ObserveOptions = {
-        instruction: "Find all links and buttons on the page",
-        returnActions: 5
+        instruction: "Find all links and buttons on the page"
       };
 
       const [observeSuccess, observations] = await session.browser.agent.observe(observeOptions, mockPage);

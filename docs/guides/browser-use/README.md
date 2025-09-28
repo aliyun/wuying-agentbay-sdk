@@ -194,18 +194,15 @@ async def main():
         await page.goto("https://www.google.com")
 
         # ask the agent to act: type the book name into the search box
-        act_result = await session.browser.agent.act_async(page, ActOptions(
+        act_result = await session.browser.agent.act_async(ActOptions(
             action=f"Type '{BOOK_QUERY}' into the search box and submit",
-            timeoutMS=15000,
-            iframes=False,
-        ))
+        ), page)
         print("act_result:", act_result.success, act_result.message)
 
         # let the agent open the first result
-        open_first = await session.browser.agent.act_async(page, ActOptions(
+        open_first = await session.browser.agent.act_async(ActOptions(
             action="Click the first result in the search results",
-            timeoutMS=15000,
-        ))
+        ), page)
         print("open_first:", open_first.success, open_first.message)
 
         # pause briefly to observe
@@ -221,10 +218,9 @@ if __name__ == "__main__":
 First we create and initialize a browser session as before; then, rather than hand-writing selectors, we simply tell the agent what to do—type a query and proceed to the first result. After that, the agent translates our intent into concrete interactions on the page. Now the browser flows from search box to results like a guided hand. Finally, we close the browser and release the session.
 
 About `PageUseAgent.act`:
-- Accepts natural-language instructions via `ActOptions(action=...)`, plus optional controls like `timeoutMS`, `iframes`, and `dom_settle_timeout_ms`
 - Can interpolate dynamic values using `variables` for reusable prompts
 - Operates on the active Playwright page by resolving its `context_id` and `page_id` under the hood
-- Returns a structured `ActResult` with `success`, `message`, and the executed `action`, useful for logging and recovery flows
+- Returns a structured `ActResult` with `success`, `message`, useful for logging and recovery flows
 
 If you want to explore full capability of PageUseAgent, or other more advance features, see Advance Features: [advance-features.md](advance-features.md).
 
