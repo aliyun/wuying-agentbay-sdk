@@ -94,13 +94,6 @@ jobs:
           echo "" >> $AONE_CI_SUMMARY
           echo "📦 Python Package Installation" >> $AONE_CI_SUMMARY
           echo "pip install -i http://yum.tbsite.net/aliyun-pypi/simple/ --trusted-host yum.tbsite.net wuying-agentbay-sdk-test==${{jobs.pypi-build.outputs.string-output}}" >> $AONE_CI_SUMMARY
-          echo "" >> $AONE_CI_SUMMARY
-          echo "🐹 Golang Installation Commands" >> $AONE_CI_SUMMARY
-          echo "# Install/Update to this test version (run in your project root directory):" >> $AONE_CI_SUMMARY
-          echo "go mod edit -replace=github.com/aliyun/wuying-agentbay-sdk/golang=code.alibaba-inc.com/InnoArchClub/wuying-agentbay-sdk/golang@${{git.commitId}} && go mod tidy" >> $AONE_CI_SUMMARY
-          echo "" >> $AONE_CI_SUMMARY
-          echo "# Remove test version after testing (restore to official version):" >> $AONE_CI_SUMMARY
-          echo "go mod edit -dropreplace=github.com/aliyun/wuying-agentbay-sdk/golang && go mod tidy" >> $AONE_CI_SUMMARY
       - run: |
           echo "=========================================="
           echo "      Wuying AgentBay SDK Package Release Completed"
