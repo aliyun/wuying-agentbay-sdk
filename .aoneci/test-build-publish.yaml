@@ -3,7 +3,8 @@ name: Test Build and Upload
 triggers:
   merge_request:
     target-branches: 
-    - "**"
+    - main
+    - cicd_verify
     types:
     - merged
 
@@ -104,7 +105,5 @@ jobs:
           echo "=========================================="
           echo "      Wuying AgentBay SDK Package Release Completed"
           echo "=========================================="
-          echo \"\"
-          echo \"🔍 Validation: Go mod commands were ${{jobs.golang-validate.result || 'skipped'}}\"
           echo \"\"
           cat $AONE_CI_SUMMARY 
