@@ -9,7 +9,7 @@ An AI-powered, natural-language web agent that performs precise, reliable page o
 
 ## Table of Contents
 
-- [PageUse Agent](#pageuse-agent)
+- [PageUseAgent Guide](#pageuseagent-guide)
   - [Table of Contents](#table-of-contents)
   - [Quick Start](#quick-start)
     - [Prerequisites](#prerequisites)
@@ -223,8 +223,8 @@ class ActResult:
     def __init__(self, success: bool, message: str, action: str)
 
 # APIs
-def act(self, page, action_input: Union[ObserveResult, ActOptions]) -> ActResult
-async def act_async(self, page, action_input: Union[ObserveResult, ActOptions]) -> ActResult
+def act(self, action_input: Union[ObserveResult, ActOptions], page) -> ActResult
+async def act_async(self, action_input: Union[ObserveResult, ActOptions], page) -> ActResult
 ```
 
 - Description: Performs an action with NL instruction or using an `ObserveResult`.
@@ -253,8 +253,8 @@ class ExtractOptions(Generic[T]):
                  dom_settle_timeout_ms: int | None = None, use_vision: bool | None = None)
 
 # APIs
-def extract(self, page, options: ExtractOptions[T]) -> tuple[bool, T]
-async def extract_async(self, page, options: ExtractOptions[T]) -> tuple[bool, T]
+def extract(self, options: ExtractOptions[T], page) -> tuple[bool, T]
+async def extract_async(self, options: ExtractOptions[T], page) -> tuple[bool, T]
 ```
 
 - Description: Extracts structured data as a Pydantic model instance.

@@ -1,11 +1,9 @@
 import asyncio
-import logging
 import os
 import concurrent.futures
 from playwright.async_api import async_playwright
 from mcp import ClientSession, StdioServerParameters, stdio_client
 import json
-from pydantic import BaseModel
 from agentbay.browser import Browser, BrowserOption
 from agentbay.session import Session
 from agentbay.api.base_service import OperationResult
@@ -61,10 +59,10 @@ class LocalMCPClient:
     async def call_tool(self, tool_name: str, arguments: dict):
         if not self.session or not self._tool_call_queue or not self._loop:
             raise RuntimeError("MCP client is not connected. Call connect() and ensure it returns True before calling callTool.")
-        # Use a Future to get the result back from the interactive loop
-        future = concurrent.futures.Future()
-        await self._tool_call_queue.put((tool_name, arguments, future))
-        return future.result()
+        caller_loop = asyncio.get_running_loop()
+        fut = caller_loop.create_future()
+        await self._tool_call_queue.put((tool_name, arguments, fut))
+        return await fut
 
     async def _interactive_loop(self):
         """Run interactive loop."""
@@ -76,7 +74,6 @@ class LocalMCPClient:
                         logger.info(f"Call tool {tool_name} with arguments {arguments}")
                         if self.session is not None:
                             response = await self.session.call_tool(tool_name, arguments)
-                            print("MCP tool response:", response)
                             is_successful = not response.isError
 
                             mcp_response = OperationResult(
@@ -89,17 +86,22 @@ class LocalMCPClient:
                             if hasattr(response, 'content') and response.content:
                                 for content_item in response.content:
                                     if hasattr(content_item, 'text') and content_item.text:
-                                        print(f"MCP tool text response: {content_item.text}")
                                         text_content = content_item.text
                                         break
                                 if is_successful:
                                     mcp_response.data = text_content
-                                    logger.info(f"MCP tool text response (data): {text_content}")
+                                    logger.info(f"MCP tool text response (data): {str(text_content)[:2000]}")
                                 else:
                                     mcp_response.error_message = text_content
-                                    logger.info(f"MCP tool text response (error): {text_content}")
+                                    logger.info(f"MCP tool text response (error): {str(text_content)[:2000]}")
 
+                            if asyncio.isfuture(future):
+                                fut_loop = future.get_loop()
+                                fut_loop.call_soon_threadsafe(future.set_result, mcp_response)
+                            elif isinstance(future, concurrent.futures.Future):
                                 future.set_result(mcp_response)
+                            else:
+                                raise TypeError(f"Unexpected future type: {type(future)}")
                         else:
                             future.set_exception(RuntimeError("MCP client session is not initialized."))
                     except Exception as e:
@@ -126,18 +128,18 @@ class LocalPageAgent(BrowserAgent):
 
     def _call_mcp_tool(self, name: str, args: dict, read_timeout: int = None, connect_timeout: int = None) -> OperationResult:
         if not self.mcp_client:
+            return super()._call_mcp_tool(name, args, read_timeout, connect_timeout)
+
+        target_loop = self.mcp_client._loop
+        coro = self._call_mcp_tool_async(name, args)
+        fut = asyncio.run_coroutine_threadsafe(coro, target_loop)
+        return fut.result()
+    
+    async def _call_mcp_tool_async(self, name: str, args: dict) -> OperationResult:
+        if not self.mcp_client:
             raise RuntimeError("mcp_client is not set on LocalBrowserAgent.")
-        try:
-            mcp_client = self.mcp_client  # local reference to avoid race conditions
-            def thread_func():
-                response = asyncio.run(mcp_client.call_tool(name, args))
-                #logger.info("LocalBrowserAgent call_mcp_tool got response ", response)
-                return response
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(thread_func)
-                return future.result()
-        except Exception as e:
-            raise RuntimeError(f"Failed to call MCP tool '{name}': {e}")
+        return await self.mcp_client.call_tool(name, args)
+
 
 class LocalBrowser(Browser):
     def __init__(self, session=None):
@@ -195,7 +197,6 @@ class LocalBrowser(Browser):
     async def _playwright_interactive_loop(self):
         """Run interactive loop."""
         while True:
-            #print("Local browser interactive loop")
             await asyncio.sleep(3)
 
 class LocalSession(Session):
