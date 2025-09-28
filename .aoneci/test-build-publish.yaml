@@ -88,8 +88,14 @@ jobs:
     needs: [pypi-build]
     steps:
       - run: |
+          # Get current commit hash
+          CURRENT_COMMIT="${{git.commit}}"
+          if [ -z "$CURRENT_COMMIT" ] || [ "$CURRENT_COMMIT" = "null" ]; then
+            CURRENT_COMMIT=$(git rev-parse HEAD)
+          fi
+          
           echo "✅ Source branch: ${{git.branch}}" >> $AONE_CI_SUMMARY
-          echo "✅ Git commit: ${{git.commit}}" >> $AONE_CI_SUMMARY
+          echo "✅ Git commit: $CURRENT_COMMIT" >> $AONE_CI_SUMMARY
           echo "✅ Build timestamp: $(date)" >> $AONE_CI_SUMMARY
           echo "" >> $AONE_CI_SUMMARY
           echo "📦 Python Package Installation" >> $AONE_CI_SUMMARY
@@ -97,7 +103,7 @@ jobs:
           echo "" >> $AONE_CI_SUMMARY
           echo "🐹 Golang Installation Commands" >> $AONE_CI_SUMMARY
           echo "# Install/Update to this test version (run in your project root directory):" >> $AONE_CI_SUMMARY
-          echo "go mod edit -replace=github.com/aliyun/wuying-agentbay-sdk/golang=code.alibaba-inc.com/InnoArchClub/wuying-agentbay-sdk/golang@${{git.commit}} && go mod tidy" >> $AONE_CI_SUMMARY
+          echo "go mod edit -replace=github.com/aliyun/wuying-agentbay-sdk/golang=code.alibaba-inc.com/InnoArchClub/wuying-agentbay-sdk/golang@$CURRENT_COMMIT && go mod tidy" >> $AONE_CI_SUMMARY
           echo "" >> $AONE_CI_SUMMARY
           echo "# Remove test version after testing (restore to official version):" >> $AONE_CI_SUMMARY
           echo "go mod edit -dropreplace=github.com/aliyun/wuying-agentbay-sdk/golang && go mod tidy" >> $AONE_CI_SUMMARY
