@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from agentbay.api.base_service import BaseService
+from agentbay.deprecation import deprecated
 from agentbay.exceptions import AgentBayError, UIError
 from agentbay.model import ApiResponse, BoolResult, OperationResult
 
@@ -78,6 +79,21 @@ class UI(BaseService):
             return UIError(str(e))
         return e
 
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.mobile.get_clickable_ui_elements()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def get_clickable_ui_elements(self, timeout_ms: int = 2000) -> UIElementListResult:
         """
         Retrieves all clickable UI elements within the specified timeout.
@@ -124,6 +140,21 @@ class UI(BaseService):
                 elements=None,
                 error_message=f"Failed to get clickable UI elements: {str(e)}",
             )
+
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.mobile.get_all_ui_elements()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def get_all_ui_elements(self, timeout_ms: int = 2000) -> UIElementListResult:
         """
@@ -200,6 +231,21 @@ class UI(BaseService):
                 error_message=f"Failed to get all UI elements: {str(e)}",
             )
 
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.mobile.send_key()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def send_key(self, key: int) -> BoolResult:
         """
         Sends a key press event.
@@ -243,6 +289,21 @@ class UI(BaseService):
                 error_message=f"Failed to send key: {str(e)}",
             )
 
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.computer.input_text() or session.mobile.input_text()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def input_text(self, text: str) -> BoolResult:
         """
         Inputs text into the active field.
@@ -279,6 +340,21 @@ class UI(BaseService):
                 data=None,
                 error_message=f"Failed to input text: {str(e)}",
             )
+
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.mobile.swipe()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def swipe(
         self,
@@ -335,6 +411,21 @@ class UI(BaseService):
                 error_message=f"Failed to perform swipe: {str(e)}",
             )
 
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.computer.click_mouse() or session.mobile.tap()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def click(self, x: int, y: int, button: str = "left") -> BoolResult:
         """
         Clicks on the screen at the specified coordinates.
@@ -374,6 +465,21 @@ class UI(BaseService):
                 data=None,
                 error_message=f"Failed to perform click: {str(e)}",
             )
+
+    @deprecated(
+
+
+        reason="UI operations have been moved to platform-specific modules",
+
+
+        replacement="session.computer.screenshot() or session.mobile.screenshot()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def screenshot(self) -> OperationResult:
         """

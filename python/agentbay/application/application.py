@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from agentbay.api.base_service import BaseService
+from agentbay.deprecation import deprecated
 from agentbay.exceptions import AgentBayError, ApplicationError
 from agentbay.model import ApiResponse
 
@@ -281,6 +282,21 @@ class ApplicationManager(BaseService):
             return ApplicationError(str(e))
         return e
 
+    @deprecated(
+
+
+        reason="Application management has been moved to platform-specific modules",
+
+
+        replacement="session.computer.get_installed_apps() or session.mobile.get_installed_apps()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def get_installed_apps(
         self, start_menu: bool, desktop: bool, ignore_system_apps: bool
     ) -> InstalledAppListResult:
@@ -337,6 +353,21 @@ class ApplicationManager(BaseService):
                 success=False, error_message=str(handled_error)
             )
 
+    @deprecated(
+
+
+        reason="Application management has been moved to platform-specific modules",
+
+
+        replacement="session.computer.start_app() or session.mobile.start_app()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def start_app(
         self, start_cmd: str, work_directory: str = "", activity: str = ""
     ) -> ProcessListResult:
@@ -390,6 +421,21 @@ class ApplicationManager(BaseService):
             handled_error = self._handle_error(e)
             return ProcessListResult(success=False, error_message=str(handled_error))
 
+    @deprecated(
+
+
+        reason="Application management has been moved to platform-specific modules",
+
+
+        replacement="session.computer.stop_app_by_pname() or session.mobile.stop_app_by_pname()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def stop_app_by_pname(self, pname: str) -> AppOperationResult:
         """
         Stops an application by process name.
@@ -412,6 +458,21 @@ class ApplicationManager(BaseService):
         except Exception as e:
             handled_error = self._handle_error(e)
             return AppOperationResult(success=False, error_message=str(handled_error))
+
+    @deprecated(
+
+
+        reason="Application management has been moved to platform-specific modules",
+
+
+        replacement="session.computer.stop_app_by_pid()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def stop_app_by_pid(self, pid: int) -> AppOperationResult:
         """
@@ -436,6 +497,21 @@ class ApplicationManager(BaseService):
             handled_error = self._handle_error(e)
             return AppOperationResult(success=False, error_message=str(handled_error))
 
+    @deprecated(
+
+
+        reason="Application management has been moved to platform-specific modules",
+
+
+        replacement="session.computer.stop_app_by_cmd()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
         """
         Stops an application by stop command.
@@ -459,6 +535,11 @@ class ApplicationManager(BaseService):
             handled_error = self._handle_error(e)
             return AppOperationResult(success=False, error_message=str(handled_error))
 
+    @deprecated(
+        reason="Application management has been moved to platform-specific modules",
+        replacement="session.computer.list_visible_apps()",
+        version="2.0.0"
+    )
     def list_visible_apps(self) -> ProcessListResult:
         """
         Returns a list of currently visible applications.

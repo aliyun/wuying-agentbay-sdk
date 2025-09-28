@@ -1,0 +1,676 @@
+"""
+Computer module for desktop UI automation.
+Handles mouse operations, keyboard operations, window management, 
+application management, and screen operations.
+"""
+
+from typing import List, Optional, Dict, Any
+
+from agentbay.api.base_service import BaseService
+from agentbay.exceptions import AgentBayError
+from agentbay.model import BoolResult, OperationResult
+from agentbay.application.application import InstalledAppListResult, InstalledApp, ProcessListResult
+from agentbay.window.window import WindowListResult, WindowInfoResult
+
+
+class Computer(BaseService):
+    """
+    Handles computer UI automation operations in the AgentBay cloud environment.
+    Provides comprehensive desktop automation capabilities including mouse, keyboard,
+    window management, application management, and screen operations.
+    """
+
+    def __init__(self, session):
+        """
+        Initialize a Computer object.
+
+        Args:
+            session: The session object that provides access to the AgentBay API.
+        """
+        super().__init__(session)
+
+    # Mouse Operations
+    def click_mouse(self, x: int, y: int, button: str = "left") -> BoolResult:
+        """
+        Clicks the mouse at the specified coordinates.
+
+        Args:
+            x (int): X coordinate.
+            y (int): Y coordinate.
+            button (str, optional): Button type. Must be one of:
+                ["left", "right", "middle", "double_left"]. Defaults to "left".
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+
+        Raises:
+            ValueError: If button is not a valid option.
+        """
+        valid_buttons = ["left", "right", "middle", "double_left"]
+        if button not in valid_buttons:
+            raise ValueError(f"Invalid button '{button}'. Must be one of {valid_buttons}")
+
+        args = {"x": x, "y": y, "button": button}
+        try:
+            result = self._call_mcp_tool("click_mouse", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to click mouse: {str(e)}",
+            )
+
+    def move_mouse(self, x: int, y: int) -> BoolResult:
+        """
+        Moves the mouse to the specified coordinates.
+
+        Args:
+            x (int): X coordinate.
+            y (int): Y coordinate.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        args = {"x": x, "y": y}
+        try:
+            result = self._call_mcp_tool("move_mouse", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to move mouse: {str(e)}",
+            )
+
+    def drag_mouse(
+        self, from_x: int, from_y: int, to_x: int, to_y: int, button: str = "left"
+    ) -> BoolResult:
+        """
+        Drags the mouse from one point to another.
+
+        Args:
+            from_x (int): Starting X coordinate.
+            from_y (int): Starting Y coordinate.
+            to_x (int): Ending X coordinate.
+            to_y (int): Ending Y coordinate.
+            button (str, optional): Button type. Must be one of:
+                ["left", "right", "middle"]. Defaults to "left".
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+
+        Raises:
+            ValueError: If button is not a valid option.
+        """
+        valid_buttons = ["left", "right", "middle"]
+        if button not in valid_buttons:
+            raise ValueError(f"Invalid button '{button}'. Must be one of {valid_buttons}")
+
+        args = {
+            "from_x": from_x,
+            "from_y": from_y,
+            "to_x": to_x,
+            "to_y": to_y,
+            "button": button,
+        }
+        try:
+            result = self._call_mcp_tool("drag_mouse", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to drag mouse: {str(e)}",
+            )
+
+    def scroll(
+        self, x: int, y: int, direction: str = "up", amount: int = 1
+    ) -> BoolResult:
+        """
+        Scrolls the mouse wheel at the specified coordinates.
+
+        Args:
+            x (int): X coordinate.
+            y (int): Y coordinate.
+            direction (str, optional): Scroll direction. Must be one of:
+                ["up", "down", "left", "right"]. Defaults to "up".
+            amount (int, optional): Scroll amount. Defaults to 1.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+
+        Raises:
+            ValueError: If direction is not a valid option.
+        """
+        valid_directions = ["up", "down", "left", "right"]
+        if direction not in valid_directions:
+            raise ValueError(f"Invalid direction '{direction}'. Must be one of {valid_directions}")
+
+        args = {"x": x, "y": y, "direction": direction, "amount": amount}
+        try:
+            result = self._call_mcp_tool("scroll", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to scroll: {str(e)}",
+            )
+
+    def get_cursor_position(self) -> OperationResult:
+        """
+        Gets the current cursor position.
+
+        Returns:
+            OperationResult: Result object containing cursor position data
+                with keys 'x' and 'y', and error message if any.
+        """
+        args = {}
+        try:
+            result = self._call_mcp_tool("get_cursor_position", args)
+
+            if not result.success:
+                return OperationResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return OperationResult(
+                request_id=result.request_id,
+                success=True,
+                data=result.data,
+                error_message="",
+            )
+        except Exception as e:
+            return OperationResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to get cursor position: {str(e)}",
+            )
+
+    # Keyboard Operations
+    def input_text(self, text: str) -> BoolResult:
+        """
+        Inputs text into the active field.
+
+        Args:
+            text (str): The text to input.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        args = {"text": text}
+        try:
+            result = self._call_mcp_tool("input_text", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to input text: {str(e)}",
+            )
+
+    def press_keys(self, keys: List[str], hold: bool = False) -> BoolResult:
+        """
+        Presses the specified keys.
+
+        Args:
+            keys (List[str]): List of keys to press (e.g., ["Ctrl", "a"]).
+            hold (bool, optional): Whether to hold the keys. Defaults to False.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        args = {"keys": keys, "hold": hold}
+        try:
+            result = self._call_mcp_tool("press_keys", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to press keys: {str(e)}",
+            )
+
+    def release_keys(self, keys: List[str]) -> BoolResult:
+        """
+        Releases the specified keys.
+
+        Args:
+            keys (List[str]): List of keys to release (e.g., ["Ctrl", "a"]).
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        args = {"keys": keys}
+        try:
+            result = self._call_mcp_tool("release_keys", args)
+
+            if not result.success:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return BoolResult(
+                request_id=result.request_id,
+                success=True,
+                data=True,
+                error_message="",
+            )
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to release keys: {str(e)}",
+            )
+
+    # Screen Operations
+    def get_screen_size(self) -> OperationResult:
+        """
+        Gets the screen size and DPI scaling factor.
+
+        Returns:
+            OperationResult: Result object containing screen size data
+                with keys 'width', 'height', and 'dpiScalingFactor',
+                and error message if any.
+        """
+        args = {}
+        try:
+            result = self._call_mcp_tool("get_screen_size", args)
+
+            if not result.success:
+                return OperationResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return OperationResult(
+                request_id=result.request_id,
+                success=True,
+                data=result.data,
+                error_message="",
+            )
+        except Exception as e:
+            return OperationResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to get screen size: {str(e)}",
+            )
+
+    def screenshot(self) -> OperationResult:
+        """
+        Takes a screenshot of the current screen.
+
+        Returns:
+            OperationResult: Result object containing the path to the screenshot
+                and error message if any.
+        """
+        args = {}
+        try:
+            result = self._call_mcp_tool("system_screenshot", args)
+
+            if not result.success:
+                return OperationResult(
+                    request_id=result.request_id,
+                    success=False,
+                    data=None,
+                    error_message=result.error_message,
+                )
+
+            return OperationResult(
+                request_id=result.request_id,
+                success=True,
+                data=result.data,
+                error_message="",
+            )
+        except Exception as e:
+            return OperationResult(
+                request_id="",
+                success=False,
+                data=None,
+                error_message=f"Failed to take screenshot: {str(e)}",
+            )
+
+    # Window Management Operations (delegated to existing window module)
+    def list_root_windows(self) -> WindowListResult:
+        """
+        Lists all root windows.
+
+        Returns:
+            WindowListResult: Result object containing list of windows and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.list_root_windows()
+
+    def get_active_window(self) -> WindowInfoResult:
+        """
+        Gets the currently active window.
+
+        Returns:
+            WindowInfoResult: Result object containing active window info and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.get_active_window()
+
+    def activate_window(self, window_id: int) -> BoolResult:
+        """
+        Activates the specified window.
+
+        Args:
+            window_id (int): The ID of the window to activate.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.activate_window(window_id)
+
+    def close_window(self, window_id: int) -> BoolResult:
+        """
+        Closes the specified window.
+
+        Args:
+            window_id (int): The ID of the window to close.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.close_window(window_id)
+
+    def maximize_window(self, window_id: int) -> BoolResult:
+        """
+        Maximizes the specified window.
+
+        Args:
+            window_id (int): The ID of the window to maximize.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.maximize_window(window_id)
+
+    def minimize_window(self, window_id: int) -> BoolResult:
+        """
+        Minimizes the specified window.
+
+        Args:
+            window_id (int): The ID of the window to minimize.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.minimize_window(window_id)
+
+    def restore_window(self, window_id: int) -> BoolResult:
+        """
+        Restores the specified window.
+
+        Args:
+            window_id (int): The ID of the window to restore.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.restore_window(window_id)
+
+    def resize_window(self, window_id: int, width: int, height: int) -> BoolResult:
+        """
+        Resizes the specified window.
+
+        Args:
+            window_id (int): The ID of the window to resize.
+            width (int): New width of the window.
+            height (int): New height of the window.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.resize_window(window_id, width, height)
+
+    def fullscreen_window(self, window_id: int) -> BoolResult:
+        """
+        Makes the specified window fullscreen.
+
+        Args:
+            window_id (int): The ID of the window to make fullscreen.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.fullscreen_window(window_id)
+
+    def focus_mode(self, window_id: int) -> BoolResult:
+        """
+        Sets focus mode for the specified window.
+
+        Args:
+            window_id (int): The ID of the window to focus.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.window import WindowManager
+        window_manager = WindowManager(self.session)
+        return window_manager.focus_mode(window_id)
+
+    # Application Management Operations (delegated to existing application module)
+    def get_installed_apps(
+        self,
+        include_system: bool = False,
+        include_user: bool = True,
+        include_third_party: bool = True,
+    ) -> InstalledAppListResult:
+        """
+        Gets the list of installed applications.
+
+        Args:
+            include_system (bool, optional): Include system applications. Defaults to False.
+            include_user (bool, optional): Include user applications. Defaults to True.
+            include_third_party (bool, optional): Include third-party applications. Defaults to True.
+
+        Returns:
+            InstalledAppsResult: Result object containing list of installed apps and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.get_installed_apps(include_system, include_user, include_third_party)
+
+    def start_app(self, app_name: str, work_directory: Optional[str] = None) -> BoolResult:
+        """
+        Starts the specified application.
+
+        Args:
+            app_name (str): The name or command of the application to start.
+            work_directory (Optional[str], optional): Working directory for the application. Defaults to None.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.start_app(app_name, work_directory)
+
+    def list_visible_apps(self):
+        """
+        Lists all visible applications.
+
+        Returns:
+            Result object containing list of visible apps and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.list_visible_apps()
+
+    def stop_app_by_pname(self, pname: str) -> BoolResult:
+        """
+        Stops an application by process name.
+
+        Args:
+            pname (str): The process name of the application to stop.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.stop_app_by_pname(pname)
+
+    def stop_app_by_pid(self, pid: int) -> BoolResult:
+        """
+        Stops an application by process ID.
+
+        Args:
+            pid (int): The process ID of the application to stop.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.stop_app_by_pid(pid)
+
+    def stop_app_by_cmd(self, cmd: str) -> BoolResult:
+        """
+        Stops an application by command.
+
+        Args:
+            cmd (str): The command used to stop the application.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.stop_app_by_cmd(cmd)
+
+    def list_visible_apps(self) -> ProcessListResult:
+        """
+        Lists all applications with visible windows.
+        
+        Returns detailed process information for applications that have visible windows,
+        including process ID, name, command line, and other system information.
+        This is useful for system monitoring and process management tasks.
+
+        Returns:
+            ProcessListResult: Result object containing list of visible applications
+                with detailed process information.
+        """
+        from agentbay.application import ApplicationManager
+        app_manager = ApplicationManager(self.session)
+        return app_manager.list_visible_apps() 

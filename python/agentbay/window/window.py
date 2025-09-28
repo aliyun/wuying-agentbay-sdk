@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from agentbay.api.base_service import BaseService
+from agentbay.deprecation import deprecated
 from agentbay.model import ApiResponse, BoolResult
 
 
@@ -155,6 +156,11 @@ class WindowManager(BaseService):
     Handles window management operations in the AgentBay cloud environment.
     """
 
+    @deprecated(
+        reason="Window management has been moved to Computer module",
+        replacement="session.computer.list_root_windows()",
+        version="2.0.0"
+    )
     def list_root_windows(self, timeout_ms: int = 3000) -> WindowListResult:
         """
         Lists all root windows in the system.
@@ -186,6 +192,11 @@ class WindowManager(BaseService):
                 error_message=f"Failed to list root windows: {e}",
             )
 
+    @deprecated(
+        reason="Window management has been moved to Computer module",
+        replacement="session.computer.get_active_window()",
+        version="2.0.0"
+    )
     def get_active_window(self, timeout_ms: int = 3000) -> WindowInfoResult:
         """
         Gets the currently active window.
@@ -217,6 +228,11 @@ class WindowManager(BaseService):
                 error_message=f"Failed to get active window: {e}",
             )
 
+    @deprecated(
+        reason="Window management has been moved to Computer module",
+        replacement="session.computer.activate_window()",
+        version="2.0.0"
+    )
     def activate_window(self, window_id: int) -> BoolResult:
         """
         Activates a window by its ID.
@@ -246,6 +262,21 @@ class WindowManager(BaseService):
                 success=False,
                 error_message=f"Failed to activate window: {e}",
             )
+
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.maximize_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def maximize_window(self, window_id: int) -> BoolResult:
         """
@@ -277,6 +308,21 @@ class WindowManager(BaseService):
                 error_message=f"Failed to maximize window: {e}",
             )
 
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.minimize_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def minimize_window(self, window_id: int) -> BoolResult:
         """
         Minimizes a window by its ID.
@@ -306,6 +352,21 @@ class WindowManager(BaseService):
                 success=False,
                 error_message=f"Failed to minimize window: {e}",
             )
+
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.restore_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def restore_window(self, window_id: int) -> BoolResult:
         """
@@ -337,6 +398,21 @@ class WindowManager(BaseService):
                 error_message=f"Failed to restore window: {e}",
             )
 
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.close_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def close_window(self, window_id: int) -> BoolResult:
         """
         Closes a window by its ID.
@@ -367,6 +443,21 @@ class WindowManager(BaseService):
                 error_message=f"Failed to close window: {e}",
             )
 
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.fullscreen_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
+
     def fullscreen_window(self, window_id: int) -> BoolResult:
         """
         Makes a window fullscreen by its ID.
@@ -396,6 +487,21 @@ class WindowManager(BaseService):
                 success=False,
                 error_message=f"Failed to make window fullscreen: {e}",
             )
+
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.resize_window()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def resize_window(self, window_id: int, width: int, height: int) -> BoolResult:
         """
@@ -428,6 +534,21 @@ class WindowManager(BaseService):
                 success=False,
                 error_message=f"Failed to resize window: {e}",
             )
+
+    @deprecated(
+
+
+        reason="Window management has been moved to Computer module",
+
+
+        replacement="session.computer.focus_mode()",
+
+
+        version="2.0.0"
+
+
+    )
+
 
     def focus_mode(self, on: bool) -> BoolResult:
         """

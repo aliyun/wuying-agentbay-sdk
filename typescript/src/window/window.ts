@@ -24,6 +24,10 @@ export interface Window {
 
 /**
  * Handles window management operations in the AgentBay cloud environment.
+ * 
+ * @deprecated This module is deprecated. Use Computer module instead.
+ * - For desktop window operations, use session.computer
+ * - Window operations are not available for mobile
  */
 export class WindowManager {
   private session: {
@@ -76,8 +80,12 @@ export class WindowManager {
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 3000ms.
    * @returns WindowListResult with windows array and requestId
+   * 
+   * @deprecated Use session.computer.listRootWindows() instead.
    */
   async listRootWindows(timeoutMs = 3000): Promise<WindowListResult> {
+    console.warn('⚠️  WindowManager.listRootWindows() is deprecated. Use session.computer.listRootWindows() instead.');
+    
     try {
       const args = {
         timeout_ms: timeoutMs,
@@ -117,20 +125,74 @@ export class WindowManager {
   }
 
   /**
-   * Gets the currently active window.
-   * Corresponds to Python's get_active_window() method
+   * Lists all windows in the system.
+   * Corresponds to Python's list_all_windows() method
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 3000ms.
-   * @returns WindowInfoResult with active window data and requestId
+   * @returns WindowListResult with windows array and requestId
+   * 
+   * @deprecated Use session.computer.listAllWindows() instead.
    */
-  async getActiveWindow(timeoutMs = 3000): Promise<WindowInfoResult> {
+  async listAllWindows(timeoutMs = 3000): Promise<WindowListResult> {
+    console.warn('⚠️  WindowManager.listAllWindows() is deprecated. Use session.computer.listAllWindows() instead.');
+    
     try {
       const args = {
         timeout_ms: timeoutMs,
       };
 
       const response = await this.session.callMcpTool(
-        "get_active_window",
+        "list_all_windows",
+        args
+      );
+
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          windows: [],
+          errorMessage: response.errorMessage,
+        };
+      }
+
+      const windows = response.data
+        ? this.parseWindowsFromJSON(response.data)
+        : [];
+
+      return {
+        requestId: response.requestId,
+        success: true,
+        windows,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        windows: [],
+        errorMessage: `Failed to list all windows: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Gets information about a specific window.
+   * Corresponds to Python's get_window_info() method
+   *
+   * @param windowId - The ID of the window to get information for.
+   * @returns WindowInfoResult with window information and requestId
+   * 
+   * @deprecated Use session.computer.getWindowInfo() instead.
+   */
+  async getWindowInfo(windowId: number): Promise<WindowInfoResult> {
+    console.warn('⚠️  WindowManager.getWindowInfo() is deprecated. Use session.computer.getWindowInfo() instead.');
+    
+    try {
+      const args = {
+        window_id: windowId,
+      };
+
+      const response = await this.session.callMcpTool(
+        "get_window_info",
         args
       );
 
@@ -142,34 +204,38 @@ export class WindowManager {
         };
       }
 
-      let activeWindow: Window | undefined = undefined;
+      let window: Window | undefined = undefined;
       if (response.data) {
         const windows = this.parseWindowsFromJSON(response.data);
-        activeWindow = windows.length > 0 ? windows[0] : undefined;
+        window = windows.length > 0 ? windows[0] : undefined;
       }
 
       return {
         requestId: response.requestId,
         success: true,
-        window: activeWindow,
+        window,
       };
     } catch (error) {
       return {
         requestId: "",
         success: false,
-        errorMessage: `Failed to get active window: ${error}`,
+        errorMessage: `Failed to get window info: ${error}`,
       };
     }
   }
 
   /**
-   * Activates a window by ID.
+   * Activates a window by bringing it to the foreground.
    * Corresponds to Python's activate_window() method
    *
-   * @param windowId The ID of the window to activate.
-   * @returns BoolResult with requestId
+   * @param windowId - The ID of the window to activate.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.activateWindow() instead.
    */
   async activateWindow(windowId: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.activateWindow() is deprecated. Use session.computer.activateWindow() instead.');
+    
     try {
       const args = {
         window_id: windowId,
@@ -203,13 +269,17 @@ export class WindowManager {
   }
 
   /**
-   * Maximizes a window by ID.
+   * Maximizes a window.
    * Corresponds to Python's maximize_window() method
    *
-   * @param windowId The ID of the window to maximize.
-   * @returns BoolResult with requestId
+   * @param windowId - The ID of the window to maximize.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.maximizeWindow() instead.
    */
   async maximizeWindow(windowId: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.maximizeWindow() is deprecated. Use session.computer.maximizeWindow() instead.');
+    
     try {
       const args = {
         window_id: windowId,
@@ -243,13 +313,17 @@ export class WindowManager {
   }
 
   /**
-   * Minimizes a window by ID.
+   * Minimizes a window.
    * Corresponds to Python's minimize_window() method
    *
-   * @param windowId The ID of the window to minimize.
-   * @returns BoolResult with requestId
+   * @param windowId - The ID of the window to minimize.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.minimizeWindow() instead.
    */
   async minimizeWindow(windowId: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.minimizeWindow() is deprecated. Use session.computer.minimizeWindow() instead.');
+    
     try {
       const args = {
         window_id: windowId,
@@ -323,13 +397,17 @@ export class WindowManager {
   }
 
   /**
-   * Closes a window by ID.
+   * Closes a window.
    * Corresponds to Python's close_window() method
    *
-   * @param windowId The ID of the window to close.
-   * @returns BoolResult with requestId
+   * @param windowId - The ID of the window to close.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.closeWindow() instead.
    */
   async closeWindow(windowId: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.closeWindow() is deprecated. Use session.computer.closeWindow() instead.');
+    
     try {
       const args = {
         window_id: windowId,
@@ -403,19 +481,19 @@ export class WindowManager {
   }
 
   /**
-   * Resizes a window by ID.
+   * Resizes a window to the specified dimensions.
    * Corresponds to Python's resize_window() method
    *
-   * @param windowId The ID of the window to resize.
-   * @param width The new width of the window.
-   * @param height The new height of the window.
-   * @returns BoolResult with requestId
+   * @param windowId - The ID of the window to resize.
+   * @param width - The new width of the window.
+   * @param height - The new height of the window.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.resizeWindow() instead.
    */
-  async resizeWindow(
-    windowId: number,
-    width: number,
-    height: number
-  ): Promise<BoolResult> {
+  async resizeWindow(windowId: number, width: number, height: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.resizeWindow() is deprecated. Use session.computer.resizeWindow() instead.');
+    
     try {
       const args = {
         window_id: windowId,
@@ -446,6 +524,54 @@ export class WindowManager {
         requestId: "",
         success: false,
         errorMessage: `Failed to resize window: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Moves a window to the specified position.
+   * Corresponds to Python's move_window() method
+   *
+   * @param windowId - The ID of the window to move.
+   * @param x - The new x coordinate of the window.
+   * @param y - The new y coordinate of the window.
+   * @returns BoolResult with success status and requestId
+   * 
+   * @deprecated Use session.computer.moveWindow() instead.
+   */
+  async moveWindow(windowId: number, x: number, y: number): Promise<BoolResult> {
+    console.warn('⚠️  WindowManager.moveWindow() is deprecated. Use session.computer.moveWindow() instead.');
+    
+    try {
+      const args = {
+        window_id: windowId,
+        x,
+        y,
+      };
+
+      const response = await this.session.callMcpTool(
+        "move_window",
+        args
+      );
+
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
+      return {
+        requestId: response.requestId,
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to move window: ${error}`,
       };
     }
   }
@@ -486,6 +612,55 @@ export class WindowManager {
         requestId: "",
         success: false,
         errorMessage: `Failed to toggle focus mode: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Gets the currently active window.
+   * Corresponds to Python's get_active_window() method
+   *
+   * @returns WindowInfoResult with active window information and requestId
+   * 
+   * @deprecated Use session.computer.getActiveWindow() instead.
+   */
+  async getActiveWindow(): Promise<WindowInfoResult> {
+    console.warn('⚠️  WindowManager.getActiveWindow() is deprecated. Use session.computer.getActiveWindow() instead.');
+    
+    try {
+      const args = {
+        timeout_ms: 3000,
+      };
+
+      const response = await this.session.callMcpTool(
+        "get_active_window",
+        args
+      );
+
+      if (!response.success) {
+        return {
+          requestId: response.requestId,
+          success: false,
+          errorMessage: response.errorMessage,
+        };
+      }
+
+      let activeWindow: Window | undefined = undefined;
+      if (response.data) {
+        const windows = this.parseWindowsFromJSON(response.data);
+        activeWindow = windows.length > 0 ? windows[0] : undefined;
+      }
+
+      return {
+        requestId: response.requestId,
+        success: true,
+        window: activeWindow,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to get active window: ${error}`,
       };
     }
   }

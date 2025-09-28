@@ -1,8 +1,10 @@
 from .agentbay import AgentBay, Config
 from .application import ApplicationManager, InstalledApp, Process
 from .command import Command
+from .computer import Computer
 from .exceptions import AgentBayError, APIError, AuthenticationError
 from .filesystem import FileSystem
+from .mobile import Mobile
 from .oss import Oss
 from .session import Session
 from .session_params import CreateSessionParams, ListSessionParams
@@ -31,6 +33,8 @@ __all__ = [
     "AgentBayError",
     "AuthenticationError",
     "APIError",
+    "Computer",
+    "Mobile",
     "UI",
     "Oss",
     "FileSystem",

@@ -259,6 +259,13 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   }
 
   /**
+   * Alias for withEnableBrowserReplay for backward compatibility.
+   */
+  withEnableRecord(enableRecord: boolean): CreateSessionParams {
+    return this.withEnableBrowserReplay(enableRecord);
+  }
+
+  /**
    * GetLabelsJSON returns the labels as a JSON string.
    * Returns an object with success status and result/error message to match Go version behavior.
    */

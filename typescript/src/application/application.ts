@@ -28,6 +28,10 @@ export interface Process {
 
 /**
  * Handles application operations in the AgentBay cloud environment.
+ * 
+ * @deprecated This module is deprecated. Use Computer or Mobile modules instead.
+ * - For desktop applications, use session.computer
+ * - For mobile applications, use session.mobile
  */
 export class Application {
   private session: {
@@ -88,20 +92,22 @@ export class Application {
   }
 
   /**
-   * Retrieves a list of installed applications.
-   * Corresponds to Python's get_installed_apps() method
+   * Get a list of installed applications.
    *
-   * @param startMenu - Whether to include applications from the start menu. Defaults to true.
-   * @param desktop - Whether to include applications from the desktop. Defaults to true.
-   * @param ignoreSystemApps - Whether to ignore system applications. Defaults to true.
-   * @returns InstalledAppListResult with installed apps and requestId
-   * @throws Error if the operation fails.
+   * @param startMenu - Whether to include start menu applications.
+   * @param desktop - Whether to include desktop applications.
+   * @param ignoreSystemApps - Whether to ignore system applications.
+   * @returns A promise that resolves to the list of installed applications.
+   * 
+   * @deprecated Use session.computer.getInstalledApps() for desktop or session.mobile.getInstalledApps() for mobile instead.
    */
   async getInstalledApps(
-    startMenu = true,
+    startMenu = false,
     desktop = true,
     ignoreSystemApps = true
   ): Promise<InstalledAppListResult> {
+    console.warn('⚠️  Application.getInstalledApps() is deprecated. Use session.computer.getInstalledApps() for desktop or session.mobile.getInstalledApps() for mobile instead.');
+    
     try {
       const args = {
         start_menu: startMenu,
@@ -148,20 +154,22 @@ export class Application {
   }
 
   /**
-   * Starts an application with the given command and optional working directory.
-   * Corresponds to Python's start_app() method
+   * Start an application.
    *
    * @param startCmd - The command to start the application.
-   * @param workDirectory - The working directory for the application. Defaults to an empty string.
-   * @param activity - Activity name to launch (e.g. ".SettingsActivity" or "com.package/.Activity"). Defaults to an empty string.
-   * @returns ProcessListResult with started processes and requestId
-   * @throws Error if the operation fails.
+   * @param workDirectory - The working directory for the application.
+   * @param activity - The activity to start (for mobile applications).
+   * @returns A promise that resolves to the result of starting the application.
+   * 
+   * @deprecated Use session.computer.startApp() for desktop or session.mobile.startApp() for mobile instead.
    */
   async startApp(
     startCmd: string,
     workDirectory = "",
     activity = ""
   ): Promise<ProcessListResult> {
+    console.warn('⚠️  Application.startApp() is deprecated. Use session.computer.startApp() for desktop or session.mobile.startApp() for mobile instead.');
+    
     try {
       const args = {
         start_cmd: startCmd,
@@ -208,14 +216,16 @@ export class Application {
   }
 
   /**
-   * Stops an application by process name.
-   * Corresponds to Python's stop_app_by_pname() method
+   * Stop an application by process name.
    *
-   * @param pname - The process name to stop.
-   * @returns AppOperationResult with operation result and requestId
-   * @throws Error if the operation fails.
+   * @param pname - The process name of the application to stop.
+   * @returns A promise that resolves to the result of stopping the application.
+   * 
+   * @deprecated Use session.computer.stopAppByPName() for desktop or session.mobile.stopAppByPName() for mobile instead.
    */
   async stopAppByPName(pname: string): Promise<AppOperationResult> {
+    console.warn('⚠️  Application.stopAppByPName() is deprecated. Use session.computer.stopAppByPName() for desktop or session.mobile.stopAppByPName() for mobile instead.');
+    
     try {
       const args = { pname };
       const result = await this.session.callMcpTool("stop_app_by_pname", args);
@@ -276,16 +286,18 @@ export class Application {
   }
 
   /**
-   * Stops an application by stop command.
-   * Corresponds to Python's stop_app_by_cmd() method
+   * Stop an application by command.
    *
-   * @param stopCmd - The stop command to execute.
-   * @returns AppOperationResult with operation result and requestId
-   * @throws Error if the operation fails.
+   * @param cmd - The command to stop the application.
+   * @returns A promise that resolves to the result of stopping the application.
+   * 
+   * @deprecated Use session.computer.stopAppByCmd() for desktop or session.mobile.stopAppByCmd() for mobile instead.
    */
-  async stopAppByCmd(stopCmd: string): Promise<AppOperationResult> {
+  async stopAppByCmd(cmd: string): Promise<AppOperationResult> {
+    console.warn('⚠️  Application.stopAppByCmd() is deprecated. Use session.computer.stopAppByCmd() for desktop or session.mobile.stopAppByCmd() for mobile instead.');
+    
     try {
-      const args = { stop_cmd: stopCmd };
+      const args = { stop_cmd: cmd };
       const result = await this.session.callMcpTool("stop_app_by_cmd", args);
 
       if (!result.success) {
@@ -352,6 +364,104 @@ export class Application {
         success: false,
         data: [],
         errorMessage: `Failed to list visible apps: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Get a list of running processes.
+   *
+   * @returns A promise that resolves to the list of running processes.
+   * 
+   * @deprecated Use session.computer.getRunningProcesses() for desktop or session.mobile.getRunningProcesses() for mobile instead.
+   */
+  async getRunningProcesses(): Promise<ProcessListResult> {
+    console.warn('⚠️  Application.getRunningProcesses() is deprecated. Use session.computer.getRunningProcesses() for desktop or session.mobile.getRunningProcesses() for mobile instead.');
+    
+    try {
+      const result = await this.session.callMcpTool("list_running_processes", {});
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: result.errorMessage,
+        };
+      }
+
+      let processes: Process[] = [];
+      try {
+        processes = this.parseJSON<Process[]>(result.data);
+      } catch (err) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: `Failed to parse running processes: ${err}`,
+        };
+      }
+
+      return {
+        requestId: result.requestId,
+        success: true,
+        data: processes,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to get running processes: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Get a list of visible applications.
+   *
+   * @returns A promise that resolves to the list of visible applications.
+   * 
+   * @deprecated Use session.computer.getVisibleApps() for desktop instead. This API is not available for mobile.
+   */
+  async getVisibleApps(): Promise<InstalledAppListResult> {
+    console.warn('⚠️  Application.getVisibleApps() is deprecated. Use session.computer.getVisibleApps() for desktop instead. This API is not available for mobile.');
+    
+    try {
+      const result = await this.session.callMcpTool("list_visible_apps", {});
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: result.errorMessage,
+        };
+      }
+
+      let apps: InstalledApp[] = [];
+      try {
+        apps = this.parseJSON<InstalledApp[]>(result.data);
+      } catch (err) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          data: [],
+          errorMessage: `Failed to parse visible apps: ${err}`,
+        };
+      }
+
+      return {
+        requestId: result.requestId,
+        success: true,
+        data: apps,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        data: [],
+        errorMessage: `Failed to get visible apps: ${error}`,
       };
     }
   }
