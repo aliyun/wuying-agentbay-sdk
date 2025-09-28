@@ -497,6 +497,9 @@ class TestAgentBayDelete(unittest.TestCase):
         # Mock session.delete return value
         delete_result = DeleteResult(request_id="request-123", success=True)
         self.session.delete.return_value = delete_result
+        
+        # Ensure session doesn't have enableBrowserReplay or it's False
+        self.session.enableBrowserReplay = False
 
         # Import AgentBay class
         from agentbay import AgentBay

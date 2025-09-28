@@ -99,7 +99,7 @@ describe("ApplicationApi", () => {
       const callArgs = callMcpToolStub.getCall(0).args;
       expect(callArgs[0]).toBe("get_installed_apps");
       expect(callArgs[1]).toEqual({
-        start_menu: true,
+        start_menu: false,
         desktop: true,
         ignore_system_apps: true,
       });

@@ -16,7 +16,9 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/application"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/code"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/computer"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/mobile"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/oss"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
@@ -123,6 +125,10 @@ type Session struct {
 	Application *application.ApplicationManager
 	Window      *window.WindowManager
 
+	// Platform-specific automation modules
+	Computer *computer.Computer
+	Mobile   *mobile.Mobile
+
 	// Agent for task execution
 	Agent *agent.Agent
 
@@ -152,6 +158,10 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 	// Initialize application and window managers
 	session.Application = application.NewApplicationManager(session)
 	session.Window = window.NewWindowManager(session)
+
+	// Initialize platform-specific automation modules
+	session.Computer = computer.NewComputer(session)
+	session.Mobile = mobile.NewMobile(session)
 
 	// Initialize Agent
 	session.Agent = agent.NewAgent(session)

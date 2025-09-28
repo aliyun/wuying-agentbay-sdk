@@ -14,8 +14,10 @@ import { Application } from "./application";
 import { Browser } from "./browser";
 import { Code } from "./code";
 import { Command } from "./command";
+import { Computer } from "./computer";
 import { ContextManager, newContextManager } from "./context-manager";
 import { FileSystem } from "./filesystem";
+import { Mobile } from "./mobile";
 import { Oss } from "./oss";
 import {
   DeleteResult,
@@ -42,6 +44,28 @@ export interface McpTool {
  */
 export interface McpToolsResult extends OperationResult {
   tools: McpTool[];
+}
+
+/**
+ * Result containing MCP resource information and request ID.
+ */
+export interface McpResourceResult extends OperationResult {
+  uri: string;
+  name: string;
+  description: string;
+  mimeType: string;
+}
+
+/**
+ * Result containing MCP resource content and request ID.
+ */
+export interface McpResourceContentResult extends OperationResult {
+  contents: Array<{
+    uri: string;
+    mimeType: string;
+    text?: string;
+    blob?: string;
+  }>;
 }
 
 /**
@@ -122,6 +146,10 @@ export class Session {
   public window: WindowManager;
   public ui: UI;
 
+  // Computer and Mobile automation (new modules)
+  public computer: Computer;
+  public mobile: Mobile;
+
   // Agent for task execution
   public agent: Agent;
 
@@ -154,6 +182,10 @@ export class Session {
     this.application = new Application(this);
     this.window = new WindowManager(this);
     this.ui = new UI(this);
+
+    // Initialize Computer and Mobile modules
+    this.computer = new Computer(this);
+    this.mobile = new Mobile(this);
 
     // Initialize Agent
     this.agent = new Agent(this);

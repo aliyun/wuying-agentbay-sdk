@@ -35,6 +35,10 @@ export interface UIElement {
 
 /**
  * Handles UI operations in the AgentBay cloud environment.
+ * 
+ * @deprecated This module is deprecated. Use Computer or Mobile modules instead.
+ * - For desktop UI operations, use session.computer
+ * - For mobile UI operations, use session.mobile
  */
 export class UI {
   private session: Session;
@@ -78,10 +82,14 @@ export class UI {
    * Corresponds to Python's get_clickable_ui_elements() method
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
-   * @returns UIElementListResult with clickable UI elements and requestId
-   * @throws APIError if the operation fails.
+   * @returns UIElementListResult with clickable elements and requestId
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.getClickableUIElements() for desktop or session.mobile.getClickableUIElements() for mobile instead.
    */
   async getClickableUIElements(timeoutMs = 2000): Promise<UIElementListResult> {
+    console.warn('⚠️  UI.getClickableUIElements() is deprecated. Use session.computer.getClickableUIElements() for desktop or session.mobile.getClickableUIElements() for mobile instead.');
+    
     try {
       const args = { timeout_ms: timeoutMs };
       const result = await this.session.callMcpTool("get_clickable_ui_elements", args);
@@ -127,10 +135,14 @@ export class UI {
    * Corresponds to Python's get_all_ui_elements() method
    *
    * @param timeoutMs - The timeout in milliseconds. Default is 2000ms.
-   * @returns UIElementListResult with all UI elements and requestId
-   * @throws APIError if the operation fails.
+   * @returns UIElementListResult with all elements and requestId
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.getAllUIElements() for desktop or session.mobile.getAllUIElements() for mobile instead.
    */
   async getAllUIElements(timeoutMs = 2000): Promise<UIElementListResult> {
+    console.warn('⚠️  UI.getAllUIElements() is deprecated. Use session.computer.getAllUIElements() for desktop or session.mobile.getAllUIElements() for mobile instead.');
+    
     try {
       const args = { timeout_ms: timeoutMs };
       const result = await this.session.callMcpTool("get_all_ui_elements", args);
@@ -183,9 +195,13 @@ export class UI {
    *   - 26 : POWER
    *   - 82 : MENU
    * @returns BoolResult with success status and requestId
-   * @throws APIError if the operation fails.
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.pressKeys() for desktop or session.mobile.sendKey() for mobile instead.
    */
   async sendKey(key: number): Promise<BoolResult> {
+    console.warn('⚠️  UI.sendKey() is deprecated. Use session.computer.pressKeys() for desktop or session.mobile.sendKey() for mobile instead.');
+    
     try {
       const args = { key };
       const result = await this.session.callMcpTool("send_key", args);
@@ -212,9 +228,13 @@ export class UI {
    *
    * @param text - The text to input
    * @returns BoolResult with success status and requestId
-   * @throws APIError if the operation fails.
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.inputText() for desktop or session.mobile.inputText() for mobile instead.
    */
   async inputText(text: string): Promise<BoolResult> {
+    console.warn('⚠️  UI.inputText() is deprecated. Use session.computer.inputText() for desktop or session.mobile.inputText() for mobile instead.');
+    
     try {
       const args = { text };
       const result = await this.session.callMcpTool("input_text", args);
@@ -245,7 +265,9 @@ export class UI {
    * @param endY - The ending Y coordinate
    * @param durationMs - The duration of the swipe in milliseconds. Default is 300ms.
    * @returns BoolResult with success status and requestId
-   * @throws APIError if the operation fails.
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.dragMouse() for desktop or session.mobile.swipe() for mobile instead.
    */
   async swipe(
     startX: number,
@@ -254,6 +276,8 @@ export class UI {
     endY: number,
     durationMs = 300
   ): Promise<BoolResult> {
+    console.warn('⚠️  UI.swipe() is deprecated. Use session.computer.dragMouse() for desktop or session.mobile.swipe() for mobile instead.');
+    
     try {
       const args = {
         start_x: startX,
@@ -288,9 +312,13 @@ export class UI {
    * @param y - The Y coordinate
    * @param button - The mouse button to use. Default is 'left'
    * @returns BoolResult with success status and requestId
-   * @throws APIError if the operation fails.
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.clickMouse() for desktop or session.mobile.tap() for mobile instead.
    */
   async click(x: number, y: number, button = "left"): Promise<BoolResult> {
+    console.warn('⚠️  UI.click() is deprecated. Use session.computer.clickMouse() for desktop or session.mobile.tap() for mobile instead.');
+    
     try {
       const args = { x, y, button };
       const result = await this.session.callMcpTool("click", args);
@@ -316,9 +344,13 @@ export class UI {
    * Corresponds to Python's screenshot() method
    *
    * @returns OperationResult with success status and requestId
-   * @throws APIError if the operation fails.
+   * @throws Error if the operation fails.
+   * 
+   * @deprecated Use session.computer.screenshot() for desktop or session.mobile.screenshot() for mobile instead.
    */
   async screenshot(): Promise<OperationResult> {
+    console.warn('⚠️  UI.screenshot() is deprecated. Use session.computer.screenshot() for desktop or session.mobile.screenshot() for mobile instead.');
+    
     try {
       const result = await this.session.callMcpTool("system_screenshot", {});
 
