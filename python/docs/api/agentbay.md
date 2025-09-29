@@ -110,6 +110,58 @@ if browser_result.success:
     browser_session = browser_result.session
     print(f"Created browser session with replay: {browser_session.session_id}")
     # Browser replay files are automatically generated for internal processing
+
+# Create a mobile session with whitelist configuration
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
+
+app_whitelist_rule = AppManagerRule(
+    rule_type="White",
+    app_package_name_list=[
+        "com.android.settings",
+        "com.example.trusted.app",
+        "com.system.essential.service"
+    ]
+)
+mobile_config = MobileExtraConfig(
+    lock_resolution=True,  # Lock screen resolution for consistent testing
+    app_manager_rule=app_whitelist_rule
+)
+extra_configs = ExtraConfigs(mobile=mobile_config)
+
+mobile_params = CreateSessionParams(
+    image_id="mobile_latest",
+    labels={"project": "mobile-testing", "config_type": "whitelist"},
+    extra_configs=extra_configs
+)
+mobile_result = agent_bay.create(mobile_params)
+if mobile_result.success:
+    mobile_session = mobile_result.session
+    print(f"Created mobile session with whitelist: {mobile_session.session_id}")
+
+# Create a mobile session with blacklist configuration
+app_blacklist_rule = AppManagerRule(
+    rule_type="Black",
+    app_package_name_list=[
+        "com.malware.suspicious",
+        "com.unwanted.adware",
+        "com.social.distraction"
+    ]
+)
+mobile_security_config = MobileExtraConfig(
+    lock_resolution=False,  # Allow adaptive resolution
+    app_manager_rule=app_blacklist_rule
+)
+security_extra_configs = ExtraConfigs(mobile=mobile_security_config)
+
+mobile_security_params = CreateSessionParams(
+    image_id="mobile_latest",
+    labels={"project": "mobile-security", "config_type": "blacklist", "security": "enabled"},
+    extra_configs=security_extra_configs
+)
+security_result = agent_bay.create(mobile_security_params)
+if security_result.success:
+    security_session = security_result.session
+    print(f"Created secure mobile session with blacklist: {security_session.session_id}")
 ```
 
 
