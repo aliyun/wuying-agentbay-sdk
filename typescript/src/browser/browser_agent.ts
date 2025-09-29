@@ -80,7 +80,7 @@ export class BrowserAgent {
 
     if (response.success && response.data) {
       const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-      return new ActResult(true, JSON.stringify(data), options.action);
+      return new ActResult(true, JSON.stringify(data));
     }
     return new ActResult(false, response.errorMessage || "");
   }
@@ -118,7 +118,7 @@ export class BrowserAgent {
         if (is_done) {
           const msg = steps.length ? JSON.stringify(steps) : "No actions have been executed.";
           log(`Task ${task_id} is done. Success=${success}. ${msg}`);
-          return new ActResult(success, msg, options.action);
+          return new ActResult(success, msg);
         } else {
           if (steps.length) {
             log(`Task ${task_id} progress: ${steps.length} steps done. Details: ${JSON.stringify(steps)}`);
