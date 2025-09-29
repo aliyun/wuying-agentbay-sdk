@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/unit/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -121,4 +122,104 @@ func TestSessionParams_AddContextSync_WithMockClient(t *testing.T) {
 	assert.Equal(t, contextID, result.ContextSync[0].ContextID)
 	assert.Equal(t, path, result.ContextSync[0].Path)
 	assert.True(t, result.ContextSync[0].Policy.UploadPolicy.AutoUpload)
+}
+
+// Extra Config related tests
+func TestSessionParams_WithExtraConfigs(t *testing.T) {
+	params := agentbay.NewCreateSessionParams()
+
+	// Create mobile configuration with app manager rule and lock resolution
+	appRule := &models.AppManagerRule{
+		RuleType:           "White",
+		AppPackageNameList: []string{"com.android.settings", "com.example.test.app"},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	// Set extra configs
+	params.WithExtraConfigs(extraConfigs)
+
+	assert.NotNil(t, params.ExtraConfigs)
+	assert.NotNil(t, params.ExtraConfigs.Mobile)
+	assert.True(t, params.ExtraConfigs.Mobile.LockResolution)
+	assert.NotNil(t, params.ExtraConfigs.Mobile.AppManagerRule)
+	assert.Equal(t, "White", params.ExtraConfigs.Mobile.AppManagerRule.RuleType)
+	assert.Equal(t, 2, len(params.ExtraConfigs.Mobile.AppManagerRule.AppPackageNameList))
+}
+
+func TestSessionParams_GetExtraConfigsJSON(t *testing.T) {
+	params := agentbay.NewCreateSessionParams()
+
+	// Test with nil ExtraConfigs
+	jsonStr, err := params.GetExtraConfigsJSON()
+	assert.NoError(t, err)
+	assert.Equal(t, "", jsonStr)
+
+	// Test with mobile configuration including lock resolution
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.test.app",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+	params.WithExtraConfigs(extraConfigs)
+
+	jsonStr, err = params.GetExtraConfigsJSON()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jsonStr)
+	assert.Contains(t, jsonStr, "mobile")
+	assert.Contains(t, jsonStr, "lock_resolution")
+	assert.Contains(t, jsonStr, "app_manager_rule")
+}
+
+func TestSessionParams_MethodChaining_WithExtraConfigs(t *testing.T) {
+	params := agentbay.NewCreateSessionParams()
+
+	// Create mobile configuration for chaining test with lock resolution
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.app",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	// Test method chaining
+	result := params.
+		WithImageId("mobile_latest").
+		WithLabels(map[string]string{
+			"project":   "mobile-testing",
+			"test_type": "extra_config",
+		}).
+		WithExtraConfigs(extraConfigs)
+
+	// Verify chaining returns the same instance
+	assert.Equal(t, params, result)
+
+	// Verify all configurations are set
+	assert.Equal(t, "mobile_latest", params.ImageId)
+	assert.Equal(t, 2, len(params.Labels))
+	assert.NotNil(t, params.ExtraConfigs)
+	assert.NotNil(t, params.ExtraConfigs.Mobile)
+	assert.True(t, params.ExtraConfigs.Mobile.LockResolution)
 }

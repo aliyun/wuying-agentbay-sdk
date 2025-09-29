@@ -128,6 +128,17 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		createSessionRequest.Labels = tea.String(labelsJSON)
 	}
 
+	// Add extra configs if provided
+	if params.ExtraConfigs != nil {
+		extraConfigsJSON, err := params.GetExtraConfigsJSON()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal extra configs to JSON: %v", err)
+		}
+		if extraConfigsJSON != "" {
+			createSessionRequest.ExtraConfigs = tea.String(extraConfigsJSON)
+		}
+	}
+
 	// Flag to indicate if we need to wait for context synchronization
 	needsContextSync := false
 
@@ -248,6 +259,17 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 
 	a.Sessions.Store(session.SessionID, *session)
+
+	// Apply mobile configuration if provided
+	if params.ExtraConfigs != nil && params.ExtraConfigs.Mobile != nil {
+		fmt.Println("Applying mobile configuration...")
+		if err := session.Mobile.Configure(params.ExtraConfigs.Mobile); err != nil {
+			fmt.Printf("Warning: Failed to apply mobile configuration: %v\n", err)
+			// Continue with session creation even if mobile config fails
+		} else {
+			fmt.Println("Mobile configuration applied successfully")
+		}
+	}
 
 	// For VPC sessions, automatically fetch MCP tools information
 	if params.IsVpc {

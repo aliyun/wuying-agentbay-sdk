@@ -17,6 +17,7 @@ import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/code"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/mobile"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/oss"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/ui"
@@ -126,6 +127,9 @@ type Session struct {
 	// Agent for task execution
 	Agent *agent.Agent
 
+	// Mobile configuration and management
+	Mobile *mobile.Mobile
+
 	// Context management
 	Context *ContextManager
 
@@ -155,6 +159,9 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 
 	// Initialize Agent
 	session.Agent = agent.NewAgent(session)
+
+	// Initialize Mobile
+	session.Mobile = mobile.NewMobile(session.Command)
 
 	// Initialize context manager
 	session.Context = NewContextManager(session)

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
 // This example demonstrates how to create, list, and delete sessions
@@ -27,14 +28,107 @@ func main() {
 	}
 
 	// Create a new session with default parameters
-	fmt.Println("\nCreating a new session...")
+	fmt.Println("\n1. Creating a new session with default parameters...")
 	sessionResult, err := agentBay.Create(nil)
 	if err != nil {
 		fmt.Printf("\nError creating session: %v\n", err)
 		os.Exit(1)
 	}
 	session := sessionResult.Session
-	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
+	fmt.Printf("Session created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
+
+	// Create a mobile session with whitelist configuration
+	fmt.Println("\n2. Creating mobile session with whitelist configuration...")
+	// Create mobile configuration with whitelist
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.test.app",
+			"com.trusted.service",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	mobileWhitelistParams := agentbay.NewCreateSessionParams().
+		WithImageId("mobile_latest").
+		WithLabels(map[string]string{
+			"project":     "mobile-testing",
+			"config_type": "whitelist",
+			"environment": "development",
+		}).
+		WithExtraConfigs(extraConfigs)
+
+	mobileWhitelistResult, err := agentBay.Create(mobileWhitelistParams)
+	if err != nil {
+		fmt.Printf("Error creating mobile whitelist session: %v\n", err)
+	} else {
+		mobileWhitelistSession := mobileWhitelistResult.Session
+		fmt.Printf("Mobile whitelist session created with ID: %s (RequestID: %s)\n",
+			mobileWhitelistSession.SessionID, mobileWhitelistResult.RequestID)
+
+		// Clean up mobile whitelist session
+		defer func() {
+			if deleteResult, err := mobileWhitelistSession.Delete(); err != nil {
+				fmt.Printf("Error deleting mobile whitelist session: %v\n", err)
+			} else {
+				fmt.Printf("Mobile whitelist session deleted (RequestID: %s)\n", deleteResult.RequestID)
+			}
+		}()
+	}
+
+	// Create a mobile session with blacklist configuration
+	fmt.Println("\n3. Creating mobile session with blacklist configuration...")
+	// Create mobile configuration with blacklist
+	blacklistAppRule := &models.AppManagerRule{
+		RuleType: "Black",
+		AppPackageNameList: []string{
+			"com.malware.suspicious",
+			"com.unwanted.adware",
+			"com.blocked.app",
+		},
+	}
+	blacklistMobileConfig := &models.MobileExtraConfig{
+		LockResolution: false,
+		AppManagerRule: blacklistAppRule,
+	}
+	blacklistExtraConfigs := &models.ExtraConfigs{
+		Mobile: blacklistMobileConfig,
+	}
+
+	mobileBlacklistParams := agentbay.NewCreateSessionParams().
+		WithImageId("mobile_latest").
+		WithLabels(map[string]string{
+			"project":     "mobile-security",
+			"config_type": "blacklist",
+			"environment": "production",
+			"security":    "enabled",
+		}).
+		WithExtraConfigs(blacklistExtraConfigs)
+
+	mobileBlacklistResult, err := agentBay.Create(mobileBlacklistParams)
+	if err != nil {
+		fmt.Printf("Error creating mobile blacklist session: %v\n", err)
+	} else {
+		mobileBlacklistSession := mobileBlacklistResult.Session
+		fmt.Printf("Mobile blacklist session created with ID: %s (RequestID: %s)\n",
+			mobileBlacklistSession.SessionID, mobileBlacklistResult.RequestID)
+
+		// Clean up mobile blacklist session
+		defer func() {
+			if deleteResult, err := mobileBlacklistSession.Delete(); err != nil {
+				fmt.Printf("Error deleting mobile blacklist session: %v\n", err)
+			} else {
+				fmt.Printf("Mobile blacklist session deleted (RequestID: %s)\n", deleteResult.RequestID)
+			}
+		}()
+	}
 
 	// List all sessions
 	fmt.Println("\nListing all sessions...")
