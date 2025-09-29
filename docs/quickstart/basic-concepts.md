@@ -276,6 +276,8 @@ session.file_system.write_file("C:\\Users\\temp_data.txt", "temporary content")
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
 from agentbay import ContextSync
+
+agent_bay = AgentBay()
 # Create persistent context
 context = agent_bay.context.get("my-project", create=True).context
 
@@ -290,7 +292,7 @@ session = agent_bay.create(params).session
 session.file_system.write_file("/tmp/data/config.json", '{"setting": "value"}')
 session.file_system.read_file("/tmp/data/config.json")
 # release session
-self.run_delete_session(session)
+session.delete()
 ```
 
 ## 🏷️ Labels and Organization
