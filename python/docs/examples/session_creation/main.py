@@ -241,7 +241,7 @@ def create_session_with_mobile_config() -> None:
 
     # Create session parameters with mobile configuration
     session_params = CreateSessionParams(
-        image_id="mobile_android_latest",
+        image_id="mobile_latest",
         labels={
             "project": "mobile-testing",
             "environment": "development",
