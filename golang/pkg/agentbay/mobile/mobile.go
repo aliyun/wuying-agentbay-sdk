@@ -68,7 +68,7 @@ func (m *Mobile) setResolutionLock(enable bool) error {
 		templateName = "resolution_lock_disable"
 	}
 
-	template, exists := getMobileCommandTemplate(templateName)
+	template, exists := command.GetMobileCommandTemplate(templateName)
 	if !exists {
 		return fmt.Errorf("resolution lock template not found: %s", templateName)
 	}
@@ -78,28 +78,28 @@ func (m *Mobile) setResolutionLock(enable bool) error {
 
 // setAppWhitelist sets app whitelist configuration
 func (m *Mobile) setAppWhitelist(packageNames []string) error {
-	template, exists := getMobileCommandTemplate("app_whitelist")
+	template, exists := command.GetMobileCommandTemplate("app_whitelist")
 	if !exists {
 		return fmt.Errorf("app whitelist template not found")
 	}
 
-	// Replace placeholder with actual package names
-	packageList := strings.Join(packageNames, " ")
-	command := strings.ReplaceAll(template, "{package_names}", packageList)
+	// Replace placeholder with actual package names (newline-separated for file content)
+	packageList := strings.Join(packageNames, "\n")
+	command := strings.ReplaceAll(template, "{package_list}", packageList)
 
 	return m.executeTemplateCommand(command, fmt.Sprintf("App whitelist configuration (%d packages)", len(packageNames)))
 }
 
 // setAppBlacklist sets app blacklist configuration
 func (m *Mobile) setAppBlacklist(packageNames []string) error {
-	template, exists := getMobileCommandTemplate("app_blacklist")
+	template, exists := command.GetMobileCommandTemplate("app_blacklist")
 	if !exists {
 		return fmt.Errorf("app blacklist template not found")
 	}
 
-	// Replace placeholder with actual package names
-	packageList := strings.Join(packageNames, " ")
-	command := strings.ReplaceAll(template, "{package_names}", packageList)
+	// Replace placeholder with actual package names (newline-separated for file content)
+	packageList := strings.Join(packageNames, "\n")
+	command := strings.ReplaceAll(template, "{package_list}", packageList)
 
 	return m.executeTemplateCommand(command, fmt.Sprintf("App blacklist configuration (%d packages)", len(packageNames)))
 }
@@ -122,17 +122,4 @@ func (m *Mobile) executeTemplateCommand(commandTemplate, description string) err
 	}
 
 	return nil
-}
-
-// getMobileCommandTemplate returns mobile command templates
-func getMobileCommandTemplate(templateName string) (string, bool) {
-	templates := map[string]string{
-		"resolution_lock_enable":  "settings put system user_rotation 0",
-		"resolution_lock_disable": "settings put system user_rotation 1",
-		"app_whitelist":           "pm disable-user --user 0 {package_names}",
-		"app_blacklist":           "pm hide --user 0 {package_names}",
-	}
-
-	template, exists := templates[templateName]
-	return template, exists
 }
