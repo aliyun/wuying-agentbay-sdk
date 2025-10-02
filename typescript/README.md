@@ -47,7 +47,6 @@ main().catch(console.error);
 ### 🆕 New Users
 - [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
-- [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and techniques
 
 ### 🚀 Experienced Users
 - [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
@@ -55,7 +54,6 @@ main().catch(console.error);
 - [💻 TypeScript Examples](docs/examples/) - Complete example code
 
 ### 🆘 Need Help
-- [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 - [🔧 TypeScript API Reference](docs/api/README.md) - Local API documentation
 - [💡 TypeScript Examples](docs/examples/README.md) - Local example code
 
@@ -66,8 +64,6 @@ main().catch(console.error);
 // Create session
 const session = (await agentBay.create()).session;
 
-// List sessions
-const sessions = await agentBay.list();
 
 // Connect to existing session
 const session = await agentBay.connect("session_id");

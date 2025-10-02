@@ -61,15 +61,12 @@ func main() {
 ### 🆕 New Users
 - [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
-- [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and techniques
 
 ### 🚀 Experienced Users
 - [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
 - [🔧 Golang API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Golang Examples](docs/examples/) - Complete example code
 
-### 🆘 Need Help
-- [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 
 ## 🔧 Core Features Quick Reference
 
@@ -79,8 +76,6 @@ func main() {
 result, _ := client.Create(nil)
 session := result.Session
 
-// List sessions
-sessions, _ := client.List()
 
 // Connect to existing session
 session, _ := client.Connect("session_id")

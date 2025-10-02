@@ -113,30 +113,6 @@ if browser_result.success:
 ```
 
 
-```python
-list() -> List[Session]
-```
-
-**Returns:**
-- `List[Session]`: A list of Session instances currently cached in the client.
-
-**Raises:**
-- `AgentBayError`: If the session listing fails.
-
-**Example:**
-```python
-from agentbay import AgentBay
-
-# Initialize the SDK
-agent_bay = AgentBay(api_key="your_api_key")
-
-# List all sessions
-sessions = agent_bay.list()
-print(f"Found {len(sessions)} sessions:")
-for session in sessions:
-    print(f"Session ID: {session.session_id}")
-```
-
 
 ```python
 list_by_labels(params: Optional[Union[ListSessionParams, Dict[str, str]]] = None) -> SessionListResult

@@ -70,7 +70,15 @@ class AgentBay:
     environment.
     """
 
-    def __init__(self, api_key: str = "", cfg: Optional[Config] = None):
+    def __init__(self, api_key: str = "", cfg: Optional[Config] = None, env_file: Optional[str] = None):
+        """
+        Initialize AgentBay client.
+        
+        Args:
+            api_key: API key for authentication. If not provided, will read from AGENTBAY_API_KEY environment variable.
+            cfg: Configuration object. If not provided, will load from environment variables and .env file.
+            env_file: Custom path to .env file. If not provided, will search upward from current directory.
+        """
         if not api_key:
             api_key = os.getenv("AGENTBAY_API_KEY")
             if not api_key:
@@ -79,8 +87,8 @@ class AgentBay:
                     "AGENTBAY_API_KEY environment variable"
                 )
 
-        # Load configuration
-        config_data = load_config(cfg)
+        # Load configuration with optional custom env file path
+        config_data = load_config(cfg, env_file)
 
         self.api_key = api_key
         self.region_id = config_data["region_id"]
@@ -430,15 +438,6 @@ class AgentBay:
                 error_message=f"Unexpected error creating session: {e}",
             )
 
-    def list(self) -> List[Session]:
-        """
-        List all available sessions.
-
-        Returns:
-            List[Session]: A list of all available sessions.
-        """
-        with self._lock:
-            return list(self._sessions.values())
 
     def list_by_labels(
         self, params: Optional[Union[ListSessionParams, Dict[str, str]]] = None

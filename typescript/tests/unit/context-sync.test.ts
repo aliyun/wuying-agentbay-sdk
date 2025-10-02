@@ -23,7 +23,6 @@ describe("ContextSync Unit Tests", () => {
       if (policy.uploadPolicy) {
         expect(policy.uploadPolicy.autoUpload).toBe(true);
         expect(policy.uploadPolicy.uploadStrategy).toBe(UploadStrategy.UploadBeforeResourceRelease);
-        expect(policy.uploadPolicy.period).toBe(30);
       }
 
       // Verify downloadPolicy
@@ -65,7 +64,6 @@ describe("ContextSync Unit Tests", () => {
       expect(jsonObject.uploadPolicy).toBeDefined();
       expect(jsonObject.uploadPolicy.autoUpload).toBe(true);
       expect(jsonObject.uploadPolicy.uploadStrategy).toBe("UploadBeforeResourceRelease");
-      expect(jsonObject.uploadPolicy.period).toBe(30);
 
       // Verify downloadPolicy in JSON
       expect(jsonObject.downloadPolicy).toBeDefined();
@@ -97,7 +95,6 @@ describe("ContextSync Unit Tests", () => {
       const uploadPolicy = newUploadPolicy();
       expect(uploadPolicy.autoUpload).toBe(true);
       expect(uploadPolicy.uploadStrategy).toBe(UploadStrategy.UploadBeforeResourceRelease);
-      expect(uploadPolicy.period).toBe(30);
 
       // Test DownloadPolicy defaults
       const downloadPolicy = newDownloadPolicy();

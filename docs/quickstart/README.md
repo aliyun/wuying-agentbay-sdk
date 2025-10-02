@@ -28,10 +28,6 @@ After completing this quick start guide, you will be able to:
 - Execute basic commands
 - Introduction to file operations
 
-### Step 4: Practical Tips (5 minutes)
-- [Common Patterns and Best Practices](best-practices.md)
-- Error handling
-- Resource cleanup
 
 ## 🚀 Next Steps After Completion
 
@@ -41,7 +37,6 @@ After completing this quick start guide, you will be able to:
 
 ## ❓ Having Issues?
 
-- [Troubleshooting Guide](troubleshooting.md)
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
 
 ## 💡 Tips

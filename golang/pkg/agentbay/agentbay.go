@@ -19,13 +19,21 @@ type Option func(*AgentBayConfig)
 
 // AgentBayConfig holds optional configuration for the AgentBay client.
 type AgentBayConfig struct {
-	cfg *Config
+	cfg     *Config
+	envFile string
 }
 
 // WithConfig returns an Option that sets the configuration for the AgentBay client.
 func WithConfig(cfg *Config) Option {
 	return func(c *AgentBayConfig) {
 		c.cfg = cfg
+	}
+}
+
+// WithEnvFile returns an Option that sets a custom .env file path for the AgentBay client.
+func WithEnvFile(envFile string) Option {
+	return func(c *AgentBayConfig) {
+		c.envFile = envFile
 	}
 }
 
@@ -59,8 +67,8 @@ func NewAgentBay(apiKey string, opts ...Option) (*AgentBay, error) {
 	}
 
 	// Load configuration using LoadConfig function
-	// This will load from environment variables, .env file, or use defaults
-	config := LoadConfig(config_option.cfg)
+	// This will load from environment variables, .env file (searched upward), or use defaults
+	config := LoadConfig(config_option.cfg, config_option.envFile)
 
 	// Create API client
 	apiConfig := &openapiutil.Config{
@@ -320,24 +328,6 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}, nil
 }
 
-// List lists all available sessions.
-func (a *AgentBay) List() (*SessionListResult, error) {
-	var sessions []Session
-	a.Sessions.Range(func(key, value interface{}) bool {
-		if session, ok := value.(Session); ok {
-			sessions = append(sessions, session)
-		}
-		return true
-	})
-
-	// No actual API call here, so RequestID is empty
-	return &SessionListResult{
-		ApiResponse: models.ApiResponse{
-			RequestID: "",
-		},
-		Sessions: sessions,
-	}, nil
-}
 
 // ListSessionParams contains parameters for listing sessions
 type ListSessionParams struct {

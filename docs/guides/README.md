@@ -4,17 +4,35 @@ Welcome to the AgentBay SDK Feature Guides! This provides complete functionality
 
 ## 🎯 Quick Navigation
 
-### Core Features
-- [Session Management](session-management.md) - Create, connect, and manage cloud sessions
-- [File Operations](file-operations.md) - Upload, download, and manipulate files
-- [Data Persistence](data-persistence.md) - Persistent data storage and synchronization
-- [Automation](automation.md) - Command execution and workflow automation
-- [Application & Window Operations](application-window-operations.md) - Application management and window control
-- [Browser Extensions](browser-extensions.md) - Browser extension management and testing
-- [Advanced Features](advanced-features.md) - Advanced capabilities and integrations
+### Core Features (All Environments)
+- [Core Features Guide](core-features/README.md) - Complete core features documentation
+  - [Session Management](core-features/session-management.md) - Create, connect, and manage cloud sessions
+  - [Session Link Access](core-features/session-link-access.md) - Session connectivity and URL generation
+  - [File Operations](core-features/file-operations.md) - Upload, download, and manipulate files
+  - [Data Persistence](core-features/data-persistence.md) - Persistent data storage and synchronization
+  - [SDK Configuration](core-features/sdk-configuration.md) - Complete SDK configuration guide
+- [Advanced Features](advanced-features.md) - VPC sessions, agent modules, and more
 
-### Configuration
-- [SDK Configuration](sdk-configuration.md) - Complete SDK configuration guide including API keys, regions, endpoints, and timeouts
+### Environment-Specific Features
+
+#### Browser Use
+Complete browser automation for web scraping, testing, and form filling.
+- [Browser Use Guide](browser-use/README.md) - Complete documentation
+
+#### Computer Use
+Windows desktop automation for application control and window management.
+- [Computer Use Guide](computer-use/README.md) - Complete documentation
+
+#### Mobile Use
+Mobile UI automation for app testing and gesture-based interactions.
+- [Mobile Use Guide](mobile-use/README.md) - Complete documentation
+
+#### CodeSpace
+Development environment for code execution and scripting.
+- [CodeSpace Guide](codespace/README.md) - Complete documentation
+
+### Cross-Environment Features
+- [Workflow Automation](automation.md) - Orchestrate complex automation workflows
 
 ## 🚀 API Quick Reference
 
@@ -227,6 +245,24 @@ Learn how to effectively manage cloud sessions:
 
 [Read Session Management Guide →](session-management.md)
 
+### 🔗 Session Link Access
+Learn how to access and connect to your sessions:
+- Protocol types and port requirements
+- WebSocket and HTTPS connections
+- Parameter usage and validation
+- Troubleshooting connectivity issues
+
+[Read Session Link Access Guide →](session-link-access.md)
+
+### 💻 Command Execution
+Execute shell commands and system operations:
+- Basic command execution
+- Timeout and error handling
+- Script execution (Bash, Python, Node.js)
+- Environment variables and piping
+
+[Read Command Execution Guide →](core-features/command-execution.md)
+
 ### 📁 File Operations
 Master file handling in cloud environments:
 - Upload and download strategies
@@ -245,21 +281,30 @@ Understand data persistence patterns:
 
 [Read Data Persistence Guide →](data-persistence.md)
 
-### 🤖 Automation
-Automate complex workflows:
-- Command execution patterns
-- Code execution environments
-- UI automation techniques
-- Workflow orchestration
+### 🐍 Code Execution (CodeSpace)
+Execute code in development environments:
+- Python and JavaScript execution
+- Multi-language support
+- Dependency management
+- File I/O operations
 
-[Read Automation Guide →](automation.md)
+[Read Code Execution Guide →](code-execution.md)
+
+### 🤖 Workflow Automation
+Orchestrate complex automation workflows:
+- UI automation techniques
+- Parallel workflow execution
+- Error handling and retry
+- Resource management patterns
+
+[Read Workflow Automation Guide →](automation.md)
 
 ### ⚡ Advanced Features
 Explore advanced capabilities:
-- VPC sessions
-- Agent modules
-- Browser automation
-- Integration patterns
+- VPC sessions for secure environments
+- Agent modules for AI-driven tasks
+- Browser automation and control
+- Integration patterns and best practices
 
 [Read Advanced Features Guide →](advanced-features.md)
 
@@ -280,7 +325,6 @@ Explore advanced capabilities:
 ## 📖 Additional Resources
 
 - [API Reference](../api-reference.md) - Complete API documentation
-- [Best Practices](../quickstart/best-practices.md) - Recommended patterns
 
 ## 🆘 Getting Help
 

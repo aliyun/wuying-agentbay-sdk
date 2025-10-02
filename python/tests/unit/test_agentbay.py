@@ -201,35 +201,6 @@ class TestAgentBay(unittest.TestCase):
         self.assertIn("session-1", agent_bay._sessions)
         self.assertIn("session-2", agent_bay._sessions)
 
-    @patch("agentbay.agentbay.extract_request_id")
-    @patch("agentbay.agentbay.load_config")
-    @patch("agentbay.agentbay.mcp_client")
-    def test_list(self, mock_mcp_client, mock_load_config, mock_extract_request_id):
-        """Test listing all sessions"""
-        # Mock configuration
-        mock_load_config.return_value = {
-            "region_id": "cn-shanghai",
-            "endpoint": "test.endpoint.com",
-            "timeout_ms": 30000,
-        }
-
-        # Mock client
-        mock_client = MagicMock()
-        mock_mcp_client.return_value = mock_client
-
-        # Create AgentBay instance and cached sessions
-        agent_bay = AgentBay(api_key="test-key")
-        session1 = MagicMock()
-        session2 = MagicMock()
-        agent_bay._sessions = {"session-1": session1, "session-2": session2}
-
-        # Test listing all sessions
-        sessions = agent_bay.list()
-
-        # Verify results
-        self.assertEqual(len(sessions), 2)
-        self.assertIn(session1, sessions)
-        self.assertIn(session2, sessions)
 
     @patch("agentbay.agentbay.extract_request_id")
     @patch("agentbay.agentbay.load_config")

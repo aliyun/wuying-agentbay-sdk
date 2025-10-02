@@ -9,7 +9,7 @@ from typing import List, Optional, Dict, Any
 from agentbay.api.base_service import BaseService
 from agentbay.exceptions import AgentBayError
 from agentbay.model import BoolResult, OperationResult
-from agentbay.application.application import InstalledAppListResult, InstalledApp, ProcessListResult
+from agentbay.application.application import InstalledAppListResult, InstalledApp, ProcessListResult, AppOperationResult
 from agentbay.window.window import WindowListResult, WindowInfoResult
 
 
@@ -571,40 +571,38 @@ class Computer(BaseService):
 
     # Application Management Operations (delegated to existing application module)
     def get_installed_apps(
-        self,
-        include_system: bool = False,
-        include_user: bool = True,
-        include_third_party: bool = True,
+        self, start_menu: bool = True, desktop: bool = False, ignore_system_apps: bool = True
     ) -> InstalledAppListResult:
         """
         Gets the list of installed applications.
 
         Args:
-            include_system (bool, optional): Include system applications. Defaults to False.
-            include_user (bool, optional): Include user applications. Defaults to True.
-            include_third_party (bool, optional): Include third-party applications. Defaults to True.
+            start_menu (bool, optional): Whether to include start menu applications. Defaults to True.
+            desktop (bool, optional): Whether to include desktop applications. Defaults to False.
+            ignore_system_apps (bool, optional): Whether to ignore system applications. Defaults to True.
 
         Returns:
-            InstalledAppsResult: Result object containing list of installed apps and error message if any.
+            InstalledAppListResult: Result object containing list of installed apps and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.get_installed_apps(include_system, include_user, include_third_party)
+        return app_manager.get_installed_apps(start_menu, desktop, ignore_system_apps)
 
-    def start_app(self, app_name: str, work_directory: Optional[str] = None) -> BoolResult:
+    def start_app(self, start_cmd: str, work_directory: str = "", activity: str = "") -> ProcessListResult:
         """
         Starts the specified application.
 
         Args:
-            app_name (str): The name or command of the application to start.
-            work_directory (Optional[str], optional): Working directory for the application. Defaults to None.
+            start_cmd (str): The command to start the application.
+            work_directory (str, optional): Working directory for the application. Defaults to "".
+            activity (str, optional): Activity name to launch (for mobile apps). Defaults to "".
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            ProcessListResult: Result object containing list of processes started and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.start_app(app_name, work_directory)
+        return app_manager.start_app(start_cmd, work_directory, activity)
 
     def list_visible_apps(self):
         """
@@ -617,7 +615,7 @@ class Computer(BaseService):
         app_manager = ApplicationManager(self.session)
         return app_manager.list_visible_apps()
 
-    def stop_app_by_pname(self, pname: str) -> BoolResult:
+    def stop_app_by_pname(self, pname: str) -> AppOperationResult:
         """
         Stops an application by process name.
 
@@ -625,13 +623,13 @@ class Computer(BaseService):
             pname (str): The process name of the application to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
         return app_manager.stop_app_by_pname(pname)
 
-    def stop_app_by_pid(self, pid: int) -> BoolResult:
+    def stop_app_by_pid(self, pid: int) -> AppOperationResult:
         """
         Stops an application by process ID.
 
@@ -639,25 +637,25 @@ class Computer(BaseService):
             pid (int): The process ID of the application to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
         return app_manager.stop_app_by_pid(pid)
 
-    def stop_app_by_cmd(self, cmd: str) -> BoolResult:
+    def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
         """
-        Stops an application by command.
+        Stops an application by stop command.
 
         Args:
-            cmd (str): The command used to stop the application.
+            stop_cmd (str): The command to stop the application.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.stop_app_by_cmd(cmd)
+        return app_manager.stop_app_by_cmd(stop_cmd)
 
     def list_visible_apps(self) -> ProcessListResult:
         """

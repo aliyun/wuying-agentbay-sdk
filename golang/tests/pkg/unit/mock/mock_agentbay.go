@@ -69,21 +69,6 @@ func (mr *MockAgentBayInterfaceMockRecorder) Delete(arg0 interface{}, arg1 ...in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAgentBayInterface)(nil).Delete), varargs...)
 }
 
-// List mocks base method.
-func (m *MockAgentBayInterface) List() (*agentbay.SessionListResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List")
-	ret0, _ := ret[0].(*agentbay.SessionListResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List.
-func (mr *MockAgentBayInterfaceMockRecorder) List() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAgentBayInterface)(nil).List))
-}
-
 // ListByLabels mocks base method.
 func (m *MockAgentBayInterface) ListByLabels(arg0 *agentbay.ListSessionParams) (*agentbay.SessionListResult, error) {
 	m.ctrl.T.Helper()

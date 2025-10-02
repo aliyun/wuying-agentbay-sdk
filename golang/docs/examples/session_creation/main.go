@@ -36,21 +36,6 @@ func main() {
 	session := sessionResult.Session
 	fmt.Printf("\nSession created with ID: %s (RequestID: %s)\n", session.SessionID, sessionResult.RequestID)
 
-	// List all sessions
-	fmt.Println("\nListing all sessions...")
-	sessionsResult, err := agentBay.List()
-	if err != nil {
-		fmt.Printf("\nError listing sessions: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Extract SessionID list and join as string
-	var sessionIDs []string
-	for _, s := range sessionsResult.Sessions {
-		sessionIDs = append(sessionIDs, s.SessionID)
-	}
-	sessionIDsStr := strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nAvailable sessions: %s (RequestID: %s)\n", sessionIDsStr, sessionsResult.RequestID)
 
 	// Create multiple sessions to demonstrate listing
 	fmt.Println("\nCreating additional sessions...")
@@ -68,19 +53,6 @@ func main() {
 		additionalSessions = append(additionalSessions, additionalSession)
 	}
 
-	// List sessions again to show the new sessions
-	fmt.Println("\nListing all sessions after creating additional ones...")
-	updatedSessionsResult, err := agentBay.List()
-	if err != nil {
-		fmt.Printf("\nError listing sessions: %v\n", err)
-	} else {
-		var updatedSessionIDs []string
-		for _, s := range updatedSessionsResult.Sessions {
-			updatedSessionIDs = append(updatedSessionIDs, s.SessionID)
-		}
-		updatedSessionIDsStr := strings.Join(updatedSessionIDs, ", ")
-		fmt.Printf("\nUpdated list of sessions: %s (RequestID: %s)\n", updatedSessionIDsStr, updatedSessionsResult.RequestID)
-	}
 
 	// Clean up all sessions
 	fmt.Println("\nCleaning up sessions...")
@@ -102,21 +74,5 @@ func main() {
 		}
 	}
 
-	// List sessions one more time to confirm deletion
-	fmt.Println("\nListing sessions after cleanup...")
-	finalSessionsResult, err := agentBay.List()
-	if err != nil {
-		fmt.Printf("\nError listing sessions: %v\n", err)
-	} else {
-		if len(finalSessionsResult.Sessions) == 0 {
-			fmt.Printf("All sessions have been deleted successfully. (RequestID: %s)\n", finalSessionsResult.RequestID)
-		} else {
-			var finalSessionIDs []string
-			for _, s := range finalSessionsResult.Sessions {
-				finalSessionIDs = append(finalSessionIDs, s.SessionID)
-			}
-			finalSessionIDsStr := strings.Join(finalSessionIDs, ", ")
-			fmt.Printf("\nRemaining sessions: %s (RequestID: %s)\n", finalSessionIDsStr, finalSessionsResult.RequestID)
-		}
-	}
+	fmt.Println("All sessions cleanup completed.")
 }

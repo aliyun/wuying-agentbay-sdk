@@ -20,9 +20,7 @@ def test_newbie_user_path():
         "docs/quickstart/installation.md",  # Installation guide
         "docs/quickstart/basic-concepts.md",  # Basic concepts
         "docs/quickstart/first-session.md",  # First session
-        "docs/quickstart/best-practices.md",  # Best practices
         "docs/quickstart/faq.md",  # FAQ
-        "docs/quickstart/troubleshooting.md",  # Troubleshooting
     ]
 
     missing_files = []

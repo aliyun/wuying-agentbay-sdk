@@ -188,7 +188,6 @@ func TestContextSyncWithMultipleContexts(t *testing.T) {
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-			Period:         15,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     true,
@@ -292,7 +291,6 @@ func TestContextSyncSessionParams(t *testing.T) {
 			UploadPolicy: &agentbay.UploadPolicy{
 				AutoUpload:     true,
 				UploadStrategy: agentbay.UploadBeforeResourceRelease,
-				Period:         10,
 			},
 		}
 

@@ -13,7 +13,6 @@ func TestSyncPolicyWithPartialParameters(t *testing.T) {
 	uploadPolicy := &agentbay.UploadPolicy{
 		AutoUpload:     false,
 		UploadStrategy: agentbay.UploadBeforeResourceRelease,
-		Period:         60,
 	}
 	syncPolicy := &agentbay.SyncPolicy{
 		UploadPolicy: uploadPolicy,
@@ -32,7 +31,6 @@ func TestSyncPolicyWithPartialParameters(t *testing.T) {
 	assert.NotNil(t, result.UploadPolicy)
 	assert.Equal(t, false, result.UploadPolicy.AutoUpload)
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, result.UploadPolicy.UploadStrategy)
-	assert.Equal(t, 60, result.UploadPolicy.Period)
 
 	// Verify other policies are filled with defaults
 	assert.NotNil(t, result.DownloadPolicy)
@@ -68,7 +66,6 @@ func TestSyncPolicyWithNoParameters(t *testing.T) {
 	// Verify default values
 	assert.True(t, result.UploadPolicy.AutoUpload)
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, result.UploadPolicy.UploadStrategy)
-	assert.Equal(t, 30, result.UploadPolicy.Period)
 
 	assert.True(t, result.DownloadPolicy.AutoDownload)
 	assert.Equal(t, agentbay.DownloadAsync, result.DownloadPolicy.DownloadStrategy)
@@ -85,7 +82,6 @@ func TestSyncPolicyWithAllParameters(t *testing.T) {
 	uploadPolicy := &agentbay.UploadPolicy{
 		AutoUpload:     false,
 		UploadStrategy: agentbay.UploadBeforeResourceRelease,
-		Period:         60,
 	}
 	downloadPolicy := &agentbay.DownloadPolicy{
 		AutoDownload:     false,
@@ -121,7 +117,6 @@ func TestSyncPolicyWithAllParameters(t *testing.T) {
 
 	// Verify all policies are set correctly
 	assert.Equal(t, false, result.UploadPolicy.AutoUpload)
-	assert.Equal(t, 60, result.UploadPolicy.Period)
 
 	assert.Equal(t, false, result.DownloadPolicy.AutoDownload)
 	assert.Equal(t, false, result.DeletePolicy.SyncLocalFile)
@@ -137,7 +132,6 @@ func TestSyncPolicySerializationWithDefaults(t *testing.T) {
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     false,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-			Period:         60,
 		},
 	}
 
@@ -160,7 +154,6 @@ func TestSyncPolicySerializationWithDefaults(t *testing.T) {
 	uploadPolicyMap := jsonMap["uploadPolicy"].(map[string]interface{})
 	assert.Equal(t, false, uploadPolicyMap["autoUpload"])
 	assert.Equal(t, "UploadBeforeResourceRelease", uploadPolicyMap["uploadStrategy"])
-	assert.Equal(t, float64(60), uploadPolicyMap["period"])
 
 	// Verify download policy values
 	downloadPolicyMap := jsonMap["downloadPolicy"].(map[string]interface{})

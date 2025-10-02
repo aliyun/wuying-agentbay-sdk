@@ -110,7 +110,6 @@ func main() {
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-			Period:         15,  // 15 minutes
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     true,
@@ -139,46 +138,6 @@ func main() {
 Lists all available sessions cached in the current client instance.
 
 
-```go
-List() (*SessionListResult, error)
-```
-
-**Returns:**
-- `*SessionListResult`: A result object containing an array of Session instances and RequestID.
-- `error`: An error if the session listing fails.
-
-**Example:**
-```go
-package main
-
-import (
-	"fmt"
-	"os"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-)
-
-func main() {
-	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
-	if err != nil {
-		fmt.Printf("Error initializing AgentBay client: %v\n", err)
-		os.Exit(1)
-	}
-
-	// List all sessions
-	result, err := client.List()
-	if err != nil {
-		fmt.Printf("Error listing sessions: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("Found %d sessions:\n", len(result.Sessions))
-	for _, session := range result.Sessions {
-		fmt.Printf("Session ID: %s\n", session.SessionID)
-	}
-}
-```
 
 
 Lists sessions filtered by the provided labels. It returns sessions that match all the specified labels. This method supports pagination to handle large result sets efficiently.

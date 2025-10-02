@@ -50,7 +50,6 @@ func main() {
 	uploadPolicy := &agentbay.UploadPolicy{
 		AutoUpload:     true,
 		UploadStrategy: agentbay.UploadBeforeResourceRelease,
-		Period:         15, // 15 minutes
 	}
 
 	// Create download policy
@@ -87,10 +86,9 @@ func main() {
 	advancedSync := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
 
 	fmt.Printf("Advanced sync - ContextID: %s, Path: %s\n", advancedSync.ContextID, advancedSync.Path)
-	fmt.Printf("  - Upload: Auto=%t, Strategy=%s, Period=%d\n",
+	fmt.Printf("  - Upload: Auto=%t, Strategy=%s\n",
 		advancedSync.Policy.UploadPolicy.AutoUpload,
-		advancedSync.Policy.UploadPolicy.UploadStrategy,
-		advancedSync.Policy.UploadPolicy.Period)
+		advancedSync.Policy.UploadPolicy.UploadStrategy)
 	fmt.Printf("  - Download: Auto=%t, Strategy=%s\n",
 		advancedSync.Policy.DownloadPolicy.AutoDownload,
 		advancedSync.Policy.DownloadPolicy.DownloadStrategy)

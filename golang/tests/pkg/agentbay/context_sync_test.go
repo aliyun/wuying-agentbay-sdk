@@ -14,7 +14,6 @@ func TestNewUploadPolicy(t *testing.T) {
 	assert.NotNil(t, policy)
 	assert.True(t, policy.AutoUpload)
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, policy.UploadStrategy)
-	assert.Equal(t, 30, policy.Period)
 }
 
 func TestNewDownloadPolicy(t *testing.T) {
@@ -52,8 +51,9 @@ func TestNewContextSync(t *testing.T) {
 	path := "/home/user"
 	policy := agentbay.NewSyncPolicy()
 
-	sync := agentbay.NewContextSync(contextID, path, policy)
+	sync, err := agentbay.NewContextSync(contextID, path, policy)
 
+	assert.NoError(t, err)
 	assert.NotNil(t, sync)
 	assert.Equal(t, contextID, sync.ContextID)
 	assert.Equal(t, path, sync.Path)
@@ -64,8 +64,9 @@ func TestNewContextSyncWithNilPolicy(t *testing.T) {
 	contextID := "ctx-12345"
 	path := "/home/user"
 
-	sync := agentbay.NewContextSync(contextID, path, nil)
+	sync, err := agentbay.NewContextSync(contextID, path, nil)
 
+	assert.NoError(t, err)
 	assert.NotNil(t, sync)
 	assert.Equal(t, contextID, sync.ContextID)
 	assert.Equal(t, path, sync.Path)
@@ -76,7 +77,8 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	contextID := "ctx-12345"
 	path := "/home/user"
 
-	sync := agentbay.NewContextSync(contextID, path, nil)
+	sync, err := agentbay.NewContextSync(contextID, path, nil)
+	assert.NoError(t, err)
 	assert.Nil(t, sync.Policy)
 
 	// Create a custom policy
@@ -84,7 +86,6 @@ func TestContextSyncWithPolicy(t *testing.T) {
 		UploadPolicy: &agentbay.UploadPolicy{
 			AutoUpload:     true,
 			UploadStrategy: agentbay.UploadBeforeResourceRelease,
-			Period:         15,
 		},
 		DownloadPolicy: &agentbay.DownloadPolicy{
 			AutoDownload:     false,
@@ -104,8 +105,9 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	}
 
 	// Apply the policy
-	result := sync.WithPolicy(policy)
+	result, err := sync.WithPolicy(policy)
 
+	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Same(t, sync, result) // Verify method chaining returns the same instance
 	assert.Equal(t, policy, sync.Policy)
@@ -114,7 +116,6 @@ func TestContextSyncWithPolicy(t *testing.T) {
 	assert.NotNil(t, sync.Policy.UploadPolicy)
 	assert.True(t, sync.Policy.UploadPolicy.AutoUpload)
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, sync.Policy.UploadPolicy.UploadStrategy)
-	assert.Equal(t, 15, sync.Policy.UploadPolicy.Period)
 
 	// Verify download policy
 	assert.NotNil(t, sync.Policy.DownloadPolicy)
@@ -144,7 +145,6 @@ func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
 	assert.NotNil(t, policy.UploadPolicy)
 	assert.True(t, policy.UploadPolicy.AutoUpload, "uploadPolicy.autoUpload should be true")
 	assert.Equal(t, agentbay.UploadBeforeResourceRelease, policy.UploadPolicy.UploadStrategy, "uploadPolicy.uploadStrategy should be 'UploadBeforeResourceRelease'")
-	assert.Equal(t, 30, policy.UploadPolicy.Period, "uploadPolicy.period should be 30")
 
 	// Verify downloadPolicy
 	assert.NotNil(t, policy.DownloadPolicy)
@@ -182,7 +182,6 @@ func TestDefaultSyncPolicyMatchesRequirements(t *testing.T) {
 	assert.True(t, exists, "uploadPolicy should exist in JSON")
 	assert.Equal(t, true, uploadPolicy["autoUpload"], "JSON uploadPolicy.autoUpload should be true")
 	assert.Equal(t, "UploadBeforeResourceRelease", uploadPolicy["uploadStrategy"], "JSON uploadPolicy.uploadStrategy should be 'UploadBeforeResourceRelease'")
-	assert.Equal(t, float64(30), uploadPolicy["period"], "JSON uploadPolicy.period should be 30")
 
 	// Verify downloadPolicy in JSON
 	downloadPolicy, exists := jsonMap["downloadPolicy"].(map[string]interface{})

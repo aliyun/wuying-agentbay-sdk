@@ -79,12 +79,6 @@ def main():
         print(f"Updated session labels: {labels_result.data}")
         print(f"Request ID: {labels_result.request_id}")
 
-        # List all sessions
-        print("\nListing all sessions...")
-        all_sessions = agent_bay.list()
-        print(f"Found {len(all_sessions)} sessions")
-        for i, session in enumerate(all_sessions):
-            print(f"Session {i + 1} ID: {session.session_id}")
 
         # List sessions by label
         print("\nListing sessions with purpose=demo and feature=label-management...")

@@ -136,17 +136,6 @@ func (ab *AgentBay) Delete(session *Session, syncContext ...bool) (*DeleteResult
 - `*DeleteResult`: Deletion result
 - `error`: Error information
 
-#### List()
-
-List all locally cached sessions.
-
-```go
-func (ab *AgentBay) List() (*SessionListResult, error)
-```
-
-**Returns:**
-- `*SessionListResult`: List of locally cached sessions
-- `error`: Error information
 
 #### ListByLabels()
 
@@ -486,7 +475,6 @@ type CodeData struct {
 
 - [Feature Guides](../../../docs/guides/README.md) - Detailed feature usage guides
 - [Example Code](../examples/) - Complete example code
-- [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
 ---
 

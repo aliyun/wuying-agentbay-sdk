@@ -42,7 +42,6 @@ if result.success:
 ### 🆕 New Users
 - [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
-- [💡 Best Practices](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/best-practices.md) - Common patterns and tips
 
 ### 🚀 Experienced Users
 - [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
@@ -50,7 +49,6 @@ if result.success:
 - [💻 Python Examples](docs/examples/) - Complete example code
 
 ### 🆘 Need Help
-- [🔧 Troubleshooting](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/troubleshooting.md) - Problem diagnosis
 
 ## 🔧 Core Features Quick Reference
 
@@ -61,11 +59,16 @@ result = agent_bay.create()
 if result.success:
     session = result.session
 
-# List sessions
-sessions = agent_bay.list()
+# List sessions by labels with pagination
+from agentbay.session_params import ListSessionParams
+params = ListSessionParams(labels={"environment": "production"}, max_results=10)
+result = agent_bay.list_by_labels(params)
+if result.success:
+    sessions = result.sessions
+    next_token = result.next_token
 
-# Connect to existing session
-session = agent_bay.connect("session_id")
+# Delete session
+delete_result = agent_bay.delete(session)
 ```
 
 ### File Operations

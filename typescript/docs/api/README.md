@@ -113,16 +113,6 @@ async delete(session: Session, syncContext?: boolean): Promise<DeleteResult>
 **Returns:**
 - `Promise<DeleteResult>`: Deletion result
 
-#### list()
-
-List all locally cached sessions.
-
-```typescript
-list(): Session[]
-```
-
-**Returns:**
-- `Session[]`: Array of locally cached sessions
 
 #### listByLabels()
 
@@ -423,7 +413,6 @@ interface CodeData {
 
 - [Feature Guides](../../../docs/guides/) - Detailed feature usage guides
 - [Example Code](../examples/) - Complete example code
-- [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
 ---
 

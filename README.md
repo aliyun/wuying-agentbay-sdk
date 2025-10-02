@@ -107,12 +107,22 @@ If you're familiar with Docker, cloud services, or similar products:
 
 ## 🔧 Core Features
 
-- **Session Management** - Create and manage cloud environments
-- **Command Execution** - Execute Shell commands in the cloud
-- **File Operations** - Upload, download, and edit cloud files
-- **Code Execution** - Run Python, JavaScript code
-- **UI Automation** - Interact with cloud application interfaces
-- **Data Persistence** - Save data across sessions
+### 🎛️ Session Management
+- **Session Creation & Lifecycle** - Create, manage, and delete cloud environments
+- **Environment Configuration** - Configure SDK settings, regions, and endpoints  
+- **Session Monitoring** - Monitor session status and health validation
+
+### 🛠️ Common Modules
+- **Command Execution** - Execute Shell commands in cloud environments
+- **File Operations** - Upload, download, and manage cloud files
+- **Data Persistence** - Save and retrieve data across sessions
+- **Context Management** - Synchronize data and maintain state
+
+### 🎯 Scenario-Based Features
+- **Computer Use** - General automation and desktop operations
+- **Browser Use** - Web automation, scraping, and browser control  
+- **Code Development** - Code execution and development environment
+- **Mobile Automation** - Mobile device simulation and control
 
 ## 🆘 Get Help
 

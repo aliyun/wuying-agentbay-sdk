@@ -1,0 +1,472 @@
+# Window Management for Computer Use
+
+This guide covers window management capabilities for desktop environments (Windows/Linux) using the AgentBay SDK. Learn how to control window states, positions, focus, and interact with desktop windows in cloud environments.
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Listing Windows](#listing-windows)
+- [Window Control Operations](#window-control-operations)
+- [Focus Management](#focus-management)
+- [Getting Active Window](#getting-active-window)
+- [Complete Workflow Example](#complete-workflow-example)
+- [API Reference](#api-reference)
+
+<a id="overview"></a>
+## 🎯 Overview
+
+The Computer Use module provides comprehensive window management capabilities for desktop environments:
+
+1. **Window Discovery** - List and find windows in the system
+2. **Window State Control** - Maximize, minimize, restore, and close windows
+3. **Window Positioning** - Resize and reposition windows
+4. **Focus Management** - Control window focus and activation
+5. **Desktop Automation** - Build complex desktop automation workflows
+
+These features work with `windows_latest` and `linux_latest` system images.
+
+<a id="prerequisites"></a>
+## 📦 Prerequisites
+
+First, create a session with a desktop environment:
+
+```python
+import os
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+
+api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    raise ValueError("AGENTBAY_API_KEY environment variable is required")
+
+agent_bay = AgentBay(api_key=api_key)
+
+params = CreateSessionParams(image_id="linux_latest")
+result = agent_bay.create(params)
+
+if result.success:
+    session = result.session
+    print(f"Session created: {session.session_id}")
+else:
+    print(f"Failed to create session: {result.error_message}")
+    exit(1)
+```
+
+<a id="listing-windows"></a>
+## 🔍 Listing Windows
+
+Get information about all available windows in the desktop environment:
+
+```python
+result = session.window.list_root_windows(timeout_ms=5000)
+
+if result.success:
+    windows = result.windows
+    print(f"Found {len(windows)} windows")
+    
+    for window in windows:
+        print(f"Title: {window.title}")
+        print(f"Window ID: {window.window_id}")
+        print(f"Process: {window.pname if window.pname else 'N/A'}")
+        print(f"PID: {window.pid if window.pid else 'N/A'}")
+        print(f"Position: ({window.absolute_upper_left_x}, {window.absolute_upper_left_y})")
+        print(f"Size: {window.width}x{window.height}")
+        print(f"Child Windows: {len(window.child_windows)}")
+        print("---")
+else:
+    print(f"Error listing windows: {result.error_message}")
+```
+
+**Parameters:**
+- `timeout_ms` (int, optional): Timeout in milliseconds. Defaults to 3000.
+
+**Window Object Properties:**
+- `window_id` (int): Unique identifier for the window
+- `title` (str): Window title/caption
+- `absolute_upper_left_x` (Optional[int]): X-coordinate of window's upper-left corner
+- `absolute_upper_left_y` (Optional[int]): Y-coordinate of window's upper-left corner
+- `width` (Optional[int]): Window width in pixels
+- `height` (Optional[int]): Window height in pixels
+- `pid` (Optional[int]): Process ID that owns the window
+- `pname` (Optional[str]): Process name that owns the window
+- `child_windows` (List[Window]): List of child windows
+
+<a id="window-control-operations"></a>
+## 🎛️ Window Control Operations
+
+Control window states and positions:
+
+### Activate Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    activate_result = session.window.activate_window(window_id)
+    
+    if activate_result.success:
+        print("Window activated successfully")
+    else:
+        print(f"Failed to activate window: {activate_result.error_message}")
+```
+
+### Maximize Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    maximize_result = session.window.maximize_window(window_id)
+    
+    if maximize_result.success:
+        print("Window maximized successfully")
+    else:
+        print(f"Failed to maximize window: {maximize_result.error_message}")
+```
+
+### Minimize Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    minimize_result = session.window.minimize_window(window_id)
+    
+    if minimize_result.success:
+        print("Window minimized successfully")
+    else:
+        print(f"Failed to minimize window: {minimize_result.error_message}")
+```
+
+### Restore Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    restore_result = session.window.restore_window(window_id)
+    
+    if restore_result.success:
+        print("Window restored successfully")
+    else:
+        print(f"Failed to restore window: {restore_result.error_message}")
+```
+
+### Resize Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    resize_result = session.window.resize_window(window_id, 800, 600)
+    
+    if resize_result.success:
+        print("Window resized to 800x600")
+    else:
+        print(f"Failed to resize window: {resize_result.error_message}")
+```
+
+### Fullscreen Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    fullscreen_result = session.window.fullscreen_window(window_id)
+    
+    if fullscreen_result.success:
+        print("Window set to fullscreen")
+    else:
+        print(f"Failed to set fullscreen: {fullscreen_result.error_message}")
+```
+
+### Close Window
+
+```python
+result = session.window.list_root_windows()
+
+if result.success and result.windows:
+    window_id = result.windows[0].window_id
+    
+    close_result = session.window.close_window(window_id)
+    
+    if close_result.success:
+        print("Window closed successfully")
+    else:
+        print(f"Failed to close window: {close_result.error_message}")
+```
+
+### Complete Window Control Function
+
+```python
+import time
+
+def control_window(session, window_id):
+    print(f"Controlling window ID: {window_id}")
+    
+    try:
+        session.window.activate_window(window_id)
+        print("✓ Window activated")
+    except Exception as e:
+        print(f"✗ Failed to activate: {e}")
+    
+    time.sleep(1)
+    
+    try:
+        session.window.maximize_window(window_id)
+        print("✓ Window maximized")
+    except Exception as e:
+        print(f"✗ Failed to maximize: {e}")
+    
+    time.sleep(1)
+    
+    try:
+        session.window.minimize_window(window_id)
+        print("✓ Window minimized")
+    except Exception as e:
+        print(f"✗ Failed to minimize: {e}")
+    
+    time.sleep(1)
+    
+    try:
+        session.window.restore_window(window_id)
+        print("✓ Window restored")
+    except Exception as e:
+        print(f"✗ Failed to restore: {e}")
+    
+    try:
+        session.window.resize_window(window_id, 800, 600)
+        print("✓ Window resized to 800x600")
+    except Exception as e:
+        print(f"✗ Failed to resize: {e}")
+
+windows = session.window.list_root_windows()
+if windows.success and windows.windows:
+    control_window(session, windows.windows[0].window_id)
+```
+
+<a id="focus-management"></a>
+## 🎯 Focus Management
+
+Control system focus behavior to prevent focus stealing:
+
+```python
+try:
+    session.window.focus_mode(True)
+    print("Focus mode enabled - windows won't steal focus")
+except Exception as e:
+    print(f"Failed to enable focus mode: {e}")
+
+try:
+    session.window.focus_mode(False)
+    print("Focus mode disabled")
+except Exception as e:
+    print(f"Failed to disable focus mode: {e}")
+```
+
+**Parameters:**
+- `on` (bool): True to enable focus mode, False to disable it
+
+<a id="getting-active-window"></a>
+## 🖥️ Getting Active Window
+
+Get information about the currently active window:
+
+```python
+result = session.window.get_active_window(timeout_ms=5000)
+
+if result.success:
+    active_window = result.window
+    print(f"Active Window:")
+    print(f"  Title: {active_window.title}")
+    print(f"  Window ID: {active_window.window_id}")
+    print(f"  Process: {active_window.pname}")
+    print(f"  PID: {active_window.pid}")
+    print(f"  Position: ({active_window.absolute_upper_left_x}, {active_window.absolute_upper_left_y})")
+    print(f"  Size: {active_window.width}x{active_window.height}")
+else:
+    print(f"Failed to get active window: {result.error_message}")
+```
+
+**Parameters:**
+- `timeout_ms` (int, optional): Timeout in milliseconds. Defaults to 3000.
+
+<a id="complete-workflow-example"></a>
+## 🔄 Complete Workflow Example
+
+Complete example showing how to launch an application and control its window:
+
+```python
+import os
+import time
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+
+api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    raise ValueError("AGENTBAY_API_KEY environment variable is required")
+
+agent_bay = AgentBay(api_key=api_key)
+
+params = CreateSessionParams(image_id="linux_latest")
+result = agent_bay.create(params)
+
+if not result.success:
+    print(f"Failed to create session: {result.error_message}")
+    exit(1)
+
+session = result.session
+print(f"Session created: {session.session_id}")
+
+print("Step 1: Finding installed applications...")
+apps_result = session.application.get_installed_apps(
+    start_menu=True,
+    desktop=False,
+    ignore_system_apps=True
+)
+
+if not apps_result.success:
+    print(f"Failed to get apps: {apps_result.error_message}")
+    agent_bay.delete(session)
+    exit(1)
+
+target_app = None
+for app in apps_result.data:
+    if "chrome" in app.name.lower():
+        target_app = app
+        break
+
+if not target_app:
+    print("Google Chrome not found")
+    agent_bay.delete(session)
+    exit(1)
+
+print(f"Found application: {target_app.name}")
+
+print("Step 2: Launching application...")
+start_result = session.application.start_app(target_app.start_cmd)
+
+if not start_result.success:
+    print(f"Failed to start app: {start_result.error_message}")
+    agent_bay.delete(session)
+    exit(1)
+
+print(f"Application started with {len(start_result.data)} processes")
+
+print("Step 3: Waiting for application window to load...")
+time.sleep(5)
+
+print("Step 4: Finding application window...")
+windows_result = session.window.list_root_windows()
+
+if not windows_result.success:
+    print(f"Failed to list windows: {windows_result.error_message}")
+    agent_bay.delete(session)
+    exit(1)
+
+app_window = None
+for window in windows_result.windows:
+    if target_app.name.lower() in window.title.lower():
+        app_window = window
+        break
+
+if not app_window and windows_result.windows:
+    app_window = windows_result.windows[0]
+    print("Using first available window")
+
+if app_window:
+    print(f"Found window: {app_window.title}")
+    
+    print("Step 5: Controlling the window...")
+    try:
+        session.window.activate_window(app_window.window_id)
+        print("✓ Window activated")
+        
+        time.sleep(1)
+        session.window.maximize_window(app_window.window_id)
+        print("✓ Window maximized")
+        
+        time.sleep(1)
+        session.window.resize_window(app_window.window_id, 1024, 768)
+        print("✓ Window resized to 1024x768")
+        
+    except Exception as e:
+        print(f"Window control failed: {e}")
+
+print("Cleaning up session...")
+agent_bay.delete(session)
+print("Workflow completed!")
+```
+
+<a id="api-reference"></a>
+## 📚 API Reference
+
+### Window Manager Methods
+
+| Method | Parameters | Returns | Description |
+|--------|------------|---------|-------------|
+| `list_root_windows()` | `timeout_ms: int = 3000` | `WindowListResult` | List all root windows |
+| `get_active_window()` | `timeout_ms: int = 3000` | `WindowInfoResult` | Get currently active window |
+| `activate_window()` | `window_id: int` | `BoolResult` | Activate a window |
+| `maximize_window()` | `window_id: int` | `BoolResult` | Maximize a window |
+| `minimize_window()` | `window_id: int` | `BoolResult` | Minimize a window |
+| `restore_window()` | `window_id: int` | `BoolResult` | Restore a window |
+| `close_window()` | `window_id: int` | `BoolResult` | Close a window |
+| `fullscreen_window()` | `window_id: int` | `BoolResult` | Make window fullscreen |
+| `resize_window()` | `window_id: int`<br/>`width: int`<br/>`height: int` | `BoolResult` | Resize a window |
+| `focus_mode()` | `on: bool` | `BoolResult` | Toggle focus mode |
+
+### Return Types
+
+**WindowListResult**
+- `success` (bool): Whether the operation succeeded
+- `windows` (List[Window]): List of window objects
+- `error_message` (str): Error message if operation failed
+- `request_id` (str): Unique request identifier
+
+**Window**
+- `window_id` (int): Unique identifier for the window
+- `title` (str): Window title/caption
+- `absolute_upper_left_x` (Optional[int]): X-coordinate of upper-left corner
+- `absolute_upper_left_y` (Optional[int]): Y-coordinate of upper-left corner
+- `width` (Optional[int]): Window width in pixels
+- `height` (Optional[int]): Window height in pixels
+- `pid` (Optional[int]): Process ID that owns the window
+- `pname` (Optional[str]): Process name that owns the window
+- `child_windows` (List[Window]): List of child windows
+
+**WindowInfoResult**
+- `success` (bool): Whether the operation succeeded
+- `window` (Window): Window object
+- `error_message` (str): Error message if operation failed
+- `request_id` (str): Unique request identifier
+
+**BoolResult**
+- `success` (bool): Whether the operation succeeded
+- `data` (bool): Operation result data
+- `error_message` (str): Error message if operation failed
+- `request_id` (str): Unique request identifier
+
+## 🎯 Summary
+
+This guide covered desktop window management capabilities:
+
+- **Window Discovery**: List and find windows in the system
+- **Window Control**: Manage window states (maximize, minimize, restore, close)
+- **Window Positioning**: Resize and reposition windows
+- **Focus Management**: Control window focus and activation
+
+These features enable you to build sophisticated desktop automation solutions that can interact with any application window in cloud environments, making AgentBay SDK's Computer Use module a powerful tool for automated testing, workflow automation, and remote desktop management.

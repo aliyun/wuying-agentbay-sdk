@@ -500,7 +500,6 @@ class CodeExecutionResult:
 
 - [Feature Guides](../../../docs/guides/README.md) - Detailed feature usage guides
 - [Example Code](../examples/) - Complete example code
-- [Troubleshooting](../../../docs/quickstart/troubleshooting.md) - Common issue resolution
 
 ---
 
