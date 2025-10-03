@@ -401,3 +401,13 @@ if ok and obs2:
 
 - Observe vs Extract?
   - `observe` finds actionable elements; `extract` returns structured data based on your schema.
+## 📚 Related Guides
+
+- [Browser Use Overview](../README.md) - Complete browser automation features
+- [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Code Examples](../code-example.md) - PageUseAgent example code
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

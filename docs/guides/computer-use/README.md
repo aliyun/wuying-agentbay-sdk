@@ -4,9 +4,9 @@ Computer Use is AgentBay's desktop automation environment for Windows and Linux 
 
 ## Documentation
 
-- [Computer Application Management](computer-application-management.md) - Desktop application lifecycle management
+- [Application Management](computer-application-management.md) - Desktop application lifecycle management
 - [Window Management](window-management.md) - Window control and positioning
-- [Computer UI Automation](computer-ui-automation.md) - Mouse and keyboard automation
+- [UI Automation](computer-ui-automation.md) - Mouse and keyboard automation
 
 ## Getting Help
 

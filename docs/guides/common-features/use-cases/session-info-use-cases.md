@@ -269,3 +269,12 @@ def robust_session_info_handler(session):
 ```
 
 For more information about session management, see the [Session Management Guide](../guides/common-features/basics/session-management.md).
+## 📚 Related Guides
+
+- [Session Management](../basics/session-management.md) - Session lifecycle and configuration
+- [Session Link Access](../advanced/session-link-access.md) - Session connectivity
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

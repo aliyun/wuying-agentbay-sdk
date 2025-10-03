@@ -4,8 +4,8 @@ Mobile Use is AgentBay's mobile device automation environment for Android/iOS de
 
 ## Documentation
 
-- [Mobile Application Management](mobile-application-management.md) - Mobile app lifecycle management
-- [Mobile UI Automation](mobile-ui-automation.md) - Touch gestures and UI interaction
+- [Application Management](mobile-application-management.md) - Mobile app lifecycle management
+- [UI Automation](mobile-ui-automation.md) - Touch gestures and UI interaction
 
 ## Getting Help
 

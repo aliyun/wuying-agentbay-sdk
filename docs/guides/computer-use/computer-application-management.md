@@ -517,3 +517,15 @@ This guide covered desktop application management capabilities:
 - **Desktop Automation**: Build automated desktop workflows
 
 These features enable you to build sophisticated desktop automation solutions for testing, workflow automation, and remote desktop management scenarios using AgentBay SDK's Computer Use capabilities.
+
+## 📚 Related Guides
+
+- [Computer UI Automation](computer-ui-automation.md) - Mouse and keyboard automation
+- [Window Management](window-management.md) - Window control and positioning
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Command Execution](../common-features/basics/command-execution.md) - Execute shell commands
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

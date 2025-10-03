@@ -22,3 +22,13 @@
 ## Call For User
 
 - [Call For User](core-features/call-for-user.md) - Handle scenarios that require human intervention when the browser encounters user information requests or unsolvable problems
+## 📚 Related Guides
+
+- [Browser Use Overview](README.md) - Complete browser automation features
+- [Advanced Features](advance-features.md) - PageUseAgent and advanced capabilities
+- [Code Examples](code-example.md) - Code examples for browser automation
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

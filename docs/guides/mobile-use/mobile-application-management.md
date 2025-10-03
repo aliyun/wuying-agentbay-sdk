@@ -359,3 +359,15 @@ These features enable you to build automated mobile workflows for testing, autom
 - **Stop Methods**: Mobile only supports `stop_app_by_cmd()` using package names; desktop supports additional methods like `stop_app_by_pid()` and `stop_app_by_pname()`
 
 For desktop application management, see the [Computer Use Application Management Guide](../computer-use/computer-application-management.md).
+
+## 📚 Related Guides
+
+- [Mobile UI Automation](mobile-ui-automation.md) - Touch gestures and UI interaction
+- [Computer Application Management](../computer-use/computer-application-management.md) - Desktop application management
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Command Execution](../common-features/basics/command-execution.md) - Execute shell commands
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

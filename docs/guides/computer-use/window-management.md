@@ -485,3 +485,15 @@ This guide covered desktop window management capabilities:
 - **Focus Management**: Control window focus and activation
 
 These features enable you to build sophisticated desktop automation solutions that can interact with any application window in cloud environments, making AgentBay SDK's Computer Use module a powerful tool for automated testing, workflow automation, and remote desktop management.
+
+## 📚 Related Guides
+
+- [Computer UI Automation](computer-ui-automation.md) - Mouse and keyboard automation
+- [Computer Application Management](computer-application-management.md) - Manage applications
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Command Execution](../common-features/basics/command-execution.md) - Execute shell commands
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

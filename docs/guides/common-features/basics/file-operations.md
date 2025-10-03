@@ -748,8 +748,8 @@ agent_bay.delete(session)
 | Read text file | `read_file()` | **Text files only**, supports any size via chunked transfer |
 | Read multiple text files | `read_multiple_files()` | **Text files only**, more efficient than individual reads |
 | Write text content | `write_file()` | **Text files only**, supports any size via chunked transfer |
-| **Upload file (local → cloud)** | **`upload_file()`** | **Supports all file types**, with progress tracking |
-| **Download file (cloud → local)** | **`download_file()`** | **Supports all file types**, with progress tracking |
+| Upload file (local → cloud) | `upload_file()` | Supports all file types, with progress tracking |
+| Download file (cloud → local) | `download_file()` | Supports all file types, with progress tracking |
 | Find and replace text | `edit_file()` | **Text files only**, better than read-modify-write |
 | Search for files | `search_files()` | Partial name matching, NO wildcards |
 | Move/rename files | `move_file()` | Works for both text and binary files |

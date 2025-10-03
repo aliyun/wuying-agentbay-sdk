@@ -223,3 +223,13 @@ except Exception as e:
 
 - [Getting Started](../../../quickstart/installation.md)
 - [Session Management](../basics/session-management.md)
+
+## 📚 Related Guides
+
+- [Session Management](../basics/session-management.md) - Session lifecycle and configuration
+- [VPC Sessions](../advanced/vpc-sessions.md) - Isolated network environments
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

@@ -52,3 +52,14 @@
 - [Alimeeting availability](../../../python/docs/examples/browser/alimeeting_availability.py) - Find available meeting rooms for a time window
 - [Shop inspector](../../../python/docs/examples/browser/shop_inspector.py) - Batch crawl sites, extract product name/price/link and save to JSON
 - [GV quick buy & seating](../../../python/docs/examples/browser/gv_quick_buy_seat.py) - Quick Buy flow on gv.com.sg and select a single seat
+
+## 📚 Related Guides
+
+- [Browser Use Overview](README.md) - Complete browser automation features
+- [Core Features](core-features.md) - Browser core capabilities
+- [Advanced Features](advance-features.md) - PageUseAgent and advanced capabilities
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

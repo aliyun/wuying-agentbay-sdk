@@ -394,16 +394,14 @@ with sync_playwright() as p:
     browser.close()
 ```
 
-## Next Steps
+## 📚 Related Guides
 
-- Explore [Browser Use Guide](README.md) for browser automation features
-- Review [Session Management Guide](../common-features/basics/session-management.md) for session lifecycle management
+- [Extension Management](core-features/extension.md) - Detailed extension management guide
+- [Browser Context](core-features/browser-context.md) - Persistent browser state management
+- [Browser Use Overview](README.md) - Complete browser automation features
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
 
-## Resources
+## 🆘 Getting Help
 
-- [Browser Use Guide](README.md)
-- [Session Management Guide](../common-features/basics/session-management.md)
-
----
-
-For additional support or questions about extension management, refer to the main documentation or contact the development team.
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

@@ -36,27 +36,39 @@ Call `get_link()` **with no parameters**. It returns a browser control address (
 ### Minimal Code
 
 ```python
+import asyncio
 from agentbay import AgentBay, CreateSessionParams
-
-# 1. Create session (MUST use Browser Use image)
-agent_bay = AgentBay(api_key="your_api_key")
-session = agent_bay.create(
-    CreateSessionParams(image_id="browser_latest")  # or other Browser Use images
-).session
-
-# 2. Get browser control address
-link = session.get_link()
-print(f"Browser address: {link.data}")
-# Output: wss://gateway.../websocket_ai/...
-
-# 3. Connect with Playwright
+from agentbay.browser.browser import BrowserOption
 from playwright.async_api import async_playwright
 
-async with async_playwright() as p:
-    browser = await p.chromium.connect_over_cdp(link.data)
-    page = await browser.new_page()
-    await page.goto("https://example.com")
-    # Now you can control the cloud browser!
+async def main():
+    # 1. Create session (MUST use Browser Use image)
+    agent_bay = AgentBay(api_key="your_api_key")
+    session = agent_bay.create(
+        CreateSessionParams(image_id="browser_latest")  # or other Browser Use images
+    ).session
+
+    # 2. Initialize browser and wait for it to be ready
+    await session.browser.initialize_async(BrowserOption())
+    await asyncio.sleep(10)  # Wait for browser to be fully ready
+
+    # 3. Get browser control address
+    link = session.get_link()
+    print(f"Browser address: {link.data}")
+    # Output: wss://gateway.../websocket_ai/...
+
+    # 4. Connect with Playwright
+    async with async_playwright() as p:
+        browser = await p.chromium.connect_over_cdp(link.data)
+        page = await browser.new_page()
+        await page.goto("https://example.com")
+        # Now you can control the cloud browser!
+        await browser.close()
+    
+    # 5. Cleanup
+    agent_bay.delete(session)
+
+asyncio.run(main())
 ```
 
 ### Key Points
@@ -241,7 +253,20 @@ async def browser_automation_example():
         session = session_result.session
         print(f"✅ Session created: {session.session_id}")
         
-        # 3. Get browser CDP address
+        # 3. Initialize browser
+        print("\nInitializing browser...")
+        from agentbay.browser.browser import BrowserOption
+        init_ok = await session.browser.initialize_async(BrowserOption())
+        if not init_ok:
+            print("❌ Browser initialization failed")
+            return
+        print("✅ Browser initialized")
+        
+        # Wait for browser to be ready
+        print("Waiting for browser to be ready...")
+        await asyncio.sleep(10)
+        
+        # 4. Get browser CDP address
         print("\nGetting browser control address...")
         link_result = session.get_link()
         
@@ -252,7 +277,7 @@ async def browser_automation_example():
         cdp_url = link_result.data
         print(f"✅ CDP URL: {cdp_url[:60]}...")
         
-        # 4. Connect with Playwright and control browser
+        # 5. Connect with Playwright and control browser
         print("\nConnecting to browser...")
         async with async_playwright() as p:
             browser = await p.chromium.connect_over_cdp(cdp_url)
@@ -279,7 +304,7 @@ async def browser_automation_example():
         traceback.print_exc()
     
     finally:
-        # 5. Cleanup
+        # 6. Cleanup
         if session:
             print("\nCleaning up...")
             agent_bay.delete(session)
@@ -499,3 +524,14 @@ If you encounter issues:
 3. Contact support with detailed error information
 
 Remember: Session Link Access is your gateway to cloud session connectivity! 🔗
+
+## 📚 Related Guides
+
+- [Session Link Access](../advanced/session-link-access.md) - Session connectivity and URL generation
+- [Session Management](../basics/session-management.md) - Session lifecycle and configuration
+- [Browser Use Overview](../../browser-use/README.md) - Browser automation features
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)
