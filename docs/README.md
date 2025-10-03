@@ -119,8 +119,9 @@ If you're familiar with Docker, cloud services, or automation tools:
 
 ## 💼 Use Cases
 
-- [Use Cases Overview](use-cases/README.md) - Common use case scenarios and implementations
-- [Session Info Use Cases](use-cases/session-info-use-cases.md) - Session information and connectivity patterns
+- [Use Cases Overview](guides/common-features/use-cases/README.md) - Common use case scenarios and implementations
+- [Session Info Use Cases](guides/common-features/use-cases/session-info-use-cases.md) - Session information and connectivity patterns
+- [Session Link Use Cases](guides/common-features/use-cases/session-link-use-cases.md) - Connect external tools to cloud sessions
 
 ## 📞 Getting Help
 

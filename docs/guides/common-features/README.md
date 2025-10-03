@@ -26,6 +26,12 @@ Advanced capabilities for complex use cases:
 - [Agent Modules](advanced/agent-modules.md) - AI-powered task execution
 - [OSS Integration](advanced/oss-integration.md) - Object Storage Service integration
 
+## Use Cases
+
+Practical examples and implementation patterns:
+
+- [Use Cases](use-cases/README.md) - Real-world scenarios and code examples for common tasks
+
 ## Environment-Specific Guides
 
 - [Browser Use](../browser-use/README.md) - Web automation

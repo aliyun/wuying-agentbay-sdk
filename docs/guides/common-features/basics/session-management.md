@@ -204,7 +204,7 @@ else:
 
 ### Session Information Use Cases
 
-For detailed practical examples and use cases of session information, including browser access, Android SDK integration, and session health monitoring, see the [Session Information Use Cases Guide](../../../use-cases/session-info-use-cases.md).
+For detailed practical examples and use cases of session information, including browser access, Android SDK integration, and session health monitoring, see the [Session Information Use Cases Guide](../use-cases/session-info-use-cases.md).
 
 
 

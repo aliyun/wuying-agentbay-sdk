@@ -450,25 +450,9 @@ Save the web data processor example and run it to see real cloud computing in ac
 
 ## 🚀 Next Steps
 
-Now that you've successfully created your first session, learn the core features that every AgentBay developer needs:
+Now that you've successfully created your first session, explore more features and capabilities:
 
-### 🔧 **Core Features**
-- **[Session Management](../guides/common-features/basics/session-management.md)** - Cloud environment lifecycle management
-- **[File Operations](../guides/common-features/basics/file-operations.md)** - File upload, download, and management  
-- **[Data Persistence](../guides/common-features/basics/data-persistence.md)** - Cross-session data storage
-- **[SDK Configuration](../guides/common-features/configuration/sdk-configuration.md)** - Configuration options and settings
-
-### 🎯 **Specialized Use Cases**
-- **[Command Execution](../guides/common-features/basics/command-execution.md)** - Complex workflow automation and command execution patterns
-- **[Browser Use](../guides/browser-use/README.md)** - Complete browser automation with Playwright integration
-- **[Computer UI Automation](../guides/computer-use/computer-ui-automation.md)** - Desktop UI automation and control
-- **[Advanced Features](../guides/common-features/advanced/README.md)** - VPC sessions, agent modules, and session link access
-
-### 🔧 **When You Need Help**
-- **[Feature Guides Overview](../guides/README.md)** - Quick navigation to all advanced features
-
-### 📖 **Reference Materials**  
-- **[Getting Started](../getting-started.md)** - Overview and introduction
+👉 **[Feature Guides](../guides/README.md)** - Complete guide to all AgentBay features and capabilities
 
 ## 🎉 You're Ready!
 
@@ -480,4 +464,4 @@ You can now:
 - ✅ Choose the right environment for your tasks
 - ✅ Troubleshoot common issues independently
 
-**Ready to build something amazing?** Pick a guide above that matches your next goal! 🚀
+**Ready to build something amazing?** Check out the [Feature Guides](../guides/README.md) to explore all capabilities! 🚀

@@ -7,6 +7,7 @@ This directory contains practical use cases and examples for the AgentBay SDK. E
 ### Session Management
 
 - **[Session Information Use Cases](session-info-use-cases.md)** - Practical examples for using session information, including browser access, Android SDK integration, and session health monitoring
+- **[Session Link Use Cases](session-link-use-cases.md)** - Practical examples for connecting external tools to cloud sessions, including browser automation, web application access, and custom service connections
 
 ## Coming Soon
 

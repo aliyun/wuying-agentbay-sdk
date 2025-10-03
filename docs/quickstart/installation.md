@@ -208,39 +208,30 @@ func main() {
 
 ## 🔧 Advanced Configuration (Optional)
 
-### Using Configuration File
+> **Note:** The SDK uses the Shanghai region (`cn-shanghai`) by default. You only need to configure a different region if you want to use services in other regions, such as Singapore.
 
-Create a `.env` file in your project root:
-```env
-AGENTBAY_API_KEY=your_api_key_here
-AGENTBAY_REGION_ID=cn-shanghai
-AGENTBAY_ENDPOINT=wuyingai.cn-shanghai.aliyuncs.com
-AGENTBAY_TIMEOUT_MS=60000
+### Supported Regions
+
+| Region Name | Region ID | Endpoint |
+|-------------|-----------|----------|
+| Shanghai (Default) | `cn-shanghai` | `wuyingai.cn-shanghai.aliyuncs.com` |
+| Singapore | `ap-southeast-1` | `wuyingai.ap-southeast-1.aliyuncs.com` |
+
+### Switching to Singapore Region
+
+**Linux/macOS:**
+```bash
+export AGENTBAY_REGION_ID=ap-southeast-1
+export AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
 ```
 
-### Programmatic Configuration
-
-**Python:**
-```python
-from agentbay import AgentBay
-
-agent_bay = AgentBay(
-    api_key="your_api_key",
-    region_id="cn-shanghai",
-    endpoint="wuyingai.cn-shanghai.aliyuncs.com"
-)
+**Windows:**
+```cmd
+set AGENTBAY_REGION_ID=ap-southeast-1
+set AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
 ```
 
-**TypeScript:**
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-const agentBay = new AgentBay({
-    apiKey: "your_api_key",
-    regionId: "cn-shanghai",
-    endpoint: "wuyingai.cn-shanghai.aliyuncs.com"
-});
-```
+For more configuration options, see the [SDK Configuration Guide](../guides/common-features/configuration/sdk-configuration.md).
 
 ## 🆘 Troubleshooting
 

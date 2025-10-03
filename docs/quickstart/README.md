@@ -32,7 +32,7 @@ After completing this quick start guide, you will be able to:
 ## 🚀 Next Steps After Completion
 
 - Check out the [Feature Guides](../guides/README.md) to learn about complete functionality
-- Explore [Use Cases](../use-cases/README.md) for practical application examples
+- Explore [Use Cases](../guides/common-features/use-cases/README.md) for practical application examples
 - Join community discussions
 
 ## ❓ Having Issues?
