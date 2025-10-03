@@ -69,11 +69,13 @@ Create Session → Use Session → Delete Session
   Resources     Operations      Resources
 ```
 
-## 🖥️ Image Types - Four Main Environments
+## 🖥️ Image Types
 
 When creating a session, you must choose an **image type** - this determines what kind of environment you get and what you can do with it.
 
-### The Four Main Images:
+### Official System Images:
+
+The following table shows the latest official system images provided by AgentBay:
 
 | Image ID | Environment | Best For |
 |----------|-------------|----------|
@@ -83,7 +85,9 @@ When creating a session, you must choose an **image type** - this determines wha
 | `code_latest` | CodeSpace  | Coding, development tools, programming tasks |
 | `mobile_latest` | Mobile Use | Mobile app testing, Android automation |
 
-**Note**: If you don't specify an `image_id`, AgentBay will automatically use `linux_latest` as the default environment.
+**Note**: 
+- If you don't specify an `image_id`, AgentBay will automatically use `linux_latest` as the default environment.
+- These are the current latest versions of official system images. You can also create and use **custom images** through the AgentBay console to meet your specific requirements.
 
 ### Choosing the Right Image:
 

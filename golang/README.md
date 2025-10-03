@@ -69,11 +69,13 @@ func main() {
 - [🎯 Core Concepts](../docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
 
 ### 🚀 Experienced Users
-Already familiar with browser automation, computer use, or mobile testing? Jump to your environment:
-- 🌐 [Browser Automation](../docs/guides/browser-use/README.md) - Web scraping, testing, form filling
-- 🖥️ [Computer/Windows Automation](../docs/guides/computer-use/README.md) - Desktop UI automation
-- 📱 [Mobile Automation](../docs/guides/mobile-use/README.md) - Android UI testing
-- 💻 [CodeSpace](../docs/guides/codespace/README.md) - Code execution environments
+**Choose Your Cloud Environment:**
+- 🌐 [Browser Use](../docs/guides/browser-use/README.md) - Web scraping, browser testing, form automation
+- 🖥️ [Computer Use](../docs/guides/computer-use/README.md) - Windows desktop automation, UI testing
+- 📱 [Mobile Use](../docs/guides/mobile-use/README.md) - Android UI testing, mobile app automation
+- 💻 [CodeSpace](../docs/guides/codespace/README.md) - Code execution, development environments
+
+**Additional Resources:**
 - [📖 Feature Guides](../docs/guides/README.md) - Complete feature introduction
 - [🔧 Golang API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Golang Examples](docs/examples/README.md) - Complete example code
