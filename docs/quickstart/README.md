@@ -10,7 +10,7 @@ After completing this quick start guide, you will be able to:
 - Perform basic file and command operations in the cloud
 - Learn how to save and reuse your work
 
-## 📚 Learning Path (Estimated 30 minutes)
+## 📚 Learning Path (Estimated 25 minutes)
 
 ### Step 1: Environment Setup (5 minutes)
 - [Installation and Configuration](installation.md)
@@ -23,10 +23,10 @@ After completing this quick start guide, you will be able to:
 - Differences between sessions and local environments
 - Data persistence concepts
 
-### Step 3: First Program (10 minutes)
+### Step 3: First Program (5 minutes)
 - [Create Your First Session](first-session.md)
-- Execute basic commands
-- Introduction to file operations
+- Quick verification (30 seconds)
+- Cloud data processing example
 
 
 ## 🚀 Next Steps After Completion

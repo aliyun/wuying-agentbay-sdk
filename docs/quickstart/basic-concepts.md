@@ -254,4 +254,4 @@ Now you understand the essentials:
 3. **Image** = The type of environment (Linux/Windows/Browser/Code/Mobile)
 4. **Data** = Temporary by default, use Context for persistence
 
-Ready to create your first session? Check out the [First Session Guide](first-session.md)!
+Ready to create your first session? Check out the [First Session Guide](first-session.md) - a 5-minute hands-on tutorial!

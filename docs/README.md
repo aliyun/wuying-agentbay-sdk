@@ -7,7 +7,7 @@
 ### New to AgentBay
 - [Installation Guide](quickstart/installation.md) - SDK installation and environment setup
 - [Basic Concepts](quickstart/basic-concepts.md) - Understand cloud environments and sessions
-- [First Session](quickstart/first-session.md) - Create your first cloud environment
+- [First Session](quickstart/first-session.md) - 5-minute quick start with hands-on examples
 
 
 ## 🔧 Feature Guides
