@@ -40,6 +40,8 @@ session = agent_bay.create().session
 agent_bay.delete(session)
 ```
 
+**Learn more**: [SDK Configuration Guide](../guides/common-features/configuration/sdk-configuration.md)
+
 ## 🔗 Session
 
 A **session** is your connection to a cloud environment. It's like renting a computer in the cloud for a specific period of time.
@@ -69,6 +71,8 @@ Create Session → Use Session → Delete Session
   Resources     Operations      Resources
 ```
 
+**Learn more**: [Session Management Guide](../guides/common-features/basics/session-management.md)
+
 ## 🖥️ Image Types
 
 When creating a session, you must choose an **image type** - this determines what kind of environment you get and what you can do with it.
@@ -95,14 +99,17 @@ The following table shows the latest official system images provided by AgentBay
 ```python
 from agentbay.session_params import CreateSessionParams
 
-# Create Windows environment and take screenshot
+# Create Windows environment and automate notepad
 params = CreateSessionParams(image_id="windows_latest")
 session = agent_bay.create(params).session
 
-# Use computer module for screenshot
-screenshot = session.computer.screenshot()
-# Returns: OperationResult with screenshot download URL
-# Example: screenshot.data = "https://agentbay.com/download/screenshot_abc123.png"
+# Start Notepad application
+session.computer.start_app("notepad.exe")
+# Returns: ProcessListResult with started process info
+
+# Input text into notepad
+session.computer.input_text("Hello from Windows!")
+# Returns: BoolResult with success status
 
 agent_bay.delete(session)
 ```
@@ -116,7 +123,7 @@ session = agent_bay.create(params).session
 # Initialize and navigate
 from agentbay.browser import BrowserOption
 session.browser.initialize(BrowserOption())
-session.browser.agent.navigate_async("https://www.baidu.com")
+session.browser.agent.navigate("https://www.baidu.com")
 print("Web navigation successful")
 
 agent_bay.delete(session)
@@ -138,19 +145,26 @@ agent_bay.delete(session)
 
 **Mobile Environment Example:**
 ```python
-# Create Android environment and take screenshot
+# Create Android environment and send HOME key
 params = CreateSessionParams(image_id="mobile_latest")
 session = agent_bay.create(params).session
 
-# Use mobile module for screenshot
-screenshot = session.mobile.screenshot()
-# Returns: OperationResult with screenshot download URL
-# Example: screenshot.data = "https://agentbay.com/download/mobile_screenshot_xyz789.png"
+# Press HOME key to return to home screen
+from agentbay.mobile import KeyCode
+session.mobile.send_key(KeyCode.HOME)
+# Returns: BoolResult with success status
+# Example: result.success = True (returns to Android home screen)
 
 agent_bay.delete(session)
 ```
 
 **Important**: Different images support different features. Choose the image that matches your specific use case.
+
+**Learn more about each environment:**
+- [Computer Use Guide](../guides/computer-use/README.md) - Windows/Linux automation
+- [Browser Use Guide](../guides/browser-use/README.md) - Web automation and scraping
+- [CodeSpace Guide](../guides/codespace/README.md) - Code execution environments
+- [Mobile Use Guide](../guides/mobile-use/README.md) - Android automation
 
 ## 💾 Data Permanence - Temporary vs Persistent
 
@@ -188,6 +202,10 @@ session.file_system.write_file("/persistent/important.txt", "This will persist")
 
 **Critical Rule**: If you need to keep data, you MUST use Context. Otherwise, it will be lost forever when the session ends.
 
+**Learn more**: 
+- [Data Persistence Guide](../guides/common-features/basics/data-persistence.md)
+- [File Operations Guide](../guides/common-features/basics/file-operations.md)
+
 ## 🔍 Understanding API Results and Request IDs
 
 When you call AgentBay APIs, the results are wrapped in result objects that contain more than just your data:
@@ -224,6 +242,8 @@ if not result.success:
 ```
 
 Don't worry about Request IDs for normal usage - they're just there when you need them for debugging!
+
+**Learn more**: [Common Features Guide](../guides/common-features/README.md)
 
 ## 🚀 Quick Start
 

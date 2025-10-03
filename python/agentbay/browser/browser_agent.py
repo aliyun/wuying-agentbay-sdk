@@ -106,7 +106,7 @@ class BrowserAgent(BaseService):
         self.session = session
         self.browser = browser
 
-    async def navigate_async(self, url: str) -> str:
+    def navigate(self, url: str) -> str:
         """
         Navigates a specific page to the given URL.
 
@@ -118,6 +118,25 @@ class BrowserAgent(BaseService):
         """
         if not self.browser.is_initialized():
             raise BrowserError("Browser must be initialized before calling navigate.")
+        try:
+            return asyncio.get_event_loop().run_until_complete(
+                self.navigate_async(url)
+            )
+        except Exception as e:
+            raise BrowserError(f"Failed to navigate: {e}")
+
+    async def navigate_async(self, url: str) -> str:
+        """
+        Asynchronously navigates a specific page to the given URL.
+
+        Args:
+            url: The URL to navigate to.
+
+        Returns:
+            A string indicating the result of the navigation.
+        """
+        if not self.browser.is_initialized():
+            raise BrowserError("Browser must be initialized before calling navigate_async.")
         try:
             args = {"url": url}
             response = self._call_mcp_tool_timeout("page_use_navigate", args)
