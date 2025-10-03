@@ -290,6 +290,72 @@ else:
 
 
 
+## Advanced Session Patterns
+
+### Error-Safe Session Creation
+
+Create sessions with comprehensive error handling:
+
+```python
+import os
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+
+def create_session_safely(image_id="linux_latest"):
+    agent_bay = AgentBay(api_key=os.getenv("AGENTBAY_API_KEY"))
+    
+    params = CreateSessionParams(image_id=image_id) if image_id != "linux_latest" else None
+    result = agent_bay.create(params)
+    
+    if result.success:
+        print(f"✅ Session created: {result.session.session_id}")
+        return result.session, agent_bay
+    else:
+        print(f"❌ Failed: {result.error_message}")
+        return None, None
+
+session, client = create_session_safely("browser_latest")
+if session:
+    client.delete(session)
+```
+
+### Context Manager Pattern
+
+Implement automatic cleanup using Python's context manager protocol:
+
+```python
+import os
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+
+class SessionManager:
+    def __init__(self, image_id="linux_latest"):
+        self.agent_bay = AgentBay(api_key=os.getenv("AGENTBAY_API_KEY"))
+        self.image_id = image_id
+        self.session = None
+    
+    def __enter__(self):
+        params = CreateSessionParams(image_id=self.image_id) if self.image_id != "linux_latest" else None
+        result = self.agent_bay.create(params)
+        if result.success:
+            self.session = result.session
+            return self.session
+        else:
+            raise Exception(f"Session creation failed: {result.error_message}")
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            self.agent_bay.delete(self.session)
+            print("🧹 Session automatically cleaned up")
+
+try:
+    with SessionManager("code_latest") as session:
+        result = session.command.execute_command("echo 'Automatic cleanup!'")
+        print(f"Output: {result.output}")
+except Exception as e:
+    print(f"Error: {e}")
+```
+
 ## API Reference
 
 For detailed API documentation, see:
