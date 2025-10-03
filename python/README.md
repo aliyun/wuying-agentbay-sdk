@@ -49,6 +49,11 @@ if result.success:
 - [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 
 ### 🚀 Experienced Users
+Already familiar with browser automation, computer use, or mobile testing? Jump to your environment:
+- 🌐 [Browser Automation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/browser-use/README.md) - Web scraping, testing, form filling
+- 🖥️ [Computer/Windows Automation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/computer-use/README.md) - Desktop UI automation
+- 📱 [Mobile Automation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/mobile-use/README.md) - Android UI testing
+- 💻 [CodeSpace](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/codespace/README.md) - Code execution environments
 - [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
 - [🔧 Python API Reference](docs/api/README.md) - Detailed API documentation
 - [💻 Python Examples](docs/examples/README.md) - Complete example code

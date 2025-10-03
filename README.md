@@ -101,7 +101,12 @@ if err != nil {
 - [Quick Start Tutorial](docs/quickstart/README.md) - Get started in 5 minutes
 - [Core Concepts](docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 
-**🚀 Experienced Users** - If you're familiar with Docker, cloud services, or similar products:
+**🚀 Experienced Users** - Already familiar with browser automation, computer use, or mobile testing:
+- Choose your environment:
+  - 🌐 [Browser Automation](docs/guides/browser-use/README.md) - Web scraping, testing, form filling with stealth capabilities
+  - 🖥️ [Computer/Windows Automation](docs/guides/computer-use/README.md) - Desktop UI automation and window management
+  - 📱 [Mobile Automation](docs/guides/mobile-use/README.md) - Android UI testing and gesture automation
+  - 💻 [CodeSpace](docs/guides/codespace/README.md) - Cloud-based code execution environments
 - [Feature Guides](docs/guides/README.md) - Complete feature introduction
 - API Reference - Core API quick lookup
   - [Python API Reference](python/docs/api/README.md)

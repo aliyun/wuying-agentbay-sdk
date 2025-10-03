@@ -118,10 +118,22 @@ Start from the basics and build your knowledge step by step:
 4. [Feature Guides](guides/README.md) - Explore specific features as needed
 
 ### 🚀 Experienced Developers
-Jump straight to advanced topics and API documentation:
-1. [Advanced Features](guides/common-features/advanced/README.md) - VPC, Agent Modules, OSS Integration
-2. [Environment-Specific Features](#environment-specific-features) - Browser, Computer, Mobile, CodeSpace
-3. [API Reference](#-api-reference) - Language-specific SDK documentation
+Already familiar with browser automation, computer use, or mobile testing? Start here:
+
+**Quick Start (5 minutes):**
+1. [Installation](quickstart/installation.md) - Set up your preferred SDK (Python/TypeScript/Golang)
+2. Choose your environment based on your use case:
+   - 🌐 [Browser Automation](guides/browser-use/README.md) - Web scraping, testing, form filling with stealth capabilities
+   - 🖥️ [Computer/Windows Automation](guides/computer-use/README.md) - Desktop UI automation and window management
+   - 📱 [Mobile Automation](guides/mobile-use/README.md) - Android UI testing and gesture automation
+   - 💻 [CodeSpace](guides/codespace/README.md) - Cloud-based code execution environments
+
+**What makes AgentBay different:**
+- [Session Link](guides/common-features/advanced/session-link-access.md) - Direct URL access to services running in cloud sessions
+- [Agent Modules](guides/common-features/advanced/agent-modules.md) - AI-powered automation capabilities
+- [VPC Sessions](guides/common-features/advanced/vpc-sessions.md) - Secure isolated network environments
+
+**Need more details?** See [Advanced Features](guides/common-features/advanced/README.md) or [API Reference](#-api-reference)
 
 ## 📞 Getting Help
 

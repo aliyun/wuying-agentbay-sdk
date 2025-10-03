@@ -26,22 +26,31 @@ Features available across all environments:
 ### Environment-Specific Features
 
 **[Browser Use](browser-use/README.md)**
-- [Example](browser-use/code-example.md) - Browser automation code examples
-- [Core Features](browser-use/core-features.md) - Essential browser features
+- [Core Features](browser-use/core-features.md) - Basic browser automation features
+  - [Stealth Mode](browser-use/core-features/stealth-mode.md) - Avoid detection
+  - [Browser Context](browser-use/core-features/browser-context.md) - Isolated browser contexts
+  - [Browser Proxies](browser-use/core-features/browser-proxies.md) - Proxy configuration
+  - [CAPTCHA Handling](browser-use/core-features/captcha.md) - CAPTCHA solving strategies
+  - [Extensions](browser-use/core-features/extension.md) - Browser extension support
+  - [Call for User](browser-use/core-features/call-for-user.md) - User interaction handling
 - [Advanced Features](browser-use/advance-features.md) - Advanced browser capabilities
+  - [Page Agent](browser-use/advance-features/page-use-agent.md) - AI-powered page automation
+- [Browser Extensions](browser-use/browser-extensions.md) - Extension development
+- [Browser Replay](browser-use/browser-replay.md) - Session recording and replay
+- [Code Examples](browser-use/code-example.md) - Browser automation code examples
 - [Integrations](browser-use/integrations.md) - Third-party tool integrations
 
 **[Computer Use](computer-use/README.md)**
-- [Application Management](computer-use/computer-application-management.md) - Desktop application lifecycle management
-- [Window Management](computer-use/window-management.md) - Window control and positioning
-- [UI Automation](computer-use/computer-ui-automation.md) - Mouse and keyboard automation
+- [Computer UI Automation](computer-use/computer-ui-automation.md) - Desktop UI interaction
+- [Window Management](computer-use/window-management.md) - Window control and manipulation
+- [Computer Application Management](computer-use/computer-application-management.md) - Application lifecycle management
 
 **[Mobile Use](mobile-use/README.md)**
-- [Application Management](mobile-use/mobile-application-management.md) - Mobile app lifecycle management
-- [UI Automation](mobile-use/mobile-ui-automation.md) - Touch gestures and UI interaction
+- [Mobile UI Automation](mobile-use/mobile-ui-automation.md) - Mobile UI interaction
+- [Mobile Application Management](mobile-use/mobile-application-management.md) - App lifecycle management
 
 **[CodeSpace](codespace/README.md)**
-- [Code Execution](codespace/code-execution.md) - Run code in cloud environments
+- [Code Execution](codespace/code-execution.md) - Running code in cloud environments
 
 ## Getting Help
 
