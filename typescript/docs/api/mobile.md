@@ -2,6 +2,11 @@
 
 The `Mobile` class provides mobile UI automation capabilities including touch operations, text input, app management, and UI element inspection for mobile environments.
 
+## 📖 Related Tutorials
+
+- [Mobile UI Automation Guide](../../../docs/guides/mobile-use/mobile-ui-automation.md) - Detailed tutorial on mobile UI automation
+- [Mobile Application Management Guide](../../../docs/guides/mobile-use/mobile-application-management.md) - Tutorial on managing mobile applications
+
 ## Overview
 
 The Mobile module is designed for mobile device automation tasks and requires sessions created with the `mobile_latest` image. It provides comprehensive mobile interaction capabilities through MCP tools.

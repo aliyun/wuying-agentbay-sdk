@@ -106,10 +106,11 @@ Code execution examples are integrated into session and automation examples.
 
 ## Running the Examples
 
-1. Install dependencies:
+### Option 1: Using Installed Package (Recommended)
+
+1. Install the SDK:
 ```bash
-cd typescript
-npm install
+npm install wuying-agentbay-sdk
 ```
 
 2. For browser examples, install Playwright:
@@ -117,26 +118,45 @@ npm install
 npx playwright install chromium
 ```
 
-3. Build the SDK:
-```bash
-npm run build
-```
-
-4. Set your API key:
+3. Set your API key:
 ```bash
 export AGENTBAY_API_KEY=your_api_key_here
 ```
 
-5. Run any example:
+4. Run examples with ts-node:
 ```bash
-# Using ts-node for TypeScript files
-npx ts-node docs/examples/basic-usage.ts
+npx ts-node basic-usage.ts
+npx ts-node session-creation/session-creation.ts
+npx ts-node browser/browser-stealth.ts
+```
 
-# Or run from subdirectories
+### Option 2: Development from Source
+
+1. Install dependencies and build:
+```bash
+cd typescript
+npm install
+npm run build
+```
+
+2. For browser examples, install Playwright:
+```bash
+npx playwright install chromium
+```
+
+3. Set your API key:
+```bash
+export AGENTBAY_API_KEY=your_api_key_here
+```
+
+4. Run examples:
+```bash
+# Using ts-node
+npx ts-node docs/examples/basic-usage.ts
 npx ts-node docs/examples/session-creation/session-creation.ts
 npx ts-node docs/examples/browser/browser-stealth.ts
 
-# Or compile and run JavaScript
+# Or compile and run
 tsc docs/examples/basic-usage.ts
 node docs/examples/basic-usage.js
 ```

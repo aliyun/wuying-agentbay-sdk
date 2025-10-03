@@ -2,6 +2,10 @@
 
 The `Session` class represents a session in the AgentBay cloud environment. It provides methods for managing file systems, executing commands, and more.
 
+## 📖 Related Tutorial
+
+- [Session Management Guide](../../../docs/guides/common-features/basics/session-management.md) - Detailed tutorial on session lifecycle and management
+
 ## Properties
 
 ```typescript

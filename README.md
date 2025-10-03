@@ -125,8 +125,8 @@ if err != nil {
 ### 🎯 Scenario-Based Features
 - **Computer Use** - General automation and desktop operations
 - **Browser Use** - Web automation, scraping, and browser control  
-- **Code Development** - Code execution and development environment
-- **Mobile Automation** - Mobile device simulation and control
+- **CodeSpace** - Code execution and development environment
+- **Mobile Use** - Mobile device simulation and control
 
 ## 🆘 Get Help
 

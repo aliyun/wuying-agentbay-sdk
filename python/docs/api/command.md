@@ -2,6 +2,10 @@
 
 The `Command` class provides methods for executing commands within a session in the AgentBay cloud environment.
 
+## 📖 Related Tutorial
+
+- [Command Execution Guide](../../../docs/guides/common-features/basics/command-execution.md) - Detailed tutorial on executing shell commands
+
 ## Methods
 
 ### execute_command

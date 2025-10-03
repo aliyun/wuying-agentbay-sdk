@@ -2,6 +2,11 @@
 
 The Mobile module provides comprehensive mobile UI automation capabilities for Android environments in the AgentBay cloud platform. It enables touch operations, UI element interactions, text input, application management, and screenshot capture.
 
+## 📖 Related Tutorials
+
+- [Mobile UI Automation Guide](../../../docs/guides/mobile-use/mobile-ui-automation.md) - Detailed tutorial on mobile UI automation
+- [Mobile Application Management Guide](../../../docs/guides/mobile-use/mobile-application-management.md) - Tutorial on managing mobile applications
+
 ## Overview
 
 The Mobile module is designed for automating Android mobile applications. It provides touch gestures, UI element discovery, application lifecycle management, and input control capabilities that are essential for mobile automation tasks.

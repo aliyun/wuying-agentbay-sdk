@@ -2,6 +2,11 @@
 
 The `Computer` class provides comprehensive desktop UI automation operations in the AgentBay cloud environment. It offers mouse operations, keyboard operations, window management, application management, and screen operations for Windows desktop automation.
 
+## 📖 Related Tutorials
+
+- [Computer UI Automation Guide](../../../docs/guides/computer-use/computer-ui-automation.md) - Detailed tutorial on desktop UI automation
+- [Window Management Guide](../../../docs/guides/computer-use/window-management.md) - Tutorial on managing application windows
+
 ## Overview
 
 The `Computer` class is available through `session.computer` and is designed for use with Windows desktop environments (use `image_id="windows_latest"` when creating sessions).

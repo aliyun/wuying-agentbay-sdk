@@ -2,6 +2,10 @@
 
 The `FileSystem` class provides methods for file operations within a session in the AgentBay cloud environment. This includes reading, writing, editing, and searching files, as well as directory operations, real-time directory monitoring, and file transfer capabilities.
 
+## 📖 Related Tutorial
+
+- [Complete Guide to File Operations](../../../docs/guides/common-features/basics/file-operations.md) - Detailed tutorial covering all file operation features
+
 ## Methods
 
 ### create_directory / createDirectory / CreateDirectory

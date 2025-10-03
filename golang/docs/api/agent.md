@@ -4,6 +4,10 @@ The `Agent` type provides AI-powered capabilities for executing tasks, checking 
 
 **⚠️ Important Note**: The Agent functionality is verified on the `windows_latest` system image.
 
+## 📖 Related Tutorial
+
+- [Agent Modules Guide](../../../docs/guides/common-features/advanced/agent-modules.md) - Detailed tutorial on AI-powered automation with Agent modules
+
 ## Constructor
 
 ### NewAgent

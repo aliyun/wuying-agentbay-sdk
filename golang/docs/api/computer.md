@@ -2,6 +2,11 @@
 
 The Computer module provides comprehensive desktop UI automation capabilities for Windows environments in the AgentBay cloud platform. It enables mouse operations, keyboard input, screen capture, and window management.
 
+## 📖 Related Tutorials
+
+- [Computer UI Automation Guide](../../../docs/guides/computer-use/computer-ui-automation.md) - Detailed tutorial on desktop UI automation
+- [Window Management Guide](../../../docs/guides/computer-use/window-management.md) - Tutorial on managing application windows
+
 ## Overview
 
 The Computer module is designed for automating Windows desktop applications. It provides low-level input control, screen operations, and window management capabilities that are essential for desktop automation tasks.

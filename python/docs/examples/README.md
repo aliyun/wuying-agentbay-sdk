@@ -125,6 +125,32 @@ Code execution examples are integrated into session and automation examples.
 
 ## Running the Examples
 
+### Option 1: Using Installed Package (Recommended)
+
+1. Install the SDK:
+```bash
+pip install wuying-agentbay-sdk
+```
+
+2. For browser examples, install Playwright:
+```bash
+playwright install chromium
+```
+
+3. Set your API key:
+```bash
+export AGENTBAY_API_KEY=your_api_key_here
+```
+
+4. Run any example:
+```bash
+python basic_usage.py
+python session_creation/main.py
+python browser/browser_stealth.py
+```
+
+### Option 2: Development from Source
+
 1. Install dependencies:
 ```bash
 cd python
@@ -141,12 +167,9 @@ poetry run playwright install chromium
 export AGENTBAY_API_KEY=your_api_key_here
 ```
 
-4. Run any example:
+4. Run examples with poetry:
 ```bash
-# Single-file examples
 poetry run python docs/examples/basic_usage.py
-
-# Examples in subdirectories
 poetry run python docs/examples/session_creation/main.py
 poetry run python docs/examples/browser/browser_stealth.py
 ```

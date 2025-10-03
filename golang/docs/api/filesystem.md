@@ -2,6 +2,10 @@
 
 The FileSystem module provides comprehensive file and directory operations within AgentBay sessions, including real-time directory monitoring capabilities.
 
+## 📖 Related Tutorial
+
+- [Complete Guide to File Operations](../../../docs/guides/common-features/basics/file-operations.md) - Detailed tutorial covering all file operation features
+
 ## Overview
 
 The FileSystem interface enables you to:

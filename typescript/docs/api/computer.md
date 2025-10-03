@@ -2,6 +2,11 @@
 
 The `Computer` class provides desktop UI automation capabilities including mouse operations, keyboard input, screen capture, and window management for desktop environments.
 
+## 📖 Related Tutorials
+
+- [Computer UI Automation Guide](../../../docs/guides/computer-use/computer-ui-automation.md) - Detailed tutorial on desktop UI automation
+- [Window Management Guide](../../../docs/guides/computer-use/window-management.md) - Tutorial on managing application windows
+
 ## Overview
 
 The Computer module is designed for desktop automation tasks and requires sessions created with the `windows_latest` image. It provides comprehensive desktop interaction capabilities through MCP tools.

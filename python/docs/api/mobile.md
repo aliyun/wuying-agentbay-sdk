@@ -2,6 +2,11 @@
 
 The `Mobile` class provides comprehensive mobile device UI automation operations in the AgentBay cloud environment. It offers touch operations, UI element interactions, application management, and screenshot capabilities for Android mobile device automation.
 
+## 📖 Related Tutorials
+
+- [Mobile UI Automation Guide](../../../docs/guides/mobile-use/mobile-ui-automation.md) - Detailed tutorial on mobile UI automation
+- [Mobile Application Management Guide](../../../docs/guides/mobile-use/mobile-application-management.md) - Tutorial on managing mobile applications
+
 ## Overview
 
 The `Mobile` class is available through `session.mobile` and is designed for use with Android mobile environments (use `image_id="mobile_latest"` when creating sessions).

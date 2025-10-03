@@ -111,20 +111,41 @@ Mobile automation examples are available through the Mobile API. Refer to the AP
 
 ## Running the Examples
 
-1. Set your API key:
+### Option 1: Using Installed Package (Recommended)
+
+1. Install the SDK:
+```bash
+go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
+```
+
+2. Set your API key:
 ```bash
 export AGENTBAY_API_KEY=your_api_key_here
 ```
 
-2. Navigate to any example directory:
+3. Copy and run examples in your project:
 ```bash
-cd basic_usage
+go run basic_usage.go
+```
+
+### Option 2: Development from Source
+
+1. Clone the repository and navigate to example:
+```bash
+cd golang/docs/examples/basic_usage
+```
+
+2. Set your API key:
+```bash
+export AGENTBAY_API_KEY=your_api_key_here
 ```
 
 3. Run the example:
 ```bash
 go run main.go
 ```
+
+Note: When running from source, ensure the module path in examples matches your local setup.
 
 ## Prerequisites
 
