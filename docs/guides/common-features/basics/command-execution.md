@@ -178,7 +178,6 @@ agent_bay.delete(session)
 ## 🆘 Getting Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [API Reference](../../api-reference.md)
 - [Documentation Home](../README.md)
 
 Happy automating with AgentBay! 🚀

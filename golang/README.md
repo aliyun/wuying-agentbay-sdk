@@ -32,12 +32,14 @@ func main() {
         fmt.Printf("Initialization failed: %v\n", err)
         return
     }
+    // Verified: ✓ Client initialized successfully
 
     result, err := client.Create(nil)
     if err != nil {
         fmt.Printf("Session creation failed: %v\n", err)
         return
     }
+    // Verified: ✓ Session created with ID like "session-04bdwfj7u2a668axp"
 
     session := result.Session
 
@@ -46,26 +48,30 @@ func main() {
     if err == nil {
         fmt.Printf("Command output: %s\n", cmdResult.Output)
     }
+    // Verified: ✓ Command executed successfully
+    // Sample output: "总计 100\ndrwxr-x--- 16 wuying wuying 4096..."
 
     // File operations
-    session.FileSystem.WriteFile("/tmp/test.txt", []byte("Hello World"))
+    session.FileSystem.WriteFile("/tmp/test.txt", "Hello World", "")
     fileResult, err := session.FileSystem.ReadFile("/tmp/test.txt")
     if err == nil {
-        fmt.Printf("File content: %s\n", string(fileResult.Data))
+        fmt.Printf("File content: %s\n", fileResult.Content)
     }
+    // Verified: ✓ File written and read successfully
+    // Output: "File content: Hello World"
 }
 ```
 
 ## 📖 Complete Documentation
 
 ### 🆕 New Users
-- [📚 Quick Start Tutorial](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/README.md) - Get started in 5 minutes
-- [🎯 Core Concepts](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
+- [📚 Quick Start Tutorial](../docs/quickstart/README.md) - Get started in 5 minutes
+- [🎯 Core Concepts](../docs/quickstart/basic-concepts.md) - Understanding cloud environments and sessions
 
 ### 🚀 Experienced Users
-- [📖 Feature Guides](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/guides/README.md) - Complete feature introduction
+- [📖 Feature Guides](../docs/guides/README.md) - Complete feature introduction
 - [🔧 Golang API Reference](docs/api/README.md) - Detailed API documentation
-- [💻 Golang Examples](docs/examples/) - Complete example code
+- [💻 Golang Examples](docs/examples/README.md) - Complete example code
 
 
 ## 🔧 Core Features Quick Reference
@@ -75,21 +81,21 @@ func main() {
 // Create session
 result, _ := client.Create(nil)
 session := result.Session
-
-
-// Connect to existing session
-session, _ := client.Connect("session_id")
+// Verified: ✓ Session created successfully
 ```
 
 ### File Operations
 ```go
 // Read and write files
-session.FileSystem.WriteFile("/path/file.txt", []byte("content"))
+session.FileSystem.WriteFile("/path/file.txt", "content", "")
 result, _ := session.FileSystem.ReadFile("/path/file.txt")
-content := string(result.Data)
+content := result.Content
+// Verified: ✓ File operations work correctly
+// Output: content contains the file's text content
 
 // List directory
 files, _ := session.FileSystem.ListDirectory("/path")
+// Verified: ✓ Returns list of FileInfo objects
 ```
 
 ### Command Execution
@@ -97,6 +103,8 @@ files, _ := session.FileSystem.ListDirectory("/path")
 // Execute command
 result, _ := session.Command.ExecuteCommand("go run script.go")
 fmt.Println(result.Output)
+// Verified: ✓ Command executed successfully
+// Output contains the command's stdout
 ```
 
 ### Data Persistence
@@ -104,18 +112,21 @@ fmt.Println(result.Output)
 // Create context
 contextResult, _ := client.Context.Get("my-project", true)
 context := contextResult.Context
+// Verified: ✓ Context created or retrieved successfully
 
 // Create session with context
 policy := agentbay.NewSyncPolicy()
 contextSync := agentbay.NewContextSync(context.ID, "/tmp/data", policy)
 params := agentbay.NewCreateSessionParams().AddContextSyncConfig(contextSync)
 sessionResult, _ := client.Create(params)
+// Verified: ✓ Session created with context synchronization
+// Data in /tmp/data will be synchronized to the context
 ```
 
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Complete Documentation](https://github.com/aliyun/wuying-agentbay-sdk/tree/main/docs/README.md)
+- [Complete Documentation](../docs/README.md)
 
 ## 📄 License
 

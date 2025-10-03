@@ -44,7 +44,6 @@ VPC sessions are created by setting the `is_vpc` parameter to `True` in the `Cre
 
 - [Session Management Guide](../basics/session-management.md)
 - [SDK Configuration](../basics/sdk-configuration.md)
-- [API Reference](../../../api-reference.md)
-- [Python VPC Example](/python/docs/examples/vpc_session/)
-- [TypeScript VPC Example](/typescript/docs/examples/vpc-session-example.ts)
-- [Go VPC Example](/golang/docs/examples/vpc_session/)
+- [Python VPC Example](/python/docs/examples/vpc_session/README.md)
+- [TypeScript VPC Example](/typescript/docs/examples/vpc-session-example/README.md)
+- [Go VPC Example](/golang/docs/examples/vpc_session/README.md)

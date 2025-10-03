@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any, Dict, List
 
@@ -29,7 +30,7 @@ def main():
 
         # Get installed applications
         print("\nGetting installed applications...")
-        apps_result = session.application.get_installed_apps(
+        apps_result = session.mobile.get_installed_apps(
             start_menu=True, desktop=False, ignore_system_apps=True
         )
 
@@ -41,7 +42,7 @@ def main():
 
         # Start the application
         print(f"\nStarting the application...")
-        start_result = session.application.start_app(
+        start_result = session.mobile.start_app(
             "monkey -p com.autonavi.minimap -c android.intent.category.LAUNCHER 1"
         )
         print(f"Started Application successfully: {start_result.success}")
@@ -49,7 +50,7 @@ def main():
 
         # Stop the application
         print("\nStopping the application...")
-        stop_result = session.application.stop_app_by_cmd(
+        stop_result = session.mobile.stop_app_by_cmd(
             "am force-stop com.sankuai.meituan"
         )
         print(f"Application stopped: {stop_result.success}")
@@ -57,7 +58,7 @@ def main():
 
         # Get clickable ui elements
         print("\nGetting clickable UI elements...")
-        elements_result = session.ui.get_clickable_ui_elements()
+        elements_result = session.mobile.get_clickable_ui_elements()
         if elements_result.success:
             print(f"Clickable UI Elements: {elements_result.elements}")
             print(f"Request ID: {elements_result.request_id}")
@@ -83,28 +84,29 @@ def main():
             for element in elements:
                 print_ui_element(element)
 
-        all_elements_result = session.ui.get_all_ui_elements(timeout_ms=3000)
+        all_elements_result = session.mobile.get_all_ui_elements(timeout_ms=3000)
         if all_elements_result.success:
-            print_all_ui_elements(all_elements_result.elements)
+            elements = json.loads(all_elements_result.elements) if isinstance(all_elements_result.elements, str) else all_elements_result.elements
+            print_all_ui_elements(elements)
             print(f"Request ID: {all_elements_result.request_id}")
         else:
             print(f"Error getting all UI elements: {all_elements_result.error_message}")
 
         # Send key event
         print("\nSending key event...")
-        key_result = session.ui.send_key(KeyCode.HOME)
+        key_result = session.mobile.send_key(KeyCode.HOME)
         print(f"Key event sent successfully: {key_result.success}")
         print(f"Request ID: {key_result.request_id}")
 
         # Input text
         print("\nInput text...")
-        input_result = session.ui.input_text("Hello, AgentBay!")
+        input_result = session.mobile.input_text("Hello, AgentBay!")
         print(f"Text input successfully: {input_result.success}")
         print(f"Request ID: {input_result.request_id}")
 
         # Swipe screen
         print("\nSwiping screen...")
-        swipe_result = session.ui.swipe(
+        swipe_result = session.mobile.swipe(
             start_x=100,  # Starting X coordinate
             start_y=800,  # Starting Y coordinate
             end_x=900,  # Ending X coordinate
@@ -114,19 +116,18 @@ def main():
         print(f"Screen swiped successfully: {swipe_result.success}")
         print(f"Request ID: {swipe_result.request_id}")
 
-        # Click event
-        print("\nClicking screen...")
-        click_result = session.ui.click(
-            x=500,  # X coordinate for click
-            y=800,  # Y coordinate for click
-            button="left",  # Mouse button type, default is "left"
+        # Tap event (mobile touch)
+        print("\nTapping screen...")
+        tap_result = session.mobile.tap(
+            x=500,  # X coordinate for tap
+            y=800,  # Y coordinate for tap
         )
-        print(f"Screen clicked successfully: {click_result.success}")
-        print(f"Request ID: {click_result.request_id}")
+        print(f"Screen tapped successfully: {tap_result.success}")
+        print(f"Request ID: {tap_result.request_id}")
 
         # Screenshot
         print("\nTaking screenshot...")
-        screenshot_result = session.ui.screenshot()
+        screenshot_result = session.mobile.screenshot()
         print(f"Screenshot taken successfully: {screenshot_result.success}")
         if screenshot_result.success and screenshot_result.data:
             print(f"Screenshot data length: {len(screenshot_result.data)} bytes")
@@ -138,7 +139,7 @@ def main():
         app_activity = "com.xingin.outside.activity.OppoOutsideFeedActivity"
         start_cmd = f"monkey -p {app_package} -c android.intent.category.LAUNCHER 1"
 
-        start_result = session.application.start_app(
+        start_result = session.mobile.start_app(
             start_cmd=start_cmd, activity=app_activity
         )
         print(f"Start app with activity success: {start_result.success}")

@@ -215,13 +215,13 @@ func TestSession_DeleteMethod(t *testing.T) {
 	}
 
 	// Verify the session was deleted by trying to list sessions
-	listResult, err := agentBay.List()
+	listResult, err := agentBay.ListByLabels(nil)
 	if err != nil {
 		t.Fatalf("Error listing sessions: %v", err)
 	}
 
-	// Note: List method is a local operation and does not return RequestID
-	t.Logf("Sessions listed (local operation, no RequestID)")
+	// Log RequestID from ListByLabels
+	t.Logf("Sessions listed (RequestID: %s)", listResult.RequestID)
 
 	// Check if the deleted session is not in the list
 	for _, s := range listResult.Sessions {

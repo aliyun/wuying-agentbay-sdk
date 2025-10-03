@@ -6,6 +6,27 @@ import (
 
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/window"
+)
+
+// MouseButton represents mouse button types
+type MouseButton string
+
+const (
+	MouseButtonLeft       MouseButton = "left"
+	MouseButtonRight      MouseButton = "right"
+	MouseButtonMiddle     MouseButton = "middle"
+	MouseButtonDoubleLeft MouseButton = "double_left"
+)
+
+// ScrollDirection represents scroll directions
+type ScrollDirection string
+
+const (
+	ScrollDirectionUp    ScrollDirection = "up"
+	ScrollDirectionDown  ScrollDirection = "down"
+	ScrollDirectionLeft  ScrollDirection = "left"
+	ScrollDirectionRight ScrollDirection = "right"
 )
 
 // CursorPosition represents the cursor position on screen
@@ -70,9 +91,9 @@ func NewComputer(session interface {
 }
 
 // ClickMouse clicks the mouse at the specified coordinates
-func (c *Computer) ClickMouse(x, y int, button string) *BoolResult {
+func (c *Computer) ClickMouse(x, y int, button MouseButton) *BoolResult {
 	// Validate button parameter
-	validButtons := []string{"left", "right", "middle", "double_left"}
+	validButtons := []MouseButton{MouseButtonLeft, MouseButtonRight, MouseButtonMiddle, MouseButtonDoubleLeft}
 	isValid := false
 	for _, validButton := range validButtons {
 		if button == validButton {
@@ -93,7 +114,7 @@ func (c *Computer) ClickMouse(x, y int, button string) *BoolResult {
 	args := map[string]interface{}{
 		"x":      x,
 		"y":      y,
-		"button": button,
+		"button": string(button),
 	}
 
 	result, err := c.Session.CallMcpTool("click_mouse", args)
@@ -144,9 +165,9 @@ func (c *Computer) MoveMouse(x, y int) *BoolResult {
 }
 
 // DragMouse drags the mouse from one point to another
-func (c *Computer) DragMouse(fromX, fromY, toX, toY int, button string) *BoolResult {
+func (c *Computer) DragMouse(fromX, fromY, toX, toY int, button MouseButton) *BoolResult {
 	// Validate button parameter
-	validButtons := []string{"left", "right", "middle"}
+	validButtons := []MouseButton{MouseButtonLeft, MouseButtonRight, MouseButtonMiddle}
 	isValid := false
 	for _, validButton := range validButtons {
 		if button == validButton {
@@ -169,7 +190,7 @@ func (c *Computer) DragMouse(fromX, fromY, toX, toY int, button string) *BoolRes
 		"from_y": fromY,
 		"to_x":   toX,
 		"to_y":   toY,
-		"button": button,
+		"button": string(button),
 	}
 
 	result, err := c.Session.CallMcpTool("drag_mouse", args)
@@ -193,9 +214,9 @@ func (c *Computer) DragMouse(fromX, fromY, toX, toY int, button string) *BoolRes
 }
 
 // Scroll scrolls the mouse wheel at specific coordinates
-func (c *Computer) Scroll(x, y int, direction string, amount int) *BoolResult {
+func (c *Computer) Scroll(x, y int, direction ScrollDirection, amount int) *BoolResult {
 	// Validate direction parameter
-	validDirections := []string{"up", "down", "left", "right"}
+	validDirections := []ScrollDirection{ScrollDirectionUp, ScrollDirectionDown, ScrollDirectionLeft, ScrollDirectionRight}
 	isValid := false
 	for _, validDirection := range validDirections {
 		if direction == validDirection {
@@ -216,7 +237,7 @@ func (c *Computer) Scroll(x, y int, direction string, amount int) *BoolResult {
 	args := map[string]interface{}{
 		"x":         x,
 		"y":         y,
-		"direction": direction,
+		"direction": string(direction),
 		"amount":    amount,
 	}
 
@@ -436,4 +457,64 @@ func (c *Computer) Screenshot() *ScreenshotResult {
 		Data:         result.Data,
 		ErrorMessage: result.ErrorMessage,
 	}
+}
+
+// ListRootWindows lists all root windows
+func (c *Computer) ListRootWindows(timeoutMs ...int) (*window.WindowListResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.ListRootWindows()
+}
+
+// GetActiveWindow gets the currently active window
+func (c *Computer) GetActiveWindow(timeoutMs ...int) (*window.WindowDetailResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.GetActiveWindow()
+}
+
+// ActivateWindow activates the specified window
+func (c *Computer) ActivateWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.ActivateWindow(windowID)
+}
+
+// CloseWindow closes the specified window
+func (c *Computer) CloseWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.CloseWindow(windowID)
+}
+
+// MaximizeWindow maximizes the specified window
+func (c *Computer) MaximizeWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.MaximizeWindow(windowID)
+}
+
+// MinimizeWindow minimizes the specified window
+func (c *Computer) MinimizeWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.MinimizeWindow(windowID)
+}
+
+// RestoreWindow restores the specified window
+func (c *Computer) RestoreWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.RestoreWindow(windowID)
+}
+
+// ResizeWindow resizes the specified window
+func (c *Computer) ResizeWindow(windowID int, width int, height int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.ResizeWindow(windowID, width, height)
+}
+
+// FullscreenWindow makes the specified window fullscreen
+func (c *Computer) FullscreenWindow(windowID int) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.FullscreenWindow(windowID)
+}
+
+// FocusMode toggles focus mode on or off
+func (c *Computer) FocusMode(on bool) (*window.WindowResult, error) {
+	windowManager := window.NewWindowManager(c.Session)
+	return windowManager.FocusMode(on)
 }

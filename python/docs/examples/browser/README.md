@@ -81,7 +81,7 @@ python search_agentbay_doc.py
 
 ## Related Documentation
 
-- [Browser Extension Examples](../extension/) - Dedicated extension management examples
+- [Browser Extension Examples](../extension/README.md) - Dedicated extension management examples
 - [Browser Automation Guide](../../../guides/browser-automation.md)
 - [Browser Context Tutorial](../../../tutorials/browser-context.md)
 - [Context Management Guide](../../../guides/context-management.md)

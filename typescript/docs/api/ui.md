@@ -1,5 +1,7 @@
 # UI Class API Reference
 
+> **⚠️ DEPRECATED**: This API is deprecated. Please use the [Computer API](computer.md) or [Mobile API](mobile.md) instead for UI automation functionality.
+
 The `UI` class provides methods for interacting with UI elements in the AgentBay cloud environment. This includes retrieving UI elements, sending key events, inputting text, performing gestures, and taking screenshots.
 
 ## Properties

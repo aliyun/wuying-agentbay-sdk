@@ -41,7 +41,7 @@ func (suite *ComputerTestSuite) TestClickMouse_Success() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.ClickMouse(100, 200, "left")
+	result := suite.computer.ClickMouse(100, 200, computer.MouseButtonLeft)
 
 	// Assert
 	assert.True(suite.T(), result.Success)
@@ -51,7 +51,7 @@ func (suite *ComputerTestSuite) TestClickMouse_Success() {
 
 func (suite *ComputerTestSuite) TestClickMouse_InvalidButton() {
 	// Act
-	result := suite.computer.ClickMouse(100, 200, "invalid")
+	result := suite.computer.ClickMouse(100, 200, computer.MouseButton("invalid"))
 
 	// Assert
 	assert.False(suite.T(), result.Success)
@@ -60,6 +60,48 @@ func (suite *ComputerTestSuite) TestClickMouse_InvalidButton() {
 	assert.Contains(suite.T(), result.ErrorMessage, "right")
 	assert.Contains(suite.T(), result.ErrorMessage, "middle")
 	assert.Contains(suite.T(), result.ErrorMessage, "double_left")
+}
+
+func (suite *ComputerTestSuite) TestClickMouse_WithRightButton() {
+	// Arrange
+	expectedResult := &models.McpToolResult{
+		Success:      true,
+		RequestID:    "test-click-right",
+		ErrorMessage: "",
+	}
+
+	suite.mockSession.On("CallMcpTool", "click_mouse", map[string]interface{}{
+		"x":      100,
+		"y":      200,
+		"button": "right",
+	}).Return(expectedResult, nil)
+
+	// Act
+	result := suite.computer.ClickMouse(100, 200, computer.MouseButtonRight)
+
+	// Assert
+	assert.True(suite.T(), result.Success)
+}
+
+func (suite *ComputerTestSuite) TestClickMouse_WithDoubleLeft() {
+	// Arrange
+	expectedResult := &models.McpToolResult{
+		Success:      true,
+		RequestID:    "test-click-double",
+		ErrorMessage: "",
+	}
+
+	suite.mockSession.On("CallMcpTool", "click_mouse", map[string]interface{}{
+		"x":      100,
+		"y":      200,
+		"button": "double_left",
+	}).Return(expectedResult, nil)
+
+	// Act
+	result := suite.computer.ClickMouse(100, 200, computer.MouseButtonDoubleLeft)
+
+	// Assert
+	assert.True(suite.T(), result.Success)
 }
 
 func (suite *ComputerTestSuite) TestClickMouse_McpToolError() {
@@ -77,7 +119,7 @@ func (suite *ComputerTestSuite) TestClickMouse_McpToolError() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.ClickMouse(100, 200, "left")
+	result := suite.computer.ClickMouse(100, 200, computer.MouseButtonLeft)
 
 	// Assert
 	assert.False(suite.T(), result.Success)
@@ -126,7 +168,7 @@ func (suite *ComputerTestSuite) TestDragMouse_Success() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.DragMouse(100, 200, 300, 400, "left")
+	result := suite.computer.DragMouse(100, 200, 300, 400, computer.MouseButtonLeft)
 
 	// Assert
 	assert.True(suite.T(), result.Success)
@@ -135,7 +177,7 @@ func (suite *ComputerTestSuite) TestDragMouse_Success() {
 
 func (suite *ComputerTestSuite) TestDragMouse_InvalidButton() {
 	// Act
-	result := suite.computer.DragMouse(100, 200, 300, 400, "invalid")
+	result := suite.computer.DragMouse(100, 200, 300, 400, computer.MouseButton("invalid"))
 
 	// Assert
 	assert.False(suite.T(), result.Success)
@@ -159,16 +201,38 @@ func (suite *ComputerTestSuite) TestScroll_Success() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.Scroll(100, 200, "up", 3)
+	result := suite.computer.Scroll(100, 200, computer.ScrollDirectionUp, 3)
 
 	// Assert
 	assert.True(suite.T(), result.Success)
 	assert.Equal(suite.T(), "test-scroll-abc", result.RequestID)
 }
 
+func (suite *ComputerTestSuite) TestScroll_WithDownDirection() {
+	// Arrange
+	expectedResult := &models.McpToolResult{
+		Success:      true,
+		RequestID:    "test-scroll-down",
+		ErrorMessage: "",
+	}
+
+	suite.mockSession.On("CallMcpTool", "scroll", map[string]interface{}{
+		"x":         100,
+		"y":         200,
+		"direction": "down",
+		"amount":    5,
+	}).Return(expectedResult, nil)
+
+	// Act
+	result := suite.computer.Scroll(100, 200, computer.ScrollDirectionDown, 5)
+
+	// Assert
+	assert.True(suite.T(), result.Success)
+}
+
 func (suite *ComputerTestSuite) TestScroll_InvalidDirection() {
 	// Act
-	result := suite.computer.Scroll(100, 200, "diagonal", 1)
+	result := suite.computer.Scroll(100, 200, computer.ScrollDirection("diagonal"), 1)
 
 	// Assert
 	assert.False(suite.T(), result.Success)
@@ -351,53 +415,69 @@ func (suite *ComputerTestSuite) TestScreenshot_Success() {
 
 // Test edge cases and error scenarios
 func (suite *ComputerTestSuite) TestClickMouse_AllButtonTypes() {
-	validButtons := []string{"left", "right", "middle", "double_left"}
+	testCases := []struct{
+		button computer.MouseButton
+		buttonStr string
+	}{
+		{computer.MouseButtonLeft, "left"},
+		{computer.MouseButtonRight, "right"},
+		{computer.MouseButtonMiddle, "middle"},
+		{computer.MouseButtonDoubleLeft, "double_left"},
+	}
 
-	for _, button := range validButtons {
+	for _, tc := range testCases {
 		suite.SetupTest() // Reset mock for each test
 
 		expectedResult := &models.McpToolResult{
 			Success:      true,
-			RequestID:    "test-" + button,
+			RequestID:    "test-" + tc.buttonStr,
 			ErrorMessage: "",
 		}
 
 		suite.mockSession.On("CallMcpTool", "click_mouse", map[string]interface{}{
 			"x":      100,
 			"y":      200,
-			"button": button,
+			"button": tc.buttonStr,
 		}).Return(expectedResult, nil)
 
-		result := suite.computer.ClickMouse(100, 200, button)
+		result := suite.computer.ClickMouse(100, 200, tc.button)
 
-		assert.True(suite.T(), result.Success, "Button %s should be valid", button)
-		assert.Equal(suite.T(), "test-"+button, result.RequestID)
+		assert.True(suite.T(), result.Success, "Button %s should be valid", tc.buttonStr)
+		assert.Equal(suite.T(), "test-"+tc.buttonStr, result.RequestID)
 	}
 }
 
 func (suite *ComputerTestSuite) TestScroll_AllDirections() {
-	validDirections := []string{"up", "down", "left", "right"}
+	testCases := []struct{
+		direction computer.ScrollDirection
+		directionStr string
+	}{
+		{computer.ScrollDirectionUp, "up"},
+		{computer.ScrollDirectionDown, "down"},
+		{computer.ScrollDirectionLeft, "left"},
+		{computer.ScrollDirectionRight, "right"},
+	}
 
-	for _, direction := range validDirections {
+	for _, tc := range testCases {
 		suite.SetupTest() // Reset mock for each test
 
 		expectedResult := &models.McpToolResult{
 			Success:      true,
-			RequestID:    "test-" + direction,
+			RequestID:    "test-" + tc.directionStr,
 			ErrorMessage: "",
 		}
 
 		suite.mockSession.On("CallMcpTool", "scroll", map[string]interface{}{
 			"x":         100,
 			"y":         200,
-			"direction": direction,
+			"direction": tc.directionStr,
 			"amount":    1,
 		}).Return(expectedResult, nil)
 
-		result := suite.computer.Scroll(100, 200, direction, 1)
+		result := suite.computer.Scroll(100, 200, tc.direction, 1)
 
-		assert.True(suite.T(), result.Success, "Direction %s should be valid", direction)
-		assert.Equal(suite.T(), "test-"+direction, result.RequestID)
+		assert.True(suite.T(), result.Success, "Direction %s should be valid", tc.directionStr)
+		assert.Equal(suite.T(), "test-"+tc.directionStr, result.RequestID)
 	}
 }
 

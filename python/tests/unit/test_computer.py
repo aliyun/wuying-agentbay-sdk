@@ -6,7 +6,7 @@ Following TDD principles - tests first, then implementation.
 import pytest
 from unittest.mock import Mock, patch
 
-from agentbay.computer import Computer
+from agentbay.computer import Computer, MouseButton, ScrollDirection
 from agentbay.model import BoolResult, OperationResult
 from agentbay.exceptions import AgentBayError
 
@@ -67,6 +67,41 @@ class TestComputer:
         # Act & Assert
         with pytest.raises(ValueError, match="Invalid button"):
             self.computer.click_mouse(100, 200, button="invalid")
+
+    def test_click_mouse_with_enum(self):
+        """Test mouse click with MouseButton enum."""
+        # Arrange
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.request_id = "test-123"
+        
+        self.computer._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.computer.click_mouse(100, 200, button=MouseButton.RIGHT)
+        
+        # Assert
+        assert result.success is True
+        self.computer._call_mcp_tool.assert_called_once_with(
+            "click_mouse", {"x": 100, "y": 200, "button": "right"}
+        )
+
+    def test_click_mouse_with_double_left_enum(self):
+        """Test mouse click with MouseButton.DOUBLE_LEFT enum."""
+        # Arrange
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.request_id = "test-123"
+        
+        self.computer._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.computer.click_mouse(100, 200, button=MouseButton.DOUBLE_LEFT)
+        
+        # Assert
+        self.computer._call_mcp_tool.assert_called_once_with(
+            "click_mouse", {"x": 100, "y": 200, "button": "double_left"}
+        )
 
     def test_move_mouse_success(self):
         """Test successful mouse move."""
@@ -317,6 +352,46 @@ class TestComputer:
         # Act & Assert
         with pytest.raises(ValueError, match="Invalid direction"):
             self.computer.scroll(100, 100, direction="invalid")
+
+    def test_scroll_with_enum(self):
+        """Test scroll with ScrollDirection enum."""
+        # Arrange
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.request_id = "test-123"
+        
+        self.computer._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.computer.scroll(300, 300, direction=ScrollDirection.DOWN, amount=5)
+        
+        # Assert
+        assert result.success is True
+        self.computer._call_mcp_tool.assert_called_once_with(
+            "scroll", {"x": 300, "y": 300, "direction": "down", "amount": 5}
+        )
+
+    def test_drag_mouse_with_enum(self):
+        """Test drag mouse with MouseButton enum."""
+        # Arrange
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.request_id = "test-123"
+        
+        self.computer._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.computer.drag_mouse(100, 100, 200, 200, button=MouseButton.MIDDLE)
+        
+        # Assert
+        assert result.success is True
+        self.computer._call_mcp_tool.assert_called_once_with(
+            "drag_mouse", {
+                "from_x": 100, "from_y": 100,
+                "to_x": 200, "to_y": 200,
+                "button": "middle"
+            }
+        )
 
     def test_list_visible_apps_success(self):
         """Test list_visible_apps delegates to ApplicationManager."""

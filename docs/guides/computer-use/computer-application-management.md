@@ -23,7 +23,7 @@ The Computer Use module provides comprehensive application management capabiliti
 3. **Process Monitoring** - Track running applications and their processes
 4. **Desktop Automation** - Automate complex desktop workflows
 
-These features work with `windows_latest` and `linux_latest` system images.
+These features have been tested and verified on `windows_latest` and `linux_latest` system images.
 
 <a id="prerequisites"></a>
 ## 📦 Prerequisites

@@ -334,4 +334,3 @@ If all the above tests pass, congratulations! You have successfully installed an
 **Next Steps:**
 - [Understanding Basic Concepts](basic-concepts.md)
 - [Creating Your First Session](first-session.md)
-- [API Reference](../api-reference.md)

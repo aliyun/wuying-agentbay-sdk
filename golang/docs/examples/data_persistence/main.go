@@ -69,7 +69,7 @@ func dataPersistenceDemo(agentBay *agentbay.AgentBay) error {
 	syncPolicy := agentbay.NewSyncPolicy()
 
 	// Create context sync configuration
-	contextSync := agentbay.NewContextSync(context.ID, "/tmp/persistent_data", syncPolicy)
+	contextSync, _ := agentbay.NewContextSync(context.ID, "/tmp/persistent_data", syncPolicy)
 
 	// Create session with context sync
 	sessionParams1 := agentbay.NewCreateSessionParams()

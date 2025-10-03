@@ -351,7 +351,6 @@ CodeSpace comes with Python and Node.js standard libraries pre-installed. For be
 ## 🆘 Getting Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [API Reference](../../api-reference.md)
 - [Documentation Home](../README.md)
 
 Happy coding with AgentBay CodeSpace! 🚀

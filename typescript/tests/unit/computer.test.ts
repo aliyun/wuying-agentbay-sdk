@@ -3,7 +3,7 @@
  * Following TDD principles - tests first, then implementation.
  */
 
-import { Computer } from '../../src/computer/computer';
+import { Computer, MouseButton, ScrollDirection } from '../../src/computer/computer';
 import { Session } from '../../src/session';
 
 // Mock Session interface
@@ -121,6 +121,89 @@ describe('Computer', () => {
       // Act & Assert
       await expect(computer.scroll(100, 200, 'invalid' as any, 1))
         .rejects.toThrow('Invalid direction');
+    });
+
+    test('clickMouse should accept MouseButton enum', async () => {
+      // Arrange
+      const mockResult = {
+        success: true,
+        requestId: 'test-123'
+      };
+      mockSession.callMcpTool.mockResolvedValue(mockResult);
+
+      // Act
+      const result = await computer.clickMouse(100, 200, MouseButton.RIGHT);
+
+      // Assert
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('click_mouse', {
+        x: 100,
+        y: 200,
+        button: 'right'
+      });
+      expect(result.success).toBe(true);
+    });
+
+    test('clickMouse should accept MouseButton.DOUBLE_LEFT enum', async () => {
+      // Arrange
+      const mockResult = {
+        success: true,
+        requestId: 'test-123'
+      };
+      mockSession.callMcpTool.mockResolvedValue(mockResult);
+
+      // Act
+      const result = await computer.clickMouse(100, 200, MouseButton.DOUBLE_LEFT);
+
+      // Assert
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('click_mouse', {
+        x: 100,
+        y: 200,
+        button: 'double_left'
+      });
+      expect(result.success).toBe(true);
+    });
+
+    test('dragMouse should accept MouseButton enum', async () => {
+      // Arrange
+      const mockResult = {
+        success: true,
+        requestId: 'test-123'
+      };
+      mockSession.callMcpTool.mockResolvedValue(mockResult);
+
+      // Act
+      const result = await computer.dragMouse(100, 100, 200, 200, MouseButton.MIDDLE);
+
+      // Assert
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('drag_mouse', {
+        from_x: 100,
+        from_y: 100,
+        to_x: 200,
+        to_y: 200,
+        button: 'middle'
+      });
+      expect(result.success).toBe(true);
+    });
+
+    test('scroll should accept ScrollDirection enum', async () => {
+      // Arrange
+      const mockResult = {
+        success: true,
+        requestId: 'test-123'
+      };
+      mockSession.callMcpTool.mockResolvedValue(mockResult);
+
+      // Act
+      const result = await computer.scroll(100, 200, ScrollDirection.DOWN, 5);
+
+      // Assert
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('scroll', {
+        x: 100,
+        y: 200,
+        direction: 'down',
+        amount: 5
+      });
+      expect(result.success).toBe(true);
     });
   });
 

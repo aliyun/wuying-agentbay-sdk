@@ -44,11 +44,12 @@ import (
 
 func main() {
     // Initialize AgentBay and create session
-    ab, err := agentbay.NewAgentBay("your-api-key")
+    ab, err := agentbay.NewAgentBay("your-api-key", nil)
     if err != nil {
         panic(err)
     }
-    sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux")
+    // Use code_latest image which supports command execution
+    sessionParams := agentbay.NewCreateSessionParams().WithImageId("code_latest")
     sessionResult, err := ab.Create(sessionParams)
     if err != nil {
         panic(err)
@@ -62,7 +63,10 @@ func main() {
         return
     }
     fmt.Printf("Command output:\n%s\n", result.Output)
+    // Expected output: Directory listing showing files and folders
+    // Sample output: "总计 100\ndrwxr-x--- 16 wuying wuying 4096..."
     fmt.Printf("Request ID: %s\n", result.RequestID)
+    // Expected: A valid UUID-format request ID
 
     // Execute a command with custom timeout (5000ms)
     resultWithTimeout, err := session.Command.ExecuteCommand("sleep 2 && echo 'Done'", 5000)
@@ -71,7 +75,14 @@ func main() {
         return
     }
     fmt.Printf("Command output: %s\n", resultWithTimeout.Output)
+    // Expected output: "Done\n"
+    // The command waits 2 seconds then outputs "Done"
     fmt.Printf("Request ID: %s\n", resultWithTimeout.RequestID)
+    // Expected: A valid UUID-format request ID
+    
+    // Note: If a command exceeds its timeout, it will return an error
+    // Example: session.Command.ExecuteCommand("sleep 3", 1000)
+    // Returns error: "command execution failed: Execution failed. Error code:-1 Error message: [timeout]"
 }
 ```
 

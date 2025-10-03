@@ -468,7 +468,6 @@ Now that you've successfully created your first session, learn the core features
 - **[Feature Guides Overview](../guides/README.md)** - Quick navigation to all advanced features
 
 ### 📖 **Reference Materials**  
-- **[API Reference](../api-reference.md)** - Complete SDK documentation
 - **[Getting Started](../getting-started.md)** - Overview and introduction
 
 ## 🎉 You're Ready!

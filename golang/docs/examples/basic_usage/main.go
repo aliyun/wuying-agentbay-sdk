@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
@@ -39,8 +38,6 @@ func main() {
 
 	// Store session for convenience
 	session = result.Session
-
-	}
 
 	// Execute command
 	fmt.Println("\nExecute command...")
@@ -183,7 +180,5 @@ func main() {
 			fmt.Printf("Linux session deleted successfully (RequestID: %s)\n",
 				linuxDeleteResult.RequestID)
 		}
-	}
-
 	}
 }

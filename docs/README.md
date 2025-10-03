@@ -12,6 +12,8 @@
 
 ## 🔧 Feature Guides
 
+- [Feature Guides Overview](guides/README.md) - Complete feature guides introduction
+
 ### Common Features (All Environments)
 - [Common Features Guide](guides/common-features/README.md) - Features available across all environments
 
@@ -20,12 +22,12 @@
 - [Command Execution](guides/common-features/basics/command-execution.md) - Execute shell commands and scripts
 - [File Operations](guides/common-features/basics/file-operations.md) - File upload, download, and management
 - [Data Persistence](guides/common-features/basics/data-persistence.md) - Cross-session data storage
-- [UI Automation](guides/common-features/basics/ui-automation.md) - User interface interaction and automation
 
 #### Advanced
 - [Session Link Access](guides/common-features/advanced/session-link-access.md) - Session connectivity and URL generation
 - [VPC Sessions](guides/common-features/advanced/vpc-sessions.md) - Secure isolated network environments
 - [Agent Modules](guides/common-features/advanced/agent-modules.md) - AI-powered task automation
+- [OSS Integration](guides/common-features/advanced/oss-integration.md) - Object Storage Service integration
 
 #### Configuration
 - [SDK Configuration](guides/common-features/configuration/sdk-configuration.md) - Configuration options and settings
@@ -39,6 +41,8 @@ Complete browser automation for web scraping, testing, and form filling.
 - [Core Features](guides/browser-use/core-features.md) - Basic browser operations
 - [Advanced Features](guides/browser-use/advance-features.md) - Advanced browser capabilities
 - [Code Examples](guides/browser-use/code-example.md) - Practical code samples
+- [Browser Extensions](guides/browser-use/browser-extensions.md) - Extension management
+- [Browser Replay](guides/browser-use/browser-replay.md) - Session replay functionality
 - [Integrations](guides/browser-use/integrations.md) - Third-party integrations
 
 **Key Capabilities:**
@@ -47,13 +51,16 @@ Complete browser automation for web scraping, testing, and form filling.
 - [CAPTCHA Handling](guides/browser-use/core-features/captcha.md) - Automated CAPTCHA solving
 - [Extension Support](guides/browser-use/core-features/extension.md) - Browser extension management
 - [Stealth Mode](guides/browser-use/core-features/stealth-mode.md) - Anti-detection techniques
+- [Call for User](guides/browser-use/core-features/call-for-user.md) - User interaction requests
 - [Page Agent](guides/browser-use/advance-features/page-use-agent.md) - AI-driven page operations
 
 #### Computer Use
 Windows desktop automation for application control and window management.
 
 - [Computer Use Guide](guides/computer-use/README.md) - Complete Windows desktop automation guide
-- [Application & Window Operations](guides/computer-use/application-window-operations.md) - Detailed documentation
+- [Computer Application Management](guides/computer-use/computer-application-management.md) - Application control and management
+- [Computer UI Automation](guides/computer-use/computer-ui-automation.md) - Desktop UI interaction and automation
+- [Window Management](guides/computer-use/window-management.md) - Window operations and focus management
 
 **Key Capabilities:**
 - Application Management (start, stop, list applications)
@@ -65,7 +72,8 @@ Windows desktop automation for application control and window management.
 Mobile UI automation for app testing and gesture-based interactions.
 
 - [Mobile Use Guide](guides/mobile-use/README.md) - Complete mobile automation guide
-- [UI Automation](guides/common-features/basics/ui-automation.md) - Detailed UI automation documentation
+- [Mobile Application Management](guides/mobile-use/mobile-application-management.md) - Mobile app control and management
+- [Mobile UI Automation](guides/mobile-use/mobile-ui-automation.md) - Mobile UI interaction and automation
 
 **Key Capabilities:**
 - UI Element Detection
@@ -79,7 +87,6 @@ Development environment for code execution and scripting.
 
 - [CodeSpace Guide](guides/codespace/README.md) - Complete development environment guide
 - [Code Execution](guides/codespace/code-execution.md) - Python and JavaScript code execution
-- [Command Execution](guides/common-features/basics/command-execution.md) - Shell commands and system operations
 
 **Key Capabilities:**
 - Python and JavaScript Code Execution
@@ -90,7 +97,6 @@ Development environment for code execution and scripting.
 
 ## 📚 API Reference
 
-- [API Documentation](api-reference.md) - Complete API reference
 - [Python SDK](../python/README.md) - Python version documentation
 - [TypeScript SDK](../typescript/README.md) - TypeScript version documentation
 - [Golang SDK](../golang/README.md) - Golang version documentation
@@ -109,23 +115,12 @@ If you've never used cloud services or automation tools:
 If you're familiar with Docker, cloud services, or automation tools:
 1. [Quick Start](quickstart/README.md) - Get up and running quickly
 2. [Common Features](guides/common-features/README.md) - Explore common capabilities
-3. [API Reference](api-reference.md) - Interface documentation
-4. [Advanced Features](guides/common-features/advanced/README.md) - Discover advanced capabilities
+3. [Advanced Features](guides/common-features/advanced/README.md) - Discover advanced capabilities
 
-## 🔍 Common Use Cases
+## 💼 Use Cases
 
-### Web Automation
-- [Browser Usage Guide](guides/browser-use/README.md)
-- [Stealth Mode](guides/browser-use/core-features/stealth-mode.md)
-- [CAPTCHA Handling](guides/browser-use/core-features/captcha.md)
-
-### File and Data Processing
-- [File Operations](guides/common-features/basics/file-operations.md)
-- [Data Persistence](guides/common-features/advanced/data-persistence.md)
-
-### Application Integration
-- [SDK Configuration](guides/common-features/configuration/sdk-configuration.md)
-- [Integration Solutions](guides/browser-use/integrations.md)
+- [Use Cases Overview](use-cases/README.md) - Common use case scenarios and implementations
+- [Session Info Use Cases](use-cases/session-info-use-cases.md) - Session information and connectivity patterns
 
 ## 📞 Getting Help
 

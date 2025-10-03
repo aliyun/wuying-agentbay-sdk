@@ -18,7 +18,7 @@ func TestLoadConfig_WithExplicitConfig(t *testing.T) {
 		TimeoutMs: 5000,
 	}
 
-	result := agentbay.LoadConfig(customCfg)
+	result := agentbay.LoadConfig(customCfg, "")
 
 	assert.Equal(t, "custom-region", result.RegionID)
 	assert.Equal(t, "custom-endpoint", result.Endpoint)
@@ -48,7 +48,7 @@ AGENTBAY_TIMEOUT_MS=10000
 	defer os.Chdir(cwd)
 	os.Chdir(dir)
 
-	result := agentbay.LoadConfig(nil)
+	result := agentbay.LoadConfig(nil, "")
 
 	assert.Equal(t, "env-region", result.RegionID)
 	assert.Equal(t, "env-endpoint", result.Endpoint)
@@ -66,7 +66,7 @@ func TestLoadConfig_FromEnvironmentVariables(t *testing.T) {
 		os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 	}()
 
-	result := agentbay.LoadConfig(nil)
+	result := agentbay.LoadConfig(nil, "")
 
 	assert.Equal(t, "sys-region", result.RegionID)
 	assert.Equal(t, "sys-endpoint", result.Endpoint)
@@ -79,7 +79,7 @@ func TestLoadConfig_UsesDefaultsWhenNoSource(t *testing.T) {
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 
-	result := agentbay.LoadConfig(nil)
+	result := agentbay.LoadConfig(nil, "")
 
 	defaultCfg := agentbay.DefaultConfig()
 	assert.Equal(t, defaultCfg.RegionID, result.RegionID)
@@ -123,13 +123,13 @@ AGENTBAY_TIMEOUT_MS=10000
 		Endpoint:  "explicit-endpoint",
 		TimeoutMs: 2000,
 	}
-	result := agentbay.LoadConfig(customCfg)
+	result := agentbay.LoadConfig(customCfg, "")
 	assert.Equal(t, "explicit-region", result.RegionID)
 	assert.Equal(t, "explicit-endpoint", result.Endpoint)
 	assert.Equal(t, 2000, result.TimeoutMs)
 
 	// 2. when there is no explicit config, env vars should take precedence over default config
-	result = agentbay.LoadConfig(nil)
+	result = agentbay.LoadConfig(nil, "")
 	assert.Equal(t, "sys-region", result.RegionID)
 	assert.Equal(t, "sys-endpoint", result.Endpoint)
 	assert.Equal(t, 15000, result.TimeoutMs)
@@ -139,7 +139,7 @@ AGENTBAY_TIMEOUT_MS=10000
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 
-	result = agentbay.LoadConfig(nil)
+	result = agentbay.LoadConfig(nil, "")
 	assert.Equal(t, "env-region", result.RegionID)
 	assert.Equal(t, "env-endpoint", result.Endpoint)
 	assert.Equal(t, 10000, result.TimeoutMs)
@@ -150,7 +150,7 @@ AGENTBAY_TIMEOUT_MS=10000
 	os.Unsetenv("AGENTBAY_ENDPOINT")
 	os.Unsetenv("AGENTBAY_TIMEOUT_MS")
 
-	result = agentbay.LoadConfig(nil)
+	result = agentbay.LoadConfig(nil, "")
 	assert.Equal(t, defaultCfg.RegionID, result.RegionID)
 	assert.Equal(t, defaultCfg.Endpoint, result.Endpoint)
 	assert.Equal(t, defaultCfg.TimeoutMs, result.TimeoutMs)

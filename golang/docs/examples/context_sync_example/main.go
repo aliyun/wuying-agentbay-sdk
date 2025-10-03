@@ -40,7 +40,7 @@ func main() {
 	// Example 2: Creating a basic context sync configuration
 	fmt.Println("\nExample 2: Creating a basic context sync configuration...")
 	basicPolicy := agentbay.NewSyncPolicy()
-	basicSync := agentbay.NewContextSync(context.ID, "/tmp", basicPolicy)
+	basicSync, _ := agentbay.NewContextSync(context.ID, "/tmp", basicPolicy)
 	fmt.Printf("Basic sync - ContextID: %s, Path: %s\n", basicSync.ContextID, basicSync.Path)
 
 	// Example 3: Create an advanced context sync configuration with policies
@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Create advanced sync configuration
-	advancedSync := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
+	advancedSync, _ := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
 
 	fmt.Printf("Advanced sync - ContextID: %s, Path: %s\n", advancedSync.ContextID, advancedSync.Path)
 	fmt.Printf("  - Upload: Auto=%t, Strategy=%s\n",
@@ -180,8 +180,8 @@ func main() {
 		},
 	}
 
-	builderSync := agentbay.NewContextSync(context.ID, "/workspace", nil).
-		WithPolicy(builderPolicy)
+	builderSync, _ := agentbay.NewContextSync(context.ID, "/workspace", nil)
+	builderSync, _ = builderSync.WithPolicy(builderPolicy)
 
 	fmt.Printf("Builder sync - ContextID: %s, Path: %s\n",
 		builderSync.ContextID, builderSync.Path)

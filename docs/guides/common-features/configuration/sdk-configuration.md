@@ -222,5 +222,4 @@ except Exception as e:
 ## Related Documentation
 
 - [Getting Started](../quickstart/installation.md)
-- [API Reference](../../api-reference.md)
 - [Session Management](./session-management.md)

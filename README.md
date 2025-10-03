@@ -2,8 +2,6 @@
 
 > The AgentBay SDK provides a comprehensive suite of tools for efficient interaction with AgentBay cloud environments, enabling you to create and manage cloud sessions, execute commands, operate files, and interact with user interfaces.
 
-[English](README.md) | [中文](README-CN.md)
-
 ## 📦 Installation
 
 | Language | Install Command | Documentation |
@@ -93,17 +91,23 @@ if err != nil {
 }
 ```
 
-## 👋 Choose Your Learning Path
+## 📚 Documentation
 
-### 🆕 New Users
-If you're new to AgentBay or cloud development:
+**[Complete Documentation](docs/README.md)** - Full guides, tutorials, and API references
+
+### 👋 Choose Your Learning Path
+
+**🆕 New Users** - If you're new to AgentBay or cloud development:
 - [Quick Start Tutorial](docs/quickstart/README.md) - Get started in 5 minutes
 - [Core Concepts](docs/quickstart/basic-concepts.md) - Understand cloud environments and sessions
 
-### 🚀 Experienced Users
-If you're familiar with Docker, cloud services, or similar products:
+**🚀 Experienced Users** - If you're familiar with Docker, cloud services, or similar products:
 - [Feature Guides](docs/guides/README.md) - Complete feature introduction
-- [API Reference](docs/api-reference.md) - Core API quick lookup
+- API Reference - Core API quick lookup
+  - [Python API Reference](python/docs/api/README.md)
+  - [TypeScript API Reference](typescript/docs/api/README.md)
+  - [Golang API Reference](golang/docs/api/README.md)
+- [Cookbook](cookbook/README.md) - Real-world examples and recipes
 
 ## 🔧 Core Features
 
@@ -127,8 +131,6 @@ If you're familiar with Docker, cloud services, or similar products:
 ## 🆘 Get Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
-- [Complete Documentation](docs/README.md)
-- [Changelog](CHANGELOG.md)
 
 ## 📄 License
 

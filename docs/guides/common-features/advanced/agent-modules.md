@@ -60,7 +60,6 @@ else:
 - [Session Management Guide](session-management.md)
 - [Data Persistence Guide](data-persistence.md)
 - [VPC Sessions Guide](vpc-sessions.md)
-- [API Reference](../../api-reference.md)
 
 ## 🆘 Getting Help
 

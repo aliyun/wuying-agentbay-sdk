@@ -788,7 +788,6 @@ https://gw-cn-hangzhou-ai-linux.wuyinggw.com:8008/request_ai/{token}/path/
 
 - [Session Management Guide](session-management.md)
 - [Advanced Features Guide](advanced-features.md)
-- [API Reference](../api-reference.md)
 
 ## Getting Help
 

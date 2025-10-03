@@ -67,7 +67,7 @@ import (
 
 func main() {
 	// Initialize the SDK
-	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	client, err := agentbay.NewAgentBay("your_api_key")
 	if err != nil {
 		fmt.Printf("Error initializing AgentBay client: %v\n", err)
 		os.Exit(1)
@@ -82,6 +82,7 @@ func main() {
 
 	session := createResult.Session
 	fmt.Printf("Session created with ID: %s\n", session.SessionID)
+	// Output: Session created with ID: session-04bdwfj7u20b0o113
 
 	// Use the session...
 
@@ -93,7 +94,9 @@ func main() {
 	}
 
 	fmt.Println("Session deleted successfully with synchronized context")
+	// Output: Session deleted successfully with synchronized context
 	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
+	// Output: Request ID: 863E5FCC-BBD2-12C2-BE98-8519BB5AF1F7
 }
 ```
 
@@ -128,7 +131,9 @@ if err != nil {
 }
 
 fmt.Println("Labels set successfully")
+// Output: Labels set successfully
 fmt.Printf("Request ID: %s\n", response.RequestID)
+// Output: Request ID: 010A3CC9-F3FB-1EC3-A540-19E8BBEAEF42
 ```
 
 ### GetLabels
@@ -152,18 +157,18 @@ if err != nil {
 	os.Exit(1)
 }
 
-if result.Success {
-	fmt.Println("Session labels:")
-	// Parse the labels JSON string
-	var labels map[string]string
-	if err := json.Unmarshal([]byte(result.Labels), &labels); err == nil {
-		for key, value := range labels {
-			fmt.Printf("%s: %s\n", key, value)
-		}
+fmt.Println("Session labels:")
+// Parse the labels JSON string
+var labels map[string]string
+if err := json.Unmarshal([]byte(result.Labels), &labels); err == nil {
+	for key, value := range labels {
+		fmt.Printf("%s: %s\n", key, value)
 	}
-} else {
-	fmt.Printf("Failed to get labels: %s\n", result.ErrorMessage)
 }
+// Output: Session labels:
+// environment: testing
+// project: demo
+// version: 1.0.0
 ```
 
 ### Info
@@ -181,15 +186,18 @@ Info() (*SessionInfo, error)
 **Example:**
 ```go
 // Get session information
-info, err := session.Info()
+infoResult, err := session.Info()
 if err != nil {
 	fmt.Printf("Error getting session info: %v\n", err)
 	os.Exit(1)
 }
 
-fmt.Printf("Session ID: %s\n", info.SessionID)
-fmt.Printf("Resource URL: %s\n", info.ResourceURL)
-fmt.Printf("App ID: %s\n", info.AppID)
+fmt.Printf("Session ID: %s\n", infoResult.Info.SessionId)
+// Output: Session ID: session-04bdwfj7u20b0o115
+fmt.Printf("Resource URL: %s\n", infoResult.Info.ResourceUrl)
+// Output: Resource URL: https://pre-myspace-wuying.aliyun.com/app/InnoArchClub/mcp_container/mcp.html?authcode=...
+fmt.Printf("App ID: %s\n", infoResult.Info.AppId)
+// Output: App ID: mcp-server-ubuntu
 ```
 
 ### GetLink
@@ -215,32 +223,25 @@ GetLink(protocolType *string, port *int32) (*LinkResult, error)
 
 **Example:**
 ```go
-// Get session link with default protocol and port
-linkResult, err := session.GetLink(nil, nil)
+// Get link with specific protocol and valid port
+// Note: For ComputerUse images, port must be explicitly specified
+protocolType := "https"
+var validPort int32 = 30150  // Valid port in range [30100, 30199]
+linkResult, err := session.GetLink(&protocolType, &validPort)
 if err != nil {
 	fmt.Printf("Error getting link: %v\n", err)
 	os.Exit(1)
 }
 
 fmt.Printf("Session link: %s (RequestID: %s)\n", linkResult.Link, linkResult.RequestID)
-
-// Get link with specific protocol and valid port
-protocolType := "https"
-var validPort int32 = 30150  // Valid port in range [30100, 30199]
-customLinkResult, err := session.GetLink(&protocolType, &validPort)
-if err != nil {
-	fmt.Printf("Error getting custom link: %v\n", err)
-	os.Exit(1)
-}
-
-fmt.Printf("Custom link: %s (RequestID: %s)\n", customLinkResult.Link, customLinkResult.RequestID)
+// Output: Session link: https://gw-cn-hangzhou-ai-linux.wuyinggw.com:8008/... (RequestID: 57D0226F-EF89-1C95-929F-577EC40A1F20)
 
 // Example of invalid port usage (will fail)
 var invalidPort int32 = 8080  // Invalid port - outside [30100, 30199] range
 _, err = session.GetLink(nil, &invalidPort)
 if err != nil {
 	fmt.Printf("Expected error with invalid port: %v\n", err)
-	// Output: "invalid port value: 8080. Port must be an integer in the range [30100, 30199]"
+	// Output: invalid port value: 8080. Port must be an integer in the range [30100, 30199]
 }
 ```
 
@@ -266,9 +267,15 @@ if err != nil {
 }
 
 fmt.Printf("Found %d MCP tools\n", len(toolsResult.Tools))
-for _, tool := range toolsResult.Tools {
-	fmt.Printf("Tool: %s - %s\n", tool.Name, tool.Description)
+// Output: Found 27 MCP tools
+for i, tool := range toolsResult.Tools {
+	if i < 3 {
+		fmt.Printf("Tool: %s - %s\n", tool.Name, tool.Description)
+	}
 }
+// Output: Tool: execute_command - Execute a command on the system
+// Tool: read_file - Read contents of a file
+// Tool: write_file - Write content to a file
 ```
 
 ## Related Resources

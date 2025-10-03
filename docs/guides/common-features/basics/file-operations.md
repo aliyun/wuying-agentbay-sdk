@@ -763,7 +763,6 @@ agent_bay.delete(session)
 - [Session Management Guide](session-management.md)
 - [Command Execution Guide](command-execution.md)
 - [Data Persistence Guide](data-persistence.md)
-- [API Reference](../../api-reference.md)
 
 ## 🆘 Getting Help
 

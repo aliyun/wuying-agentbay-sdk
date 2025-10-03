@@ -157,7 +157,7 @@ Extensions are synchronized to browser sessions at:
 
 - [Extension API Reference](../api/extension.md) - Complete API documentation
 - [Browser Extensions Guide](../../../docs/guides/browser-extensions.md) - Tutorial and best practices
-- [Browser Examples](../browser/) - Additional browser automation examples
+- [Browser Examples](../browser/README.md) - Additional browser automation examples
 
 ## Troubleshooting
 
