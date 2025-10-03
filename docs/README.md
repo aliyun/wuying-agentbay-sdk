@@ -111,16 +111,17 @@ Development environment for code execution and scripting.
 Choose the appropriate learning path based on your experience level:
 
 ### 🆕 Complete Beginners
-If you've never used cloud services or automation tools:
+Start from the basics and build your knowledge step by step:
 1. [Basic Concepts](quickstart/basic-concepts.md) - Understand core concepts
 2. [Installation Guide](quickstart/installation.md) - Environment setup
 3. [First Session](quickstart/first-session.md) - Hands-on practice
+4. [Feature Guides](guides/README.md) - Explore specific features as needed
 
 ### 🚀 Experienced Developers
-If you're familiar with Docker, cloud services, or automation tools:
-1. [Quick Start](quickstart/README.md) - Get up and running quickly
-2. [Common Features](guides/common-features/README.md) - Explore common capabilities
-3. [Advanced Features](guides/common-features/advanced/README.md) - Discover advanced capabilities
+Jump straight to advanced topics and API documentation:
+1. [Advanced Features](guides/common-features/advanced/README.md) - VPC, Agent Modules, OSS Integration
+2. [Environment-Specific Features](#environment-specific-features) - Browser, Computer, Mobile, CodeSpace
+3. [API Reference](#-api-reference) - Language-specific SDK documentation
 
 ## 📞 Getting Help
 
