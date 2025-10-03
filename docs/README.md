@@ -32,6 +32,11 @@
 #### Configuration
 - [SDK Configuration](guides/common-features/configuration/sdk-configuration.md) - Configuration options and settings
 
+#### Use Cases
+- [Use Cases Overview](guides/common-features/use-cases/README.md) - Common use case scenarios and implementations
+- [Session Info Use Cases](guides/common-features/use-cases/session-info-use-cases.md) - Session information and connectivity patterns
+- [Session Link Use Cases](guides/common-features/use-cases/session-link-use-cases.md) - Connect external tools to cloud sessions
+
 ### Environment-Specific Features
 
 #### Browser Use
@@ -116,12 +121,6 @@ If you're familiar with Docker, cloud services, or automation tools:
 1. [Quick Start](quickstart/README.md) - Get up and running quickly
 2. [Common Features](guides/common-features/README.md) - Explore common capabilities
 3. [Advanced Features](guides/common-features/advanced/README.md) - Discover advanced capabilities
-
-## 💼 Use Cases
-
-- [Use Cases Overview](guides/common-features/use-cases/README.md) - Common use case scenarios and implementations
-- [Session Info Use Cases](guides/common-features/use-cases/session-info-use-cases.md) - Session information and connectivity patterns
-- [Session Link Use Cases](guides/common-features/use-cases/session-link-use-cases.md) - Connect external tools to cloud sessions
 
 ## 📞 Getting Help
 
