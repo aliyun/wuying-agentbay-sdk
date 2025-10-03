@@ -366,5 +366,5 @@ session = agent_bay.create(session_params).session
 ## Related Documentation
 
 - [Browser Context](browser-context.md) - For persistent browser state management
-- [Session Management](../../session-management.md) - For general session operations
-- [Browser Automation](../../automation.md) - For browser automation workflows
+- [Session Management](../../common-features/basics/session-management.md) - For general session operations
+- [Browser Use Guide](../README.md) - For browser automation workflows

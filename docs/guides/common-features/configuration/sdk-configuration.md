@@ -221,5 +221,5 @@ except Exception as e:
 
 ## Related Documentation
 
-- [Getting Started](../quickstart/installation.md)
-- [Session Management](./session-management.md)
+- [Getting Started](../../../quickstart/installation.md)
+- [Session Management](../basics/session-management.md)

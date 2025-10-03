@@ -57,8 +57,8 @@ else:
 
 ## 📚 Related Resources
 
-- [Session Management Guide](session-management.md)
-- [Data Persistence Guide](data-persistence.md)
+- [Session Management Guide](../basics/session-management.md)
+- [Data Persistence Guide](../basics/data-persistence.md)
 - [VPC Sessions Guide](vpc-sessions.md)
 
 ## 🆘 Getting Help

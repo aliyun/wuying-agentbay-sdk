@@ -453,16 +453,16 @@ Save the web data processor example and run it to see real cloud computing in ac
 Now that you've successfully created your first session, learn the core features that every AgentBay developer needs:
 
 ### 🔧 **Core Features**
-- **[Session Management](../guides/session-management.md)** - Cloud environment lifecycle management
-- **[File Operations](../guides/file-operations.md)** - File upload, download, and management  
-- **[Data Persistence](../guides/data-persistence.md)** - Cross-session data storage
-- **[SDK Configuration](../guides/sdk-configuration.md)** - Configuration options and settings
+- **[Session Management](../guides/common-features/basics/session-management.md)** - Cloud environment lifecycle management
+- **[File Operations](../guides/common-features/basics/file-operations.md)** - File upload, download, and management  
+- **[Data Persistence](../guides/common-features/basics/data-persistence.md)** - Cross-session data storage
+- **[SDK Configuration](../guides/common-features/configuration/sdk-configuration.md)** - Configuration options and settings
 
 ### 🎯 **Specialized Use Cases**
-- **[Automation](../guides/automation.md)** - Complex workflow automation and command execution patterns
+- **[Command Execution](../guides/common-features/basics/command-execution.md)** - Complex workflow automation and command execution patterns
 - **[Browser Use](../guides/browser-use/README.md)** - Complete browser automation with Playwright integration
-- **[Application & Window Operations](../guides/application-window-operations.md)** - Desktop application control and window management
-- **[Advanced Features](../guides/advanced-features.md)** - VPC sessions, agent modules, and browser automation
+- **[Computer UI Automation](../guides/computer-use/computer-ui-automation.md)** - Desktop UI automation and control
+- **[Advanced Features](../guides/common-features/advanced/README.md)** - VPC sessions, agent modules, and session link access
 
 ### 🔧 **When You Need Help**
 - **[Feature Guides Overview](../guides/README.md)** - Quick navigation to all advanced features

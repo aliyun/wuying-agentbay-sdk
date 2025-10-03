@@ -11,48 +11,56 @@ Single-file quick start example:
 - Basic operations
 - Session cleanup
 
-## Core Features
+## Common Features
 
-### [session-creation/](./session-creation)
-Session creation and configuration:
+Examples available across all environment types.
+
+### Basics
+
+**[session-creation/](./session-creation)**
 - Creating sessions with different image types
 - Session parameter configuration
 - Session lifecycle management
 
-### [filesystem-example/](./filesystem-example)
-File system operations:
+**[filesystem-example/](./filesystem-example)**
 - **filesystem-example.ts**: Basic file operations
 - **filesystem-filetransfer-example.ts**: File transfer between local and cloud
 - **watch-directory-example.ts**: Directory monitoring and change detection
 
-### [command-example/](./command-example)
-Command execution capabilities:
+**[command-example/](./command-example)**
 - Running shell commands in cloud environments
 - Capturing command output
 - Command execution patterns
 
-### [ui-example/](./ui-example)
-UI automation:
-- User interface interactions
-- Screen automation
-- UI element manipulation
-
-### [context-management/](./context-management)
-Data persistence across sessions:
+**[context-management/](./context-management)**
 - Context creation and management
 - Data storage and retrieval
 - Cross-session data sharing
 
-### [data-persistence/](./data-persistence)
-Persistent data storage with advanced patterns:
+**[data-persistence/](./data-persistence)**
 - Storing data across sessions
 - Data retrieval patterns
 - **context-sync-demo.ts**: Context synchronization demonstration
 
-## Browser Automation
+### Advanced Features
 
-### [browser/](./browser)
-Comprehensive browser automation examples:
+**[agent-module-example/](./agent-module-example)** or **[agent-module-example.ts](./agent-module-example.ts)**
+- Using AI-powered automation
+- Agent-based task execution
+- Intelligent automation workflows
+
+**[vpc-session-example/](./vpc-session-example)** or **[vpc-session-example.ts](./vpc-session-example.ts)**
+- Creating sessions in VPC environments
+- Network security groups
+- Private network access
+
+## Environment-Specific Features
+
+### Browser Use (`browser_latest`)
+
+**[browser/](./browser)**
+
+Browser automation examples:
 
 **Basic Browser Usage:**
 - **basic-usage.ts**: Getting started with browser automation
@@ -71,39 +79,30 @@ Comprehensive browser automation examples:
 - **captcha_tongcheng.ts**: CAPTCHA handling example
 - **call_for_user_jd.ts**: JD.com user interaction automation
 
-### [extension-example/](./extension-example)
-Browser extension management:
+**[extension-example/](./extension-example)**
 - Loading and using browser extensions
 - Extension development workflows
 - Automated extension testing
 
-## Advanced Features
+### Computer Use (`windows_latest`, `linux_latest`)
 
-### [automation/](./automation)
-End-to-end automation workflows:
-- **automation-example.ts**: Complex automation patterns
-- Workflow orchestration
+**[automation/](./automation)**
+- **automation-example.ts**: Desktop automation workflows
+- Complex automation patterns
 - Multi-step automation tasks
 
-### [agent-module-example/](./agent-module-example)
-Agent module integration:
-- Using AI-powered automation
-- Agent-based task execution
-- Intelligent automation workflows
+**[ui-example/](./ui-example)**
+- User interface interactions
+- Screen automation
+- UI element manipulation
 
-### [agent-module-example.ts](./agent-module-example.ts)
-Single-file agent module example demonstrating:
-- Quick agent module setup
-- AI-powered task execution
+### Mobile Use (`mobile_latest`)
 
-### [vpc-session-example/](./vpc-session-example)
-VPC network configuration:
-- Creating sessions in VPC environments
-- Network security groups
-- Private network access
+Mobile examples are currently not available in TypeScript SDK. Use Python SDK for mobile automation.
 
-### [vpc-session-example.ts](./vpc-session-example.ts)
-Single-file VPC session example for quick reference.
+### CodeSpace (`code_latest`)
+
+Code execution examples are integrated into session and automation examples.
 
 ## Running the Examples
 
@@ -171,4 +170,4 @@ For more information, see:
 - [TypeScript SDK Documentation](../../)
 - [API Reference](../api/)
 - [Quick Start Guide](../../../docs/quickstart/)
-- [Browser Automation Guide](../../../docs/guides/browser-automation.md)
+- [Feature Guides](../../../docs/guides/)

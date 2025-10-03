@@ -344,9 +344,9 @@ CodeSpace comes with Python and Node.js standard libraries pre-installed. For be
 
 ## 📚 Related Documentation
 
-- [File Operations](../common-features/file-operations.md) - File handling and management
-- [Session Management](../common-features/session-management.md) - Session lifecycle and configuration
-- [Command Execution](../common-features/command-execution.md) - Shell command execution
+- [File Operations](../common-features/basics/file-operations.md) - File handling and management
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Command Execution](../common-features/basics/command-execution.md) - Shell command execution
 
 ## 🆘 Getting Help
 

@@ -58,6 +58,6 @@ If you need assistance with any of these use cases:
 
 1. Check the [Troubleshooting sections](../guides/README.md#troubleshooting) in the main guides
 2. Visit the [Getting Started guide](../getting-started.md) for basic setup
-3. Consult the specific guide documents in the [guides directory](../guides/)
+3. Consult the specific guide documents in the [guides directory](../guides)
 
 For additional support, please refer to the main [AgentBay SDK documentation](../../README.md).

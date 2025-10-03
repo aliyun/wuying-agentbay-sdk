@@ -358,4 +358,4 @@ These features enable you to build automated mobile workflows for testing, autom
 - **Application Discovery**: The current `mobile_latest` image returns an empty list from `get_installed_apps()`, but the API is available for future image versions
 - **Stop Methods**: Mobile only supports `stop_app_by_cmd()` using package names; desktop supports additional methods like `stop_app_by_pid()` and `stop_app_by_pname()`
 
-For desktop application management, see the [Computer Use Application Management Guide](../computer-use/application-management.md).
+For desktop application management, see the [Computer Use Application Management Guide](../computer-use/computer-application-management.md).

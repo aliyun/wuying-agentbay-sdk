@@ -126,7 +126,7 @@ func main() {
 }
 ```
 
-For more details about authentication, see the [Authentication Guide](./guides/sdk-configuration.md).
+For more details about authentication, see the [Authentication Guide](guides/common-features/configuration/sdk-configuration.md).
 
 ## Basic Usage
 

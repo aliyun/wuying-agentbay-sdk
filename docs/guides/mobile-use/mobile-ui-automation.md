@@ -447,7 +447,6 @@ finally:
 
 For more assistance:
 - Review [Session Management Guide](../common-features/basics/session-management.md)
-- See [Troubleshooting Guide](../../troubleshooting/README.md)
 
 ## 📚 Related Guides
 

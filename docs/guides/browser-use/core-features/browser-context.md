@@ -287,6 +287,6 @@ except Exception as e:
 
 ## Related Documentation
 
-- [Extension Management](../extensions) - For browser extension integration
-- [Session Management](../../session-management.md) - For general session operations
-- [Data Persistence](../../data-persistence.md) - For broader context management
+- [Browser Extensions](../browser-extensions.md) - For browser extension integration
+- [Session Management](../../common-features/basics/session-management.md) - For general session operations
+- [Data Persistence](../../common-features/basics/data-persistence.md) - For broader context management

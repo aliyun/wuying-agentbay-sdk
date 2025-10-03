@@ -170,8 +170,7 @@ agent_bay.delete(session)
 
 ## 📚 Related Documentation
 
-- [Automation Guide](../automation.md) - Complete automation workflows
-- [Code Execution (CodeSpace)](../codespace/code-execution.md) - Python, JavaScript code execution
+- [Code Execution (CodeSpace)](../../codespace/code-execution.md) - Python, JavaScript code execution
 - [File Operations](file-operations.md) - File handling and management
 - [Session Management](session-management.md) - Session lifecycle
 

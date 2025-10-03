@@ -296,11 +296,11 @@ agent_bay.delete(session)
 
 For more assistance:
 - Review [Session Management Guide](../common-features/basics/session-management.md)
-- See [Troubleshooting Guide](../../troubleshooting/README.md)
 
 ## 📚 Related Guides
 
 - [Session Management Guide](../common-features/basics/session-management.md) - Learn about session lifecycle
-- [Application and Window Operations](application-window-operations.md) - Manage applications and windows
+- [Computer Application Management](computer-application-management.md) - Manage applications
+- [Window Management](window-management.md) - Manage windows
 - [Command Execution](../common-features/basics/command-execution.md) - Execute shell commands
 - [Mobile UI Automation](../mobile-use/mobile-ui-automation.md) - Mobile device automation

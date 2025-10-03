@@ -20,9 +20,9 @@ The session management system provides:
 Before running the example programs in this guide, please ensure you have completed the following setup:
 
 **Required Setup (2 minutes):**
-1. **SDK Installation & API Key Configuration**: Follow the [Installation and API Key Setup Guide](../quickstart/installation.md) to install the AgentBay SDK and configure your API key
-2. **SDK Configuration**: Review the [SDK Configuration Guide](sdk-configuration.md) for detailed configuration options including environment variables and region settings
-3. **Core Concepts**: Review [Core Concepts Guide](../quickstart/basic-concepts.md) to understand AgentBay fundamentals including sessions, images, and data persistence
+1. **SDK Installation & API Key Configuration**: Follow the [Installation and API Key Setup Guide](../../../quickstart/installation.md) to install the AgentBay SDK and configure your API key
+2. **SDK Configuration**: Review the [SDK Configuration Guide](../configuration/sdk-configuration.md) for detailed configuration options including environment variables and region settings
+3. **Core Concepts**: Review [Core Concepts Guide](../../../quickstart/basic-concepts.md) to understand AgentBay fundamentals including sessions, images, and data persistence
 
 **Quick Verification:**
 After setup, verify everything works with this simple test:
@@ -59,7 +59,7 @@ if session_result.success:
 
 ## Creating Sessions with Custom Parameters
 
-You can customize sessions by specifying parameters such as [image ID](../quickstart/basic-concepts.md#-image-types---four-main-environments) and [labels](#session-label-management):
+You can customize sessions by specifying parameters such as [image ID](../../../quickstart/basic-concepts.md#-image-types---four-main-environments) and [labels](#session-label-management):
 
 ```python
 from agentbay import AgentBay
@@ -204,7 +204,7 @@ else:
 
 ### Session Information Use Cases
 
-For detailed practical examples and use cases of session information, including browser access, Android SDK integration, and session health monitoring, see the [Session Information Use Cases Guide](../use-cases/session-info-use-cases.md).
+For detailed practical examples and use cases of session information, including browser access, Android SDK integration, and session health monitoring, see the [Session Information Use Cases Guide](../../../use-cases/session-info-use-cases.md).
 
 
 

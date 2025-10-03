@@ -11,41 +11,66 @@ Single-file quick start example:
 - Basic operations
 - Session cleanup
 
-## Core Features
+## Common Features
 
-### [session_creation/](./session_creation)
-Session creation and configuration:
+Examples available across all environment types.
+
+### Basics
+
+**[session_creation/](./session_creation)**
 - Creating sessions with different image types
 - Session parameter configuration
 - Session lifecycle management
 
-### [file_system/](./file_system)
-File system operations:
+**[file_system/](./file_system)**
 - File upload and download
 - Directory operations
 - File manipulation
+- Large file handling with chunking
 
-### [filesystem_example/](./filesystem_example)
-Advanced file system features:
+**[filesystem_example/](./filesystem_example)**
 - **file_transfer_example.py**: File transfer between local and cloud
 - **watch_directory_example.py**: Directory monitoring and change detection
 
-### [context_management/](./context_management)
-Data persistence across sessions:
+**[context_management/](./context_management)**
 - Context creation and management
 - Data storage and retrieval
 - Cross-session data sharing
 
-### [data_persistence/](./data_persistence)
-Persistent data storage with advanced patterns:
+**[data_persistence/](./data_persistence)**
 - Storing data across sessions
 - Data retrieval patterns
 - **context_sync_demo.py**: Context synchronization demonstration
 
-## Browser Automation
+**[label_management/](./label_management)**
+- Organizing sessions with labels
+- Filtering and searching sessions
+- Label-based session management
 
-### [browser/](./browser)
-Comprehensive browser automation examples:
+### Advanced Features
+
+**[agent_module/](./agent_module)**
+- Using AI-powered automation
+- Agent-based task execution
+- Intelligent automation workflows
+
+**[oss_management/](./oss_management)**
+- OSS file operations
+- Cloud storage management
+- File upload/download with OSS
+
+**[vpc_session/](./vpc_session)**
+- Creating sessions in VPC environments
+- Network security groups
+- Private network access
+
+## Environment-Specific Features
+
+### Browser Use (`browser_latest`)
+
+**[browser/](./browser)**
+
+Browser automation examples:
 
 **Cookie and Session Management:**
 - **browser_context_cookie_persistence.py**: Cookie persistence across sessions
@@ -74,49 +99,29 @@ Comprehensive browser automation examples:
 - **gv_quick_buy_seat.py**: Quick seat booking
 - **alimeeting_availability.py**: Meeting availability checking
 
-### [extension/](./extension)
-Browser extension management:
+**[extension/](./extension)**
 - **basic_extension_usage.py**: Loading and using browser extensions
 - **extension_development_workflow.py**: Extension development patterns
 - **extension_testing_automation.py**: Automated extension testing
 
-## Advanced Features
+### Computer Use (`windows_latest`, `linux_latest`)
 
-### [automation/](./automation)
-End-to-end automation workflows:
+**[automation/](./automation)**
+- Desktop automation workflows
 - Complex automation patterns
-- Workflow orchestration
 - Multi-step automation tasks
 
-### [agent_module/](./agent_module)
-Agent module integration:
-- Using AI-powered automation
-- Agent-based task execution
-- Intelligent automation workflows
+### Mobile Use (`mobile_latest`)
 
-### [vpc_session/](./vpc_session)
-VPC network configuration:
-- Creating sessions in VPC environments
-- Network security groups
-- Private network access
-
-### [mobile_system/](./mobile_system)
-Mobile device automation:
+**[mobile_system/](./mobile_system)**
 - Mobile UI interaction
 - Mobile app automation
-- Mobile system operations
+- Touch gestures and input
+- Screenshot capture
 
-### [oss_management/](./oss_management)
-Object Storage Service (OSS) integration:
-- OSS file operations
-- Cloud storage management
-- File upload/download with OSS
+### CodeSpace (`code_latest`)
 
-### [label_management/](./label_management)
-Session label management:
-- Organizing sessions with labels
-- Filtering and searching sessions
-- Label-based session management
+Code execution examples are integrated into session and automation examples.
 
 ## Running the Examples
 
@@ -168,4 +173,4 @@ For more information, see:
 - [Python SDK Documentation](../../)
 - [API Reference](../api/)
 - [Quick Start Guide](../../../docs/quickstart/)
-- [Browser Automation Guide](../../../docs/guides/browser-automation.md)
+- [Feature Guides](../../../docs/guides/)

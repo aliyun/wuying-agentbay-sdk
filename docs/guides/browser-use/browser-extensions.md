@@ -396,16 +396,13 @@ with sync_playwright() as p:
 
 ## Next Steps
 
-- Review the [Extension API Reference](../../python/docs/api/extension.md) for detailed method documentation
-- Check out [Extension Examples](../../python/docs/examples/browser/README.md) for more code samples
-- Explore [Browser Automation Guide](./automation.md) for integration patterns
+- Explore [Browser Use Guide](README.md) for browser automation features
+- Review [Session Management Guide](../common-features/basics/session-management.md) for session lifecycle management
 
 ## Resources
 
-- [Extension API Reference](../../python/docs/api/extension.md)
-- [Example Code](../../python/docs/examples/browser/README.md)
-- [Browser Automation Guide](./automation.md)
-- [Session Management Guide](./session-management.md)
+- [Browser Use Guide](README.md)
+- [Session Management Guide](../common-features/basics/session-management.md)
 
 ---
 

@@ -32,7 +32,7 @@ After completing this quick start guide, you will be able to:
 ## 🚀 Next Steps After Completion
 
 - Check out the [Feature Guides](../guides/README.md) to learn about complete functionality
-- Browse [Example Code](../guides/browser-extensions.md) for inspiration
+- Browse [Browser Extensions Guide](../guides/browser-use/browser-extensions.md) for browser automation examples
 - Join community discussions
 
 ## ❓ Having Issues?

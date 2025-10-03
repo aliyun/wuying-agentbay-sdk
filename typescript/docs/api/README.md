@@ -2,58 +2,56 @@
 
 Complete API reference documentation for the AgentBay TypeScript SDK.
 
-## 📚 Core APIs
+## 📚 Common Features
 
-### Client & Session Management
+APIs available across all environments:
+
+### Basics
 - [**AgentBay**](agentbay.md) - Main client for creating and managing sessions
 - [**Session**](session.md) - Session lifecycle and operations management
+- [**Command**](command.md) - Execute shell commands in cloud environments
+- [**FileSystem**](filesystem.md) - File and directory operations
 - [**Context**](context.md) - Data persistence and context management
 - [**ContextManager**](context-manager.md) - Context operations and file synchronization
 
-### Execution & Code Running
-- [**Command**](command.md) - Execute shell commands in cloud environments
-- [**Code**](code.md) - Run code in multiple programming languages
-
-### File System
-- [**FileSystem**](filesystem.md) - File and directory operations
+### Advanced
+- [**Agent**](agent.md) - AI agent integration and MCP tools
 - [**OSS**](oss.md) - Object Storage Service integration
 
-### Use Case Specific APIs
+## 🚀 Environment-Specific Features
 
-#### Computer Use
-- [**Computer**](computer.md) - Windows desktop environment automation
-- [**UI**](ui.md) - UI automation (mouse, keyboard, screenshot)
-- [**Window**](window.md) - Window management operations
-- [**Application**](application.md) - Application lifecycle management
+### Browser Use (`browser_latest`)
+- **Browser** - Browser initialization and CDP connection
+  - `initialize()` / `initializeAsync()` - Initialize browser with configuration options
+  - `getEndpointUrl()` - Get CDP WebSocket endpoint for Playwright/Puppeteer connection
+  - Options: Stealth mode, proxy (custom/wuying), fingerprint, viewport, CAPTCHA solving
+  - AI Agent: `agent.act()`, `agent.observe()`, `agent.extract()` for natural language automation
+- [**Extension**](extension.md) - Browser extension management and deployment
 
-#### Mobile Use
-- [**Mobile**](mobile.md) - Mobile device simulation and automation
+### Computer Use (`windows_latest`, `linux_latest`)
+- [**Computer**](computer.md) - Desktop automation operations
+  - Mouse: `clickMouse()`, `moveMouse()`, `dragMouse()`, `scroll()`, `getCursorPosition()`
+  - Keyboard: `inputText()`, `pressKeys()`, `releaseKeys()`
+  - Screen: `screenshot()`, `getScreenSize()`
+  - Window: `listRootWindows()`, `getActiveWindow()`, `activateWindow()`, `closeWindow()`, `maximizeWindow()`, `minimizeWindow()`, `restoreWindow()`, `resizeWindow()`, `fullscreenWindow()`, `focusMode()`
+  - Application: `getInstalledApps()`, `startApp()`, `listVisibleApps()`, `stopAppByPname()`, `stopAppByPid()`, `stopAppByCmd()`
+- [**UI**](ui.md) - ⚠️ Deprecated, use Computer or Mobile APIs instead
+- [**Window**](window.md) - ⚠️ Deprecated, use Computer API instead
+- [**Application**](application.md) - ⚠️ Deprecated, use Computer or Mobile APIs instead
 
-#### Agent Integration
-- [**Agent**](agent.md) - AI agent integration and MCP tools
-- [**Extension**](extension.md) - Browser extension management
+### Mobile Use (`mobile_latest`)
+- [**Mobile**](mobile.md) - Android mobile device automation
+  - Touch: `tap()`, `swipe()`
+  - Input: `inputText()`, `sendKey()` (with KeyCode constants)
+  - UI Elements: `getClickableUiElements()`, `getAllUiElements()`
+  - Application: `getInstalledApps()`, `startApp()`, `stopAppByCmd()`
+  - Screen: `screenshot()`
 
-## 📖 API Organization
-
-### By Feature Category
-
-| Category | APIs | Description |
-|----------|------|-------------|
-| **Client** | AgentBay, Session | Session creation and management |
-| **Execution** | Command, Code | Command and code execution |
-| **Storage** | FileSystem, OSS, Context | File operations and data persistence |
-| **Computer UI** | Computer, UI, Window, Application | Desktop automation |
-| **Mobile** | Mobile | Mobile device automation |
-| **Integration** | Agent, Extension | AI agent and browser extensions |
-
-### By Use Case
-
-| Use Case | Primary APIs | System Image |
-|----------|--------------|--------------|
-| **Computer Use** | Computer, UI, Window, Application | `windows_latest` |
-| **Browser Automation** | Computer, UI, Extension | `browser_latest` |
-| **Code Execution** | Code, Command, FileSystem | `code_latest` |
-| **Mobile Automation** | Mobile | `mobile_latest` |
+### CodeSpace (`code_latest`)
+- [**Code**](code.md) - Execute code in cloud environment
+  - `runCode()` - Run Python or JavaScript code with timeout control
+  - Supports: Python, JavaScript
+  - Maximum execution time: 60 seconds (gateway limitation)
 
 ## 📘 Related Documentation
 
