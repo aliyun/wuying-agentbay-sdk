@@ -1,4 +1,4 @@
-package unit
+package agentbay_test
 
 import (
 	"io/ioutil"
@@ -161,6 +161,15 @@ AGENTBAY_TIMEOUT_MS=30000`
 	})
 
 	t.Run("LoadConfig_UpwardSearch", func(t *testing.T) {
+		// Save and clear environment variables to ensure .env file is used
+		originalRegion := os.Getenv("AGENTBAY_REGION_ID")
+		os.Unsetenv("AGENTBAY_REGION_ID")
+		defer func() {
+			if originalRegion != "" {
+				os.Setenv("AGENTBAY_REGION_ID", originalRegion)
+			}
+		}()
+
 		// Create temporary directory structure
 		tmpDir, err := ioutil.TempDir("", "agentbay-test-")
 		assert.NoError(t, err)
@@ -221,6 +230,15 @@ AGENTBAY_TIMEOUT_MS=30000`
 	})
 
 	t.Run("InvalidTimeoutHandling", func(t *testing.T) {
+		// Save and clear environment variables to ensure clean state
+		originalTimeout := os.Getenv("AGENTBAY_TIMEOUT_MS")
+		os.Unsetenv("AGENTBAY_TIMEOUT_MS")
+		defer func() {
+			if originalTimeout != "" {
+				os.Setenv("AGENTBAY_TIMEOUT_MS", originalTimeout)
+			}
+		}()
+
 		// Create temporary directory
 		tmpDir, err := ioutil.TempDir("", "agentbay-test-")
 		assert.NoError(t, err)

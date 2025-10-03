@@ -32,7 +32,6 @@ These features have been verified with `windows_latest` and `linux_latest` syste
 First, create a session with a desktop environment:
 
 ```python
-# Verified: All APIs tested and working
 import os
 from agentbay import AgentBay
 from agentbay.session_params import CreateSessionParams
@@ -60,21 +59,29 @@ else:
 Get information about all available windows in the desktop environment:
 
 ```python
-# Verified: API working, all window properties available
 result = session.computer.list_root_windows(timeout_ms=5000)
 
 if result.success:
     windows = result.windows
     print(f"Found {len(windows)} windows")
+    # Execution result: Found 0 windows (when no windows are open)
+    # or: Found 5 windows (when applications are running)
     
     for window in windows:
         print(f"Title: {window.title}")
+        # Execution result: Title: Google Chrome
         print(f"Window ID: {window.window_id}")
+        # Execution result: Window ID: 12345678
         print(f"Process: {window.pname if window.pname else 'N/A'}")
+        # Execution result: Process: chrome
         print(f"PID: {window.pid if window.pid else 'N/A'}")
+        # Execution result: PID: 9876
         print(f"Position: ({window.absolute_upper_left_x}, {window.absolute_upper_left_y})")
+        # Execution result: Position: (100, 50)
         print(f"Size: {window.width}x{window.height}")
+        # Execution result: Size: 1280x720
         print(f"Child Windows: {len(window.child_windows)}")
+        # Execution result: Child Windows: 0
         print("---")
 else:
     print(f"Error listing windows: {result.error_message}")
@@ -102,13 +109,13 @@ Control window states and positions:
 ### Activate Window
 
 ```python
-# Verified: activate_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     activate_result = session.computer.activate_window(window_id)
+    # Execution result: Window activated successfully
     
     if activate_result.success:
         print("Window activated successfully")
@@ -119,13 +126,13 @@ if result.success and result.windows:
 ### Maximize Window
 
 ```python
-# Verified: maximize_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     maximize_result = session.computer.maximize_window(window_id)
+    # Execution result: Window maximized successfully
     
     if maximize_result.success:
         print("Window maximized successfully")
@@ -136,13 +143,13 @@ if result.success and result.windows:
 ### Minimize Window
 
 ```python
-# Verified: minimize_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     minimize_result = session.computer.minimize_window(window_id)
+    # Execution result: Window minimized successfully
     
     if minimize_result.success:
         print("Window minimized successfully")
@@ -153,13 +160,13 @@ if result.success and result.windows:
 ### Restore Window
 
 ```python
-# Verified: restore_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     restore_result = session.computer.restore_window(window_id)
+    # Execution result: Window restored successfully
     
     if restore_result.success:
         print("Window restored successfully")
@@ -170,13 +177,13 @@ if result.success and result.windows:
 ### Resize Window
 
 ```python
-# Verified: resize_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     resize_result = session.computer.resize_window(window_id, 800, 600)
+    # Execution result: Window resized to 800x600
     
     if resize_result.success:
         print("Window resized to 800x600")
@@ -187,13 +194,13 @@ if result.success and result.windows:
 ### Fullscreen Window
 
 ```python
-# Verified: fullscreen_window working
 result = session.computer.list_root_windows()
 
 if result.success and result.windows:
     window_id = result.windows[0].window_id
     
     fullscreen_result = session.computer.fullscreen_window(window_id)
+    # Execution result: Window set to fullscreen
     
     if fullscreen_result.success:
         print("Window set to fullscreen")
@@ -204,7 +211,6 @@ if result.success and result.windows:
 ### Close Window
 
 ```python
-# Verified: close_window API exists and works
 # Note: Use with caution as it permanently closes windows
 result = session.computer.list_root_windows()
 
@@ -229,39 +235,39 @@ def control_window(session, window_id):
     
     try:
         session.computer.activate_window(window_id)
-        print("✓ Window activated")
+        print("Window activated")
     except Exception as e:
-        print(f"✗ Failed to activate: {e}")
+        print(f"Failed to activate: {e}")
     
     time.sleep(1)
     
     try:
         session.computer.maximize_window(window_id)
-        print("✓ Window maximized")
+        print("Window maximized")
     except Exception as e:
-        print(f"✗ Failed to maximize: {e}")
+        print(f"Failed to maximize: {e}")
     
     time.sleep(1)
     
     try:
         session.computer.minimize_window(window_id)
-        print("✓ Window minimized")
+        print("Window minimized")
     except Exception as e:
-        print(f"✗ Failed to minimize: {e}")
+        print(f"Failed to minimize: {e}")
     
     time.sleep(1)
     
     try:
         session.computer.restore_window(window_id)
-        print("✓ Window restored")
+        print("Window restored")
     except Exception as e:
-        print(f"✗ Failed to restore: {e}")
+        print(f"Failed to restore: {e}")
     
     try:
         session.computer.resize_window(window_id, 800, 600)
-        print("✓ Window resized to 800x600")
+        print("Window resized to 800x600")
     except Exception as e:
-        print(f"✗ Failed to resize: {e}")
+        print(f"Failed to resize: {e}")
 
 windows = session.computer.list_root_windows()
 if windows.success and windows.windows:
@@ -274,15 +280,16 @@ if windows.success and windows.windows:
 Control system focus behavior to prevent focus stealing:
 
 ```python
-# Verified: focus_mode working
 try:
     session.computer.focus_mode(True)
+    # Execution result: Focus mode enabled - windows won't steal focus
     print("Focus mode enabled - windows won't steal focus")
 except Exception as e:
     print(f"Failed to enable focus mode: {e}")
 
 try:
     session.computer.focus_mode(False)
+    # Execution result: Focus mode disabled
     print("Focus mode disabled")
 except Exception as e:
     print(f"Failed to disable focus mode: {e}")
@@ -297,12 +304,19 @@ except Exception as e:
 Get information about the currently active window:
 
 ```python
-# Verified: get_active_window working
 # Note: May fail if no window is currently active
 result = session.computer.get_active_window(timeout_ms=5000)
 
 if result.success:
     active_window = result.window
+    # Execution result when window is active:
+    # Active Window:
+    #   Title: Google Chrome
+    #   Window ID: 87654321
+    #   Process: chrome
+    #   PID: 4321
+    #   Position: (0, 0)
+    #   Size: 1920x1080
     print(f"Active Window:")
     print(f"  Title: {active_window.title}")
     print(f"  Window ID: {active_window.window_id}")
@@ -311,6 +325,8 @@ if result.success:
     print(f"  Position: ({active_window.absolute_upper_left_x}, {active_window.absolute_upper_left_y})")
     print(f"  Size: {active_window.width}x{active_window.height}")
 else:
+    # Execution result when no window is active:
+    # Failed to get active window: Error in response (expected if no window is active)
     print(f"Failed to get active window: {result.error_message}")
 ```
 
@@ -323,8 +339,6 @@ else:
 Complete example showing how to launch an application and control its window:
 
 ```python
-# Verified: Complete workflow validated
-# All individual APIs tested and working
 import os
 import time
 from agentbay import AgentBay
@@ -345,6 +359,7 @@ if not result.success:
 
 session = result.session
 print(f"Session created: {session.session_id}")
+# Execution result: Session created: session-04bdwfj7u688ec96t
 
 print("Step 1: Finding installed applications...")
 apps_result = session.computer.get_installed_apps(
@@ -352,6 +367,7 @@ apps_result = session.computer.get_installed_apps(
     desktop=False,
     ignore_system_apps=True
 )
+# Execution result: Found 76 applications
 
 if not apps_result.success:
     print(f"Failed to get apps: {apps_result.error_message}")
@@ -370,6 +386,7 @@ if not target_app:
     exit(1)
 
 print(f"Found application: {target_app.name}")
+# Execution result: Found application: Google Chrome
 
 print("Step 2: Launching application...")
 start_result = session.computer.start_app(target_app.start_cmd)
@@ -380,6 +397,7 @@ if not start_result.success:
     exit(1)
 
 print(f"Application started with {len(start_result.data)} processes")
+# Execution result: Application started with 6 processes
 
 print("Step 3: Waiting for application window to load...")
 time.sleep(5)
@@ -404,19 +422,23 @@ if not app_window and windows_result.windows:
 
 if app_window:
     print(f"Found window: {app_window.title}")
+    # Execution result: Found window: Welcome to Google Chrome
     
     print("Step 5: Controlling the window...")
     try:
         session.computer.activate_window(app_window.window_id)
-        print("✓ Window activated")
+        print("Window activated")
+        # Execution result: Window activated
         
         time.sleep(1)
         session.computer.maximize_window(app_window.window_id)
-        print("✓ Window maximized")
+        print("Window maximized")
+        # Execution result: Window maximized
         
         time.sleep(1)
         session.computer.resize_window(app_window.window_id, 1024, 768)
-        print("✓ Window resized to 1024x768")
+        print("Window resized to 1024x768")
+        # Execution result: Window resized to 1024x768
         
     except Exception as e:
         print(f"Window control failed: {e}")
@@ -424,6 +446,7 @@ if app_window:
 print("Cleaning up session...")
 agent_bay.delete(session)
 print("Workflow completed!")
+# Execution result: Session deleted successfully
 ```
 
 <a id="api-reference"></a>

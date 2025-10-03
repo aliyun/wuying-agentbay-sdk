@@ -23,7 +23,7 @@ class TestDotEnvLoading:
             
             # Find .env file from current directory
             found_file = find_dotenv_file(tmpdir_path)
-            assert found_file == env_file
+            assert found_file.resolve() == env_file.resolve()
             assert found_file.exists()
 
     def test_find_dotenv_file_parent_directory(self):
@@ -41,7 +41,7 @@ class TestDotEnvLoading:
             
             # Find .env file from subdirectory (should find parent's .env)
             found_file = find_dotenv_file(subdir)
-            assert found_file == parent_env
+            assert found_file.resolve() == parent_env.resolve()
             assert found_file.exists()
 
     def test_find_dotenv_file_git_repo_root(self):
@@ -63,7 +63,7 @@ class TestDotEnvLoading:
             
             # Find .env file from deep subdirectory
             found_file = find_dotenv_file(subdir)
-            assert found_file == git_env
+            assert found_file.resolve() == git_env.resolve()
 
     def test_find_dotenv_file_not_found(self):
         """Test when .env file is not found anywhere."""

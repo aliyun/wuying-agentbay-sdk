@@ -43,6 +43,7 @@ interface ComputerSession {
   callMcpTool(toolName: string, args: Record<string, any>): Promise<any>;
   sessionId: string;
   getAPIKey(): string;
+  getSessionId(): string;
 }
 
 export class Computer {

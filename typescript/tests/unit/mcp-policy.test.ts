@@ -27,7 +27,12 @@ describe("CreateMcpSession mcpPolicyId", () => {
     clientConstructorStub = sinon.stub().returns(mockClient);
     sinon.stub(require("../../src/api/client"), "Client").callsFake(clientConstructorStub);
 
-    contextServiceConstructorStub = sinon.stub().returns({});
+    contextServiceConstructorStub = sinon.stub().returns({
+      get: sinon.stub().resolves({ 
+        success: false, 
+        errorMessage: 'Context not found' 
+      })
+    });
     sinon.stub(require("../../src/context"), "ContextService").callsFake(contextServiceConstructorStub);
   });
 

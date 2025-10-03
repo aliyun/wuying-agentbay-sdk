@@ -1,4 +1,4 @@
-package unit
+package agentbay_test
 
 import (
 	"testing"

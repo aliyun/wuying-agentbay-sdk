@@ -170,7 +170,7 @@ describe('Enhanced .env file loading', () => {
         'AGENTBAY_REGION_ID=ap-southeast-1',
         'AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com',
         'AGENTBAY_TIMEOUT_MS=30000'
-      ].join('\\n'));
+      ].join('\n'));
       
       // Load config with custom .env file
       const config = loadConfig(undefined, customEnv);

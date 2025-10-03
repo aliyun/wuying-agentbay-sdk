@@ -270,7 +270,7 @@ describe('Computer', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{ text: '{"x":100,"y":200}' }]
+        data: '{"x":100,"y":200}'
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -288,7 +288,7 @@ describe('Computer', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{ text: '{"width":1920,"height":1080,"dpiScalingFactor":1.0}' }]
+        data: '{"width":1920,"height":1080,"dpiScalingFactor":1.0}'
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -339,7 +339,7 @@ describe('Computer', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{ text: 'invalid json' }]
+        data: 'invalid json'
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 

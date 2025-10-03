@@ -620,16 +620,17 @@ export class WindowManager {
    * Gets the currently active window.
    * Corresponds to Python's get_active_window() method
    *
+   * @param timeoutMs - The timeout in milliseconds. Default is 3000ms.
    * @returns WindowInfoResult with active window information and requestId
    * 
    * @deprecated Use session.computer.getActiveWindow() instead.
    */
-  async getActiveWindow(): Promise<WindowInfoResult> {
+  async getActiveWindow(timeoutMs: number = 3000): Promise<WindowInfoResult> {
     console.warn('⚠️  WindowManager.getActiveWindow() is deprecated. Use session.computer.getActiveWindow() instead.');
     
     try {
       const args = {
-        timeout_ms: 3000,
+        timeout_ms: timeoutMs,
       };
 
       const response = await this.session.callMcpTool(

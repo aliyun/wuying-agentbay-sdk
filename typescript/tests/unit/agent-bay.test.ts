@@ -79,7 +79,10 @@ describe("AgentBay", () => {
 
     // Mock ContextService constructor
     const mockContextService = {
-      // Add any methods that might be called on ContextService
+      get: sinon.stub().resolves({ 
+        success: false, 
+        errorMessage: 'Context not found' 
+      })
     };
     contextServiceConstructorStub = sinon.stub().returns(mockContextService);
     sinon
@@ -199,7 +202,7 @@ describe("AgentBay", () => {
       log("Creating a new session...");
       const createResponse = await agentBay.create();
       session = createResponse.session!; // Use session field instead of data
-      log(`Session created with ID: ${session.sessionId}`);
+      log(`Session created with ID: ${session?.sessionId || 'undefined'}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
       );
