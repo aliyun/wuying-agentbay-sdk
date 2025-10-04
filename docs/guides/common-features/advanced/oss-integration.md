@@ -363,15 +363,7 @@ session.command.execute_command("unzip /home/guest/dataset.zip -d /home/guest/da
 
 ## Related Documentation
 
-- [Session Management](../basics/session-management.md)
+- [Session Management](./session-management.md)
 - [File Operations](../basics/file-operations.md)
-- [Data Persistence](../basics/data-persistence.md)
+- [Data Persistence](./data-persistence.md)
 - [Command Execution](../basics/command-execution.md)
-
-## API Reference
-
-See the complete API reference for detailed parameter descriptions:
-
-- Python: `python/docs/api/oss.md`
-- TypeScript: `typescript/docs/api/oss.md`
-- Golang: `golang/docs/api/oss.md`
