@@ -111,13 +111,6 @@ func NewMobile(session interface {
 	return &Mobile{Session: session}
 }
 
-// NewMobileWithCommand creates a new Mobile instance for configuration operations
-func NewMobileWithCommand(cmd *command.Command) *Mobile {
-	return &Mobile{
-		command: cmd,
-	}
-}
-
 // Tap taps on the screen at specific coordinates
 func (m *Mobile) Tap(x, y int) *BoolResult {
 	args := map[string]interface{}{
