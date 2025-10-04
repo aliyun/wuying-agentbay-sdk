@@ -189,7 +189,7 @@ export class Computer {
   /**
    * Press keys.
    */
-  async pressKeys(keys: string[], hold: boolean = false): Promise<BoolResult> {
+  async pressKeys(keys: string[], hold = false): Promise<BoolResult> {
     const args = { keys, hold };
     try {
       const result = await this.session.callMcpTool('press_keys', args);
@@ -389,7 +389,7 @@ export class Computer {
   /**
    * Lists all root windows.
    */
-  async listRootWindows(timeoutMs: number = 3000): Promise<WindowListResult> {
+  async listRootWindows(timeoutMs = 3000): Promise<WindowListResult> {
     const { WindowManager } = await import('../window/window');
     const windowManager = new WindowManager(this.session);
     return windowManager.listRootWindows(timeoutMs);
@@ -398,7 +398,7 @@ export class Computer {
   /**
    * Gets the currently active window.
    */
-  async getActiveWindow(timeoutMs: number = 3000): Promise<WindowInfoResult> {
+  async getActiveWindow(timeoutMs = 3000): Promise<WindowInfoResult> {
     const { WindowManager } = await import('../window/window');
     const windowManager = new WindowManager(this.session);
     return windowManager.getActiveWindow(timeoutMs);

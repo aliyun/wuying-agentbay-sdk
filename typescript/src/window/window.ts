@@ -625,7 +625,7 @@ export class WindowManager {
    * 
    * @deprecated Use session.computer.getActiveWindow() instead.
    */
-  async getActiveWindow(timeoutMs: number = 3000): Promise<WindowInfoResult> {
+  async getActiveWindow(timeoutMs = 3000): Promise<WindowInfoResult> {
     console.warn('⚠️  WindowManager.getActiveWindow() is deprecated. Use session.computer.getActiveWindow() instead.');
     
     try {

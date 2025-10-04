@@ -425,7 +425,7 @@ export class FileTransfer {
    * - Fall back to sync call
    * Returns request_id if available
    */
-  private async awaitSync(mode: string, remotePath: string = "", contextId: string = ""): Promise<string | undefined> {
+  private async awaitSync(mode: string, remotePath = "", contextId = ""): Promise<string | undefined> {
     mode = mode.toLowerCase().trim();
 
     // Check if session has context property

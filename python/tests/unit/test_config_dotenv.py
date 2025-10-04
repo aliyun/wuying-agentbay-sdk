@@ -115,7 +115,7 @@ class TestDotEnvLoading:
                 del os.environ["FALLBACK_VAR"]
             
             # Change to subdirectory and load .env
-            with patch('os.getcwd', return_value=str(subdir)):
+            with patch('pathlib.Path.cwd', return_value=subdir):
                 load_dotenv_with_fallback()
             
             # Check if variable was loaded from parent
