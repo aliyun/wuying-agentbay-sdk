@@ -14,8 +14,6 @@ type AgentBayInterface interface {
 	// Delete deletes a session
 	Delete(session *agentbay.Session, syncContext ...bool) (*agentbay.DeleteResult, error)
 
-	// List lists all sessions
-	List() (*agentbay.SessionListResult, error)
 
 	// ListByLabels lists sessions by labels with pagination
 	ListByLabels(params *agentbay.ListSessionParams) (*agentbay.SessionListResult, error)

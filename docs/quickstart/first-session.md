@@ -2,356 +2,130 @@
 
 Now let's experience the core features of AgentBay through actual code.
 
-## 🎯 Objectives
+## 🚀 Before You Start (2-minute setup)
 
-- Create your first cloud session
-- Perform basic file and command operations
-- Understand how sessions work
+If you haven't completed the setup yet, please complete the quick setup steps:
 
-## 📝 Complete Example
+👉 **[Installation and API Key Setup Guide](installation.md)** - Complete SDK installation and API key configuration in 2 minutes
 
-Choose the language you're familiar with to follow along:
+Already done? Great! Let's verify everything works with a quick test.
 
-### Python Version
+## 💡 30-Second Quick Verification
+
+Let's first verify everything works with the simplest possible example:
 
 ```python
-
 import os
 from agentbay import AgentBay
 
-def main():
+api_key = os.getenv("AGENTBAY_API_KEY")
+agent_bay = AgentBay(api_key=api_key)
 
-    print("🚀 Initializing AgentBay...")
-    api_key = os.getenv("AGENTBAY_API_KEY")
-    if not api_key:
-        api_key = "akm-xxx"
-        print("Warning: Using default API key.")
-    # 1. Initialize AgentBay client
-    agent_bay = AgentBay(api_key=api_key)
-
-    # 2. Create new session
-    print("📱 Creating new session...")
-
-    # You can choose different image types
-    from agentbay.session_params import CreateSessionParams
-
-    # Default Linux image
-    result = agent_bay.create()
-
-    # Or specify specific image
-    # linux_params = CreateSessionParams(image_id="linux_latest")
-    # windows_params = CreateSessionParams(image_id="windows_latest")
-    # mobile_params = CreateSessionParams(image_id="mobile_latest")
-    # result = agent_bay.create(linux_params)
-
-    if not result.success:
-        print(f"❌ Session creation failed: {result.error_message}")
-        return
-
+result = agent_bay.create()
+if result.success:
     session = result.session
-    print(f"✅ Session created successfully, ID: {session.session_id}")
-    print(f"   Image type: {getattr(session, 'session_id')}")
-
-    # 3. Execute basic commands
-    print("\n💻 Executing commands...")
-
-    # Check current directory
-    cmd_result = session.command.execute_command("pwd")
-    print(f"Current directory: {cmd_result.output.strip()}")
-
-    # Check system information
-    cmd_result = session.command.execute_command("uname -a")
-    print(f"System info: {cmd_result.output.strip()}")
-
-    # List files
-    cmd_result = session.command.execute_command("ls -la /tmp")
-    print(f"Temporary directory contents:\n{cmd_result.output}")
-
-    # 4. File operations
-    print("\n📁 File operations...")
-
-    # Create file
-    content = f"Hello from AgentBay!\nCreated at: {session.session_id}"
-    write_result = session.file_system.write_file("/tmp/hello.txt", content)
-
-    if write_result.success:
-        print("✅ File written successfully")
-    else:
-        print(f"❌ File write failed: {write_result.error_message}")
-        return
-
-    # Read file
-    read_result = session.file_system.read_file("/tmp/hello.txt")
-    if read_result.success:
-        print(f"📖 File content:\n{read_result.content}")
-    else:
-        print(f"❌ File read failed: {read_result.error_message}")
-
-    # 5. Create directory and multiple files
-    print("\n📂 Creating directory structure...")
-
-    # Create directory
-    session.command.execute_command("mkdir -p /tmp/my_project/data")
-
-    # Create multiple files
-    files_to_create = {
-        "/tmp/my_project/README.md": "# My First AgentBay Project\n\nThis is a test project.",
-        "/tmp/my_project/data/config.json": '{"name": "test", "version": "1.0"}',
-        "/tmp/my_project/script.py": 'print("Hello from Python in the cloud!")'
-    }
-
-    for file_path, file_content in files_to_create.items():
-        session.file_system.write_file(file_path, file_content)
-        print(f"✅ Created file: {file_path}")
-
-    # View directory structure
-    tree_result = session.command.execute_command("find /tmp/my_project -type f")
-    print(f"\n📋 Project file list:\n{tree_result.output}")
-
-    # 6. Run Python script
-    print("\n🐍 Running Python script...")
-    python_result = session.command.execute_command("python3 /tmp/my_project/script.py")
-    print(f"Script output: {python_result.output.strip()}")
-
-    # 7. Network operations example
-    print("\n🌐 Network operations...")
-    curl_result = session.command.execute_command("curl -s https://httpbin.org/json",3000)
-    print(f"Network request result: {curl_result.output[:100]}...")
-
-    print(f"\n🎉 Congratulations! You have successfully completed your first AgentBay session")
-    print(f"Session ID: {session.session_id}")
-    print("💡 Tip: Sessions will be automatically cleaned up after a period of time, files will be lost")
-    #release session
+    cmd_result = session.command.execute_command("echo 'Hello from the cloud!'")
+    print(f"✅ Cloud says: {cmd_result.output.strip()}")
     agent_bay.delete(session)
-    print("✅ Session deleted successfully")
+else:
+    print(f"❌ Failed: {result.error_message}")
 
-if __name__ == "__main__":
-    main()
+# Expected output:
+# ✅ Cloud says: Hello from the cloud!
 ```
 
-### TypeScript Version
+If this works, you're ready to explore more! 🎉
 
-```typescript
-import { AgentBay,log } from 'wuying-agentbay-sdk';
+## 🌟 A Practical Example: Cloud Data Processing
 
-async function main() {
-     const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
-    if (!process.env.AGENTBAY_API_KEY) {
-      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
-    }
-    // 1. Initialize AgentBay client
-    console.log("🚀 Initializing AgentBay...");
-    const agentBay = new AgentBay({apiKey});
+Let's do something more useful - process a data file in the cloud:
 
-    // 2. Create new session
-    console.log("📱 Creating new session...");
-    const result = await agentBay.create();
+```python
+import os
+from agentbay import AgentBay
 
-    if (!result.success) {
-        console.log(`❌ Session creation failed: ${result.errorMessage}`);
-        return;
-    }
+agent_bay = AgentBay(api_key=os.getenv("AGENTBAY_API_KEY"))
+result = agent_bay.create()
+session = result.session
 
-    const session = result.session;
-    console.log(`✅ Session created successfully, ID: ${session.sessionId}`);
+try:
+    # 1. Create a Python script for data processing
+    script_content = '''
+import json
+import sys
 
-    // 3. Execute basic commands
-    console.log("\n💻 Executing commands...");
-
-    // Check current directory
-    let cmdResult = await session.command.executeCommand("pwd");
-    console.log(`Current directory: ${cmdResult.output.trim()}`);
-
-    // Check system information
-    cmdResult = await session.command.executeCommand("uname -a");
-    console.log(`System info: ${cmdResult.output.trim()}`);
-
-    // 4. File operations
-    console.log("\n📁 File operations...");
-
-    // Create file
-    const content = `Hello from AgentBay!\nCreated at: ${session.sessionId}`;
-    const writeResult = await session.fileSystem.writeFile("/tmp/hello.txt", content);
-
-    if (writeResult.success) {
-        console.log("✅ File written successfully");
-    } else {
-        console.log(`❌ File write failed: ${writeResult.errorMessage}`);
-        return;
-    }
-
-    // Read file
-    const readResult = await session.fileSystem.readFile("/tmp/hello.txt");
-    if (readResult.success) {
-        console.log(`📖 File content:\n${readResult.content}`);
-    }
-
-    // 5. Run Node.js code
-    console.log("\n🟢 Running Node.js script...");
-
-    // Create Node.js script
-    const nodeScript = `
-console.log("Hello from Node.js in the cloud!");
-console.log("Current time:", new Date().toISOString());
-`;
-
-    await session.fileSystem.writeFile("/tmp/script.js", nodeScript);
-    const nodeResult = await session.command.executeCommand("node /tmp/script.js");
-    console.log(`Script output: ${nodeResult.output}`);
-
-    console.log(`\n🎉 Congratulations! You have successfully completed your first AgentBay session`);
-    console.log(`Session ID: ${session.sessionId}`);
-    // release session
-    await agentBay.delete(session);
+data = {
+    "students": [
+        {"name": "Alice", "scores": [85, 92, 88]},
+        {"name": "Bob", "scores": [78, 85, 80]},
+        {"name": "Charlie", "scores": [92, 95, 98]}
+    ]
 }
 
-main().catch(console.error);
+results = []
+for student in data["students"]:
+    avg = sum(student["scores"]) / len(student["scores"])
+    results.append({
+        "name": student["name"],
+        "average": round(avg, 2),
+        "grade": "A" if avg >= 90 else "B" if avg >= 80 else "C"
+    })
+
+print(json.dumps(results, indent=2))
+'''
+    
+    # 2. Upload script to cloud
+    session.file_system.write_file("/tmp/process_data.py", script_content)
+    print("✅ Script uploaded to cloud")
+    
+    # 3. Execute the script in cloud environment
+    result = session.command.execute_command("python3 /tmp/process_data.py")
+    print(f"\n📊 Processing results:\n{result.output}")
+    
+    # Expected output:
+    # [
+    #   {"name": "Alice", "average": 88.33, "grade": "B"},
+    #   {"name": "Bob", "average": 81.0, "grade": "B"},
+    #   {"name": "Charlie", "average": 95.0, "grade": "A"}
+    # ]
+    
+    print("\n💡 What happened:")
+    print("  1. Uploaded Python script to cloud environment")
+    print("  2. Executed script with pre-installed Python")
+    print("  3. Got results back - all without local setup!")
+    
+finally:
+    agent_bay.delete(session)
+    print("\n✅ Session cleaned up")
+
+# Expected output includes JSON formatted student grades
 ```
 
-### Golang Version
+## 💡 What You Learned
 
-```go
-package main
+**The AgentBay Workflow:**
+1. **Create** - Get a fresh cloud environment
+2. **Use** - Execute commands, upload/download files
+3. **Cleanup** - Delete session to free resources
 
-import (
-	"fmt"
-	"testing"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
-)
-
-func main() {
-	testAPIKey := testutil.GetTestAPIKey(&testing.T{})
-    // 1. Initialize AgentBay client
-    fmt.Println("🚀 Initializing AgentBay...")
-    client, err := agentbay.NewAgentBay(testAPIKey, nil)
-    if err != nil {
-        fmt.Printf("❌ Initialization failed: %v\n", err)
-        return
-    }
-
-    // 2. Create new session
-    fmt.Println("📱 Creating new session...")
-    result, err := client.Create(nil)
-    if err != nil {
-        fmt.Printf("❌ Session creation failed: %v\n", err)
-        return
-    }
-
-    session := result.Session
-    fmt.Printf("✅ Session created successfully, ID: %s\n", session.SessionID)
-
-    // 3. Execute basic commands
-    fmt.Println("\n💻 Executing commands...")
-
-    // Check current directory
-    cmdResult, err := session.Command.ExecuteCommand("pwd")
-    if err == nil {
-        fmt.Printf("Current directory: %s", cmdResult.Output)
-    }
-
-    // 4. File operations
-    fmt.Println("\n📁 File operations...")
-
-    // Create file
-    content := fmt.Sprintf("Hello from AgentBay!\nCreated at: %s", session.SessionID)
-    _, err = session.FileSystem.WriteFile("/tmp/hello.txt", content, "")
-
-    if err != nil {
-        fmt.Printf("❌ File write failed: %v\n", err)
-        return
-    }
-
-    fmt.Println("✅ File written successfully")
-
-    // Read file
-    readResult, err := session.FileSystem.ReadFile("/tmp/hello.txt")
-    if err == nil {
-        fmt.Printf("📖 File content:\n%s\n", readResult.Content)
-    }
-
-    // 5. Write text content and read file using command and filesystem
-	fmt.Println("\n🔵 Writing text content and reading file...")
-	comResult, err := session.Command.ExecuteCommand(`echo "Hello from AgentBay!" > /tmp/hello.txt`)
-	if err != nil {
-		fmt.Printf("❌ Writing text content failed: %v\n", err)
-		return
-	}
-
-	fmt.Printf("✅ ExecuteCommand Writing text content successfully:%s\n",comResult.RequestID)
-
-	readHelloResult, err := session.FileSystem.ReadFile("/tmp/hello.txt")
-	if err == nil {
-		fmt.Printf("📖 File content:\n%s\n", readHelloResult.Content)
-	}
-
-    fmt.Printf("\n🎉 Congratulations! You have successfully completed your first AgentBay session\n")
-    fmt.Printf("Session ID: %s\n", session.SessionID)
-	// Release session
-    _, err = client.Delete(session, false)
-    if err != nil {
-        fmt.Printf("❌ Failed to release session: %v\n", err)
-        return
-    }
-    fmt.Println("✅ Session released successfully")
-}
-```
-
-## 🔍 Code Explanation
-
-### 1. Initialize Client
-```python
-agent_bay = AgentBay(apikey=apikey)  # Automatically reads API key from environment variables
-```
-
-### 2. Create Session
-```python
-result = agent_bay.create()  # Returns result object
-session = result.session     # Get session instance
-```
-
-### 3. Command Execution
-```python
-cmd_result = session.command.execute_command("ls -la")
-print(cmd_result.output)    # Command output
-```
-
-### 4. File Operations
-```python
-# Write
-session.file_system.write_file(path, content)
-
-# Read
-result = session.file_system.read_file(path)
-content = result.content
-```
-
-## 🎯 Run This Example
-
-1. Ensure you have installed the SDK and configured the API key
-2. Save the code to a file (e.g., `first_session.py`)
-3. Run: `python first_session.py`
-
-## 💡 Key Points
-
-1. **Sessions are temporary**: All files are lost when the session ends
-2. **Network access**: The cloud environment can access the internet
-3. **Complete Linux environment**: Supports most Linux commands and tools
-4. **Multi-language support**: Can run Python, Node.js, and other programs
+**Key Concepts:**
+- `agent_bay.create()` - Creates a new cloud session
+- `session.command.execute_command()` - Runs commands in the cloud
+- `session.file_system.write_file()` - Uploads files to cloud
+- `agent_bay.delete(session)` - Cleans up when done
 
 ## 🚀 Next Steps
 
-- Learn about [Data Persistence](../guides/data-persistence.md) to save important files
-- Explore [More Features](../guides/README.md)
-- Check out [Best Practices](best-practices.md)
+Now that you've created your first session, explore more capabilities:
 
-## 🎉 Congratulations!
+**Learn Core Features:**
+- 📝 **[Command Execution](../guides/codespace/code-execution.md)** - Run shell commands and code
+- 📁 **[File Operations](../guides/common-features/basics/file-operations.md)** - Upload, download, and manage files
+- 🔧 **[Session Management](../guides/common-features/basics/session-management.md)** - Advanced session patterns and best practices
 
-You have successfully created and used your first AgentBay session! Now you can:
-- Execute any Linux command in the cloud
-- Create and edit files
-- Run code in various programming languages
-- Access internet resources
+**Explore Use Cases:**
+- 🌐 **[Browser Automation](../guides/computer-use/computer-ui-automation.md)** - Web scraping and testing
+- 📱 **[Mobile Testing](../guides/mobile-use/mobile-ui-automation.md)** - Android app automation
+- 💻 **[Code Development](../guides/codespace/code-execution.md)** - Cloud development environment
 
-Continue learning more advanced features! 🚀
+**Ready to build something amazing?** Check out the [Feature Guides](../guides/README.md) to explore all capabilities! 🚀

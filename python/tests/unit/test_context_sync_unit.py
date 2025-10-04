@@ -40,7 +40,6 @@ class TestContextSyncUnit(unittest.TestCase):
             basic_sync.policy.upload_policy.upload_strategy,
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
         )
-        self.assertEqual(basic_sync.policy.upload_policy.period, 30)
 
         self.assertTrue(basic_sync.policy.download_policy.auto_download)
         self.assertEqual(
@@ -62,7 +61,6 @@ class TestContextSyncUnit(unittest.TestCase):
         upload_policy = UploadPolicy(
             auto_upload=True,
             upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
-            period=15,  # 15 minutes
         )
 
         # Create download policy
@@ -106,7 +104,6 @@ class TestContextSyncUnit(unittest.TestCase):
             advanced_sync.policy.upload_policy.upload_strategy,
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
         )
-        self.assertEqual(advanced_sync.policy.upload_policy.period, 15)
 
         self.assertTrue(advanced_sync.policy.download_policy.auto_download)
         self.assertEqual(
@@ -130,8 +127,7 @@ class TestContextSyncUnit(unittest.TestCase):
         )
         print(
             f"  - Upload: Auto={advanced_sync.policy.upload_policy.auto_upload}, "
-            f"Strategy={advanced_sync.policy.upload_policy.upload_strategy}, "
-            f"Period={advanced_sync.policy.upload_policy.period}"
+            f"Strategy={advanced_sync.policy.upload_policy.upload_strategy}"
         )
         print(
             f"  - Download: Auto={advanced_sync.policy.download_policy.auto_download}, "
@@ -255,7 +251,7 @@ class TestContextSyncUnit(unittest.TestCase):
 
         for strategy in strategies:
             upload_policy = UploadPolicy(
-                auto_upload=True, upload_strategy=strategy, period=30
+                auto_upload=True, upload_strategy=strategy
             )
 
             sync_policy = SyncPolicy(upload_policy=upload_policy)
@@ -294,7 +290,7 @@ class TestContextSyncUnit(unittest.TestCase):
 
         # Modify upload policy - use existing upload strategy
         new_upload_policy = UploadPolicy(
-            auto_upload=False, upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE, period=60
+            auto_upload=False, upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
 
         # Create new sync policy with modified upload policy
@@ -313,12 +309,10 @@ class TestContextSyncUnit(unittest.TestCase):
             context_sync.policy.upload_policy.upload_strategy,
             UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
         )
-        self.assertEqual(context_sync.policy.upload_policy.period, 60)
 
         print(
             f"Policy modification - Upload auto: {context_sync.policy.upload_policy.auto_upload}, "
-            f"Strategy: {context_sync.policy.upload_policy.upload_strategy}, "
-            f"Period: {context_sync.policy.upload_policy.period}"
+            f"Strategy: {context_sync.policy.upload_policy.upload_strategy}"
         )
 
     def test_08_default_policies(self):
@@ -331,7 +325,6 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertEqual(
             upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
         )
-        self.assertEqual(upload_policy.period, 30)
 
         # Test default download policy
         download_policy = DownloadPolicy.default()
@@ -364,7 +357,6 @@ class TestContextSyncUnit(unittest.TestCase):
                 upload_policy=UploadPolicy(
                     auto_upload=True,
                     upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
-                    period=15,
                 ),
                 download_policy=DownloadPolicy(
                     auto_download=True,
@@ -385,7 +377,6 @@ class TestContextSyncUnit(unittest.TestCase):
         self.assertEqual(context_sync.context_id, "test-context-id")
         self.assertEqual(context_sync.path, "/workspace")
         self.assertTrue(context_sync.policy.upload_policy.auto_upload)
-        self.assertEqual(context_sync.policy.upload_policy.period, 15)
         self.assertEqual(len(context_sync.policy.bw_list.white_lists), 1)
 
         print("Context sync serialization test passed")

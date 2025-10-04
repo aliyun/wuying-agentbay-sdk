@@ -30,7 +30,7 @@ func contextSyncWithCallbackUploadDemo(agentBay *agentbay.AgentBay) error {
 	// Step 2: Create session with context sync
 	fmt.Println("\n📦 Creating session with context sync...")
 	syncPolicy := agentbay.NewSyncPolicy()
-	contextSync := agentbay.NewContextSync(
+	contextSync, _ := agentbay.NewContextSync(
 		context.ID,
 		"/tmp/sync_data",
 		syncPolicy,
@@ -152,7 +152,7 @@ func contextSyncWithCallbackDownloadDemo(agentBay *agentbay.AgentBay) error {
 	// Step 2: Create session with context sync
 	fmt.Println("\n📦 Creating session with context sync...")
 	syncPolicy := agentbay.NewSyncPolicy()
-	contextSync := agentbay.NewContextSync(
+	contextSync, _ := agentbay.NewContextSync(
 		"SdkCtx-04bdvpz4zzyyzbo5p",
 		"/home/wuying",
 		syncPolicy,
@@ -234,7 +234,7 @@ func contextSyncDemo(agentBay *agentbay.AgentBay) error {
 	// Step 2: Create session with context sync
 	fmt.Println("\n📦 Creating session with context sync...")
 	syncPolicy := agentbay.NewSyncPolicy()
-	contextSync := agentbay.NewContextSync(
+	contextSync, _ := agentbay.NewContextSync(
 		context.ID,
 		"/tmp/sync_data",
 		syncPolicy,

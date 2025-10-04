@@ -40,7 +40,7 @@ func main() {
 	// Example 2: Creating a basic context sync configuration
 	fmt.Println("\nExample 2: Creating a basic context sync configuration...")
 	basicPolicy := agentbay.NewSyncPolicy()
-	basicSync := agentbay.NewContextSync(context.ID, "/tmp", basicPolicy)
+	basicSync, _ := agentbay.NewContextSync(context.ID, "/tmp", basicPolicy)
 	fmt.Printf("Basic sync - ContextID: %s, Path: %s\n", basicSync.ContextID, basicSync.Path)
 
 	// Example 3: Create an advanced context sync configuration with policies
@@ -50,7 +50,6 @@ func main() {
 	uploadPolicy := &agentbay.UploadPolicy{
 		AutoUpload:     true,
 		UploadStrategy: agentbay.UploadBeforeResourceRelease,
-		Period:         15, // 15 minutes
 	}
 
 	// Create download policy
@@ -84,13 +83,12 @@ func main() {
 	}
 
 	// Create advanced sync configuration
-	advancedSync := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
+	advancedSync, _ := agentbay.NewContextSync(context.ID, "/home/wuying", syncPolicy)
 
 	fmt.Printf("Advanced sync - ContextID: %s, Path: %s\n", advancedSync.ContextID, advancedSync.Path)
-	fmt.Printf("  - Upload: Auto=%t, Strategy=%s, Period=%d\n",
+	fmt.Printf("  - Upload: Auto=%t, Strategy=%s\n",
 		advancedSync.Policy.UploadPolicy.AutoUpload,
-		advancedSync.Policy.UploadPolicy.UploadStrategy,
-		advancedSync.Policy.UploadPolicy.Period)
+		advancedSync.Policy.UploadPolicy.UploadStrategy)
 	fmt.Printf("  - Download: Auto=%t, Strategy=%s\n",
 		advancedSync.Policy.DownloadPolicy.AutoDownload,
 		advancedSync.Policy.DownloadPolicy.DownloadStrategy)
@@ -182,8 +180,8 @@ func main() {
 		},
 	}
 
-	builderSync := agentbay.NewContextSync(context.ID, "/workspace", nil).
-		WithPolicy(builderPolicy)
+	builderSync, _ := agentbay.NewContextSync(context.ID, "/workspace", nil)
+	builderSync, _ = builderSync.WithPolicy(builderPolicy)
 
 	fmt.Printf("Builder sync - ContextID: %s, Path: %s\n",
 		builderSync.ContextID, builderSync.Path)

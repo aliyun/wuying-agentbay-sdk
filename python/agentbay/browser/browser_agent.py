@@ -117,7 +117,7 @@ class BrowserAgent(BaseService):
             A string indicating the result of the navigation.
         """
         if not self.browser.is_initialized():
-            raise BrowserError("Browser must be initialized before calling navigate.")
+            raise BrowserError("Browser must be initialized before calling navigate_async.")
         try:
             args = {"url": url}
             response = self._call_mcp_tool_timeout("page_use_navigate", args)

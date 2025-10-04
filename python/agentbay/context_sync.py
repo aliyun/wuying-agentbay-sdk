@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
+import re
 
 
 class UploadStrategy(Enum):
@@ -23,12 +24,10 @@ class UploadPolicy:
     Attributes:
         auto_upload: Enables automatic upload
         upload_strategy: Defines the upload strategy
-        period: Defines the upload period in minutes (for periodic upload)
     """
 
     auto_upload: bool = True
     upload_strategy: UploadStrategy = UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE
-    period: Optional[int] = 30  # Default to 30 minutes
 
     @classmethod
     def default(cls):
@@ -41,7 +40,6 @@ class UploadPolicy:
             "uploadStrategy": (
                 self.upload_strategy.value if self.upload_strategy else None
             ),
-            "period": self.period,
         }
 
 
@@ -127,6 +125,25 @@ class WhiteList:
 
     path: str = ""
     exclude_paths: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        """Validate that paths don't contain wildcard patterns"""
+        if self._contains_wildcard(self.path):
+            raise ValueError(
+                f"Wildcard patterns are not supported in path. Got: {self.path}. "
+                "Please use exact directory paths instead."
+            )
+        for exclude_path in self.exclude_paths:
+            if self._contains_wildcard(exclude_path):
+                raise ValueError(
+                    f"Wildcard patterns are not supported in exclude_paths. Got: {exclude_path}. "
+                    "Please use exact directory paths instead."
+                )
+
+    @staticmethod
+    def _contains_wildcard(path: str) -> bool:
+        """Check if path contains wildcard characters"""
+        return bool(re.search(r'[*?\[\]]', path))
 
     def __dict__(self):
         return {"path": self.path, "excludePaths": self.exclude_paths}

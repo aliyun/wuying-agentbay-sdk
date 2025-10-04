@@ -1,5 +1,7 @@
 # ApplicationManager Class
 
+> **⚠️ DEPRECATED**: This API is deprecated. Please use the [Computer API](computer.md) instead for application management functionality.
+
 The ApplicationManager class provides methods for managing applications in the AgentBay cloud environment, including listing installed applications, starting applications, and stopping running processes.
 
 ## Class Properties

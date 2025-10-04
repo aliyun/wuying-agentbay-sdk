@@ -135,15 +135,13 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{
-          text: JSON.stringify([
-            {
-              text: 'Button 1',
-              className: 'android.widget.Button',
-              bounds: { left: 0, top: 0, right: 100, bottom: 50 }
-            }
-          ])
-        }]
+        data: JSON.stringify([
+          {
+            text: 'Button 1',
+            className: 'android.widget.Button',
+            bounds: { left: 0, top: 0, right: 100, bottom: 50 }
+          }
+        ])
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -163,15 +161,13 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{
-          text: JSON.stringify([
-            {
-              text: 'Text View',
-              className: 'android.widget.TextView',
-              bounds: { left: 0, top: 0, right: 200, bottom: 30 }
-            }
-          ])
-        }]
+        data: JSON.stringify([
+          {
+            text: 'Text View',
+            className: 'android.widget.TextView',
+            bounds: { left: 0, top: 0, right: 200, bottom: 30 }
+          }
+        ])
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -193,15 +189,13 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{
-          text: JSON.stringify([
-            {
-              name: 'Calculator',
-              startCmd: 'com.android.calculator2',
-              workDirectory: ''
-            }
-          ])
-        }]
+        data: JSON.stringify([
+          {
+            name: 'Calculator',
+            startCmd: 'com.android.calculator2',
+            workDirectory: ''
+          }
+        ])
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -223,14 +217,12 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{
-          text: JSON.stringify([
-            {
-              pid: 1234,
-              pname: 'com.android.calculator2'
-            }
-          ])
-        }]
+        data: JSON.stringify([
+          {
+            pid: 1234,
+            pname: 'com.android.calculator2'
+          }
+        ])
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -272,7 +264,7 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{ text: 'https://example.com/mobile-screenshot.png' }]
+        data: 'https://example.com/mobile-screenshot.png'
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
@@ -304,7 +296,7 @@ describe('Mobile', () => {
       const mockResult = {
         success: true,
         requestId: 'test-123',
-        content: [{ text: 'invalid json' }]
+        data: 'invalid json'
       };
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 

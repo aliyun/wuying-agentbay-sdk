@@ -35,7 +35,7 @@ class TestCode(unittest.TestCase):
         mock_call_mcp_tool.assert_called_once_with("run_code", {
             "code": code,
             "language": "python",
-            "timeout_s": 300
+            "timeout_s": 60
         })
 
         # Verify the result

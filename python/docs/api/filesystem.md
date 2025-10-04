@@ -2,6 +2,10 @@
 
 The `FileSystem` class provides methods for file operations within a session in the AgentBay cloud environment. This includes reading, writing, editing, and searching files, as well as directory operations, real-time directory monitoring, and file transfer capabilities.
 
+## 📖 Related Tutorial
+
+- [Complete Guide to File Operations](../../../docs/guides/common-features/basics/file-operations.md) - Detailed tutorial covering all file operation features
+
 ## Methods
 
 ### create_directory / createDirectory / CreateDirectory
@@ -119,7 +123,7 @@ Searches for files matching a pattern in a directory.
 
 
 ```python
-search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> OperationResult
+search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = None) -> FileSearchResult
 ```
 
 **Parameters:**
@@ -128,7 +132,7 @@ search_files(path: str, pattern: str, exclude_patterns: Optional[List[str]] = No
 - `exclude_patterns` (List[str], optional): Patterns to exclude. Default is None.
 
 **Returns:**
-- `FileSearchResult`: A result object containing search results, success status, request ID, and error message if any.
+- `FileSearchResult`: A result object containing search results (in the `matches` attribute), success status, request ID, and error message if any.
 
 ### write_file
 

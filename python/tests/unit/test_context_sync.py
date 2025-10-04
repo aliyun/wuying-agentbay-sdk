@@ -22,12 +22,11 @@ class TestSyncPolicy(unittest.TestCase):
     def test_sync_policy_with_partial_parameters(self):
         """Test that SyncPolicy automatically fills missing parameters with defaults."""
         # Create SyncPolicy with only upload_policy
-        upload_policy = UploadPolicy(auto_upload=False, period=60)
+        upload_policy = UploadPolicy(auto_upload=False)
         sync_policy = SyncPolicy(upload_policy=upload_policy)
         
         # Verify upload_policy is set correctly
         self.assertEqual(sync_policy.upload_policy.auto_upload, False)
-        self.assertEqual(sync_policy.upload_policy.period, 60)
         
         # Verify other policies are filled with defaults
         self.assertIsNotNone(sync_policy.download_policy)
@@ -53,7 +52,6 @@ class TestSyncPolicy(unittest.TestCase):
         # Verify default values
         self.assertTrue(sync_policy.upload_policy.auto_upload)
         self.assertEqual(sync_policy.upload_policy.upload_strategy, UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE)
-        self.assertEqual(sync_policy.upload_policy.period, 30)
         
         self.assertTrue(sync_policy.download_policy.auto_download)
         self.assertEqual(sync_policy.download_policy.download_strategy, DownloadStrategy.DOWNLOAD_ASYNC)
@@ -66,7 +64,7 @@ class TestSyncPolicy(unittest.TestCase):
 
     def test_sync_policy_with_all_parameters(self):
         """Test that SyncPolicy with all parameters works correctly."""
-        upload_policy = UploadPolicy(auto_upload=False, period=60)
+        upload_policy = UploadPolicy(auto_upload=False)
         download_policy = DownloadPolicy(auto_download=False)
         delete_policy = DeletePolicy(sync_local_file=False)
         bw_list = BWList(white_lists=[WhiteList(path="/test", exclude_paths=["/exclude"])])
@@ -80,7 +78,6 @@ class TestSyncPolicy(unittest.TestCase):
         
         # Verify all policies are set correctly
         self.assertEqual(sync_policy.upload_policy.auto_upload, False)
-        self.assertEqual(sync_policy.upload_policy.period, 60)
         
         self.assertEqual(sync_policy.download_policy.auto_download, False)
         self.assertEqual(sync_policy.delete_policy.sync_local_file, False)
@@ -105,7 +102,6 @@ class TestSyncPolicy(unittest.TestCase):
         # Verify upload policy values
         self.assertEqual(result["uploadPolicy"]["autoUpload"], False)
         self.assertEqual(result["uploadPolicy"]["uploadStrategy"], UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE.value)
-        self.assertEqual(result["uploadPolicy"]["period"], 30)
         
         # Verify download policy values
         self.assertEqual(result["downloadPolicy"]["autoDownload"], True)

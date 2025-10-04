@@ -4,7 +4,7 @@ import * as $_client from "./api";
 import { ListSessionRequest, CreateMcpSessionRequestPersistenceDataList } from "./api/models/model";
 import { Client } from "./api/client";
 
-import { loadConfig, loadDotEnv, Config, BROWSER_DATA_PATH } from "./config";
+import { loadConfig, loadDotEnvWithFallback, Config, BROWSER_DATA_PATH } from "./config";
 import { ContextService } from "./context";
 import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
@@ -74,15 +74,17 @@ export class AgentBay {
    * @param options - Configuration options
    * @param options.apiKey - API key for authentication. If not provided, will look for AGENTBAY_API_KEY environment variable.
    * @param options.config - Custom configuration object. If not provided, will use environment-based configuration.
+   * @param options.envFile - Custom path to .env file. If not provided, will search upward from current directory.
    */
   constructor(
     options: {
       apiKey?: string;
       config?: Config;
+      envFile?: string;
     } = {}
   ) {
     // Load .env file first to ensure AGENTBAY_API_KEY is available
-    loadDotEnv();
+    loadDotEnvWithFallback(options.envFile);
 
     this.apiKey = options.apiKey || process.env.AGENTBAY_API_KEY || "";
 
@@ -93,7 +95,7 @@ export class AgentBay {
     }
 
     // Load configuration using the enhanced loadConfig function
-    const configData = loadConfig(options.config);
+    const configData = loadConfig(options.config, options.envFile);
     this.regionId = configData.region_id;
     this.endpoint = configData.endpoint;
 
@@ -402,14 +404,6 @@ export class AgentBay {
     }
   }
 
-  /**
-   * List all available sessions.
-   *
-   * @returns A list of session objects.
-   */
-  list(): Session[] {
-    return Array.from(this.sessions.values());
-  }
 
   /**
    * List sessions filtered by the provided labels with pagination support.

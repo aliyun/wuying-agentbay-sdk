@@ -9,7 +9,13 @@ from agentbay.api.base_service import BaseService
 from agentbay.exceptions import AgentBayError
 from agentbay.model import BoolResult, OperationResult
 from agentbay.ui.ui import UIElementListResult
-from agentbay.application.application import InstalledAppListResult
+from agentbay.application.application import (
+    InstalledAppListResult,
+    ProcessListResult,
+    AppOperationResult,
+    Process,
+    InstalledApp,
+)
 
 
 class KeyCode:
@@ -290,92 +296,137 @@ class Mobile(BaseService):
                 error_message=f"Failed to get all UI elements: {str(e)}",
             )
 
-    # Application Management Operations (delegated to existing application module)
+    # Application Management Operations
     def get_installed_apps(
-        self,
-        include_system: bool = False,
-        include_user: bool = True,
-        include_third_party: bool = True,
+        self, start_menu: bool, desktop: bool, ignore_system_apps: bool
     ) -> InstalledAppListResult:
         """
-        Gets the list of installed applications.
+        Retrieves a list of installed applications.
 
         Args:
-            include_system (bool, optional): Include system applications. Defaults to False.
-            include_user (bool, optional): Include user applications. Defaults to True.
-            include_third_party (bool, optional): Include third-party applications. Defaults to True.
+            start_menu (bool): Whether to include start menu applications.
+            desktop (bool): Whether to include desktop applications.
+            ignore_system_apps (bool): Whether to ignore system applications.
 
         Returns:
-            InstalledAppsResult: Result object containing list of installed apps and error message if any.
+            InstalledAppListResult: The result containing the list of installed
+                applications.
         """
-        from agentbay.application import ApplicationManager
-        app_manager = ApplicationManager(self.session)
-        return app_manager.get_installed_apps(include_system, include_user, include_third_party)
-
-    def start_app(self, app_name: str, activity: Optional[str] = None) -> BoolResult:
-        """
-        Starts the specified application.
-
-        Args:
-            app_name (str): The package name of the application to start.
-            activity (Optional[str], optional): Specific activity to start. Defaults to None.
-
-        Returns:
-            BoolResult: Result object containing success status and error message if any.
-        """
-        args = {"app_name": app_name}
-        if activity:
-            args["activity"] = activity
-
         try:
-            result = self._call_mcp_tool("start_app", args)
+            args = {
+                "start_menu": start_menu,
+                "desktop": desktop,
+                "ignore_system_apps": ignore_system_apps,
+            }
+
+            result = self._call_mcp_tool("get_installed_apps", args)
 
             if not result.success:
-                return BoolResult(
+                return InstalledAppListResult(
                     request_id=result.request_id,
                     success=False,
-                    data=None,
                     error_message=result.error_message,
                 )
 
-            return BoolResult(
-                request_id=result.request_id,
-                success=True,
-                data=True,
-                error_message="",
-            )
+            try:
+                import json
+                apps_json = json.loads(result.data)
+                installed_apps = []
+
+                for app_data in apps_json:
+                    app = InstalledApp.from_dict(app_data)
+                    installed_apps.append(app)
+
+                return InstalledAppListResult(
+                    request_id=result.request_id,
+                    success=True,
+                    data=installed_apps,
+                )
+            except json.JSONDecodeError as e:
+                return InstalledAppListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=f"Failed to parse applications JSON: {e}",
+                )
         except Exception as e:
-            return BoolResult(
-                request_id="",
-                success=False,
-                data=None,
-                error_message=f"Failed to start app: {str(e)}",
+            return InstalledAppListResult(
+                success=False, error_message=str(e)
             )
 
-    def list_visible_apps(self):
+    def start_app(
+        self, start_cmd: str, work_directory: str = "", activity: str = ""
+    ) -> ProcessListResult:
         """
-        Lists all visible applications.
-
-        Returns:
-            Result object containing list of visible apps and error message if any.
-        """
-        from agentbay.application import ApplicationManager
-        app_manager = ApplicationManager(self.session)
-        return app_manager.list_visible_apps()
-
-    def stop_app_by_pname(self, pname: str) -> BoolResult:
-        """
-        Stops an application by process name.
+        Starts an application with the given command, optional working directory and
+            optional activity.
 
         Args:
-            pname (str): The process name of the application to stop.
+            start_cmd (str): The command to start the application.
+            work_directory (str, optional): The working directory for the application.
+            activity (str, optional): Activity name to launch (e.g. ".SettingsActivity"
+                or "com.package/.Activity"). Defaults to "".
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            ProcessListResult: The result containing the list of processes started.
         """
-        from agentbay.application import ApplicationManager
-        app_manager = ApplicationManager(self.session)
-        return app_manager.stop_app_by_pname(pname)
+        try:
+            args = {"start_cmd": start_cmd}
+            if work_directory:
+                args["work_directory"] = work_directory
+            if activity:
+                args["activity"] = activity
+
+            result = self._call_mcp_tool("start_app", args)
+
+            if not result.success:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
+
+            try:
+                import json
+                processes_json = json.loads(result.data)
+                processes = []
+
+                for process_data in processes_json:
+                    process = Process.from_dict(process_data)
+                    processes.append(process)
+
+                return ProcessListResult(
+                    request_id=result.request_id, success=True, data=processes
+                )
+            except json.JSONDecodeError as e:
+                return ProcessListResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=f"Failed to parse processes JSON: {e}",
+                )
+        except Exception as e:
+            return ProcessListResult(success=False, error_message=str(e))
+
+    def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
+        """
+        Stops an application by stop command.
+
+        Args:
+            stop_cmd (str): The command to stop the application.
+
+        Returns:
+            AppOperationResult: The result of the operation.
+        """
+        try:
+            args = {"stop_cmd": stop_cmd}
+            result = self._call_mcp_tool("stop_app_by_cmd", args)
+
+            return AppOperationResult(
+                request_id=result.request_id,
+                success=result.success,
+                error_message=result.error_message,
+            )
+        except Exception as e:
+            return AppOperationResult(success=False, error_message=str(e))
 
     # Screenshot Operations
     def screenshot(self) -> OperationResult:

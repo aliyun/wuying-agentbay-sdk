@@ -436,5 +436,5 @@ Each extension gets its own directory containing all extension files, including 
 - [Session API Reference](session.md)
 - [Context API Reference](context.md) 
 - [AgentBay API Reference](agentbay.md)
-- [Extension Examples](../examples/extension/) - Practical usage examples
+- [Extension Examples](../examples/extension/README.md) - Practical usage examples
 - [Browser Extensions Guide](../../../docs/guides/browser-extensions.md) - Complete tutorial

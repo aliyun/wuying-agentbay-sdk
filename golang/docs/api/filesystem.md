@@ -2,6 +2,10 @@
 
 The FileSystem module provides comprehensive file and directory operations within AgentBay sessions, including real-time directory monitoring capabilities.
 
+## 📖 Related Tutorial
+
+- [Complete Guide to File Operations](../../../docs/guides/common-features/basics/file-operations.md) - Detailed tutorial covering all file operation features
+
 ## Overview
 
 The FileSystem interface enables you to:
@@ -93,7 +97,7 @@ func main() {
     }
 
     session := sessionResult.Session
-    fileSystem := session.FileSystem()
+    fileSystem := session.FileSystem
 
     // Check for file changes
     result, err := fileSystem.GetFileChange("/tmp/watch_dir")
@@ -109,6 +113,8 @@ func main() {
     } else {
         fmt.Println("No changes detected")
     }
+    // Output: No changes detected
+    // RequestID: 478639BF-138A-1D9D-9844-146BF08E6DD9
 }
 ```
 
@@ -120,19 +126,19 @@ Continuously monitors a directory for file changes and executes a callback funct
 func (fs *FileSystem) WatchDirectory(
     path string,
     callback func([]*FileChangeEvent),
-    intervalMs int,
+    interval time.Duration,
     stopChan <-chan struct{},
-) error
+) *sync.WaitGroup
 ```
 
 **Parameters:**
 - `path` (string): Directory path to monitor
 - `callback` (func([]*FileChangeEvent)): Function called when changes are detected
-- `intervalMs` (int): Polling interval in milliseconds (minimum 100ms)
+- `interval` (time.Duration): Polling interval as a time.Duration (e.g., 1*time.Second)
 - `stopChan` (<-chan struct{}): Channel to signal when to stop monitoring
 
 **Returns:**
-- `error`: Error if monitoring setup failed
+- `*sync.WaitGroup`: WaitGroup that can be used to wait for monitoring to stop
 
 **Example:**
 ```go
@@ -141,10 +147,9 @@ package main
 import (
     "fmt"
     "log"
-    "os"
-    "path/filepath"
     "time"
     "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 )
 
 func main() {
@@ -164,15 +169,17 @@ func main() {
     }
 
     session := sessionResult.Session
-    fileSystem := session.FileSystem()
+    fileSystem := session.FileSystem
 
-    // Create test directory
+    // Create test directory in cloud environment
     testDir := "/tmp/agentbay_watch_test"
-    os.MkdirAll(testDir, 0755)
-    defer os.RemoveAll(testDir)
+    _, err = fileSystem.CreateDirectory(testDir)
+    if err != nil {
+        log.Printf("Error creating directory: %v", err)
+    }
 
     // Set up callback function
-    callback := func(events []*FileChangeEvent) {
+    callback := func(events []*filesystem.FileChangeEvent) {
         fmt.Printf("Detected %d file changes:\n", len(events))
         for _, event := range events {
             fmt.Printf("- %s\n", event.String())
@@ -182,39 +189,39 @@ func main() {
     // Create stop channel
     stopChan := make(chan struct{})
 
-    // Start monitoring in a goroutine
-    go func() {
-        err := fileSystem.WatchDirectory(testDir, callback, 1000, stopChan)
-        if err != nil {
-            log.Printf("Watch error: %v", err)
-        }
-    }()
+    // Start monitoring
+    wg := fileSystem.WatchDirectory(testDir, callback, 1*time.Second, stopChan)
 
     // Simulate file operations
     time.Sleep(2 * time.Second)
     
-    // Create a file
-    testFile := filepath.Join(testDir, "test.txt")
-    err = os.WriteFile(testFile, []byte("Hello, AgentBay!"), 0644)
+    // Create a file in cloud environment
+    testFile := testDir + "/test.txt"
+    _, err = fileSystem.WriteFile(testFile, "Hello, AgentBay!", "overwrite")
     if err != nil {
         log.Printf("Error creating file: %v", err)
     }
+    // Output: Detected 2 file changes:
+    // - FileChangeEvent(eventType='modify', path='/tmp/agentbay_watch_test/test.txt', pathType='file')
+    // - FileChangeEvent(eventType='create', path='/tmp/agentbay_watch_test/test.txt', pathType='file')
 
     // Wait for detection
     time.Sleep(2 * time.Second)
 
     // Modify the file
-    err = os.WriteFile(testFile, []byte("Modified content"), 0644)
+    _, err = fileSystem.WriteFile(testFile, "Modified content", "overwrite")
     if err != nil {
         log.Printf("Error modifying file: %v", err)
     }
+    // Output: Detected 1 file changes:
+    // - FileChangeEvent(eventType='modify', path='/tmp/agentbay_watch_test/test.txt', pathType='file')
 
     // Wait for detection
     time.Sleep(2 * time.Second)
 
     // Stop monitoring
     close(stopChan)
-    time.Sleep(1 * time.Second)
+    wg.Wait()
 
     fmt.Println("Monitoring stopped")
 }
@@ -433,7 +440,7 @@ type DirectoryEntry struct {
 
 
 ```go
-MoveFile(source, destination string) (*FileDirectoryResult, error)
+MoveFile(source, destination string) (*FileWriteResult, error)
 ```
 
 **Parameters:**
@@ -441,14 +448,14 @@ MoveFile(source, destination string) (*FileDirectoryResult, error)
 - `destination` (string): The path of the destination file or directory.
 
 **Returns:**
-- `*FileDirectoryResult`: A result object containing success status and RequestID.
+- `*FileWriteResult`: A result object containing success status and RequestID.
 - `error`: An error if moving the file fails.
 
-**FileDirectoryResult Structure:**
+**FileWriteResult Structure:**
 ```go
-type FileDirectoryResult struct {
+type FileWriteResult struct {
     RequestID string // Unique request identifier for debugging
-    Success   bool   // Whether the operation was successful
+    Success   bool   // Whether the file was written successfully
 }
 ```
 
@@ -554,62 +561,82 @@ package main
 import (
     "fmt"
     "log"
+    "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
     // Create a session
-    agentBay := agentbay.NewAgentBay("your-api-key")
+    agentBay, err := agentbay.NewAgentBay("your-api-key")
+    if err != nil {
+        log.Fatal(err)
+    }
     sessionResult, err := agentBay.Create(nil)
     if err != nil {
         log.Fatal(err)
     }
     session := sessionResult.Session
-
-    // Read a file
-    readResult, err := session.FileSystem.ReadFile("/etc/hosts")
-    if err != nil {
-        log.Printf("Error reading file: %v", err)
-    } else {
-        fmt.Printf("File content: %s\n", readResult.Content)
-    }
+    fileSystem := session.FileSystem
 
     // Create a directory
-    createResult, err := session.FileSystem.CreateDirectory("/tmp/test")
+    createResult, err := fileSystem.CreateDirectory("/tmp/test")
     if err != nil {
         log.Printf("Error creating directory: %v", err)
     } else {
         fmt.Printf("Directory created: %t\n", createResult.Success)
     }
+    // Output: Directory created: true
+    // RequestID: 27152FAE-4E31-1578-9B50-A367C4848359
 
     // Write a file
-    writeResult, err := session.FileSystem.WriteFile("/tmp/test/example.txt", "Hello, world!", "overwrite")
+    writeResult, err := fileSystem.WriteFile("/tmp/test/example.txt", "Hello, world!", "overwrite")
     if err != nil {
         log.Printf("Error writing file: %v", err)
     } else {
         fmt.Printf("File written successfully: %t\n", writeResult.Success)
     }
+    // Output: File written successfully: true
+    // RequestID: F97C3D43-2601-1654-9FF3-B6573B645844
+
+    // Read a file
+    readResult, err := fileSystem.ReadFile("/tmp/test/example.txt")
+    if err != nil {
+        log.Printf("Error reading file: %v", err)
+    } else {
+        fmt.Printf("File content: %s\n", readResult.Content)
+    }
+    // Output: File content: Hello, world!
+    // RequestID: 6E4FEF65-BCE0-1898-AC2D-2AA1B12CDCCB
 
     // Edit a file
     edits := []map[string]string{
         {"oldText": "Hello", "newText": "Hi"},
     }
-    editResult, err := session.FileSystem.EditFile("/tmp/test/example.txt", edits, false)
+    editResult, err := fileSystem.EditFile("/tmp/test/example.txt", edits, false)
     if err != nil {
         log.Printf("Error editing file: %v", err)
     } else {
         fmt.Printf("File edited successfully: %t\n", editResult.Success)
     }
+    // Output: File edited successfully: true
+    // Diff output:
+    // --- /tmp/test/example.txt
+    // +++ /tmp/test/example.txt
+    // - Hello, world!
+    // + Hi, world!
 
     // Get file info
-    fileInfoResult, err := session.FileSystem.GetFileInfo("/tmp/test/example.txt")
+    fileInfoResult, err := fileSystem.GetFileInfo("/tmp/test/example.txt")
     if err != nil {
         log.Printf("Error getting file info: %v", err)
     } else {
-        fmt.Printf("File info: %+v\n", fileInfoResult.FileInfo)
+        fmt.Printf("File size: %d bytes\n", fileInfoResult.FileInfo.Size)
+        fmt.Printf("Is directory: %t\n", fileInfoResult.FileInfo.IsDirectory)
     }
+    // Output: File size: 11 bytes
+    // Output: Is directory: false
 
     // List directory
-    listResult, err := session.FileSystem.ListDirectory("/tmp/test")
+    listResult, err := fileSystem.ListDirectory("/tmp/test")
     if err != nil {
         log.Printf("Error listing directory: %v", err)
     } else {
@@ -621,6 +648,17 @@ func main() {
             fmt.Printf("%s: %s\n", entryType, entry.Name)
         }
     }
+    // Output: File: example.txt
+
+    // Move a file
+    moveResult, err := fileSystem.MoveFile("/tmp/test/example.txt", "/tmp/test/moved.txt")
+    if err != nil {
+        log.Printf("Error moving file: %v", err)
+    } else {
+        fmt.Printf("File moved successfully: %t\n", moveResult.Success)
+    }
+    // Output: File moved successfully: true
+    // RequestID: 232965AD-A027-1D50-8A41-B266B0710937
 }
 ```
 

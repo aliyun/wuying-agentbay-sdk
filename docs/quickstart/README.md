@@ -10,7 +10,7 @@ After completing this quick start guide, you will be able to:
 - Perform basic file and command operations in the cloud
 - Learn how to save and reuse your work
 
-## 📚 Learning Path (Estimated 30 minutes)
+## 📚 Learning Path (Estimated 25 minutes)
 
 ### Step 1: Environment Setup (5 minutes)
 - [Installation and Configuration](installation.md)
@@ -23,25 +23,20 @@ After completing this quick start guide, you will be able to:
 - Differences between sessions and local environments
 - Data persistence concepts
 
-### Step 3: First Program (10 minutes)
+### Step 3: First Program (5 minutes)
 - [Create Your First Session](first-session.md)
-- Execute basic commands
-- Introduction to file operations
+- Quick verification (30 seconds)
+- Cloud data processing example
 
-### Step 4: Practical Tips (5 minutes)
-- [Common Patterns and Best Practices](best-practices.md)
-- Error handling
-- Resource cleanup
 
 ## 🚀 Next Steps After Completion
 
 - Check out the [Feature Guides](../guides/README.md) to learn about complete functionality
-- Browse [Example Code](../guides/browser-extensions.md) for inspiration
+- Explore [Use Cases](../guides/common-features/use-cases/README.md) for practical application examples
 - Join community discussions
 
 ## ❓ Having Issues?
 
-- [Troubleshooting Guide](troubleshooting.md)
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
 
 ## 💡 Tips

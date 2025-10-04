@@ -2,6 +2,12 @@
 
 The `AgentBay` class is the main entry point for interacting with the AgentBay cloud environment. It provides methods for creating, retrieving, listing, and deleting sessions.
 
+## 📖 Related Tutorials
+
+- [SDK Configuration Guide](../../../docs/guides/common-features/configuration/sdk-configuration.md) - Detailed tutorial on configuring the SDK
+- [VPC Sessions Guide](../../../docs/guides/common-features/advanced/vpc-sessions.md) - Tutorial on creating sessions in VPC environments
+- [Session Link Access Guide](../../../docs/guides/common-features/advanced/session-link-access.md) - Tutorial on accessing sessions via links
+
 ## Constructor
 
 ### AgentBay
@@ -112,30 +118,6 @@ if browser_result.success:
     # Browser replay files are automatically generated for internal processing
 ```
 
-
-```python
-list() -> List[Session]
-```
-
-**Returns:**
-- `List[Session]`: A list of Session instances currently cached in the client.
-
-**Raises:**
-- `AgentBayError`: If the session listing fails.
-
-**Example:**
-```python
-from agentbay import AgentBay
-
-# Initialize the SDK
-agent_bay = AgentBay(api_key="your_api_key")
-
-# List all sessions
-sessions = agent_bay.list()
-print(f"Found {len(sessions)} sessions:")
-for session in sessions:
-    print(f"Session ID: {session.session_id}")
-```
 
 
 ```python

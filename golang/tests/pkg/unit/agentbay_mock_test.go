@@ -78,10 +78,11 @@ func TestAgentBay_List_WithMockClient(t *testing.T) {
 		MaxResults: 5,
 		TotalCount: 15,
 	}
-	mockAgentBay.EXPECT().List().Return(expectedResult, nil)
+	params := &agentbay.ListSessionParams{}
+	mockAgentBay.EXPECT().ListByLabels(params).Return(expectedResult, nil)
 
-	// Test List method call
-	result, err := mockAgentBay.List()
+	// Test ListByLabels method call
+	result, err := mockAgentBay.ListByLabels(params)
 
 	// Verify call success
 	assert.NoError(t, err)
@@ -140,10 +141,11 @@ func TestAgentBay_Error_WithMockClient(t *testing.T) {
 	mockAgentBay := mock.NewMockAgentBayInterface(ctrl)
 
 	// Set expected behavior - return error
-	mockAgentBay.EXPECT().List().Return(nil, assert.AnError)
+	params := &agentbay.ListSessionParams{}
+	mockAgentBay.EXPECT().ListByLabels(params).Return(nil, assert.AnError)
 
 	// Test error case
-	result, err := mockAgentBay.List()
+	result, err := mockAgentBay.ListByLabels(params)
 
 	// Verify error handling
 	assert.Error(t, err)

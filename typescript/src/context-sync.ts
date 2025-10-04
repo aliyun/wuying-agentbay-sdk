@@ -12,7 +12,6 @@ export enum DownloadStrategy {
 export interface UploadPolicy {
   autoUpload: boolean;
   uploadStrategy: UploadStrategy;
-  period?: number;
 }
 
 // DownloadPolicy defines the download policy for context synchronization
@@ -68,6 +67,32 @@ export class ExtractPolicyClass implements ExtractPolicy {
 export interface WhiteList {
   path: string;
   excludePaths?: string[];
+}
+
+export class WhiteListValidator {
+  private static containsWildcard(path: string): boolean {
+    return /[*?\[\]]/.test(path);
+  }
+
+  static validate(whitelist: WhiteList): void {
+    if (this.containsWildcard(whitelist.path)) {
+      throw new Error(
+        `Wildcard patterns are not supported in path. Got: ${whitelist.path}. ` +
+        "Please use exact directory paths instead."
+      );
+    }
+
+    if (whitelist.excludePaths) {
+      for (const excludePath of whitelist.excludePaths) {
+        if (this.containsWildcard(excludePath)) {
+          throw new Error(
+            `Wildcard patterns are not supported in exclude_paths. Got: ${excludePath}. ` +
+            "Please use exact directory paths instead."
+          );
+        }
+      }
+    }
+  }
 }
 
 // BWList defines the black and white list configuration
@@ -147,6 +172,9 @@ export class ContextSync {
   policy?: SyncPolicy;
 
   constructor(contextId: string, path: string, policy?: SyncPolicy) {
+    if (policy) {
+      validateSyncPolicy(policy);
+    }
     this.contextId = contextId;
     this.path = path;
     this.policy = policy;
@@ -154,6 +182,7 @@ export class ContextSync {
 
   // WithPolicy sets the policy and returns the context sync for chaining
   withPolicy(policy: SyncPolicy): ContextSync {
+    validateSyncPolicy(policy);
     this.policy = policy;
     return this;
   }
@@ -164,7 +193,6 @@ export function newUploadPolicy(): UploadPolicy {
   return {
     autoUpload: true,
     uploadStrategy: UploadStrategy.UploadBeforeResourceRelease,
-    period: 30, // Default to 30 minutes
   };
 }
 
@@ -210,6 +238,16 @@ export function newSyncPolicy(): SyncPolicy {
   };
 }
 
+export function validateSyncPolicy(policy?: SyncPolicy): void {
+  if (!policy?.bwList?.whiteLists) {
+    return;
+  }
+
+  for (const whitelist of policy.bwList.whiteLists) {
+    WhiteListValidator.validate(whitelist);
+  }
+}
+
 // NewSyncPolicyWithDefaults creates a new sync policy with partial parameters and fills defaults
 export function newSyncPolicyWithDefaults(policy?: Partial<SyncPolicy>): SyncPolicy {
   return new SyncPolicyImpl(policy).toJSON();
@@ -217,5 +255,8 @@ export function newSyncPolicyWithDefaults(policy?: Partial<SyncPolicy>): SyncPol
 
 // NewContextSync creates a new context sync configuration
 export function newContextSync(contextId: string, path: string, policy?: SyncPolicy): ContextSync {
+  if (policy) {
+    validateSyncPolicy(policy);
+  }
   return new ContextSync(contextId, path, policy);
 }

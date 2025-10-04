@@ -31,7 +31,7 @@ func main() {
 
 	// Create a session
 	fmt.Println("Creating a new session...")
-	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("windows_latest")
 	sessionResult, err := client.Create(sessionParams)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)

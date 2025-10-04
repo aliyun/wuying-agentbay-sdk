@@ -2,6 +2,10 @@
 
 The Code module handles code execution operations in the AgentBay cloud environment.
 
+## 📖 Related Tutorial
+
+- [Code Execution Guide](../../../docs/guides/codespace/code-execution.md) - Detailed tutorial on executing code in cloud environments
+
 ## Methods
 
 ### RunCode
@@ -15,7 +19,7 @@ RunCode(code string, language string, timeoutS ...int) (*CodeResult, error)
 **Parameters:**
 - `code` (string): The code to execute.
 - `language` (string): The programming language of the code. Must be either 'python' or 'javascript'.
-- `timeoutS` (int, optional): The timeout for the code execution in seconds. Default is 300s.
+- `timeoutS` (int, optional): The timeout for the code execution in seconds. Default is 60s. Note: Due to gateway limitations, each request cannot exceed 60 seconds.
 
 **Returns:**
 - `*CodeResult`: A result object containing the execution output and request ID.
@@ -66,10 +70,14 @@ print(f"Result: {result}")
         fmt.Printf("Error executing Python code: %v\n", err)
     } else {
         fmt.Printf("Python code output:\n%s\n", codeResult.Output)
+        // Expected output:
+        // Hello from Python!
+        // Result: 5
         fmt.Printf("Request ID: %s\n", codeResult.RequestID)
+        // Expected: A valid UUID-format request ID
     }
 
-    // Execute JavaScript code
+    // Execute JavaScript code with custom timeout
     jsCode := `
 console.log("Hello from JavaScript!");
 const result = 2 + 3;
@@ -80,7 +88,11 @@ console.log("Result:", result);
         fmt.Printf("Error executing JavaScript code: %v\n", err)
     } else {
         fmt.Printf("JavaScript code output:\n%s\n", jsResult.Output)
+        // Expected output:
+        // Hello from JavaScript!
+        // Result: 5
         fmt.Printf("Request ID: %s\n", jsResult.RequestID)
+        // Expected: A valid UUID-format request ID
     }
 }
 ```

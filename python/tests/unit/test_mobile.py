@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 
 from agentbay.mobile import Mobile
 from agentbay.model import BoolResult, OperationResult
+from agentbay.application.application import ProcessListResult, AppOperationResult
 from agentbay.exceptions import AgentBayError
 
 
@@ -193,49 +194,58 @@ class TestMobile:
     # Application Management Tests
     def test_get_installed_apps_success(self):
         """Test successful installed apps retrieval."""
-        # Arrange - Mock the ApplicationManager instead of _call_mcp_tool
-        with patch('agentbay.application.ApplicationManager') as mock_app_manager:
-            mock_instance = Mock()
-            mock_result = Mock()
-            mock_result.success = True
-            mock_result.apps = [Mock(name="Calculator")]
-            mock_instance.get_installed_apps.return_value = mock_result
-            mock_app_manager.return_value = mock_instance
-            
-            # Act
-            result = self.mobile.get_installed_apps()
-            
-            # Assert
-            assert result.success is True
-            assert len(result.apps) == 1
-            mock_instance.get_installed_apps.assert_called_once_with(False, True, True)
+        # Arrange - Mock the _call_mcp_tool method
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.data = '[{"name": "Calculator", "package_name": "com.calculator"}]'
+        mock_result.request_id = "test-123"
+        
+        self.mobile._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.mobile.get_installed_apps(
+            start_menu=False,
+            desktop=True,
+            ignore_system_apps=True
+        )
+        
+        # Assert
+        assert result.success is True
+        assert len(result.data) == 1
+        self.mobile._call_mcp_tool.assert_called_once_with(
+            "get_installed_apps",
+            {"start_menu": False, "desktop": True, "ignore_system_apps": True}
+        )
 
     def test_get_installed_apps_with_options(self):
         """Test installed apps with custom options."""
-        # Arrange - Mock the ApplicationManager
-        with patch('agentbay.application.ApplicationManager') as mock_app_manager:
-            mock_instance = Mock()
-            mock_result = Mock()
-            mock_result.success = True
-            mock_result.apps = []
-            mock_instance.get_installed_apps.return_value = mock_result
-            mock_app_manager.return_value = mock_instance
-            
-            # Act
-            result = self.mobile.get_installed_apps(
-                include_system=True,
-                include_user=False,
-                include_third_party=False
-            )
-            
-            # Assert
-            mock_instance.get_installed_apps.assert_called_once_with(True, False, False)
+        # Arrange - Mock the _call_mcp_tool method
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.data = '[]'
+        mock_result.request_id = "test-123"
+        
+        self.mobile._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.mobile.get_installed_apps(
+            start_menu=True,
+            desktop=False,
+            ignore_system_apps=False
+        )
+        
+        # Assert
+        self.mobile._call_mcp_tool.assert_called_once_with(
+            "get_installed_apps",
+            {"start_menu": True, "desktop": False, "ignore_system_apps": False}
+        )
 
     def test_start_app_success(self):
         """Test successful app start."""
         # Arrange
         mock_result = Mock()
         mock_result.success = True
+        mock_result.data = '[{"pid": 1234, "name": "calculator"}]'
         mock_result.request_id = "test-123"
         
         self.mobile._call_mcp_tool = Mock(return_value=mock_result)
@@ -244,10 +254,10 @@ class TestMobile:
         result = self.mobile.start_app("com.android.calculator2")
         
         # Assert
-        assert isinstance(result, BoolResult)
+        assert isinstance(result, ProcessListResult)
         assert result.success is True
         self.mobile._call_mcp_tool.assert_called_once_with(
-            "start_app", {"app_name": "com.android.calculator2"}
+            "start_app", {"start_cmd": "com.android.calculator2"}
         )
 
     def test_start_app_with_activity(self):
@@ -255,6 +265,7 @@ class TestMobile:
         # Arrange
         mock_result = Mock()
         mock_result.success = True
+        mock_result.data = '[{"pid": 1234, "name": "settings"}]'
         mock_result.request_id = "test-123"
         
         self.mobile._call_mcp_tool = Mock(return_value=mock_result)
@@ -268,32 +279,30 @@ class TestMobile:
         # Assert
         self.mobile._call_mcp_tool.assert_called_once_with(
             "start_app", {
-                "app_name": "com.android.settings",
+                "start_cmd": "com.android.settings",
                 "activity": ".MainActivity"
             }
         )
 
-    def test_stop_app_by_pname_success(self):
-        """Test successful app stop by process name."""
-        # Arrange - Mock the ApplicationManager
-        with patch('agentbay.application.ApplicationManager') as mock_app_manager:
-            mock_instance = Mock()
-            mock_result = BoolResult(
-                request_id="test-123",
-                success=True,
-                data=True,
-                error_message=""
-            )
-            mock_instance.stop_app_by_pname.return_value = mock_result
-            mock_app_manager.return_value = mock_instance
-            
-            # Act
-            result = self.mobile.stop_app_by_pname("com.android.calculator2")
-            
-            # Assert
-            assert isinstance(result, BoolResult)
-            assert result.success is True
-            mock_instance.stop_app_by_pname.assert_called_once_with("com.android.calculator2")
+    def test_stop_app_by_cmd_success(self):
+        """Test successful app stop by command."""
+        # Arrange - Mock the _call_mcp_tool method
+        mock_result = Mock()
+        mock_result.success = True
+        mock_result.request_id = "test-123"
+        mock_result.error_message = ""
+        
+        self.mobile._call_mcp_tool = Mock(return_value=mock_result)
+        
+        # Act
+        result = self.mobile.stop_app_by_cmd("com.android.calculator2")
+        
+        # Assert
+        assert isinstance(result, AppOperationResult)
+        assert result.success is True
+        self.mobile._call_mcp_tool.assert_called_once_with(
+            "stop_app_by_cmd", {"stop_cmd": "com.android.calculator2"}
+        )
 
     # Screenshot Tests
     def test_screenshot_success(self):

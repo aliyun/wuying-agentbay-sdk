@@ -2,6 +2,12 @@
 
 The `AgentBay` class is the main entry point for interacting with the AgentBay cloud environment. It provides methods for creating, retrieving, listing, and deleting sessions.
 
+## 📖 Related Tutorials
+
+- [SDK Configuration Guide](../../../docs/guides/common-features/configuration/sdk-configuration.md) - Detailed tutorial on configuring the SDK
+- [VPC Sessions Guide](../../../docs/guides/common-features/advanced/vpc-sessions.md) - Tutorial on creating sessions in VPC environments
+- [Session Link Access Guide](../../../docs/guides/common-features/advanced/session-link-access.md) - Tutorial on accessing sessions via links
+
 ## Constructor
 
 ### new AgentBay()
@@ -112,33 +118,6 @@ async function createSessionWithSync() {
   }
   throw new Error(`Failed to create session: ${result.errorMessage}`);
 }
-```
-
-
-```typescript
-list(): Session[]
-```
-
-**Returns:**
-- `Session[]`: An array of Session instances.
-
-**Example:**
-```typescript
-import { AgentBay } from 'wuying-agentbay-sdk';
-
-// Initialize the SDK
-const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-
-// List all sessions
-function listSessions() {
-  const sessions = agentBay.list();
-  console.log(`Found ${sessions.length} sessions:`);
-  sessions.forEach(session => {
-    console.log(`Session ID: ${session.sessionId}`);
-  });
-}
-
-listSessions();
 ```
 
 

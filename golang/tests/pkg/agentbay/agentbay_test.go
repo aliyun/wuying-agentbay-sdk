@@ -72,7 +72,7 @@ func TestAgentBay_Create_List_Delete(t *testing.T) {
 
 	// List all sessions
 	fmt.Println("Listing sessions...")
-	listResult, err := agentBay.List()
+	listResult, err := agentBay.ListByLabels(nil)
 	if err != nil {
 		t.Fatalf("Error listing sessions: %v", err)
 	}
@@ -109,7 +109,7 @@ func TestAgentBay_Create_List_Delete(t *testing.T) {
 	}
 
 	// List sessions again to ensure it's deleted
-	listResult, err = agentBay.List()
+	listResult, err = agentBay.ListByLabels(nil)
 	if err != nil {
 		t.Fatalf("Error listing sessions after deletion: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 
 	// Test 1: List all sessions
 	t.Log("Listing all sessions...")
-	listResult, err := agentBayClient.List()
+	listResult, err := agentBayClient.ListByLabels(nil)
 	if err != nil {
 		t.Fatalf("Error listing all sessions: %v", err)
 	}

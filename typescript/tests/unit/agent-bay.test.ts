@@ -79,7 +79,10 @@ describe("AgentBay", () => {
 
     // Mock ContextService constructor
     const mockContextService = {
-      // Add any methods that might be called on ContextService
+      get: sinon.stub().resolves({ 
+        success: false, 
+        errorMessage: 'Context not found' 
+      })
     };
     contextServiceConstructorStub = sinon.stub().returns(mockContextService);
     sinon
@@ -199,7 +202,7 @@ describe("AgentBay", () => {
       log("Creating a new session...");
       const createResponse = await agentBay.create();
       session = createResponse.session!; // Use session field instead of data
-      log(`Session created with ID: ${session.sessionId}`);
+      log(`Session created with ID: ${session?.sessionId || 'undefined'}`);
       log(
         `Create Session RequestId: ${createResponse.requestId || "undefined"}`
       );
@@ -225,13 +228,6 @@ describe("AgentBay", () => {
         `Session client is mockClient: ${session.getClient() === mockClient}`
       );
 
-      // List sessions
-      log("Listing sessions...");
-      const sessions = agentBay.list();
-
-      // Ensure the session we created is in the list
-      expect(sessions.length).toBe(1);
-      expect(sessions[0].sessionId).toBe(session.sessionId);
 
       // Delete the session
       log("Deleting the session...");
@@ -253,11 +249,7 @@ describe("AgentBay", () => {
       expect(deleteResponse.requestId).toBe("mock-request-id-delete");
       expect(deleteResponse.success).toBe(true);
 
-      // List sessions again to ensure it's deleted
-      const sessionsAfterDelete = agentBay.list();
-
-      // Check if the deleted session is not in the list
-      expect(sessionsAfterDelete.length).toBe(0);
+      // Session deletion completed
 
       // Verify API calls were made with correct parameters
       expect(createMcpSessionStub.calledOnce).toBe(true);
@@ -385,10 +377,6 @@ describe("AgentBay", () => {
     });
 
     it.only("should list sessions by labels with requestId", async () => {
-      // Test 1: List all sessions
-      const allSessions = agentBay.list();
-      log(`Found ${allSessions.length} sessions in total`);
-      expect(allSessions.length).toBe(2);
 
       // Test 2: List sessions by environment=development label using new API
       const devSessionsResponse = {

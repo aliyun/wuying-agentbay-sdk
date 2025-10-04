@@ -521,5 +521,5 @@ The service automatically handles context lifecycle:
 - [Session API Reference](session.md)
 - [Context API Reference](context.md) 
 - [AgentBay API Reference](agentbay.md)
-- [Extension Examples](../examples/extension-example/) - Practical usage examples
+- [Extension Examples](../examples/extension-example/README.md) - Practical usage examples
 - [Browser Extensions Guide](../../../docs/guides/browser-extensions.md) - Complete tutorial

@@ -2,6 +2,10 @@
 
 The OSS (Object Storage Service) module provides functionality for interacting with cloud storage services.
 
+## 📖 Related Tutorial
+
+- [OSS Integration Guide](../../../docs/guides/common-features/advanced/oss-integration.md) - Detailed tutorial on integrating with Object Storage Service
+
 ## OSS Class
 
 The `OSS` class provides methods for OSS operations.
@@ -81,7 +85,7 @@ class OSSUploadResult(ApiResponse):
 
 **Example:**
 ```python
-from wuying_agentbay_sdk import AgentBay
+from agentbay import AgentBay
 
 # Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
@@ -90,7 +94,7 @@ agent_bay = AgentBay(api_key="your_api_key")
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
-    security_token="your_security_token",
+    securityToken="your_security_token",
     endpoint="oss-cn-hangzhou.aliyuncs.com",
     region="cn-hangzhou"
 )
@@ -136,7 +140,7 @@ else:
 
 **Example:**
 ```python
-from wuying_agentbay_sdk import AgentBay
+from agentbay import AgentBay
 
 # Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
@@ -145,7 +149,7 @@ agent_bay = AgentBay(api_key="your_api_key")
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
-    security_token="your_security_token",
+    securityToken="your_security_token",
     endpoint="oss-cn-hangzhou.aliyuncs.com",
     region="cn-hangzhou"
 )
@@ -182,7 +186,7 @@ class OSSDownloadResult(ApiResponse):
 
 **Example:**
 ```python
-from wuying_agentbay_sdk import AgentBay
+from agentbay import AgentBay
 
 # Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
@@ -191,7 +195,7 @@ agent_bay = AgentBay(api_key="your_api_key")
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
-    security_token="your_security_token",
+    securityToken="your_security_token",
     endpoint="oss-cn-hangzhou.aliyuncs.com",
     region="cn-hangzhou"
 )
@@ -237,7 +241,7 @@ else:
 
 **Example:**
 ```python
-from wuying_agentbay_sdk import AgentBay
+from agentbay import AgentBay
 
 # Initialize SDK
 agent_bay = AgentBay(api_key="your_api_key")
@@ -246,7 +250,7 @@ agent_bay = AgentBay(api_key="your_api_key")
 agent_bay.oss.env_init(
     access_key_id="your_access_key_id",
     access_key_secret="your_access_key_secret",
-    security_token="your_security_token",
+    securityToken="your_security_token",
     endpoint="oss-cn-hangzhou.aliyuncs.com",
     region="cn-hangzhou"
 )

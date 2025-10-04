@@ -1,5 +1,7 @@
 # Window Class
 
+> **⚠️ DEPRECATED**: This API is deprecated. Please use the [Computer API](computer.md) instead for window management functionality.
+
 The Window class provides methods for managing windows in the AgentBay cloud environment, including listing windows, getting the active window, and manipulating window states.
 
 ## Overview

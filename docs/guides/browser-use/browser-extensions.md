@@ -394,19 +394,14 @@ with sync_playwright() as p:
     browser.close()
 ```
 
-## Next Steps
+## 📚 Related Guides
 
-- Review the [Extension API Reference](../../python/docs/api/extension.md) for detailed method documentation
-- Check out [Extension Examples](../../python/docs/examples/browser/README.md) for more code samples
-- Explore [Browser Automation Guide](./automation.md) for integration patterns
+- [Extension Management](core-features/extension.md) - Detailed extension management guide
+- [Browser Context](core-features/browser-context.md) - Persistent browser state management
+- [Browser Use Overview](README.md) - Complete browser automation features
+- [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
 
-## Resources
+## 🆘 Getting Help
 
-- [Extension API Reference](../../python/docs/api/extension.md)
-- [Example Code](../../python/docs/examples/browser/README.md)
-- [Browser Automation Guide](./automation.md)
-- [Session Management Guide](./session-management.md)
-
----
-
-For additional support or questions about extension management, refer to the main documentation or contact the development team.
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../README.md)

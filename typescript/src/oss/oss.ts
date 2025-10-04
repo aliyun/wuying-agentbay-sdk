@@ -156,7 +156,7 @@ export class Oss {
         url,
         path,
       };
-      const result = await this.session.callMcpTool("oss_upload_anonymous", args);
+      const result = await this.session.callMcpTool("oss_upload_annon", args);
 
       return {
         requestId: result.requestId,
@@ -231,7 +231,7 @@ export class Oss {
         url,
         path,
       };
-      const result = await this.session.callMcpTool("oss_download_anonymous", args);
+      const result = await this.session.callMcpTool("oss_download_annon", args);
 
       return {
         requestId: result.requestId,

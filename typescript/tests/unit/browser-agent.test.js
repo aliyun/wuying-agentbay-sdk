@@ -97,7 +97,12 @@ describe('Browser Unit Tests', () => {
     
     mockSession.callMcpTool.mockResolvedValue({
       success: true,
-      data: '{"success": true, "observe_result": "[]"}',
+      data: JSON.stringify([{
+        selector: '#search-btn',
+        description: 'Search button',
+        method: 'click',
+        arguments: '{}'
+      }]),
       errorMessage: '',
       requestId: 'test-request-id'
     });
@@ -109,6 +114,7 @@ describe('Browser Unit Tests', () => {
     
     expect(success).toBe(true);
     expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBe(1);
     expect(mockSession.callMcpTool).toHaveBeenCalled();
     const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
     expect(toolName).toBe('page_use_observe');
@@ -120,7 +126,7 @@ describe('Browser Unit Tests', () => {
     
     mockSession.callMcpTool.mockResolvedValue({
       success: true,
-      data: '{"success": true, "extract_result": "[{\\"title\\": \\\"Test Title\\\"}]"}',
+      data: JSON.stringify({ title: 'Test Title' }),
       errorMessage: '',
       requestId: 'test-request-id'
     });
@@ -131,10 +137,11 @@ describe('Browser Unit Tests', () => {
       schema: TestSchema 
     };
     
-    const [success, objects] = await browser.agent.extract(options, mockPage);
+    const [success, result] = await browser.agent.extract(options, mockPage);
     
     expect(success).toBe(true);
-    expect(Array.isArray(objects)).toBe(true);
+    expect(result).toBeDefined();
+    expect(result.title).toBe('Test Title');
     expect(mockSession.callMcpTool).toHaveBeenCalled();
     const [toolName, args] = mockSession.callMcpTool.mock.calls[0];
     expect(toolName).toBe('page_use_extract');

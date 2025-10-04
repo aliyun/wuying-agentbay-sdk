@@ -170,19 +170,17 @@ export class Mobile {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
-      if (!content) {
+      if (!result.data) {
         return {
-          success: false,
+          success: true,
           requestId: result.requestId || '',
-          errorMessage: 'No content in response',
+          errorMessage: '',
           elements: []
         };
       }
 
       try {
-        const elements = JSON.parse(content);
+        const elements = JSON.parse(result.data);
         return {
           success: true,
           requestId: result.requestId || '',
@@ -224,19 +222,17 @@ export class Mobile {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
-      if (!content) {
+      if (!result.data) {
         return {
-          success: false,
+          success: true,
           requestId: result.requestId || '',
-          errorMessage: 'No content in response',
+          errorMessage: '',
           elements: []
         };
       }
 
       try {
-        const elements = JSON.parse(content);
+        const elements = JSON.parse(result.data);
         return {
           success: true,
           requestId: result.requestId || '',
@@ -278,19 +274,17 @@ export class Mobile {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
-      if (!content) {
+      if (!result.data) {
         return {
-          success: false,
+          success: true,
           requestId: result.requestId || '',
-          errorMessage: 'No content in response',
+          errorMessage: '',
           apps: []
         };
       }
 
       try {
-        const apps = JSON.parse(content);
+        const apps = JSON.parse(result.data);
         return {
           success: true,
           requestId: result.requestId || '',
@@ -332,19 +326,17 @@ export class Mobile {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
-      if (!content) {
+      if (!result.data) {
         return {
-          success: false,
+          success: true,
           requestId: result.requestId || '',
-          errorMessage: 'No content in response',
+          errorMessage: '',
           processes: []
         };
       }
 
       try {
-        const processes = JSON.parse(content);
+        const processes = JSON.parse(result.data);
         return {
           success: true,
           requestId: result.requestId || '',
@@ -408,12 +400,11 @@ export class Mobile {
         };
       }
 
-      const screenshotUrl = result.content?.[0]?.text || '';
       return {
         success: true,
         requestId: result.requestId || '',
         errorMessage: '',
-        data: screenshotUrl
+        data: result.data || ''
       };
     } catch (error) {
       return {

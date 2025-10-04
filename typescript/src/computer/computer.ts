@@ -3,7 +3,21 @@
  * Provides mouse, keyboard, and screen operations for desktop environments.
  */
 
-import { OperationResult } from "../types/api-response";
+import { OperationResult, WindowListResult, WindowInfoResult, BoolResult as WindowBoolResult } from "../types/api-response";
+
+export enum MouseButton {
+  LEFT = 'left',
+  RIGHT = 'right',
+  MIDDLE = 'middle',
+  DOUBLE_LEFT = 'double_left'
+}
+
+export enum ScrollDirection {
+  UP = 'up',
+  DOWN = 'down',
+  LEFT = 'left',
+  RIGHT = 'right'
+}
 
 export interface BoolResult extends OperationResult {
   data?: boolean;
@@ -29,6 +43,7 @@ interface ComputerSession {
   callMcpTool(toolName: string, args: Record<string, any>): Promise<any>;
   sessionId: string;
   getAPIKey(): string;
+  getSessionId(): string;
 }
 
 export class Computer {
@@ -41,13 +56,14 @@ export class Computer {
   /**
    * Click mouse at specified coordinates.
    */
-  async clickMouse(x: number, y: number, button = 'left'): Promise<BoolResult> {
-    const validButtons = ['left', 'right', 'middle', 'double_left'];
-    if (!validButtons.includes(button)) {
-      throw new Error(`Invalid button '${button}'. Must be one of ${validButtons.join(', ')}`);
+  async clickMouse(x: number, y: number, button: MouseButton | string = MouseButton.LEFT): Promise<BoolResult> {
+    const buttonStr = typeof button === 'string' ? button : button;
+    const validButtons = Object.values(MouseButton);
+    if (!validButtons.includes(buttonStr as MouseButton)) {
+      throw new Error(`Invalid button '${buttonStr}'. Must be one of ${validButtons.join(', ')}`);
     }
 
-    const args = { x, y, button };
+    const args = { x, y, button: buttonStr };
     try {
       const result = await this.session.callMcpTool('click_mouse', args);
       return {
@@ -92,13 +108,14 @@ export class Computer {
   /**
    * Drag mouse from one position to another.
    */
-  async dragMouse(fromX: number, fromY: number, toX: number, toY: number, button = 'left'): Promise<BoolResult> {
-    const validButtons = ['left', 'right', 'middle'];
-    if (!validButtons.includes(button)) {
-      throw new Error(`Invalid button '${button}'. Must be one of ${validButtons.join(', ')}`);
+  async dragMouse(fromX: number, fromY: number, toX: number, toY: number, button: MouseButton | string = MouseButton.LEFT): Promise<BoolResult> {
+    const buttonStr = typeof button === 'string' ? button : button;
+    const validButtons = [MouseButton.LEFT, MouseButton.RIGHT, MouseButton.MIDDLE];
+    if (!validButtons.includes(buttonStr as MouseButton)) {
+      throw new Error(`Invalid button '${buttonStr}'. Must be one of ${validButtons.join(', ')}`);
     }
 
-    const args = { from_x: fromX, from_y: fromY, to_x: toX, to_y: toY, button };
+    const args = { from_x: fromX, from_y: fromY, to_x: toX, to_y: toY, button: buttonStr };
     try {
       const result = await this.session.callMcpTool('drag_mouse', args);
       return {
@@ -120,13 +137,14 @@ export class Computer {
   /**
    * Scroll at specified coordinates.
    */
-  async scroll(x: number, y: number, direction = 'up', amount = 1): Promise<BoolResult> {
-    const validDirections = ['up', 'down', 'left', 'right'];
-    if (!validDirections.includes(direction)) {
-      throw new Error(`Invalid direction '${direction}'. Must be one of ${validDirections.join(', ')}`);
+  async scroll(x: number, y: number, direction: ScrollDirection | string = ScrollDirection.UP, amount = 1): Promise<BoolResult> {
+    const directionStr = typeof direction === 'string' ? direction : direction;
+    const validDirections = Object.values(ScrollDirection);
+    if (!validDirections.includes(directionStr as ScrollDirection)) {
+      throw new Error(`Invalid direction '${directionStr}'. Must be one of ${validDirections.join(', ')}`);
     }
 
-    const args = { x, y, direction, amount };
+    const args = { x, y, direction: directionStr, amount };
     try {
       const result = await this.session.callMcpTool('scroll', args);
       return {
@@ -231,8 +249,8 @@ export class Computer {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
+      // Parse JSON response from data field (callMcpTool already extracts content[0].text to data)
+      const content = result.data;
       if (!content) {
         return {
           success: false,
@@ -290,8 +308,8 @@ export class Computer {
         };
       }
 
-      // Parse JSON response
-      const content = result.content?.[0]?.text;
+      // Parse JSON response from data field (callMcpTool already extracts content[0].text to data)
+      const content = result.data;
       if (!content) {
         return {
           success: false,
@@ -366,5 +384,95 @@ export class Computer {
         data: ''
       };
     }
+  }
+
+  /**
+   * Lists all root windows.
+   */
+  async listRootWindows(timeoutMs: number = 3000): Promise<WindowListResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.listRootWindows(timeoutMs);
+  }
+
+  /**
+   * Gets the currently active window.
+   */
+  async getActiveWindow(timeoutMs: number = 3000): Promise<WindowInfoResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.getActiveWindow(timeoutMs);
+  }
+
+  /**
+   * Activates the specified window.
+   */
+  async activateWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.activateWindow(windowId);
+  }
+
+  /**
+   * Closes the specified window.
+   */
+  async closeWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.closeWindow(windowId);
+  }
+
+  /**
+   * Maximizes the specified window.
+   */
+  async maximizeWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.maximizeWindow(windowId);
+  }
+
+  /**
+   * Minimizes the specified window.
+   */
+  async minimizeWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.minimizeWindow(windowId);
+  }
+
+  /**
+   * Restores the specified window.
+   */
+  async restoreWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.restoreWindow(windowId);
+  }
+
+  /**
+   * Resizes the specified window.
+   */
+  async resizeWindow(windowId: number, width: number, height: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.resizeWindow(windowId, width, height);
+  }
+
+  /**
+   * Makes the specified window fullscreen.
+   */
+  async fullscreenWindow(windowId: number): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.fullscreenWindow(windowId);
+  }
+
+  /**
+   * Toggles focus mode on or off.
+   */
+  async focusMode(on: boolean): Promise<WindowBoolResult> {
+    const { WindowManager } = await import('../window/window');
+    const windowManager = new WindowManager(this.session);
+    return windowManager.focusMode(on);
   }
 } 

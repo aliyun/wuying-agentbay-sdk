@@ -44,9 +44,11 @@ func NewCode(session interface {
 }
 
 // RunCode executes code in the session environment.
+// timeoutS: The timeout for the code execution in seconds. Default is 60s.
+// Note: Due to gateway limitations, each request cannot exceed 60 seconds.
 func (c *Code) RunCode(code string, language string, timeoutS ...int) (*CodeResult, error) {
 	// Set default timeout if not provided
-	timeout := 300
+	timeout := 60
 	if len(timeoutS) > 0 && timeoutS[0] > 0 {
 		timeout = timeoutS[0]
 	}

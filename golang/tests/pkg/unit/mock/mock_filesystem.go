@@ -6,6 +6,8 @@ package mock
 
 import (
 	reflect "reflect"
+	sync "sync"
+	time "time"
 
 	filesystem "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/filesystem"
 	gomock "github.com/golang/mock/gomock"
@@ -64,6 +66,21 @@ func (mr *MockFileSystemInterfaceMockRecorder) EditFile(arg0, arg1, arg2 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditFile", reflect.TypeOf((*MockFileSystemInterface)(nil).EditFile), arg0, arg1, arg2)
 }
 
+// GetFileChange mocks base method.
+func (m *MockFileSystemInterface) GetFileChange(arg0 string) (*filesystem.FileChangeResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFileChange", arg0)
+	ret0, _ := ret[0].(*filesystem.FileChangeResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFileChange indicates an expected call of GetFileChange.
+func (mr *MockFileSystemInterfaceMockRecorder) GetFileChange(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileChange", reflect.TypeOf((*MockFileSystemInterface)(nil).GetFileChange), arg0)
+}
+
 // GetFileInfo mocks base method.
 func (m *MockFileSystemInterface) GetFileInfo(arg0 string) (*filesystem.FileInfoResult, error) {
 	m.ctrl.T.Helper()
@@ -110,23 +127,18 @@ func (mr *MockFileSystemInterfaceMockRecorder) MoveFile(arg0, arg1 interface{}) 
 }
 
 // ReadFile mocks base method.
-func (m *MockFileSystemInterface) ReadFile(arg0 string, arg1 ...int) (*filesystem.FileReadResult, error) {
+func (m *MockFileSystemInterface) ReadFile(arg0 string) (*filesystem.FileReadResult, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0}
-	for _, a := range arg1 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "ReadFile", varargs...)
+	ret := m.ctrl.Call(m, "ReadFile", arg0)
 	ret0, _ := ret[0].(*filesystem.FileReadResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ReadFile indicates an expected call of ReadFile.
-func (mr *MockFileSystemInterfaceMockRecorder) ReadFile(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+func (mr *MockFileSystemInterfaceMockRecorder) ReadFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0}, arg1...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockFileSystemInterface)(nil).ReadFile), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockFileSystemInterface)(nil).ReadFile), arg0)
 }
 
 // ReadMultipleFiles mocks base method.
@@ -157,6 +169,34 @@ func (m *MockFileSystemInterface) SearchFiles(arg0, arg1 string, arg2 []string) 
 func (mr *MockFileSystemInterfaceMockRecorder) SearchFiles(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchFiles", reflect.TypeOf((*MockFileSystemInterface)(nil).SearchFiles), arg0, arg1, arg2)
+}
+
+// WatchDirectory mocks base method.
+func (m *MockFileSystemInterface) WatchDirectory(arg0 string, arg1 func([]*filesystem.FileChangeEvent), arg2 time.Duration, arg3 <-chan struct{}) *sync.WaitGroup {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WatchDirectory", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*sync.WaitGroup)
+	return ret0
+}
+
+// WatchDirectory indicates an expected call of WatchDirectory.
+func (mr *MockFileSystemInterfaceMockRecorder) WatchDirectory(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WatchDirectory", reflect.TypeOf((*MockFileSystemInterface)(nil).WatchDirectory), arg0, arg1, arg2, arg3)
+}
+
+// WatchDirectoryWithDefaults mocks base method.
+func (m *MockFileSystemInterface) WatchDirectoryWithDefaults(arg0 string, arg1 func([]*filesystem.FileChangeEvent), arg2 <-chan struct{}) *sync.WaitGroup {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WatchDirectoryWithDefaults", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*sync.WaitGroup)
+	return ret0
+}
+
+// WatchDirectoryWithDefaults indicates an expected call of WatchDirectoryWithDefaults.
+func (mr *MockFileSystemInterfaceMockRecorder) WatchDirectoryWithDefaults(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WatchDirectoryWithDefaults", reflect.TypeOf((*MockFileSystemInterface)(nil).WatchDirectoryWithDefaults), arg0, arg1, arg2)
 }
 
 // WriteFile mocks base method.

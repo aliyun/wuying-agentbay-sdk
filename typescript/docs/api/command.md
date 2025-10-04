@@ -2,6 +2,10 @@
 
 The `Command` class provides methods for executing commands within a session in the AgentBay cloud environment.
 
+## 📖 Related Tutorial
+
+- [Command Execution Guide](../../../docs/guides/common-features/basics/command-execution.md) - Detailed tutorial on executing shell commands
+
 ## Methods
 
 ### executeCommand
@@ -46,25 +50,33 @@ async function main() {
     const session = sessionResult.session;
 
     try {
-        // Execute a command
+        // Execute a command with default timeout (1000ms)
         const result = await session.command.executeCommand("ls -la");
         if (result.success) {
             console.log(`Command output:\n${result.output}`);
+            // Expected output: Directory listing showing files and folders
             console.log(`Request ID: ${result.requestId}`);
+            // Expected: A valid UUID-format request ID
         } else {
             console.error(`Command execution failed: ${result.errorMessage}`);
         }
 
-        // Execute a command with custom timeout
+        // Execute a command with custom timeout (5000ms)
         const resultWithTimeout = await session.command.executeCommand(
             "sleep 2 && echo 'Done'", 
             5000
         );
         if (resultWithTimeout.success) {
             console.log(`Command output: ${resultWithTimeout.output}`);
+            // Expected output: "Done\n"
+            // The command waits 2 seconds then outputs "Done"
         } else {
             console.error(`Command execution failed: ${resultWithTimeout.errorMessage}`);
         }
+
+        // Note: If a command exceeds its timeout, it will return an error
+        // Example: await session.command.executeCommand("sleep 3", 1000)
+        // Returns error in errorMessage field
     } catch (error) {
         console.error('Error:', error);
     }

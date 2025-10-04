@@ -2,6 +2,10 @@
 
 The Code module handles code execution operations in the AgentBay cloud environment.
 
+## 📖 Related Tutorial
+
+- [Code Execution Guide](../../../docs/guides/codespace/code-execution.md) - Detailed tutorial on executing code in cloud environments
+
 ## Methods
 
 ### runCode
@@ -9,13 +13,13 @@ The Code module handles code execution operations in the AgentBay cloud environm
 Executes code in a specified programming language with a timeout.
 
 ```typescript
-runCode(code: string, language: string, timeoutS: number = 300): Promise<CodeExecutionResult>
+runCode(code: string, language: string, timeoutS: number = 60): Promise<CodeExecutionResult>
 ```
 
 **Parameters:**
 - `code` (string): The code to execute.
 - `language` (string): The programming language of the code. Must be either 'python' or 'javascript'.
-- `timeoutS` (number, optional): The timeout for the code execution in seconds. Default is 300s.
+- `timeoutS` (number, optional): The timeout for the code execution in seconds. Default is 60s. Note: Due to gateway limitations, each request cannot exceed 60 seconds.
 
 **Returns:**
 - `Promise<CodeExecutionResult>`: A promise that resolves to a result object containing success status, execution result, error message if any, and request ID.
@@ -53,7 +57,11 @@ print(f"Result: {result}")
     const codeResult = await session.code.runCode(pythonCode, "python");
     if (codeResult.success) {
         console.log(`Python code output:\n${codeResult.result}`);
+        // Expected output:
+        // Hello from Python!
+        // Result: 5
         console.log(`Request ID: ${codeResult.requestId}`);
+        // Expected: A valid UUID-format request ID
     } else {
         console.error(`Code execution failed: ${codeResult.errorMessage}`);
     }
@@ -68,7 +76,11 @@ console.log("Result:", result);
     const jsResult = await session.code.runCode(jsCode, "javascript", 30);
     if (jsResult.success) {
         console.log(`JavaScript code output:\n${jsResult.result}`);
+        // Expected output:
+        // Hello from JavaScript!
+        // Result: 5
         console.log(`Request ID: ${jsResult.requestId}`);
+        // Expected: A valid UUID-format request ID
     } else {
         console.error(`Code execution failed: ${jsResult.errorMessage}`);
     }

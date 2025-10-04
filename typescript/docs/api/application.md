@@ -1,5 +1,7 @@
 # Application Class
 
+> **⚠️ DEPRECATED**: This API is deprecated. Please use the [Computer API](computer.md) instead for application management functionality.
+
 The Application class provides methods for managing applications in the AgentBay cloud environment, including listing installed applications, starting applications, and stopping running processes.
 
 ## Overview

@@ -102,12 +102,6 @@ def main():
         except Exception as e:
             print(f"Expected error with invalid port 443: {e}")
 
-        # List all sessions
-        print("\nListing all sessions...")
-        sessions_list = agent_bay.list()
-        print(f"Available sessions count: {len(sessions_list)}")
-        for s in sessions_list:
-            print(f"Session ID: {s.session_id}")
     except AgentBayError as e:
         print(f"AgentBay error: {e}")
     except Exception as e:

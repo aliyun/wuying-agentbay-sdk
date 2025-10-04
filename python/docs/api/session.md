@@ -2,6 +2,10 @@
 
 The `Session` class represents a session in the AgentBay cloud environment. It provides methods for managing file systems, executing commands, and more.
 
+## 📖 Related Tutorial
+
+- [Session Management Guide](../../../docs/guides/common-features/basics/session-management.md) - Detailed tutorial on session lifecycle and management
+
 ## Properties
 
 ```python
@@ -59,6 +63,7 @@ result = agent_bay.create()
 if result.success:
     session = result.session
     print(f"Session created with ID: {session.session_id}")
+    # Output: Session created with ID: session-04bdwfj7u22a1s30g
 
     # Use the session...
 
@@ -66,6 +71,9 @@ if result.success:
     delete_result = session.delete(sync_context=True)
     if delete_result.success:
         print(f"Session deleted successfully with synchronized context")
+        # Output: Session deleted successfully with synchronized context
+        print(f"Request ID: {delete_result.request_id}")
+        # Output: Request ID: D9E69976-9DE0-107D-8047-EE4B4D63AA5D
     else:
         print(f"Failed to delete session: {delete_result.error_message}")
 ```
@@ -98,6 +106,9 @@ labels = {
 result = session.set_labels(labels)
 if result.success:
     print("Labels set successfully")
+    # Output: Labels set successfully
+    print(f"Request ID: {result.request_id}")
+    # Output: Request ID: B1F98082-52F0-17F7-A149-7722D6205AD6
 else:
     print(f"Failed to set labels: {result.error_message}")
 ```
@@ -123,6 +134,7 @@ try:
     result = session.get_labels()
     if result.success:
         print(f"Session labels: {result.data}")
+        # Output: Session labels: {'environment': 'testing', 'project': 'demo', 'version': '1.0.0'}
     else:
         print(f"Failed to get labels: {result.error_message}")
 except AgentBayError as e:
@@ -151,8 +163,11 @@ try:
     if result.success:
         info = result.data
         print(f"Session ID: {info.session_id}")
-        print(f"Resource URL: {info.resource_url}")
+        # Output: Session ID: session-04bdwfj7u22a1s30k
+        print(f"Resource URL: {info.resource_url[:80]}...")
+        # Output: Resource URL: https://pre-myspace-wuying.aliyun.com/app/InnoArchClub/mcp_container/mcp.html?au...
         print(f"App ID: {info.app_id}")
+        # Output: App ID: mcp-server-ubuntu
     else:
         print(f"Failed to get session info: {result.error_message}")
 except AgentBayError as e:
@@ -180,28 +195,25 @@ get_link(protocol_type: Optional[str] = None, port: Optional[int] = None) -> Ope
 
 **Example:**
 ```python
-# Get session link with default settings
+# Get link with specific protocol and valid port
+# Note: For ComputerUse images, port must be explicitly specified
 try:
-    result = session.get_link()
+    result = session.get_link("https", 30150)
     if result.success:
         link = result.data
-        print(f"Session link: {link}")
+        print(f"Session link: {link[:80]}...")
+        # Output: Session link: https://gw-cn-hangzhou-i-ai-test0-linux.wuyinggw.com:8008/request_ai/00Lw4a5HtJ9...
+        print(f"Request ID: {result.request_id}")
+        # Output: Request ID: 5CA891B8-1E45-13B0-9975-0258228008CB
     else:
         print(f"Failed to get link: {result.error_message}")
-
-    # Get link with specific protocol and valid port
-    custom_result = session.get_link("https", 30150)
-    if custom_result.success:
-        custom_link = custom_result.data
-        print(f"Custom link: {custom_link}")
-    else:
-        print(f"Failed to get custom link: {custom_result.error_message}")
 
     # Example with invalid port (will raise SessionError)
     try:
         invalid_result = session.get_link(port=8080)  # Invalid: outside [30100, 30199]
     except SessionError as e:
         print(f"Port validation error: {e}")
+        # Output: Port validation error: Invalid port value: 8080. Port must be an integer in the range [30100, 30199].
 
 except AgentBayError as e:
     print(f"Failed to get link: {e}")

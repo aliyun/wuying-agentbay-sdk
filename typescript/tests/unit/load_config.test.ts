@@ -160,7 +160,9 @@ describe("Config", () => {
       expect(result.timeout_ms).toBe(15000);
 
       // 3. after clearing environment variables, .env file should take precedence over default configuration
-      process.env = {};
+      delete process.env.AGENTBAY_REGION_ID;
+      delete process.env.AGENTBAY_ENDPOINT;
+      delete process.env.AGENTBAY_TIMEOUT_MS;
       result = loadConfig(undefined);
       expect(result.region_id).toBe("env-region");
       expect(result.endpoint).toBe("env-endpoint");
@@ -168,6 +170,10 @@ describe("Config", () => {
 
       // 4. when no .env file exists, default configuration should be used
       fs.unlinkSync(envFilePath);
+      // Clear any values that might have been loaded from .env file
+      delete process.env.AGENTBAY_REGION_ID;
+      delete process.env.AGENTBAY_ENDPOINT;
+      delete process.env.AGENTBAY_TIMEOUT_MS;
       result = loadConfig(undefined);
       expect(result.region_id).toBe(defaultCfg.region_id);
       expect(result.endpoint).toBe(defaultCfg.endpoint);

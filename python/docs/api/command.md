@@ -2,6 +2,10 @@
 
 The `Command` class provides methods for executing commands within a session in the AgentBay cloud environment.
 
+## 📖 Related Tutorial
+
+- [Command Execution Guide](../../../docs/guides/common-features/basics/command-execution.md) - Detailed tutorial on executing shell commands
+
 ## Methods
 
 ### execute_command
@@ -33,20 +37,28 @@ ab = AgentBay(api_key=api_key)
 session_result = ab.create()
 session = session_result.session
 
-# Execute a command
+# Execute a command with default timeout (1000ms)
 result = session.command.execute_command("ls -la")
 if result.success:
     print(f"Command output:\n{result.output}")
+    # Expected output: Directory listing showing files and folders
     print(f"Request ID: {result.request_id}")
+    # Expected: A valid UUID-format request ID
 else:
     print(f"Command execution failed: {result.error_message}")
 
-# Execute a command with custom timeout
+# Execute a command with custom timeout (5000ms)
 result_with_timeout = session.command.execute_command("sleep 2 && echo 'Done'", timeout_ms=5000)
 if result_with_timeout.success:
     print(f"Command output: {result_with_timeout.output}")
+    # Expected output: "Done\n"
+    # The command waits 2 seconds then outputs "Done"
 else:
     print(f"Command execution failed: {result_with_timeout.error_message}")
+
+# Note: If a command exceeds its timeout, it will return an error
+# Example: session.command.execute_command("sleep 3", timeout_ms=1000)
+# Returns error: "Error in response: Execution failed. Error code:-1 Error message: [timeout]"
 ```
 
 ## Related Resources

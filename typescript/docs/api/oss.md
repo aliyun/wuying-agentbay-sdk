@@ -2,6 +2,10 @@
 
 The OSS (Object Storage Service) module provides functionality for interacting with cloud storage services.
 
+## 📖 Related Tutorial
+
+- [OSS Integration Guide](../../../docs/guides/common-features/advanced/oss-integration.md) - Detailed tutorial on integrating with Object Storage Service
+
 ## OSS Class
 
 The `OSS` class provides methods for OSS operations.

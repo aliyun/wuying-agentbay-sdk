@@ -247,3 +247,15 @@ wrong_fingerprint = BrowserFingerprint(
     operating_systems=["android", "ios"]  # Mobile OS should not pair with desktop devices
 )
 ```
+
+## 📚 Related Guides
+
+- [Browser Proxies](browser-proxies.md) - IP rotation and proxy configuration
+- [CAPTCHA Resolution](captcha.md) - Automatic CAPTCHA handling
+- [Browser Context](browser-context.md) - Cookie and session management
+- [Browser Use Overview](../README.md) - Complete browser automation features
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

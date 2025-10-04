@@ -23,14 +23,17 @@ The `ContextService` class provides methods for managing persistent contexts in 
 
 ### list
 
-Lists all available contexts.
+Lists all available contexts with pagination support.
 
 ```typescript
-list(): Promise<ContextListResult>
+list(params?: ContextListParams): Promise<ContextListResult>
 ```
 
+**Parameters:**
+- `params` (ContextListParams, optional): Pagination parameters. If not provided, default values are used (maxResults=10).
+
 **Returns:**
-- `Promise<ContextListResult>`: A promise that resolves to a result object containing the list of Context objects and request ID.
+- `Promise<ContextListResult>`: A promise that resolves to a result object containing the list of Context objects, pagination info, and request ID.
 
 **Example:**
 ```typescript
@@ -39,14 +42,18 @@ import { AgentBay } from 'wuying-agentbay-sdk';
 // Initialize the SDK
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 
-// List all contexts
+// List all contexts (using default pagination)
 async function listContexts() {
   try {
     const result = await agentBay.context.list();
     if (result.success) {
       console.log(`Found ${result.contexts.length} contexts:`);
-      result.contexts.forEach(context => {
-        console.log(`Context ID: ${context.id}, Name: ${context.name}, State: ${context.state}`);
+      // Expected: Found X contexts (where X is the number of contexts, max 10 by default)
+      console.log(`Request ID: ${result.requestId}`);
+      // Expected: A valid UUID-format request ID
+      result.contexts.slice(0, 3).forEach(context => {
+        console.log(`Context ID: ${context.id}, Name: ${context.name}, State: ${context.state}, OS Type: ${context.osType}`);
+        // Expected output: Context ID: SdkCtx-xxx, Name: xxx, State: available, OS Type: linux
       });
     } else {
       console.log('Failed to list contexts');
@@ -88,6 +95,9 @@ async function getOrCreateContext() {
     if (result.success) {
       const context = result.context;
       console.log(`Context ID: ${context.id}, Name: ${context.name}, State: ${context.state}`);
+      // Expected output: Context ID: SdkCtx-xxx, Name: my-persistent-context, State: available
+      console.log(`Request ID: ${result.requestId}`);
+      // Expected: A valid UUID-format request ID
     } else {
       console.log(`Failed to get context: ${result.errorMessage}`);
     }

@@ -41,14 +41,15 @@ export class Code {
    *
    * @param code - The code to execute.
    * @param language - The programming language of the code. Must be either 'python' or 'javascript'.
-   * @param timeoutS - The timeout for the code execution in seconds. Default is 300s.
+   * @param timeoutS - The timeout for the code execution in seconds. Default is 60s.
+   *                   Note: Due to gateway limitations, each request cannot exceed 60 seconds.
    * @returns CodeExecutionResult with code execution output and requestId
    * @throws Error if an unsupported language is specified.
    */
   async runCode(
     code: string,
     language: string,
-    timeoutS = 300
+    timeoutS = 60
   ): Promise<CodeExecutionResult> {
     try {
       // Validate language

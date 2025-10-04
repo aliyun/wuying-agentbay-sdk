@@ -54,7 +54,7 @@ class Code(BaseService):
         return e
 
     def run_code(
-        self, code: str, language: str, timeout_s: int = 300
+        self, code: str, language: str, timeout_s: int = 60
     ) -> CodeExecutionResult:
         """
         Execute code in the specified language with a timeout.
@@ -63,7 +63,8 @@ class Code(BaseService):
             code: The code to execute.
             language: The programming language of the code. Must be either 'python'
                 or 'javascript'.
-            timeout_s: The timeout for the code execution in seconds. Default is 300s.
+            timeout_s: The timeout for the code execution in seconds. Default is 60s.
+                Note: Due to gateway limitations, each request cannot exceed 60 seconds.
 
         Returns:
             CodeExecutionResult: Result object containing success status, execution

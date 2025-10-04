@@ -49,3 +49,15 @@ await session.browser.initialize_async(browser_option)
 - Plan for up to 30 seconds processing time per CAPTCHA
 - Implement event listeners to track resolution status
 - Disable the feature if manual CAPTCHA handling is preferred for your use case
+
+## 📚 Related Guides
+
+- [Stealth Mode](stealth-mode.md) - Anti-detection techniques for web automation
+- [Call For User](call-for-user.md) - Human intervention for unsolvable challenges
+- [Browser Use Overview](../README.md) - Complete browser automation features
+- [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

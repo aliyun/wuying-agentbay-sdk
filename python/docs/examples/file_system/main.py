@@ -230,7 +230,7 @@ def main():
         ]
         result = fs.read_multiple_files(file_paths)
         if result.success:
-            multi_file_contents = result.content
+            multi_file_contents = result.contents
             print(f"Read {len(multi_file_contents)} files:")
             for path, content in multi_file_contents.items():
                 print(f"  - {path}: {len(content)} bytes")

@@ -1,6 +1,6 @@
 # Installation and Configuration
 
-## System Requirements
+## 📋 System Requirements
 
 ### Python
 - Python 3.10+
@@ -11,173 +11,148 @@
 - npm or yarn
 
 ### Golang
-- Go 1.24+
+- Go 1.24.4+
 
-## Installing the SDK
+## 🚀 Quick Installation
 
 ### Python
+
+**✅ Recommended: Using Virtual Environment**
 ```bash
-# Install using pip
+# Create and activate virtual environment
+python3 -m venv agentbay-env
+source agentbay-env/bin/activate  # Linux/macOS
+# agentbay-env\Scripts\activate   # Windows
+
+# Install the package
 pip install wuying-agentbay-sdk
 
 # Verify installation
-python -c "import agentbay; print('Installation successful')"
+python -c "import agentbay; print('✅ Installation successful')"
 ```
 
-### TypeScript
+**Alternative: Using System Python (if allowed)**
 ```bash
-# Install using npm
+# Install with user flag (if system allows)
+pip install --user wuying-agentbay-sdk
+
+# Verify installation  
+python -c "import agentbay; print('✅ Installation successful')"
+```
+
+### TypeScript/JavaScript
+
+```bash
+# Initialize project (if new project)
+mkdir my-agentbay-project && cd my-agentbay-project
+npm init -y
+
+# Install the package
 npm install wuying-agentbay-sdk
 
 # Verify installation
-node -e "const {AgentBay} = require('wuying-agentbay-sdk'); console.log('Installation successful')"
+node -e "const {AgentBay} = require('wuying-agentbay-sdk'); console.log('✅ Installation successful')"
 ```
 
 ### Golang
+
 ```bash
+# Initialize module (if new project)
+mkdir my-agentbay-project && cd my-agentbay-project  
+go mod init my-agentbay-project
+
 # Install the package
-go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
+GOPROXY=direct go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
 
-# Verify installation (create test file) Use bash command
-echo 'package main
-
-import (
-    "fmt"
-	"testing"
-
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
-)
-
-func main() {
-    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
-
-	agentbay.NewAgentBay(testAPIKey)
-	fmt.Println("Installation successful")
-}' > test.go
-go run test.go
-rm test.go
+# Verify installation
+go list -m github.com/aliyun/wuying-agentbay-sdk/golang && echo "✅ Installation successful"
 ```
 
-## Getting API Keys
+## 🔑 API Key Setup
 
-### Step 1: Register an Alibaba Cloud Account
-Visit [https://aliyun.com](https://aliyun.com) to register an account
+### Step 1: Get API Key
+1. Register at [https://aliyun.com](https://aliyun.com)
+2. Visit [AgentBay Console](https://agentbay.console.aliyun.com/service-management)  
+3. Create and copy your API key
 
-### Step 2: Obtain API Keys
-1. Log in to the [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
-2. Find API Key Management in the Service Management page
-3. Create a new API key
-4. Copy the key for later use
+### Step 2: Set Environment Variable
 
-## Configuring API Keys
-
-# Method 1: Environment Variables (Recommended)
-- For Linux/MacOS:
+**Linux/macOS:**
 ```bash
-    export AGENTBAY_API_KEY=your_api_key_here
+export AGENTBAY_API_KEY=your_api_key_here
 ```
-- For Windows:
+
+**Windows:**
 ```cmd
-    setx AGENTBAY_API_KEY your_api_key_here
+setx AGENTBAY_API_KEY your_api_key_here
 ```
 
-## Go
-```go
-import (
-	"testing"
+## ✅ Installation Verification
 
-	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
-	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
-)
-
-    testAPIKey := testutil.GetTestAPIKey(&testing.T{})
-    agentbay.NewAgentBay(testAPIKey, nil)
-```
-
-## TypeScript
-```typescript
-import { AgentBay,logError,log } from 'wuying-agentbay-sdk';
-
-    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
-    if (!process.env.AGENTBAY_API_KEY) {
-      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
-    }
-    new AgentBay({apiKey});
-```
-
-## Python
-```python
-import os
-from agentbay import AgentBay
-    api_key = os.getenv("AGENTBAY_API_KEY")
-    if not api_key:
-        api_key = "akm-xxx"  # Replace with your actual API key for testing
-        print(
-            "Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for production use."
-        )
-
-    # Create session and execute command
-    AgentBay(api_key=api_key)
-```
-
-## Verifying Configuration
-
-Create a simple test program to verify everything is working:
+Create a simple test to verify everything works with your API key:
 
 ### Python Test
 ```python
+import os
 from agentbay import AgentBay
 
+# Get API key from environment
+api_key = os.getenv("AGENTBAY_API_KEY")
+if not api_key:
+    print("⚠️  Please set AGENTBAY_API_KEY environment variable")
+    exit(1)
+
 try:
-    # Use API key to initialize SDK
-    # apikey by getting os env
-    agent_bay = AgentBay(api_key=apikey)
+    # Initialize SDK
+    agent_bay = AgentBay(api_key=api_key)
     print("✅ SDK initialized successfully")
-
-    # Create session
+    
+    # Create a session (requires valid API key and network)
     session_result = agent_bay.create()
-    session = session_result.session
-    print("✅ Session created successfully")
-
-    # Execute command
-    result = session.command.execute_command("echo Hello AgentBay")
-    print("✅ Command executed successfully:", result.output)
-
-    # Release session
-    agent_bay.delete(session)
-    print("✅ Session released successfully")
-
+    if session_result.success:
+        session = session_result.session
+        print(f"✅ Session created: {session.session_id}")
+        
+        # Clean up
+        agent_bay.delete(session)
+        print("✅ Test completed successfully")
+    else:
+        print(f"⚠️  Session creation failed: {session_result.error_message}")
+        
 except Exception as e:
-    print(f"❌ Configuration issue: {e}")
+    print(f"❌ Error: {e}")
 ```
 
 ### TypeScript Test
 ```typescript
-import { AgentBay,log,logError } from 'wuying-agentbay-sdk';
+import { AgentBay } from 'wuying-agentbay-sdk';
+
+const apiKey = process.env.AGENTBAY_API_KEY;
+if (!apiKey) {
+    console.log("⚠️  Please set AGENTBAY_API_KEY environment variable");
+    process.exit(1);
+}
 
 async function test() {
     try {
-        // Use API key to initialize SDK
-        // apikey by getting os env
+        // Initialize SDK
         const agentBay = new AgentBay({ apiKey });
-        log("✅ SDK initialized successfully");
-
-        // Create session
+        console.log("✅ SDK initialized successfully");
+        
+        // Create a session (requires valid API key and network)
         const sessionResult = await agentBay.create();
-        const session = sessionResult.session;
-        log("✅ Session created successfully");
-
-        // Execute command
-        const result = await session.command.executeCommand("echo Hello AgentBay");
-        log("✅ Command executed successfully:", result.output);
-
-        // Release session
-        await agentBay.delete(session);
-        log("✅ Session released successfully");
-
+        if (sessionResult.success) {
+            const session = sessionResult.session;
+            console.log(`✅ Session created: ${session.sessionId}`);
+            
+            // Clean up
+            await agentBay.delete(session);
+            console.log("✅ Test completed successfully");
+        } else {
+            console.log(`⚠️  Session creation failed: ${sessionResult.errorMessage}`);
+        }
     } catch (error) {
-        logError(`❌ Configuration issue: ${error}`);
+        console.log(`❌ Error: ${error}`);
     }
 }
 
@@ -190,53 +165,163 @@ package main
 
 import (
     "fmt"
+    "os"
     "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
 
 func main() {
-    // Use API key to initialize client
-    // get testAPIKey from os env
-    client, err := agentbay.NewAgentBay(testAPIKey, nil)
+    // Get API key from environment
+    apiKey := os.Getenv("AGENTBAY_API_KEY")
+    if apiKey == "" {
+        fmt.Println("⚠️  Please set AGENTBAY_API_KEY environment variable")
+        return
+    }
+
+    // Initialize SDK
+    client, err := agentbay.NewAgentBay(apiKey, nil)
     if err != nil {
         fmt.Printf("❌ Failed to initialize SDK: %v\n", err)
         return
     }
     fmt.Println("✅ SDK initialized successfully")
 
-    // Create session
+    // Create a session (requires valid API key and network)
     sessionResult, err := client.Create(nil)
     if err != nil {
-        fmt.Printf("❌ Failed to create session: %v\n", err)
+        fmt.Printf("⚠️  Session creation failed: %v\n", err)
         return
     }
-    fmt.Println("✅ Session created successfully")
-
-    // Check if session is nil
-    if sessionResult.Session == nil {
-        fmt.Println("❌ Session object is nil")
-        return
+    
+    if sessionResult.Session != nil {
+        fmt.Printf("✅ Session created: %s\n", sessionResult.Session.SessionID)
+        
+        // Clean up
+        _, err = client.Delete(sessionResult.Session, false)
+        if err != nil {
+            fmt.Printf("⚠️  Session cleanup failed: %v\n", err)
+        } else {
+            fmt.Println("✅ Test completed successfully")
+        }
     }
-
-    // Execute command
-    result, err := sessionResult.Session.Command.ExecuteCommand("echo Hello AgentBay")
-    if err != nil {
-        fmt.Printf("❌ Failed to execute command: %v\n", err)
-        return
-    }
-    fmt.Printf("✅ Command executed successfully: %s\n", result.Output)
-
-    // Release session
-    _, err = client.Delete(sessionResult.Session, false)
-    if err != nil {
-        fmt.Printf("❌ Failed to release session: %v\n", err)
-        return
-    }
-    fmt.Println("✅ Session released successfully")
 }
 ```
 
+## 🔧 Advanced Configuration (Optional)
+
+> **Note:** The SDK uses the Shanghai region (`cn-shanghai`) by default. You only need to configure a different region if you want to use services in other regions, such as Singapore.
+
+### Supported Regions
+
+| Region Name | Region ID | Endpoint |
+|-------------|-----------|----------|
+| Shanghai (Default) | `cn-shanghai` | `wuyingai.cn-shanghai.aliyuncs.com` |
+| Singapore | `ap-southeast-1` | `wuyingai.ap-southeast-1.aliyuncs.com` |
+
+### Switching to Singapore Region
+
+**Linux/macOS:**
+```bash
+export AGENTBAY_REGION_ID=ap-southeast-1
+export AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
+```
+
+**Windows:**
+```cmd
+set AGENTBAY_REGION_ID=ap-southeast-1
+set AGENTBAY_ENDPOINT=wuyingai.ap-southeast-1.aliyuncs.com
+```
+
+For more configuration options, see the [SDK Configuration Guide](../guides/common-features/configuration/sdk-configuration.md).
+
+## 🆘 Troubleshooting
+
+### Python Issues
+
+**`externally-managed-environment` error:**
+```bash
+# Solution: Use virtual environment
+python3 -m venv agentbay-env
+source agentbay-env/bin/activate
+pip install wuying-agentbay-sdk
+```
+
+**`ModuleNotFoundError: No module named 'agentbay'`:**
+```bash
+# Check if virtual environment is activated
+which python  # Should show venv path
+# Re-install if needed
+pip install --force-reinstall wuying-agentbay-sdk
+```
+
+**Permission denied errors:**
+```bash
+# Use user installation
+pip install --user wuying-agentbay-sdk
+```
+
+### TypeScript Issues
+
+**`Cannot find module 'wuying-agentbay-sdk'`:**
+```bash
+# Ensure you're in the project directory with package.json
+pwd
+ls package.json  # Should exist
+# Re-install if needed
+npm install wuying-agentbay-sdk
+```
+
+**`require() is not defined`:**
+```bash
+# Check Node.js version (requires 14+)
+node --version
+# Ensure you're using CommonJS (default) or update to ES modules
+```
+
+### Golang Issues
+
+**`checksum mismatch` error (Most Common):**
+```bash
+# Always use direct proxy for this package
+GOPROXY=direct go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
+```
+
+**Import path errors:**
+```bash
+# Check Go version (requires 1.24.4+)
+go version
+# Ensure module is initialized
+go mod init your-project-name
+```
+
+**Build failures:**
+```bash
+# Clean module cache and retry
+go clean -modcache
+go mod tidy
+go get github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay
+```
+
+### Network and API Issues
+
+**Connection timeouts:**
+- Check your network connection
+- Verify the endpoint region matches your location
+- Try different region endpoints if available
+
+**API key errors:**
+- Verify API key is correct and active
+- Check API key permissions in console
+- Ensure environment variable is properly set
+
+**Session creation failures:**
+- Verify account has sufficient quota
+- Check service status at console
+- Try again after a few minutes
+
 ## 🎉 Installation Complete!
 
-If all the above tests pass, congratulations! You have successfully installed and configured the AgentBay SDK!
+If all the above tests pass, congratulations! You have successfully installed and configured the AgentBay SDK.
 
-Next step: [Understanding Basic Concepts](basic-concepts.md)
+**Next Steps:**
+- [Understanding Basic Concepts](basic-concepts.md)
+- [Creating Your First Session](first-session.md) - 5-minute hands-on tutorial

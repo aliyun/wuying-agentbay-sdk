@@ -363,8 +363,13 @@ session = agent_bay.create(session_params).session
 # Session has both persistent browser state AND extensions
 ```
 
-## Related Documentation
+## 📚 Related Guides
 
-- [Browser Context](browser-context.md) - For persistent browser state management
-- [Session Management](../../session-management.md) - For general session operations
-- [Browser Automation](../../automation.md) - For browser automation workflows
+- [Browser Context](browser-context.md) - Persistent browser state management
+- [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Browser Use Overview](../README.md) - Complete browser automation features
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

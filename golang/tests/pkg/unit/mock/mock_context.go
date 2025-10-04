@@ -64,6 +64,21 @@ func (mr *MockContextInterfaceMockRecorder) Delete(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockContextInterface)(nil).Delete), arg0)
 }
 
+// DeleteFile mocks base method.
+func (m *MockContextInterface) DeleteFile(arg0, arg1 string) (*agentbay.ContextFileDeleteResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFile", arg0, arg1)
+	ret0, _ := ret[0].(*agentbay.ContextFileDeleteResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteFile indicates an expected call of DeleteFile.
+func (mr *MockContextInterfaceMockRecorder) DeleteFile(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFile", reflect.TypeOf((*MockContextInterface)(nil).DeleteFile), arg0, arg1)
+}
+
 // Get mocks base method.
 func (m *MockContextInterface) Get(arg0 string, arg1 bool) (*agentbay.ContextResult, error) {
 	m.ctrl.T.Helper()
@@ -79,6 +94,36 @@ func (mr *MockContextInterfaceMockRecorder) Get(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockContextInterface)(nil).Get), arg0, arg1)
 }
 
+// GetFileDownloadUrl mocks base method.
+func (m *MockContextInterface) GetFileDownloadUrl(arg0, arg1 string) (*agentbay.ContextFileUrlResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFileDownloadUrl", arg0, arg1)
+	ret0, _ := ret[0].(*agentbay.ContextFileUrlResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFileDownloadUrl indicates an expected call of GetFileDownloadUrl.
+func (mr *MockContextInterfaceMockRecorder) GetFileDownloadUrl(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileDownloadUrl", reflect.TypeOf((*MockContextInterface)(nil).GetFileDownloadUrl), arg0, arg1)
+}
+
+// GetFileUploadUrl mocks base method.
+func (m *MockContextInterface) GetFileUploadUrl(arg0, arg1 string) (*agentbay.ContextFileUrlResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFileUploadUrl", arg0, arg1)
+	ret0, _ := ret[0].(*agentbay.ContextFileUrlResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFileUploadUrl indicates an expected call of GetFileUploadUrl.
+func (mr *MockContextInterfaceMockRecorder) GetFileUploadUrl(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileUploadUrl", reflect.TypeOf((*MockContextInterface)(nil).GetFileUploadUrl), arg0, arg1)
+}
+
 // List mocks base method.
 func (m *MockContextInterface) List(arg0 *agentbay.ContextListParams) (*agentbay.ContextListResult, error) {
 	m.ctrl.T.Helper()
@@ -92,6 +137,21 @@ func (m *MockContextInterface) List(arg0 *agentbay.ContextListParams) (*agentbay
 func (mr *MockContextInterfaceMockRecorder) List(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockContextInterface)(nil).List), arg0)
+}
+
+// ListFiles mocks base method.
+func (m *MockContextInterface) ListFiles(arg0, arg1 string, arg2, arg3 int32) (*agentbay.ContextFileListResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFiles", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*agentbay.ContextFileListResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFiles indicates an expected call of ListFiles.
+func (mr *MockContextInterfaceMockRecorder) ListFiles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockContextInterface)(nil).ListFiles), arg0, arg1, arg2, arg3)
 }
 
 // Update mocks base method.

@@ -285,8 +285,14 @@ except Exception as e:
     print(f"An error occurred: {e}")
 ```
 
-## Related Documentation
+## 📚 Related Guides
 
-- [Extension Management](../extensions) - For browser extension integration
-- [Session Management](../../session-management.md) - For general session operations
-- [Data Persistence](../../data-persistence.md) - For broader context management
+- [Extension Management](extension.md) - Browser extension integration
+- [Data Persistence](../../common-features/basics/data-persistence.md) - Broader context management
+- [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Browser Use Overview](../README.md) - Complete browser automation features
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)

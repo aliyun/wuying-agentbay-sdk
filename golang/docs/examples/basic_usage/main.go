@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
 )
@@ -39,23 +38,6 @@ func main() {
 
 	// Store session for convenience
 	session = result.Session
-
-	// List Sessions
-	fmt.Println("\nList sessions...")
-	listResult, err := ab.List()
-	if err != nil {
-		fmt.Printf("\nError list sessions: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Extract SessionID list and join as string
-	var sessionIDs []string
-	for _, s := range listResult.Sessions {
-		sessionIDs = append(sessionIDs, s.SessionID)
-	}
-	sessionIDsStr := strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nList sessions: %s (RequestID: %s)\n",
-		sessionIDsStr, listResult.RequestID)
 
 	// Execute command
 	fmt.Println("\nExecute command...")
@@ -199,21 +181,4 @@ func main() {
 				linuxDeleteResult.RequestID)
 		}
 	}
-
-	// List Sessions
-	fmt.Println("\nList sessions...")
-	listResult, err = ab.List()
-	if err != nil {
-		fmt.Printf("\nError list sessions: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Extract SessionID list and join as string
-	sessionIDs = []string{}
-	for _, s := range listResult.Sessions {
-		sessionIDs = append(sessionIDs, s.SessionID)
-	}
-	sessionIDsStr = strings.Join(sessionIDs, ", ")
-	fmt.Printf("\nList sessions: %s (RequestID: %s)\n",
-		sessionIDsStr, listResult.RequestID)
 }

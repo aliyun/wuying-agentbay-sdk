@@ -14,7 +14,7 @@ Name  // The name of the context
 State  // The current state of the context (e.g., "available", "in-use")
 CreatedAt  // Date and time when the Context was created
 LastUsedAt  // Date and time when the Context was last used
-OsType  // The operating system type this context is bound to
+OSType  // The operating system type this context is bound to
 ```
 
 ## ContextService Struct
@@ -23,14 +23,17 @@ The `ContextService` struct provides methods for managing persistent contexts in
 
 ### List
 
-Lists all available contexts.
+Lists all available contexts with pagination support.
 
 ```go
-List() (*ContextListResult, error)
+List(params *ContextListParams) (*ContextListResult, error)
 ```
 
+**Parameters:**
+- `params` (*ContextListParams, optional): Pagination parameters. If nil, default values are used (MaxResults=10).
+
 **Returns:**
-- `*ContextListResult`: A result object containing the list of Context objects and RequestID.
+- `*ContextListResult`: A result object containing the list of Context objects, pagination info, and RequestID.
 - `error`: An error if the operation fails.
 
 **Example:**
@@ -52,16 +55,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	// List all contexts
-	result, err := client.Context.List()
+	// List all contexts (using default pagination)
+	result, err := client.Context.List(nil)
 	if err != nil {
 		fmt.Printf("Error listing contexts: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Printf("Found %d contexts:\n", len(result.Contexts))
-	for _, context := range result.Contexts {
-		fmt.Printf("Context ID: %s, Name: %s, State: %s\n", context.ID, context.Name, context.State)
+	// Expected: Found X contexts (where X is the number of contexts, max 10 by default)
+	fmt.Printf("Request ID: %s\n", result.RequestID)
+	// Expected: A valid UUID-format request ID
+	for i, context := range result.Contexts {
+		if i < 3 { // Show first 3 contexts
+			fmt.Printf("Context ID: %s, Name: %s, State: %s, OSType: %s\n", 
+				context.ID, context.Name, context.State, context.OSType)
+			// Expected output: Context ID: SdkCtx-xxx, Name: xxx, State: available, OSType: linux
+		}
 	}
 }
 ```
@@ -110,6 +120,9 @@ func main() {
 
 	context := result.Context
 	fmt.Printf("Context ID: %s, Name: %s, State: %s\n", context.ID, context.Name, context.State)
+	// Expected output: Context ID: SdkCtx-xxx, Name: my-persistent-context, State: available
+	fmt.Printf("Request ID: %s\n", result.RequestID)
+	// Expected: A valid UUID-format request ID
 }
 ```
 
@@ -118,14 +131,14 @@ func main() {
 Creates a new context.
 
 ```go
-Create(name string) (*ContextResult, error)
+Create(name string) (*ContextCreateResult, error)
 ```
 
 **Parameters:**
 - `name` (string): The name of the context to create.
 
 **Returns:**
-- `*ContextResult`: A result object containing the created Context object and RequestID.
+- `*ContextCreateResult`: A result object containing the created Context ID and RequestID.
 - `error`: An error if the operation fails.
 
 **Example:**
@@ -154,8 +167,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	context := result.Context
-	fmt.Printf("Created context with ID: %s, Name: %s\n", context.ID, context.Name)
+	fmt.Printf("Created context with ID: %s\n", result.ContextID)
+	// Expected output: Created context with ID: SdkCtx-xxx
+	fmt.Printf("Request ID: %s\n", result.RequestID)
+	// Expected: A valid UUID-format request ID
 }
 ```
 
@@ -164,14 +179,14 @@ func main() {
 Updates an existing context.
 
 ```go
-Update(context *Context) (*OperationResult, error)
+Update(context *Context) (*ContextModifyResult, error)
 ```
 
 **Parameters:**
 - `context` (*Context): The context object to update.
 
 **Returns:**
-- `*OperationResult`: A result object containing success status and RequestID.
+- `*ContextModifyResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
 
 **Example:**
@@ -212,8 +227,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Context updated successfully")
+	fmt.Printf("Context updated successfully, Success: %v\n", updateResult.Success)
+	// Expected output: Context updated successfully, Success: true
 	fmt.Printf("Request ID: %s\n", updateResult.RequestID)
+	// Expected: A valid UUID-format request ID
 }
 ```
 
@@ -222,14 +239,14 @@ func main() {
 Deletes a context.
 
 ```go
-Delete(context *Context) (*OperationResult, error)
+Delete(context *Context) (*ContextDeleteResult, error)
 ```
 
 **Parameters:**
 - `context` (*Context): The context object to delete.
 
 **Returns:**
-- `*OperationResult`: A result object containing success status and RequestID.
+- `*ContextDeleteResult`: A result object containing success status and RequestID.
 - `error`: An error if the operation fails.
 
 **Example:**
@@ -267,10 +284,78 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Context deleted successfully")
+	fmt.Printf("Context deleted successfully, Success: %v\n", deleteResult.Success)
+	// Expected output: Context deleted successfully, Success: true
 	fmt.Printf("Request ID: %s\n", deleteResult.RequestID)
+	// Expected: A valid UUID-format request ID
 }
 ```
+
+### GetFileDownloadUrl
+
+Gets a presigned download URL for a file in a context.
+
+```go
+GetFileDownloadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+```
+
+**Parameters:**
+- `contextID` (string): The ID of the context.
+- `filePath` (string): The path to the file in the context.
+
+**Returns:**
+- `*ContextFileUrlResult`: A result object containing the presigned URL, expire time, and RequestID.
+- `error`: An error if the operation fails.
+
+### GetFileUploadUrl
+
+Gets a presigned upload URL for a file in a context.
+
+```go
+GetFileUploadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+```
+
+**Parameters:**
+- `contextID` (string): The ID of the context.
+- `filePath` (string): The path to the file in the context.
+
+**Returns:**
+- `*ContextFileUrlResult`: A result object containing the presigned URL, expire time, and RequestID.
+- `error`: An error if the operation fails.
+
+### ListFiles
+
+Lists files under a specific folder path in a context.
+
+```go
+ListFiles(contextID string, parentFolderPath string, pageNumber int32, pageSize int32) (*ContextFileListResult, error)
+```
+
+**Parameters:**
+- `contextID` (string): The ID of the context.
+- `parentFolderPath` (string): The parent folder path to list files from.
+- `pageNumber` (int32): The page number for pagination.
+- `pageSize` (int32): The number of items per page.
+
+**Returns:**
+- `*ContextFileListResult`: A result object containing the list of files and RequestID.
+- `error`: An error if the operation fails.
+
+### DeleteFile
+
+Deletes a file in a context.
+
+```go
+DeleteFile(contextID string, filePath string) (*ContextFileDeleteResult, error)
+```
+
+**Parameters:**
+- `contextID` (string): The ID of the context.
+- `filePath` (string): The path to the file to delete.
+
+**Returns:**
+- `*ContextFileDeleteResult`: A result object containing success status and RequestID.
+- `error`: An error if the operation fails.
 
 ## Related Resources
 

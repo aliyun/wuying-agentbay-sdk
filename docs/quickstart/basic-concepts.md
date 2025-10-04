@@ -1,350 +1,257 @@
 # Core Concepts
 
-Before we start programming, let's understand several core concepts of AgentBay.
+Before we start programming, let's understand the essential concepts you need to know to use AgentBay effectively.
 
 ## 🌐 What is AgentBay?
 
-AgentBay is a cloud computing environment. You can think of it as:
-- A remote virtual machine (supporting Linux, Windows, Android)
-- Can be created and destroyed at any time
-- Has a complete file system and command-line environment
-- Supports running various programs and scripts
+AgentBay is a cloud computing platform that provides on-demand virtual environments. You can think of it as:
+- Cloud-based remote computers that support different operating systems (Windows, Linux, Android)
+- Virtual machines that can be created and destroyed instantly
+- Designed specifically for automation, testing, and development tasks
 
-### Supported Image Types
-- **Linux Images**: Ubuntu and other Linux distributions, suitable for development, deployment, data processing
-- **Windows Images**: Windows Server, suitable for .NET development, Windows application testing
-- **Android Images**: Android system, suitable for mobile app testing, automation
-- **Browser Images**: Chrome, Firefox, Edge, suitable for web application testing, browser automation
-- **Code Images**: Support executing Python and JavaScript code within the session.
+### 📦 AgentBay Class - Your Cloud Gateway
 
-## 🏗️ Runtime Environment Types
-
-AgentBay provides different types of cloud runtime environments, each optimized for specific use cases:
-
-### Environment Types
-- **ComputerUse**: Traditional computer environments for general computing tasks
-  - **Linux**: Linux-based environment for development, deployment, and data processing
-  - **Windows**: Windows-based environment for .NET development and Windows application testing
-- **BrowserUse**: Browser-based environment for web automation and testing
-- **CodeSpace**: Specialized development environment with pre-configured development tools
-- **MobileUse**: Mobile environment for Android app testing and automation
-
-### Standard Images
-AgentBay provides five standard images corresponding to these environment types:
-
-| Environment Type | Image ID | Description |
-|------------------|----------|-------------|
-| ComputerUse (Linux) | `linux_latest` | Ubuntu-based Linux environment |
-| ComputerUse (Windows) | `windows_latest` | Windows Server environment |
-| BrowserUse | `browser_latest` | Browser automation environment |
-| CodeSpace | `code_latest` | Development-optimized environment |
-| MobileUse | `mobile_latest` | Android mobile environment |
-
-### Creating Sessions with Different Images
-You can specify the image ID when creating a session to use different environment types:
+In the SDK, the `AgentBay` class is your main interface for interacting with the cloud service:
 
 ```python
-from agentbay.session_params import CreateSessionParams
+from agentbay import AgentBay
 
-# Linux environment for general computing
-linux_params = CreateSessionParams(image_id="linux_latest")
-linux_session = agent_bay.create(linux_params).session
-
-# Windows environment for Windows-specific tasks
-windows_params = CreateSessionParams(image_id="windows_latest")
-windows_session = agent_bay.create(windows_params).session
-
-# Browser environment for web automation
-browser_params = CreateSessionParams(image_id="browser_latest")
-browser_session = agent_bay.create(browser_params).session
-
-# CodeSpace environment for development
-code_params = CreateSessionParams(image_id="code_latest")
-code_session = agent_bay.create(code_params).session
-
-# Mobile environment for Android automation
-mobile_params = CreateSessionParams(image_id="mobile_latest")
-mobile_session = agent_bay.create(mobile_params).session
+# Create AgentBay client instance
+agent_bay = AgentBay()
 ```
 
-### API Compatibility
-Different images provide different capabilities, so the available SDK APIs vary by environment type. If you attempt to call an API that is not supported in the current environment type, the results may not meet expectations.
+**Core functions of the AgentBay class:**
+- **Session Manager**: Create, delete, and manage cloud sessions
+- **API Client**: Handle all communication with AgentBay cloud service
+- **Authentication Handler**: Automatically manage API keys and security
 
-**Important**: Always choose the appropriate image type for your specific use case to ensure all required APIs are available.
+**Basic usage pattern:**
+```python
+# 1. Initialize client
+agent_bay = AgentBay()
+
+# 2. Create session (uses linux_latest by default)
+session = agent_bay.create().session
+
+# 3. Use session for your tasks
+# ... your automation tasks ...
+
+# 4. Clean up resources
+agent_bay.delete(session)
+```
+
+**Learn more**: [SDK Configuration Guide](../guides/common-features/configuration/sdk-configuration.md)
 
 ## 🔗 Session
 
-### Concept
-A session is a connection between you and the cloud environment, similar to:
-- SSH connection to a remote server
-- Opening a terminal window
-- Starting a Docker container
+A **session** is your connection to a cloud environment. It's like renting a computer in the cloud for a specific period of time.
 
-### Features
+### Key Characteristics:
+- **Temporary**: Sessions are created when you need them and destroyed when you're done
+- **Isolated**: Each session is completely separate from others
+- **Billable**: You pay for the time your session is active
+
+### Basic Usage:
 ```python
-# Create session (default Linux image)
+# Create a session
 session = agent_bay.create().session
 
-# Create session with specific operating system
-from agentbay.session_params import CreateSessionParams
+# Use the session for your tasks
+session.command.execute_command("echo 'Hello World'")
 
-# Linux image
-linux_params = CreateSessionParams(image_id="linux_latest")
-linux_session = agent_bay.create(linux_params).session
-
-# Windows image
-windows_params = CreateSessionParams(image_id="windows_latest")
-windows_session = agent_bay.create(windows_params).session
-
-# Android image
-android_params = CreateSessionParams(image_id="mobile_latest")
-android_session = agent_bay.create(android_params).session
-
-browser_params = CreateSessionParams(image_id="browser_latest")
-browser_session = agent_bay.create(browser_params).session
-
-code_params = CreateSessionParams(image_id="code_latest")
-code_session = agent_bay.create(code_params).session
-
-# Sessions have independent:
-# - File system (varies by image type)
-# - Process space (can run programs)
-# - Network environment (can access internet)
+# Always clean up when done
+agent_bay.delete(session)
 ```
 
-### Lifecycle
+### Session Lifecycle:
 ```
-Create Session → Use Session → Session Timeout/Active Close
+Create Session → Use Session → Delete Session
       ↓             ↓              ↓
   Allocate      Execute         Release
   Resources     Operations      Resources
 ```
 
-## 📁 File System
+**Learn more**: [Session Management Guide](../guides/common-features/basics/session-management.md)
 
-### Directory Structure
-The file system structure depends on the cloud image type you choose:
+## 🖥️ Image Types
 
-#### Linux Images
-```
-/
-├── tmp/          # Temporary files (cleared after session ends)
-├── home/         # User directory
-├── mnt/          # Mount points (for persistent data)
-├── etc/          # System configuration
-├── var/          # Variable data
-└── ...           # Other standard Linux directories
-```
+When creating a session, you must choose an **image type** - this determines what kind of environment you get and what you can do with it.
 
-#### Windows Images
-```
-C:\
-├── Users\        # User directory
-├── Windows\      # System files
-├── Program Files\ # Program files
-└── ...           # Other Windows directories
-```
+### Official System Images:
 
-#### Android Images
-```
-/
-├── data/         # Application data
-├── system/       # System files
-├── storage/      # Storage directory
-└── ...           # Other Android directories
-```
+The following table shows the latest official system images provided by AgentBay:
 
-### File Operations
-File operations vary depending on the operating system image:
+| Image ID | Environment | Best For |
+|----------|-------------|----------|
+| `linux_latest` | Computer Use | General computing, server tasks (default if not specified) |
+| `windows_latest` | Computer Use | General Windows tasks, .NET development, Windows apps |
+| `browser_latest` | Browser Use | Web scraping, browser automation, testing websites |
+| `code_latest` | CodeSpace  | Coding, development tools, programming tasks |
+| `mobile_latest` | Mobile Use | Mobile app testing, Android automation |
 
-#### Linux/Android
+**Note**: 
+- If you don't specify an `image_id`, AgentBay will automatically use `linux_latest` as the default environment.
+- These are the current latest versions of official system images. You can also create and use **custom images** through the AgentBay console to meet your specific requirements.
+
+### Choosing the Right Image:
+
+**Windows Environment Example:**
 ```python
-session = agent_bay.create().session
-session.file_system.write_file("/tmp/hello.txt", "Hello World")
-content = session.file_system.read_file("/tmp/hello.txt")
-print(content.content)
+from agentbay.session_params import CreateSessionParams
 
-files = session.file_system.list_directory("/tmp")
-for file in files.entries:
-    try:
-        print(file['name'])
-    except KeyError:
-        print(f"Invalid file entry: {file}")
-agent_bay.delete(session)
-```
-
-#### Windows
-```python
- params = CreateSessionParams(
-        image_id="windows_latest",
-    )
-session = agent_bay.create(params).session
-# Write file
-session.file_system.write_file("C:\\Users\\hello.txt", "Hello World")
-
-# Read file
-content = session.file_system.read_file("C:\\Users\\hello.txt")
-print(content.content)  # Hello World
-
-# List directory
-files = session.file_system.list_directory("C:\\Users")
-for file in files.entries:
-    print(file['name'])
-agent_bay.delete(session)
-```
-
-## ⚡ Command Execution
-
-### Linux/Android Commands
-```python
-#init session with imageId linux_latest
-session = agent_bay.create().session
-# Basic commands
-session.command.execute_command("ls -la")
-session.command.execute_command("pwd")
-session.command.execute_command("whoami")
-# Install packages
-session.command.execute_command("apt-get update")
-session.command.execute_command("apt-get install -y python3-pip")
-# Run Python
-session.command.execute_command("python3 -c 'print(\"Hello from Python\")'")
-# release session
-agent_bay.delete(session)
-```
-
-### Windows Commands
-```python
-#init session with imageId windows_latest
+# Create Windows environment and automate notepad
 params = CreateSessionParams(image_id="windows_latest")
 session = agent_bay.create(params).session
-# Basic commands
-result = session.command.execute_command("dir")
-result = session.command.execute_command("cd")
-result = session.command.execute_command("whoami")
 
-# PowerShell commands
-result = session.command.execute_command("powershell -Command \"Get-Process | Select-Object -First 5\"")
-result = session.command.execute_command("powershell -Command \"Get-Location\"")
-result = session.command.execute_command("powershell -Command \"Get-Date\"")
+# Start Notepad application
+session.computer.start_app("notepad.exe")
+# Returns: ProcessListResult with started process info
 
-# Run programs
-result = session.command.execute_command("python --version")
+# Input text into notepad
+session.computer.input_text("Hello from Windows!")
+# Returns: BoolResult with success status
 
-# release session
 agent_bay.delete(session)
 ```
 
-### Android Commands
+**Browser Environment Example:**
 ```python
-#init session with imageId mobile_latest
+# Create browser environment
+params = CreateSessionParams(image_id="browser_latest")
+session = agent_bay.create(params).session
+
+# Initialize and navigate
+from agentbay.browser import BrowserOption
+session.browser.initialize(BrowserOption())
+session.browser.agent.navigate("https://www.baidu.com")
+print("Web navigation successful")
+
+agent_bay.delete(session)
+```
+
+**CodeSpace Environment Example:**
+```python
+# Create development environment and execute code
+params = CreateSessionParams(image_id="code_latest")
+session = agent_bay.create(params).session
+
+# Execute code
+result = session.code.run_code("print('Hello from CodeSpace!')", "python")
+# Returns: CodeExecutionResult with output
+# Example: result.result = "Hello from CodeSpace!"
+
+agent_bay.delete(session)
+```
+
+**Mobile Environment Example:**
+```python
+# Create Android environment and send HOME key
 params = CreateSessionParams(image_id="mobile_latest")
 session = agent_bay.create(params).session
-# Android-specific commands
-result = session.command.execute_command("am start -n com.android.settings/.Settings")
-result = session.command.execute_command("input tap 500 500")
-result = session.command.execute_command("screencap /tmp/screenshot.png")
 
-# Package management
-result = session.command.execute_command("pm list packages")
-result = session.command.execute_command("pm install /tmp/app.apk")
+# Press HOME key to return to home screen
+from agentbay.mobile import KeyCode
+session.mobile.send_key(KeyCode.HOME)
+# Returns: BoolResult with success status
+# Example: result.success = True (returns to Android home screen)
 
-# release session
 agent_bay.delete(session)
 ```
 
-## 🔄 Data Persistence
+**Important**: Different images support different features. Choose the image that matches your specific use case.
 
-### Temporary Data
-- Stored in session file system
-- **Lost when session ends**
-- Suitable for: temporary processing, cache files
+**Learn more about each environment:**
+- [Computer Use Guide](../guides/computer-use/README.md) - Windows/Linux automation
+- [Browser Use Guide](../guides/browser-use/README.md) - Web automation and scraping
+- [CodeSpace Guide](../guides/codespace/README.md) - Code execution environments
+- [Mobile Use Guide](../guides/mobile-use/README.md) - Android automation
+
+## 💾 Data Permanence - Temporary vs Persistent
+
+Understanding data permanence is crucial when using cloud environments:
+
+### Temporary Data (Default Behavior)
+- **All data in a session is temporary by default**
+- **Everything is lost when the session ends**
+- Suitable for: processing tasks, temporary files, cache
 
 ```python
-# Temporary data - will be lost
-# For Linux/Android:
-session.file_system.write_file("/tmp/temp_data.txt", "temporary content")
-# For Windows:
-session.file_system.write_file("C:\\Users\\temp_data.txt", "temporary content")
+# This data will be LOST when session ends
+session.file_system.write_file("/tmp/temp_data.txt", "This will disappear")
 ```
 
 ### Persistent Data (Context)
-- Stored in AgentBay's persistent storage
-- **Preserved across sessions**
-- Suitable for: configuration files, user data, project files
+- **Data that survives across sessions**
+- **Must be explicitly configured**
+- Suitable for: project files, configurations, important results
 
 ```python
-from agentbay import AgentBay
-from agentbay.session_params import CreateSessionParams
 from agentbay import ContextSync
-# Create persistent context
-context = agent_bay.context.get("my-project", create=True).context
 
-# Create context sync (sync_policy is optional)
-context_sync = ContextSync.new(context.id, "/tmp/data")
+# Create persistent storage
+context = agent_bay.context.get("my-project", create=True).context
+context_sync = ContextSync.new(context.id, "/persistent")
 
 # Create session with persistent data
 params = CreateSessionParams(context_syncs=[context_sync])
 session = agent_bay.create(params).session
 
-# Data written to /tmp/data will persist
-session.file_system.write_file("/tmp/data/config.json", '{"setting": "value"}')
-session.file_system.read_file("/tmp/data/config.json")
-# release session
-self.run_delete_session(session)
+# This data will be SAVED across sessions
+session.file_system.write_file("/persistent/important.txt", "This will persist")
 ```
 
-## 🏷️ Labels and Organization
+**Critical Rule**: If you need to keep data, you MUST use Context. Otherwise, it will be lost forever when the session ends.
 
-### Session Labels
-Use labels to organize and find sessions:
+**Learn more**: 
+- [Data Persistence Guide](../guides/common-features/basics/data-persistence.md)
+- [File Operations Guide](../guides/common-features/basics/file-operations.md)
+
+## 🔍 Understanding API Results and Request IDs
+
+When you call AgentBay APIs, the results are wrapped in result objects that contain more than just your data:
 
 ```python
-# Create session with labels
-params = CreateSessionParams(
-    labels={
-        "project": "web-scraper",
-        "environment": "development",
-        "owner": "john.doe"
-    }
-)
-session = agent_bay.create(params).session
+# Example API call
+screenshot = session.computer.screenshot()
 
-# Find sessions by labels
-sessions = agent_bay.list_by_labels({"project": "web-scraper"})
-for session_info in sessions.sessions:
-    print(f"Session: {session_info.session_id}")
+# The result object contains:
+print(screenshot.success)     # True/False - whether the operation succeeded
+print(screenshot.data)        # Your actual data (screenshot URL)
+print(screenshot.request_id)  # Request ID for troubleshooting
 ```
 
+### What is a Request ID?
+Every API call to AgentBay gets a unique **Request ID** - a special identifier like `"ABC12345-XXXX-YYYY-ZZZZ-123456789ABC"`.
 
-## 🔐 Security Model
+**Why Request IDs matter:**
+- **Troubleshooting**: If something goes wrong, you can provide this ID to support for faster problem resolution
+- **Tracking**: Helps track individual operations in logs
+- **Debugging**: Makes it easier to identify which specific API call had issues
 
-### Isolation
-- Each session is completely isolated
-- Cannot access other users' sessions
-- Cannot access local files on your machine
+**When you might need it:**
+- API calls fail unexpectedly
+- Performance issues with specific operations
+- When contacting support about problems
 
-### Data Security
-- All data transmission uses HTTPS encryption
-- Context data is encrypted at rest
-- Temporary data is automatically cleaned up
-
-### Best Practices
+**Example troubleshooting:**
 ```python
-# ✅ Good - Use environment variables
-import os
-api_key = os.getenv('AGENTBAY_API_KEY')
-
-# ❌ Bad - Hardcode sensitive data
-api_key = "your-secret-key"  # Never do this!
+result = session.code.run_code("print('hello')", "python")
+if not result.success:
+    print(f"Code execution failed! Request ID: {result.request_id}")
+    # Share this Request ID with support for faster help
 ```
 
-## 🚀 Next Steps
+Don't worry about Request IDs for normal usage - they're just there when you need them for debugging!
 
-Now that you understand the core concepts:
+**Learn more**: [Common Features Guide](../guides/common-features/README.md)
 
-1. **Try the examples**: Each concept has working code examples
-2. **Create your first session**: Follow the [First Session Guide](first-session.md)
-3. **Learn best practices**: Check out [Best Practices](best-practices.md)
-4. **Explore advanced features**: Browse the [Feature Guides](../guides/advanced-features.md)
+## 🚀 Quick Start
 
-Remember: AgentBay gives you the power of cloud computing with the simplicity of local development!
+Now you understand the essentials:
+
+1. **AgentBay** = Cloud computing platform
+2. **Session** = Your temporary connection to a cloud computer
+3. **Image** = The type of environment (Linux/Windows/Browser/Code/Mobile)
+4. **Data** = Temporary by default, use Context for persistence
+
+Ready to create your first session? Check out the [First Session Guide](first-session.md) - a 5-minute hands-on tutorial!

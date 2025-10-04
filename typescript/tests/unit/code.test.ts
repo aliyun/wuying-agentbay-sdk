@@ -58,7 +58,7 @@ print(x)
         {
           code: pythonCode,
           language: "python",
-          timeout_s: 300,
+          timeout_s: 60,
         }
       )).to.be.true;
     });

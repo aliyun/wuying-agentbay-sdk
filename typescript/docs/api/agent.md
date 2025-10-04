@@ -2,6 +2,10 @@
 
 The `Agent` class provides AI-powered capabilities for executing tasks, checking task status, and terminating tasks within a session. It enables natural language task execution and monitoring.
 
+## 📖 Related Tutorial
+
+- [Agent Modules Guide](../../../docs/guides/common-features/advanced/agent-modules.md) - Detailed tutorial on AI-powered automation with Agent modules
+
 ## Constructor
 
 ### new Agent()

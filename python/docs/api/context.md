@@ -23,14 +23,17 @@ The `ContextService` class provides methods for managing persistent contexts in 
 
 ### list
 
-Lists all available contexts.
+Lists all available contexts with pagination support.
 
 ```python
-list() -> ContextListResult
+list(params: Optional[ContextListParams] = None) -> ContextListResult
 ```
 
+**Parameters:**
+- `params` (ContextListParams, optional): Pagination parameters. If None, default values are used (max_results=10).
+
 **Returns:**
-- `ContextListResult`: A result object containing the list of Context objects and request ID.
+- `ContextListResult`: A result object containing the list of Context objects, pagination info, and request ID.
 
 **Example:**
 ```python
@@ -39,12 +42,17 @@ from agentbay import AgentBay
 # Initialize the SDK
 agent_bay = AgentBay(api_key="your_api_key")
 
-# List all contexts
+# List all contexts (using default pagination)
 result = agent_bay.context.list()
 if result.success:
     print(f"Found {len(result.contexts)} contexts:")
-    for context in result.contexts:
-        print(f"Context ID: {context.id}, Name: {context.name}, State: {context.state}")
+    # Expected: Found X contexts (where X is the number of contexts, max 10 by default)
+    print(f"Request ID: {result.request_id}")
+    # Expected: A valid UUID-format request ID
+    for i, context in enumerate(result.contexts):
+        if i < 3:  # Show first 3 contexts
+            print(f"Context ID: {context.id}, Name: {context.name}, State: {context.state}, OS Type: {context.os_type}")
+            # Expected output: Context ID: SdkCtx-xxx, Name: xxx, State: available, OS Type: linux
 else:
     print("Failed to list contexts")
 ```
@@ -76,6 +84,9 @@ result = agent_bay.context.get("my-persistent-context", create=True)
 if result.success:
     context = result.context
     print(f"Context ID: {context.id}, Name: {context.name}, State: {context.state}")
+    # Expected output: Context ID: SdkCtx-xxx, Name: my-persistent-context, State: available
+    print(f"Request ID: {result.request_id}")
+    # Expected: A valid UUID-format request ID
 else:
     print(f"Failed to get context: {result.error_message}")
 ```
@@ -106,6 +117,9 @@ result = agent_bay.context.create("my-new-context")
 if result.success:
     context = result.context
     print(f"Created context with ID: {context.id}, Name: {context.name}")
+    # Expected output: Created context with ID: SdkCtx-xxx, Name: my-new-context
+    print(f"Request ID: {result.request_id}")
+    # Expected: A valid UUID-format request ID
 else:
     print(f"Failed to create context: {result.error_message}")
 ```
@@ -137,7 +151,10 @@ if result.success and result.context:
     # Delete the context
     delete_result = agent_bay.context.delete(result.context)
     if delete_result.success:
-        print("Context deleted successfully")
+        print(f"Context deleted successfully, Success: {delete_result.success}")
+        # Expected output: Context deleted successfully, Success: True
+        print(f"Request ID: {delete_result.request_id}")
+        # Expected: A valid UUID-format request ID
     else:
         print(f"Failed to delete context: {delete_result.error_message}")
 else:
@@ -175,12 +192,77 @@ if result.success and result.context:
     # Save the changes
     update_result = agent_bay.context.update(context)
     if update_result.success:
-        print("Context updated successfully")
+        print(f"Context updated successfully, Success: {update_result.success}")
+        # Expected output: Context updated successfully, Success: True
+        print(f"Request ID: {update_result.request_id}")
+        # Expected: A valid UUID-format request ID
     else:
         print(f"Failed to update context: {update_result.error_message}")
 else:
     print(f"Failed to get context: {result.error_message}")
 ```
+
+### get_file_download_url
+
+Gets a presigned download URL for a file in a context.
+
+```python
+get_file_download_url(context_id: str, file_path: str) -> FileUrlResult
+```
+
+**Parameters:**
+- `context_id` (str): The ID of the context.
+- `file_path` (str): The path to the file in the context.
+
+**Returns:**
+- `FileUrlResult`: A result object containing the presigned URL, expire time, and request ID.
+
+### get_file_upload_url
+
+Gets a presigned upload URL for a file in a context.
+
+```python
+get_file_upload_url(context_id: str, file_path: str) -> FileUrlResult
+```
+
+**Parameters:**
+- `context_id` (str): The ID of the context.
+- `file_path` (str): The path to the file in the context.
+
+**Returns:**
+- `FileUrlResult`: A result object containing the presigned URL, expire time, and request ID.
+
+### list_files
+
+Lists files under a specific folder path in a context.
+
+```python
+list_files(context_id: str, parent_folder_path: str, page_number: int, page_size: int) -> FileListResult
+```
+
+**Parameters:**
+- `context_id` (str): The ID of the context.
+- `parent_folder_path` (str): The parent folder path to list files from.
+- `page_number` (int): The page number for pagination.
+- `page_size` (int): The number of items per page.
+
+**Returns:**
+- `FileListResult`: A result object containing the list of files and request ID.
+
+### delete_file
+
+Deletes a file in a context.
+
+```python
+delete_file(context_id: str, file_path: str) -> OperationResult
+```
+
+**Parameters:**
+- `context_id` (str): The ID of the context.
+- `file_path` (str): The path to the file to delete.
+
+**Returns:**
+- `OperationResult`: A result object containing success status and request ID.
 
 ## Related Resources
 

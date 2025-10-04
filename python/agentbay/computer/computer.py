@@ -4,15 +4,30 @@ Handles mouse operations, keyboard operations, window management,
 application management, and screen operations.
 """
 
-from typing import List, Optional, Dict, Any
+from enum import Enum
+from typing import List, Optional, Dict, Any, Union
 
 from agentbay.api.base_service import BaseService
 from agentbay.exceptions import AgentBayError
 from agentbay.model import BoolResult, OperationResult
-from agentbay.application.application import InstalledAppListResult, InstalledApp, ProcessListResult
+from agentbay.application.application import InstalledAppListResult, InstalledApp, ProcessListResult, AppOperationResult
 from agentbay.window.window import WindowListResult, WindowInfoResult
 
 
+class MouseButton(str, Enum):
+    """Mouse button types for click and drag operations."""
+    LEFT = "left"
+    RIGHT = "right"
+    MIDDLE = "middle"
+    DOUBLE_LEFT = "double_left"
+
+
+class ScrollDirection(str, Enum):
+    """Scroll direction for scroll operations."""
+    UP = "up"
+    DOWN = "down"
+    LEFT = "left"
+    RIGHT = "right"
 class Computer(BaseService):
     """
     Handles computer UI automation operations in the AgentBay cloud environment.
@@ -30,15 +45,16 @@ class Computer(BaseService):
         super().__init__(session)
 
     # Mouse Operations
-    def click_mouse(self, x: int, y: int, button: str = "left") -> BoolResult:
+    def click_mouse(self, x: int, y: int, button: Union[MouseButton, str] = MouseButton.LEFT) -> BoolResult:
         """
         Clicks the mouse at the specified coordinates.
 
         Args:
             x (int): X coordinate.
             y (int): Y coordinate.
-            button (str, optional): Button type. Must be one of:
-                ["left", "right", "middle", "double_left"]. Defaults to "left".
+            button (Union[MouseButton, str], optional): Button type. Can be MouseButton enum or string.
+                Valid values: MouseButton.LEFT, MouseButton.RIGHT, MouseButton.MIDDLE, MouseButton.DOUBLE_LEFT
+                or their string equivalents. Defaults to MouseButton.LEFT.
 
         Returns:
             BoolResult: Result object containing success status and error message if any.
@@ -46,11 +62,12 @@ class Computer(BaseService):
         Raises:
             ValueError: If button is not a valid option.
         """
-        valid_buttons = ["left", "right", "middle", "double_left"]
-        if button not in valid_buttons:
-            raise ValueError(f"Invalid button '{button}'. Must be one of {valid_buttons}")
+        button_str = button.value if isinstance(button, MouseButton) else button
+        valid_buttons = [b.value for b in MouseButton]
+        if button_str not in valid_buttons:
+            raise ValueError(f"Invalid button '{button_str}'. Must be one of {valid_buttons}")
 
-        args = {"x": x, "y": y, "button": button}
+        args = {"x": x, "y": y, "button": button_str}
         try:
             result = self._call_mcp_tool("click_mouse", args)
 
@@ -114,7 +131,7 @@ class Computer(BaseService):
             )
 
     def drag_mouse(
-        self, from_x: int, from_y: int, to_x: int, to_y: int, button: str = "left"
+        self, from_x: int, from_y: int, to_x: int, to_y: int, button: Union[MouseButton, str] = MouseButton.LEFT
     ) -> BoolResult:
         """
         Drags the mouse from one point to another.
@@ -124,8 +141,10 @@ class Computer(BaseService):
             from_y (int): Starting Y coordinate.
             to_x (int): Ending X coordinate.
             to_y (int): Ending Y coordinate.
-            button (str, optional): Button type. Must be one of:
-                ["left", "right", "middle"]. Defaults to "left".
+            button (Union[MouseButton, str], optional): Button type. Can be MouseButton enum or string.
+                Valid values: MouseButton.LEFT, MouseButton.RIGHT, MouseButton.MIDDLE
+                or their string equivalents. Defaults to MouseButton.LEFT.
+                Note: DOUBLE_LEFT is not supported for drag operations.
 
         Returns:
             BoolResult: Result object containing success status and error message if any.
@@ -133,16 +152,17 @@ class Computer(BaseService):
         Raises:
             ValueError: If button is not a valid option.
         """
+        button_str = button.value if isinstance(button, MouseButton) else button
         valid_buttons = ["left", "right", "middle"]
-        if button not in valid_buttons:
-            raise ValueError(f"Invalid button '{button}'. Must be one of {valid_buttons}")
+        if button_str not in valid_buttons:
+            raise ValueError(f"Invalid button '{button_str}'. Must be one of {valid_buttons}")
 
         args = {
             "from_x": from_x,
             "from_y": from_y,
             "to_x": to_x,
             "to_y": to_y,
-            "button": button,
+            "button": button_str,
         }
         try:
             result = self._call_mcp_tool("drag_mouse", args)
@@ -170,7 +190,7 @@ class Computer(BaseService):
             )
 
     def scroll(
-        self, x: int, y: int, direction: str = "up", amount: int = 1
+        self, x: int, y: int, direction: Union[ScrollDirection, str] = ScrollDirection.UP, amount: int = 1
     ) -> BoolResult:
         """
         Scrolls the mouse wheel at the specified coordinates.
@@ -178,8 +198,9 @@ class Computer(BaseService):
         Args:
             x (int): X coordinate.
             y (int): Y coordinate.
-            direction (str, optional): Scroll direction. Must be one of:
-                ["up", "down", "left", "right"]. Defaults to "up".
+            direction (Union[ScrollDirection, str], optional): Scroll direction. Can be ScrollDirection enum or string.
+                Valid values: ScrollDirection.UP, ScrollDirection.DOWN, ScrollDirection.LEFT, ScrollDirection.RIGHT
+                or their string equivalents. Defaults to ScrollDirection.UP.
             amount (int, optional): Scroll amount. Defaults to 1.
 
         Returns:
@@ -188,11 +209,12 @@ class Computer(BaseService):
         Raises:
             ValueError: If direction is not a valid option.
         """
-        valid_directions = ["up", "down", "left", "right"]
-        if direction not in valid_directions:
-            raise ValueError(f"Invalid direction '{direction}'. Must be one of {valid_directions}")
+        direction_str = direction.value if isinstance(direction, ScrollDirection) else direction
+        valid_directions = [d.value for d in ScrollDirection]
+        if direction_str not in valid_directions:
+            raise ValueError(f"Invalid direction '{direction_str}'. Must be one of {valid_directions}")
 
-        args = {"x": x, "y": y, "direction": direction, "amount": amount}
+        args = {"x": x, "y": y, "direction": direction_str, "amount": amount}
         try:
             result = self._call_mcp_tool("scroll", args)
 
@@ -433,27 +455,31 @@ class Computer(BaseService):
             )
 
     # Window Management Operations (delegated to existing window module)
-    def list_root_windows(self) -> WindowListResult:
+    def list_root_windows(self, timeout_ms: int = 3000) -> WindowListResult:
         """
         Lists all root windows.
 
+        Args:
+            timeout_ms (int, optional): Timeout in milliseconds. Defaults to 3000.
         Returns:
             WindowListResult: Result object containing list of windows and error message if any.
         """
         from agentbay.window import WindowManager
         window_manager = WindowManager(self.session)
-        return window_manager.list_root_windows()
+        return window_manager.list_root_windows(timeout_ms)
 
-    def get_active_window(self) -> WindowInfoResult:
+    def get_active_window(self, timeout_ms: int = 3000) -> WindowInfoResult:
         """
         Gets the currently active window.
 
+        Args:
+            timeout_ms (int, optional): Timeout in milliseconds. Defaults to 3000.
         Returns:
             WindowInfoResult: Result object containing active window info and error message if any.
         """
         from agentbay.window import WindowManager
         window_manager = WindowManager(self.session)
-        return window_manager.get_active_window()
+        return window_manager.get_active_window(timeout_ms)
 
     def activate_window(self, window_id: int) -> BoolResult:
         """
@@ -555,56 +581,54 @@ class Computer(BaseService):
         window_manager = WindowManager(self.session)
         return window_manager.fullscreen_window(window_id)
 
-    def focus_mode(self, window_id: int) -> BoolResult:
+    def focus_mode(self, on: bool) -> BoolResult:
         """
-        Sets focus mode for the specified window.
+        Toggles focus mode on or off.
 
         Args:
-            window_id (int): The ID of the window to focus.
+            on (bool): True to enable focus mode, False to disable it.
 
         Returns:
             BoolResult: Result object containing success status and error message if any.
         """
         from agentbay.window import WindowManager
         window_manager = WindowManager(self.session)
-        return window_manager.focus_mode(window_id)
+        return window_manager.focus_mode(on)
 
     # Application Management Operations (delegated to existing application module)
     def get_installed_apps(
-        self,
-        include_system: bool = False,
-        include_user: bool = True,
-        include_third_party: bool = True,
+        self, start_menu: bool = True, desktop: bool = False, ignore_system_apps: bool = True
     ) -> InstalledAppListResult:
         """
         Gets the list of installed applications.
 
         Args:
-            include_system (bool, optional): Include system applications. Defaults to False.
-            include_user (bool, optional): Include user applications. Defaults to True.
-            include_third_party (bool, optional): Include third-party applications. Defaults to True.
+            start_menu (bool, optional): Whether to include start menu applications. Defaults to True.
+            desktop (bool, optional): Whether to include desktop applications. Defaults to False.
+            ignore_system_apps (bool, optional): Whether to ignore system applications. Defaults to True.
 
         Returns:
-            InstalledAppsResult: Result object containing list of installed apps and error message if any.
+            InstalledAppListResult: Result object containing list of installed apps and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.get_installed_apps(include_system, include_user, include_third_party)
+        return app_manager.get_installed_apps(start_menu, desktop, ignore_system_apps)
 
-    def start_app(self, app_name: str, work_directory: Optional[str] = None) -> BoolResult:
+    def start_app(self, start_cmd: str, work_directory: str = "", activity: str = "") -> ProcessListResult:
         """
         Starts the specified application.
 
         Args:
-            app_name (str): The name or command of the application to start.
-            work_directory (Optional[str], optional): Working directory for the application. Defaults to None.
+            start_cmd (str): The command to start the application.
+            work_directory (str, optional): Working directory for the application. Defaults to "".
+            activity (str, optional): Activity name to launch (for mobile apps). Defaults to "".
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            ProcessListResult: Result object containing list of processes started and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.start_app(app_name, work_directory)
+        return app_manager.start_app(start_cmd, work_directory, activity)
 
     def list_visible_apps(self):
         """
@@ -617,7 +641,7 @@ class Computer(BaseService):
         app_manager = ApplicationManager(self.session)
         return app_manager.list_visible_apps()
 
-    def stop_app_by_pname(self, pname: str) -> BoolResult:
+    def stop_app_by_pname(self, pname: str) -> AppOperationResult:
         """
         Stops an application by process name.
 
@@ -625,13 +649,13 @@ class Computer(BaseService):
             pname (str): The process name of the application to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
         return app_manager.stop_app_by_pname(pname)
 
-    def stop_app_by_pid(self, pid: int) -> BoolResult:
+    def stop_app_by_pid(self, pid: int) -> AppOperationResult:
         """
         Stops an application by process ID.
 
@@ -639,25 +663,25 @@ class Computer(BaseService):
             pid (int): The process ID of the application to stop.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
         return app_manager.stop_app_by_pid(pid)
 
-    def stop_app_by_cmd(self, cmd: str) -> BoolResult:
+    def stop_app_by_cmd(self, stop_cmd: str) -> AppOperationResult:
         """
-        Stops an application by command.
+        Stops an application by stop command.
 
         Args:
-            cmd (str): The command used to stop the application.
+            stop_cmd (str): The command to stop the application.
 
         Returns:
-            BoolResult: Result object containing success status and error message if any.
+            AppOperationResult: Result object containing success status and error message if any.
         """
         from agentbay.application import ApplicationManager
         app_manager = ApplicationManager(self.session)
-        return app_manager.stop_app_by_cmd(cmd)
+        return app_manager.stop_app_by_cmd(stop_cmd)
 
     def list_visible_apps(self) -> ProcessListResult:
         """

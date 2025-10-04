@@ -2,6 +2,12 @@
 
 The `Agent` type provides AI-powered capabilities for executing tasks, checking task status, and terminating tasks within a session. It enables natural language task execution and monitoring.
 
+**⚠️ Important Note**: The Agent functionality is verified on the `windows_latest` system image.
+
+## 📖 Related Tutorial
+
+- [Agent Modules Guide](../../../docs/guides/common-features/advanced/agent-modules.md) - Detailed tutorial on AI-powered automation with Agent modules
+
 ## Constructor
 
 ### NewAgent
@@ -52,8 +58,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create a session
-	sessionResult, err := client.Create(nil)
+	// Create a session with Windows image (required for Agent functionality)
+	params := agentbay.NewCreateSessionParams().WithImageId("windows_latest")
+	sessionResult, err := client.Create(params)
 	if err != nil {
 		fmt.Printf("Error creating session: %v\n", err)
 		os.Exit(1)
@@ -72,6 +79,10 @@ func main() {
 		fmt.Printf("Task failed: %s\n", executionResult.ErrorMessage)
 	}
 }
+
+// Output:
+// Task completed successfully with status: finished
+// Task ID: task-12345
 ```
 
 ### GetTaskStatus
@@ -91,7 +102,7 @@ GetTaskStatus(taskID string) *QueryResult
 **Example:**
 ```go
 // Get the status of a specific task
-taskID := "task_12345"
+taskID := "task-12345"
 statusResult := session.Agent.GetTaskStatus(taskID)
 
 if statusResult.Success {
@@ -99,6 +110,9 @@ if statusResult.Success {
 } else {
 	fmt.Printf("Failed to get task status: %s\n", statusResult.ErrorMessage)
 }
+
+// Output:
+// Task output: {"task_id":"task-12345","status":"finished","result":"Today is Thursday, October 3rd, 2025.","product":""}
 ```
 
 ### TerminateTask
@@ -118,7 +132,7 @@ TerminateTask(taskID string) *ExecutionResult
 **Example:**
 ```go
 // Terminate a running task
-taskID := "task_12345"
+taskID := "task-12345"
 terminateResult := session.Agent.TerminateTask(taskID)
 
 if terminateResult.Success {
@@ -126,4 +140,7 @@ if terminateResult.Success {
 } else {
 	fmt.Printf("Failed to terminate task: %s\n", terminateResult.ErrorMessage)
 }
+
+// Output:
+// Task terminated successfully with status: terminated
 ```

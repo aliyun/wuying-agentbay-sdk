@@ -80,3 +80,15 @@ if session_result.success:
 - **Handle URL escaping** for special characters in resource URLs
 - **Provide clear feedback** to users about what action is required
 - **Plan for user interaction time** in your automation workflows
+
+
+## 📚 Related Guides
+
+- [CAPTCHA Resolution](captcha.md) - Automatic CAPTCHA handling
+- [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
+- [Browser Use Overview](../README.md) - Complete browser automation features
+
+## 🆘 Getting Help
+
+- [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
+- [Documentation Home](../../README.md)
