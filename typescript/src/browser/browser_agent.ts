@@ -33,9 +33,11 @@ export interface ExtractOptions<T = any> {
 export class ActResult {
   success: boolean;
   message: string;
-  constructor(success: boolean, message: string) {
+  action?: string;
+  constructor(success: boolean, message: string, action?: string) {
     this.success = success;
     this.message = message;
+    this.action = action;
   }
 }
 

@@ -253,7 +253,8 @@ class TestAgentBay(unittest.TestCase):
 
         # Mock client and response
         mock_client = MagicMock()
-        mock_response = {
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
             "body": {
                 "Data": {
                     "SessionId": "mobile-session-id",
@@ -312,7 +313,8 @@ class TestAgentBay(unittest.TestCase):
 
         # Mock client and response
         mock_client = MagicMock()
-        mock_response = {
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
             "body": {
                 "Data": {
                     "SessionId": "secure-session-id",

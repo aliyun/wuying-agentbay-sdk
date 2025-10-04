@@ -180,7 +180,8 @@ func TestContextSyncWithMultipleContexts(t *testing.T) {
 
 	// Add first context sync with default policy
 	basicPolicy := agentbay.NewSyncPolicy()
-	basicSync := agentbay.NewContextSync(context1.ID, path1, basicPolicy)
+	basicSync, err := agentbay.NewContextSync(context1.ID, path1, basicPolicy)
+	require.NoError(t, err, "Error creating basic context sync")
 	sessionParams.AddContextSyncConfig(basicSync)
 
 	// Add second context sync with custom policy
@@ -202,7 +203,8 @@ func TestContextSyncWithMultipleContexts(t *testing.T) {
 			},
 		},
 	}
-	advancedSync := agentbay.NewContextSync(context2.ID, path2, customPolicy)
+	advancedSync, err := agentbay.NewContextSync(context2.ID, path2, customPolicy)
+	require.NoError(t, err, "Error creating advanced context sync")
 	sessionParams.AddContextSyncConfig(advancedSync)
 
 	// Set session parameters
@@ -313,7 +315,8 @@ func TestContextSyncSessionParams(t *testing.T) {
 		syncPolicy := &agentbay.SyncPolicy{
 			UploadPolicy: uploadPolicy,
 		}
-		contextSync := agentbay.NewContextSync(contextID, "/home", syncPolicy)
+		contextSync, err := agentbay.NewContextSync(contextID, "/home", syncPolicy)
+		require.NoError(t, err, "Error creating context sync")
 
 		sessionParams.AddContextSyncConfig(contextSync)
 
@@ -334,7 +337,8 @@ func TestContextSyncSessionParams(t *testing.T) {
 		sessionParams.AddContextSync(contextID, "/data", nil)
 
 		// Add second context sync
-		contextSync := agentbay.NewContextSync("ctx-67890", "/home", nil)
+		contextSync, err := agentbay.NewContextSync("ctx-67890", "/home", nil)
+		require.NoError(t, err, "Error creating second context sync")
 		sessionParams.AddContextSyncConfig(contextSync)
 
 		assert.Len(t, sessionParams.ContextSync, 2)
