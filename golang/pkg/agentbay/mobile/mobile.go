@@ -97,6 +97,19 @@ type Mobile struct {
 	command *command.Command
 }
 
+// SessionWithCommand extends the basic session interface to include Command access
+type SessionWithCommand interface {
+	GetAPIKey() string
+	GetClient() *mcp.Client
+	GetSessionId() string
+	IsVpc() bool
+	NetworkInterfaceIp() string
+	HttpPort() string
+	FindServerForTool(toolName string) string
+	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	GetCommand() *command.Command
+}
+
 // NewMobile creates a new Mobile instance for UI automation
 func NewMobile(session interface {
 	GetAPIKey() string
@@ -108,7 +121,16 @@ func NewMobile(session interface {
 	FindServerForTool(toolName string) string
 	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
 }) *Mobile {
-	return &Mobile{Session: session}
+	mobile := &Mobile{
+		Session: session,
+	}
+	
+	// Try to get command from session if it implements SessionWithCommand interface
+	if sessionWithCmd, ok := session.(SessionWithCommand); ok {
+		mobile.command = sessionWithCmd.GetCommand()
+	}
+	
+	return mobile
 }
 
 // Tap taps on the screen at specific coordinates

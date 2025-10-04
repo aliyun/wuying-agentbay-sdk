@@ -186,6 +186,11 @@ func (s *Session) GetSessionId() string {
 	return s.SessionID
 }
 
+// GetCommand returns the command handler for this session.
+func (s *Session) GetCommand() *command.Command {
+	return s.Command
+}
+
 // Delete deletes this session.
 func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	shouldSync := len(syncContext) > 0 && syncContext[0]
