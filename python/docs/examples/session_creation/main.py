@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from agentbay import AgentBay
 from agentbay.context_sync import ContextSync, SyncPolicy
 from agentbay.session_params import CreateSessionParams, BrowserContext
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 
 def create_session_with_default_params() -> None:
@@ -209,7 +210,66 @@ def create_session_with_browser_context() -> None:
         else:
             print(f"Failed to create session with browser context: {session_result.error_message}")
     else:
-        print(f"Failed to get or create browser context: {context_result.error_message}")
+        print(f"Failed to get or create browser context")
+
+
+def create_session_with_mobile_config() -> None:
+    """Create a session with mobile configuration for app management and resolution control."""
+    # Initialize the AgentBay client
+    api_key = os.environ.get("AGENTBAY_API_KEY", "")
+    agent_bay = AgentBay(api_key=api_key)
+
+    # Create app whitelist rule
+    app_whitelist_rule = AppManagerRule(
+        rule_type="White",
+        app_package_name_list=[
+            "com.example.allowed.app",
+            "com.company.trusted.app",
+            "com.system.essential.service",
+            "com.android.settings"
+        ]
+    )
+
+    # Configure mobile settings
+    mobile_config = MobileExtraConfig(
+        lock_resolution=True,  # Lock screen resolution for consistent testing
+        app_manager_rule=app_whitelist_rule
+    )
+
+    # Create extra configs
+    extra_configs = ExtraConfigs(mobile=mobile_config)
+
+    # Create session parameters with mobile configuration
+    session_params = CreateSessionParams(
+        image_id="mobile_latest",
+        labels={
+            "project": "mobile-testing",
+            "environment": "development",
+            "config_type": "whitelist"
+        },
+        extra_configs=extra_configs
+    )
+
+    session_result = agent_bay.create(session_params)
+
+    if session_result.success and session_result.session:
+        session = session_result.session
+        print(f"Mobile session with whitelist created successfully with ID: {session.session_id}")
+        print(f"Request ID: {session_result.request_id}")
+        print("Mobile configuration applied:")
+        print("- Resolution locked for consistent testing")
+        print("- App whitelist enabled with allowed packages:")
+        for package in app_whitelist_rule.app_package_name_list or []:
+            print(f"  - {package}")
+
+        # Clean up
+        delete_result = agent_bay.delete(session)
+        if delete_result.success:
+            print("Mobile session deleted successfully")
+        else:
+            print(f"Failed to delete mobile session: {delete_result.error_message}")
+    else:
+        print(f"Failed to create mobile session: {session_result.error_message}")
 
 
 def main() -> None:
@@ -224,6 +284,8 @@ def main() -> None:
     create_session_with_context_sync()
     print("\n5. Creating session with browser context...")
     create_session_with_browser_context()
+    print("\n6. Creating session with mobile configuration (whitelist)...")
+    create_session_with_mobile_config()
 
 
 if __name__ == "__main__":

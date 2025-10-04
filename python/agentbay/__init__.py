@@ -41,6 +41,7 @@ __all__ = [
     "Window",
     "Agent",
     "Command",
+    "Mobile",
     "ApplicationManager",
     "InstalledApp",
     "Process",

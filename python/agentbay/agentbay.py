@@ -269,6 +269,11 @@ class AgentBay:
                 if not hasattr(request, 'persistence_data_list') or request.persistence_data_list is None:
                     request.persistence_data_list = []
                 request.persistence_data_list.append(record_persistence)
+
+            # Add extra_configs if provided
+            if hasattr(params, "extra_configs") and params.extra_configs:
+                request.extra_configs = params.extra_configs
+            
             try:
                 req_map = request.to_map()
                 if "Authorization" in req_map and isinstance(
@@ -368,6 +373,10 @@ class AgentBay:
 
             # Store image_id used for this session
             session.image_id = params.image_id
+
+            # Process mobile configuration if provided
+            if hasattr(params, "extra_configs") and params.extra_configs and params.extra_configs.mobile:
+                session.mobile.configure(params.extra_configs.mobile)
 
             with self._lock:
                 self._sessions[session_id] = session

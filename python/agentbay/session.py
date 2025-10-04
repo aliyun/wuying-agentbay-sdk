@@ -92,7 +92,7 @@ class Session:
         self.application = ApplicationManager(self)
         self.window = WindowManager(self)
 
-        # Initialize new Computer and Mobile modules
+        # Initialize Computer and Mobile modules
         self.computer = Computer(self)
         self.mobile = Mobile(self)
 
@@ -565,7 +565,7 @@ class Session:
         except Exception as e:
             raise SessionError(f"Failed to get link asynchronously: {e}")
 
-    def list_mcp_tools(self, image_id: Optional[str] = None) -> "McpToolsResult":
+    def list_mcp_tools(self, image_id: Optional[str] = None):
         """
         List MCP tools available for this session.
 
@@ -573,7 +573,7 @@ class Session:
             image_id: Optional image ID, defaults to session's image_id or "linux_latest"
 
         Returns:
-            McpToolsResult: Result containing tools list and request ID
+            Result containing tools list and request ID
         """
         from agentbay.api.models import ListMcpToolsRequest
         from agentbay.model.response import McpToolsResult

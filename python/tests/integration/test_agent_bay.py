@@ -3,6 +3,8 @@ import sys
 import unittest
 
 from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 # Add the parent directory to the path so we can import the agentbay package
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -174,6 +176,7 @@ class TestSession(unittest.TestCase):
                 # Don't fail the test if filesystem operations are not supported
         else:
             print("Note: FileSystem interface is nil, skipping file test")
+
 
 
 if __name__ == "__main__":

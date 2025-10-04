@@ -132,6 +132,9 @@ type Session struct {
 	// Agent for task execution
 	Agent *agent.Agent
 
+	// Mobile configuration and management
+	Mobile *mobile.Mobile
+
 	// Context management
 	Context *ContextManager
 
@@ -165,6 +168,9 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 
 	// Initialize Agent
 	session.Agent = agent.NewAgent(session)
+
+	// Initialize Mobile
+	session.Mobile = mobile.NewMobile(session.Command)
 
 	// Initialize context manager
 	session.Context = NewContextManager(session)

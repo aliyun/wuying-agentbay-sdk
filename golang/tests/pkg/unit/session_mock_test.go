@@ -1,11 +1,13 @@
 package agentbay_test
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/unit/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -490,4 +492,138 @@ func TestSession_ListMcpTools_WithMockClient(t *testing.T) {
 	assert.Equal(t, "Captures a full-screen screenshot of the current display and returns a shareable URL. The screenshot is automatically processed and stored securely. The generated URL will expire after 64 minutes for security purposes.", result.Tools[1].Description)
 	assert.Equal(t, "mcp-server", result.Tools[1].Server)
 	assert.Equal(t, "system_screenshot", result.Tools[1].Tool)
+}
+
+// Models related tests
+func TestModels_AppManagerRule_Creation(t *testing.T) {
+	// Test app manager rule creation
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.test.app",
+		},
+	}
+
+	assert.Equal(t, "White", appRule.RuleType)
+	assert.Equal(t, 2, len(appRule.AppPackageNameList))
+}
+
+func TestModels_MobileExtraConfig_Creation(t *testing.T) {
+	appRule := &models.AppManagerRule{
+		RuleType:           "White",
+		AppPackageNameList: []string{"com.example.app"},
+	}
+
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+
+	assert.True(t, mobileConfig.LockResolution)
+	assert.NotNil(t, mobileConfig.AppManagerRule)
+	assert.Equal(t, "White", mobileConfig.AppManagerRule.RuleType)
+}
+
+func TestModels_ExtraConfigs_ToJSON(t *testing.T) {
+	// Test with nil ExtraConfigs
+	var nilConfigs *models.ExtraConfigs
+	jsonStr, err := nilConfigs.ToJSON()
+	assert.NoError(t, err)
+	assert.Equal(t, "", jsonStr)
+
+	// Test with mobile configuration
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.app",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	jsonStr, err = extraConfigs.ToJSON()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, jsonStr)
+
+	// Verify JSON structure
+	var parsed map[string]interface{}
+	err = json.Unmarshal([]byte(jsonStr), &parsed)
+	assert.NoError(t, err)
+
+	mobile, exists := parsed["mobile"]
+	assert.True(t, exists)
+
+	mobileMap, ok := mobile.(map[string]interface{})
+	assert.True(t, ok)
+
+	lockResolution, exists := mobileMap["lock_resolution"]
+	assert.True(t, exists)
+	assert.Equal(t, true, lockResolution)
+}
+
+func TestModels_ExtraConfigs_FromJSON(t *testing.T) {
+	jsonStr := `{
+		"mobile": {
+			"lock_resolution": true,
+			"app_manager_rule": {
+				"rule_type": "White",
+				"app_package_name_list": ["com.android.settings", "com.example.app"]
+			}
+		}
+	}`
+
+	extraConfigs := &models.ExtraConfigs{}
+	err := extraConfigs.FromJSON(jsonStr)
+	assert.NoError(t, err)
+
+	assert.NotNil(t, extraConfigs.Mobile)
+	assert.True(t, extraConfigs.Mobile.LockResolution)
+	assert.NotNil(t, extraConfigs.Mobile.AppManagerRule)
+	assert.Equal(t, "White", extraConfigs.Mobile.AppManagerRule.RuleType)
+
+	expectedPackages := []string{"com.android.settings", "com.example.app"}
+	assert.Equal(t, len(expectedPackages), len(extraConfigs.Mobile.AppManagerRule.AppPackageNameList))
+
+	// Test with empty JSON
+	emptyConfigs := &models.ExtraConfigs{}
+	err = emptyConfigs.FromJSON("")
+	assert.NoError(t, err)
+}
+
+func TestModels_ExtraConfigs_JSONRoundTrip(t *testing.T) {
+	// Create original configuration with lock resolution
+	appRule := &models.AppManagerRule{
+		RuleType:           "White",
+		AppPackageNameList: []string{"com.android.settings", "com.example.app"},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	originalConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	// Convert to JSON
+	jsonStr, err := originalConfigs.ToJSON()
+	assert.NoError(t, err)
+
+	// Convert back from JSON
+	newConfigs := &models.ExtraConfigs{}
+	err = newConfigs.FromJSON(jsonStr)
+	assert.NoError(t, err)
+
+	// Verify the round trip preserved the data including lock resolution
+	assert.NotNil(t, newConfigs.Mobile)
+	assert.Equal(t, originalConfigs.Mobile.LockResolution, newConfigs.Mobile.LockResolution)
+	assert.True(t, newConfigs.Mobile.LockResolution)
+	assert.Equal(t, originalConfigs.Mobile.AppManagerRule.RuleType, newConfigs.Mobile.AppManagerRule.RuleType)
+	assert.Equal(t, len(originalConfigs.Mobile.AppManagerRule.AppPackageNameList), len(newConfigs.Mobile.AppManagerRule.AppPackageNameList))
 }

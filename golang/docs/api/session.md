@@ -282,6 +282,159 @@ for i, tool := range toolsResult.Tools {
 // Tool: write_file - Write content to a file
 ```
 
+## Session Creation with Extra Configurations
+
+Sessions can be created with additional configurations for specific environments using the `ExtraConfigs` parameter in `CreateSessionParams`. This is particularly useful for mobile sessions that require app management rules and resolution settings.
+
+### Mobile Session Configuration
+
+For mobile sessions, you can configure app management rules and display settings using `MobileExtraConfig`:
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create mobile configuration with whitelist
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.test.app",
+			"com.trusted.service",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution: true,
+		AppManagerRule: appRule,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	// Create session parameters with mobile configuration
+	params := agentbay.NewCreateSessionParams().
+		WithImageId("mobile_latest").
+		WithLabels(map[string]string{
+			"project":     "mobile-testing",
+			"config_type": "whitelist",
+		}).
+		WithExtraConfigs(extraConfigs)
+
+	// Create the session
+	result, err := client.Create(params)
+	if err != nil {
+		fmt.Printf("Error creating mobile session: %v\n", err)
+		os.Exit(1)
+	}
+
+	session := result.Session
+	fmt.Printf("Mobile session created with ID: %s\n", session.SessionID)
+
+	// Use the session...
+
+	// Clean up
+	deleteResult, err := session.Delete()
+	if err != nil {
+		fmt.Printf("Error deleting session: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Session deleted (RequestID: %s)\n", deleteResult.RequestID)
+}
+```
+
+### App Manager Rules
+
+The `AppManagerRule` struct allows you to control which applications are allowed or blocked in mobile sessions:
+
+#### Whitelist Configuration
+```go
+// Create whitelist rule - only specified apps are allowed
+appRule := &models.AppManagerRule{
+	RuleType: "White",
+	AppPackageNameList: []string{
+		"com.android.settings",
+		"com.google.android.gms",
+		"com.trusted.app",
+	},
+}
+```
+
+#### Blacklist Configuration
+```go
+// Create blacklist rule - specified apps are blocked
+appRule := &models.AppManagerRule{
+	RuleType: "Black",
+	AppPackageNameList: []string{
+		"com.malware.suspicious",
+		"com.unwanted.adware",
+		"com.blocked.app",
+	},
+}
+```
+
+### Mobile Extra Config Options
+
+The `MobileExtraConfig` struct provides the following options:
+
+- **`LockResolution`** (bool): When set to `true`, locks the display resolution to prevent changes during the session. When `false`, allows flexible resolution adjustments.
+- **`AppManagerRule`** (*AppManagerRule): Defines the application access control rules for the mobile session.
+
+### JSON Serialization
+
+Extra configurations are automatically serialized to JSON when creating sessions. You can also manually serialize them for inspection:
+
+```go
+// Serialize extra configs to JSON
+jsonStr, err := extraConfigs.ToJSON()
+if err != nil {
+	fmt.Printf("Error serializing extra configs: %v\n", err)
+	return
+}
+fmt.Printf("Extra configs JSON: %s\n", jsonStr)
+
+// Get JSON from session parameters
+params := agentbay.NewCreateSessionParams().WithExtraConfigs(extraConfigs)
+paramsJSON, err := params.GetExtraConfigsJSON()
+if err != nil {
+	fmt.Printf("Error getting extra configs JSON: %v\n", err)
+	return
+}
+fmt.Printf("Session params JSON: %s\n", paramsJSON)
+```
+
+### Best Practices
+
+1. **Use Appropriate Image IDs**: For mobile sessions with extra configs, use `mobile_latest` or specific mobile image IDs.
+
+2. **Set Descriptive Labels**: Use labels to identify the configuration type and purpose:
+   ```go
+   WithLabels(map[string]string{
+       "config_type": "whitelist",
+       "security":    "enabled",
+       "project":     "mobile-testing",
+   })
+   ```
+
+3. **Test Configurations**: Validate your app package names and configuration settings in a test environment before production use.
+
+4. **Handle Errors Gracefully**: Always check for errors when creating sessions with extra configurations, as invalid configurations may cause session creation to fail.
+
 ## Related Resources
 
 - [FileSystem API Reference](filesystem.md)

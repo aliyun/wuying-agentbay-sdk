@@ -2,6 +2,8 @@ package agentbay
 
 import (
 	"encoding/json"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
 // CreateSessionParams provides a way to configure the parameters for creating a new session
@@ -22,6 +24,9 @@ type CreateSessionParams struct {
 
 	// McpPolicyId specifies the MCP policy ID to apply when creating the session.
 	McpPolicyId string
+
+	// ExtraConfigs contains extra configuration settings for different session types
+	ExtraConfigs *models.ExtraConfigs
 }
 
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
@@ -56,6 +61,12 @@ func (p *CreateSessionParams) WithMcpPolicyId(mcpPolicyId string) *CreateSession
 	return p
 }
 
+// WithExtraConfigs sets the extra configurations for the session parameters and returns the updated parameters.
+func (p *CreateSessionParams) WithExtraConfigs(extraConfigs *models.ExtraConfigs) *CreateSessionParams {
+	p.ExtraConfigs = extraConfigs
+	return p
+}
+
 // GetLabelsJSON returns the labels as a JSON string.
 func (p *CreateSessionParams) GetLabelsJSON() (string, error) {
 	if len(p.Labels) == 0 {
@@ -68,6 +79,15 @@ func (p *CreateSessionParams) GetLabelsJSON() (string, error) {
 	}
 
 	return string(labelsJSON), nil
+}
+
+// GetExtraConfigsJSON returns the extra configs as a JSON string.
+func (p *CreateSessionParams) GetExtraConfigsJSON() (string, error) {
+	if p.ExtraConfigs == nil {
+		return "", nil
+	}
+
+	return p.ExtraConfigs.ToJSON()
 }
 
 // AddContextSync adds a context sync configuration to the session parameters.

@@ -27,6 +27,8 @@ type iCreateMcpSessionRequest interface {
 	GetSessionId() *string
 	SetVpcResource(v bool) *CreateMcpSessionRequest
 	GetVpcResource() *bool
+	SetExtraConfigs(v string) *CreateMcpSessionRequest
+	GetExtraConfigs() *string
 }
 
 type CreateMcpSessionRequest struct {
@@ -39,6 +41,7 @@ type CreateMcpSessionRequest struct {
 	PersistenceDataList []*CreateMcpSessionRequestPersistenceDataList `json:"PersistenceDataList,omitempty" xml:"PersistenceDataList,omitempty" type:"Repeated"`
 	SessionId           *string                                       `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
 	VpcResource         *bool                                         `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
+	ExtraConfigs        *string                                       `json:"ExtraConfigs,omitempty" xml:"ExtraConfigs,omitempty"`
 }
 
 func (s CreateMcpSessionRequest) String() string {
@@ -128,6 +131,15 @@ func (s *CreateMcpSessionRequest) SetSessionId(v string) *CreateMcpSessionReques
 func (s *CreateMcpSessionRequest) SetVpcResource(v bool) *CreateMcpSessionRequest {
 	s.VpcResource = &v
 	return s
+}
+
+func (s *CreateMcpSessionRequest) SetExtraConfigs(v string) *CreateMcpSessionRequest {
+	s.ExtraConfigs = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequest) GetExtraConfigs() *string {
+	return s.ExtraConfigs
 }
 
 func (s *CreateMcpSessionRequest) Validate() error {
