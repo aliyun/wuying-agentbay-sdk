@@ -51,10 +51,9 @@ class TestDeleteIntegration(unittest.TestCase):
         self.assertTrue(list_result.success)
         
         # Check if session has been deleted
-        session_ids = [s.session_id for s in list_result.sessions]
         self.assertNotIn(
             session.session_id,
-            session_ids,
+            list_result.session_ids,
             f"Session ID {session.session_id} still exists after deletion",
         )
 
@@ -113,10 +112,9 @@ class TestDeleteIntegration(unittest.TestCase):
         self.assertTrue(list_result.success)
         
         # Check if session has been deleted
-        session_ids = [s.session_id for s in list_result.sessions]
         self.assertNotIn(
             session.session_id,
-            session_ids,
+            list_result.session_ids,
             f"Session ID {session.session_id} still exists after deletion",
         )
 
@@ -185,10 +183,9 @@ class TestDeleteIntegration(unittest.TestCase):
         self.assertTrue(list_result.success)
         
         # Check if session has been deleted
-        session_ids = [s.session_id for s in list_result.sessions]
         self.assertNotIn(
             session.session_id,
-            session_ids,
+            list_result.session_ids,
             f"Session ID {session.session_id} still exists after deletion",
         )
 

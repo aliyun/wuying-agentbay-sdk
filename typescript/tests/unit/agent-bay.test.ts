@@ -103,7 +103,7 @@ describe("AgentBay", () => {
   });
 
   describe("constructor", () => {
-    it.only("should initialize with API key from options", () => {
+    it("should initialize with API key from options", () => {
       const apiKey = "test-api-key";
       const agentBay = new AgentBay({ apiKey });
       log(apiKey);
@@ -125,7 +125,7 @@ describe("AgentBay", () => {
       expect(contextServiceConstructorStub.calledOnce).toBe(true);
     });
 
-    it.only("should initialize with API key from environment variable", () => {
+    it("should initialize with API key from environment variable", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       process.env.AGENTBAY_API_KEY = "env_api_key";
 
@@ -147,7 +147,7 @@ describe("AgentBay", () => {
       }
     });
 
-    it.only("should throw AuthenticationError if no API key is provided", () => {
+    it("should throw AuthenticationError if no API key is provided", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       delete process.env.AGENTBAY_API_KEY;
 
@@ -171,7 +171,7 @@ describe("AgentBay", () => {
       agentBay = new AgentBay({ apiKey });
     });
 
-    it.only("should create, list, and delete a session with requestId", async () => {
+    it("should create, list, and delete a session with requestId", async () => {
       // Setup mock response for create session
       const createMockResponse = {
         statusCode: 200,
@@ -376,7 +376,7 @@ describe("AgentBay", () => {
       }
     });
 
-    it.only("should list sessions by labels with requestId", async () => {
+    it("should list sessions by labels with requestId", async () => {
 
       // Test 2: List sessions by environment=development label using new API
       const devSessionsResponse = {
@@ -411,8 +411,8 @@ describe("AgentBay", () => {
       expect(devSessions.requestId).toBe("mock-request-id-list-dev");
 
       // Verify that session A is in the results
-      expect(devSessions.data.length).toBe(1);
-      expect(devSessions.data[0].sessionId).toBe(mockSessionAData.sessionId);
+      expect(devSessions.sessionIds.length).toBe(1);
+      expect(devSessions.sessionIds[0]).toBe(mockSessionAData.sessionId);
 
       // Verify API call parameters
       expect(listSessionStub.calledOnce).toBe(true);
@@ -456,8 +456,8 @@ describe("AgentBay", () => {
       expect(teamBSessions.requestId).toBe("mock-request-id-list-team-b");
 
       // Verify that session B is in the results
-      expect(teamBSessions.data.length).toBe(1);
-      expect(teamBSessions.data[0].sessionId).toBe(mockSessionBData.sessionId);
+      expect(teamBSessions.sessionIds.length).toBe(1);
+      expect(teamBSessions.sessionIds[0]).toBe(mockSessionBData.sessionId);
 
       // Test 4: List sessions with multiple labels
       const multiLabelSessionsResponse = {
@@ -485,7 +485,7 @@ describe("AgentBay", () => {
         multiLabelSessionsParams
       );
       log(
-        `Found ${multiLabelSessions.data.length} sessions with environment=testing AND project=project-y`
+        `Found ${multiLabelSessions.sessionIds.length} sessions with environment=testing AND project=project-y`
       );
       log(
         `List Sessions by multiple labels RequestId: ${
@@ -501,8 +501,8 @@ describe("AgentBay", () => {
       expect(multiLabelSessions.requestId).toBe("mock-request-id-list-multi");
 
       // Verify that only session B is in the results
-      expect(multiLabelSessions.data.length).toBe(1);
-      expect(multiLabelSessions.data[0].sessionId).toBe(
+      expect(multiLabelSessions.sessionIds.length).toBe(1);
+      expect(multiLabelSessions.sessionIds[0]).toBe(
         mockSessionBData.sessionId
       );
 
@@ -528,7 +528,7 @@ describe("AgentBay", () => {
           nextToken: multiLabelSessions.nextToken,
         };
         const nextPageSessions = await agentBay.listByLabels(nextPageParams);
-        log(`Next page sessions count: ${nextPageSessions.data.length}`);
+        log(`Next page sessions count: ${nextPageSessions.sessionIds.length}`);
         log(`Next page RequestId: ${nextPageSessions.requestId}`);
 
         // Verify next page response
@@ -536,8 +536,8 @@ describe("AgentBay", () => {
         expect(nextPageSessions.requestId).toBe(
           "mock-request-id-list-next-page"
         );
-        expect(nextPageSessions.data.length).toBe(1);
-        expect(nextPageSessions.data[0].sessionId).toBe(
+        expect(nextPageSessions.sessionIds.length).toBe(1);
+        expect(nextPageSessions.sessionIds[0]).toBe(
           mockSessionAData.sessionId
         );
 
@@ -574,7 +574,7 @@ describe("AgentBay", () => {
         nonExistentSessionsParams
       );
       log(
-        `Found ${nonExistentSessions.data.length} sessions with non-existent label`
+        `Found ${nonExistentSessions.sessionIds.length} sessions with non-existent label`
       );
       log(
         `List Sessions by non-existent label RequestId: ${
@@ -590,7 +590,7 @@ describe("AgentBay", () => {
       expect(nonExistentSessions.requestId).toBe("mock-request-id-list-empty");
 
       // Verify empty results
-      expect(nonExistentSessions.data.length).toBe(0);
+      expect(nonExistentSessions.sessionIds.length).toBe(0);
 
       // Verify API calls were made with correct parameters
       expect(listSessionStub.called).toBe(true);
@@ -611,6 +611,7 @@ describe("AgentBay", () => {
       const mockResponse = {
         statusCode: 200,
         body: {
+          success: true,
           data: [mockSessionAData, mockSessionBData, mockSessionData],
           maxResults: 10,
           totalCount: 3,
@@ -624,7 +625,7 @@ describe("AgentBay", () => {
 
       expect(result.success).toBe(true);
       expect(result.requestId).toBe("mock-request-id-list-all");
-      expect(result.data.length).toBe(3);
+      expect(result.sessionIds.length).toBe(3);
       expect(result.totalCount).toBe(3);
     });
 
@@ -632,6 +633,7 @@ describe("AgentBay", () => {
       const mockResponse = {
         statusCode: 200,
         body: {
+          success: true,
           data: [mockSessionAData],
           maxResults: 10,
           totalCount: 1,
@@ -645,7 +647,7 @@ describe("AgentBay", () => {
 
       expect(result.success).toBe(true);
       expect(result.requestId).toBe("mock-request-id-list-labeled");
-      expect(result.data.length).toBe(1);
+      expect(result.sessionIds.length).toBe(1);
       expect(listSessionStub.calledOnce).toBe(true);
       const callArgs = listSessionStub.getCall(0).args[0];
       expect(JSON.parse(callArgs.labels)).toEqual({ env: "prod" });
@@ -656,6 +658,7 @@ describe("AgentBay", () => {
       const mockResponsePage1 = {
         statusCode: 200,
         body: {
+          success: true,
           data: [mockSessionAData, mockSessionBData],
           maxResults: 2,
           totalCount: 4,
@@ -668,6 +671,7 @@ describe("AgentBay", () => {
       const mockResponsePage2 = {
         statusCode: 200,
         body: {
+          success: true,
           data: [mockSessionData],
           maxResults: 2,
           totalCount: 4,
@@ -684,8 +688,8 @@ describe("AgentBay", () => {
 
       expect(result.success).toBe(true);
       expect(result.requestId).toBe("mock-request-id-page2");
-      expect(result.data.length).toBe(1);
-      expect(result.data[0].sessionId).toBe(mockSessionData.sessionId);
+      expect(result.sessionIds.length).toBe(1);
+      expect(result.sessionIds[0]).toBe(mockSessionData.sessionId);
       expect(listSessionStub.calledTwice).toBe(true);
     });
 
@@ -693,6 +697,7 @@ describe("AgentBay", () => {
       const mockResponse = {
         statusCode: 200,
         body: {
+          success: true,
           data: [mockSessionAData],
           maxResults: 10,
           totalCount: 1,

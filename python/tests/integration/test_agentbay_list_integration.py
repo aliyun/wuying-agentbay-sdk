@@ -209,10 +209,10 @@ class TestAgentBayList(unittest.TestCase):
         self.assertTrue(result_page1.success, "First page should succeed")
         self.assertIsNotNone(result_page1.request_id, "Request ID should be present")
         self.assertLessEqual(
-            len(result_page1.sessions), 2, "First page should have at most 2 sessions"
+            len(result_page1.session_ids), 2, "First page should have at most 2 sessions"
         )
 
-        print(f"Page 1 - Found {len(result_page1.sessions)} sessions")
+        print(f"Page 1 - Found {len(result_page1.session_ids)} sessions")
         print(f"Request ID: {result_page1.request_id}")
 
         # If there are more results, test page 2
@@ -226,7 +226,7 @@ class TestAgentBayList(unittest.TestCase):
                 result_page2.request_id, "Request ID should be present"
             )
 
-            print(f"Page 2 - Found {len(result_page2.sessions)} sessions")
+            print(f"Page 2 - Found {len(result_page2.session_ids)} sessions")
             print(f"Request ID: {result_page2.request_id}")
 
     def test_list_with_non_matching_label(self):

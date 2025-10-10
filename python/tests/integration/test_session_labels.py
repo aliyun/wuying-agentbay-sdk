@@ -114,21 +114,15 @@ class TestSessionLabels(unittest.TestCase):
 
         try:
             list_result = self.agent_bay.list_by_labels(single_label_filter)
-            sessions = list_result.sessions
             print(
-                f"Found {len(sessions)} sessions with single label filter.",
+                f"Found {len(list_result.session_ids)} sessions with single label filter.",
                 f"Request ID: {list_result.request_id}",
             )
 
             # Check if our session is in the results
-            found_in_single_label_results = False
-            for s in sessions:
-                if s.session_id == self.session.session_id:
-                    found_in_single_label_results = True
-                    break
-
-            self.assertTrue(
-                found_in_single_label_results,
+            self.assertIn(
+                self.session.session_id,
+                list_result.session_ids,
                 "Session not found when filtering by single label",
             )
             print("Session successfully found when filtering by single label")
@@ -143,21 +137,15 @@ class TestSessionLabels(unittest.TestCase):
 
         try:
             list_result = self.agent_bay.list_by_labels(multi_label_filter)
-            sessions = list_result.sessions
             print(
-                f"Found {len(sessions)} sessions with multiple labels filter.",
+                f"Found {len(list_result.session_ids)} sessions with multiple labels filter.",
                 f"Request ID: {list_result.request_id}",
             )
 
             # Check if our session is in the results
-            found_in_multi_label_results = False
-            for s in sessions:
-                if s.session_id == self.session.session_id:
-                    found_in_multi_label_results = True
-                    break
-
-            self.assertTrue(
-                found_in_multi_label_results,
+            self.assertIn(
+                self.session.session_id,
+                list_result.session_ids,
                 "Session not found when filtering by multiple labels",
             )
             print("Session successfully found when filtering by multiple labels")
@@ -172,20 +160,14 @@ class TestSessionLabels(unittest.TestCase):
 
         try:
             list_result = self.agent_bay.list_by_labels(non_matching_filter)
-            sessions = list_result.sessions
             print(
-                f"Found {len(sessions)} sessions with non-matching filter. Request ID: {list_result.request_id}"
+                f"Found {len(list_result.session_ids)} sessions with non-matching filter. Request ID: {list_result.request_id}"
             )
 
             # Check that our session is NOT in the results
-            found_in_non_matching_results = False
-            for s in sessions:
-                if s.session_id == self.session.session_id:
-                    found_in_non_matching_results = True
-                    break
-
-            self.assertFalse(
-                found_in_non_matching_results,
+            self.assertNotIn(
+                self.session.session_id,
+                list_result.session_ids,
                 "Session found when filtering by non-matching label",
             )
             print("Session correctly not found when filtering by non-matching label")
@@ -244,20 +226,14 @@ class TestSessionLabels(unittest.TestCase):
 
         try:
             list_result = self.agent_bay.list_by_labels(updated_env_filter)
-            sessions = list_result.sessions
             print(
-                f"Found {len(sessions)} sessions with old environment filter.",
+                f"Found {len(list_result.session_ids)} sessions with updated environment filter.",
                 f"Request ID: {list_result.request_id}",
             )
 
-            found_with_updated_env = False
-            for s in sessions:
-                if s.session_id == self.session.session_id:
-                    found_with_updated_env = True
-                    break
-
-            self.assertTrue(
-                found_with_updated_env,
+            self.assertIn(
+                self.session.session_id,
+                list_result.session_ids,
                 "Session not found when filtering by updated environment label",
             )
             print(
@@ -271,20 +247,14 @@ class TestSessionLabels(unittest.TestCase):
 
         try:
             list_result = self.agent_bay.list_by_labels(old_env_filter)
-            sessions = list_result.sessions
             print(
-                f"Found {len(sessions)} sessions with old environment filter.",
+                f"Found {len(list_result.session_ids)} sessions with old environment filter.",
                 f"Request ID: {list_result.request_id}",
             )
 
-            found_with_old_env = False
-            for s in sessions:
-                if s.session_id == self.session.session_id:
-                    found_with_old_env = True
-                    break
-
-            self.assertFalse(
-                found_with_old_env,
+            self.assertNotIn(
+                self.session.session_id,
+                list_result.session_ids,
                 "Session found when filtering by old environment label",
             )
             print("Session correctly not found when filtering by old environment label")
