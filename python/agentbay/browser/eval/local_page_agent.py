@@ -1,6 +1,7 @@
 import asyncio
 import os
 import concurrent.futures
+from typing import Dict, Any
 from playwright.async_api import async_playwright
 from mcp import ClientSession, StdioServerParameters, stdio_client
 import json
@@ -14,7 +15,7 @@ from agentbay.logger import get_logger
 logger = get_logger("local_page_agent")
 
 class LocalMCPClient:
-    def __init__(self, server: str, command: str, args: list[str]):
+    def __init__(self, server: str, command: str, args: list[str])-> None:
         self.server = server
         self.command = command
         self.args = args
@@ -23,11 +24,11 @@ class LocalMCPClient:
         self._tool_call_queue: asyncio.Queue | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
 
-    def connect(self):
+    def connect(self) -> None:
         if (self.worker_thread is None):
-            promise = concurrent.futures.Future()
-            def thread_target():
-                async def _connect_and_list_tools():
+            promise: concurrent.futures.Future[bool] = concurrent.futures.Future()
+            def thread_target() -> None:
+                async def _connect_and_list_tools() -> None:
                     success = False
                     logger.info("Start connect to mcp server")
                     try:
@@ -56,7 +57,7 @@ class LocalMCPClient:
             self.worker_thread = concurrent.futures.ThreadPoolExecutor().submit(thread_target)
             promise.result()
 
-    async def call_tool(self, tool_name: str, arguments: dict):
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]):
         if not self.session or not self._tool_call_queue or not self._loop:
             raise RuntimeError("MCP client is not connected. Call connect() and ensure it returns True before calling callTool.")
         caller_loop = asyncio.get_running_loop()
@@ -146,14 +147,14 @@ class LocalBrowser(Browser):
         # Optionally skip calling super().__init__ if not needed for tests
         self.contexts = []
         self._cdp_port = 9222
-        self.agent = LocalPageAgent(session, self)
+        self.agent: LocalPageAgent = LocalPageAgent(session, self)
         self._worker_thread = None
 
-    async def initialize_async(self, options: BrowserOption):
+    async def initialize_async(self, options: BrowserOption) -> bool:
         if (self._worker_thread is None):
-            promise = concurrent.futures.Future()
-            def thread_target():
-                async def _launch_local_browser():
+            promise: concurrent.futures.Future[bool] = concurrent.futures.Future()
+            def thread_target() -> None:
+                async def _launch_local_browser() -> None:
                     success = False
                     logger.info("Start launching local browser")
                     try:

@@ -61,7 +61,7 @@ async def run_single_task(
     task_duration_s = round(total_duration_s - browser_setup_s, 2)
 
     llm_metrics = agent.get_metrics()
-    llm_metrics["llm_duration_s"] = round(llm_metrics.get("llm_duration_s", 0.0), 2)
+    llm_metrics["llm_duration_s"] = int(round(llm_metrics.get("llm_duration_s", 0.0), 2))
     if task_duration_s:
         llm_time_percentage = round(
             llm_metrics["llm_duration_s"] / task_duration_s * 100, 1

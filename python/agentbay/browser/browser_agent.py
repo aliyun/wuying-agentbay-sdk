@@ -377,7 +377,7 @@ class BrowserAgent(BaseService):
 
         while max_retries > 0:
             await asyncio.sleep(5)
-            if self.mcp_client:
+            if hasattr(self, "mcp_client") and self.mcp_client:
                 result = await self._call_mcp_tool_async(
                     "page_use_get_act_result", {"task_id": task_id}
                 )
@@ -632,7 +632,7 @@ class BrowserAgent(BaseService):
         while max_retries > 0:
             await asyncio.sleep(8)
 
-            if self.mcp_client:
+            if hasattr(self, "mcp_client") and self.mcp_client:
                 result = await self._call_mcp_tool_async(
                     "page_use_get_extract_result", {"task_id": task_id}
                 )
