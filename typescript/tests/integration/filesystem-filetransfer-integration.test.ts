@@ -146,7 +146,7 @@ describe("File Transfer Integration", () => {
     expect(dirListResult.entries).toBeDefined();
     
     // Check if our uploaded file is in the directory listing
-    const fileFound = dirListResult.entries.some(entry => entry.name === 'upload_test.txt');
+    const fileFound = dirListResult.entries.some((entry: any) => entry.name === 'upload_test.txt');
     expect(fileFound).toBe(true);
 
     log("File found in remote directory!");

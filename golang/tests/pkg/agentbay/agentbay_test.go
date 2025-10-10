@@ -77,17 +77,17 @@ func TestAgentBay_Create_List_Delete(t *testing.T) {
 		t.Fatalf("Error listing sessions: %v", err)
 	}
 
-	sessions := listResult.Sessions
+	sessionIds := listResult.SessionIds
 
 	// Ensure at least one session (the one we just created)
-	if len(sessions) < 1 {
-		t.Errorf("Expected at least 1 session, got %d", len(sessions))
+	if len(sessionIds) < 1 {
+		t.Errorf("Expected at least 1 session, got %d", len(sessionIds))
 	}
 
 	// Check if our created session is in the list
 	found := false
-	for _, s := range sessions {
-		if s.SessionID == session.SessionID {
+	for _, sessionId := range sessionIds {
+		if sessionId == session.SessionID {
 			found = true
 			break
 		}
@@ -114,11 +114,11 @@ func TestAgentBay_Create_List_Delete(t *testing.T) {
 		t.Fatalf("Error listing sessions after deletion: %v", err)
 	}
 
-	sessions = listResult.Sessions
+	sessionIds = listResult.SessionIds
 
 	// Check if the deleted session is not in the list
-	for _, s := range sessions {
-		if s.SessionID == session.SessionID {
+	for _, sessionId := range sessionIds {
+		if sessionId == session.SessionID {
 			t.Errorf("Session with ID %s still exists after deletion", session.SessionID)
 		}
 	}
@@ -197,8 +197,8 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 		t.Fatalf("Error listing all sessions: %v", err)
 	}
 
-	allSessions := listResult.Sessions
-	t.Logf("Found %d sessions in total", len(allSessions))
+	sessionIds := listResult.SessionIds
+	t.Logf("Found %d sessions in total", len(sessionIds))
 
 	// Test 2: List sessions by environment=development label
 	t.Log("Listing sessions with environment=development...")
@@ -208,13 +208,13 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 	if err != nil {
 		t.Logf("Error listing sessions by environment=development: %v", err)
 	} else {
-		devSessions := devResult.Sessions
-		t.Logf("Found %d sessions with environment=development", len(devSessions))
+		devSessionIds := devResult.SessionIds
+		t.Logf("Found %d sessions with environment=development", len(devSessionIds))
 
 		// Verify that session A is in the results
 		foundSessionA := false
-		for _, s := range devSessions {
-			if s.SessionID == sessionA.SessionID {
+		for _, sessionId := range devSessionIds {
+			if sessionId == sessionA.SessionID {
 				foundSessionA = true
 				break
 			}
@@ -233,13 +233,13 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 	if err != nil {
 		t.Logf("Error listing sessions by owner=team-b: %v", err)
 	} else {
-		teamBSessions := teamBResult.Sessions
-		t.Logf("Found %d sessions with owner=team-b", len(teamBSessions))
+		teamBSessionIds := teamBResult.SessionIds
+		t.Logf("Found %d sessions with owner=team-b", len(teamBSessionIds))
 
 		// Verify that session B is in the results
 		foundSessionB := false
-		for _, s := range teamBSessions {
-			if s.SessionID == sessionB.SessionID {
+		for _, sessionId := range teamBSessionIds {
+			if sessionId == sessionB.SessionID {
 				foundSessionB = true
 				break
 			}
@@ -261,17 +261,17 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 	if err != nil {
 		t.Logf("Error listing sessions by multiple labels: %v", err)
 	} else {
-		multiLabelSessions := multiResult.Sessions
-		t.Logf("Found %d sessions with environment=testing AND project=project-y", len(multiLabelSessions))
+		multiLabelSessionIds := multiResult.SessionIds
+		t.Logf("Found %d sessions with environment=testing AND project=project-y", len(multiLabelSessionIds))
 
 		// Verify that session B is in the results and session A is not
 		foundSessionA := false
 		foundSessionB := false
-		for _, s := range multiLabelSessions {
-			if s.SessionID == sessionA.SessionID {
+		for _, sessionId := range multiLabelSessionIds {
+			if sessionId == sessionA.SessionID {
 				foundSessionA = true
 			}
-			if s.SessionID == sessionB.SessionID {
+			if sessionId == sessionB.SessionID {
 				foundSessionB = true
 			}
 		}
@@ -292,9 +292,9 @@ func TestAgentBay_ListByLabels(t *testing.T) {
 	if err != nil {
 		t.Logf("Error listing sessions by non-existent label: %v", err)
 	} else {
-		nonExistentSessions := nonExistentResult.Sessions
-		t.Logf("Found %d sessions with non-existent label", len(nonExistentSessions))
-		if len(nonExistentSessions) > 0 {
+		nonExistentSessionIds := nonExistentResult.SessionIds
+		t.Logf("Found %d sessions with non-existent label", len(nonExistentSessionIds))
+		if len(nonExistentSessionIds) > 0 {
 			t.Logf("Warning: Found sessions with non-existent label, this might indicate an issue")
 		}
 	}

@@ -87,8 +87,8 @@ func TestContextSessionManagement(t *testing.T) {
 		}
 
 		sessionExists := false
-		for _, s := range listResult.Sessions {
-			if s.SessionID == session1.SessionID {
+		for _, sessionId := range listResult.SessionIds {
+			if sessionId == session1.SessionID {
 				sessionExists = true
 				break
 			}

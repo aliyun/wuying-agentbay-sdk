@@ -224,8 +224,8 @@ func TestSession_DeleteMethod(t *testing.T) {
 	t.Logf("Sessions listed (RequestID: %s)", listResult.RequestID)
 
 	// Check if the deleted session is not in the list
-	for _, s := range listResult.Sessions {
-		if s.SessionID == session.SessionID {
+	for _, sessionId := range listResult.SessionIds {
+		if sessionId == session.SessionID {
 			t.Errorf("Session with ID %s still exists after deletion", session.SessionID)
 		}
 	}

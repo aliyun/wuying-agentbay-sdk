@@ -78,11 +78,11 @@ func TestContextPersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions: %v", err)
 	} else {
-		activeSessions := listSessionResult.Sessions
+		activeSessionIds := listSessionResult.SessionIds
 		t.Logf("Found %d active sessions before creation (RequestID: %s)",
-			len(activeSessions), listSessionResult.RequestID)
-		for i, sess := range activeSessions {
-			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
+			len(activeSessionIds), listSessionResult.RequestID)
+		for i, sessionId := range activeSessionIds {
+			t.Logf("Active session %d: ID=%s", i+1, sessionId)
 		}
 	}
 
@@ -173,11 +173,11 @@ func TestContextPersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions before second session creation: %v", err)
 	} else {
-		activeSessions := listSessionResult.Sessions
+		activeSessionIds := listSessionResult.SessionIds
 		t.Logf("Found %d active sessions before second session creation (RequestID: %s)",
-			len(activeSessions), listSessionResult.RequestID)
-		for i, sess := range activeSessions {
-			t.Logf("Active session %d: ID=%s", i+1, sess.SessionID)
+			len(activeSessionIds), listSessionResult.RequestID)
+		for i, sessionId := range activeSessionIds {
+			t.Logf("Active session %d: ID=%s", i+1, sessionId)
 		}
 	}
 
@@ -243,9 +243,9 @@ func TestContextPersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to list active sessions before third session creation: %v", err)
 	} else {
-		activeSessions := listSessionResult.Sessions
+		activeSessionIds := listSessionResult.SessionIds
 		t.Logf("Found %d active sessions before third session creation (RequestID: %s)",
-			len(activeSessions), listSessionResult.RequestID)
+			len(activeSessionIds), listSessionResult.RequestID)
 	}
 
 	params = agentbay.NewCreateSessionParams().WithImageId("linux_latest")

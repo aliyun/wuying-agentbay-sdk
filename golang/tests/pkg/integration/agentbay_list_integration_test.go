@@ -107,12 +107,12 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		if result.RequestID == "" {
 			t.Error("Request ID should be present")
 		}
-		if result.Sessions == nil {
-			t.Error("Sessions list should not be nil")
+		if result.SessionIds == nil {
+			t.Error("SessionIds list should not be nil")
 		}
 
 		t.Logf("Total sessions found: %d", result.TotalCount)
-		t.Logf("Sessions in current page: %d", len(result.Sessions))
+		t.Logf("Sessions in current page: %d", len(result.SessionIds))
 		t.Logf("Request ID: %s", result.RequestID)
 	})
 
@@ -133,8 +133,8 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		if result.RequestID == "" {
 			t.Error("Request ID should be present")
 		}
-		if len(result.Sessions) < 3 {
-			t.Errorf("Should find at least 3 sessions, found %d", len(result.Sessions))
+		if len(result.SessionIds) < 3 {
+			t.Errorf("Should find at least 3 sessions, found %d", len(result.SessionIds))
 		}
 
 		// Verify all returned sessions have the expected label
@@ -144,8 +144,8 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		}
 
 		foundCount := 0
-		for _, session := range result.Sessions {
-			if sessionIDs[session.SessionID] {
+		for _, sessionID := range result.SessionIds {
+			if sessionIDs[sessionID] {
 				foundCount++
 			}
 		}
@@ -155,7 +155,7 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		}
 
 		t.Logf("Found %d test sessions", foundCount)
-		t.Logf("Total sessions with label: %d", len(result.Sessions))
+		t.Logf("Total sessions with label: %d", len(result.SessionIds))
 		t.Logf("Request ID: %s", result.RequestID)
 	})
 
@@ -179,15 +179,15 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		if result.RequestID == "" {
 			t.Error("Request ID should be present")
 		}
-		if len(result.Sessions) < 1 {
-			t.Errorf("Should find at least 1 session, found %d", len(result.Sessions))
+		if len(result.SessionIds) < 1 {
+			t.Errorf("Should find at least 1 session, found %d", len(result.SessionIds))
 		}
 
 		// Verify the dev session is in the results
 		devSessionID := testSessions[0].SessionID
 		found := false
-		for _, session := range result.Sessions {
-			if session.SessionID == devSessionID {
+		for _, sessionID := range result.SessionIds {
+			if sessionID == devSessionID {
 				found = true
 				break
 			}
@@ -198,7 +198,7 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		}
 
 		t.Logf("Found dev session: %v", found)
-		t.Logf("Total matching sessions: %d", len(result.Sessions))
+		t.Logf("Total matching sessions: %d", len(result.SessionIds))
 		t.Logf("Request ID: %s", result.RequestID)
 	})
 
@@ -222,11 +222,11 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		if resultPage1.RequestID == "" {
 			t.Error("Request ID should be present")
 		}
-		if len(resultPage1.Sessions) > 2 {
-			t.Errorf("First page should have at most 2 sessions, found %d", len(resultPage1.Sessions))
+		if len(resultPage1.SessionIds) > 2 {
+			t.Errorf("First page should have at most 2 sessions, found %d", len(resultPage1.SessionIds))
 		}
 
-		t.Logf("Page 1 - Found %d sessions", len(resultPage1.Sessions))
+		t.Logf("Page 1 - Found %d sessions", len(resultPage1.SessionIds))
 		t.Logf("Request ID: %s", resultPage1.RequestID)
 
 		// If there are more results, test page 2
@@ -245,7 +245,7 @@ func TestAgentBay_List_Integration(t *testing.T) {
 				t.Error("Request ID should be present")
 			}
 
-			t.Logf("Page 2 - Found %d sessions", len(resultPage2.Sessions))
+			t.Logf("Page 2 - Found %d sessions", len(resultPage2.SessionIds))
 			t.Logf("Request ID: %s", resultPage2.RequestID)
 		}
 	})
@@ -278,8 +278,8 @@ func TestAgentBay_List_Integration(t *testing.T) {
 		}
 
 		foundCount := 0
-		for _, session := range result.Sessions {
-			if sessionIDs[session.SessionID] {
+		for _, sessionID := range result.SessionIds {
+			if sessionIDs[sessionID] {
 				foundCount++
 			}
 		}

@@ -313,15 +313,15 @@ func TestListByUIDLabel(t *testing.T) {
 	// Log the first page results
 	t.Logf("First page - Sessions listed by UID label (RequestID: %s)", firstPageResult.RequestID)
 	t.Logf("First page - Found %d sessions (MaxResults: %d, TotalCount: %d)",
-		len(firstPageResult.Sessions), firstPageResult.MaxResults, firstPageResult.TotalCount)
+		len(firstPageResult.SessionIds), firstPageResult.MaxResults, firstPageResult.TotalCount)
 
 	// Store session IDs from first page
 	firstPageSessionIDs := make(map[string]bool)
-	if len(firstPageResult.Sessions) > 0 {
+	if len(firstPageResult.SessionIds) > 0 {
 		t.Log("First page - Sessions found:")
-		for i, s := range firstPageResult.Sessions {
-			t.Logf("  %d. Session ID: %s", i+1, s.SessionID)
-			firstPageSessionIDs[s.SessionID] = true
+		for i, sessionId := range firstPageResult.SessionIds {
+			t.Logf("  %d. Session ID: %s", i+1, sessionId)
+			firstPageSessionIDs[sessionId] = true
 		}
 	} else {
 		t.Log("First page - No sessions found with the specified UID label")
@@ -347,20 +347,20 @@ func TestListByUIDLabel(t *testing.T) {
 
 	// Log the second page results
 	t.Logf("Second page - Sessions listed by UID label (RequestID: %s)", secondPageResult.RequestID)
-	t.Logf("Second page - Found %d sessions", len(secondPageResult.Sessions))
+	t.Logf("Second page - Found %d sessions", len(secondPageResult.SessionIds))
 
 	// Verify second page sessions are different from first page
-	if len(secondPageResult.Sessions) > 0 {
+	if len(secondPageResult.SessionIds) > 0 {
 		t.Log("Second page - Sessions found:")
 		duplicateFound := false
 
-		for i, s := range secondPageResult.Sessions {
-			t.Logf("  %d. Session ID: %s", i+1, s.SessionID)
+		for i, sessionId := range secondPageResult.SessionIds {
+			t.Logf("  %d. Session ID: %s", i+1, sessionId)
 
 			// Check if this session was already in the first page
-			if firstPageSessionIDs[s.SessionID] {
+			if firstPageSessionIDs[sessionId] {
 				duplicateFound = true
-				t.Errorf("Session ID %s found in both first and second page", s.SessionID)
+				t.Errorf("Session ID %s found in both first and second page", sessionId)
 			}
 		}
 
@@ -372,7 +372,7 @@ func TestListByUIDLabel(t *testing.T) {
 	}
 
 	// Verify total count
-	totalSessionsFound := len(firstPageResult.Sessions) + len(secondPageResult.Sessions)
+	totalSessionsFound := len(firstPageResult.SessionIds) + len(secondPageResult.SessionIds)
 	t.Logf("Total sessions found across both pages: %d", totalSessionsFound)
 
 	if firstPageResult.TotalCount > 0 {
@@ -480,21 +480,21 @@ func TestListByLabels_OnlyUnreleasedSessions(t *testing.T) {
 	t.Logf("Sessions listed by label (RequestID: %s)", sessionsResult.RequestID)
 
 	// Verify that only unreleased sessions are returned
-	t.Logf("Found %d sessions in the results", len(sessionsResult.Sessions))
+	t.Logf("Found %d sessions in the results", len(sessionsResult.SessionIds))
 
 	// Check each returned session
-	for i, s := range sessionsResult.Sessions {
-		t.Logf("Result session %d: ID=%s", i+1, s.SessionID)
+	for i, sessionId := range sessionsResult.SessionIds {
+		t.Logf("Result session %d: ID=%s", i+1, sessionId)
 
 		// Verify this session is one of our test sessions
-		if !allSessionIDs[s.SessionID] {
-			t.Logf("Note: Found a session not created in this test: %s", s.SessionID)
+		if !allSessionIDs[sessionId] {
+			t.Logf("Note: Found a session not created in this test: %s", sessionId)
 			continue
 		}
 
 		// Verify this session was not released
-		if releasedSessionIDs[s.SessionID] {
-			t.Errorf("Error: Released session with ID %s was returned by ListByLabels", s.SessionID)
+		if releasedSessionIDs[sessionId] {
+			t.Errorf("Error: Released session with ID %s was returned by ListByLabels", sessionId)
 		}
 	}
 
@@ -502,8 +502,8 @@ func TestListByLabels_OnlyUnreleasedSessions(t *testing.T) {
 	expectedUnreleasedCount := totalSessionCount - sessionsToReleaseCount
 	foundUnreleasedCount := 0
 
-	for _, s := range sessionsResult.Sessions {
-		if allSessionIDs[s.SessionID] && !releasedSessionIDs[s.SessionID] {
+	for _, sessionId := range sessionsResult.SessionIds {
+		if allSessionIDs[sessionId] && !releasedSessionIDs[sessionId] {
 			foundUnreleasedCount++
 		}
 	}
@@ -518,8 +518,8 @@ func TestListByLabels_OnlyUnreleasedSessions(t *testing.T) {
 
 	// Verify that no released sessions were found
 	releasedSessionsFound := 0
-	for _, s := range sessionsResult.Sessions {
-		if releasedSessionIDs[s.SessionID] {
+	for _, sessionId := range sessionsResult.SessionIds {
+		if releasedSessionIDs[sessionId] {
 			releasedSessionsFound++
 		}
 	}

@@ -46,8 +46,8 @@ func TestSessionDeleteWithoutParams(t *testing.T) {
 		t.Fatalf("Failed to list sessions: %v", err)
 	}
 
-	for _, s := range listResult.Sessions {
-		if s.SessionID == session.SessionID {
+	for _, sessionId := range listResult.SessionIds {
+		if sessionId == session.SessionID {
 			t.Errorf("Session with ID %s still exists after deletion", session.SessionID)
 		}
 	}
@@ -122,8 +122,8 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 		t.Fatalf("Failed to list sessions: %v", err)
 	}
 
-	for _, s := range listResult.Sessions {
-		if s.SessionID == session.SessionID {
+	for _, sessionId := range listResult.SessionIds {
+		if sessionId == session.SessionID {
 			t.Errorf("Session with ID %s still exists after deletion", session.SessionID)
 		}
 	}
