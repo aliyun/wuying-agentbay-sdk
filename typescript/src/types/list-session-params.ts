@@ -17,12 +17,8 @@ export interface ListSessionParams {
 
 /**
  * Result type for session listing with pagination information
- * Maintain consistency with the existing TypeScript SDK return structure and use the data field
  */
 export interface SessionListResult extends ApiResponse {
-  /** Array of sessions (deprecated, use sessionIds) */
-  data: Session[];
-
   /** Array of session IDs */
   sessionIds: string[];
 

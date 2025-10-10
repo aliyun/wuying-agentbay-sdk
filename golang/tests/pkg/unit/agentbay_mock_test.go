@@ -70,10 +70,7 @@ func TestAgentBay_List_WithMockClient(t *testing.T) {
 
 	// Set expected behavior
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-1"},
-			{SessionID: "session-2"},
-		},
+		SessionIds: []string{"session-1", "session-2"},
 		NextToken:  "next-page-token",
 		MaxResults: 5,
 		TotalCount: 15,
@@ -87,9 +84,9 @@ func TestAgentBay_List_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 2)
-	assert.Equal(t, "session-1", result.Sessions[0].SessionID)
-	assert.Equal(t, "session-2", result.Sessions[1].SessionID)
+	assert.Len(t, result.SessionIds, 2)
+	assert.Equal(t, "session-1", result.SessionIds[0])
+	assert.Equal(t, "session-2", result.SessionIds[1])
 	assert.Equal(t, "next-page-token", result.NextToken)
 	assert.Equal(t, int32(5), result.MaxResults)
 	assert.Equal(t, int32(15), result.TotalCount)
@@ -109,10 +106,7 @@ func TestAgentBay_ListByLabels_WithMockClient(t *testing.T) {
 		Labels:     map[string]string{"env": "test"},
 	}
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-1"},
-			{SessionID: "session-2"},
-		},
+		SessionIds: []string{"session-1", "session-2"},
 		NextToken:  "next-page-token",
 		MaxResults: 10,
 		TotalCount: 20,
@@ -125,9 +119,9 @@ func TestAgentBay_ListByLabels_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 2)
-	assert.Equal(t, "session-1", result.Sessions[0].SessionID)
-	assert.Equal(t, "session-2", result.Sessions[1].SessionID)
+	assert.Len(t, result.SessionIds, 2)
+	assert.Equal(t, "session-1", result.SessionIds[0])
+	assert.Equal(t, "session-2", result.SessionIds[1])
 	assert.Equal(t, "next-page-token", result.NextToken)
 	assert.Equal(t, int32(10), result.MaxResults)
 	assert.Equal(t, int32(20), result.TotalCount)
@@ -142,11 +136,7 @@ func TestAgentBay_List_NoLabels_WithMockClient(t *testing.T) {
 
 	// Set expected behavior - list all sessions without labels
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-1"},
-			{SessionID: "session-2"},
-			{SessionID: "session-3"},
-		},
+		SessionIds: []string{"session-1", "session-2", "session-3"},
 		MaxResults: 10,
 		TotalCount: 3,
 	}
@@ -158,8 +148,8 @@ func TestAgentBay_List_NoLabels_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 3)
-	assert.Equal(t, "session-1", result.Sessions[0].SessionID)
+	assert.Len(t, result.SessionIds, 3)
+	assert.Equal(t, "session-1", result.SessionIds[0])
 	assert.Equal(t, int32(10), result.MaxResults)
 	assert.Equal(t, int32(3), result.TotalCount)
 }
@@ -174,9 +164,7 @@ func TestAgentBay_List_WithLabels_WithMockClient(t *testing.T) {
 	// Set expected behavior - list sessions with labels
 	labels := map[string]string{"env": "prod"}
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-prod-1"},
-		},
+		SessionIds: []string{"session-prod-1"},
 		MaxResults: 10,
 		TotalCount: 1,
 	}
@@ -188,8 +176,8 @@ func TestAgentBay_List_WithLabels_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 1)
-	assert.Equal(t, "session-prod-1", result.Sessions[0].SessionID)
+	assert.Len(t, result.SessionIds, 1)
+	assert.Equal(t, "session-prod-1", result.SessionIds[0])
 }
 
 func TestAgentBay_List_WithPagination_WithMockClient(t *testing.T) {
@@ -204,10 +192,7 @@ func TestAgentBay_List_WithPagination_WithMockClient(t *testing.T) {
 	page := 2
 	limit := int32(5)
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-6"},
-			{SessionID: "session-7"},
-		},
+		SessionIds: []string{"session-6", "session-7"},
 		MaxResults: 5,
 		TotalCount: 10,
 	}
@@ -219,8 +204,8 @@ func TestAgentBay_List_WithPagination_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 2)
-	assert.Equal(t, "session-6", result.Sessions[0].SessionID)
+	assert.Len(t, result.SessionIds, 2)
+	assert.Equal(t, "session-6", result.SessionIds[0])
 	assert.Equal(t, int32(5), result.MaxResults)
 	assert.Equal(t, int32(10), result.TotalCount)
 }

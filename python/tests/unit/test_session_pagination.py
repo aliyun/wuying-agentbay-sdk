@@ -57,7 +57,7 @@ class TestSessionPagination(unittest.TestCase):
         # Check result
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "test-request-id")
-        self.assertEqual(len(result.sessions), 3)
+        self.assertEqual(len(result.session_ids), 3)
         self.assertEqual(result.next_token, "next-page-token")
         self.assertEqual(result.max_results, 5)
         self.assertEqual(result.total_count, 15)
@@ -105,7 +105,7 @@ class TestSessionPagination(unittest.TestCase):
         # Check result
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "test-request-id-2")
-        self.assertEqual(len(result.sessions), 2)
+        self.assertEqual(len(result.session_ids), 2)
         self.assertEqual(result.next_token, "")  # No more pages
 
     @mock.patch("agentbay.agentbay.mcp_client")

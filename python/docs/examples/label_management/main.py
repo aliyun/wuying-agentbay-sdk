@@ -82,16 +82,19 @@ def main():
 
         # List sessions by label
         print("\nListing sessions with purpose=demo and feature=label-management...")
-        filtered_result = agent_bay.list_by_labels(
-            {"purpose": "demo", "feature": "label-management"}
+        filtered_result = agent_bay.list(
+            labels={"purpose": "demo", "feature": "label-management"},
+            limit=100
         )
-        filtered_sessions = filtered_result.sessions
-        print(f"Found {len(filtered_sessions)} matching sessions")
+        session_ids = filtered_result.session_ids
+        print(f"Found {len(session_ids)} matching sessions")
         print(f"Request ID: {filtered_result.request_id}")
-        for i, session in enumerate(filtered_sessions):
-            print(f"Matching session {i + 1} ID: {session.session_id}")
-            labels_result = session.get_labels()
-            print(f"Labels: {labels_result.data}")
+        for i, session_id in enumerate(session_ids):
+            print(f"Matching session {i + 1} ID: {session_id}")
+            session_result = agent_bay.get(session_id)
+            if session_result.success:
+                labels_result = session_result.session.get_labels()
+                print(f"Labels: {labels_result.data}")
 
         # Delete the sessions
         print("\nDeleting the sessions...")

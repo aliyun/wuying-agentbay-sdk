@@ -51,20 +51,21 @@ func main() {
 	// Set page size to 5 sessions per page
 	listParams.MaxResults = 5
 
-	sessionsByLabelResult, err := agentBay.ListByLabels(listParams)
+	limit := int32(5)
+	sessionsByLabelResult, err := agentBay.List(listParams.Labels, nil, &limit)
 	if err != nil {
 		fmt.Printf("\nError listing sessions by labels: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Printf("\nFound %d sessions with project=my-project (total: %d, page size: %d, RequestID: %s):\n",
-		len(sessionsByLabelResult.Sessions),
+		len(sessionsByLabelResult.SessionIds),
 		sessionsByLabelResult.TotalCount,
 		sessionsByLabelResult.MaxResults,
 		sessionsByLabelResult.RequestID)
 
-	for i, s := range sessionsByLabelResult.Sessions {
-		fmt.Printf("  %d. Session ID: %s\n", i+1, s.SessionID)
+	for i, sessionId := range sessionsByLabelResult.SessionIds {
+		fmt.Printf("  %d. Session ID: %s\n", i+1, sessionId)
 	}
 
 	// Example 3: Pagination with NextToken
@@ -82,15 +83,16 @@ func main() {
 		nextPageParams.MaxResults = 5
 		nextPageParams.NextToken = sessionsByLabelResult.NextToken
 
-		nextPageResult, err := agentBay.ListByLabels(nextPageParams)
+		page := 2
+		nextPageResult, err := agentBay.List(nextPageParams.Labels, &page, &limit)
 		if err != nil {
 			fmt.Printf("\nError listing next page of sessions: %v\n", err)
 		} else {
 			fmt.Printf("\nNext page found %d more sessions (RequestID: %s):\n",
-				len(nextPageResult.Sessions), nextPageResult.RequestID)
+				len(nextPageResult.SessionIds), nextPageResult.RequestID)
 
-			for i, s := range nextPageResult.Sessions {
-				fmt.Printf("  %d. Session ID: %s\n", i+1, s.SessionID)
+			for i, sessionId := range nextPageResult.SessionIds {
+				fmt.Printf("  %d. Session ID: %s\n", i+1, sessionId)
 			}
 		}
 	} else {

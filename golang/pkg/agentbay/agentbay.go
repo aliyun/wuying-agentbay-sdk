@@ -459,7 +459,6 @@ func (a *AgentBay) ListByLabels(params *ListSessionParams) (*SessionListResult, 
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Sessions:   sessions,
 		SessionIds: sessionIds,
 		NextToken:  nextToken,
 		MaxResults: maxResults,
@@ -516,7 +515,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 			ApiResponse: models.ApiResponse{
 				RequestID: "",
 			},
-			Sessions:   []Session{},
 			SessionIds: []string{},
 			NextToken:  "",
 			MaxResults: actualLimit,
@@ -552,7 +550,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 					ApiResponse: models.ApiResponse{
 						RequestID: models.ExtractRequestID(response),
 					},
-					Sessions:   []Session{},
 					SessionIds: []string{},
 					NextToken:  "",
 					MaxResults: actualLimit,
@@ -571,7 +568,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 					ApiResponse: models.ApiResponse{
 						RequestID: models.ExtractRequestID(response),
 					},
-					Sessions:   []Session{},
 					SessionIds: []string{},
 					NextToken:  "",
 					MaxResults: actualLimit,
@@ -589,7 +585,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 					ApiResponse: models.ApiResponse{
 						RequestID: models.ExtractRequestID(response),
 					},
-					Sessions:   []Session{},
 					SessionIds: []string{},
 					NextToken:  "",
 					MaxResults: actualLimit,
@@ -646,7 +641,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 			ApiResponse: models.ApiResponse{
 				RequestID: requestID,
 			},
-			Sessions:   []Session{},
 			SessionIds: []string{},
 			NextToken:  "",
 			MaxResults: actualLimit,
@@ -685,7 +679,6 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
 		},
-		Sessions:   []Session{}, // Keep empty for backward compatibility
 		SessionIds: sessionIds,
 		NextToken:  nextTokenResult,
 		MaxResults: maxResults,

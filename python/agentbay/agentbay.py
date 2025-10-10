@@ -519,13 +519,13 @@ class AgentBay:
                     request_id=request_id,
                     success=False,
                     error_message=f"Failed to list sessions by labels: {error_message}",
-                    sessions=[],
+                    session_ids=[],
                     next_token="",
                     max_results=params.max_results,
                     total_count=0,
                 )
 
-            sessions = []
+            session_ids = []
             next_token = ""
             max_results = params.max_results  # Use the requested max_results
             total_count = 0
@@ -555,20 +555,18 @@ class AgentBay:
                         if session_id:
                             # Check if we already have this session in our cache
                             with self._lock:
-                                if session_id in self._sessions:
-                                    session = self._sessions[session_id]
-                                else:
+                                if session_id not in self._sessions:
                                     # Create a new session object
                                     session = Session(self, session_id)
                                     self._sessions[session_id] = session
 
-                                sessions.append(session)
+                                session_ids.append(session_id)
 
             # Return SessionListResult with request ID and pagination info
             return SessionListResult(
                 request_id=request_id,
                 success=True,
-                sessions=sessions,
+                session_ids=session_ids,
                 next_token=next_token,
                 max_results=max_results,
                 total_count=total_count,
@@ -579,7 +577,7 @@ class AgentBay:
             return SessionListResult(
                 request_id="",
                 success=False,
-                sessions=[],
+                session_ids=[],
                 error_message=f"Failed to list sessions by labels: {e}",
             )
 

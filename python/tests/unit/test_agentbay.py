@@ -193,9 +193,9 @@ class TestAgentBay(unittest.TestCase):
 
         # Verify results
         self.assertEqual(result.request_id, "list-request-id")
-        self.assertEqual(len(result.sessions), 2)
-        self.assertEqual(result.sessions[0].session_id, "session-1")
-        self.assertEqual(result.sessions[1].session_id, "session-2")
+        self.assertEqual(len(result.session_ids), 2)
+        self.assertEqual(result.session_ids[0], "session-1")
+        self.assertEqual(result.session_ids[1], "session-2")
 
         # Verify cached sessions
         self.assertEqual(len(agent_bay._sessions), 2)

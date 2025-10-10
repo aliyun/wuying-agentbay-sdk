@@ -56,11 +56,11 @@ async function main() {
         labels: { test: 'basic-usage' },
         maxResults: 5
       };
-      const listResponse = await agentBay.listByLabels(listParams);
-      log(`Available sessions count: ${listResponse.data.length}`);
+      const listResponse = await agentBay.list(listParams.labels, undefined, listParams.maxResults);
+      log(`Available sessions count: ${listResponse.sessionIds.length}`);
       log(`Total count: ${listResponse.totalCount}`);
       log(`Max results: ${listResponse.maxResults}`);
-      log('Session IDs:', listResponse.data.map(s => s.sessionId));
+      log('Session IDs:', listResponse.sessionIds);
       log(`List Sessions RequestId: ${listResponse.requestId}`);
 
       // Demonstrate pagination if there's a next token
@@ -70,8 +70,8 @@ async function main() {
           ...listParams,
           nextToken: listResponse.nextToken
         };
-        const nextPageResponse = await agentBay.listByLabels(nextPageParams);
-        log(`Next page sessions count: ${nextPageResponse.data.length}`);
+        const nextPageResponse = await agentBay.list(listParams.labels, 2, listParams.maxResults);
+        log(`Next page sessions count: ${nextPageResponse.sessionIds.length}`);
         log(`Next page RequestId: ${nextPageResponse.requestId}`);
       }
     } catch (error) {

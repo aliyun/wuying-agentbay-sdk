@@ -73,10 +73,12 @@ describe("File Transfer Integration", () => {
     // Clean up session
     try {
       const listResult = await agentBay.list();
-      const session = listResult.data.find(s => s.sessionId === sessionId);
-      if (session) {
-        await agentBay.delete(session, true);
-        log("Session successfully deleted with context sync");
+      if (listResult.sessionIds.includes(sessionId)) {
+        const sessionResult = await agentBay.get(sessionId);
+        if (sessionResult.success && sessionResult.session) {
+          await agentBay.delete(sessionResult.session, true);
+          log("Session successfully deleted with context sync");
+        }
       }
     } catch (error) {
       log(`Warning: Error deleting session: ${error}`);
@@ -100,10 +102,14 @@ describe("File Transfer Integration", () => {
     }
 
     const listResult = await agentBay.list();
-    const session = listResult.data.find(s => s.sessionId === sessionId);
-    if (!session) {
+    if (!listResult.sessionIds.includes(sessionId)) {
       throw new Error("Session not found");
     }
+    const sessionResult = await agentBay.get(sessionId);
+    if (!sessionResult.success || !sessionResult.session) {
+      throw new Error("Failed to get session");
+    }
+    const session = sessionResult.session;
 
     // Test file upload
     log("Testing file upload...");
@@ -161,10 +167,14 @@ describe("File Transfer Integration", () => {
     }
 
     const listResult = await agentBay.list();
-    const session = listResult.data.find(s => s.sessionId === sessionId);
-    if (!session) {
+    if (!listResult.sessionIds.includes(sessionId)) {
       throw new Error("Session not found");
     }
+    const sessionResult = await agentBay.get(sessionId);
+    if (!sessionResult.success || !sessionResult.session) {
+      throw new Error("Failed to get session");
+    }
+    const session = sessionResult.session;
 
     // First, create a file in the remote location
     const remotePath = "/tmp/file_transfer_test/download_test.txt";

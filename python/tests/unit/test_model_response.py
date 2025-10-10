@@ -46,14 +46,14 @@ class TestSessionListResult(unittest.TestCase):
     def test_session_list_result_initialization(self):
         """Test initialization of SessionListResult"""
         request_id = "session-list-request-id"
-        sessions = [MagicMock(), MagicMock()]
+        session_ids = ["session-1", "session-2"]
         result = SessionListResult(
-            request_id=request_id, success=True, sessions=sessions
+            request_id=request_id, success=True, session_ids=session_ids
         )
 
         self.assertEqual(result.request_id, request_id)
-        self.assertEqual(len(result.sessions), 2)
-        self.assertEqual(result.sessions, sessions)
+        self.assertEqual(len(result.session_ids), 2)
+        self.assertEqual(result.session_ids, session_ids)
 
     def test_session_list_result_defaults(self):
         """Test default values of SessionListResult"""
@@ -61,7 +61,7 @@ class TestSessionListResult(unittest.TestCase):
 
         self.assertEqual(result.request_id, "")
         self.assertFalse(result.success)
-        self.assertEqual(result.sessions, [])
+        self.assertEqual(result.session_ids, [])
         self.assertEqual(result.error_message, "")
 
 

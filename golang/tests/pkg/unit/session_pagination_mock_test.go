@@ -19,11 +19,7 @@ func TestSessionPagination_ListByLabels_WithMockClient(t *testing.T) {
 	// Set expected behavior
 	labels := map[string]string{"env": "test"}
 	expectedResult := &agentbay.SessionListResult{
-		Sessions: []agentbay.Session{
-			{SessionID: "session-1"},
-			{SessionID: "session-2"},
-			{SessionID: "session-3"},
-		},
+		SessionIds: []string{"session-1", "session-2", "session-3"},
 		NextToken:  "next-page-token",
 		MaxResults: 5,
 		TotalCount: 15,
@@ -36,10 +32,10 @@ func TestSessionPagination_ListByLabels_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Len(t, result.Sessions, 3)
-	assert.Equal(t, "session-1", result.Sessions[0].SessionID)
-	assert.Equal(t, "session-2", result.Sessions[1].SessionID)
-	assert.Equal(t, "session-3", result.Sessions[2].SessionID)
+	assert.Len(t, result.SessionIds, 3)
+	assert.Equal(t, "session-1", result.SessionIds[0])
+	assert.Equal(t, "session-2", result.SessionIds[1])
+	assert.Equal(t, "session-3", result.SessionIds[2])
 	assert.Equal(t, "next-page-token", result.NextToken)
 	assert.Equal(t, int32(5), result.MaxResults)
 	assert.Equal(t, int32(15), result.TotalCount)
@@ -55,7 +51,7 @@ func TestSessionPagination_ListByLabels_Empty_WithMockClient(t *testing.T) {
 	// Set expected behavior
 	labels := map[string]string{"env": "test"}
 	expectedResult := &agentbay.SessionListResult{
-		Sessions:   []agentbay.Session{},
+		SessionIds: []string{},
 		NextToken:  "",
 		MaxResults: 5,
 		TotalCount: 0,
@@ -68,7 +64,7 @@ func TestSessionPagination_ListByLabels_Empty_WithMockClient(t *testing.T) {
 	// Verify call success
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	assert.Empty(t, result.Sessions)
+	assert.Empty(t, result.SessionIds)
 	assert.Equal(t, "", result.NextToken)
 	assert.Equal(t, int32(5), result.MaxResults)
 	assert.Equal(t, int32(0), result.TotalCount)

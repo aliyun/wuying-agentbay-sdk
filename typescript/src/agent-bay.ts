@@ -462,7 +462,6 @@ export class AgentBay {
           requestId,
           success: false,
           errorMessage: "Failed to list sessions by labels",
-          data: [],
           sessionIds: [],
           nextToken: "",
           maxResults: params.maxResults || 10,
@@ -470,7 +469,6 @@ export class AgentBay {
         };
       }
 
-      const sessions: Session[] = [];
       const sessionIds: string[] = [];
       let nextToken = "";
       let maxResults = params.maxResults || 10;
@@ -496,14 +494,6 @@ export class AgentBay {
             const sessionId = (sessionData as any).sessionId; // Capital S and I to match Python
             if (sessionId) {
               sessionIds.push(sessionId);
-              // Check if we already have this session in our cache
-              let session = this.sessions.get(sessionId);
-              if (!session) {
-                // Create a new session object
-                session = new Session(this, sessionId);
-                this.sessions.set(sessionId, session);
-              }
-              sessions.push(session);
             }
           }
         }
@@ -513,7 +503,6 @@ export class AgentBay {
       return {
         requestId,
         success: true,
-        data: sessions,
         sessionIds,
         nextToken,
         maxResults,
@@ -524,7 +513,6 @@ export class AgentBay {
       return {
         requestId: "",
         success: false,
-        data: [],
         sessionIds: [],
         errorMessage: `Failed to list sessions by labels: ${error}`,
       };
@@ -573,7 +561,6 @@ export class AgentBay {
           requestId: "",
           success: false,
           errorMessage: `Cannot reach page ${page}: Page number must be >= 1`,
-          data: [],
           sessionIds: [],
           nextToken: "",
           maxResults: limit,
@@ -608,7 +595,6 @@ export class AgentBay {
               requestId,
               success: false,
               errorMessage: `Cannot reach page ${page}: ${errorMessage}`,
-              data: [],
               sessionIds: [],
               nextToken: "",
               maxResults: limit,
@@ -623,7 +609,6 @@ export class AgentBay {
               requestId,
               success: false,
               errorMessage: `Cannot reach page ${page}: No more pages available`,
-              data: [],
               sessionIds: [],
               nextToken: "",
               maxResults: limit,
@@ -663,7 +648,6 @@ export class AgentBay {
           requestId,
           success: false,
           errorMessage: `Failed to list sessions: ${errorMessage}`,
-          data: [],
           sessionIds: [],
           nextToken: "",
           maxResults: limit,
@@ -686,7 +670,6 @@ export class AgentBay {
       return {
         requestId,
         success: true,
-        data: [], // Keep empty for backward compatibility
         sessionIds,
         nextToken: response.body.nextToken || "",
         maxResults: response.body.maxResults || limit,
@@ -698,7 +681,6 @@ export class AgentBay {
         requestId: "",
         success: false,
         errorMessage: `Failed to list sessions: ${error}`,
-        data: [],
         sessionIds: [],
       };
     }
