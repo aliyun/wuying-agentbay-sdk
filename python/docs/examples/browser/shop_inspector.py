@@ -229,7 +229,7 @@ async def main():
 
     date_str = datetime.now().strftime("%Y-%m-%d")
     agent_bay = AgentBay(api_key=api_key)
-    params = CreateSessionParams(image_id="browser-latest")
+    params = CreateSessionParams(image_id="browser_latest")
     session_result = agent_bay.create(params)
     if not session_result.success:
         print(f"Failed to create session: {session_result.error_message}")

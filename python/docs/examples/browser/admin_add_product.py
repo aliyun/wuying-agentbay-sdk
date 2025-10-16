@@ -18,7 +18,7 @@ async def main():
         print("Error: AGENTBAY_API_KEY not set")
         return
     agentbay = AgentBay(api_key=api_key)
-    session = agentbay.create(CreateSessionParams(image_id="browser-latest")).session
+    session = agentbay.create(CreateSessionParams(image_id="browser_latest")).session
     try:
         if not await session.browser.initialize_async(BrowserOption()):
             print("Browser init failed")

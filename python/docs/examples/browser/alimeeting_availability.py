@@ -19,7 +19,7 @@ async def main():
         return
     agent_bay = AgentBay(api_key=api_key)
 
-    session = agent_bay.create(CreateSessionParams(image_id="browser-latest")).session
+    session = agent_bay.create(CreateSessionParams(image_id="browser_latest")).session
     try:
         if not await session.browser.initialize_async(BrowserOption()):
             print("Browser init failed")
