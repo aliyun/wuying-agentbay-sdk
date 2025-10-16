@@ -54,7 +54,7 @@ def file_transfer_example():
     )
 
     session_params = CreateSessionParams(
-        image_id="imgc-07if81c4ktj9shiru",  # Use browser image for more comprehensive testing
+        image_id="browser_latest",  # Use browser image for more comprehensive testing
         browser_context=browser_context
     )
     
@@ -215,7 +215,7 @@ def file_transfer_with_progress_example():
     )
 
     session_params = CreateSessionParams(
-        image_id="imgc-07if81c4ktj9shiru",  # Use browser image for more comprehensive testing
+        image_id="browser_latest",  # Use browser image for more comprehensive testing
         browser_context=browser_context
     )
     

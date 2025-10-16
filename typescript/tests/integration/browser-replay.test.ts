@@ -61,7 +61,7 @@ describe('Browser Replay Integration Tests', () => {
     async function createSession(): Promise<void> {
         // Create session parameters with recording enabled
         const sessionParam = new CreateSessionParams()
-            .withImageId("imgc-07if81c4ktj9shiru")
+            .withImageId("browser_latest")
             .withEnableBrowserReplay(true); // Enable browser recording
 
         log("Creating session with browser recording enabled...");

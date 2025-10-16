@@ -39,7 +39,7 @@ class TestBrowserRecordIntegration(unittest.TestCase):
         """Create a session with browser recording enabled."""
         # Create session parameters with recording enabled
         session_param = CreateSessionParams()
-        session_param.image_id = "imgc-07if81c4ktj9shiru"
+        session_param.image_id = "browser_latest"
         session_param.enable_browser_replay = True  # Enable browser recording
 
         print("Creating session with browser recording enabled...")

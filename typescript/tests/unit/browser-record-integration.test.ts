@@ -56,7 +56,7 @@ describe("Browser Record Integration (Unit Test)", () => {
 
     // Create session with recording enabled
     const sessionParam = new CreateSessionParams()
-      .withImageId("imgc-07if81c4ktj9shiru")
+      .withImageId("browser_latest")
       .withEnableRecord(true);
 
     const result = await mockAgentBay.create(sessionParam);
@@ -170,12 +170,12 @@ describe("Browser Record Integration (Unit Test)", () => {
   test("should support method chaining with enableBrowserReplay in CreateSessionParams", () => {
     const params = new CreateSessionParams()
       .withLabels({ project: "browser-test", type: "recording" })
-      .withImageId("imgc-07if81c4ktj9shiru")
+      .withImageId("browser_latest")
       .withEnableRecord(true)
       .withIsVpc(false);
 
     expect(params.labels).toEqual({ project: "browser-test", type: "recording" });
-    expect(params.imageId).toBe("imgc-07if81c4ktj9shiru");
+    expect(params.imageId).toBe("browser_latest");
     expect(params.enableBrowserReplay).toBe(true);
     expect(params.isVpc).toBe(false);
   });

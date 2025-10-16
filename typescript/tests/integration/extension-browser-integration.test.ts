@@ -834,7 +834,7 @@ describe("Extension Service Integration Tests", () => {
     
     const sessionParams = new CreateSessionParams()
       .withLabels({ test_type: "extension_integration" })
-      .withImageId("imgc-07if81c4ktj9shiru")
+      .withImageId("browser_latest")
       .withBrowserContext(browserContext)
       .withIsVpc(false);
 

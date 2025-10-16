@@ -40,7 +40,7 @@ describe("File Transfer Integration", () => {
 
     // Create browser session with context for testing
     const params = new CreateSessionParams();
-    params.imageId = "imgc-07if81c4ktj9shiru"; // Use browser image for more comprehensive testing
+    params.imageId = "browser_latest"; // Use browser image for more comprehensive testing
     // Add context sync for the test directory
     params.contextSync = [new ContextSync(context.id, "/tmp/file_transfer_test/")];
 

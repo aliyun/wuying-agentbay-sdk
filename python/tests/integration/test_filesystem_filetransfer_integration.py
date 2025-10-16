@@ -42,7 +42,7 @@ class TestFileTransferIntegration(unittest.TestCase):
         )
 
         params = CreateSessionParams(
-            image_id="imgc-07if81c4ktj9shiru",  # Use browser image for more comprehensive testing
+            image_id="browser_latest",  # Use browser image for more comprehensive testing
             browser_context=browser_context
         )
 
