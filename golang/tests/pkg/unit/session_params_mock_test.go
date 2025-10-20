@@ -134,8 +134,10 @@ func TestSessionParams_WithExtraConfigs(t *testing.T) {
 		AppPackageNameList: []string{"com.android.settings", "com.example.test.app"},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service", "com.protected.package"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -150,6 +152,10 @@ func TestSessionParams_WithExtraConfigs(t *testing.T) {
 	assert.NotNil(t, params.ExtraConfigs.Mobile.AppManagerRule)
 	assert.Equal(t, "White", params.ExtraConfigs.Mobile.AppManagerRule.RuleType)
 	assert.Equal(t, 2, len(params.ExtraConfigs.Mobile.AppManagerRule.AppPackageNameList))
+	assert.True(t, params.ExtraConfigs.Mobile.HideNavigationBar)
+	assert.NotNil(t, params.ExtraConfigs.Mobile.UninstallBlacklist)
+	assert.Len(t, params.ExtraConfigs.Mobile.UninstallBlacklist, 3)
+	assert.Contains(t, params.ExtraConfigs.Mobile.UninstallBlacklist, "com.critical.app")
 }
 
 func TestSessionParams_GetExtraConfigsJSON(t *testing.T) {
@@ -169,8 +175,10 @@ func TestSessionParams_GetExtraConfigsJSON(t *testing.T) {
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -183,6 +191,10 @@ func TestSessionParams_GetExtraConfigsJSON(t *testing.T) {
 	assert.Contains(t, jsonStr, "mobile")
 	assert.Contains(t, jsonStr, "lock_resolution")
 	assert.Contains(t, jsonStr, "app_manager_rule")
+	assert.Contains(t, jsonStr, "hide_navigation_bar")
+	assert.Contains(t, jsonStr, "uninstall_blacklist")
+	assert.Contains(t, jsonStr, "com.critical.app")
+	assert.Contains(t, jsonStr, "com.system.service")
 }
 
 func TestSessionParams_MethodChaining_WithExtraConfigs(t *testing.T) {
@@ -197,8 +209,10 @@ func TestSessionParams_MethodChaining_WithExtraConfigs(t *testing.T) {
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -222,4 +236,8 @@ func TestSessionParams_MethodChaining_WithExtraConfigs(t *testing.T) {
 	assert.NotNil(t, params.ExtraConfigs)
 	assert.NotNil(t, params.ExtraConfigs.Mobile)
 	assert.True(t, params.ExtraConfigs.Mobile.LockResolution)
+	assert.True(t, params.ExtraConfigs.Mobile.HideNavigationBar)
+	assert.Len(t, params.ExtraConfigs.Mobile.UninstallBlacklist, 2)
+	assert.Contains(t, params.ExtraConfigs.Mobile.UninstallBlacklist, "com.critical.app")
+	assert.Contains(t, params.ExtraConfigs.Mobile.UninstallBlacklist, "com.system.service")
 }

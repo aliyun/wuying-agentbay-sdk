@@ -48,12 +48,29 @@ chmod 644 /data/system/pm_blacklist.txt
 setprop rw.wy.pm_blacklist.refresh 1
 setprop persist.wy.pm_blacklist.switch 1`
 
+// Hide navigation bar template
+// Hides the system navigation bar by setting system property and restarting SystemUI
+const HideNavigationBarTemplate = "setprop persist.wy.hasnavibar false; killall com.android.systemui"
+
+// Show navigation bar template
+// Shows the system navigation bar by setting system property and restarting SystemUI
+const ShowNavigationBarTemplate = "setprop persist.wy.hasnavibar true; killall com.android.systemui"
+
+// Uninstall blacklist template
+// Parameters:
+//
+//	package_list (string): Semicolon-separated list of package names
+const UninstallBlacklistTemplate = "setprop persist.wy.pm_lock \"{package_list}\""
+
 // MobileCommandTemplates contains mobile command templates for easy access
 var MobileCommandTemplates = map[string]string{
 	"resolution_lock_enable":  "setprop sys.wuying.lockres 1",
 	"resolution_lock_disable": "setprop sys.wuying.lockres 0",
 	"app_whitelist":           AppWhitelistTemplate,
 	"app_blacklist":           AppBlacklistTemplate,
+	"hide_navigation_bar":     HideNavigationBarTemplate,
+	"show_navigation_bar":     ShowNavigationBarTemplate,
+	"uninstall_blacklist":     UninstallBlacklistTemplate,
 }
 
 // GetMobileCommandTemplate returns a mobile command template by name

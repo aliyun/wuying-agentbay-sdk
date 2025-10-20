@@ -516,13 +516,21 @@ func TestModels_MobileExtraConfig_Creation(t *testing.T) {
 	}
 
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service", "com.protected.package"},
+		AppManagerRule:     appRule,
 	}
 
 	assert.True(t, mobileConfig.LockResolution)
 	assert.NotNil(t, mobileConfig.AppManagerRule)
 	assert.Equal(t, "White", mobileConfig.AppManagerRule.RuleType)
+	assert.True(t, mobileConfig.HideNavigationBar)
+	assert.NotNil(t, mobileConfig.UninstallBlacklist)
+	assert.Len(t, mobileConfig.UninstallBlacklist, 3)
+	assert.Contains(t, mobileConfig.UninstallBlacklist, "com.critical.app")
+	assert.Contains(t, mobileConfig.UninstallBlacklist, "com.system.service")
+	assert.Contains(t, mobileConfig.UninstallBlacklist, "com.protected.package")
 }
 
 func TestModels_ExtraConfigs_ToJSON(t *testing.T) {
@@ -541,8 +549,10 @@ func TestModels_ExtraConfigs_ToJSON(t *testing.T) {
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -566,12 +576,26 @@ func TestModels_ExtraConfigs_ToJSON(t *testing.T) {
 	lockResolution, exists := mobileMap["lock_resolution"]
 	assert.True(t, exists)
 	assert.Equal(t, true, lockResolution)
+
+	hideNavigationBar, exists := mobileMap["hide_navigation_bar"]
+	assert.True(t, exists)
+	assert.Equal(t, true, hideNavigationBar)
+
+	uninstallBlacklist, exists := mobileMap["uninstall_blacklist"]
+	assert.True(t, exists)
+	blacklistArray, ok := uninstallBlacklist.([]interface{})
+	assert.True(t, ok)
+	assert.Len(t, blacklistArray, 2)
+	assert.Contains(t, blacklistArray, "com.critical.app")
+	assert.Contains(t, blacklistArray, "com.system.service")
 }
 
 func TestModels_ExtraConfigs_FromJSON(t *testing.T) {
 	jsonStr := `{
 		"mobile": {
 			"lock_resolution": true,
+			"hide_navigation_bar": true,
+			"uninstall_blacklist": ["com.critical.app", "com.system.service", "com.protected.package"],
 			"app_manager_rule": {
 				"rule_type": "White",
 				"app_package_name_list": ["com.android.settings", "com.example.app"]
@@ -591,6 +615,13 @@ func TestModels_ExtraConfigs_FromJSON(t *testing.T) {
 	expectedPackages := []string{"com.android.settings", "com.example.app"}
 	assert.Equal(t, len(expectedPackages), len(extraConfigs.Mobile.AppManagerRule.AppPackageNameList))
 
+	assert.True(t, extraConfigs.Mobile.HideNavigationBar)
+	assert.NotNil(t, extraConfigs.Mobile.UninstallBlacklist)
+	assert.Len(t, extraConfigs.Mobile.UninstallBlacklist, 3)
+	assert.Contains(t, extraConfigs.Mobile.UninstallBlacklist, "com.critical.app")
+	assert.Contains(t, extraConfigs.Mobile.UninstallBlacklist, "com.system.service")
+	assert.Contains(t, extraConfigs.Mobile.UninstallBlacklist, "com.protected.package")
+
 	// Test with empty JSON
 	emptyConfigs := &models.ExtraConfigs{}
 	err = emptyConfigs.FromJSON("")
@@ -604,8 +635,10 @@ func TestModels_ExtraConfigs_JSONRoundTrip(t *testing.T) {
 		AppPackageNameList: []string{"com.android.settings", "com.example.app"},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	originalConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -626,4 +659,10 @@ func TestModels_ExtraConfigs_JSONRoundTrip(t *testing.T) {
 	assert.True(t, newConfigs.Mobile.LockResolution)
 	assert.Equal(t, originalConfigs.Mobile.AppManagerRule.RuleType, newConfigs.Mobile.AppManagerRule.RuleType)
 	assert.Equal(t, len(originalConfigs.Mobile.AppManagerRule.AppPackageNameList), len(newConfigs.Mobile.AppManagerRule.AppPackageNameList))
+	assert.Equal(t, originalConfigs.Mobile.HideNavigationBar, newConfigs.Mobile.HideNavigationBar)
+	assert.True(t, newConfigs.Mobile.HideNavigationBar)
+	assert.Equal(t, len(originalConfigs.Mobile.UninstallBlacklist), len(newConfigs.Mobile.UninstallBlacklist))
+	for i, pkg := range originalConfigs.Mobile.UninstallBlacklist {
+		assert.Equal(t, pkg, newConfigs.Mobile.UninstallBlacklist[i])
+	}
 }

@@ -517,6 +517,18 @@ func (m *Mobile) Configure(mobileConfig *models.MobileExtraConfig) error {
 		}
 	}
 
+	// Configure navigation bar visibility
+	if err := m.setNavigationBarVisibility(mobileConfig.HideNavigationBar); err != nil {
+		return fmt.Errorf("failed to set navigation bar visibility: %v", err)
+	}
+
+	// Configure uninstall blacklist
+	if len(mobileConfig.UninstallBlacklist) > 0 {
+		if err := m.setUninstallBlacklist(mobileConfig.UninstallBlacklist); err != nil {
+			return fmt.Errorf("failed to set uninstall blacklist: %v", err)
+		}
+	}
+
 	return nil
 }
 
@@ -568,6 +580,49 @@ func (m *Mobile) setAppBlacklist(packageNames []string) error {
 	command := strings.ReplaceAll(template, "{package_list}", packageList)
 
 	return m.executeTemplateCommand(command, fmt.Sprintf("App blacklist configuration (%d packages)", len(packageNames)))
+}
+
+// setNavigationBarVisibility sets navigation bar visibility
+func (m *Mobile) setNavigationBarVisibility(hide bool) error {
+	var templateName string
+	if hide {
+		templateName = "hide_navigation_bar"
+	} else {
+		templateName = "show_navigation_bar"
+	}
+
+	template, exists := command.GetMobileCommandTemplate(templateName)
+	if !exists {
+		return fmt.Errorf("navigation bar template not found: %s", templateName)
+	}
+
+	description := fmt.Sprintf("Navigation bar visibility (hide: %t)", hide)
+	return m.executeTemplateCommand(template, description)
+}
+
+// setUninstallBlacklist sets uninstall protection blacklist
+func (m *Mobile) setUninstallBlacklist(packageNames []string) error {
+	template, exists := command.GetMobileCommandTemplate("uninstall_blacklist")
+	if !exists {
+		return fmt.Errorf("uninstall blacklist template not found")
+	}
+
+	// Replace placeholder with actual package names (semicolon-separated for property value)
+	packageList := strings.Join(packageNames, ";")
+	command := strings.ReplaceAll(template, "{package_list}", packageList)
+
+	description := fmt.Sprintf("Uninstall blacklist configuration (%d packages)", len(packageNames))
+	return m.executeTemplateCommand(command, description)
+}
+
+// SetNavigationBarVisibility sets navigation bar visibility for mobile devices
+func (m *Mobile) SetNavigationBarVisibility(hide bool) error {
+	return m.setNavigationBarVisibility(hide)
+}
+
+// SetUninstallBlacklist sets uninstall protection blacklist for mobile devices
+func (m *Mobile) SetUninstallBlacklist(packageNames []string) error {
+	return m.setUninstallBlacklist(packageNames)
 }
 
 // executeTemplateCommand executes a mobile command template

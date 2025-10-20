@@ -319,8 +319,10 @@ func main() {
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -393,6 +395,10 @@ appRule := &models.AppManagerRule{
 The `MobileExtraConfig` struct provides the following options:
 
 - **`LockResolution`** (bool): When set to `true`, locks the display resolution to prevent changes during the session. When `false`, allows flexible resolution adjustments.
+- **`HideNavigationBar`** (bool): Controls the visibility of the system navigation bar.
+  - `true`: Hides the navigation bar for an immersive full-screen experience
+  - `false`: Shows the navigation bar (default system behavior)
+- **`UninstallBlacklist`** ([]string): A list of package names that should be protected from uninstallation. These applications will be added to the system's uninstall protection list, preventing accidental or malicious removal of critical apps.
 - **`AppManagerRule`** (*AppManagerRule): Defines the application access control rules for the mobile session.
 
 ### JSON Serialization
@@ -418,6 +424,92 @@ if err != nil {
 fmt.Printf("Session params JSON: %s\n", paramsJSON)
 ```
 
+### Advanced Mobile Configuration Example
+
+Here's a comprehensive example demonstrating all mobile configuration options:
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
+)
+
+func main() {
+	// Initialize the SDK
+	client, err := agentbay.NewAgentBay("your_api_key", nil)
+	if err != nil {
+		fmt.Printf("Error initializing AgentBay client: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Create comprehensive mobile configuration
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.test.app",
+			"com.trusted.service",
+		},
+	}
+
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution:     true,  // Lock resolution for consistent testing
+		HideNavigationBar:  true,  // Hide navigation bar for immersive UI
+		UninstallBlacklist: []string{
+			"com.android.systemui",     // Protect system UI
+			"com.android.settings",     // Protect settings app
+			"com.google.android.gms",   // Protect Google services
+			"com.critical.security.app", // Protect security app
+		},
+		AppManagerRule: appRule,
+	}
+
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+
+	// Create session with comprehensive configuration
+	params := agentbay.NewCreateSessionParams().
+		WithImageId("mobile_latest").
+		WithLabels(map[string]string{
+			"project":     "mobile-automation",
+			"config_type": "comprehensive",
+			"features":    "navbar_hidden,uninstall_protected,app_whitelist",
+		}).
+		WithExtraConfigs(extraConfigs)
+
+	result, err := client.Create(params)
+	if err != nil {
+		fmt.Printf("Error creating mobile session: %v\n", err)
+		os.Exit(1)
+	}
+
+	session := result.Session
+	fmt.Printf("Comprehensive mobile session created with ID: %s\n", session.SessionID)
+	fmt.Println("Configuration applied:")
+	fmt.Println("- Resolution locked for consistent testing")
+	fmt.Println("- Navigation bar hidden for immersive experience")
+	fmt.Println("- Critical system apps protected from uninstallation")
+	fmt.Println("- App whitelist enabled for security")
+
+	// Use the session for mobile automation...
+
+	// Clean up
+	deleteResult, err := session.Delete()
+	if err != nil {
+		fmt.Printf("Error deleting session: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Session deleted (RequestID: %s)\n", deleteResult.RequestID)
+}
+```
+
 ### Best Practices
 
 1. **Use Appropriate Image IDs**: For mobile sessions with extra configs, use `mobile_latest` or specific mobile image IDs.
@@ -428,12 +520,22 @@ fmt.Printf("Session params JSON: %s\n", paramsJSON)
        "config_type": "whitelist",
        "security":    "enabled",
        "project":     "mobile-testing",
+       "features":    "navbar_hidden,uninstall_protected",
    })
    ```
 
-3. **Test Configurations**: Validate your app package names and configuration settings in a test environment before production use.
+3. **Navigation Bar Configuration**: 
+   - Use `HideNavigationBar: true` for immersive UI testing or kiosk-mode applications
+   - Use `HideNavigationBar: false` for standard mobile app testing where navigation is needed
 
-4. **Handle Errors Gracefully**: Always check for errors when creating sessions with extra configurations, as invalid configurations may cause session creation to fail.
+4. **Uninstall Protection Strategy**:
+   - Always protect critical system apps like `com.android.systemui` and `com.android.settings`
+   - Include security and management apps in the uninstall blacklist
+   - Consider protecting Google Play Services (`com.google.android.gms`) for app compatibility
+
+5. **Test Configurations**: Validate your app package names and configuration settings in a test environment before production use.
+
+6. **Handle Errors Gracefully**: Always check for errors when creating sessions with extra configurations, as invalid configurations may cause session creation to fail.
 
 ## Related Resources
 

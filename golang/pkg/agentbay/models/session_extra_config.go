@@ -24,6 +24,15 @@ type MobileExtraConfig struct {
 
 	// AppManagerRule defines rules for managing app access on the mobile device
 	AppManagerRule *AppManagerRule `json:"app_manager_rule,omitempty"`
+
+	// HideNavigationBar determines whether to hide the system navigation bar
+	// true: Hides the navigation bar by setting persist.wy.hasnavibar to false and restarting SystemUI
+	// false: Shows the navigation bar (default behavior)
+	HideNavigationBar bool `json:"hide_navigation_bar"`
+
+	// UninstallBlacklist contains a list of package names that should be protected from uninstallation
+	// These packages will be added to the system's uninstall protection list
+	UninstallBlacklist []string `json:"uninstall_blacklist,omitempty"`
 }
 
 // ExtraConfigs contains extra configuration settings for different session types

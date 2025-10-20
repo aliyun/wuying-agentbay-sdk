@@ -37,8 +37,10 @@ func TestSessionExtraConfigsIntegration_MobileConfig(t *testing.T) {
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  true,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service", "com.protected.package"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -101,8 +103,10 @@ func TestSessionExtraConfigsIntegration_ExtraConfigsJSONSerialization(t *testing
 		},
 	}
 	mobileConfig := &models.MobileExtraConfig{
-		LockResolution: true,
-		AppManagerRule: appRule,
+		LockResolution:     true,
+		HideNavigationBar:  false,
+		UninstallBlacklist: []string{"com.critical.app", "com.system.service"},
+		AppManagerRule:     appRule,
 	}
 	extraConfigs := &models.ExtraConfigs{
 		Mobile: mobileConfig,
@@ -124,6 +128,15 @@ func TestSessionExtraConfigsIntegration_ExtraConfigsJSONSerialization(t *testing
 	}
 	if !strings.Contains(jsonStr, "app_manager_rule") {
 		t.Error("Expected JSON to contain 'app_manager_rule' key")
+	}
+	if !strings.Contains(jsonStr, "hide_navigation_bar") {
+		t.Error("Expected JSON to contain 'hide_navigation_bar' key")
+	}
+	if !strings.Contains(jsonStr, "uninstall_blacklist") {
+		t.Error("Expected JSON to contain 'uninstall_blacklist' key")
+	}
+	if !strings.Contains(jsonStr, "com.critical.app") {
+		t.Error("Expected JSON to contain 'com.critical.app' in uninstall blacklist")
 	}
 
 	// Create session parameters

@@ -5,8 +5,11 @@ This guide demonstrates how to create mobile sessions with advanced configuratio
 ## Table of Contents
 - [Overview](#overview)
 - [Configuration Options](#configuration-options)
+- [Navigation Bar Control](#navigation-bar-control)
+- [Uninstall Protection](#uninstall-protection)
 - [Whitelist Configuration](#whitelist-configuration)
 - [Blacklist Configuration](#blacklist-configuration)
+- [Advanced Configuration Examples](#advanced-configuration-examples)
 
 ## Overview
 
@@ -14,6 +17,8 @@ When creating mobile sessions, you can configure advanced settings using the `ex
 
 - Control application access through whitelist or blacklist rules
 - Lock or unlock screen resolution
+- Hide or show the system navigation bar
+- Protect critical applications from uninstallation
 - Enhance security and testing flexibility
 
 ## Configuration Options
@@ -26,11 +31,113 @@ The mobile configuration supports the following options:
   - `True`: Locks the resolution to prevent changes
   - `False`: Allows resolution changes for flexible display adaptation
 
+### Navigation Bar Control
+
+- **`hide_navigation_bar`** (bool): Controls the visibility of the system navigation bar
+  - `True`: Hides the navigation bar for immersive full-screen experience
+  - `False`: Shows the navigation bar (default system behavior)
+
+### Uninstall Protection
+
+- **`uninstall_blacklist`** (list): A list of package names protected from uninstallation
+  - Prevents accidental or malicious removal of critical applications
+  - Commonly used to protect system apps, security tools, and essential services
+
 ### App Manager Rule
 
 - **`app_manager_rule`** (AppManagerRule): Controls application access
   - **`rule_type`**: Either "White" (whitelist) or "Black" (blacklist)
   - **`app_package_name_list`**: List of package names to allow or block
+
+## Navigation Bar Control
+
+The navigation bar control feature allows you to create immersive mobile experiences by hiding the system navigation bar. This is particularly useful for:
+
+- **Kiosk Applications**: Creating dedicated-purpose applications without system navigation
+- **Immersive Gaming**: Full-screen gaming experiences without distractions
+- **UI Testing**: Testing applications in full-screen mode
+- **Digital Signage**: Creating clean, distraction-free displays
+
+### Example: Hiding Navigation Bar
+
+```python
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Configure mobile settings with hidden navigation bar
+mobile_config = MobileExtraConfig(
+    lock_resolution=True,
+    hide_navigation_bar=True  # Hide navigation bar for immersive experience
+)
+
+# Create extra configs
+extra_configs = ExtraConfigs(mobile=mobile_config)
+
+# Create session with immersive configuration
+params = CreateSessionParams(
+    image_id="mobile_latest",
+    labels={"project": "immersive-ui", "mode": "kiosk"},
+    extra_configs=extra_configs
+)
+
+session_result = agent_bay.create(params)
+if session_result.success:
+    session = session_result.session
+    print(f"Immersive mobile session created with ID: {session.session_id}")
+    print("Navigation bar hidden for full-screen experience")
+```
+
+## Uninstall Protection
+
+The uninstall protection feature prevents critical applications from being accidentally or maliciously uninstalled. This is essential for:
+
+- **System Stability**: Protecting essential system applications
+- **Security**: Preventing removal of security and management tools
+- **Compliance**: Ensuring required applications remain installed
+- **Kiosk Mode**: Maintaining application integrity in public devices
+
+### Example: Protecting Critical Applications
+
+```python
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Configure uninstall protection for critical apps
+mobile_config = MobileExtraConfig(
+    lock_resolution=True,
+    uninstall_blacklist=[
+        "com.android.systemui",        # System UI
+        "com.android.settings",        # Settings app
+        "com.google.android.gms",      # Google Play Services
+        "com.company.security.app",    # Company security app
+        "com.company.management.tool"  # Device management tool
+    ]
+)
+
+# Create extra configs
+extra_configs = ExtraConfigs(mobile=mobile_config)
+
+# Create session with uninstall protection
+params = CreateSessionParams(
+    image_id="mobile_latest",
+    labels={"project": "secure-deployment", "protection": "enabled"},
+    extra_configs=extra_configs
+)
+
+session_result = agent_bay.create(params)
+if session_result.success:
+    session = session_result.session
+    print(f"Protected mobile session created with ID: {session.session_id}")
+    print("Critical applications protected from uninstallation")
+```
 
 ## Whitelist Configuration
 
@@ -56,9 +163,15 @@ app_whitelist_rule = AppManagerRule(
     ]
 )
 
-# Configure mobile settings
+# Configure mobile settings with comprehensive options
 mobile_config = MobileExtraConfig(
     lock_resolution=True,
+    hide_navigation_bar=True,  # Hide navigation bar for clean UI
+    uninstall_blacklist=[      # Protect critical system apps
+        "com.android.systemui",
+        "com.android.settings",
+        "com.google.android.gms"
+    ],
     app_manager_rule=app_whitelist_rule
 )
 
@@ -107,9 +220,14 @@ app_blacklist_rule = AppManagerRule(
     ]
 )
 
-# Configure mobile settings with resolution flexibility
+# Configure mobile settings with resolution flexibility and security
 mobile_config = MobileExtraConfig(
     lock_resolution=False,
+    hide_navigation_bar=False,  # Keep navigation bar visible
+    uninstall_blacklist=[       # Protect essential apps even in blacklist mode
+        "com.android.systemui",
+        "com.android.settings"
+    ],
     app_manager_rule=app_blacklist_rule
 )
 
@@ -132,6 +250,72 @@ if session_result.success:
     print("- App blacklist enabled to block malicious packages")
 else:
     print(f"Failed to create mobile session: {session_result.error_message}")
+```
+
+## Advanced Configuration Examples
+
+### Comprehensive Mobile Configuration
+
+This example demonstrates all available mobile configuration options working together:
+
+```python
+from agentbay import AgentBay
+from agentbay.session_params import CreateSessionParams
+from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
+
+# Initialize the SDK
+agent_bay = AgentBay(api_key="your_api_key")
+
+# Create comprehensive app management rule
+app_rule = AppManagerRule(
+    rule_type="White",
+    app_package_name_list=[
+        "com.android.settings",
+        "com.company.business.app",
+        "com.trusted.productivity.suite"
+    ]
+)
+
+# Configure all mobile options
+mobile_config = MobileExtraConfig(
+    lock_resolution=True,           # Lock resolution for consistent testing
+    hide_navigation_bar=True,       # Hide navigation bar for immersive experience
+    uninstall_blacklist=[           # Protect critical applications
+        "com.android.systemui",     # System UI components
+        "com.android.settings",     # Device settings
+        "com.google.android.gms",   # Google Play Services
+        "com.company.security.app", # Company security application
+        "com.company.mdm.agent"     # Mobile device management agent
+    ],
+    app_manager_rule=app_rule       # Application access control
+)
+
+# Create extra configs
+extra_configs = ExtraConfigs(mobile=mobile_config)
+
+# Create session with comprehensive configuration
+params = CreateSessionParams(
+    image_id="mobile_latest",
+    labels={
+        "project": "enterprise-mobile",
+        "config_type": "comprehensive",
+        "security_level": "high",
+        "ui_mode": "immersive"
+    },
+    extra_configs=extra_configs
+)
+
+session_result = agent_bay.create(params)
+if session_result.success:
+    session = session_result.session
+    print(f"Comprehensive mobile session created with ID: {session.session_id}")
+    print("Configuration applied:")
+    print("✓ Resolution locked for consistent testing")
+    print("✓ Navigation bar hidden for immersive experience")
+    print("✓ Critical system apps protected from uninstallation")
+    print("✓ App whitelist enforced for security")
+else:
+    print(f"Failed to create comprehensive session: {session_result.error_message}")
 ```
 
 ## Related Documentation
