@@ -4,6 +4,9 @@
  */
 
 import { OperationResult } from "../types/api-response";
+import { MobileExtraConfig } from "../types/extra-configs";
+import { log, logError } from "../utils/logger";
+import { getMobileCommandTemplate, replaceTemplatePlaceholders } from "../command/command-templates";
 
 export interface BoolResult extends OperationResult {
   data?: boolean;
@@ -67,6 +70,7 @@ export class Mobile {
   constructor(session: MobileSession) {
     this.session = session;
   }
+
 
   /**
    * Tap at specified coordinates.
@@ -455,6 +459,306 @@ export class Mobile {
         errorMessage: errorMsg,
         data: undefined,
         url: undefined
+      };
+    }
+  }
+
+  /**
+   * Configure mobile device settings based on MobileExtraConfig.
+   * This method applies various mobile configuration settings including
+   * resolution lock and app access management.
+   * 
+   * @param config - The mobile configuration to apply
+   * @returns OperationResult indicating success or failure
+   */
+  async configure(config: MobileExtraConfig): Promise<OperationResult> {
+    try {
+      if (!config) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: 'No mobile configuration provided'
+        };
+      }
+
+      // Configure resolution lock
+      const resolutionResult = await this.setResolutionLock(config.lockResolution);
+      if (!resolutionResult.success) {
+        return {
+          success: false,
+          requestId: resolutionResult.requestId,
+          errorMessage: `Failed to set resolution lock: ${resolutionResult.errorMessage}`
+        };
+      }
+
+      // Configure app management rules
+      if (config.appManagerRule && config.appManagerRule.ruleType) {
+        const appRule = config.appManagerRule;
+        const packageNames = appRule.appPackageNameList;
+
+        if (packageNames && packageNames.length > 0 && 
+            (appRule.ruleType === "White" || appRule.ruleType === "Black")) {
+          
+          let appResult: OperationResult;
+          if (appRule.ruleType === "White") {
+            appResult = await this.setAppWhitelist(packageNames);
+          } else {
+            appResult = await this.setAppBlacklist(packageNames);
+          }
+
+          if (!appResult.success) {
+            return {
+              success: false,
+              requestId: appResult.requestId,
+              errorMessage: `Failed to set app ${appRule.ruleType.toLowerCase()}list: ${appResult.errorMessage}`
+            };
+          }
+        } else if (packageNames && packageNames.length === 0) {
+          return {
+            success: false,
+            requestId: '',
+            errorMessage: `No package names provided for ${appRule.ruleType} list`
+          };
+        }
+      }
+
+      // Configure navigation bar visibility
+      if (config.hideNavigationBar !== undefined) {
+        const navResult = await this.setNavigationBarVisibility(config.hideNavigationBar);
+        if (!navResult.success) {
+          return {
+            success: false,
+            requestId: navResult.requestId,
+            errorMessage: `Failed to set navigation bar visibility: ${navResult.errorMessage}`
+          };
+        }
+      }
+
+      // Configure uninstall blacklist
+      if (config.uninstallBlacklist && config.uninstallBlacklist.length > 0) {
+        const uninstallResult = await this.setUninstallBlacklist(config.uninstallBlacklist);
+        if (!uninstallResult.success) {
+          return {
+            success: false,
+            requestId: uninstallResult.requestId,
+            errorMessage: `Failed to set uninstall blacklist: ${uninstallResult.errorMessage}`
+          };
+        }
+      }
+
+      log("Mobile configuration applied successfully");
+      return {
+        success: true,
+        requestId: '',
+        errorMessage: ''
+      };
+    } catch (error) {
+      const errorMsg = `Failed to configure mobile: ${error instanceof Error ? error.message : String(error)}`;
+      logError(errorMsg);
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: errorMsg
+      };
+    }
+  }
+
+  /**
+   * Set display resolution lock for mobile devices.
+   * 
+   * @param enable - Whether to enable resolution lock
+   * @returns OperationResult indicating success or failure
+   */
+  async setResolutionLock(enable: boolean): Promise<OperationResult> {
+    try {
+      const templateName = enable ? "resolution_lock_enable" : "resolution_lock_disable";
+      const template = getMobileCommandTemplate(templateName);
+      
+      if (!template) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: `Resolution lock template not found: ${templateName}`
+        };
+      }
+
+      const description = `Resolution lock ${enable ? 'enable' : 'disable'}`;
+      return await this.executeCommand(template, description);
+    } catch (error) {
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: `Failed to set resolution lock: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  /**
+   * Set app whitelist configuration.
+   * 
+   * @param packageNames - List of package names to whitelist
+   * @returns OperationResult indicating success or failure
+   */
+  async setAppWhitelist(packageNames: string[]): Promise<OperationResult> {
+    try {
+      const template = getMobileCommandTemplate("app_whitelist");
+      if (!template) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: "App whitelist template not found"
+        };
+      }
+
+      // Replace placeholder with actual package names (newline-separated for file content)
+      const packageList = packageNames.join('\n');
+      const command = replaceTemplatePlaceholders(template, { package_list: packageList });
+      
+      const description = `App whitelist configuration (${packageNames.length} packages)`;
+      return await this.executeCommand(command, description);
+    } catch (error) {
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: `Failed to set app whitelist: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  /**
+   * Set app blacklist configuration.
+   * 
+   * @param packageNames - List of package names to blacklist
+   * @returns OperationResult indicating success or failure
+   */
+  async setAppBlacklist(packageNames: string[]): Promise<OperationResult> {
+    try {
+      const template = getMobileCommandTemplate("app_blacklist");
+      if (!template) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: "App blacklist template not found"
+        };
+      }
+
+      // Replace placeholder with actual package names (newline-separated for file content)
+      const packageList = packageNames.join('\n');
+      const command = replaceTemplatePlaceholders(template, { package_list: packageList });
+      
+      const description = `App blacklist configuration (${packageNames.length} packages)`;
+      return await this.executeCommand(command, description);
+    } catch (error) {
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: `Failed to set app blacklist: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  /**
+   * Set navigation bar visibility for mobile devices.
+   * 
+   * @param hide - True to hide navigation bar, false to show navigation bar
+   * @returns OperationResult indicating success or failure
+   */
+  async setNavigationBarVisibility(hide: boolean): Promise<OperationResult> {
+    try {
+      const templateName = hide ? "hide_navigation_bar" : "show_navigation_bar";
+      const template = getMobileCommandTemplate(templateName);
+      
+      if (!template) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: `Navigation bar template not found: ${templateName}`
+        };
+      }
+
+      const description = `Navigation bar visibility (hide: ${hide})`;
+      return await this.executeCommand(template, description);
+    } catch (error) {
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: `Failed to set navigation bar visibility: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  /**
+   * Set uninstall protection blacklist for mobile devices.
+   * 
+   * @param packageNames - List of Android package names to protect from uninstallation
+   * @returns OperationResult indicating success or failure
+   */
+  async setUninstallBlacklist(packageNames: string[]): Promise<OperationResult> {
+    try {
+      const template = getMobileCommandTemplate("uninstall_blacklist");
+      if (!template) {
+        return {
+          success: false,
+          requestId: '',
+          errorMessage: "Uninstall blacklist template not found"
+        };
+      }
+
+      // Use semicolon-separated format for uninstall blacklist property
+      const packageList = packageNames.join(';');
+      const command = replaceTemplatePlaceholders(template, { package_list: packageList });
+      
+      const description = `Uninstall blacklist configuration (${packageNames.length} packages)`;
+      return await this.executeCommand(command, description);
+    } catch (error) {
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: `Failed to set uninstall blacklist: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
+  }
+
+  /**
+   * Execute a command template for mobile configuration.
+   * 
+   * @param command - The command to execute
+   * @param description - Description of the operation
+   * @returns OperationResult indicating success or failure
+   */
+  private async executeCommand(command: string, description: string): Promise<OperationResult> {
+    try {
+      log(`Executing ${description}`);
+      
+      // Use the session's command module to execute the command with longer timeout for mobile operations
+      const result = await (this.session as any).command.executeCommand(command, 10000);
+      
+      if (result && result.success) {
+        log(`✅ ${description} completed successfully`);
+        if (result.output) {
+          log(`Command output: ${result.output}`);
+        }
+        return {
+          success: true,
+          requestId: result.requestId || '',
+          errorMessage: ''
+        };
+      } else {
+        const errorMessage = result?.errorMessage || `Failed to execute ${description}`;
+        logError(`Failed to execute ${description}: ${errorMessage}`);
+        return {
+          success: false,
+          requestId: result?.requestId || '',
+          errorMessage: errorMessage
+        };
+      }
+    } catch (error) {
+      const errorMsg = `Failed to execute ${description}: ${error instanceof Error ? error.message : String(error)}`;
+      logError(errorMsg);
+      return {
+        success: false,
+        requestId: '',
+        errorMessage: errorMsg
       };
     }
   }

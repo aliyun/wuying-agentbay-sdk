@@ -11,6 +11,7 @@ import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
 import { BrowserContext } from "./session-params";
 import { Context } from "./context";
+import { ExtraConfigs } from "./types/extra-configs";
 
 import {
   DeleteResult,
@@ -61,6 +62,7 @@ export interface CreateSessionParams {
   isVpc?: boolean;
   policyId?: string;
   enableBrowserReplay?: boolean;
+  extraConfigs?: ExtraConfigs;
 }
 
 /**
@@ -285,6 +287,11 @@ export class AgentBay {
         request.persistenceDataList.push(recordPersistence);
       }
 
+      // Add extra configs if provided
+      if (params.extraConfigs) {
+        request.extraConfigs = params.extraConfigs;
+      }
+
       // Log API request
       logAPICall("CreateMcpSession", {
         labels: params.labels,
@@ -427,7 +434,25 @@ export class AgentBay {
       // Store imageId used for this session
       (session as any).imageId = params.imageId;
 
+
       this.sessions.set(session.sessionId, session);
+
+      // Apply mobile configuration if provided
+      if (params.extraConfigs && params.extraConfigs.mobile) {
+        log("Applying mobile configuration...");
+        try {
+          const configResult = await session.mobile.configure(params.extraConfigs.mobile);
+          if (configResult.success) {
+            log("Mobile configuration applied successfully");
+          } else {
+            logError(`Warning: Failed to apply mobile configuration: ${configResult.errorMessage}`);
+            // Continue with session creation even if mobile config fails
+          }
+        } catch (error) {
+          logError(`Warning: Failed to apply mobile configuration: ${error}`);
+          // Continue with session creation even if mobile config fails
+        }
+      }
 
       // Update browser replay context if enabled
       if (params.enableBrowserReplay) {

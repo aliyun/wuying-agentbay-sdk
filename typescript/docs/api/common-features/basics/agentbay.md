@@ -97,6 +97,78 @@ async function createCustomSession() {
   throw new Error(`Failed to create session: ${result.errorMessage}`);
 }
 
+// Create a mobile session with extra configurations
+async function createMobileSession() {
+  import { MobileExtraConfig, AppManagerRule, ExtraConfigs } from 'wuying-agentbay-sdk';
+  
+  const appRule: AppManagerRule = {
+    ruleType: "White",
+    appPackageNameList: [
+      "com.android.settings",
+      "com.example.trusted.app",
+      "com.system.essential.service"
+    ]
+  };
+
+  const mobileConfig: MobileExtraConfig = {
+    lockResolution: true,  // Lock screen resolution for consistent testing
+    appManagerRule: appRule,
+    hideNavigationBar: true,  // Hide navigation bar for immersive experience
+    uninstallBlacklist: [  // Protect critical apps from uninstallation
+      "com.android.systemui",
+      "com.android.settings",
+      "com.google.android.gms"
+    ]
+  };
+
+  const extraConfigs: ExtraConfigs = { mobile: mobileConfig };
+
+  const params = new CreateSessionParams()
+    .withImageId("mobile_latest")
+    .withLabels({ project: "mobile-testing", config_type: "whitelist" })
+    .withExtraConfigs(extraConfigs);
+
+  const result = await agentBay.create(params);
+  if (result.success) {
+    console.log(`Created mobile session with extra configs: ${result.session.sessionId}`);
+    return result.session;
+  }
+  throw new Error(`Failed to create mobile session: ${result.errorMessage}`);
+}
+
+// Create a mobile session with blacklist configuration
+async function createMobileSessionWithBlacklist() {
+  const appRule: AppManagerRule = {
+    ruleType: "Black",
+    appPackageNameList: [
+      "com.malware.suspicious",
+      "com.unwanted.adware",
+      "com.social.distraction"
+    ]
+  };
+
+  const mobileSecurityConfig: MobileExtraConfig = {
+    lockResolution: false,  // Allow adaptive resolution
+    appManagerRule: appRule,
+    hideNavigationBar: false,  // Show navigation bar (default behavior)
+    uninstallBlacklist: ["com.android.systemui"]  // Protect system UI from uninstallation
+  };
+
+  const extraConfigs: ExtraConfigs = { mobile: mobileSecurityConfig };
+
+  const params = new CreateSessionParams()
+    .withImageId("mobile_latest")
+    .withLabels({ project: "mobile-security", config_type: "blacklist", security: "enabled" })
+    .withExtraConfigs(extraConfigs);
+
+  const result = await agentBay.create(params);
+  if (result.success) {
+    console.log(`Created secure mobile session with blacklist: ${result.session.sessionId}`);
+    return result.session;
+  }
+  throw new Error(`Failed to create secure mobile session: ${result.errorMessage}`);
+}
+
 // RECOMMENDED: Create a session with context synchronization
 async function createSessionWithSync() {
   const contextSync = new ContextSync({

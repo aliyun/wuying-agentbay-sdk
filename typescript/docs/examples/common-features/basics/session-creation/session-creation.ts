@@ -1,5 +1,6 @@
 
 import { AgentBay, log, logError, CreateSessionParams, ContextSync, newSyncPolicy, ContextStatusData, newCreateSessionParams } from 'wuying-agentbay-sdk'
+import { MobileExtraConfig, AppManagerRule, ExtraConfigs } from 'wuying-agentbay-sdk'
 
 
 
@@ -189,10 +190,91 @@ async function createSessionWithContextSync() {
 }
 
 /**
+ * Create a mobile session with extra configurations
+ */
+async function createMobileSessionWithExtraConfigs() {
+  // Initialize the AgentBay client
+  const agent_bay = new AgentBay({ apiKey: process.env.AGENTBAY_API_KEY });
+
+  try {
+    // Create mobile configuration with app manager rule, resolution lock, navigation bar control, and uninstall protection
+    const appRule: AppManagerRule = {
+      ruleType: "White",
+      appPackageNameList: [
+        "com.android.settings",
+        "com.example.test.app",
+        "com.trusted.service",
+        "com.system.essential.service"
+      ]
+    };
+
+    const mobileConfig: MobileExtraConfig = {
+      lockResolution: true,  // Lock screen resolution for consistent testing
+      appManagerRule: appRule,
+      hideNavigationBar: true,  // Hide navigation bar for immersive experience
+      uninstallBlacklist: [  // Protect critical apps from uninstallation
+        "com.android.systemui",
+        "com.android.settings",
+        "com.google.android.gms"
+      ]
+    };
+
+    const extraConfigs: ExtraConfigs = {
+      mobile: mobileConfig
+    };
+
+    // Create session parameters with extra configurations
+    const params = new CreateSessionParams()
+      .withImageId("mobile_latest")
+      .withLabels({
+        project: "mobile-testing",
+        environment: "development",
+        config_type: "comprehensive"
+      })
+      .withExtraConfigs(extraConfigs);
+
+    // Create session
+    const result = await agent_bay.create(params);
+
+    if (result.success && result.session) {
+      log(`Mobile session with extra configs created with ID: ${result.session.sessionId}`);
+      log(`Request ID: ${result.requestId}`);
+      log('Extra configurations applied:');
+      log(`- Lock Resolution: ${mobileConfig.lockResolution}`);
+      log(`- Hide Navigation Bar: ${mobileConfig.hideNavigationBar}`);
+      log(`- App Manager Rule Type: ${appRule.ruleType}`);
+      log(`- Managed Apps: ${appRule.appPackageNameList.length}`);
+      appRule.appPackageNameList.forEach(pkg => {
+        log(`  - ${pkg}`);
+      });
+      log(`- Uninstall Protection: ${mobileConfig.uninstallBlacklist?.length} packages`);
+      mobileConfig.uninstallBlacklist?.forEach(pkg => {
+        log(`  - ${pkg}`);
+      });
+
+      // Clean up
+      const deleteResult = await agent_bay.delete(result.session);
+      if (deleteResult.success) {
+        log('Mobile session deleted successfully');
+      } else {
+        log(`Failed to delete mobile session: ${deleteResult.errorMessage}`);
+      }
+    } else {
+      log(`Failed to create mobile session: ${result.errorMessage}`);
+    }
+  } catch (error) {
+    logError('Error:', error);
+  }
+}
+
+/**
  * Run all examples
  */
 async function main() {
-  log('1. Creating session with default parameters...');
+  log('Session Creation Examples');
+  log('=========================');
+
+  log('\n1. Creating session with default parameters...');
   await createSessionWithDefaultParams();
 
   log('\n2. Creating session with labels...');
@@ -203,6 +285,9 @@ async function main() {
 
   log('\n4. Creating session with context synchronization...');
   await createSessionWithContextSync();
+
+  log('\n5. Creating mobile session with extra configurations...');
+  await createMobileSessionWithExtraConfigs();
 }
 
 main().catch(error => {

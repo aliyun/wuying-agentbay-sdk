@@ -10,3 +10,14 @@ export {
   type ApiResponseWithData,
   type DeleteResult,
 } from "./api-response";
+
+export {
+  type AppManagerRule,
+  type MobileExtraConfig,
+  type ExtraConfigs,
+  validateAppManagerRule,
+  validateMobileExtraConfig,
+  validateExtraConfigs,
+  extraConfigsToJSON,
+  extraConfigsFromJSON,
+} from "./extra-configs";
