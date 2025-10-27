@@ -545,6 +545,14 @@ class Mobile(BaseService):
                     self._set_app_blacklist(package_names)
             elif not package_names:
                 logger.warning(f"No package names provided for {app_rule.rule_type} list")
+        
+        # Configure navigation bar visibility
+        if mobile_config.hide_navigation_bar is not None:
+            self._set_navigation_bar_visibility(mobile_config.hide_navigation_bar)
+        
+        # Configure uninstall blacklist
+        if mobile_config.uninstall_blacklist and len(mobile_config.uninstall_blacklist) > 0:
+            self._set_uninstall_blacklist(mobile_config.uninstall_blacklist)
 
     def set_resolution_lock(self, enable: bool):
         """
@@ -578,6 +586,27 @@ class Mobile(BaseService):
             logger.warning("Empty package names list for blacklist")
             return
         self._set_app_blacklist(package_names)
+
+    def set_navigation_bar_visibility(self, hide: bool):
+        """
+        Set navigation bar visibility for mobile devices.
+        
+        Args:
+            hide (bool): True to hide navigation bar, False to show navigation bar.
+        """
+        self._set_navigation_bar_visibility(hide)
+
+    def set_uninstall_blacklist(self, package_names: List[str]):
+        """
+        Set uninstall protection blacklist for mobile devices.
+        
+        Args:
+            package_names (List[str]): List of Android package names to protect from uninstallation.
+        """
+        if not package_names:
+            logger.warning("Empty package names list for uninstall blacklist")
+            return
+        self._set_uninstall_blacklist(package_names)
 
     def get_adb_url(self, adbkey_pub: str) -> AdbUrlResult:
         """
@@ -667,3 +696,18 @@ class Mobile(BaseService):
         }
         operation_name = f"App blacklist configuration ({len(package_names)} packages)"
         self._execute_template_command("app_blacklist", params, operation_name)
+
+    def _set_navigation_bar_visibility(self, hide: bool):
+        """Execute navigation bar visibility command."""
+        template_name = "hide_navigation_bar" if hide else "show_navigation_bar"
+        operation_name = f"Navigation bar visibility (hide: {hide})"
+        self._execute_template_command(template_name, {}, operation_name)
+
+    def _set_uninstall_blacklist(self, package_names: List[str]):
+        """Execute uninstall blacklist command."""
+        # Use semicolon-separated format for uninstall blacklist property
+        params = {
+            "package_list": ';'.join(package_names)
+        }
+        operation_name = f"Uninstall blacklist configuration ({len(package_names)} packages)"
+        self._execute_template_command("uninstall_blacklist", params, operation_name)

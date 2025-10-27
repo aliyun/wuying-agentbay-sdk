@@ -114,7 +114,7 @@ if browser_result.success:
     print(f"Created browser session with replay: {browser_session.session_id}")
     # Browser replay files are automatically generated for internal processing
 
-# Create a mobile session with whitelist configuration
+# Create a mobile session with configuration
 from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 app_whitelist_rule = AppManagerRule(
@@ -127,7 +127,13 @@ app_whitelist_rule = AppManagerRule(
 )
 mobile_config = MobileExtraConfig(
     lock_resolution=True,  # Lock screen resolution for consistent testing
-    app_manager_rule=app_whitelist_rule
+    app_manager_rule=app_whitelist_rule,
+    hide_navigation_bar=True,  # Hide navigation bar for immersive experience
+    uninstall_blacklist=[  # Protect critical apps from uninstallation
+        "com.android.systemui",
+        "com.android.settings",
+        "com.google.android.gms"
+    ]
 )
 extra_configs = ExtraConfigs(mobile=mobile_config)
 
@@ -152,7 +158,9 @@ app_blacklist_rule = AppManagerRule(
 )
 mobile_security_config = MobileExtraConfig(
     lock_resolution=False,  # Allow adaptive resolution
-    app_manager_rule=app_blacklist_rule
+    app_manager_rule=app_blacklist_rule,
+    hide_navigation_bar=False,  # Show navigation bar (default behavior)
+    uninstall_blacklist=["com.android.systemui"]  # Protect system UI from uninstallation
 )
 security_extra_configs = ExtraConfigs(mobile=mobile_security_config)
 

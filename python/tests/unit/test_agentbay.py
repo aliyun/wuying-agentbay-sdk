@@ -377,7 +377,9 @@ class TestAgentBay(unittest.TestCase):
         )
         mobile_config = MobileExtraConfig(
             lock_resolution=True,
-            app_manager_rule=app_rule
+            app_manager_rule=app_rule,
+            hide_navigation_bar=True,
+            uninstall_blacklist=["com.android.systemui", "com.android.settings"]
         )
         extra_configs = ExtraConfigs(mobile=mobile_config)
 
@@ -401,6 +403,8 @@ class TestAgentBay(unittest.TestCase):
         self.assertIsNotNone(call_arg.extra_configs)
         self.assertIsNotNone(call_arg.extra_configs.mobile)
         self.assertTrue(call_arg.extra_configs.mobile.lock_resolution)
+        self.assertTrue(call_arg.extra_configs.mobile.hide_navigation_bar)
+        self.assertEqual(len(call_arg.extra_configs.mobile.uninstall_blacklist), 2)
         self.assertEqual(call_arg.extra_configs.mobile.app_manager_rule.rule_type, "White")
         self.assertEqual(len(call_arg.extra_configs.mobile.app_manager_rule.app_package_name_list), 2)
 

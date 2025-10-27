@@ -230,10 +230,16 @@ def create_session_with_mobile_config() -> None:
         ]
     )
 
-    # Configure mobile settings
+    # Configure mobile settings with all available options
     mobile_config = MobileExtraConfig(
         lock_resolution=True,  # Lock screen resolution for consistent testing
-        app_manager_rule=app_whitelist_rule
+        app_manager_rule=app_whitelist_rule,
+        hide_navigation_bar=True,  # Hide navigation bar for immersive experience
+        uninstall_blacklist=[  # Protect critical apps from uninstallation
+            "com.android.systemui",
+            "com.android.settings",
+            "com.google.android.gms"
+        ]
     )
 
     # Create extra configs
@@ -258,8 +264,12 @@ def create_session_with_mobile_config() -> None:
         print(f"Request ID: {session_result.request_id}")
         print("Mobile configuration applied:")
         print("- Resolution locked for consistent testing")
+        print("- Navigation bar hidden for immersive experience")
         print("- App whitelist enabled with allowed packages:")
         for package in app_whitelist_rule.app_package_name_list or []:
+            print(f"  - {package}")
+        print("- Uninstall protection enabled for:")
+        for package in mobile_config.uninstall_blacklist or []:
             print(f"  - {package}")
 
         # Clean up
@@ -284,7 +294,7 @@ def main() -> None:
     create_session_with_context_sync()
     print("\n5. Creating session with browser context...")
     create_session_with_browser_context()
-    print("\n6. Creating session with mobile configuration (whitelist)...")
+    print("\n6. Creating session with mobile configuration...")
     create_session_with_mobile_config()
 
 

@@ -205,13 +205,21 @@ class MobileExtraConfig(DaraModel):
         self,
         lock_resolution: Optional[bool] = None,
         app_manager_rule: Optional[AppManagerRule] = None,
+        hide_navigation_bar: Optional[bool] = None,
+        uninstall_blacklist: Optional[List[str]] = None,
     ):
         self.lock_resolution = lock_resolution
         self.app_manager_rule = app_manager_rule
+        self.hide_navigation_bar = hide_navigation_bar
+        self.uninstall_blacklist = uninstall_blacklist
 
     def validate(self):
         if self.app_manager_rule:
             self.app_manager_rule.validate()
+        if self.uninstall_blacklist:
+            for v1 in self.uninstall_blacklist:
+                if v1 and not isinstance(v1, str):
+                    raise ValueError("uninstall_blacklist items must be strings")
 
     def to_map(self):
         result = dict()
@@ -225,6 +233,12 @@ class MobileExtraConfig(DaraModel):
         if self.app_manager_rule is not None:
             result['AppManagerRule'] = self.app_manager_rule.to_map()
         
+        if self.hide_navigation_bar is not None:
+            result['HideNavigationBar'] = self.hide_navigation_bar
+        
+        if self.uninstall_blacklist is not None:
+            result['UninstallBlacklist'] = self.uninstall_blacklist
+        
         return result
 
     def from_map(self, m: Optional[dict] = None):
@@ -235,6 +249,12 @@ class MobileExtraConfig(DaraModel):
         if m.get('AppManagerRule') is not None:
             temp_model = AppManagerRule()
             self.app_manager_rule = temp_model.from_map(m.get('AppManagerRule'))
+        
+        if m.get('HideNavigationBar') is not None:
+            self.hide_navigation_bar = m.get('HideNavigationBar')
+        
+        if m.get('UninstallBlacklist') is not None:
+            self.uninstall_blacklist = m.get('UninstallBlacklist', [])
         
         return self
 
