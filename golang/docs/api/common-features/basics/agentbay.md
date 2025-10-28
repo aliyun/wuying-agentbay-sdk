@@ -147,6 +147,66 @@ func main() {
 	// Result: Context SdkCtx-xxxxxxxxxxxxxxx status: Success, path: /home/wuying
 	// Result: Context synchronization completed successfully
 	// Result: Success: Created session with context sync: session-xxxxxxxxxxxxxxx
+
+	// Create a mobile session with extra configurations
+	appRule := &models.AppManagerRule{
+		RuleType: "White",
+		AppPackageNameList: []string{
+			"com.android.settings",
+			"com.example.trusted.app",
+			"com.system.essential.service",
+		},
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		LockResolution:      true,  // Lock screen resolution for consistent testing
+		AppManagerRule:      appRule,
+		HideNavigationBar:   true,  // Hide navigation bar for immersive experience
+		UninstallBlacklist: []string{  // Protect critical apps from uninstallation
+			"com.android.systemui",
+			"com.android.settings",
+			"com.google.android.gms",
+		},
+	}
+	extraConfigs := &models.ExtraConfigs{Mobile: mobileConfig}
+	mobileParams := &agentbay.CreateSessionParams{
+		ImageId:      "mobile_latest",
+		Labels:       map[string]string{"project": "mobile-testing", "config_type": "whitelist"},
+		ExtraConfigs: extraConfigs,
+	}
+	mobileResult, err := client.Create(mobileParams)
+	if err != nil {
+		fmt.Printf("Error creating mobile session: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Created mobile session with whitelist: %s\n", mobileResult.Session.SessionID)
+
+	// Create a mobile session with blacklist configuration
+	appBlacklistRule := &models.AppManagerRule{
+		RuleType: "Black",
+		AppPackageNameList: []string{
+			"com.malware.suspicious",
+			"com.unwanted.adware",
+			"com.social.distraction",
+		},
+	}
+	mobileSecurityConfig := &models.MobileExtraConfig{
+		LockResolution:      false,  // Allow adaptive resolution
+		AppManagerRule:      appBlacklistRule,
+		HideNavigationBar:   false,  // Show navigation bar (default behavior)
+		UninstallBlacklist: []string{"com.android.systemui"},  // Protect system UI from uninstallation
+	}
+	securityExtraConfigs := &models.ExtraConfigs{Mobile: mobileSecurityConfig}
+	mobileSecurityParams := &agentbay.CreateSessionParams{
+		ImageId:      "mobile_latest",
+		Labels:       map[string]string{"project": "mobile-security", "config_type": "blacklist", "security": "enabled"},
+		ExtraConfigs: securityExtraConfigs,
+	}
+	securityResult, err := client.Create(mobileSecurityParams)
+	if err != nil {
+		fmt.Printf("Error creating secure mobile session: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Created secure mobile session with blacklist: %s\n", securityResult.Session.SessionID)
 }
 ```
 

@@ -441,36 +441,7 @@ async function mobileAutomationExample() {
 
 6. **Timeout Handling**: Mobile operations may take longer than desktop operations. Consider using longer timeouts for complex operations.
 
-7. **Mobile Configuration**: When creating sessions, you can configure mobile settings using `MobileExtraConfig` in the session parameters:
-   - **lockResolution** (boolean): Lock the screen resolution for consistent testing
-   - **appManagerRule** (AppManagerRule): Control app access via whitelist or blacklist
-   - **hideNavigationBar** (boolean): Hide the system navigation bar for immersive full-screen experience. Set to `true` to hide, `false` to show (default)
-   - **uninstallBlacklist** (string[]): List of package names to protect from uninstallation, preventing accidental or malicious removal of critical apps
-   
-   Example:
-   ```typescript
-   import { MobileExtraConfig, AppManagerRule, ExtraConfigs } from 'wuying-agentbay-sdk';
-   
-   const mobileConfig: MobileExtraConfig = {
-     lockResolution: true,
-     hideNavigationBar: true,  // Hide navigation bar
-     uninstallBlacklist: [     // Protect system apps
-       "com.android.systemui",
-       "com.android.settings"
-     ],
-     appManagerRule: {
-       ruleType: "White",
-       appPackageNameList: ["com.example.app"]
-     }
-   };
-   
-   const extraConfigs: ExtraConfigs = { mobile: mobileConfig };
-   const params = new CreateSessionParams()
-     .withImageId("mobile_latest")
-     .withExtraConfigs(extraConfigs);
-   ```
-
-8. **Error Handling**: Always check the `success` property of results and handle `errorMessage` appropriately. Some operations may fail during session initialization period.
+7. **Error Handling**: Always check the `success` property of results and handle `errorMessage` appropriately. Some operations may fail during session initialization period.
 
 ## Android Key Codes Reference
 
