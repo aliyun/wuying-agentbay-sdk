@@ -39,8 +39,10 @@ export interface ScreenshotResult extends OperationResult {
 }
 
 // Session interface for Computer module
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ComputerSession {
-  callMcpTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  callMcpTool(toolName: string, args: Record<string, any>): Promise<any>;
   sessionId: string;
   getAPIKey(): string;
   getSessionId(): string;
@@ -481,54 +483,66 @@ export class Computer {
   /**
    * Gets the list of installed applications.
    */
-  async getInstalledApps(): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getInstalledApps(): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.getInstalledApps();
   }
 
   /**
    * Starts the specified application.
    */
-  async startApp(startCmd: string, workDirectory = ""): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async startApp(startCmd: string, workDirectory = ""): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.startApp(startCmd, workDirectory);
   }
 
   /**
    * Stops an application by process name.
    */
-  async stopAppByPName(pname: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async stopAppByPName(pname: string): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.stopAppByPName(pname);
   }
 
   /**
    * Stops an application by process ID.
    */
-  async stopAppByPID(pid: number): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async stopAppByPID(pid: number): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.stopAppByPID(pid);
   }
 
   /**
    * Stops an application by stop command.
    */
-  async stopAppByCmd(cmd: string): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async stopAppByCmd(cmd: string): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.stopAppByCmd(cmd);
   }
 
   /**
    * Lists all visible applications.
    */
-  async listVisibleApps(): Promise<unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async listVisibleApps(): Promise<any> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const app = new Application(this.session as any);
     return app.listVisibleApps();
   }
 } 

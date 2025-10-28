@@ -19,7 +19,10 @@ func main() {
 	}
 
 	// First, authenticate
-	agentBay := agentbay.NewAgentBay(apiKey)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		log.Fatalf("Failed to create AgentBay client: %v", err)
+	}
 
 	// Then, provision a browser-ready session
 	params := &agentbay.CreateSessionParams{
