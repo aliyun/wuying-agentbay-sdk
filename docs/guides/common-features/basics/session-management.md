@@ -444,12 +444,12 @@ except Exception as e:
 ## API Reference
 
 For detailed API documentation, see:
-- [Python Session API](../../../../python/docs/api/session.md)
-- [TypeScript Session API](../../../../typescript/docs/api/session.md)
-- [Golang Session API](../../../../golang/docs/api/session.md)
-- [Python AgentBay API](../../../../python/docs/api/agentbay.md)
-- [TypeScript AgentBay API](../../../../typescript/docs/api/agentbay.md)
-- [Golang AgentBay API](../../../../golang/docs/api/agentbay.md)
+- [Python Session API](../../../../python/docs/api/common-features/basics/session.md)
+- [TypeScript Session API](../../../../typescript/docs/api/common-features/basics/session.md)
+- [Golang Session API](../../../../golang/docs/api/common-features/basics/session.md)
+- [Python AgentBay API](../../../../python/docs/api/common-features/basics/agentbay.md)
+- [TypeScript AgentBay API](../../../../typescript/docs/api/common-features/basics/agentbay.md)
+- [Golang AgentBay API](../../../../golang/docs/api/common-features/basics/agentbay.md)
 
 ## 📚 Related Guides
 

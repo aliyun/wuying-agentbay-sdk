@@ -4,9 +4,9 @@ This guide shows how to configure logging in AgentBay SDK. Each language has its
 
 ## Quick Links
 
-- **[Python Logging Guide](../../../../python/docs/api/logging.md)** - Setup, configuration, and file logging
-- **[Go Logging Guide](../../../../golang/docs/api/logging.md)** - Environment variables and code-level configuration
-- **[TypeScript Logging Guide](../../../../typescript/docs/api/logging.md)** - Import-time setup and RequestID tracking
+- **[Python Logging Guide](../../../../python/docs/api/common-features/basics/logging.md)** - Setup, configuration, and file logging
+- **[Go Logging Guide](../../../../golang/docs/api/common-features/basics/logging.md)** - Environment variables and code-level configuration
+- **[TypeScript Logging Guide](../../../../typescript/docs/api/common-features/basics/logging.md)** - Import-time setup and RequestID tracking
 
 ---
 

@@ -239,14 +239,14 @@ try {
 
 ## Next Steps
 
-- Explore the complete API documentation at `typescript/docs/api/extension.md`
+- Explore the complete API documentation at `typescript/docs/api/browser-use/extension.md`
 - Check browser automation examples for integration patterns
 - Review the AgentBay SDK documentation for advanced features
 - Consider implementing custom validation and testing workflows
 
 ## Related Resources
 
-- [Extension API Reference](../../api/extension.md) - Complete API documentation
-- [Session API Reference](../../api/session.md) - Browser session management
-- [Context API Reference](../../api/context.md) - Context management
-- [AgentBay SDK Documentation](../../api/agentbay.md) - Core SDK features
+- [Extension API Reference](../../api/browser-use/extension.md) - Complete API documentation
+- [Session API Reference](../../api/common-features/basics/session.md) - Browser session management
+- [Context API Reference](../../api/common-features/basics/context.md) - Context management
+- [AgentBay SDK Documentation](../../api/common-features/basics/agentbay.md) - Core SDK features
