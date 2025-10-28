@@ -77,6 +77,8 @@ Mobile UI automation for app testing and gesture-based interactions.
 
 - [Mobile Application Management](guides/mobile-use/mobile-application-management.md) - Mobile app control and management
 - [Mobile UI Automation](guides/mobile-use/mobile-ui-automation.md) - Mobile UI interaction and automation
+- [ADB Connection](guides/mobile-use/adb-connection.md) - ADB connection and debugging capabilities
+- [Mobile Session Configuration](guides/mobile-use/mobile-session-configuration.md) - Advanced mobile session configuration options
 
 **Key Capabilities:**
 - UI Element Detection
@@ -84,6 +86,7 @@ Mobile UI automation for app testing and gesture-based interactions.
 - Key Events and Swipe Gestures
 - Screenshot Capture
 - Mobile Application Management
+- ADB Connection and Debugging
 
 #### [CodeSpace](guides/codespace/README.md)
 Development environment for code execution and scripting.
