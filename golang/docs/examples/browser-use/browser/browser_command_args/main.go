@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 /**
  * Example demonstrating Browser Launch with Custom Command Arguments and
  * go to Default Navigation URL with AgentBay SDK.
