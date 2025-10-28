@@ -40,7 +40,7 @@ export interface ScreenshotResult extends OperationResult {
 
 // Session interface for Computer module
 interface ComputerSession {
-  callMcpTool(toolName: string, args: Record<string, any>): Promise<any>;
+  callMcpTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
   sessionId: string;
   getAPIKey(): string;
   getSessionId(): string;
@@ -481,54 +481,54 @@ export class Computer {
   /**
    * Gets the list of installed applications.
    */
-  async getInstalledApps(): Promise<any> {
+  async getInstalledApps(): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.getInstalledApps();
   }
 
   /**
    * Starts the specified application.
    */
-  async startApp(startCmd: string, workDirectory: string = ""): Promise<any> {
+  async startApp(startCmd: string, workDirectory = ""): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.startApp(startCmd, workDirectory);
   }
 
   /**
    * Stops an application by process name.
    */
-  async stopAppByPName(pname: string): Promise<any> {
+  async stopAppByPName(pname: string): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.stopAppByPName(pname);
   }
 
   /**
    * Stops an application by process ID.
    */
-  async stopAppByPID(pid: number): Promise<any> {
+  async stopAppByPID(pid: number): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.stopAppByPID(pid);
   }
 
   /**
    * Stops an application by stop command.
    */
-  async stopAppByCmd(cmd: string): Promise<any> {
+  async stopAppByCmd(cmd: string): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.stopAppByCmd(cmd);
   }
 
   /**
    * Lists all visible applications.
    */
-  async listVisibleApps(): Promise<any> {
+  async listVisibleApps(): Promise<unknown> {
     const { Application } = await import('../application/application');
-    const app = new Application(this.session as any);
+    const app = new Application(this.session as unknown as ComputerSession & { callMcpTool: (toolName: string, args: Record<string, unknown>) => Promise<unknown> });
     return app.listVisibleApps();
   }
 } 

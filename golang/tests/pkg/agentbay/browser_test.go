@@ -68,8 +68,9 @@ func TestBrowserOption_BrowserType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			option := browser.NewBrowserOption()
-			option.BrowserType = tt.browserType
-			
+			browserType := tt.browserType
+			option.BrowserType = &browserType
+
 			err := option.Validate()
 			if tt.shouldBeValid {
 				assert.NoError(t, err)
@@ -84,32 +85,35 @@ func TestBrowserOption_BrowserType(t *testing.T) {
 func TestBrowserOption_ToMapWithBrowserType(t *testing.T) {
 	t.Run("Chrome browser type", func(t *testing.T) {
 		option := browser.NewBrowserOption()
-		option.BrowserType = "chrome"
-		
+		chromeType := "chrome"
+		option.BrowserType = &chromeType
+
 		optionMap := option.ToMap()
-		
+
 		assert.Equal(t, "chrome", optionMap["browserType"])
 		assert.Equal(t, false, optionMap["useStealth"])
 		assert.Equal(t, false, optionMap["solveCaptchas"])
 	})
 
-	t.Run("Chromium browser type (default)", func(t *testing.T) {
+	t.Run("No browser type specified (default)", func(t *testing.T) {
 		option := browser.NewBrowserOption()
-		// Don't set browserType, should default to chromium
-		
+		// Don't set browserType, should not be in map
+
 		optionMap := option.ToMap()
-		
-		assert.Equal(t, "chromium", optionMap["browserType"])
+
+		_, hasBrowserType := optionMap["browserType"]
+		assert.False(t, hasBrowserType)
 	})
 
 	t.Run("Complete browser option with all fields", func(t *testing.T) {
 		userAgent := "Mozilla/5.0 Test"
 		extPath := "/custom/extensions"
-		
+		chromeType := "chrome"
+
 		option := &browser.BrowserOption{
 			UseStealth:    true,
 			UserAgent:     &userAgent,
-			BrowserType:   "chrome",
+			BrowserType:   &chromeType,
 			SolveCaptchas: true,
 			ExtensionPath: &extPath,
 			Viewport: &browser.BrowserViewport{
@@ -299,15 +303,16 @@ func TestBrowserOption_WithProxies(t *testing.T) {
 		server := "127.0.0.1:8080"
 		proxy, err := browser.NewBrowserProxy("custom", &server, nil, nil, nil, nil)
 		require.NoError(t, err)
-		
+
+		chromiumType := "chromium"
 		option := &browser.BrowserOption{
-			BrowserType: "chromium",
+			BrowserType: &chromiumType,
 			Proxies:     []*browser.BrowserProxy{proxy},
 		}
-		
+
 		err = option.Validate()
 		assert.NoError(t, err)
-		
+
 		optionMap := option.ToMap()
 		proxies, ok := optionMap["proxies"].([]map[string]interface{})
 		assert.True(t, ok)
@@ -320,12 +325,13 @@ func TestBrowserOption_WithProxies(t *testing.T) {
 		server2 := "127.0.0.1:8081"
 		proxy1, _ := browser.NewBrowserProxy("custom", &server1, nil, nil, nil, nil)
 		proxy2, _ := browser.NewBrowserProxy("custom", &server2, nil, nil, nil, nil)
-		
+
+		chromiumType := "chromium"
 		option := &browser.BrowserOption{
-			BrowserType: "chromium",
+			BrowserType: &chromiumType,
 			Proxies:     []*browser.BrowserProxy{proxy1, proxy2},
 		}
-		
+
 		err := option.Validate()
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "proxies list length must be limited to 1")
