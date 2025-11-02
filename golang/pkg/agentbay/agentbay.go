@@ -929,6 +929,22 @@ func (a *AgentBay) Get(sessionID string) (*SessionResult, error) {
 	// Store the session in the local cache
 	a.Sessions.Store(sessionID, *session)
 
+	// Create a default context for file transfer operations for the recovered session
+	contextName := fmt.Sprintf("file-transfer-context-%d", time.Now().Unix())
+	contextResult, err := a.Context.Get(contextName, true)
+	if err == nil && contextResult.Success && contextResult.Context != nil {
+		session.FileTransferContextID = contextResult.Context.ID
+		fmt.Printf("📁 Created file transfer context for recovered session: %s\n", contextResult.Context.ID)
+	} else {
+		errorMsg := "Unknown error"
+		if err != nil {
+			errorMsg = err.Error()
+		} else if contextResult.ErrorMessage != "" {
+			errorMsg = contextResult.ErrorMessage
+		}
+		fmt.Printf("⚠️  Failed to create file transfer context for recovered session: %s\n", errorMsg)
+	}
+
 	// Log successful retrieval
 	keyFields := map[string]interface{}{
 		"session_id":   sessionID,

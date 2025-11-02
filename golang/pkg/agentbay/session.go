@@ -120,6 +120,9 @@ type Session struct {
 	// Resource URL for accessing the session
 	ResourceUrl string
 
+	// File transfer context ID for file operations
+	FileTransferContextID string
+
 	// File, command and code handlers
 	FileSystem *filesystem.FileSystem
 	Command    *command.Command

@@ -1196,6 +1196,20 @@ class AgentBay:
             session.token = get_result.data.token
             session.resource_url = get_result.data.resource_url
 
+        # Create a default context for file transfer operations for the recovered session
+        import time
+        context_name = f"file-transfer-context-{int(time.time())}"
+        context_result = self.context.get(context_name, create=True)
+        if context_result.success and context_result.context:
+            session.file_transfer_context_id = context_result.context.id
+            logger.info(
+                f"📁 Created file transfer context for recovered session: {context_result.context.id}"
+            )
+        else:
+            logger.warning(
+                f"⚠️  Failed to create file transfer context for recovered session: {context_result.error_message if hasattr(context_result, 'error_message') else 'Unknown error'}"
+            )
+
         return SessionResult(
             request_id=get_result.request_id,
             success=True,

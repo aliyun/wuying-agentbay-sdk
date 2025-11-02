@@ -1031,6 +1031,16 @@ export class AgentBay {
       session.resourceUrl = getResult.data.resourceUrl;
     }
 
+    // Create a default context for file transfer operations for the recovered session
+    const contextName = `file-transfer-context-${Date.now()}`;
+    const contextResult = await this.context.get(contextName, true);
+    if (contextResult.success && contextResult.context) {
+      session.fileTransferContextId = contextResult.context.id;
+      logInfo(`📁 Created file transfer context for recovered session: ${contextResult.context.id}`);
+    } else {
+      logError(`⚠️  Failed to create file transfer context for recovered session: ${contextResult.errorMessage || 'Unknown error'}`);
+    }
+
     return {
       requestId: getResult.requestId,
       success: true,
