@@ -21,9 +21,9 @@ async function main() {
   const agentBay = new AgentBay({ apiKey });
 
   try {
-    // Create a session
-    console.log("Creating a new session...");
-    const sessionResult = await agentBay.create();
+    // Create a session with Windows latest image for Agent capabilities
+    console.log("Creating a new session with Windows latest image...");
+    const sessionResult = await agentBay.create({ imageId: "windows_latest" });
 
     if (sessionResult.success) {
       const session = sessionResult.session;
