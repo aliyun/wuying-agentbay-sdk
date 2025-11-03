@@ -1,36 +1,35 @@
 /**
- * AgentBay SDK - Automation Features Example (TypeScript)
+ * AgentBay SDK - Codespace Automation Features Example (TypeScript)
  *
- * This example demonstrates how to use AgentBay SDK automation features, including:
+ * This example demonstrates how to use AgentBay SDK automation features in codespace environment, including:
  * - Command execution
- * - Code execution
- * - UI automation
+ * - Code execution (Python and JavaScript)
  * - Workflow orchestration
  */
 
-import { AgentBay,KeyCode } from 'wuying-agentbay-sdk';
+import { AgentBay } from 'wuying-agentbay-sdk';
 
 async function main(): Promise<void> {
-    console.log('🚀 AgentBay Automation Features Example (TypeScript)');
+    console.log('🚀 AgentBay Codespace Automation Features Example (TypeScript)');
+
+    // Get API key from environment variable or use a placeholder value
+    const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx';
+    if (!process.env.AGENTBAY_API_KEY) {
+        console.log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+    }
 
     // Initialize AgentBay client
-    const agentBay = new AgentBay();
+    const agentBay = new AgentBay({ apiKey });
 
     // Create session
     console.log('\n📱 Creating session...');
     const sessionResult = await agentBay.create({imageId:'code_latest'});
-    const mobileResult = await agentBay.create({imageId:'mobile_latest'})
     if (!sessionResult.success) {
         console.log(`❌ Session creation failed: ${sessionResult.errorMessage}`);
         return;
     }
-    if (!mobileResult.success) {
-        console.log(`❌ Session creation failed: ${mobileResult.errorMessage}`);
-        return;
-    }
 
     const session = sessionResult.session;
-    const mobileSession = mobileResult.session;
     console.log(`✅ Session created successfully: ${session.sessionId}`);
 
     try {
@@ -40,11 +39,8 @@ async function main(): Promise<void> {
         // 2. Code execution example
         await codeExecutionExample(session);
 
-        // 3. UI automation example
-        await uiAutomationExample(mobileSession);
-
-        // 4. Workflow orchestration example
-        await workflowExample(mobileSession);
+        // 3. Workflow orchestration example
+        await workflowExample(session);
 
     } catch (error) {
         console.log(`❌ Example execution failed: ${error}`);
@@ -52,7 +48,6 @@ async function main(): Promise<void> {
         // Clean up session
         console.log(`\n🧹 Cleaning up session: ${session.sessionId}`);
         await agentBay.delete(session);
-        await agentBay.delete(mobileSession);
         console.log('✅ Example execution completed');
     }
 }
@@ -155,36 +150,6 @@ console.log("Doubled:", doubled);
         console.log(jsResult.result);
     } else {
         console.log(`❌ JavaScript code execution failed: ${jsResult.errorMessage}`);
-    }
-}
-
-async function uiAutomationExample(session: any): Promise<void> {
-    console.log('\n🖱️ === UI Automation Example ===');
-
-    try {
-        // Screenshot
-        console.log('🔄 Taking screenshot...');
-        const screenshot = await session.ui.screenshot();
-        if (screenshot.success) {
-            // Save screenshot
-            await session.fileSystem.writeFile('/tmp/screenshot.png', screenshot.data);
-            console.log('✅ Screenshot saved successfully: /tmp/screenshot.png');
-        } else {
-            console.log(`❌ Screenshot failed: ${screenshot.errorMessage}`);
-        }
-
-        // Simulate keyboard input
-        console.log('🔄 Simulating keyboard input...');
-        await session.ui.sendKey(KeyCode.HOME);
-        console.log('✅ Keyboard input completed');
-
-        // Simulate mouse operations
-        console.log('🔄 Simulating mouse operations...');
-        await session.ui.click({ x: 100, y: 100 });
-        console.log('✅ Mouse click completed');
-
-    } catch (error) {
-        console.log(`⚠️ UI automation features may not be available: ${error}`);
     }
 }
 
