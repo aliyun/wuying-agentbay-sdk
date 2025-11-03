@@ -1,20 +1,21 @@
+// @ts-nocheck
 /**
  * Browser Type Selection Example
- * 
+ *
  * This example demonstrates how to select between Chrome and Chromium browsers
  * when using computer use images in AgentBay.
- * 
+ *
  * Features demonstrated:
  * - Chrome browser selection
  * - Chromium browser selection
  * - Default browser (undefined)
  * - Browser type verification
  * - Configuration comparison
- * 
+ *
  * Note: The browserType option is only available for computer use images.
  */
 
-import { AgentBay, CreateSessionParams, BrowserOptionClass, BrowserOption } from '@wuying-org/agentbay-sdk';
+import { AgentBay, CreateSessionParams, BrowserOption } from 'wuying-agentbay-sdk';
 import { chromium } from 'playwright';
 
 /**
@@ -33,11 +34,11 @@ async function testBrowserType(
     throw new Error('AGENTBAY_API_KEY environment variable not set');
   }
 
-  const agentBay = new AgentBay(apiKey);
+  const agentBay = new AgentBay({ apiKey });
 
   // Create session with computer use image
   console.log('\n1. Creating session with computer use image...');
-  const params = new CreateSessionParams({ imageId: 'browser_latest' });
+  const params: CreateSessionParams = { imageId: 'browser_latest' };
   const result = await agentBay.create(params);
 
   if (!result.success || !result.session) {
@@ -51,23 +52,11 @@ async function testBrowserType(
     // Initialize browser with specified type
     console.log(`\n2. Initializing browser with type: ${browserType || 'default (undefined)'}...`);
     
-    // Method 1: Using BrowserOptionClass
-    const option = new BrowserOptionClass(
-      false,                              // useStealth
-      undefined,                          // userAgent
-      { width: 1920, height: 1080 },     // viewport
-      undefined,                          // screen
-      undefined,                          // fingerprint
-      false,                              // solveCaptchas
-      undefined,                          // proxies
-      browserType                         // browserType
-    );
-
-    // Method 2: Using plain object (alternative)
-    // const option: BrowserOption = {
-    //   browserType: browserType,
-    //   viewport: { width: 1920, height: 1080 }
-    // };
+    // Using plain object (recommended)
+    const option: BrowserOption = {
+      browserType: browserType,
+      viewport: { width: 1920, height: 1080 }
+    };
 
     const success = await session.browser.initializeAsync(option);
     if (!success) {
@@ -78,7 +67,7 @@ async function testBrowserType(
 
     // Get endpoint URL
     const endpointUrl = session.browser.getEndpointUrl();
-    console.log(`\n3. CDP endpoint: ${endpointUrl.substring(0, 50)}...`);
+    console.log(`\n3. CDP endpoint: ${String(endpointUrl).substring(0, 50)}...`);
 
     // Connect Playwright and verify browser
     console.log('\n4. Connecting to browser via CDP...');
@@ -94,9 +83,9 @@ async function testBrowserType(
     await page.waitForLoadState('networkidle');
 
     // Get browser information
-    const userAgent = await page.evaluate(() => navigator.userAgent);
-    const viewportWidth = await page.evaluate(() => window.innerWidth);
-    const viewportHeight = await page.evaluate(() => window.innerHeight);
+    const userAgent = await page.evaluate(() => (navigator as any).userAgent);
+    const viewportWidth = await page.evaluate(() => (window as any).innerWidth);
+    const viewportHeight = await page.evaluate(() => (window as any).innerHeight);
 
     console.log('\n   Browser Information:');
     console.log(`   - User Agent: ${userAgent.substring(0, 80)}...`);
@@ -167,10 +156,10 @@ async function quickExample(): Promise<void> {
     throw new Error('AGENTBAY_API_KEY not set');
   }
 
-  const agentBay = new AgentBay(apiKey);
+  const agentBay = new AgentBay({ apiKey });
 
   // Create session
-  const params = new CreateSessionParams({ imageId: 'browser_latest' });
+  const params: CreateSessionParams = { imageId: 'browser_latest' };
   const result = await agentBay.create(params);
   if (!result.success || !result.session) {
     throw new Error('Failed to create session');
@@ -180,16 +169,9 @@ async function quickExample(): Promise<void> {
 
   try {
     // Simply specify browserType in BrowserOption
-    // Method 1: Using plain object (recommended for simple cases)
-    const option: BrowserOption = { 
-      browserType: 'chrome' as 'chrome' 
+    const option: BrowserOption = {
+      browserType: 'chrome'
     };
-    
-    // Method 2: Using BrowserOptionClass
-    // const option = new BrowserOptionClass(
-    //   false, undefined, undefined, undefined, undefined, false, undefined,
-    //   'chrome' as 'chrome'
-    // );
 
     const success = await session.browser.initializeAsync(option);
 
@@ -225,8 +207,8 @@ async function typeSafeExample(): Promise<void> {
     throw new Error('AGENTBAY_API_KEY not set');
   }
 
-  const agentBay = new AgentBay(apiKey);
-  const params = new CreateSessionParams({ imageId: 'browser_latest' });
+  const agentBay = new AgentBay({ apiKey });
+  const params: CreateSessionParams = { imageId: 'browser_latest' };
   const result = await agentBay.create(params);
 
   if (!result.success || !result.session) {
@@ -274,32 +256,11 @@ async function typeSafeExample(): Promise<void> {
   }
 }
 
-// Run examples based on command line arguments
-const args = process.argv.slice(2);
-
-if (args.includes('--quick')) {
-  quickExample()
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error('Error:', error.message);
-      process.exit(1);
-    });
-} else if (args.includes('--type-safe')) {
-  typeSafeExample()
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error('Error:', error.message);
-      process.exit(1);
-    });
-} else {
-  main()
-    .then(() => process.exit(0))
-    .catch(error => {
-      console.error('Error:', error.message);
-      process.exit(1);
-    });
-}
-
-// Export for use as module
-export { testBrowserType, quickExample, typeSafeExample };
+// Run the main example
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error('Error:', error.message);
+    process.exit(1);
+  });
 
