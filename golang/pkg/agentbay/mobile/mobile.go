@@ -13,14 +13,70 @@ import (
 
 // UIElement represents a UI element structure
 type UIElement struct {
-	Bounds      *UIBounds `json:"bounds,omitempty"`
-	ClassName   string    `json:"className,omitempty"`
-	ContentDesc string    `json:"contentDesc,omitempty"`
-	ElementID   string    `json:"elementId,omitempty"`
-	Package     string    `json:"package,omitempty"`
-	ResourceID  string    `json:"resourceId,omitempty"`
-	Text        string    `json:"text,omitempty"`
-	Type        string    `json:"type,omitempty"`
+	Bounds      *UIBounds    `json:"bounds,omitempty"`
+	ClassName   string       `json:"className,omitempty"`
+	ContentDesc string       `json:"contentDesc,omitempty"`
+	ElementID   string       `json:"elementId,omitempty"`
+	Package     string       `json:"package,omitempty"`
+	ResourceID  string       `json:"resourceId,omitempty"`
+	Text        string       `json:"text,omitempty"`
+	Type        string       `json:"type,omitempty"`
+	Children    []*UIElement `json:"children,omitempty"`
+}
+
+// UnmarshalJSON custom unmarshaler to handle string format bounds
+func (e *UIElement) UnmarshalJSON(data []byte) error {
+	// Define an auxiliary type to avoid recursion
+	type Alias UIElement
+	aux := &struct {
+		BoundsRaw interface{} `json:"bounds"`
+		*Alias
+	}{
+		Alias: (*Alias)(e),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Handle bounds field which can be either string or object
+	if aux.BoundsRaw != nil {
+		switch v := aux.BoundsRaw.(type) {
+		case string:
+			// Parse string format: "left,top,right,bottom"
+			e.Bounds = parseBoundsString(v)
+		case map[string]interface{}:
+			// Parse object format
+			if boundsJSON, err := json.Marshal(v); err == nil {
+				var bounds UIBounds
+				if err := json.Unmarshal(boundsJSON, &bounds); err == nil {
+					e.Bounds = &bounds
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// parseBoundsString parses bounds string format "left,top,right,bottom"
+func parseBoundsString(s string) *UIBounds {
+	parts := strings.Split(s, ",")
+	if len(parts) != 4 {
+		return nil
+	}
+
+	var left, top, right, bottom int
+	if _, err := fmt.Sscanf(s, "%d,%d,%d,%d", &left, &top, &right, &bottom); err != nil {
+		return nil
+	}
+
+	return &UIBounds{
+		Left:   left,
+		Top:    top,
+		Right:  right,
+		Bottom: bottom,
+	}
 }
 
 // UIBounds represents the bounds of a UI element

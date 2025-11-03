@@ -49,23 +49,24 @@ func main() {
 
 	// 1. Take a screenshot
 	fmt.Println("\n1. Taking a screenshot...")
-	screenshotResult, err := session.UI.Screenshot()
-	if err != nil {
-		fmt.Printf("Error taking screenshot: %v\n", err)
+	screenshotResult := session.Mobile.Screenshot()
+	if screenshotResult.ErrorMessage != "" {
+		fmt.Printf("Error taking screenshot: %s\n", screenshotResult.ErrorMessage)
 	} else {
 		// The screenshot operation was successful
-		fmt.Printf("Screenshot taken successfully (RequestID: %s, Success: %v, ComponentID: %s)\n",
-			screenshotResult.RequestID, screenshotResult.Success, screenshotResult.ComponentID)
+		fmt.Printf("Screenshot taken successfully (RequestID: %s)\n", screenshotResult.RequestID)
 
-		// Note: The current implementation returns success status but not the actual image data
-		// The screenshot data would need to be retrieved separately if available
+		// Note: The screenshot data is returned in the Data field
+		if screenshotResult.Data != "" {
+			fmt.Printf("Screenshot data length: %d bytes\n", len(screenshotResult.Data))
+		}
 	}
 
 	// 2. Get all UI elements
 	fmt.Println("\n2. Getting all UI elements...")
-	elementsResult, err := session.UI.GetAllUIElements(2000) // 2 second timeout
-	if err != nil {
-		fmt.Printf("Error getting UI elements: %v\n", err)
+	elementsResult := session.Mobile.GetAllUIElements(2000) // 2 second timeout
+	if elementsResult.ErrorMessage != "" {
+		fmt.Printf("Error getting UI elements: %s\n", elementsResult.ErrorMessage)
 	} else if len(elementsResult.Elements) == 0 {
 		fmt.Println("No UI elements found.")
 	} else {
@@ -90,9 +91,9 @@ func main() {
 
 	// 3. Get clickable UI elements
 	fmt.Println("\n3. Getting clickable UI elements...")
-	clickableElementsResult, err := session.UI.GetClickableUIElements(2000) // 2 second timeout
-	if err != nil {
-		fmt.Printf("Error getting clickable UI elements: %v\n", err)
+	clickableElementsResult := session.Mobile.GetClickableUIElements(2000) // 2 second timeout
+	if clickableElementsResult.ErrorMessage != "" {
+		fmt.Printf("Error getting clickable UI elements: %s\n", clickableElementsResult.ErrorMessage)
 	} else if len(clickableElementsResult.Elements) == 0 {
 		fmt.Println("No clickable UI elements found.")
 	} else {
@@ -117,11 +118,11 @@ func main() {
 
 	// 4. Send key event (HOME key)
 	fmt.Println("\n4. Sending HOME key event...")
-	keyResult, err := session.UI.SendKey(int(ui.KEYCODE_HOME)) // Use KeyCode.HOME constant
-	if err != nil {
-		fmt.Printf("Error sending HOME key: %v\n", err)
+	keyResult := session.Mobile.SendKey(int(ui.KEYCODE_HOME)) // Use KeyCode.HOME constant
+	if keyResult.ErrorMessage != "" {
+		fmt.Printf("Error sending HOME key: %s\n", keyResult.ErrorMessage)
 	} else {
-		fmt.Printf("HOME key sent successfully (RequestID: %s)\n", keyResult.RequestID)
+		fmt.Printf("HOME key sent successfully (RequestID: %s, Success: %v)\n", keyResult.RequestID, keyResult.Success)
 	}
 
 	// Sleep briefly to allow UI to update after HOME key
@@ -129,26 +130,26 @@ func main() {
 
 	// 5. Input text
 	fmt.Println("\n5. Inputting text...")
-	inputResult, err := session.UI.InputText("Hello from AgentBay SDK!")
-	if err != nil {
-		fmt.Printf("Error inputting text: %v\n", err)
+	inputResult := session.Mobile.InputText("Hello from AgentBay SDK!")
+	if inputResult.ErrorMessage != "" {
+		fmt.Printf("Error inputting text: %s\n", inputResult.ErrorMessage)
 	} else {
-		fmt.Printf("Text input successful (RequestID: %s)\n", inputResult.RequestID)
+		fmt.Printf("Text input successful (RequestID: %s, Success: %v)\n", inputResult.RequestID, inputResult.Success)
 	}
 
-	// 6. Click a position on screen
-	fmt.Println("\n6. Clicking on screen position...")
+	// 6. Tap a position on screen
+	fmt.Println("\n6. Tapping on screen position...")
 	// Coordinates for center of screen (example values)
 	x := 540
 	y := 960
-	clickResult, err := session.UI.Click(x, y, "left")
-	if err != nil {
-		fmt.Printf("Error clicking on position (%d,%d): %v\n", x, y, err)
+	tapResult := session.Mobile.Tap(x, y)
+	if tapResult.ErrorMessage != "" {
+		fmt.Printf("Error tapping on position (%d,%d): %s\n", x, y, tapResult.ErrorMessage)
 	} else {
-		fmt.Printf("Successfully clicked at position (%d,%d) (RequestID: %s)\n", x, y, clickResult.RequestID)
+		fmt.Printf("Successfully tapped at position (%d,%d) (RequestID: %s, Success: %v)\n", x, y, tapResult.RequestID, tapResult.Success)
 	}
 
-	// Sleep briefly to allow UI to update after click
+	// Sleep briefly to allow UI to update after tap
 	time.Sleep(1 * time.Second)
 
 	// 7. Swipe on screen
@@ -158,26 +159,27 @@ func main() {
 	endX := 540
 	endY := 500
 	swipeDuration := 10000 // milliseconds
-	swipeResult, err := session.UI.Swipe(startX, startY, endX, endY, swipeDuration)
-	if err != nil {
-		fmt.Printf("Error performing swipe from (%d,%d) to (%d,%d): %v\n",
-			startX, startY, endX, endY, err)
+	swipeResult := session.Mobile.Swipe(startX, startY, endX, endY, swipeDuration)
+	if swipeResult.ErrorMessage != "" {
+		fmt.Printf("Error performing swipe from (%d,%d) to (%d,%d): %s\n",
+			startX, startY, endX, endY, swipeResult.ErrorMessage)
 	} else {
-		fmt.Printf("Successfully swiped from (%d,%d) to (%d,%d) (RequestID: %s)\n",
-			startX, startY, endX, endY, swipeResult.RequestID)
+		fmt.Printf("Successfully swiped from (%d,%d) to (%d,%d) (RequestID: %s, Success: %v)\n",
+			startX, startY, endX, endY, swipeResult.RequestID, swipeResult.Success)
 	}
 
 	// 8. Take another screenshot after interactions
 	fmt.Println("\n8. Taking another screenshot after interactions...")
-	screenshot2Result, err := session.UI.Screenshot()
-	if err != nil {
-		fmt.Printf("Error taking second screenshot: %v\n", err)
+	screenshot2Result := session.Mobile.Screenshot()
+	if screenshot2Result.ErrorMessage != "" {
+		fmt.Printf("Error taking second screenshot: %s\n", screenshot2Result.ErrorMessage)
 	} else {
-		fmt.Printf("Second screenshot taken successfully (RequestID: %s, Success: %v, ComponentID: %s)\n",
-			screenshot2Result.RequestID, screenshot2Result.Success, screenshot2Result.ComponentID)
+		fmt.Printf("Second screenshot taken successfully (RequestID: %s)\n", screenshot2Result.RequestID)
 
-		// Note: The current implementation returns success status but not the actual image data
-		// The screenshot data would need to be retrieved separately if available
+		// Note: The screenshot data is returned in the Data field
+		if screenshot2Result.Data != "" {
+			fmt.Printf("Screenshot data length: %d bytes\n", len(screenshot2Result.Data))
+		}
 	}
 
 	fmt.Println("\nUI examples completed successfully!")

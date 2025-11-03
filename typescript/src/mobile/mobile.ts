@@ -12,15 +12,17 @@ export interface BoolResult extends OperationResult {
   data?: boolean;
 }
 
+export interface UIBounds {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 export interface UIElement {
   text: string;
   className: string;
-  bounds: {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  };
+  bounds: UIBounds | string;  // Can be either object or string format "left,top,right,bottom"
 }
 
 export interface UIElementsResult extends OperationResult {
@@ -62,6 +64,42 @@ interface MobileSession {
   getAPIKey(): string;
   imageId?: string;
   getLink(protocolType?: string, port?: number, options?: string): Promise<any>;
+}
+
+/**
+ * Parse bounds string format "left,top,right,bottom" to UIBounds object
+ */
+function parseBoundsString(boundsStr: string): UIBounds | null {
+  const parts = boundsStr.split(',');
+  if (parts.length !== 4) {
+    return null;
+  }
+
+  const [left, top, right, bottom] = parts.map(p => parseInt(p.trim(), 10));
+  if (isNaN(left) || isNaN(top) || isNaN(right) || isNaN(bottom)) {
+    return null;
+  }
+
+  return { left, top, right, bottom };
+}
+
+/**
+ * Normalize UIElement bounds field from string to object format if needed
+ */
+function normalizeUIElement(element: any): UIElement {
+  if (element.bounds && typeof element.bounds === 'string') {
+    const parsedBounds = parseBoundsString(element.bounds);
+    if (parsedBounds) {
+      element.bounds = parsedBounds;
+    }
+  }
+
+  // Recursively normalize children if present
+  if (element.children && Array.isArray(element.children)) {
+    element.children = element.children.map(normalizeUIElement);
+  }
+
+  return element;
 }
 
 export class Mobile {
@@ -171,7 +209,7 @@ export class Mobile {
     const args = { timeout_ms: timeoutMs };
     try {
       const result = await this.session.callMcpTool('get_clickable_ui_elements', args);
-      
+
       if (!result.success) {
         return {
           success: false,
@@ -192,11 +230,13 @@ export class Mobile {
 
       try {
         const elements = JSON.parse(result.data);
+        // Normalize bounds from string to object format if needed
+        const normalizedElements = (elements || []).map(normalizeUIElement);
         return {
           success: true,
           requestId: result.requestId || '',
           errorMessage: '',
-          elements: elements || []
+          elements: normalizedElements
         };
       } catch (parseError) {
         return {
@@ -223,7 +263,7 @@ export class Mobile {
     const args = { timeout_ms: timeoutMs };
     try {
       const result = await this.session.callMcpTool('get_all_ui_elements', args);
-      
+
       if (!result.success) {
         return {
           success: false,
@@ -244,11 +284,13 @@ export class Mobile {
 
       try {
         const elements = JSON.parse(result.data);
+        // Normalize bounds from string to object format if needed
+        const normalizedElements = (elements || []).map(normalizeUIElement);
         return {
           success: true,
           requestId: result.requestId || '',
           errorMessage: '',
-          elements: elements || []
+          elements: normalizedElements
         };
       } catch (parseError) {
         return {
