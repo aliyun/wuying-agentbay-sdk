@@ -773,6 +773,7 @@ class Session:
         args: Dict[str, Any],
         read_timeout: Optional[int] = None,
         connect_timeout: Optional[int] = None,
+        auto_gen_session: bool = False,
     ):
         """
         Call an MCP tool directly.
@@ -785,6 +786,7 @@ class Session:
             args: Arguments to pass to the tool as a dictionary
             read_timeout: Optional read timeout in seconds
             connect_timeout: Optional connection timeout in seconds
+            auto_gen_session: Whether to automatically generate session if not exists (default: False)
 
         Returns:
             McpToolResult: Result containing success status, data, and error message
@@ -807,7 +809,7 @@ class Session:
 
             # Non-VPC mode: use traditional API call
             return self._call_mcp_tool_api(
-                tool_name, args_json, read_timeout, connect_timeout
+                tool_name, args_json, read_timeout, connect_timeout, auto_gen_session
             )
         except Exception as e:
             logger.error(f"❌ Failed to call MCP tool {tool_name}: {e}")
@@ -958,6 +960,7 @@ class Session:
         args_json: str,
         read_timeout: Optional[int] = None,
         connect_timeout: Optional[int] = None,
+        auto_gen_session: bool = False,
     ):
         """
         Handle traditional API-based MCP tool calls.
@@ -967,6 +970,7 @@ class Session:
             args_json: JSON string of arguments
             read_timeout: Optional read timeout in seconds
             connect_timeout: Optional connection timeout in seconds
+            auto_gen_session: Whether to automatically generate session if not exists
 
         Returns:
             McpToolResult: The response from the tool
@@ -984,6 +988,7 @@ class Session:
             session_id=self.session_id,
             name=tool_name,
             args=args_json,
+            auto_gen_session=auto_gen_session,
         )
 
         try:

@@ -55,7 +55,7 @@ func (m *MockSessionForComputer) FindServerForTool(toolName string) string {
 }
 
 // CallMcpTool calls an MCP tool with the given arguments
-func (m *MockSessionForComputer) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+func (m *MockSessionForComputer) CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
 	mockArgs := m.Called(toolName, args)
 	return mockArgs.Get(0).(*models.McpToolResult), mockArgs.Error(1)
 }

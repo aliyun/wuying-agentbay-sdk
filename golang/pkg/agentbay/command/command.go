@@ -25,7 +25,7 @@ type Command struct {
 		NetworkInterfaceIp() string
 		HttpPort() string
 		FindServerForTool(toolName string) string
-		CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
 }
 
@@ -38,7 +38,7 @@ func NewCommand(session interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 }) *Command {
 	return &Command{
 		Session: session,

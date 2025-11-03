@@ -5,6 +5,7 @@ import * as $dara from '@darabonba/typescript';
 export class CallMcpToolRequest extends $dara.Model {
   args?: string;
   authorization?: string;
+  autoGenSession?: boolean;
   externalUserId?: string;
   imageId?: string;
   name?: string;
@@ -15,6 +16,7 @@ export class CallMcpToolRequest extends $dara.Model {
     return {
       args: 'Args',
       authorization: 'Authorization',
+      autoGenSession: 'AutoGenSession',
       externalUserId: 'ExternalUserId',
       imageId: 'ImageId',
       name: 'Name',
@@ -28,6 +30,7 @@ export class CallMcpToolRequest extends $dara.Model {
     return {
       args: 'string',
       authorization: 'string',
+      autoGenSession: 'boolean',
       externalUserId: 'string',
       imageId: 'string',
       name: 'string',

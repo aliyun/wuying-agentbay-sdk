@@ -70,6 +70,10 @@ export class Client extends OpenApi {
       body["Authorization"] = request.authorization;
     }
 
+    if (!$dara.isNull(request.autoGenSession)) {
+      body["AutoGenSession"] = request.autoGenSession;
+    }
+
     if (!$dara.isNull(request.externalUserId)) {
       body["ExternalUserId"] = request.externalUserId;
     }

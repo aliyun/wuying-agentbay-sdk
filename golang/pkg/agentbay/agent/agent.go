@@ -34,7 +34,7 @@ type Agent struct {
 type McpSession interface {
 	GetAPIKey() string
 	GetSessionId() string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 }
 
 // NewAgent creates a new Agent instance

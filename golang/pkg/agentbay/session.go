@@ -767,7 +767,7 @@ func (s *Session) FindServerForTool(toolName string) string {
 }
 
 // CallMcpTool calls the MCP tool and handles both VPC and non-VPC scenarios
-func (s *Session) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+func (s *Session) CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
 	// Marshal arguments to JSON
 	argsJSON, err := json.Marshal(args)
 	if err != nil {
@@ -779,13 +779,19 @@ func (s *Session) CallMcpTool(toolName string, args interface{}) (*models.McpToo
 		}, nil
 	}
 
+	// Extract autoGenSession parameter (default: false)
+	autoGen := false
+	if len(autoGenSession) > 0 {
+		autoGen = autoGenSession[0]
+	}
+
 	// Check if this is a VPC session
 	if s.IsVpc() {
 		return s.callMcpToolVPC(toolName, string(argsJSON))
 	}
 
 	// Non-VPC mode: use traditional API call
-	return s.callMcpToolAPI(toolName, string(argsJSON))
+	return s.callMcpToolAPI(toolName, string(argsJSON), autoGen)
 }
 
 // callMcpToolVPC handles VPC-based MCP tool calls
@@ -893,15 +899,17 @@ func (s *Session) callMcpToolVPC(toolName, argsJSON string) (*models.McpToolResu
 }
 
 // callMcpToolAPI handles traditional API-based MCP tool calls
-func (s *Session) callMcpToolAPI(toolName, argsJSON string) (*models.McpToolResult, error) {
+func (s *Session) callMcpToolAPI(toolName, argsJSON string, autoGenSession bool) (*models.McpToolResult, error) {
 	// Helper function to convert string to *string
 	stringPtr := func(s string) *string { return &s }
+	boolPtr := func(b bool) *bool { return &b }
 
 	callToolRequest := &mcp.CallMcpToolRequest{
 		Authorization:  stringPtr(fmt.Sprintf("Bearer %s", s.GetAPIKey())),
 		SessionId:      stringPtr(s.SessionID),
 		Name:           stringPtr(toolName),
 		Args:           stringPtr(argsJSON),
+		AutoGenSession: boolPtr(autoGenSession),
 		ExternalUserId: stringPtr(""),
 		ImageId:        stringPtr(""),
 	}

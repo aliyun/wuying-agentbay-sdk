@@ -76,6 +76,8 @@ class Client(OpenApiClient):
             body["Args"] = request.args
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.auto_gen_session):
+            body["AutoGenSession"] = request.auto_gen_session
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):
@@ -115,6 +117,8 @@ class Client(OpenApiClient):
             body["Args"] = request.args
         if not DaraCore.is_null(request.authorization):
             body["Authorization"] = request.authorization
+        if not DaraCore.is_null(request.auto_gen_session):
+            body["AutoGenSession"] = request.auto_gen_session
         if not DaraCore.is_null(request.external_user_id):
             body["ExternalUserId"] = request.external_user_id
         if not DaraCore.is_null(request.image_id):

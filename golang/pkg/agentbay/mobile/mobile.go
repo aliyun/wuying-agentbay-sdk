@@ -158,7 +158,7 @@ type Mobile struct {
 		NetworkInterfaceIp() string
 		HttpPort() string
 		FindServerForTool(toolName string) string
-		CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
 	command *command.Command
 }
@@ -172,7 +172,7 @@ type SessionWithCommand interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	GetCommand() *command.Command
 }
 
@@ -186,7 +186,7 @@ func NewMobile(session interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 }) *Mobile {
 	mobile := &Mobile{
 		Session: session,

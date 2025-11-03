@@ -13,6 +13,8 @@ type iCallMcpToolRequest interface {
 	GetArgs() *string
 	SetAuthorization(v string) *CallMcpToolRequest
 	GetAuthorization() *string
+	SetAutoGenSession(v bool) *CallMcpToolRequest
+	GetAutoGenSession() *bool
 	SetExternalUserId(v string) *CallMcpToolRequest
 	GetExternalUserId() *string
 	SetImageId(v string) *CallMcpToolRequest
@@ -30,6 +32,7 @@ type iCallMcpToolRequest interface {
 type CallMcpToolRequest struct {
 	Args           *string `json:"Args,omitempty" xml:"Args,omitempty"`
 	Authorization  *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
+	AutoGenSession *bool   `json:"AutoGenSession,omitempty" xml:"AutoGenSession,omitempty"`
 	ExternalUserId *string `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
 	ImageId        *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Name           *string `json:"Name,omitempty" xml:"Name,omitempty"`
@@ -52,6 +55,10 @@ func (s *CallMcpToolRequest) GetArgs() *string {
 
 func (s *CallMcpToolRequest) GetAuthorization() *string {
 	return s.Authorization
+}
+
+func (s *CallMcpToolRequest) GetAutoGenSession() *bool {
+	return s.AutoGenSession
 }
 
 func (s *CallMcpToolRequest) GetExternalUserId() *string {
@@ -85,6 +92,11 @@ func (s *CallMcpToolRequest) SetArgs(v string) *CallMcpToolRequest {
 
 func (s *CallMcpToolRequest) SetAuthorization(v string) *CallMcpToolRequest {
 	s.Authorization = &v
+	return s
+}
+
+func (s *CallMcpToolRequest) SetAutoGenSession(v bool) *CallMcpToolRequest {
+	s.AutoGenSession = &v
 	return s
 }
 

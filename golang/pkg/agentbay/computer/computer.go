@@ -72,7 +72,7 @@ type Computer struct {
 		NetworkInterfaceIp() string
 		HttpPort() string
 		FindServerForTool(toolName string) string
-		CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
 }
 
@@ -85,7 +85,7 @@ func NewComputer(session interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 }) *Computer {
 	return &Computer{Session: session}
 }

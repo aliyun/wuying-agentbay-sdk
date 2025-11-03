@@ -23,7 +23,7 @@ type Code struct {
 		NetworkInterfaceIp() string
 		HttpPort() string
 		FindServerForTool(toolName string) string
-		CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
 }
 
@@ -36,7 +36,7 @@ func NewCode(session interface {
 	NetworkInterfaceIp() string
 	HttpPort() string
 	FindServerForTool(toolName string) string
-	CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error)
+	CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 }) *Code {
 	return &Code{
 		Session: session,

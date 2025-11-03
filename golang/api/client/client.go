@@ -81,6 +81,10 @@ func (client *Client) CallMcpToolWithOptions(request *CallMcpToolRequest, runtim
 		body["Authorization"] = request.Authorization
 	}
 
+	if !dara.IsNil(request.AutoGenSession) {
+		body["AutoGenSession"] = request.AutoGenSession
+	}
+
 	if !dara.IsNil(request.ExternalUserId) {
 		body["ExternalUserId"] = request.ExternalUserId
 	}
@@ -148,7 +152,7 @@ func (client *Client) CallMcpTool(request *CallMcpToolRequest) (_result *CallMcp
 
 // Summary:
 //
-// Delete Persistent Context
+// # Delete Persistent Context
 //
 // @param request - ClearContextRequest
 //
@@ -194,7 +198,7 @@ func (client *Client) ClearContextWithOptions(request *ClearContextRequest, runt
 
 // Summary:
 //
-// Delete Persistent Context
+// # Delete Persistent Context
 //
 // @param request - ClearContextRequest
 //

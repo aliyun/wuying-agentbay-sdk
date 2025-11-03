@@ -172,6 +172,7 @@ class BaseService:
         args: Dict[str, Any],
         read_timeout: int = None,
         connect_timeout: int = None,
+        auto_gen_session: bool = False,
     ) -> OperationResult:
         """
         Internal helper to call MCP tool and handle errors.
@@ -179,6 +180,7 @@ class BaseService:
         Args:
             name (str): The name of the tool to call.
             args (Dict[str, Any]): The arguments to pass to the tool.
+            auto_gen_session (bool): Whether to automatically generate session if not exists.
 
         Returns:
             OperationResult: The response from the tool with request ID.
@@ -198,6 +200,7 @@ class BaseService:
                 session_id=self.session.get_session_id(),
                 name=name,
                 args=args_json,
+                auto_gen_session=auto_gen_session,
             )
             response = self.session.get_client().call_mcp_tool(
                 request, read_timeout=read_timeout, connect_timeout=connect_timeout

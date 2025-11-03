@@ -9,6 +9,7 @@ class CallMcpToolRequest(DaraModel):
         self,
         args: str = None,
         authorization: str = None,
+        auto_gen_session: bool = None,
         external_user_id: str = None,
         image_id: str = None,
         name: str = None,
@@ -18,6 +19,7 @@ class CallMcpToolRequest(DaraModel):
     ):
         self.args = args
         self.authorization = authorization
+        self.auto_gen_session = auto_gen_session
         self.external_user_id = external_user_id
         self.image_id = image_id
         self.name = name
@@ -38,6 +40,9 @@ class CallMcpToolRequest(DaraModel):
 
         if self.authorization is not None:
             result['Authorization'] = self.authorization
+
+        if self.auto_gen_session is not None:
+            result['AutoGenSession'] = self.auto_gen_session
 
         if self.external_user_id is not None:
             result['ExternalUserId'] = self.external_user_id
@@ -66,6 +71,9 @@ class CallMcpToolRequest(DaraModel):
 
         if m.get('Authorization') is not None:
             self.authorization = m.get('Authorization')
+
+        if m.get('AutoGenSession') is not None:
+            self.auto_gen_session = m.get('AutoGenSession')
 
         if m.get('ExternalUserId') is not None:
             self.external_user_id = m.get('ExternalUserId')

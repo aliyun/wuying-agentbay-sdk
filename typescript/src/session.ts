@@ -883,9 +883,10 @@ export class Session {
    *
    * @param toolName - Name of the MCP tool to call
    * @param args - Arguments to pass to the tool
+   * @param autoGenSession - Whether to automatically generate session if not exists (default: false)
    * @returns McpToolResult containing the response data
    */
-  async callMcpTool(toolName: string, args: any): Promise<import("./agent/agent").McpToolResult> {
+  async callMcpTool(toolName: string, args: any, autoGenSession: boolean = false): Promise<import("./agent/agent").McpToolResult> {
     try {
       const argsJSON = JSON.stringify(args);
 
@@ -982,6 +983,7 @@ export class Session {
           sessionId: this.getSessionId(),
           name: toolName,
           args: argsJSON,
+          autoGenSession: autoGenSession,
         });
 
         const response = await this.getClient().callMcpTool(callToolRequest);

@@ -32,7 +32,7 @@ func (m *MockSession) GetLink(protocolType *string, port *int32) (*agentbay.Link
 	return nil, nil
 }
 func (m *MockSession) Info() (*agentbay.InfoResult, error) { return nil, nil }
-func (m *MockSession) CallMcpTool(toolName string, args interface{}) (*models.McpToolResult, error) {
+func (m *MockSession) CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
 	return &models.McpToolResult{
 		Success:      true,
 		Data:         "",
