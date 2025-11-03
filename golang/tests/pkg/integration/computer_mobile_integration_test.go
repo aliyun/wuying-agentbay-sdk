@@ -97,7 +97,7 @@ func TestSession_MobileModuleUsage(t *testing.T) {
 		assert.NotNil(t, session.Mobile.GetAllUIElements, "GetAllUIElements method should be available")
 		assert.NotNil(t, session.Mobile.GetInstalledApps, "GetInstalledApps method should be available")
 		assert.NotNil(t, session.Mobile.StartApp, "StartApp method should be available")
-		assert.NotNil(t, session.Mobile.StopAppByPName, "StopAppByPName method should be available")
+		assert.NotNil(t, session.Mobile.StopAppByCmd, "StopAppByCmd method should be available")
 		assert.NotNil(t, session.Mobile.Screenshot, "Screenshot method should be available")
 	})
 }

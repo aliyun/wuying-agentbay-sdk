@@ -195,8 +195,9 @@ func TestMobileRealE2E(t *testing.T) {
 					// Wait a moment
 					time.Sleep(3 * time.Second)
 
-					// Try to stop the app
-					stopResult := session.Mobile.StopAppByPName(startResult.Processes[0].PName)
+					// Try to stop the app using am force-stop command
+					stopCmd := "am force-stop " + startResult.Processes[0].PName
+					stopResult := session.Mobile.StopAppByCmd(stopCmd)
 					if stopResult.Success {
 						t.Logf("App stopped successfully")
 					} else {

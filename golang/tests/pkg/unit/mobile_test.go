@@ -349,8 +349,8 @@ func (suite *MobileTestSuite) TestStartApp_WithWorkDirectory() {
 	assert.Equal(suite.T(), "myapp", result.Processes[0].PName)
 }
 
-// Test StopAppByPName functionality
-func (suite *MobileTestSuite) TestStopAppByPName_Success() {
+// Test StopAppByCmd functionality
+func (suite *MobileTestSuite) TestStopAppByCmd_Success() {
 	// Arrange
 	expectedResult := &models.McpToolResult{
 		Success:      true,
@@ -358,19 +358,19 @@ func (suite *MobileTestSuite) TestStopAppByPName_Success() {
 		ErrorMessage: "",
 	}
 
-	suite.mockSession.On("CallMcpTool", "stop_app_by_pname", map[string]interface{}{
-		"pname": "calculator",
+	suite.mockSession.On("CallMcpTool", "stop_app_by_cmd", map[string]interface{}{
+		"stop_cmd": "am force-stop com.android.calculator2",
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.mobile.StopAppByPName("calculator")
+	result := suite.mobile.StopAppByCmd("am force-stop com.android.calculator2")
 
 	// Assert
 	assert.True(suite.T(), result.Success)
 	assert.Equal(suite.T(), "test-stop-mno", result.RequestID)
 }
 
-func (suite *MobileTestSuite) TestStopAppByPName_AppNotFound() {
+func (suite *MobileTestSuite) TestStopAppByCmd_AppNotFound() {
 	// Arrange
 	expectedResult := &models.McpToolResult{
 		Success:      false,
@@ -378,12 +378,12 @@ func (suite *MobileTestSuite) TestStopAppByPName_AppNotFound() {
 		ErrorMessage: "App not found",
 	}
 
-	suite.mockSession.On("CallMcpTool", "stop_app_by_pname", map[string]interface{}{
-		"pname": "nonexistent",
+	suite.mockSession.On("CallMcpTool", "stop_app_by_cmd", map[string]interface{}{
+		"stop_cmd": "am force-stop com.example.nonexistent",
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.mobile.StopAppByPName("nonexistent")
+	result := suite.mobile.StopAppByCmd("am force-stop com.example.nonexistent")
 
 	// Assert
 	assert.False(suite.T(), result.Success)

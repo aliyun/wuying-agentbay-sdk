@@ -415,12 +415,12 @@ export class Mobile {
   }
 
   /**
-   * Stop app by package name.
+   * Stop app by command.
    */
-  async stopAppByPName(pname: string): Promise<BoolResult> {
-    const args = { pname };
+  async stopAppByCmd(stopCmd: string): Promise<BoolResult> {
+    const args = { stop_cmd: stopCmd };
     try {
-      const result = await this.session.callMcpTool('stop_app_by_pname', args);
+      const result = await this.session.callMcpTool('stop_app_by_cmd', args);
       return {
         success: result.success || false,
         requestId: result.requestId || '',

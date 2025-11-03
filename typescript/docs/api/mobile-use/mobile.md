@@ -278,23 +278,23 @@ if (result.success) {
 }
 ```
 
-### stopAppByPName()
+### stopAppByCmd()
 
-Stop an application by its process name.
+Stop an application using the provided stop command.
 
 ```typescript
-async stopAppByPName(pname: string): Promise<BoolResult>
+async stopAppByCmd(stopCmd: string): Promise<BoolResult>
 ```
 
 **Parameters:**
-- `pname` (string): Process name of the application to stop
+- `stopCmd` (string): Command to stop the application
 
 **Returns:**
 - `Promise<BoolResult>`: Result with success status and request ID
 
 **Example:**
 ```typescript
-const result = await session.mobile.stopAppByPName('com.example.app');
+const result = await session.mobile.stopAppByCmd('am force-stop com.example.app');
 if (result.success) {
     console.log('App stopped successfully');
 }

@@ -493,20 +493,20 @@ func (m *Mobile) StartApp(startCmd, workDirectory, activity string) *ProcessList
 	}
 }
 
-// StopAppByPName stops an application by process name
-func (m *Mobile) StopAppByPName(pname string) *BoolResult {
+// StopAppByCmd stops an application using the provided stop command
+func (m *Mobile) StopAppByCmd(stopCmd string) *BoolResult {
 	args := map[string]interface{}{
-		"pname": pname,
+		"stop_cmd": stopCmd,
 	}
 
-	result, err := m.Session.CallMcpTool("stop_app_by_pname", args)
+	result, err := m.Session.CallMcpTool("stop_app_by_cmd", args)
 	if err != nil {
 		return &BoolResult{
 			ApiResponse: models.ApiResponse{
 				RequestID: "",
 			},
 			Success:      false,
-			ErrorMessage: fmt.Sprintf("failed to call stop_app_by_pname: %v", err),
+			ErrorMessage: fmt.Sprintf("failed to call stop_app_by_cmd: %v", err),
 		}
 	}
 
@@ -679,6 +679,16 @@ func (m *Mobile) SetNavigationBarVisibility(hide bool) error {
 // SetUninstallBlacklist sets uninstall protection blacklist for mobile devices
 func (m *Mobile) SetUninstallBlacklist(packageNames []string) error {
 	return m.setUninstallBlacklist(packageNames)
+}
+
+// SetAppWhitelist sets app whitelist for mobile devices
+func (m *Mobile) SetAppWhitelist(packageNames []string) error {
+	return m.setAppWhitelist(packageNames)
+}
+
+// SetAppBlacklist sets app blacklist for mobile devices
+func (m *Mobile) SetAppBlacklist(packageNames []string) error {
+	return m.setAppBlacklist(packageNames)
 }
 
 // executeTemplateCommand executes a mobile command template

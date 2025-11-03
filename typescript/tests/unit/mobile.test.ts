@@ -239,7 +239,7 @@ describe('Mobile', () => {
       expect(result.processes[0].pid).toBe(1234);
     });
 
-    test('stopAppByPName should call MCP tool with correct parameters', async () => {
+    test('stopAppByCmd should call MCP tool with correct parameters', async () => {
       // Arrange
       const mockResult = {
         success: true,
@@ -248,11 +248,11 @@ describe('Mobile', () => {
       mockSession.callMcpTool.mockResolvedValue(mockResult);
 
       // Act
-      const result = await mobile.stopAppByPName('com.android.calculator2');
+      const result = await mobile.stopAppByCmd('am force-stop com.android.calculator2');
 
       // Assert
-      expect(mockSession.callMcpTool).toHaveBeenCalledWith('stop_app_by_pname', {
-        pname: 'com.android.calculator2'
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('stop_app_by_cmd', {
+        stop_cmd: 'am force-stop com.android.calculator2'
       });
       expect(result.success).toBe(true);
     });

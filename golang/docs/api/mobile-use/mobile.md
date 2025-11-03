@@ -414,24 +414,24 @@ if result.ErrorMessage == "" {
 
 ---
 
-#### StopAppByPName
+#### StopAppByCmd
 
-Stops an application by its process name.
+Stops an application using the provided stop command.
 
 ```go
-func (m *Mobile) StopAppByPName(pname string) *BoolResult
+func (m *Mobile) StopAppByCmd(stopCmd string) *BoolResult
 ```
 
 **Parameters:**
-- `pname` (string): Process name of the application to stop
+- `stopCmd` (string): Command to stop the application
 
 **Returns:**
 - `*BoolResult`: Result indicating success or failure
 
 **Example:**
 ```go
-// Stop an app by process name
-result := session.Mobile.StopAppByPName("com.example.app")
+// Stop an app using stop command
+result := session.Mobile.StopAppByCmd("am force-stop com.example.app")
 if result.Success {
     fmt.Println("App stopped successfully")
 }
@@ -635,9 +635,9 @@ func main() {
         if processes.ErrorMessage == "" {
             fmt.Printf("Started app with %d processes\n", len(processes.Processes))
 
-            // Stop the app
-            if len(processes.Processes) > 0 {
-                session.Mobile.StopAppByPName(processes.Processes[0].PName)
+            // Stop the app using stop command
+            if app.StopCmd != "" {
+                session.Mobile.StopAppByCmd(app.StopCmd)
             }
         }
     }

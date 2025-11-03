@@ -220,7 +220,9 @@ func TestMobileFunctionalValidation(t *testing.T) {
 
 		// Step 5: Stop app (if we have process info)
 		if len(startResult.Processes) > 0 {
-			stopResult := session.Mobile.StopAppByPName(startResult.Processes[0].PName)
+			// Use am force-stop command with the package name
+			stopCmd := "am force-stop " + startResult.Processes[0].PName
+			stopResult := session.Mobile.StopAppByCmd(stopCmd)
 			if stopResult.Success {
 				result.AddDetail("app_stopped", true)
 				t.Logf("App %s stopped successfully", testApp.Name)

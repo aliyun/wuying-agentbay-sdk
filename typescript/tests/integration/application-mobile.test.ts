@@ -161,17 +161,18 @@ describe("Application - Mobile System Tests", () => {
     });
   });
 
-  describe("stopAppByPName() - Mobile Style", () => {
-    it("should stop mobile app by package name", async () => {
+  describe("stopAppByCmd() - Mobile Style", () => {
+    it("should stop mobile app by command", async () => {
       try {
-        // Use a package name to stop
+        // Use a stop command
         const packageName = "com.xingin.xhs";
-        log(`Stopping mobile app by package name: ${packageName}`);
+        const stopCmd = `am force-stop ${packageName}`;
+        log(`Stopping mobile app by command: ${stopCmd}`);
 
-        const stopResponse = await session.mobile.stopAppByPName(packageName);
-        log("Mobile application stopped by package name operation completed");
+        const stopResponse = await session.mobile.stopAppByCmd(stopCmd);
+        log("Mobile application stopped by command operation completed");
         log(
-          `Stop Mobile App by PName RequestId: ${
+          `Stop Mobile App by Cmd RequestId: ${
             stopResponse.requestId || "undefined"
           }`
         );
@@ -182,13 +183,13 @@ describe("Application - Mobile System Tests", () => {
 
         // Log the result without failing if success is false
         if (stopResponse.success) {
-          log("Package name stop operation was successful");
+          log("Command stop operation was successful");
         } else {
-          log(`Note: stopAppByPName returned success=false (may be expected in test environment): ${stopResponse.errorMessage || "No error message"}`);
+          log(`Note: stopAppByCmd returned success=false (may be expected in test environment): ${stopResponse.errorMessage || "No error message"}`);
         }
       } catch (error) {
         log(
-          `Note: Mobile app stop by package name test (expected in mobile environment): ${error}`
+          `Note: Mobile app stop by command test (expected in mobile environment): ${error}`
         );
         // This test is expected to work mainly in mobile environments
         expect(true).toBe(true);
@@ -241,9 +242,10 @@ describe("Application - Mobile System Tests", () => {
         log(
           `Started mobile app with activity: ${activityStartResponse.processes.length} processes`
         );
-        // 4. Stop mobile app by package name
-        log("Step 4: Stopping mobile app by package name...");
-        const stopResponse = await session.mobile.stopAppByPName(appPackage);
+        // 4. Stop mobile app by command
+        log("Step 4: Stopping mobile app by command...");
+        const stopCmd = `am force-stop ${appPackage}`;
+        const stopResponse = await session.mobile.stopAppByCmd(stopCmd);
 
         // Verify BoolResult structure
         expect(stopResponse.requestId).toBeDefined();
