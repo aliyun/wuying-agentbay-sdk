@@ -1,11 +1,12 @@
-import { AgentBay, ListSessionParams, logError, log } from 'wuying-agentbay-sdk';
+import { AgentBay, logError, log } from 'wuying-agentbay-sdk';
+
 async function main() {
   try {
     // Use the test API key function from test-helpers
     const apiKey = process.env.AGENTBAY_API_KEY || 'akm-xxx'; // Replace with your actual API key
-  if (!process.env.AGENTBAY_API_KEY) {
-    log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
-  }
+    if (!process.env.AGENTBAY_API_KEY) {
+      log('Warning: Using placeholder API key. Set AGENTBAY_API_KEY environment variable for production use.');
+    }
 
     // Initialize the AgentBay client
     const agentBay = new AgentBay({ apiKey });
@@ -50,32 +51,36 @@ async function main() {
     }
 
     // List all sessions by labels using new API
-    log('\nListing sessions by labels...');
+    log('\nListing sessions...');
     try {
-      const listParams: ListSessionParams = {
+      // List sessions with labels
+      const listResponse: any = await agentBay.listByLabels({
         labels: { test: 'basic-usage' },
         maxResults: 5
-      };
-      const listResponse = await agentBay.list(listParams.labels, undefined, listParams.maxResults);
+      });
       log(`Available sessions count: ${listResponse.sessionIds.length}`);
-      log(`Total count: ${listResponse.totalCount}`);
-      log(`Max results: ${listResponse.maxResults}`);
+      if (listResponse.totalCount !== undefined) {
+        log(`Total count: ${listResponse.totalCount}`);
+      }
+      if (listResponse.maxResults !== undefined) {
+        log(`Max results: ${listResponse.maxResults}`);
+      }
       log('Session IDs:', listResponse.sessionIds);
       log(`List Sessions RequestId: ${listResponse.requestId}`);
 
       // Demonstrate pagination if there's a next token
       if (listResponse.nextToken) {
         log('\nFetching next page...');
-        const nextPageParams: ListSessionParams = {
-          ...listParams,
+        const nextPageResponse: any = await agentBay.listByLabels({
+          labels: { test: 'basic-usage' },
+          maxResults: 5,
           nextToken: listResponse.nextToken
-        };
-        const nextPageResponse = await agentBay.list(listParams.labels, 2, listParams.maxResults);
+        });
         log(`Next page sessions count: ${nextPageResponse.sessionIds.length}`);
         log(`Next page RequestId: ${nextPageResponse.requestId}`);
       }
     } catch (error) {
-      log(`Note: Failed to list sessions by labels: ${error}`);
+      log(`Note: Failed to list sessions: ${error}`);
     }
 
     // Delete the session
