@@ -34,6 +34,14 @@ jobs:
           npm install
           npm install -g typescript  # If global tsc is not installed
           npm version ${{ inputs.version }} --no-git-tag-version --allow-same-version
+
+          # Set is_release flag to true for production builds
+          echo "Setting is_release flag to true..."
+          sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__ = false/__AGENTBAY_IS_RELEASE_BUILD__ = true/g' src/version.ts
+          # Verify the change
+          echo "Verifying is_release flag:"
+          cat src/version.ts | grep __AGENTBAY_IS_RELEASE_BUILD__
+
           npm run build
           ls dist/
 

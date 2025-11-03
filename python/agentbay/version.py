@@ -29,26 +29,17 @@ def _get_version_from_pyproject() -> str:
 def _is_release_build() -> bool:
     """
     Check if this is a release build.
-    Returns True only if built by official release workflows:
-    - manual_publish_prod.yml
+
+    This value can be overridden at build time by replacing the line below.
+    The CI/CD workflow will replace __AGENTBAY_IS_RELEASE_BUILD__ with True for release builds.
     """
-    # Check if running in GitHub Actions
-    if os.environ.get("GITHUB_ACTIONS") != "true":
-        return False
-    
-    # Check if triggered by manual_publish_prod workflow
-    workflow = os.environ.get("GITHUB_WORKFLOW", "")
-    if "Manual Publish to PyPI" in workflow:
-        return True
-    
-    # Check for AGENTBAY_RELEASE_BUILD environment variable
-    # This can be set in CI/CD for release builds
-    if os.environ.get("AGENTBAY_RELEASE_BUILD") == "true":
-        return True
-    
-    return False
+    # This placeholder will be replaced by the build process
+    # For release builds: sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__/True/g' agentbay/version.py
+    return __AGENTBAY_IS_RELEASE_BUILD__  # Default: False for development builds
 
 
 __version__ = _get_version_from_pyproject()
+# For release builds, the CI/CD will replace __AGENTBAY_IS_RELEASE_BUILD__ with True
+__AGENTBAY_IS_RELEASE_BUILD__ = False
 __is_release__ = _is_release_build()
 

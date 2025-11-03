@@ -26,29 +26,18 @@ function getVersionFromPackageJson(): string {
 
 /**
  * Check if this is a release build.
- * Returns true only if built by official release workflows:
- * - npm_publish.yml
+ *
+ * This value can be overridden at build time by replacing the placeholder below.
+ * The CI/CD workflow will replace __AGENTBAY_IS_RELEASE_BUILD__ with true for release builds.
  */
 function isReleaseBuild(): boolean {
-  // Check if running in GitHub Actions
-  if (process.env.GITHUB_ACTIONS !== "true") {
-    return false;
-  }
-  
-  // Check if triggered by npm_publish workflow
-  const workflow = process.env.GITHUB_WORKFLOW || "";
-  if (workflow.includes("Build and Publish to npm")) {
-    return true;
-  }
-  
-  // Check for AGENTBAY_RELEASE_BUILD environment variable
-  // This can be set in CI/CD for release builds
-  if (process.env.AGENTBAY_RELEASE_BUILD === "true") {
-    return true;
-  }
-  
-  return false;
+  // This placeholder will be replaced by the build process
+  // For release builds: sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__/true/g' src/version.ts
+  return __AGENTBAY_IS_RELEASE_BUILD__;  // Default: false for development builds
 }
+
+// For release builds, the CI/CD will replace __AGENTBAY_IS_RELEASE_BUILD__ with true
+const __AGENTBAY_IS_RELEASE_BUILD__ = false;
 
 export const VERSION = getVersionFromPackageJson();
 export const IS_RELEASE = isReleaseBuild();

@@ -34,6 +34,13 @@ jobs:
           # Verify replacement results
           cat pyproject.toml | grep version
 
+          # Set is_release flag to True for production builds
+          echo "Setting is_release flag to True..."
+          sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__ = False/__AGENTBAY_IS_RELEASE_BUILD__ = True/g' agentbay/version.py
+          # Verify the change
+          echo "Verifying is_release flag:"
+          cat agentbay/version.py | grep __AGENTBAY_IS_RELEASE_BUILD__
+
       - name: Publish to PyPI
         env:
           POETRY_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
