@@ -13,7 +13,8 @@ from agentbay.api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule
 
 
 def create_session_with_default_params() -> None:
-    """Create a session with default parameters."""
+    """Create a session 
+    with default parameters."""
     # Initialize the AgentBay client
     api_key = os.environ.get("AGENTBAY_API_KEY", "")
     agent_bay = AgentBay(api_key=api_key)
