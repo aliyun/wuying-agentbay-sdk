@@ -149,8 +149,6 @@ func archiveUploadModeExample(ab *agentbay.AgentBay, uniqueID string) error {
 	fmt.Printf("✅ File write successful!\n")
 	fmt.Printf("   Request ID: %s\n", writeResult.RequestID)
 
-	
-
 	// Step 6: Test context sync functionality
 	fmt.Println("\n🔄 Step 6: Testing context sync functionality...")
 	syncResult, err := session.Context.Sync()
@@ -188,10 +186,10 @@ func archiveUploadModeExample(ab *agentbay.AgentBay, uniqueID string) error {
 
 	// Step 7: List files in context sync directory
 	fmt.Println("\n🔍 Step 7: Listing files in context sync directory...")
-	
+
 	// Use the sync directory path
 	syncDirPath := "/tmp/archive-mode-test"
-	
+
 	listResult, err := ab.Context.ListFiles(contextResult.ContextID, syncDirPath, 1, 10)
 	if err != nil {
 		return fmt.Errorf("list files failed: %v", err)

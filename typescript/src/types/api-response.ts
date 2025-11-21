@@ -52,6 +52,8 @@ export interface GetSessionData {
   vpcResource: boolean;
   /** Resource URL for accessing the session */
   resourceUrl: string;
+  /** Current status of the session */
+  status: string;
 }
 
 /**
@@ -557,4 +559,44 @@ export interface ClearContextResult extends ApiResponse {
   contextId?: string;
   /** Optional error message if the operation failed */
   errorMessage?: string;
+}
+
+/**
+ * Result of session pause operations.
+ */
+export interface SessionPauseResult extends ApiResponse {
+  /** Request identifier for tracking API calls */
+  requestId: string;
+  /** Whether the pause operation was successful */
+  success: boolean;
+  /** Error message if the operation failed */
+  errorMessage?: string;
+  /** API error code */
+  code?: string;
+  /** Detailed error message from API */
+  message?: string;
+  /** HTTP status code */
+  httpStatusCode?: number;
+  /** Current status of the session. Possible values: "RUNNING", "PAUSED", "PAUSING" */
+  status?: string;
+}
+
+/**
+ * Result of session resume operations.
+ */
+export interface SessionResumeResult extends ApiResponse {
+  /** Request identifier for tracking API calls */
+  requestId: string;
+  /** Whether the resume operation was successful */
+  success: boolean;
+  /** Error message if the operation failed */
+  errorMessage?: string;
+  /** API error code */
+  code?: string;
+  /** Detailed error message from API */
+  message?: string;
+  /** HTTP status code */
+  httpStatusCode?: number;
+  /** Current status of the session. Possible values: "RUNNING", "PAUSED", "RESUMING" */
+  status?: string;
 }

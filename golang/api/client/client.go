@@ -1648,6 +1648,138 @@ func (client *Client) InitBrowser(request *InitBrowserRequest) (_result *InitBro
 
 // Summary:
 //
+// # Pause Session Async
+//
+// @param request - PauseSessionAsyncRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return PauseSessionAsyncResponse
+func (client *Client) PauseSessionAsyncWithOptions(request *PauseSessionAsyncRequest, runtime *dara.RuntimeOptions) (_result *PauseSessionAsyncResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		query["Authorization"] = request.Authorization
+	}
+
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+		Body:  openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("PauseSessionAsync"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &PauseSessionAsyncResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// # Pause Session Async
+//
+// @param request - PauseSessionAsyncRequest
+//
+// @return PauseSessionAsyncResponse
+func (client *Client) PauseSessionAsync(request *PauseSessionAsyncRequest) (_result *PauseSessionAsyncResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &PauseSessionAsyncResponse{}
+	_body, _err := client.PauseSessionAsyncWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// # Resume Session Async
+//
+// @param request - ResumeSessionAsyncRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return ResumeSessionAsyncResponse
+func (client *Client) ResumeSessionAsyncWithOptions(request *ResumeSessionAsyncRequest, runtime *dara.RuntimeOptions) (_result *ResumeSessionAsyncResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	query := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		query["Authorization"] = request.Authorization
+	}
+
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Query: openapiutil.Query(query),
+		Body:  openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("ResumeSessionAsync"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &ResumeSessionAsyncResponse{}
+	_body, _err := client.CallApi(params, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// # Resume Session Async
+//
+// @param request - ResumeSessionAsyncRequest
+//
+// @return ResumeSessionAsyncResponse
+func (client *Client) ResumeSessionAsync(request *ResumeSessionAsyncRequest) (_result *ResumeSessionAsyncResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &ResumeSessionAsyncResponse{}
+	_body, _err := client.ResumeSessionAsyncWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
 // # Get ADB Link
 //
 // @param request - GetAdbLinkRequest

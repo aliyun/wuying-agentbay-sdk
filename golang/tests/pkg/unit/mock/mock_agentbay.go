@@ -7,7 +7,8 @@ package mock
 import (
 	reflect "reflect"
 
-	agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -82,4 +83,34 @@ func (m *MockAgentBayInterface) List(labels map[string]string, page *int, limit 
 func (mr *MockAgentBayInterfaceMockRecorder) List(labels, page, limit interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAgentBayInterface)(nil).List), labels, page, limit)
+}
+
+// Pause mocks base method.
+func (m *MockAgentBayInterface) Pause(session *agentbay.Session, timeout int, pollInterval float64) (*models.SessionPauseResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Pause", session, timeout, pollInterval)
+	ret0, _ := ret[0].(*models.SessionPauseResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Pause indicates an expected call of Pause.
+func (mr *MockAgentBayInterfaceMockRecorder) Pause(session, timeout, pollInterval interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pause", reflect.TypeOf((*MockAgentBayInterface)(nil).Pause), session, timeout, pollInterval)
+}
+
+// Resume mocks base method.
+func (m *MockAgentBayInterface) Resume(session *agentbay.Session, timeout int, pollInterval float64) (*models.SessionResumeResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Resume", session, timeout, pollInterval)
+	ret0, _ := ret[0].(*models.SessionResumeResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Resume indicates an expected call of Resume.
+func (mr *MockAgentBayInterfaceMockRecorder) Resume(session, timeout, pollInterval interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resume", reflect.TypeOf((*MockAgentBayInterface)(nil).Resume), session, timeout, pollInterval)
 }

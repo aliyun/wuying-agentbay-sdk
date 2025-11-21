@@ -11,7 +11,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/Agentbay-dark.png" width="800px">
     <source media="(prefers-color-scheme: light)" srcset="./assets/Agentbay-light.png" width="800px">
-    <img src="./assets/Agentbay.png" alt="AgentBay" width="800px" />
+    <img src="./assets/Agentbay-light.png" alt="AgentBay" width="800px" />
   </picture>
 </p>
 

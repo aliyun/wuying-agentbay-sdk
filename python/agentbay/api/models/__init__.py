@@ -2,8 +2,6 @@
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
 
-
-
 from ._call_mcp_tool_request import CallMcpToolRequest
 from ._call_mcp_tool_response_body import CallMcpToolResponseBody
 from ._call_mcp_tool_response import CallMcpToolResponse
@@ -17,9 +15,21 @@ from ._create_mcp_session_response import CreateMcpSessionResponse
 from ._delete_context_request import DeleteContextRequest
 from ._delete_context_response_body import DeleteContextResponseBody
 from ._delete_context_response import DeleteContextResponse
+from ._delete_context_file_request import DeleteContextFileRequest
+from ._delete_context_file_response_body import DeleteContextFileResponseBody
+from ._delete_context_file_response import DeleteContextFileResponse
+from ._describe_context_files_request import DescribeContextFilesRequest
+from ._describe_context_files_response_body import DescribeContextFilesResponseBody
+from ._describe_context_files_response import DescribeContextFilesResponse
 from ._get_context_request import GetContextRequest
 from ._get_context_response_body import GetContextResponseBody
 from ._get_context_response import GetContextResponse
+from ._get_context_file_download_url_request import GetContextFileDownloadUrlRequest
+from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBody
+from ._get_context_file_download_url_response import GetContextFileDownloadUrlResponse
+from ._get_context_file_upload_url_request import GetContextFileUploadUrlRequest
+from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBody
+from ._get_context_file_upload_url_response import GetContextFileUploadUrlResponse
 from ._get_context_info_request import GetContextInfoRequest
 from ._get_context_info_response_body import GetContextInfoResponseBody
 from ._get_context_info_response import GetContextInfoResponse
@@ -45,12 +55,20 @@ from ._list_mcp_tools_request import ListMcpToolsRequest
 from ._list_mcp_tools_response_body import ListMcpToolsResponseBody
 from ._list_mcp_tools_response import ListMcpToolsResponse
 from ._list_session_request import ListSessionRequest
+from ._list_session_response_body import ListSessionResponseBody
+from ._list_session_response import ListSessionResponse
 from ._modify_context_request import ModifyContextRequest
-from ._modify_context_response import ModifyContextResponse
 from ._modify_context_response_body import ModifyContextResponseBody
+from ._modify_context_response import ModifyContextResponse
+from ._pause_session_async_request import PauseSessionAsyncRequest
+from ._pause_session_async_response_body import PauseSessionAsyncResponseBody
+from ._pause_session_async_response import PauseSessionAsyncResponse
 from ._release_mcp_session_request import ReleaseMcpSessionRequest
 from ._release_mcp_session_response_body import ReleaseMcpSessionResponseBody
 from ._release_mcp_session_response import ReleaseMcpSessionResponse
+from ._resume_session_async_request import ResumeSessionAsyncRequest
+from ._resume_session_async_response_body import ResumeSessionAsyncResponseBody
+from ._resume_session_async_response import ResumeSessionAsyncResponse
 from ._set_label_request import SetLabelRequest
 from ._set_label_response_body import SetLabelResponseBody
 from ._set_label_response import SetLabelResponse
@@ -62,13 +80,16 @@ from ._create_mcp_session_request import AppManagerRule
 from ._create_mcp_session_request import MobileExtraConfig
 from ._create_mcp_session_request import ExtraConfigs
 from ._create_mcp_session_response_body import CreateMcpSessionResponseBodyData
+from ._describe_context_files_response_body import DescribeContextFilesResponseBodyData
 from ._get_context_response_body import GetContextResponseBodyData
+from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBodyData
+from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBodyData
 from ._get_context_info_response_body import GetContextInfoResponseBodyData
 from ._get_label_response_body import GetLabelResponseBodyData
-from ._get_session_response_body import GetSessionResponseBodyData
 from ._get_link_response_body import GetLinkResponseBodyData
 from ._get_mcp_resource_response_body import GetMcpResourceResponseBodyDataDesktopInfo
 from ._get_mcp_resource_response_body import GetMcpResourceResponseBodyData
+from ._get_session_response_body import GetSessionResponseBodyData
 from ._init_browser_response_body import InitBrowserResponseBodyData
 from ._list_contexts_response_body import ListContextsResponseBodyData
 from ._list_session_response_body import ListSessionResponseBodyData
@@ -78,16 +99,12 @@ from ._delete_context_file_request import DeleteContextFileRequest
 from ._delete_context_file_response_body import DeleteContextFileResponseBody
 from ._delete_context_file_response import DeleteContextFileResponse
 from ._describe_context_files_request import DescribeContextFilesRequest
-from ._describe_context_files_response_body import DescribeContextFilesResponseBody
 from ._describe_context_files_response import DescribeContextFilesResponse
 from ._get_context_file_download_url_request import GetContextFileDownloadUrlRequest
-from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBody
 from ._get_context_file_download_url_response import GetContextFileDownloadUrlResponse
 from ._get_context_file_upload_url_request import GetContextFileUploadUrlRequest
 from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBody
 from ._get_context_file_upload_url_response import GetContextFileUploadUrlResponse
-from ._describe_context_files_response_body import DescribeContextFilesResponseBodyData
-from ._get_context_file_download_url_response_body import GetContextFileDownloadUrlResponseBodyData
 from ._get_context_file_upload_url_response_body import GetContextFileUploadUrlResponseBodyData
 
 # Add these lines at the appropriate place
@@ -118,24 +135,36 @@ __all__ = [
     DeleteContextRequest,
     DeleteContextResponseBody,
     DeleteContextResponse,
+    DeleteContextFileRequest,
+    DeleteContextFileResponseBody,
+    DeleteContextFileResponse,
+    DescribeContextFilesRequest,
+    DescribeContextFilesResponseBody,
+    DescribeContextFilesResponse,
     GetContextRequest,
     GetContextResponseBody,
     GetContextResponse,
+    GetContextFileDownloadUrlRequest,
+    GetContextFileDownloadUrlResponseBody,
+    GetContextFileDownloadUrlResponse,
+    GetContextFileUploadUrlRequest,
+    GetContextFileUploadUrlResponseBody,
+    GetContextFileUploadUrlResponse,
     GetContextInfoRequest,
     GetContextInfoResponseBody,
     GetContextInfoResponse,
     GetLabelRequest,
     GetLabelResponseBody,
     GetLabelResponse,
-    GetSessionRequest,
-    GetSessionResponseBody,
-    GetSessionResponse,
     GetLinkRequest,
     GetLinkResponseBody,
     GetLinkResponse,
     GetMcpResourceRequest,
     GetMcpResourceResponseBody,
     GetMcpResourceResponse,
+    GetSessionRequest,
+    GetSessionResponseBody,
+    GetSessionResponse,
     InitBrowserRequest,
     InitBrowserResponseBody,
     InitBrowserResponse,
@@ -146,12 +175,20 @@ __all__ = [
     ListMcpToolsResponseBody,
     ListMcpToolsResponse,
     ListSessionRequest,
+    ListSessionResponseBody,
+    ListSessionResponse,
     ModifyContextRequest,
     ModifyContextResponseBody,
     ModifyContextResponse,
+    PauseSessionAsyncRequest,
+    PauseSessionAsyncResponseBody,
+    PauseSessionAsyncResponse,
     ReleaseMcpSessionRequest,
     ReleaseMcpSessionResponseBody,
     ReleaseMcpSessionResponse,
+    ResumeSessionAsyncRequest,
+    ResumeSessionAsyncResponseBody,
+    ResumeSessionAsyncResponse,
     SetLabelRequest,
     SetLabelResponseBody,
     SetLabelResponse,
@@ -163,13 +200,16 @@ __all__ = [
     MobileExtraConfig,
     ExtraConfigs,
     CreateMcpSessionResponseBodyData,
+    DescribeContextFilesResponseBodyData,
     GetContextResponseBodyData,
+    GetContextFileDownloadUrlResponseBodyData,
+    GetContextFileUploadUrlResponseBodyData,
     GetContextInfoResponseBodyData,
     GetLabelResponseBodyData,
-    GetSessionResponseBodyData,
     GetLinkResponseBodyData,
     GetMcpResourceResponseBodyDataDesktopInfo,
     GetMcpResourceResponseBodyData,
+    GetSessionResponseBodyData,
     InitBrowserResponseBodyData,
     ListContextsResponseBodyData,
     ListSessionResponseBodyData,

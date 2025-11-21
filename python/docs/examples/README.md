@@ -12,6 +12,7 @@ examples/
 ├── common-features/               # Features available across all environments
 │   ├── basics/                    # Essential features
 │   │   ├── session_creation/      # Session lifecycle management
+│   │   ├── session_pause_resume/  # Session pause and resume operations
 │   │   ├── file_system/           # File operations
 │   │   ├── filesystem_example/    # Practical filesystem use cases
 │   │   ├── context_management/    # Context creation and management
@@ -354,6 +355,9 @@ result = session.code.run_code(js_code, "javascript")
 - File operations: `common-features/basics/file_system/main.py`
 - Context management: `common-features/basics/context_management/main.py`
 - Data persistence: `common-features/basics/data_persistence/main.py`
+
+**Session Management:**
+- Session pause and resume: `common-features/basics/session_pause_resume/main.py`
 
 **Advanced Features:**
 - AI Agent: `common-features/advanced/agent_module/main.py`

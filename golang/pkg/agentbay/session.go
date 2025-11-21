@@ -10,6 +10,7 @@ import (
 
 	"math/rand"
 
+	"github.com/alibabacloud-go/tea/dara"
 	"github.com/alibabacloud-go/tea/tea"
 	mcp "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/agent"
@@ -266,10 +267,10 @@ func (s *Session) GetCommand() *command.Command {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    deleteResult, _ := result.Session.Delete()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	deleteResult, _ := result.Session.Delete()
 func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	shouldSync := len(syncContext) > 0 && syncContext[0]
 
@@ -399,11 +400,11 @@ func (s *Session) ValidateLabels(labels map[string]string) string {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    labels := map[string]string{"env": "test"}
-//    labelResult, _ := result.Session.SetLabels(labels)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	labels := map[string]string{"env": "test"}
+//	labelResult, _ := result.Session.SetLabels(labels)
 func (s *Session) SetLabels(labels map[string]string) (*LabelResult, error) {
 	// Validate labels using the validation function
 	if validationError := s.ValidateLabels(labels); validationError != "" {
@@ -477,10 +478,10 @@ func (s *Session) SetLabels(labels map[string]string) (*LabelResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    labelResult, _ := result.Session.GetLabels()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	labelResult, _ := result.Session.GetLabels()
 func (s *Session) GetLabels() (*LabelResult, error) {
 	getLabelRequest := &mcp.GetLabelRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
@@ -549,11 +550,11 @@ func (s *Session) GetLabels() (*LabelResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    port := int32(30100)
-//    linkResult, _ := result.Session.GetLink(nil, &port, nil)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	port := int32(30100)
+//	linkResult, _ := result.Session.GetLink(nil, &port, nil)
 func (s *Session) GetLink(protocolType *string, port *int32, options *string) (*LinkResult, error) {
 	// Validate port range if port is provided
 	if port != nil {
@@ -639,10 +640,10 @@ func (s *Session) GetLink(protocolType *string, port *int32, options *string) (*
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    infoResult, _ := result.Session.Info()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	infoResult, _ := result.Session.Info()
 func (s *Session) Info() (*InfoResult, error) {
 	getMcpResourceRequest := &mcp.GetMcpResourceRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
@@ -771,10 +772,10 @@ func (s *Session) Info() (*InfoResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    toolsResult, _ := result.Session.ListMcpTools()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	toolsResult, _ := result.Session.ListMcpTools()
 func (s *Session) ListMcpTools() (*McpToolsResult, error) {
 	// Use session's ImageId, or default to "linux_latest" if empty
 	imageId := s.ImageId
@@ -925,11 +926,11 @@ func (s *Session) FindServerForTool(toolName string) string {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    args := map[string]interface{}{"command": "ls -la"}
-//    toolResult, _ := result.Session.CallMcpTool("execute_command", args)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	args := map[string]interface{}{"command": "ls -la"}
+//	toolResult, _ := result.Session.CallMcpTool("execute_command", args)
 func (s *Session) CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
 	// Normalize press_keys arguments for better case compatibility
 	if toolName == "press_keys" {
@@ -1278,4 +1279,303 @@ func (s *Session) extractTextContentFromResponse(data interface{}) string {
 	}
 
 	return ""
+}
+
+// Pause synchronously pauses this session, putting it into a dormant state to reduce resource usage and costs.
+// Pause puts the session into a PAUSED state where computational resources are significantly reduced.
+// The session state is preserved and can be resumed later to continue work.
+//
+// Parameters:
+//   - timeout: Timeout in seconds to wait for the session to pause. Defaults to 600 seconds.
+//   - pollInterval: Interval in seconds between status polls. Defaults to 2.0 seconds.
+//
+// Returns:
+//   - *models.SessionPauseResult: Result containing success status, request ID, and error message if any.
+//   - error: Error if the operation fails at the transport level
+//
+// Behavior:
+//
+// - Initiates pause operation through the PauseSessionAsync API
+// - Polls session status until PAUSED state or timeout
+// - Returns detailed result with success status and request tracking
+//
+// Exceptions:
+//
+// - Returns error result (not Go error) for API-level errors like invalid session ID
+// - Returns error result for timeout conditions
+// - Returns Go error for transport-level failures
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"))
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	pauseResult, _ := result.Session.Pause(300, 2.0)
+func (s *Session) Pause(timeout int, pollInterval float64) (*models.SessionPauseResult, error) {
+	// Set default values if not provided
+	if timeout <= 0 {
+		timeout = 600
+	}
+	if pollInterval <= 0 {
+		pollInterval = 2.0
+	}
+
+	// Create pause request
+	request := &mcp.PauseSessionAsyncRequest{}
+	request.SetAuthorization(fmt.Sprintf("Bearer %s", s.GetAPIKey()))
+	request.SetSessionId(s.SessionID)
+
+	// Call PauseSessionAsync API to initiate the pause operation
+	response, err := s.GetClient().PauseSessionAsync(request)
+	if err != nil {
+		return &models.SessionPauseResult{
+			ApiResponse:  models.WithRequestID(""),
+			Success:      false,
+			ErrorMessage: fmt.Sprintf("Failed to call PauseSessionAsync API: %v", err),
+		}, nil
+	}
+
+	// Extract request ID
+	requestID := models.ExtractRequestID(response)
+
+	// Check for API-level errors
+	if response.Body == nil {
+		return &models.SessionPauseResult{
+			ApiResponse:  models.WithRequestID(requestID),
+			Success:      false,
+			ErrorMessage: "Invalid response body",
+		}, nil
+	}
+
+	body := response.Body
+	if !dara.IsNil(body.Success) && !*body.Success {
+		errorMessage := fmt.Sprintf("[%s] %s", tea.StringValue(body.Code), tea.StringValue(body.Message))
+		if errorMessage == "[]" {
+			errorMessage = "Unknown error"
+		}
+		return &models.SessionPauseResult{
+			ApiResponse:  models.WithRequestID(requestID),
+			Success:      false,
+			ErrorMessage: errorMessage,
+			Code:         tea.StringValue(body.Code),
+			Message:      tea.StringValue(body.Message),
+			HTTPCode:     tea.Int32Value(body.HttpStatusCode),
+		}, nil
+	}
+
+	// Pause initiated successfully
+	fmt.Printf("PauseSessionAsync: Session %s pause initiated successfully\n", s.SessionID)
+
+	// Poll for session status until PAUSED or timeout
+	startTime := time.Now()
+	maxAttempts := int(float64(timeout) / pollInterval)
+
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		// Get session status
+		getSessionResult, err := s.AgentBay.GetSession(s.SessionID)
+		if err != nil || !getSessionResult.Success {
+			errorMessage := "Failed to get session status"
+			if err != nil {
+				errorMessage = fmt.Sprintf("Failed to get session status: %v", err)
+			} else if getSessionResult.ErrorMessage != "" {
+				errorMessage = fmt.Sprintf("Failed to get session status: %s", getSessionResult.ErrorMessage)
+			}
+			return &models.SessionPauseResult{
+				ApiResponse:  models.WithRequestID(getSessionResult.GetRequestID()),
+				Success:      false,
+				ErrorMessage: errorMessage,
+			}, nil
+		}
+
+		// Check session status
+		if getSessionResult.Data != nil {
+			status := getSessionResult.Data.Status
+			if status == "" {
+				status = "UNKNOWN"
+			}
+			fmt.Printf("Session status: %s (attempt %d/%d)\n", status, attempt+1, maxAttempts)
+
+			// Check if session is paused
+			if status == "PAUSED" {
+				elapsed := time.Since(startTime)
+				fmt.Printf("Session paused successfully in %v\n", elapsed)
+				return &models.SessionPauseResult{
+					ApiResponse: models.WithRequestID(getSessionResult.GetRequestID()),
+					Success:     true,
+					Status:      status,
+				}, nil
+			} else if status != "RUNNING" && status != "PAUSING" {
+				// If status is not RUNNING, PAUSING, or PAUSED, treat as unexpected
+				elapsed := time.Since(startTime)
+				fmt.Printf("Session in unexpected state after %v: %s\n", elapsed, status)
+				// Continue polling as the state might transition to PAUSED
+			}
+		}
+
+		// Wait before next query (using time.Sleep to avoid blocking)
+		// Only wait if we're not at the last attempt
+		if attempt < maxAttempts-1 {
+			time.Sleep(time.Duration(pollInterval*1000) * time.Millisecond)
+		}
+	}
+
+	// Timeout
+	elapsed := time.Since(startTime)
+	errorMessage := fmt.Sprintf("Session pause timed out after %v", elapsed)
+	fmt.Printf("ERROR: %s\n", errorMessage)
+	return &models.SessionPauseResult{
+		ApiResponse:  models.WithRequestID(""),
+		Success:      false,
+		ErrorMessage: errorMessage,
+	}, nil
+}
+
+// Resume synchronously resumes this session from a paused state to continue work.
+// Resume restores the session from PAUSED state back to RUNNING state.
+// All previous session state and data are preserved during resume operation.
+//
+// Parameters:
+//   - timeout: Timeout in seconds to wait for the session to resume. Defaults to 600 seconds.
+//   - pollInterval: Interval in seconds between status polls. Defaults to 2.0 seconds.
+//
+// Returns:
+//   - *models.SessionResumeResult: Result containing success status, request ID, and error message if any.
+//   - error: Error if the operation fails at the transport level
+//
+// Behavior:
+//
+// - Initiates resume operation through the ResumeSessionAsync API
+// - Polls session status until RUNNING state or timeout
+// - Returns detailed result with success status and request tracking
+//
+// Exceptions:
+//
+// - Returns error result (not Go error) for API-level errors like invalid session ID
+// - Returns error result for timeout conditions
+// - Returns Go error for transport-level failures
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"))
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.Pause(300, 2.0)
+//	resumeResult, _ := result.Session.Resume(300, 2.0)
+func (s *Session) Resume(timeout int, pollInterval float64) (*models.SessionResumeResult, error) {
+	// Set default values if not provided
+	if timeout <= 0 {
+		timeout = 600
+	}
+	if pollInterval <= 0 {
+		pollInterval = 2.0
+	}
+
+	// Create resume request
+	request := &mcp.ResumeSessionAsyncRequest{}
+	request.SetAuthorization(fmt.Sprintf("Bearer %s", s.GetAPIKey()))
+	request.SetSessionId(s.SessionID)
+
+	// Call ResumeSessionAsync API to initiate the resume operation
+	response, err := s.GetClient().ResumeSessionAsync(request)
+	if err != nil {
+		return &models.SessionResumeResult{
+			ApiResponse:  models.WithRequestID(""),
+			Success:      false,
+			ErrorMessage: fmt.Sprintf("Failed to call ResumeSessionAsync API: %v", err),
+		}, nil
+	}
+
+	// Extract request ID
+	requestID := models.ExtractRequestID(response)
+
+	// Check for API-level errors
+	if response.Body == nil {
+		return &models.SessionResumeResult{
+			ApiResponse:  models.WithRequestID(requestID),
+			Success:      false,
+			ErrorMessage: "Invalid response body",
+		}, nil
+	}
+
+	body := response.Body
+	if !dara.IsNil(body.Success) && !*body.Success {
+		errorMessage := fmt.Sprintf("[%s] %s", tea.StringValue(body.Code), tea.StringValue(body.Message))
+		if errorMessage == "[]" {
+			errorMessage = "Unknown error"
+		}
+		return &models.SessionResumeResult{
+			ApiResponse:  models.WithRequestID(requestID),
+			Success:      false,
+			ErrorMessage: errorMessage,
+			Code:         tea.StringValue(body.Code),
+			Message:      tea.StringValue(body.Message),
+			HTTPCode:     tea.Int32Value(body.HttpStatusCode),
+		}, nil
+	}
+
+	// Resume initiated successfully
+	fmt.Printf("ResumeSessionAsync: Session %s resume initiated successfully\n", s.SessionID)
+
+	// Poll for session status until RUNNING or timeout
+	startTime := time.Now()
+	maxAttempts := int(float64(timeout) / pollInterval)
+
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		// Get session status
+		getSessionResult, err := s.AgentBay.GetSession(s.SessionID)
+		if err != nil || !getSessionResult.Success {
+			errorMessage := "Failed to get session status"
+			if err != nil {
+				errorMessage = fmt.Sprintf("Failed to get session status: %v", err)
+			} else if getSessionResult.ErrorMessage != "" {
+				errorMessage = fmt.Sprintf("Failed to get session status: %s", getSessionResult.ErrorMessage)
+			}
+			return &models.SessionResumeResult{
+				ApiResponse:  models.WithRequestID(getSessionResult.GetRequestID()),
+				Success:      false,
+				ErrorMessage: errorMessage,
+			}, nil
+		}
+
+		// Check session status
+		if getSessionResult.Data != nil {
+			status := getSessionResult.Data.Status
+			if status == "" {
+				status = "UNKNOWN"
+			}
+			fmt.Printf("Session status: %s (attempt %d/%d)\n", status, attempt+1, maxAttempts)
+
+			// Check if session is running
+			if status == "RUNNING" {
+				elapsed := time.Since(startTime)
+				fmt.Printf("Session resumed successfully in %v\n", elapsed)
+				return &models.SessionResumeResult{
+					ApiResponse: models.WithRequestID(getSessionResult.GetRequestID()),
+					Success:     true,
+					Status:      status,
+				}, nil
+			} else if status != "PAUSED" && status != "RESUMING" {
+				// If status is not PAUSED, RESUMING, or RUNNING, treat as unexpected
+				elapsed := time.Since(startTime)
+				fmt.Printf("Session in unexpected state after %v: %s\n", elapsed, status)
+				// Continue polling as the state might transition to RUNNING
+			}
+		}
+
+		// Wait before next query (using time.Sleep to avoid blocking)
+		// Only wait if we're not at the last attempt
+		if attempt < maxAttempts-1 {
+			time.Sleep(time.Duration(pollInterval*1000) * time.Millisecond)
+		}
+	}
+
+	// Timeout
+	elapsed := time.Since(startTime)
+	errorMessage := fmt.Sprintf("Session resume timed out after %v", elapsed)
+	fmt.Printf("ERROR: %s\n", errorMessage)
+	return &models.SessionResumeResult{
+		ApiResponse:  models.WithRequestID(""),
+		Success:      false,
+		ErrorMessage: errorMessage,
+	}, nil
 }

@@ -45,7 +45,7 @@ func TestContextSyncUploadModeIntegration(t *testing.T) {
 				if err != nil {
 					t.Logf("Warning: Error deleting session %s: %v", session.SessionID, err)
 				} else {
-					t.Logf("Session %s deleted. Success: %t, Request ID: %s", 
+					t.Logf("Session %s deleted. Success: %t, Request ID: %s",
 						session.SessionID, result.Success, result.RequestID)
 				}
 			}
@@ -292,7 +292,7 @@ func testUploadModeValidation(t *testing.T, client *agentbay.AgentBay, uniqueId 
 	if len(infoResult.ContextStatusData) > 0 {
 		t.Log("Context status details:")
 		for index, status := range infoResult.ContextStatusData {
-			t.Logf("  [%d] ContextId: %s, Path: %s, Status: %s, TaskType: %s", 
+			t.Logf("  [%d] ContextId: %s, Path: %s, Status: %s, TaskType: %s",
 				index, status.ContextId, status.Path, status.Status, status.TaskType)
 		}
 	}
@@ -302,7 +302,7 @@ func testUploadModeValidation(t *testing.T, client *agentbay.AgentBay, uniqueId 
 
 	// Use the sync directory path
 	syncDirPath := "/tmp/archive-mode-test"
-	
+
 	listResult, err := client.Context.ListFiles(contextResult.Context.ID, syncDirPath, 1, 10)
 	if err != nil {
 		t.Fatalf("Failed to list files: %v", err)

@@ -59,3 +59,25 @@ type McpToolResult struct {
 	ErrorMessage string `json:"error_message"`
 	RequestID    string `json:"request_id"`
 }
+
+// SessionPauseResult represents the result of a session pause operation
+type SessionPauseResult struct {
+	ApiResponse
+	Success      bool   `json:"success"`
+	ErrorMessage string `json:"error_message,omitempty"`
+	Code         string `json:"code,omitempty"`
+	Message      string `json:"message,omitempty"`
+	HTTPCode     int32  `json:"http_status_code,omitempty"`
+	Status       string `json:"status,omitempty"` // Current status of the session. Possible values: "RUNNING", "PAUSED", "PAUSING"
+}
+
+// SessionResumeResult represents the result of a session resume operation
+type SessionResumeResult struct {
+	ApiResponse
+	Success      bool   `json:"success"`
+	ErrorMessage string `json:"error_message,omitempty"`
+	Code         string `json:"code,omitempty"`
+	Message      string `json:"message,omitempty"`
+	HTTPCode     int32  `json:"http_status_code,omitempty"`
+	Status       string `json:"status,omitempty"` // Current status of the session. Possible values: "RUNNING", "PAUSED", "RESUMING"
+}

@@ -281,6 +281,69 @@ For detailed practical examples and use cases of session information, including 
 
 
 
+## Session Pause and Resume
+
+Sessions can be temporarily paused to suspend resource usage and resumed later to continue work. This feature is useful for reducing costs during inactive periods and preserving session state for later continuation.
+
+### Pausing a Session
+
+To pause a session, use the `pause()` method:
+
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK and create a session
+agent_bay = AgentBay(api_key=api_key)
+session_result = agent_bay.create()
+session = session_result.session
+
+# Perform your tasks...
+
+# Pause the session to suspend resource usage
+pause_result = session.pause()
+if pause_result.success:
+    print("Session paused successfully")
+    print(f"Request ID: {pause_result.request_id}")
+else:
+    print(f"Failed to pause session: {pause_result.error_message}")
+```
+
+### Resuming a Session
+
+To resume a paused session, use the `resume()` method:
+
+```python
+from agentbay import AgentBay
+
+# Initialize the SDK and get a paused session
+agent_bay = AgentBay(api_key=api_key)
+# Assuming you have a paused session with session_id
+get_result = agent_bay.get("your_paused_session_id")
+if get_result.success:
+    session = get_result.session
+    
+    # Resume the session to continue work
+    resume_result = session.resume()
+    if resume_result.success:
+        print("Session resumed successfully")
+        print(f"Request ID: {resume_result.request_id}")
+        
+        # Continue with your tasks...
+        result = session.command.execute_command("echo 'Hello after resume!'")
+        print(f"Command output: {result.output}")
+    else:
+        print(f"Failed to resume session: {resume_result.error_message}")
+else:
+    print(f"Failed to get session: {get_result.error_message}")
+```
+
+### Important Notes
+
+- **Resource Usage and Costs**: During pause, both resource usage and costs are lower
+- **Session State**: All session state is preserved during pause and resume operations
+- **Optional Operations**: Pause and resume are optional - you can also directly delete a session
+- **Paused Session Restrictions**: When a session is in a paused state, it cannot perform operations such as deletion, task execution, or other actions. You must resume the session first before performing these operations
+
 ## Session Release
 
 Sessions consume cloud resources while active. Understanding how sessions are released is crucial for resource management.

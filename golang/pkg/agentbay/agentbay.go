@@ -125,9 +125,9 @@ func NewAgentBayWithDefaults(apiKey string) (*AgentBay, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
 func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if params == nil {
 		params = NewCreateSessionParams()
@@ -417,8 +417,8 @@ func NewListSessionParams() *ListSessionParams {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.List(nil, nil, nil)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.List(nil, nil, nil)
 func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*SessionListResult, error) {
 	// Set default values
 	if labels == nil {
@@ -639,9 +639,9 @@ func (a *AgentBay) List(labels map[string]string, page *int, limit *int32) (*Ses
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    client.Delete(result.Session, true)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	client.Delete(result.Session, true)
 func (a *AgentBay) Delete(session *Session, syncContext ...bool) (*DeleteResult, error) {
 	result, err := session.Delete(syncContext...)
 	if err == nil {
@@ -671,6 +671,7 @@ type GetSessionData struct {
 	Token              string
 	VpcResource        bool
 	ResourceUrl        string
+	Status             string
 }
 
 // GetSession retrieves session information by session ID
@@ -745,32 +746,35 @@ func (a *AgentBay) GetSession(sessionID string) (*GetSessionResult, error) {
 
 		if response.Body.Data != nil {
 			data := &GetSessionData{}
-			if response.Body.Data.AppInstanceId != nil {
-				data.AppInstanceID = *response.Body.Data.AppInstanceId
+			if response.Body.Data.GetAppInstanceId() != nil {
+				data.AppInstanceID = *response.Body.Data.GetAppInstanceId()
 			}
-			if response.Body.Data.ResourceId != nil {
-				data.ResourceID = *response.Body.Data.ResourceId
+			if response.Body.Data.GetResourceId() != nil {
+				data.ResourceID = *response.Body.Data.GetResourceId()
 			}
-			if response.Body.Data.SessionId != nil {
-				data.SessionID = *response.Body.Data.SessionId
+			if response.Body.Data.GetSessionId() != nil {
+				data.SessionID = *response.Body.Data.GetSessionId()
 			}
-			if response.Body.Data.Success != nil {
-				data.Success = *response.Body.Data.Success
+			if response.Body.Data.GetSuccess() != nil {
+				data.Success = *response.Body.Data.GetSuccess()
 			}
-			if response.Body.Data.HttpPort != nil {
-				data.HttpPort = *response.Body.Data.HttpPort
+			if response.Body.Data.GetHttpPort() != nil {
+				data.HttpPort = *response.Body.Data.GetHttpPort()
 			}
-			if response.Body.Data.NetworkInterfaceIp != nil {
-				data.NetworkInterfaceIP = *response.Body.Data.NetworkInterfaceIp
+			if response.Body.Data.GetNetworkInterfaceIp() != nil {
+				data.NetworkInterfaceIP = *response.Body.Data.GetNetworkInterfaceIp()
 			}
-			if response.Body.Data.Token != nil {
-				data.Token = *response.Body.Data.Token
+			if response.Body.Data.GetToken() != nil {
+				data.Token = *response.Body.Data.GetToken()
 			}
-			if response.Body.Data.VpcResource != nil {
-				data.VpcResource = *response.Body.Data.VpcResource
+			if response.Body.Data.GetVpcResource() != nil {
+				data.VpcResource = *response.Body.Data.GetVpcResource()
 			}
-			if response.Body.Data.ResourceUrl != nil {
-				data.ResourceUrl = *response.Body.Data.ResourceUrl
+			if response.Body.Data.GetResourceUrl() != nil {
+				data.ResourceUrl = *response.Body.Data.GetResourceUrl()
+			}
+			if response.Body.Data.GetStatus() != nil {
+				data.Status = *response.Body.Data.GetStatus()
 			}
 			result.Data = data
 
@@ -810,11 +814,11 @@ func (a *AgentBay) GetSession(sessionID string) (*GetSessionResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    createResult, _ := client.Create(nil)
-//    sessionID := createResult.Session.SessionID
-//    result, _ := client.Get(sessionID)
-//    defer result.Session.Delete()
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	createResult, _ := client.Create(nil)
+//	sessionID := createResult.Session.SessionID
+//	result, _ := client.Get(sessionID)
+//	defer result.Session.Delete()
 func (a *AgentBay) Get(sessionID string) (*SessionResult, error) {
 	if sessionID == "" {
 		logOperationError("Get", "session_id is required", false)
@@ -909,4 +913,92 @@ func (a *AgentBay) Get(sessionID string) (*SessionResult, error) {
 		Success: true,
 		Session: session,
 	}, nil
+}
+
+// Pause synchronously pauses a session, putting it into a dormant state to reduce resource usage and costs.
+// Pause puts the session into a PAUSED state where computational resources are significantly reduced.
+// The session state is preserved and can be resumed later to continue work.
+//
+// Parameters:
+//   - session: The session to pause.
+//   - timeout: Timeout in seconds to wait for the session to pause. Defaults to 600 seconds.
+//   - pollInterval: Interval in seconds between status polls. Defaults to 2.0 seconds.
+//
+// Returns:
+//   - *models.SessionPauseResult: Result containing success status, request ID, and error message if any.
+//   - error: Error if the operation fails at the transport level
+//
+// Behavior:
+//
+// - Delegates to session's Pause method for actual implementation
+// - Returns detailed result with success status and request tracking
+//
+// Exceptions:
+//
+// - Returns error result (not Go error) for API-level errors like invalid session ID
+// - Returns error result for timeout conditions
+// - Returns Go error for transport-level failures
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"))
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	pauseResult, _ := client.Pause(result.Session, 300, 2.0)
+//	client.Resume(result.Session, 300, 2.0)
+func (ab *AgentBay) Pause(session *Session, timeout int, pollInterval float64) (*models.SessionPauseResult, error) {
+	// Use default values if not provided
+	if timeout <= 0 {
+		timeout = 600
+	}
+	if pollInterval <= 0 {
+		pollInterval = 2.0
+	}
+
+	// Call session's Pause method with provided parameters
+	return session.Pause(timeout, pollInterval)
+}
+
+// Resume synchronously resumes a session from a paused state to continue work.
+// Resume restores the session from PAUSED state back to RUNNING state.
+// All previous session state and data are preserved during resume operation.
+//
+// Parameters:
+//   - session: The session to resume.
+//   - timeout: Timeout in seconds to wait for the session to resume. Defaults to 600 seconds.
+//   - pollInterval: Interval in seconds between status polls. Defaults to 2.0 seconds.
+//
+// Returns:
+//   - *models.SessionResumeResult: Result containing success status, request ID, and error message if any.
+//   - error: Error if the operation fails at the transport level
+//
+// Behavior:
+//
+// - Delegates to session's Resume method for actual implementation
+// - Returns detailed result with success status and request tracking
+//
+// Exceptions:
+//
+// - Returns error result (not Go error) for API-level errors like invalid session ID
+// - Returns error result for timeout conditions
+// - Returns Go error for transport-level failures
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"))
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	client.Pause(result.Session, 300, 2.0)
+//	resumeResult, _ := client.Resume(result.Session, 300, 2.0)
+func (ab *AgentBay) Resume(session *Session, timeout int, pollInterval float64) (*models.SessionResumeResult, error) {
+	// Use default values if not provided
+	if timeout <= 0 {
+		timeout = 600
+	}
+	if pollInterval <= 0 {
+		pollInterval = 2.0
+	}
+
+	// Call session's Resume method with provided parameters
+	return session.Resume(timeout, pollInterval)
 }

@@ -125,12 +125,25 @@ func (m *MockSessionForCompliance) GetLabels() (*agentbay.LabelResult, error) { 
 func (m *MockSessionForCompliance) GetLink(protocolType *string, port *int32, options *string) (*agentbay.LinkResult, error) {
 	return nil, nil
 }
-func (m *MockSessionForCompliance) Info() (*agentbay.InfoResult, error) { return nil, nil }
+func (m *MockSessionForCompliance) Info() (*agentbay.InfoResult, error)             { return nil, nil }
+func (m *MockSessionForCompliance) ListMcpTools() (*agentbay.McpToolsResult, error) { return nil, nil }
 func (m *MockSessionForCompliance) CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
 	return &models.McpToolResult{
 		Success:      true,
 		Data:         "",
 		ErrorMessage: "",
 		RequestID:    "",
+	}, nil
+}
+func (m *MockSessionForCompliance) Pause(timeout int, pollInterval float64) (*models.SessionPauseResult, error) {
+	return &models.SessionPauseResult{
+		ApiResponse: models.ApiResponse{RequestID: ""},
+		Success:     true,
+	}, nil
+}
+func (m *MockSessionForCompliance) Resume(timeout int, pollInterval float64) (*models.SessionResumeResult, error) {
+	return &models.SessionResumeResult{
+		ApiResponse: models.ApiResponse{RequestID: ""},
+		Success:     true,
 	}, nil
 }

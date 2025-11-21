@@ -576,6 +576,114 @@ export class Client extends OpenApi {
   }
 
   /**
+   * Pause session async
+   *
+   * @param request - PauseSessionAsyncRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns PauseSessionAsyncResponse
+   */
+  async pauseSessionAsyncWithOptions(
+    request: $_model.PauseSessionAsyncRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.PauseSessionAsyncResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "PauseSessionAsync",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.PauseSessionAsyncResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.PauseSessionAsyncResponse({})
+    );
+  }
+
+  /**
+   * Pause session async
+   *
+   * @param request - PauseSessionAsyncRequest
+   * @returns PauseSessionAsyncResponse
+   */
+  async pauseSessionAsync(
+    request: $_model.PauseSessionAsyncRequest
+  ): Promise<$_model.PauseSessionAsyncResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.pauseSessionAsyncWithOptions(request, runtime);
+  }
+
+  /**
+   * Resume session async
+   *
+   * @param request - ResumeSessionAsyncRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns ResumeSessionAsyncResponse
+   */
+  async resumeSessionAsyncWithOptions(
+    request: $_model.ResumeSessionAsyncRequest,
+    runtime: $dara.RuntimeOptions
+  ): Promise<$_model.ResumeSessionAsyncResponse> {
+    request.validate();
+    const body: { [key: string]: any } = {};
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    const req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    const params = new $OpenApiUtil.Params({
+      action: "ResumeSessionAsync",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.ResumeSessionAsyncResponse>(
+      await this.callApi(params, req, runtime),
+      new $_model.ResumeSessionAsyncResponse({})
+    );
+  }
+
+  /**
+   * Resume session async
+   *
+   * @param request - ResumeSessionAsyncRequest
+   * @returns ResumeSessionAsyncResponse
+   */
+  async resumeSessionAsync(
+    request: $_model.ResumeSessionAsyncRequest
+  ): Promise<$_model.ResumeSessionAsyncResponse> {
+    const runtime = new $dara.RuntimeOptions({});
+    return await this.resumeSessionAsyncWithOptions(request, runtime);
+  }
+
+  /**
    * Get forwarding link for specific port
    *
    * @param request - GetLinkRequest

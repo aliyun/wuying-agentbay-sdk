@@ -65,11 +65,39 @@ agent_bay.delete(session)
 
 ### Session Lifecycle:
 ```
-Create Session → Use Session → Delete Session
-      ↓             ↓              ↓
-  Allocate      Execute         Release
-  Resources     Operations      Resources
+Create Session → Use Session → (Pause Session) → (Resume Session) → Delete Session
+      ↓             ↓              ↓                ↓              ↓
+  Allocate      Execute      Suspend Resources  Restore Resources Release
+  Resources     Operations                    Operations         Resources
 ```
+
+### Session Pause and Resume
+
+Sessions can be temporarily paused to suspend resource usage and resumed later to continue work. This is useful for:
+- Reducing costs during inactive periods
+- Preserving session state for later continuation
+
+**Pausing a Session:**
+```python
+# Pause the session to suspend resource usage
+result = session.pause()
+if result.success:
+    print(f"Session paused successfully. Request ID: {result.request_id}")
+else:
+    print(f"Failed to pause session: {result.error_message}")
+```
+
+**Resuming a Session:**
+```python
+# Resume the session to continue work
+result = session.resume()
+if result.success:
+    print(f"Session resumed successfully. Request ID: {result.request_id}")
+else:
+    print(f"Failed to resume session: {result.error_message}")
+```
+
+**Note:** Pause and resume operations are optional. You can also directly delete a session without pausing it. During pause, resource usage and costs will be lower.
 
 ### Session Release
 

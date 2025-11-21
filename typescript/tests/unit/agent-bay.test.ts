@@ -145,6 +145,12 @@ describe("AgentBay", () => {
       const originalEnv = process.env.AGENTBAY_API_KEY;
       delete process.env.AGENTBAY_API_KEY;
 
+      // Mock the dotenv.config function to prevent loading .env file
+      const dotenvConfigStub = sinon.stub(require("dotenv"), "config");
+      
+      // Also mock fs.existsSync to prevent loading .env file
+      const fsExistsSyncStub = sinon.stub(require("fs"), "existsSync").returns(false);
+
       try {
         expect(() => new AgentBay()).toThrow(AuthenticationError);
       } finally {
@@ -152,6 +158,9 @@ describe("AgentBay", () => {
         if (originalEnv) {
           process.env.AGENTBAY_API_KEY = originalEnv;
         }
+        // Restore stubs
+        dotenvConfigStub.restore();
+        fsExistsSyncStub.restore();
       }
     });
   });

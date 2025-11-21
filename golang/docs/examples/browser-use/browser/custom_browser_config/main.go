@@ -48,17 +48,17 @@ func main() {
 	// After that, define how the browser should look and feel
 	fmt.Println("Initializing browser with custom configuration...")
 	option := browser.NewBrowserOption()
-	
+
 	// Present ourselves with a custom identity
 	customUA := CUSTOM_UA
 	option.UserAgent = &customUA
-	
+
 	// Stand on a stage sized like a common laptop
 	option.Viewport = &browser.BrowserViewport{
 		Width:  1366,
 		Height: 768,
 	}
-	
+
 	// Optionally set screen dimensions (usually same as viewport)
 	option.Screen = &browser.BrowserScreen{
 		Width:  1366,
@@ -109,7 +109,7 @@ func main() {
 
 	// Verify our new voice and our new stage
 	fmt.Println("\nVerifying browser configuration:")
-	
+
 	ua, err := page.Evaluate("navigator.userAgent")
 	if err != nil {
 		log.Fatalf("Failed to get user agent: %v", err)
@@ -120,7 +120,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get window width: %v", err)
 	}
-	
+
 	h, err := page.Evaluate("window.innerHeight")
 	if err != nil {
 		log.Fatalf("Failed to get window height: %v", err)
@@ -132,7 +132,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get screen width: %v", err)
 	}
-	
+
 	screenHeight, err := page.Evaluate("window.screen.height")
 	if err != nil {
 		log.Fatalf("Failed to get screen height: %v", err)
@@ -141,4 +141,3 @@ func main() {
 
 	fmt.Println("\nBrowser configuration verified successfully!")
 }
-

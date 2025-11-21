@@ -1002,6 +1002,7 @@ export class AgentBay {
           token: body.data.token || "",
           vpcResource: body.data.vpcResource || false,
           resourceUrl: body.data.resourceUrl || "",
+          status: body.data.status || "",
         };
 
         logAPIResponseWithDetails(
@@ -1154,6 +1155,92 @@ export class AgentBay {
    */
   getAPIKey(): string {
     return this.apiKey;
+  }
+
+  /**
+   * Asynchronously pause a session, putting it into a dormant state.
+   *
+   * This method directly calls the PauseSessionAsync API without waiting for the session
+   * to reach the PAUSED state.
+   *
+   * @param session - The session to pause.
+   * @param timeout - Timeout in seconds to wait for the session to pause. Defaults to 600 seconds.
+   * @param pollInterval - Interval in seconds between status polls. Defaults to 2.0 seconds.
+   * @returns SessionPauseResult indicating success or failure and request ID
+   *
+   * @example
+   * ```typescript
+   * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+   * const session = (await agentBay.create()).session;
+   * const pauseResult = await agentBay.pauseAsync(session);
+   * await agentBay.resumeAsync(session);
+   * await session.delete();
+   * ```
+   *
+   * @remarks
+   * **Behavior:**
+   * - This method does not wait for the session to reach the PAUSED state
+   * - It only submits the pause request to the API
+   * - The session state transitions from RUNNING -> PAUSING -> PAUSED
+   * - Paused sessions consume fewer resources but maintain their state
+   *
+   * @see {@link resumeAsync}, {@link Session.pauseAsync}
+   */
+  async pauseAsync(session: Session, timeout = 600, pollInterval = 2.0): Promise<import("./types/api-response").SessionPauseResult> {
+    try {
+      // Call session's pause_async method directly
+      return await session.pauseAsync(timeout, pollInterval);
+    } catch (error) {
+      logError("Error calling pause session async:", error);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to pause session ${session.sessionId}: ${error}`,
+      };
+    }
+  }
+
+  /**
+   * Asynchronously resume a session from a paused state.
+   *
+   * This method directly calls the ResumeSessionAsync API without waiting for the session
+   * to reach the RUNNING state.
+   *
+   * @param session - The session to resume.
+   * @param timeout - Timeout in seconds to wait for the session to resume. Defaults to 600 seconds.
+   * @param pollInterval - Interval in seconds between status polls. Defaults to 2.0 seconds.
+   * @returns SessionResumeResult indicating success or failure and request ID
+   *
+   * @example
+   * ```typescript
+   * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+   * const session = (await agentBay.create()).session;
+   * await agentBay.pauseAsync(session);
+   * const resumeResult = await agentBay.resumeAsync(session);
+   * await session.delete();
+   * ```
+   *
+   * @remarks
+   * **Behavior:**
+   * - This method does not wait for the session to reach the RUNNING state
+   * - It only submits the resume request to the API
+   * - The session state transitions from PAUSED -> RESUMING -> RUNNING
+   * - Only sessions in PAUSED state can be resumed
+   *
+   * @see {@link pauseAsync}, {@link Session.resumeAsync}
+   */
+  async resumeAsync(session: Session, timeout = 600, pollInterval = 2.0): Promise<import("./types/api-response").SessionResumeResult> {
+    try {
+      // Call session's resume_async method directly
+      return await session.resumeAsync(timeout, pollInterval);
+    } catch (error) {
+      logError("Error calling resume session async:", error);
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to resume session ${session.sessionId}: ${error}`,
+      };
+    }
   }
 }
 

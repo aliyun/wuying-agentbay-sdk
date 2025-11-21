@@ -88,3 +88,10 @@ export { GetContextFileDownloadUrlResponse } from './GetContextFileDownloadUrlRe
 export { GetContextFileUploadUrlRequest } from './GetContextFileUploadUrlRequest';
 export { GetContextFileUploadUrlResponseBody } from './GetContextFileUploadUrlResponseBody';
 export { GetContextFileUploadUrlResponse } from './GetContextFileUploadUrlResponse';
+// Pause/Resume session operations
+export { PauseSessionAsyncRequest } from './PauseSessionAsyncRequest';
+export { PauseSessionAsyncResponseBody } from './PauseSessionAsyncResponseBody';
+export { PauseSessionAsyncResponse } from './PauseSessionAsyncResponse';
+export { ResumeSessionAsyncRequest } from './ResumeSessionAsyncRequest';
+export { ResumeSessionAsyncResponseBody } from './ResumeSessionAsyncResponseBody';
+export { ResumeSessionAsyncResponse } from './ResumeSessionAsyncResponse';

@@ -3,6 +3,7 @@ package interfaces
 import (
 	"github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 )
 
 //go:generate mockgen -destination=../../../tests/pkg/unit/mock/mock_session.go -package=mock github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/interface SessionInterface
@@ -47,4 +48,10 @@ type SessionInterface interface {
 
 	// FindServerForTool searches for the server that provides the given tool
 	FindServerForTool(toolName string) string
+
+	// Pause synchronously pauses this session
+	Pause(timeout int, pollInterval float64) (*models.SessionPauseResult, error)
+
+	// Resume synchronously resumes this session
+	Resume(timeout int, pollInterval float64) (*models.SessionResumeResult, error)
 }

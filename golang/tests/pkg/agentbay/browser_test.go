@@ -12,7 +12,7 @@ import (
 func TestSession_BrowserIntegration(t *testing.T) {
 	// Create a mock AgentBay instance
 	apiKey := "test-api-key"
-	
+
 	ab, err := agentbay.NewAgentBay(apiKey)
 	require.NoError(t, err)
 	require.NotNil(t, ab)
@@ -31,7 +31,7 @@ func TestSession_BrowserIntegration(t *testing.T) {
 		// These methods should be accessible through the session
 		apiKey := session.GetAPIKey()
 		sessionID := session.GetSessionID()
-		
+
 		assert.Equal(t, "test-api-key", apiKey)
 		assert.Equal(t, "test-session-123", sessionID)
 	})
@@ -39,28 +39,28 @@ func TestSession_BrowserIntegration(t *testing.T) {
 
 func TestBrowserOption_BrowserType(t *testing.T) {
 	tests := []struct {
-		name         string
-		browserType  string
+		name          string
+		browserType   string
 		shouldBeValid bool
 	}{
 		{
-			name:         "chromium",
-			browserType:  "chromium",
+			name:          "chromium",
+			browserType:   "chromium",
 			shouldBeValid: true,
 		},
 		{
-			name:         "chrome",
-			browserType:  "chrome",
+			name:          "chrome",
+			browserType:   "chrome",
 			shouldBeValid: true,
 		},
 		{
-			name:         "firefox (invalid)",
-			browserType:  "firefox",
+			name:          "firefox (invalid)",
+			browserType:   "firefox",
 			shouldBeValid: false,
 		},
 		{
-			name:         "edge (invalid)",
-			browserType:  "edge",
+			name:          "edge (invalid)",
+			browserType:   "edge",
 			shouldBeValid: false,
 		},
 	}

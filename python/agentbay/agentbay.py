@@ -22,6 +22,8 @@ from agentbay.model import (
     GetSessionData,
     GetSessionResult,
     SessionListResult,
+    SessionPauseResult,
+    SessionResumeResult,
     SessionResult,
     extract_request_id,
 )
@@ -1057,6 +1059,7 @@ class AgentBay:
                         token=data_dict.get("Token", ""),
                         vpc_resource=data_dict.get("VpcResource", False),
                         resource_url=data_dict.get("ResourceUrl", ""),
+                        status=data_dict.get("Status", ""),
                     )
 
                 # Log API response with key details
@@ -1203,3 +1206,223 @@ class AgentBay:
             success=True,
             session=session,
         )
+
+    def pause(self, session: Session, timeout: int = 600, poll_interval: float = 2.0) -> SessionPauseResult:
+        """
+        Synchronously pause a session, putting it into a dormant state.
+
+        This method internally calls the PauseSessionAsync API and then polls the GetSession API
+        to check the session status until it becomes PAUSED or until timeout.
+
+        Args:
+            session (Session): The session to pause.
+            timeout (int, optional): Timeout in seconds to wait for the session to pause.
+                Defaults to 600 seconds.
+            poll_interval (float, optional): Interval in seconds between status polls.
+                Defaults to 2.0 seconds.
+
+        Returns:
+            SessionPauseResult: Result containing the request ID, success status, and final session status.
+                - success (bool): True if the session was successfully paused
+                - request_id (str): Unique identifier for this API request
+                - status (str): Final session status (should be "PAUSED" if successful)
+                - error_message (str): Error description (if success is False)
+                - code (str): API response code (if available)
+                - message (str): API response message (if available)
+                - http_status_code (int): HTTP status code (if available)
+
+        Raises:
+            ClientException: If the API request fails due to network or authentication issues.
+
+        Example:
+            ```python
+            session = agent_bay.create().session
+            pause_result = agent_bay.pause(session)
+            agent_bay.resume(session)
+            session.delete()
+            ```
+
+        Note:
+            - The session state transitions from RUNNING -> PAUSING -> PAUSED
+            - Paused sessions consume fewer resources but maintain their state
+            - Use resume() or resume_async() to restore the session to RUNNING state
+            - The timeout parameter controls how long to wait for the PAUSED state
+            - If timeout is exceeded, the method returns with success=False
+
+        See Also:
+            AgentBay.pause_async, AgentBay.resume, AgentBay.resume_async, Session.pause, Session.pause_async
+        """
+        try:
+            # Call session's pause method
+            return session.pause(timeout, poll_interval)
+        except Exception as e:
+            _log_operation_error("pause_session", str(e), exc_info=True)
+            return SessionPauseResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to pause session {session.session_id}: {e}",
+            )
+
+    async def pause_async(self, session: Session) -> SessionPauseResult:
+        """
+        Asynchronously pause a session, putting it into a dormant state.
+
+        This method directly calls the PauseSessionAsync API without waiting for the session
+        to reach the PAUSED state. For synchronous behavior that waits for the PAUSED state,
+        use the pause() method instead.
+
+        Args:
+            session (Session): The session to pause.
+
+        Returns:
+            SessionPauseResult: Result containing the request ID and success status.
+                - success (bool): True if the pause request was accepted by the API
+                - request_id (str): Unique identifier for this API request
+                - error_message (str): Error description (if success is False)
+                - code (str): API response code (if available)
+                - message (str): API response message (if available)
+                - http_status_code (int): HTTP status code (if available)
+
+        Raises:
+            ClientException: If the API request fails due to network or authentication issues.
+
+        Example:
+            ```python
+            import asyncio
+
+            session = agent_bay.create().session
+            pause_result = await agent_bay.pause_async(session)
+            await agent_bay.resume_async(session)
+            session.delete()
+            ```
+
+        Note:
+            - This method does not wait for the session to reach the PAUSED state
+            - It only submits the pause request to the API
+            - Use pause() for synchronous behavior that waits for completion
+            - The session state transitions from RUNNING -> PAUSING -> PAUSED
+            - Paused sessions consume fewer resources but maintain their state
+
+        See Also:
+            AgentBay.pause, AgentBay.resume, AgentBay.resume_async, Session.pause_async
+        """
+        try:
+            # Call session's pause_async method
+            return await session.pause_async()
+        except Exception as e:
+            _log_operation_error("pause_session_async", str(e), exc_info=True)
+            return SessionPauseResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to pause session {session.session_id}: {e}",
+            )
+
+    def resume(self, session: Session, timeout: int = 600, poll_interval: float = 2.0) -> SessionResumeResult:
+        """
+        Synchronously resume a session from a paused state.
+
+        This method internally calls the ResumeSessionAsync API and then polls the GetSession API
+        to check the session status until it becomes RUNNING or until timeout.
+
+        Args:
+            session (Session): The session to resume.
+            timeout (int, optional): Timeout in seconds to wait for the session to resume.
+                Defaults to 600 seconds.
+            poll_interval (float, optional): Interval in seconds between status polls.
+                Defaults to 2.0 seconds.
+
+        Returns:
+            SessionResumeResult: Result containing the request ID, success status, and final session status.
+                - success (bool): True if the session was successfully resumed
+                - request_id (str): Unique identifier for this API request
+                - status (str): Final session status (should be "RUNNING" if successful)
+                - error_message (str): Error description (if success is False)
+                - code (str): API response code (if available)
+                - message (str): API response message (if available)
+                - http_status_code (int): HTTP status code (if available)
+
+        Raises:
+            ClientException: If the API request fails due to network or authentication issues.
+
+        Example:
+            ```python
+            session = agent_bay.create().session
+            agent_bay.pause(session)
+            resume_result = agent_bay.resume(session)
+            session.delete()
+            ```
+
+        Note:
+            - The session state transitions from PAUSED -> RESUMING -> RUNNING
+            - Only sessions in PAUSED state can be resumed
+            - Use pause() or pause_async() to put a session into PAUSED state
+            - The timeout parameter controls how long to wait for the RUNNING state
+            - If timeout is exceeded, the method returns with success=False
+
+        See Also:
+            AgentBay.pause, AgentBay.pause_async, AgentBay.resume_async, Session.resume, Session.resume_async
+        """
+        try:
+            # Call session's resume method
+            return session.resume(timeout, poll_interval)
+        except Exception as e:
+            _log_operation_error("resume_session", str(e), exc_info=True)
+            return SessionResumeResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to resume session {session.session_id}: {e}",
+            )
+
+    async def resume_async(self, session: Session) -> SessionResumeResult:
+        """
+        Asynchronously resume a session from a paused state.
+
+        This method directly calls the ResumeSessionAsync API without waiting for the session
+        to reach the RUNNING state. For synchronous behavior that waits for the RUNNING state,
+        use the resume() method instead.
+
+        Args:
+            session (Session): The session to resume.
+
+        Returns:
+            SessionResumeResult: Result containing the request ID and success status.
+                - success (bool): True if the resume request was accepted by the API
+                - request_id (str): Unique identifier for this API request
+                - error_message (str): Error description (if success is False)
+                - code (str): API response code (if available)
+                - message (str): API response message (if available)
+                - http_status_code (int): HTTP status code (if available)
+
+        Raises:
+            ClientException: If the API request fails due to network or authentication issues.
+
+        Example:
+            ```python
+            import asyncio
+
+            session = agent_bay.create().session
+            agent_bay.pause(session)
+            resume_result = await agent_bay.resume_async(session)
+            session.delete()
+            ```
+
+        Note:
+            - This method does not wait for the session to reach the RUNNING state
+            - It only submits the resume request to the API
+            - Use resume() for synchronous behavior that waits for completion
+            - The session state transitions from PAUSED -> RESUMING -> RUNNING
+            - Only sessions in PAUSED state can be resumed
+
+        See Also:
+            AgentBay.pause, AgentBay.pause_async, AgentBay.resume, Session.resume_async
+        """
+        try:
+            # Call session's resume_async method
+            return await session.resume_async()
+        except Exception as e:
+            _log_operation_error("resume_session_async", str(e), exc_info=True)
+            return SessionResumeResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to resume session {session.session_id}: {e}",
+            )

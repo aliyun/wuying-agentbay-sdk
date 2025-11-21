@@ -12,6 +12,7 @@ export class GetSessionResponseBodyData extends $dara.Model {
   token?: string;
   vpcResource?: boolean;
   resourceUrl?: string;
+  status?: string;
   static names(): { [key: string]: string } {
     return {
       appInstanceId: 'AppInstanceId',
@@ -23,6 +24,7 @@ export class GetSessionResponseBodyData extends $dara.Model {
       token: 'Token',
       vpcResource: 'VpcResource',
       resourceUrl: 'ResourceUrl',
+      status: 'Status',
     };
   }
 
@@ -37,6 +39,7 @@ export class GetSessionResponseBodyData extends $dara.Model {
       token: 'string',
       vpcResource: 'boolean',
       resourceUrl: 'string',
+      status: 'string',
     };
   }
 

@@ -95,19 +95,25 @@ func (s *GetSessionResponseBody) SetSuccess(v bool) *GetSessionResponseBody {
 }
 
 func (s *GetSessionResponseBody) Validate() error {
-	return dara.Validate(s)
+	if s.Data != nil {
+		if err := s.Data.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type GetSessionResponseBodyData struct {
 	AppInstanceId      *string `json:"AppInstanceId,omitempty" xml:"AppInstanceId,omitempty"`
-	ResourceId         *string `json:"ResourceId,omitempty" xml:"ResourceId,omitempty"`
-	SessionId          *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
-	Success            *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
 	HttpPort           *string `json:"HttpPort,omitempty" xml:"HttpPort,omitempty"`
 	NetworkInterfaceIp *string `json:"NetworkInterfaceIp,omitempty" xml:"NetworkInterfaceIp,omitempty"`
+	ResourceId         *string `json:"ResourceId,omitempty" xml:"ResourceId,omitempty"`
+	ResourceUrl        *string `json:"ResourceUrl,omitempty" xml:"ResourceUrl,omitempty"`
+	SessionId          *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	Status             *string `json:"Status,omitempty" xml:"Status,omitempty"`
+	Success            *bool   `json:"Success,omitempty" xml:"Success,omitempty"`
 	Token              *string `json:"Token,omitempty" xml:"Token,omitempty"`
 	VpcResource        *bool   `json:"VpcResource,omitempty" xml:"VpcResource,omitempty"`
-	ResourceUrl        *string `json:"ResourceUrl,omitempty" xml:"ResourceUrl,omitempty"`
 }
 
 func (s GetSessionResponseBodyData) String() string {
@@ -122,24 +128,32 @@ func (s *GetSessionResponseBodyData) GetAppInstanceId() *string {
 	return s.AppInstanceId
 }
 
-func (s *GetSessionResponseBodyData) GetResourceId() *string {
-	return s.ResourceId
-}
-
-func (s *GetSessionResponseBodyData) GetSessionId() *string {
-	return s.SessionId
-}
-
-func (s *GetSessionResponseBodyData) GetSuccess() *bool {
-	return s.Success
-}
-
 func (s *GetSessionResponseBodyData) GetHttpPort() *string {
 	return s.HttpPort
 }
 
 func (s *GetSessionResponseBodyData) GetNetworkInterfaceIp() *string {
 	return s.NetworkInterfaceIp
+}
+
+func (s *GetSessionResponseBodyData) GetResourceId() *string {
+	return s.ResourceId
+}
+
+func (s *GetSessionResponseBodyData) GetResourceUrl() *string {
+	return s.ResourceUrl
+}
+
+func (s *GetSessionResponseBodyData) GetSessionId() *string {
+	return s.SessionId
+}
+
+func (s *GetSessionResponseBodyData) GetStatus() *string {
+	return s.Status
+}
+
+func (s *GetSessionResponseBodyData) GetSuccess() *bool {
+	return s.Success
 }
 
 func (s *GetSessionResponseBodyData) GetToken() *string {
@@ -150,27 +164,8 @@ func (s *GetSessionResponseBodyData) GetVpcResource() *bool {
 	return s.VpcResource
 }
 
-func (s *GetSessionResponseBodyData) GetResourceUrl() *string {
-	return s.ResourceUrl
-}
-
 func (s *GetSessionResponseBodyData) SetAppInstanceId(v string) *GetSessionResponseBodyData {
 	s.AppInstanceId = &v
-	return s
-}
-
-func (s *GetSessionResponseBodyData) SetResourceId(v string) *GetSessionResponseBodyData {
-	s.ResourceId = &v
-	return s
-}
-
-func (s *GetSessionResponseBodyData) SetSessionId(v string) *GetSessionResponseBodyData {
-	s.SessionId = &v
-	return s
-}
-
-func (s *GetSessionResponseBodyData) SetSuccess(v bool) *GetSessionResponseBodyData {
-	s.Success = &v
 	return s
 }
 
@@ -184,6 +179,31 @@ func (s *GetSessionResponseBodyData) SetNetworkInterfaceIp(v string) *GetSession
 	return s
 }
 
+func (s *GetSessionResponseBodyData) SetResourceId(v string) *GetSessionResponseBodyData {
+	s.ResourceId = &v
+	return s
+}
+
+func (s *GetSessionResponseBodyData) SetResourceUrl(v string) *GetSessionResponseBodyData {
+	s.ResourceUrl = &v
+	return s
+}
+
+func (s *GetSessionResponseBodyData) SetSessionId(v string) *GetSessionResponseBodyData {
+	s.SessionId = &v
+	return s
+}
+
+func (s *GetSessionResponseBodyData) SetStatus(v string) *GetSessionResponseBodyData {
+	s.Status = &v
+	return s
+}
+
+func (s *GetSessionResponseBodyData) SetSuccess(v bool) *GetSessionResponseBodyData {
+	s.Success = &v
+	return s
+}
+
 func (s *GetSessionResponseBodyData) SetToken(v string) *GetSessionResponseBodyData {
 	s.Token = &v
 	return s
@@ -191,11 +211,6 @@ func (s *GetSessionResponseBodyData) SetToken(v string) *GetSessionResponseBodyD
 
 func (s *GetSessionResponseBodyData) SetVpcResource(v bool) *GetSessionResponseBodyData {
 	s.VpcResource = &v
-	return s
-}
-
-func (s *GetSessionResponseBodyData) SetResourceUrl(v string) *GetSessionResponseBodyData {
-	s.ResourceUrl = &v
 	return s
 }
 

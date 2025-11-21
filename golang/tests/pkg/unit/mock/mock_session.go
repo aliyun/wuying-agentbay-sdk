@@ -9,6 +9,7 @@ import (
 
 	client "github.com/aliyun/wuying-agentbay-sdk/golang/api/client"
 	agentbay "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	models "github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -210,6 +211,36 @@ func (m *MockSessionInterface) NetworkInterfaceIp() string {
 func (mr *MockSessionInterfaceMockRecorder) NetworkInterfaceIp() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NetworkInterfaceIp", reflect.TypeOf((*MockSessionInterface)(nil).NetworkInterfaceIp))
+}
+
+// Pause mocks base method.
+func (m *MockSessionInterface) Pause(arg0 int, arg1 float64) (*models.SessionPauseResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Pause", arg0, arg1)
+	ret0, _ := ret[0].(*models.SessionPauseResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Pause indicates an expected call of Pause.
+func (mr *MockSessionInterfaceMockRecorder) Pause(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pause", reflect.TypeOf((*MockSessionInterface)(nil).Pause), arg0, arg1)
+}
+
+// Resume mocks base method.
+func (m *MockSessionInterface) Resume(arg0 int, arg1 float64) (*models.SessionResumeResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Resume", arg0, arg1)
+	ret0, _ := ret[0].(*models.SessionResumeResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Resume indicates an expected call of Resume.
+func (mr *MockSessionInterfaceMockRecorder) Resume(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resume", reflect.TypeOf((*MockSessionInterface)(nil).Resume), arg0, arg1)
 }
 
 // SetLabels mocks base method.

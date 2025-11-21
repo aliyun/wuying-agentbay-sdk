@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # This file is auto-generated, don't edit it. Thanks.
 from __future__ import annotations
-from darabonba.model import DaraModel
-from agentbay.api import models as main_models
 
+from agentbay.api import models as main_models
+from darabonba.model import DaraModel
 
 class GetSessionResponseBody(DaraModel):
     def __init__(
@@ -78,24 +78,24 @@ class GetSessionResponseBodyData(DaraModel):
     def __init__(
         self,
         app_instance_id: str = None,
-        resource_id: str = None,
-        session_id: str = None,
-        success: bool = None,
         http_port: str = None,
         network_interface_ip: str = None,
+        resource_id: str = None,
+        resource_url: str = None,
+        session_id: str = None,
+        status: str = None,
         token: str = None,
         vpc_resource: bool = None,
-        resource_url: str = None,
     ):
         self.app_instance_id = app_instance_id
-        self.resource_id = resource_id
-        self.session_id = session_id
-        self.success = success
         self.http_port = http_port
         self.network_interface_ip = network_interface_ip
+        self.resource_id = resource_id
+        self.resource_url = resource_url
+        self.session_id = session_id
+        self.status = status
         self.token = token
         self.vpc_resource = vpc_resource
-        self.resource_url = resource_url
 
     def validate(self):
         pass
@@ -108,29 +108,29 @@ class GetSessionResponseBodyData(DaraModel):
         if self.app_instance_id is not None:
             result['AppInstanceId'] = self.app_instance_id
 
-        if self.resource_id is not None:
-            result['ResourceId'] = self.resource_id
-
-        if self.session_id is not None:
-            result['SessionId'] = self.session_id
-
-        if self.success is not None:
-            result['Success'] = self.success
-
         if self.http_port is not None:
             result['HttpPort'] = self.http_port
 
         if self.network_interface_ip is not None:
             result['NetworkInterfaceIp'] = self.network_interface_ip
 
+        if self.resource_id is not None:
+            result['ResourceId'] = self.resource_id
+
+        if self.resource_url is not None:
+            result['ResourceUrl'] = self.resource_url
+
+        if self.session_id is not None:
+            result['SessionId'] = self.session_id
+
+        if self.status is not None:
+            result['Status'] = self.status
+
         if self.token is not None:
             result['Token'] = self.token
 
         if self.vpc_resource is not None:
             result['VpcResource'] = self.vpc_resource
-
-        if self.resource_url is not None:
-            result['ResourceUrl'] = self.resource_url
 
         return result
 
@@ -139,29 +139,29 @@ class GetSessionResponseBodyData(DaraModel):
         if m.get('AppInstanceId') is not None:
             self.app_instance_id = m.get('AppInstanceId')
 
-        if m.get('ResourceId') is not None:
-            self.resource_id = m.get('ResourceId')
-
-        if m.get('SessionId') is not None:
-            self.session_id = m.get('SessionId')
-
-        if m.get('Success') is not None:
-            self.success = m.get('Success')
-
         if m.get('HttpPort') is not None:
             self.http_port = m.get('HttpPort')
 
         if m.get('NetworkInterfaceIp') is not None:
             self.network_interface_ip = m.get('NetworkInterfaceIp')
 
+        if m.get('ResourceId') is not None:
+            self.resource_id = m.get('ResourceId')
+
+        if m.get('ResourceUrl') is not None:
+            self.resource_url = m.get('ResourceUrl')
+
+        if m.get('SessionId') is not None:
+            self.session_id = m.get('SessionId')
+
+        if m.get('Status') is not None:
+            self.status = m.get('Status')
+
         if m.get('Token') is not None:
             self.token = m.get('Token')
 
         if m.get('VpcResource') is not None:
             self.vpc_resource = m.get('VpcResource')
-
-        if m.get('ResourceUrl') is not None:
-            self.resource_url = m.get('ResourceUrl')
 
         return self
 

@@ -339,6 +339,250 @@ result = session.call_mcp_tool("shell", {"command": "invalid_command_12345", "ti
 - For press_keys tool, key names are automatically normalized to correct case format
 - This improves case compatibility (e.g., "CTRL" -> "Ctrl", "tab" -> "Tab")
 
+### pause
+
+```python
+def pause(timeout: int = 600,
+          poll_interval: float = 2.0) -> SessionPauseResult
+```
+
+Synchronously pause this session, putting it into a dormant state.
+
+This method internally calls the PauseSessionAsync API and then polls the GetSession API
+to check the session status until it becomes PAUSED or until timeout.
+
+**Arguments**:
+
+- `timeout` _int, optional_ - Timeout in seconds to wait for the session to pause.
+  Defaults to 600 seconds.
+- `poll_interval` _float, optional_ - Interval in seconds between status polls.
+  Defaults to 2.0 seconds.
+  
+
+**Returns**:
+
+    SessionPauseResult: Result containing the request ID, success status, and final session status.
+  - success (bool): True if the session was successfully paused
+  - request_id (str): Unique identifier for this API request
+  - status (str): Final session status (should be "PAUSED" if successful)
+  - error_message (str): Error description (if success is False)
+  - code (str): API response code (if available)
+  - message (str): API response message (if available)
+  - http_status_code (int): HTTP status code (if available)
+  
+
+**Raises**:
+
+    SessionError: If the API request fails or response is invalid.
+  
+
+**Example**:
+
+```python
+session = agent_bay.create().session
+pause_result = session.pause()
+session.resume()
+session.delete()
+```
+
+
+**Notes**:
+
+- The session state transitions from RUNNING -> PAUSING -> PAUSED
+- Paused sessions consume fewer resources but maintain their state
+- Use resume() or resume_async() to restore the session to RUNNING state
+- The timeout parameter controls how long to wait for the PAUSED state
+- If timeout is exceeded, the method returns with success=False
+
+
+**See Also**:
+
+Session.pause_async, Session.resume, Session.resume_async, AgentBay.pause, AgentBay.pause_async
+
+### pause\_async
+
+```python
+async def pause_async(timeout: int = 600,
+                      poll_interval: float = 2.0) -> SessionPauseResult
+```
+
+Asynchronously pause this session, putting it into a dormant state.
+
+This method directly calls the PauseSessionAsync API and then polls the GetSession API
+asynchronously to check the session status until it becomes PAUSED or until timeout.
+
+**Arguments**:
+
+- `timeout` _int, optional_ - Timeout in seconds to wait for the session to pause.
+  Defaults to 600 seconds.
+- `poll_interval` _float, optional_ - Interval in seconds between status polls.
+  Defaults to 2.0 seconds.
+  
+
+**Returns**:
+
+    SessionPauseResult: Result containing the request ID, success status, and final session status.
+  - success (bool): True if the session was successfully paused
+  - request_id (str): Unique identifier for this API request
+  - status (str): Final session status (should be "PAUSED" if successful)
+  - error_message (str): Error description (if success is False)
+  - code (str): API response code (if available)
+  - message (str): API response message (if available)
+  - http_status_code (int): HTTP status code (if available)
+  
+
+**Raises**:
+
+    SessionError: If the API request fails or response is invalid.
+  
+
+**Example**:
+
+```python
+import asyncio
+
+session = agent_bay.create().session
+pause_result = await session.pause_async()
+await session.resume_async()
+session.delete()
+```
+
+
+**Notes**:
+
+- The session state transitions from RUNNING -> PAUSING -> PAUSED
+- Paused sessions consume fewer resources but maintain their state
+- Use resume() or resume_async() to restore the session to RUNNING state
+- The timeout parameter controls how long to wait for the PAUSED state
+- If timeout is exceeded, the method returns with success=False
+
+
+**See Also**:
+
+Session.pause, Session.resume, Session.resume_async, AgentBay.pause_async
+
+### resume
+
+```python
+def resume(timeout: int = 600,
+           poll_interval: float = 2.0) -> SessionResumeResult
+```
+
+Synchronously resume this session from a paused state.
+
+This method internally calls the ResumeSessionAsync API and then polls the GetSession API
+to check the session status until it becomes RUNNING or until timeout.
+
+**Arguments**:
+
+- `timeout` _int, optional_ - Timeout in seconds to wait for the session to resume.
+  Defaults to 600 seconds.
+- `poll_interval` _float, optional_ - Interval in seconds between status polls.
+  Defaults to 2.0 seconds.
+  
+
+**Returns**:
+
+    SessionResumeResult: Result containing the request ID, success status, and final session status.
+  - success (bool): True if the session was successfully resumed
+  - request_id (str): Unique identifier for this API request
+  - status (str): Final session status (should be "RUNNING" if successful)
+  - error_message (str): Error description (if success is False)
+  - code (str): API response code (if available)
+  - message (str): API response message (if available)
+  - http_status_code (int): HTTP status code (if available)
+  
+
+**Raises**:
+
+    SessionError: If the API request fails or response is invalid.
+  
+
+**Example**:
+
+```python
+session = agent_bay.create().session
+session.pause()
+resume_result = session.resume()
+session.delete()
+```
+
+
+**Notes**:
+
+- The session state transitions from PAUSED -> RESUMING -> RUNNING
+- Only sessions in PAUSED state can be resumed
+- Use pause() or pause_async() to put a session into PAUSED state
+- The timeout parameter controls how long to wait for the RUNNING state
+- If timeout is exceeded, the method returns with success=False
+
+
+**See Also**:
+
+Session.pause, Session.pause_async, Session.resume_async, AgentBay.resume, AgentBay.resume_async
+
+### resume\_async
+
+```python
+async def resume_async(timeout: int = 600,
+                       poll_interval: float = 2.0) -> SessionResumeResult
+```
+
+Asynchronously resume this session from a paused state.
+
+This method directly calls the ResumeSessionAsync API and then polls the GetSession API
+asynchronously to check the session status until it becomes RUNNING or until timeout.
+
+**Arguments**:
+
+- `timeout` _int, optional_ - Timeout in seconds to wait for the session to resume.
+  Defaults to 600 seconds.
+- `poll_interval` _float, optional_ - Interval in seconds between status polls.
+  Defaults to 2.0 seconds.
+  
+
+**Returns**:
+
+    SessionResumeResult: Result containing the request ID, success status, and final session status.
+  - success (bool): True if the session was successfully resumed
+  - request_id (str): Unique identifier for this API request
+  - status (str): Final session status (should be "RUNNING" if successful)
+  - error_message (str): Error description (if success is False)
+  - code (str): API response code (if available)
+  - message (str): API response message (if available)
+  - http_status_code (int): HTTP status code (if available)
+  
+
+**Raises**:
+
+    SessionError: If the API request fails or response is invalid.
+  
+
+**Example**:
+
+```python
+import asyncio
+
+session = agent_bay.create().session
+session.pause()
+resume_result = await session.resume_async()
+session.delete()
+```
+
+
+**Notes**:
+
+- The session state transitions from PAUSED -> RESUMING -> RUNNING
+- Only sessions in PAUSED state can be resumed
+- Use pause() or pause_async() to put a session into PAUSED state
+- The timeout parameter controls how long to wait for the RUNNING state
+- If timeout is exceeded, the method returns with success=False
+
+
+**See Also**:
+
+Session.pause, Session.pause_async, Session.resume, AgentBay.resume_async
+
 ## Related Resources
 
 - [FileSystem API Reference](filesystem.md)
