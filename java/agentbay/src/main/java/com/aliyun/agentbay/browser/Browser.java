@@ -1,5 +1,6 @@
 package com.aliyun.agentbay.browser;
 
+import com.aliyun.agentbay.Config;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.BrowserException;
 import com.aliyun.agentbay.model.OperationResult;
@@ -22,7 +23,6 @@ import java.util.Map;
 public class Browser extends BaseService {
     private static final Logger logger = LoggerFactory.getLogger(Browser.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String BROWSER_DATA_PATH = "/tmp/browser_data";
 
     private String endpointUrl;
     private boolean initialized;
@@ -51,7 +51,7 @@ public class Browser extends BaseService {
             InitBrowserRequest request = new InitBrowserRequest();
             request.setAuthorization("Bearer " + session.getApiKey());
             request.setSessionId(session.getSessionId());
-            request.setPersistentPath(BROWSER_DATA_PATH);
+            request.setPersistentPath(Config.BROWSER_DATA_PATH);
 
             // Convert BrowserOption to JSON string
             String browserOptionJson = objectMapper.writeValueAsString(option.toMap());
