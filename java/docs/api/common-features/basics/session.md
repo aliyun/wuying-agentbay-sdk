@@ -144,17 +144,46 @@ browser.initialize(option);
 public ContextManager getContext()
 ```
 
-Get the context manager for this session.
+Get the context manager for this session. The ContextManager provides methods for context synchronization and status monitoring.
 
 **Returns:**
 - `ContextManager`: Context manager instance
+
+**Available Methods:**
+- `sync()` - Trigger context sync (non-blocking)
+- `sync(Consumer<Boolean> callback)` - Sync with callback (async mode)
+- `syncAndWait()` - Sync and wait for completion (blocking mode)
+- `info()` - Get context synchronization status
 
 **Example:**
 
 ```java
 ContextManager context = session.getContext();
+
+// Basic sync (trigger only)
 ContextSyncResult result = context.sync();
+
+// Sync with callback (async)
+context.sync(success -> {
+    System.out.println("Sync completed: " + success);
+});
+
+// Sync and wait (blocking)
+ContextSyncResult waitResult = context.syncAndWait();
+if (waitResult.isSuccess()) {
+    System.out.println("Sync completed successfully");
+}
+
+// Get sync status
+ContextInfoResult info = context.info();
+for (ContextStatusData status : info.getContextStatusData()) {
+    System.out.println("Status: " + status.getStatus());
+}
 ```
+
+**See Also:**
+- [Context API Reference](context.md) - Complete context management documentation
+- [Context Sync Lifecycle Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/ContextSyncLifecycleExample.java) - Complete example demonstrating all sync modes
 
 ### info
 
@@ -463,8 +492,8 @@ session.delete(true);
 - [FileSystem API Reference](filesystem.md)
 - [Command API Reference](command.md)
 - [Context API Reference](context.md)
-- [Session Resume Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/SessionResumeExample.java)
 - [Session Context Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/SessionContextExample.java)
+- [Browser Context Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/BrowserContextExample.java)
 
 ---
 

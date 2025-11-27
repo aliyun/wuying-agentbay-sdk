@@ -837,6 +837,7 @@ ContextSync contextSync = ContextSync.create(contextId, "/workspace", policy);
 - [Session API Reference](session.md)
 - [AgentBay API Reference](agentbay.md)
 - [Session Context Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/SessionContextExample.java)
+- [Context Sync Lifecycle Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/ContextSyncLifecycleExample.java)
 
 ---
 

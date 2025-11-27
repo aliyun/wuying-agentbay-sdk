@@ -319,6 +319,13 @@ public class AgentBay {
             sessions.put(result.getSessionId(), session);
             result.setSession(session);
 
+            // If we have persistence data, wait for context synchronization
+            boolean needsContextSync = (params.getContextSyncs() != null && !params.getContextSyncs().isEmpty()) ||
+                                      (params.getBrowserContext() != null);
+            if (needsContextSync) {
+                waitForContextSynchronization(session);
+            }
+
             logger.info("Session created successfully: {}", result.getSessionId());
             return result;
         } catch (Exception e) {
@@ -334,6 +341,70 @@ public class AgentBay {
                 }
             }
             return result;
+        }
+    }
+
+    /**
+     * Wait for context synchronization to complete
+     *
+     * @param session The session to wait for context synchronization
+     */
+    private void waitForContextSynchronization(Session session) {
+        logger.info("Waiting for context synchronization to complete");
+
+        // Wait for context synchronization to complete
+        int maxRetries = 150; // Maximum number of retries
+        int retryInterval = 2000; // 2 seconds in milliseconds
+
+        for (int retry = 0; retry < maxRetries; retry++) {
+            try {
+                // Get context status data
+                com.aliyun.agentbay.context.ContextInfoResult infoResult = session.getContext().info();
+
+                // Check if all context items have status "Success" or "Failed"
+                boolean allCompleted = true;
+                boolean hasFailure = false;
+
+                for (com.aliyun.agentbay.context.ContextStatusData item : infoResult.getContextStatusData()) {
+                    logger.info("Context {} status: {}, path: {}",
+                               item.getContextId(), item.getStatus(), item.getPath());
+
+                    if (!"Success".equals(item.getStatus()) && !"Failed".equals(item.getStatus())) {
+                        allCompleted = false;
+                        break;
+                    }
+
+                    if ("Failed".equals(item.getStatus())) {
+                        hasFailure = true;
+                        logger.error("Context synchronization failed for {}: {}",
+                                   item.getContextId(), item.getErrorMessage());
+                    }
+                }
+
+                if (allCompleted || infoResult.getContextStatusData().isEmpty()) {
+                    if (hasFailure) {
+                        logger.warn("Context synchronization completed with failures");
+                    } else {
+                        logger.info("Context synchronization completed successfully");
+                    }
+                    break;
+                }
+
+                logger.debug("Waiting for context synchronization, attempt {}/{}", retry + 1, maxRetries);
+                Thread.sleep(retryInterval);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.warn("Context synchronization wait interrupted");
+                break;
+            } catch (Exception e) {
+                logger.error("Error checking context status on attempt {}: {}", retry + 1, e.getMessage());
+                try {
+                    Thread.sleep(retryInterval);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
         }
     }
 

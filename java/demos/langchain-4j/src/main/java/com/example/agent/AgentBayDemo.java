@@ -7,6 +7,18 @@ import dev.langchain4j.service.AiServices;
 
 public class AgentBayDemo {
 
+    /**
+     * Helper method to repeat a string n times (Java 8 compatible)
+     */
+    private static String repeat(String str, int count) {
+        if (count <= 0) return "";
+        StringBuilder sb = new StringBuilder(str.length() * count);
+        for (int i = 0; i < count; i++) {
+            sb.append(str);
+        }
+        return sb.toString();
+    }
+
     public static void main(String[] args) throws AgentBayException {
         String agentbayApiKey = System.getenv("AGENTBAY_API_KEY");
         if (agentbayApiKey == null || agentbayApiKey.isEmpty()) {
@@ -45,24 +57,24 @@ public class AgentBayDemo {
                 .tools(tools)
                 .build();
 
-        System.out.println("=".repeat(80));
+        System.out.println(repeat("=", 80));
         System.out.println("LangChain4j + AgentBay Demo - 数据分析助手");
-        System.out.println("=".repeat(80));
+        System.out.println(repeat("=", 80));
         System.out.println();
 
         runExample1(agent);
-        System.out.println("\n" + "=".repeat(80) + "\n");
+        System.out.println("\n" + repeat("=", 80) + "\n");
 
         runExample2(agent);
-        System.out.println("\n" + "=".repeat(80) + "\n");
+        System.out.println("\n" + repeat("=", 80) + "\n");
 
         runExample3(agent);
-        System.out.println("\n" + "=".repeat(80) + "\n");
+        System.out.println("\n" + repeat("=", 80) + "\n");
     }
 
     private static void runExample1(DataAnalysisAgent agent) {
         System.out.println("示例 1: Python 计算任务");
-        System.out.println("-".repeat(80));
+        System.out.println(repeat("-", 80));
         String query1 = "帮我用 Python 计算 1000 以内所有质数的和";
         System.out.println("用户: " + query1);
         System.out.println();
@@ -73,7 +85,7 @@ public class AgentBayDemo {
 
     private static void runExample2(DataAnalysisAgent agent) {
         System.out.println("示例 2: 数据分析任务");
-        System.out.println("-".repeat(80));
+        System.out.println(repeat("-", 80));
         String query2 = "用 Python 生成一个包含 100 个随机数的列表，然后计算它们的平均值、中位数和标准差";
         System.out.println("用户: " + query2);
         System.out.println();
@@ -84,7 +96,7 @@ public class AgentBayDemo {
 
     private static void runExample3(DataAnalysisAgent agent) {
         System.out.println("示例 3: Shell 命令任务");
-        System.out.println("-".repeat(80));
+        System.out.println(repeat("-", 80));
         String query3 = "在云端环境中，创建一个文本文件，写入当前日期和系统信息，然后读取它";
         System.out.println("用户: " + query3);
         System.out.println();

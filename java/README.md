@@ -10,14 +10,14 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>com.aliyun</groupId>
     <artifactId>agentbay-sdk</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 
 Or if you're using Gradle:
 
 ```gradle
-implementation 'com.aliyun:agentbay-sdk:0.0.2'
+implementation 'com.aliyun:agentbay-sdk:0.0.3'
 ```
 
 ## 🚀 Prerequisites
@@ -199,9 +199,10 @@ Comprehensive examples are available in the `src/main/java/com/aliyun/agentbay/e
 
 - **[FileSystemExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/FileSystemExample.java)** - File operations, directory management, file editing
 - **[SessionContextExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/SessionContextExample.java)** - Context management and data persistence
+- **[ContextSyncLifecycleExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/ContextSyncLifecycleExample.java)** - Complete context sync lifecycle with different sync modes
 - **[CodeExecutionExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/CodeExecutionExample.java)** - Execute Python and JavaScript code
 - **[PlaywrightExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/PlaywrightExample.java)** - Browser automation with Playwright
-- **[SessionResumeExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/SessionResumeExample.java)** - Session dump and restore
+- **[BrowserContextExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/BrowserContextExample.java)** - Browser context and cookies persistence
 - **[FileTransferExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/FileTransferExample.java)** - Large file upload/download
 - **[OSSManagementExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/OSSManagementExample.java)** - OSS integration
 - **[VisitAliyunExample.java](agentbay/src/main/java/com/aliyun/agentbay/examples/VisitAliyunExample.java)** - Real-world browser automation
