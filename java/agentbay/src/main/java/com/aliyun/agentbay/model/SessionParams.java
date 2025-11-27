@@ -12,7 +12,6 @@ public class SessionParams {
     private boolean enableCookie;
     private String timeZone;
     private String language;
-    private Boolean isVpc;
 
     public SessionParams() {
         this.browserType = "chrome";
@@ -84,13 +83,5 @@ public class SessionParams {
 
     public void setLanguage(String language) {
         this.language = language;
-    }
-
-    public Boolean getIsVpc() {
-        return isVpc;
-    }
-
-    public void setIsVpc(Boolean isVpc) {
-        this.isVpc = isVpc;
     }
 }

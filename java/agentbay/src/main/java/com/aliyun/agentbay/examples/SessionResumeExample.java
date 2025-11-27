@@ -28,7 +28,6 @@ public class SessionResumeExample {
             System.out.println("Creating session...");
             CreateSessionParams params = new CreateSessionParams();
             params.setImageId("imgc-0abxi0lc574y4cltl");
-            params.setIsVpc(true);
             SessionResult sessionResult = agentBay.create(params);
 
             if (!sessionResult.isSuccess()) {

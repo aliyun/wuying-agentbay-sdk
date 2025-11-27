@@ -8,7 +8,6 @@ import java.util.List;
 public class SessionState {
     private String sessionId;
     private String fileTransferContextId;
-    private boolean isVpc;
     private String httpPort;
     private String token;
     private String vpcLinkUrl;
@@ -32,14 +31,6 @@ public class SessionState {
 
     public void setFileTransferContextId(String fileTransferContextId) {
         this.fileTransferContextId = fileTransferContextId;
-    }
-
-    public boolean isVpc() {
-        return isVpc;
-    }
-
-    public void setVpc(boolean vpc) {
-        isVpc = vpc;
     }
 
     public String getHttpPort() {

@@ -38,13 +38,7 @@
 
         <dependency>
             <groupId>com.aliyun</groupId>
-            <artifactId>agentbay</artifactId>
-            <version>0.0.18</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aliyun.inner</groupId>
-            <artifactId>wuyingai20250506</artifactId>
+            <artifactId>agentbay-sdk</artifactId>
             <version>0.0.1</version>
         </dependency>
 
