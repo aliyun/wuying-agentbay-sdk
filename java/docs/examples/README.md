@@ -80,26 +80,83 @@ mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.SessionContextExamp
 
 ---
 
-#### 3. SessionResumeExample.java
+#### 3. ContextSyncLifecycleExample.java
 
-**Purpose**: Demonstrates session state persistence and restoration
+**Purpose**: Demonstrates the complete context synchronization lifecycle with different sync modes
 
 **Features:**
-- Dump session state to JSON
-- Save session state to file
-- Restore session from saved state
-- Resume work after interruption
+- Basic context sync (trigger only, non-blocking)
+- Context sync with callback (async mode)
+- Context sync and wait (blocking mode)
+- Complete context persistence workflow across sessions
+- Monitoring sync status with `info()` method
+- Data verification after context restoration
 
 **Example Usage:**
 ```bash
-mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.SessionResumeExample"
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.ContextSyncLifecycleExample"
 ```
 
 **Key Concepts:**
-- Session state management
-- State serialization/deserialization
-- Session restoration
-- Long-running workflow patterns
+- Three sync modes: trigger-only, callback-based, and blocking
+- Context sync lifecycle management
+- Data persistence verification
+- Session deletion with context sync
+- Context data restoration in new sessions
+
+**Example Code Snippet:**
+```java
+// Example 1: Basic sync (trigger only)
+ContextSyncResult result = session.getContext().sync();
+// Returns immediately, sync runs in background
+
+// Example 2: Sync with callback (async)
+CompletableFuture<Boolean> future = new CompletableFuture<>();
+session.getContext().sync(success -> {
+    System.out.println("Sync completed: " + success);
+    future.complete(success);
+});
+Boolean success = future.get(5, TimeUnit.MINUTES);
+
+// Example 3: Sync and wait (blocking)
+ContextSyncResult result = session.getContext().syncAndWait();
+if (result.isSuccess()) {
+    System.out.println("Sync completed successfully");
+}
+
+// Example 4: Complete workflow - data persistence across sessions
+// Step 1: Create context and first session
+String contextName = "workflow-demo-" + System.currentTimeMillis();
+ContextResult contextResult = agentBay.getContext().get(contextName, true);
+Context context = contextResult.getContext();
+
+CreateSessionParams params = new CreateSessionParams();
+ContextSync contextSync = ContextSync.create(
+    context.getId(),
+    "/tmp/persist_data",
+    SyncPolicy.defaultPolicy()
+);
+params.setContextSyncs(Arrays.asList(contextSync));
+params.setImageId("linux_latest");
+Session session1 = agentBay.create(params).getSession();
+
+// Step 2: Create data in first session
+String testContent = "Data from first session - timestamp: " + System.currentTimeMillis();
+session1.getFileSystem().writeFile("/tmp/persist_data/persistent_file.txt", testContent);
+
+// Step 3: Sync and delete with sync_context=true
+session1.getContext().syncAndWait();
+agentBay.delete(session1, true);  // sync_context=true uploads data
+
+// Step 4: Create new session with same context
+Session session2 = agentBay.create(params).getSession();
+
+// Step 5: Verify data persisted
+String restoredContent = session2.getFileSystem().read("/tmp/persist_data/persistent_file.txt");
+if (testContent.equals(restoredContent)) {
+    System.out.println("✅ Data persisted correctly!");
+}
+```
 
 ---
 
@@ -191,7 +248,51 @@ mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.PlaywrightExample"
 
 ---
 
-#### 7. VisitAliyunExample.java
+#### 7. BrowserContextExample.java
+
+**Purpose**: Demonstrates browser context configuration and cookie persistence
+
+**Features:**
+- Basic browser context for persistent browser data
+- Browser context with extension support
+- Browser context with fingerprint support
+- Complete workflow with context synchronization
+- Persist cookies, localStorage across sessions
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.BrowserContextExample"
+```
+
+**Key Concepts:**
+- BrowserContext configuration
+- Cookie persistence across sessions
+- Extension integration
+- Browser fingerprint context
+- Context synchronization with auto_upload
+
+**Example Code Snippet:**
+```java
+// Create a persistent context
+ContextResult contextResult = agentBay.getContext().get("my-browser-context", true);
+Context context = contextResult.getContext();
+
+// Create BrowserContext with auto-upload
+BrowserContext browserContext = new BrowserContext(context.getId(), true);
+
+// Create session with BrowserContext
+CreateSessionParams params = new CreateSessionParams();
+params.setImageId("browser_latest");
+params.setBrowserContext(browserContext);
+Session session = agentBay.create(params).getSession();
+
+// Browser data will be automatically saved when session is deleted with sync_context=true
+agentBay.delete(session, true);
+```
+
+---
+
+#### 8. VisitAliyunExample.java
 
 **Purpose**: Demonstrates real-world browser automation on Alibaba Cloud website
 
@@ -213,7 +314,7 @@ mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.VisitAliyunExample"
 
 ---
 
-#### 8. Game2048Example.java
+#### 9. Game2048Example.java
 
 **Purpose**: Demonstrates interactive UI automation by playing the 2048 game
 
@@ -238,7 +339,7 @@ mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.Game2048Example"
 
 ### Code Execution
 
-#### 9. CodeExecutionExample.java
+#### 10. CodeExecutionExample.java
 
 **Purpose**: Demonstrates Python and JavaScript code execution in cloud
 
@@ -316,7 +417,8 @@ try {
 
 **Data Persistence:**
 - SessionContextExample
-- SessionResumeExample
+- ContextSyncLifecycleExample
+- BrowserContextExample
 
 **Storage Integration:**
 - OSSManagementExample
@@ -324,6 +426,7 @@ try {
 
 **Browser Automation:**
 - PlaywrightExample
+- BrowserContextExample
 - VisitAliyunExample
 - Game2048Example
 
@@ -338,11 +441,12 @@ try {
 
 **Intermediate:**
 - SessionContextExample
+- ContextSyncLifecycleExample
 - PlaywrightExample
+- BrowserContextExample
 - OSSManagementExample
 
 **Advanced:**
-- SessionResumeExample
 - FileTransferExample
 - Game2048Example
 
@@ -353,12 +457,14 @@ try {
 1. **FileSystemExample** - Learn basic file operations
 2. **CodeExecutionExample** - Understand code execution
 3. **SessionContextExample** - Learn about persistence
+4. **ContextSyncLifecycleExample** - Master context sync modes
 
 ### For Web Automation
 
 1. **PlaywrightExample** - Basic browser automation
-2. **VisitAliyunExample** - Real-world website automation
-3. **Game2048Example** - AI-powered automation
+2. **BrowserContextExample** - Browser context and cookie persistence
+3. **VisitAliyunExample** - Real-world website automation
+4. **Game2048Example** - AI-powered automation
 
 ### For Data Management
 

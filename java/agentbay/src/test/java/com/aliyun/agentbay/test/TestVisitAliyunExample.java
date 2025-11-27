@@ -153,7 +153,10 @@ public class TestVisitAliyunExample {
             Page page = context.newPage();
             assertNotNull("Page should not be null", page);
             
-            page.navigate("https://www.aliyun.com");
+            page.navigate("https://www.aliyun.com",
+                new Page.NavigateOptions()
+                    .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
+                    .setTimeout(60000));
             
             String pageTitle = page.title();
             assertNotNull("Page title should not be null", pageTitle);
@@ -195,7 +198,10 @@ public class TestVisitAliyunExample {
             BrowserContext context = browser.contexts().get(0);
             Page page = context.newPage();
             
-            page.navigate("https://www.aliyun.com");
+            page.navigate("https://www.aliyun.com",
+                new Page.NavigateOptions()
+                    .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
+                    .setTimeout(60000));
             page.waitForTimeout(5000);
             
             // Change font family
@@ -236,7 +242,10 @@ public class TestVisitAliyunExample {
             BrowserContext context = browser.contexts().get(0);
             Page page = context.newPage();
             
-            page.navigate("https://www.aliyun.com");
+            page.navigate("https://www.aliyun.com",
+                new Page.NavigateOptions()
+                    .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
+                    .setTimeout(60000));
             page.waitForTimeout(5000);
             
             // Change font family
@@ -291,7 +300,10 @@ public class TestVisitAliyunExample {
             BrowserContext context = browser.contexts().get(0);
             Page page = context.newPage();
             
-            page.navigate("https://www.aliyun.com");
+            page.navigate("https://www.aliyun.com",
+                new Page.NavigateOptions()
+                    .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
+                    .setTimeout(60000));
             String pageTitle = page.title();
             logger.info("Page title: " + pageTitle);
             

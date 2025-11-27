@@ -82,6 +82,240 @@ Check if the browser has been initialized.
 **Returns:**
 - `boolean`: True if browser is initialized
 
+## BrowserContext
+
+```java
+public class BrowserContext
+```
+
+Browser context configuration for session. Enables browser data persistence (cookies, localStorage) across multiple sessions using the same context ID.
+
+### Constructors
+
+#### Basic Constructor
+
+```java
+public BrowserContext(String contextId, boolean autoUpload)
+```
+
+Initialize BrowserContext with minimal configuration.
+
+**Parameters:**
+- `contextId` (String): ID of the browser context to bind to the session
+- `autoUpload` (boolean): Whether to automatically upload browser data when session ends
+
+**Example:**
+
+```java
+// Create a persistent context
+ContextResult contextResult = agentBay.getContext().get("my-browser-context", true);
+Context context = contextResult.getContext();
+
+// Create BrowserContext with auto-upload
+BrowserContext browserContext = new BrowserContext(context.getId(), true);
+
+// Create session with BrowserContext
+CreateSessionParams params = new CreateSessionParams();
+params.setImageId("browser_latest");
+params.setBrowserContext(browserContext);
+Session session = agentBay.create(params).getSession();
+```
+
+#### Default Constructor
+
+```java
+public BrowserContext(String contextId)
+```
+
+Initialize BrowserContext with default `autoUpload=true`.
+
+**Parameters:**
+- `contextId` (String): ID of the browser context
+
+#### Full Constructor
+
+```java
+public BrowserContext(String contextId, boolean autoUpload, 
+                     ExtensionOption extensionOption,
+                     BrowserFingerprintContext fingerprintContext)
+```
+
+Initialize BrowserContext with optional extension and fingerprint support.
+
+**Parameters:**
+- `contextId` (String): ID of the browser context
+- `autoUpload` (boolean): Whether to automatically upload browser data
+- `extensionOption` (ExtensionOption): Extension configuration (can be null)
+- `fingerprintContext` (BrowserFingerprintContext): Browser fingerprint configuration (can be null)
+
+**Example:**
+
+```java
+// With extensions
+ExtensionOption extOption = new ExtensionOption(
+    "my_extensions",
+    Arrays.asList("ext1.zip", "ext2.zip")
+);
+
+BrowserContext browserContext = new BrowserContext(
+    context.getId(),
+    true,
+    extOption,
+    null
+);
+```
+
+### Key Methods
+
+#### getContextId
+
+```java
+public String getContextId()
+```
+
+Get the browser context ID.
+
+#### isAutoUpload
+
+```java
+public boolean isAutoUpload()
+```
+
+Check if auto-upload is enabled.
+
+### Cookie Persistence Example
+
+```java
+import com.aliyun.agentbay.AgentBay;
+import com.aliyun.agentbay.browser.BrowserContext;
+import com.aliyun.agentbay.context.Context;
+import com.aliyun.agentbay.session.Session;
+import com.microsoft.playwright.*;
+import com.microsoft.playwright.options.Cookie;
+
+// Step 1: Create persistent context
+ContextResult contextResult = agentBay.getContext().get("browser-context", true);
+Context context = contextResult.getContext();
+
+// Step 2: Create first session with BrowserContext
+BrowserContext browserContext = new BrowserContext(context.getId(), true);
+CreateSessionParams params = new CreateSessionParams();
+params.setImageId("browser_latest");
+params.setBrowserContext(browserContext);
+Session session1 = agentBay.create(params).getSession();
+
+// Step 3: Set cookies in first session
+session1.getBrowser().initialize(new BrowserOption());
+String endpointUrl = session1.getBrowser().getEndpointUrl();
+
+try (Playwright playwright = Playwright.create()) {
+    Browser browser = playwright.chromium().connectOverCDP(endpointUrl);
+    BrowserContext context = browser.contexts().get(0);
+    Page page = context.newPage();
+    
+    page.navigate("https://example.com");
+    
+    // Add cookies
+    List<Cookie> cookies = new ArrayList<>();
+    cookies.add(new Cookie("sessionId", "abc123")
+        .setDomain("example.com")
+        .setPath("/"));
+    context.addCookies(cookies);
+    
+    browser.close();
+}
+
+// Step 4: Delete first session WITH context sync
+agentBay.delete(session1, true);  // sync_context=true
+
+// Wait for sync
+Thread.sleep(3000);
+
+// Step 5: Create second session with same context
+Session session2 = agentBay.create(params).getSession();
+
+// Cookies are automatically restored!
+session2.getBrowser().initialize(new BrowserOption());
+String endpointUrl2 = session2.getBrowser().getEndpointUrl();
+
+try (Playwright playwright = Playwright.create()) {
+    Browser browser = playwright.chromium().connectOverCDP(endpointUrl2);
+    BrowserContext context = browser.contexts().get(0);
+    
+    // Cookies from first session are available
+    List<Cookie> cookies = context.cookies();
+    System.out.println("Restored cookies: " + cookies.size());
+}
+
+agentBay.delete(session2, false);
+```
+
+## ExtensionOption
+
+```java
+public class ExtensionOption
+```
+
+Configuration for browser extensions. Extensions are loaded from a cloud context.
+
+### Constructor
+
+```java
+public ExtensionOption(String contextId, List<String> extensionIds)
+```
+
+**Parameters:**
+- `contextId` (String): Context ID where extension files are stored
+- `extensionIds` (List<String>): List of extension file names (e.g., "adblock.zip")
+
+**Example:**
+
+```java
+ExtensionOption extOption = new ExtensionOption(
+    "extensions-context",
+    Arrays.asList("ublock.zip", "metamask.zip")
+);
+
+BrowserContext browserContext = new BrowserContext(
+    "browser-session",
+    true,
+    extOption,
+    null
+);
+```
+
+## BrowserFingerprintContext
+
+```java
+public class BrowserFingerprintContext
+```
+
+Browser fingerprint context configuration for enhanced privacy and anti-detection.
+
+### Constructor
+
+```java
+public BrowserFingerprintContext(String fingerprintContextId)
+```
+
+**Parameters:**
+- `fingerprintContextId` (String): ID of the fingerprint context
+
+**Example:**
+
+```java
+BrowserFingerprintContext fingerprintCtx = new BrowserFingerprintContext(
+    "my-fingerprint"
+);
+
+BrowserContext browserContext = new BrowserContext(
+    "browser-session",
+    true,
+    null,
+    fingerprintCtx
+);
+```
+
 ## BrowserOption
 
 ```java
@@ -395,6 +629,36 @@ try (Playwright pw = Playwright.create()) {
 session.delete();
 ```
 
+### Browser Context with Persistence
+
+```java
+// Create persistent context
+ContextResult ctxResult = agentBay.getContext().get("my-browser-ctx", true);
+Context context = ctxResult.getContext();
+
+// Create BrowserContext
+BrowserContext browserContext = new BrowserContext(context.getId(), true);
+
+// Create session with context
+CreateSessionParams params = new CreateSessionParams();
+params.setImageId("browser_latest");
+params.setBrowserContext(browserContext);
+Session session = agentBay.create(params).getSession();
+
+// Use browser (cookies will be persisted)
+BrowserOption option = new BrowserOption();
+session.getBrowser().initialize(option);
+
+// Delete session WITH context sync to save browser data
+agentBay.delete(session, true);
+
+// Next session with same context will have cookies restored
+Session session2 = agentBay.create(params).getSession();
+session2.getBrowser().initialize(option);
+// Cookies from first session are available!
+agentBay.delete(session2, false);
+```
+
 ### Stealth Mode with Human Behavior
 
 ```java
@@ -490,13 +754,15 @@ session.delete();
 ## Use Cases
 
 - **Web Scraping**: Extract data from websites with stealth mode
-- **Automated Testing**: Test web applications end-to-end
+- **Automated Testing**: Test web applications end-to-end with persistent sessions
 - **Form Automation**: Fill and submit forms automatically
 - **Screenshot Capture**: Take screenshots of web pages
 - **Data Extraction**: Extract structured data from websites
-- **E-commerce Automation**: Automate online shopping tasks
-- **Social Media Automation**: Automate social media interactions
+- **E-commerce Automation**: Automate online shopping with persistent login sessions
+- **Social Media Automation**: Automate social media interactions with cookie persistence
 - **AI-Powered Testing**: Use natural language to describe test scenarios
+- **Multi-Session Workflows**: Persist browser state across multiple automation sessions
+- **Extension Integration**: Use browser extensions for enhanced functionality
 
 ## Limitations
 
@@ -515,10 +781,11 @@ session.delete();
 
 ## Related Resources
 
-- [Playwright Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/PlaywrightExample.java)
-- [Visit Aliyun Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/VisitAliyunExample.java)
-- [Game 2048 Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/Game2048Example.java)
-- [Playwright Java Documentation](https://playwright.dev/java/)
+- [Browser Context Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/BrowserContextExample.java) - Complete browser context usage examples
+- [Playwright Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/PlaywrightExample.java) - Basic Playwright integration
+- [Visit Aliyun Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/VisitAliyunExample.java) - Real-world automation
+- [Game 2048 Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/Game2048Example.java) - AI-powered automation
+- [Playwright Java Documentation](https://playwright.dev/java/) - Official Playwright docs
 
 ---
 
