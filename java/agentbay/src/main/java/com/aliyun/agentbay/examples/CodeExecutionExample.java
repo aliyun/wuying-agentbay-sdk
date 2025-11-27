@@ -4,6 +4,7 @@ import com.aliyun.agentbay.AgentBay;
 import com.aliyun.agentbay.model.CodeExecutionResult;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.SessionException;
+import com.aliyun.agentbay.model.DeleteResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
@@ -69,7 +70,10 @@ public class CodeExecutionExample {
             }
 
             // Clean up - delete the session
-
+            DeleteResult deleteResult = agentBay.delete(session, false);
+            if (!deleteResult.isSuccess()) {
+                System.err.println("Failed to delete session: " + deleteResult.getErrorMessage());
+            }
 
         } catch (SessionException e) {
             System.err.println("❌ Session error: " + e.getMessage());

@@ -42,7 +42,6 @@ public class Session {
     private ContextManager contextManager;
     private Browser browser;
     private String fileTransferContextId;
-    private boolean isVpc;
     private String httpPort;
     private String token;
     private String vpcLinkUrl;
@@ -417,16 +416,7 @@ public class Session {
      * @return true if VPC is enabled, false otherwise
      */
     public boolean isVpcEnabled() {
-        return isVpc;
-    }
-
-    /**
-     * Set VPC mode for this session
-     *
-     * @param isVpc true to enable VPC mode, false otherwise
-     */
-    public void setIsVpc(boolean isVpc) {
-        this.isVpc = isVpc;
+        return httpPort != null && !httpPort.isEmpty();
     }
 
     /**
@@ -524,7 +514,7 @@ public class Session {
      * Update the cached VPC link URL based on current networkInterfaceIp and httpPort
      */
     public void updateVpcLinkUrl() {
-        if (isVpc && httpPort != null) {
+        if (httpPort != null) {
             try {
                 Integer port = Integer.parseInt(httpPort);
                 OperationResult linkResult = getLink("https", port);
@@ -595,7 +585,6 @@ public class Session {
             SessionState state = new SessionState();
             state.setSessionId(this.sessionId);
             state.setFileTransferContextId(this.fileTransferContextId);
-            state.setVpc(this.isVpc);
             state.setHttpPort(this.httpPort);
             state.setToken(this.token);
             state.setVpcLinkUrl(this.vpcLinkUrl);
@@ -624,7 +613,6 @@ public class Session {
             Session session = new Session(state.getSessionId(), agentBay, new SessionParams());
 
             session.setFileTransferContextId(state.getFileTransferContextId());
-            session.setIsVpc(state.isVpc());
             session.setHttpPort(state.getHttpPort());
             session.setToken(state.getToken());
             session.setMcpTools(state.getMcpTools());

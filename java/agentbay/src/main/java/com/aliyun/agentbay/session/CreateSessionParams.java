@@ -12,7 +12,6 @@ public class CreateSessionParams {
     private Map<String, String> labels;
     private Map<String, String> metadata;
     private List<ContextSync> contextSyncs;
-    private Boolean isVpc;
 
     public CreateSessionParams() {
     }
@@ -79,11 +78,4 @@ public class CreateSessionParams {
         this.contextSyncs = contextSyncs;
     }
 
-    public Boolean getIsVpc() {
-        return isVpc;
-    }
-
-    public void setIsVpc(Boolean isVpc) {
-        this.isVpc = isVpc;
-    }
 }

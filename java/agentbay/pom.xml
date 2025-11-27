@@ -5,13 +5,49 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aliyun</groupId>
-    <artifactId>agentbay</artifactId>
-    <version>0.0.27</version>
+    <artifactId>agentbay-sdk</artifactId>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
 
     <name>AgentBay Java SDK</name>
     <description>Java SDK for Aliyun AgentBay Service</description>
-    <url>https://github.com/aliyun/agentbay-sdk-java</url>
+    <url>https://github.com/aliyun/wuying-agentbay-sdk</url>
+
+    <scm>
+        <url>https://github.com/aliyun/wuying-agentbay-sdk</url>
+        <connection>scm:git:https://github.com/aliyun/wuying-agentbay-sdk</connection>
+        <developerConnection>scm:git:ssh://git@github.com:aliyun/wuying-agentbay-sdk.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>luoquan.wl</id>
+            <name>luoquan.wl</name>
+            <email>luoquan.wl@alibaba-inc.com</email>
+            <organization>Alibaba Cloud</organization>
+            <organizationUrl>https://www.aliyun.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>central</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>central</id>
+            <url>https://central.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -169,6 +205,32 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.8.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 
             <!-- Shade插件 - 用于打包所有依赖 -->
             <plugin>

@@ -238,8 +238,7 @@ public class AgentBay {
             Session session = new Session(result.getSessionId(), this, sessionParams);
 
             // Set VPC-related fields if this is a VPC session
-            session.setIsVpc(params.getIsVpc() != null ? params.getIsVpc() : false);
-            if (response.getBody().getData() != null) {
+            /*if (response.getBody().getData() != null) {
                 boolean vpcResource = (response.getBody().getData().getHttpPort() != null && !response.getBody().getData().getHttpPort().isEmpty());
                 if (vpcResource) {
                     session.setHttpPort(response.getBody().getData().getHttpPort());
@@ -253,7 +252,7 @@ public class AgentBay {
                         logger.warn("Failed to fetch MCP tools for VPC session: {}", e.getMessage());
                     }
                 }
-            }
+            }*/
 
             sessions.put(result.getSessionId(), session);
             result.setSession(session);
