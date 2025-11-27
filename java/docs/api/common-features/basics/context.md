@@ -68,28 +68,39 @@ The ContextManager is accessed via `session.getContext()` and provides session-l
 ```java
 public ContextSyncResult sync()
 public ContextSyncResult sync(String contextId, String path, String mode)
+public ContextSyncResult sync(Consumer<Boolean> callback)
+public ContextSyncResult sync(String contextId, String path, String mode, Consumer<Boolean> callback)
+public ContextSyncResult sync(String contextId, String path, String mode, Consumer<Boolean> callback, int maxRetries, int retryInterval)
 ```
 
-Trigger context synchronization.
+Trigger context synchronization. Multiple overloads are available for different use cases:
+
+1. **Basic sync** (trigger only, non-blocking): Returns immediately after triggering sync
+2. **Sync with callback** (async mode): Returns immediately, callback is invoked when sync completes
+3. **Sync and wait** (blocking mode): Blocks until sync completes
 
 **Parameters:**
 - `contextId` (String): Context ID to sync (optional, null for all contexts)
 - `path` (String): Path to sync (optional, null for all paths)
 - `mode` (String): Sync mode - "upload" or "download" (optional)
+- `callback` (Consumer<Boolean>): Callback function that receives success status (true if successful, false otherwise)
+- `maxRetries` (int): Maximum number of retries for polling completion status (default: 150)
+- `retryInterval` (int): Milliseconds to wait between retries (default: 1500)
 
 **Returns:**
-- `ContextSyncResult`: Result containing sync status
+- `ContextSyncResult`: Result containing sync status. Note: For callback mode, this indicates initial trigger success, not final completion.
 
 **Example:**
 
 ```java
-// Trigger upload sync for all contexts
+// Example 1: Basic sync (trigger only, non-blocking)
 ContextSyncResult result = session.getContext().sync();
 if (result.isSuccess()) {
     System.out.println("Context sync initiated for all contexts");
+    // Sync is now running in the background
 }
 
-// Trigger upload sync for specific context and path
+// Example 2: Sync with specific context and path
 ContextSyncResult specificResult = session.getContext().sync(
     "context-id-123", 
     "/workspace",
@@ -98,15 +109,104 @@ ContextSyncResult specificResult = session.getContext().sync(
 if (specificResult.isSuccess()) {
     System.out.println("Specific context sync initiated");
 }
+
+// Example 3: Sync with callback (async mode)
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+CompletableFuture<Boolean> callbackFuture = new CompletableFuture<>();
+
+ContextSyncResult callbackResult = session.getContext().sync(success -> {
+    System.out.println("Sync completed: " + (success ? "SUCCESS" : "FAILED"));
+    callbackFuture.complete(success);
+});
+
+if (callbackResult.isSuccess()) {
+    System.out.println("Sync initiated, waiting for callback...");
+    // Wait for callback (max 5 minutes)
+    Boolean success = callbackFuture.get(5, TimeUnit.MINUTES);
+    if (success) {
+        System.out.println("All files synchronized successfully");
+    }
+}
+
+// Example 4: Sync with callback and custom retry parameters
+session.getContext().sync(
+    "context-id-123",
+    "/workspace",
+    "upload",
+    success -> {
+        System.out.println("Sync completed: " + success);
+    },
+    200,  // maxRetries
+    2000  // retryInterval (2 seconds)
+);
+```
+
+### syncAndWait
+
+```java
+public ContextSyncResult syncAndWait()
+public ContextSyncResult syncAndWait(String contextId, String path, String mode)
+public ContextSyncResult syncAndWait(String contextId, String path, String mode, int maxRetries, int retryInterval)
+```
+
+Sync context data and wait for completion (blocking mode). This method will block until all sync tasks complete or timeout occurs.
+
+**Parameters:**
+- `contextId` (String): Context ID to sync (optional, null for all contexts)
+- `path` (String): Path to sync (optional, null for all paths)
+- `mode` (String): Sync mode - "upload" or "download" (optional)
+- `maxRetries` (int): Maximum number of retries for polling completion status (default: 150)
+- `retryInterval` (int): Milliseconds to wait between retries (default: 1500)
+
+**Returns:**
+- `ContextSyncResult`: Result containing sync status after waiting for completion
+
+**Example:**
+
+```java
+// Example 1: Sync and wait for all contexts
+ContextSyncResult result = session.getContext().syncAndWait();
+if (result.isSuccess()) {
+    System.out.println("All contexts synchronized successfully");
+} else {
+    System.err.println("Sync failed: " + result.getErrorMessage());
+}
+
+// Example 2: Sync specific context and wait
+ContextSyncResult specificResult = session.getContext().syncAndWait(
+    "context-id-123",
+    "/workspace",
+    "upload"
+);
+if (specificResult.isSuccess()) {
+    System.out.println("Context synchronized successfully");
+}
+
+// Example 3: Sync with custom timeout parameters
+ContextSyncResult customResult = session.getContext().syncAndWait(
+    "context-id-123",
+    "/workspace",
+    "upload",
+    200,  // maxRetries (200 * 2s = 400 seconds max wait)
+    2000  // retryInterval (2 seconds)
+);
 ```
 
 ### info
 
 ```java
-public ContextInfoResult info() throws AgentBayException
+public ContextInfoResult info()
+public ContextInfoResult info(String contextId, String path, String taskType)
 ```
 
 Get information about context synchronization status.
+
+**Parameters:**
+- `contextId` (String): Context ID filter (optional)
+- `path` (String): Path filter (optional)
+- `taskType` (String): Task type filter - "upload" or "download" (optional)
 
 **Returns:**
 - `ContextInfoResult`: Result containing context status information
@@ -114,12 +214,30 @@ Get information about context synchronization status.
 **Example:**
 
 ```java
+// Example 1: Get info for all contexts
 ContextInfoResult infoResult = session.getContext().info();
 if (infoResult.isSuccess()) {
     for (ContextStatusData status : infoResult.getContextStatusData()) {
         System.out.println("Context: " + status.getContextId());
         System.out.println("Status: " + status.getStatus());
         System.out.println("Path: " + status.getPath());
+        System.out.println("Task Type: " + status.getTaskType());
+    }
+}
+
+// Example 2: Get info for specific context and path
+ContextInfoResult filteredResult = session.getContext().info(
+    "context-id-123",
+    "/workspace",
+    "upload"
+);
+if (filteredResult.isSuccess()) {
+    for (ContextStatusData status : filteredResult.getContextStatusData()) {
+        if ("Success".equals(status.getStatus())) {
+            System.out.println("Upload completed for: " + status.getPath());
+        } else if ("Failed".equals(status.getStatus())) {
+            System.err.println("Upload failed: " + status.getErrorMessage());
+        }
     }
 }
 ```
@@ -213,10 +331,33 @@ session.delete(true);
 ### Checking Sync Status
 
 ```java
-// Trigger sync
-session.getContext().sync("upload");
+// Method 1: Using syncAndWait (recommended for blocking operations)
+ContextSyncResult result = session.getContext().syncAndWait();
+if (result.isSuccess()) {
+    System.out.println("Sync completed successfully");
+} else {
+    System.err.println("Sync failed: " + result.getErrorMessage());
+}
 
-// Wait and check status
+// Method 2: Using sync with callback (recommended for async operations)
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+CompletableFuture<Boolean> future = new CompletableFuture<>();
+session.getContext().sync(success -> {
+    if (success) {
+        System.out.println("Sync completed successfully");
+    } else {
+        System.err.println("Sync failed");
+    }
+    future.complete(success);
+});
+
+// Do other work while sync is in progress...
+Boolean syncSuccess = future.get(5, TimeUnit.MINUTES);
+
+// Method 3: Manual polling (for custom control)
+session.getContext().sync();
 Thread.sleep(2000);
 ContextInfoResult info = session.getContext().info();
 
@@ -257,6 +398,7 @@ Session session = agentBay.create(params).getSession();
 - [Context Sync API Reference](context-sync.md)
 - [Session API Reference](session.md)
 - [Session Context Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/SessionContextExample.java)
+- [Context Sync Lifecycle Example](../../../../agentbay/src/main/java/com/aliyun/agentbay/examples/ContextSyncLifecycleExample.java)
 - [Data Persistence Guide](../../../../../docs/guides/common-features/basics/data-persistence.md)
 
 ---
