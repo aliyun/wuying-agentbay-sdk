@@ -12,6 +12,7 @@ public class SyncPolicy {
     private DownloadPolicy downloadPolicy;
     private DeletePolicy deletePolicy;
     private ExtractPolicy extractPolicy;
+    private RecyclePolicy recyclePolicy;
     private BWList bwList;
 
     public SyncPolicy() {
@@ -25,6 +26,21 @@ public class SyncPolicy {
         this.downloadPolicy = downloadPolicy;
         this.deletePolicy = deletePolicy;
         this.extractPolicy = extractPolicy;
+        this.recyclePolicy = null; // Will be initialized in initializeDefaults
+        this.bwList = bwList;
+
+        // Initialize defaults for null values
+        initializeDefaults();
+    }
+
+    public SyncPolicy(UploadPolicy uploadPolicy, DownloadPolicy downloadPolicy,
+                     DeletePolicy deletePolicy, ExtractPolicy extractPolicy, 
+                     RecyclePolicy recyclePolicy, BWList bwList) {
+        this.uploadPolicy = uploadPolicy;
+        this.downloadPolicy = downloadPolicy;
+        this.deletePolicy = deletePolicy;
+        this.extractPolicy = extractPolicy;
+        this.recyclePolicy = recyclePolicy;
         this.bwList = bwList;
 
         // Initialize defaults for null values
@@ -44,6 +60,9 @@ public class SyncPolicy {
         if (this.extractPolicy == null) {
             this.extractPolicy = ExtractPolicy.defaultPolicy();
         }
+        if (this.recyclePolicy == null) {
+            this.recyclePolicy = RecyclePolicy.defaultPolicy();
+        }
         if (this.bwList == null) {
             WhiteList whiteList = new WhiteList("", new ArrayList<>());
             this.bwList = new BWList(java.util.Arrays.asList(whiteList));
@@ -56,6 +75,7 @@ public class SyncPolicy {
                 DownloadPolicy.defaultPolicy(),
                 DeletePolicy.defaultPolicy(),
                 ExtractPolicy.defaultPolicy(),
+                RecyclePolicy.defaultPolicy(),
                 new BWList(java.util.Arrays.asList(new WhiteList("", new ArrayList<>())))
         );
     }
@@ -92,6 +112,14 @@ public class SyncPolicy {
         this.extractPolicy = extractPolicy;
     }
 
+    public RecyclePolicy getRecyclePolicy() {
+        return recyclePolicy;
+    }
+
+    public void setRecyclePolicy(RecyclePolicy recyclePolicy) {
+        this.recyclePolicy = recyclePolicy;
+    }
+
     public BWList getBwList() {
         return bwList;
     }
@@ -113,6 +141,9 @@ public class SyncPolicy {
         }
         if (extractPolicy != null) {
             result.put("extractPolicy", extractPolicy.toMap());
+        }
+        if (recyclePolicy != null) {
+            result.put("recyclePolicy", recyclePolicy.toMap());
         }
         if (bwList != null) {
             result.put("bwList", bwList.toMap());

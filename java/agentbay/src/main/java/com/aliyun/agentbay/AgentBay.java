@@ -1,7 +1,8 @@
 package com.aliyun.agentbay;
 
+import com.aliyun.agentbay.browser.BrowserContext;
 import com.aliyun.agentbay.client.ApiClient;
-import com.aliyun.agentbay.context.ContextSync;
+import com.aliyun.agentbay.context.*;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.AuthenticationException;
 import com.aliyun.agentbay.model.SessionParams;
@@ -176,6 +177,67 @@ public class AgentBay {
 
                 request.setPersistenceDataList(persistenceDataList);
                 logger.debug("Added {} context sync configurations", persistenceDataList.size());
+            }
+
+            // Add BrowserContext as a ContextSync if provided
+            if (params.getBrowserContext() != null) {
+                BrowserContext browserContext = params.getBrowserContext();
+                
+                // Create a new SyncPolicy with default values for browser context
+                UploadPolicy uploadPolicy = new UploadPolicy(
+                    browserContext.isAutoUpload(),
+                    UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
+                    30
+                );
+                
+                // Create BWList with white lists for browser data paths
+                List<WhiteList> whiteLists = new ArrayList<>();
+                whiteLists.add(new WhiteList("/Local State", new ArrayList<>()));
+                whiteLists.add(new WhiteList("/Default/Cookies", new ArrayList<>()));
+                whiteLists.add(new WhiteList("/Default/Cookies-journal", new ArrayList<>()));
+                BWList bwList = new BWList(whiteLists);
+                
+                SyncPolicy syncPolicy = new SyncPolicy(
+                    uploadPolicy,
+                    DownloadPolicy.defaultPolicy(),
+                    DeletePolicy.defaultPolicy(),
+                    ExtractPolicy.defaultPolicy(),
+                    RecyclePolicy.defaultPolicy(),
+                    bwList
+                );
+                
+                // Serialize the sync_policy to JSON
+                String policyJson = null;
+                try {
+                    Map<String, Object> policyMap = syncPolicy.toMap();
+                    policyJson = objectMapper.writeValueAsString(policyMap);
+                } catch (Exception e) {
+                    logger.warn("Failed to serialize browser context policy to JSON: {}", e.getMessage());
+                }
+                
+                // Create browser context sync item
+                CreateMcpSessionRequest.CreateMcpSessionRequestPersistenceDataList browserContextSync =
+                    new CreateMcpSessionRequest.CreateMcpSessionRequestPersistenceDataList();
+                browserContextSync.setContextId(browserContext.getContextId());
+                browserContextSync.setPath(com.aliyun.agentbay.Config.BROWSER_DATA_PATH);
+                browserContextSync.setPolicy(policyJson);
+                
+                // Add to persistence data list or create new one if not exists
+                if (request.getPersistenceDataList() == null) {
+                    request.setPersistenceDataList(new ArrayList<>());
+                }
+                request.getPersistenceDataList().add(browserContextSync);
+                
+                logger.info("Added browser context to persistence_data_list. Total items: {}", 
+                          request.getPersistenceDataList().size());
+                for (int i = 0; i < request.getPersistenceDataList().size(); i++) {
+                    CreateMcpSessionRequest.CreateMcpSessionRequestPersistenceDataList item = 
+                        request.getPersistenceDataList().get(i);
+                    logger.info("persistence_data_list[{}]: context_id={}, path={}, policy_length={}", 
+                              i, item.getContextId(), item.getPath(), 
+                              item.getPolicy() != null ? item.getPolicy().length() : 0);
+                    logger.debug("persistence_data_list[{}] policy content: {}", i, item.getPolicy());
+                }
             }
 
             // Set image ID if provided

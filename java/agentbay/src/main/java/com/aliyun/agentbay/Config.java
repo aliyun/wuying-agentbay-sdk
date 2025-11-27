@@ -5,6 +5,12 @@ package com.aliyun.agentbay;
  */
 
 public class Config {
+    // Browser data path constant
+    public static final String BROWSER_DATA_PATH = "/tmp/agentbay_browser";
+    
+    // Browser fingerprint persistent path constant
+    public static final String BROWSER_FINGERPRINT_PERSIST_PATH = "/tmp/browser_fingerprint";
+    
     private String regionId;
     private String endpoint;
     private int timeoutMs;
