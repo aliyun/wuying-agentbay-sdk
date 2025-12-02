@@ -10,8 +10,8 @@ import com.aliyun.agentbay.filesystem.FileSystem;
 import com.aliyun.agentbay.model.*;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -37,16 +37,16 @@ import static org.junit.Assert.*;
  */
 public class TestFileTransfer {
 
-    private AgentBay agentBay;
-    private Session session;
-    private FileSystem fs;
-    private Context context;
-    private String testDirectory = "/tmp/file_transfer_test/";
+    private static AgentBay agentBay;
+    private static Session session;
+    private static FileSystem fs;
+    private static Context context;
+    private static String testDirectory = "/tmp/file_transfer_test/";
 
     /**
      * Helper method to create a test file with specified content
      */
-    private String createTestFile(String content, String suffix) throws IOException {
+    private static String createTestFile(String content, String suffix) throws IOException {
         File tempFile = File.createTempFile("agentbay_test_", suffix);
         try (FileWriter writer = new FileWriter(tempFile)) {
             writer.write(content);
@@ -58,7 +58,7 @@ public class TestFileTransfer {
     /**
      * Helper method to normalize content for comparison
      */
-    private String normalizeContent(String content) {
+    private static String normalizeContent(String content) {
         if (content == null) {
             return null;
         }
@@ -78,10 +78,10 @@ public class TestFileTransfer {
     }
 
     /**
-     * Set up before each test - create AgentBay client, context and session
+     * Set up before all tests - create AgentBay client, context and session
      */
-    @Before
-    public void setUp() throws AgentBayException, IOException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException, IOException {
         System.out.println("\n========================================");
         System.out.println("Setting up test environment...");
         System.out.println("========================================");
@@ -131,10 +131,10 @@ public class TestFileTransfer {
     }
 
     /**
-     * Clean up after each test - delete session and context
+     * Clean up after all tests - delete session and context
      */
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         System.out.println("\n========================================");
         System.out.println("Cleaning up test environment...");
         System.out.println("========================================");

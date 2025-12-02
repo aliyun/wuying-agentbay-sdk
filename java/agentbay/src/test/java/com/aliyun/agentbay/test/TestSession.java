@@ -8,8 +8,8 @@ import com.aliyun.agentbay.model.FileContentResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -19,9 +19,9 @@ import static org.junit.Assert.*;
  * This test class is equivalent to TestSession in test_agent_bay_session.py
  */
 public class TestSession {
-    private AgentBay agentBay;
-    private Session session;
-    private SessionResult result;
+    private static AgentBay agentBay;
+    private static Session session;
+    private static SessionResult result;
 
     /**
      * Get API key for testing
@@ -35,34 +35,34 @@ public class TestSession {
         return apiKey;
     }
 
-    @Before
-    public void setUp() throws AgentBayException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException {
         // Set up test fixtures
         String apiKey = getTestApiKey();
-        this.agentBay = new AgentBay(apiKey);
+        agentBay = new AgentBay(apiKey);
 
         // Create a session with default windows image
         System.out.println("Creating a new session for testing...");
-        this.result = this.agentBay.create(new CreateSessionParams());
+        result = agentBay.create(new CreateSessionParams());
         
         // Check if session creation was successful
-        if (!this.result.isSuccess()) {
-            fail("Session creation failed in setUp: " + this.result.getErrorMessage());
+        if (!result.isSuccess()) {
+            fail("Session creation failed in setUp: " + result.getErrorMessage());
         }
-        if (this.result.getSession() == null) {
+        if (result.getSession() == null) {
             fail("Session object is null in setUp");
         }
             
-        this.session = this.result.getSession();
-        System.out.println("Session created with ID: " + this.session.getSessionId());
+        session = result.getSession();
+        System.out.println("Session created with ID: " + session.getSessionId());
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         // Tear down test fixtures
         System.out.println("Cleaning up: Deleting the session...");
         try {
-            this.agentBay.delete(this.session, false);
+            agentBay.delete(session, false);
         } catch (Exception e) {
             System.out.println("Warning: Error deleting session: " + e.getMessage());
         }

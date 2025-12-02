@@ -6,8 +6,8 @@ import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -21,9 +21,9 @@ import static org.junit.Assert.*;
  * Once these features are added to the Java SDK, uncomment and run these tests.
  */
 public class TestAgentIntegration {
-    private AgentBay agentBay;
-    private Session session;
-    private Agent agent;
+    private static AgentBay agentBay;
+    private static Session session;
+    private static Agent agent;
 
     /**
      * Get API key for testing
@@ -40,40 +40,40 @@ public class TestAgentIntegration {
     /**
      * Set up the test environment by creating a session and initializing agent.
      */
-    @Before
-    public void setUp() throws AgentBayException, InterruptedException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException, InterruptedException {
         // Ensure a delay to avoid session creation conflicts
         Thread.sleep(3000);
         
         String apiKey = getTestApiKey();
-        this.agentBay = new AgentBay(apiKey);
+        agentBay = new AgentBay(apiKey);
         
         // Create a session with windows_latest image
         CreateSessionParams params = new CreateSessionParams();
         params.setImageId("windows_latest");
         
         System.out.println("Creating a new session for agent testing...");
-        SessionResult sessionResult = this.agentBay.create(params);
+        SessionResult sessionResult = agentBay.create(params);
         
         if (!sessionResult.isSuccess() || sessionResult.getSession() == null) {
             throw new AgentBayException("Failed to create session: " + sessionResult.getErrorMessage());
         }
         
-        this.session = sessionResult.getSession();
-        this.agent = this.session.getAgent();
-        
-        System.out.println("Session created with ID: " + this.session.getSessionId());
+        session = sessionResult.getSession();
+        agent = session.getAgent();
+
+        System.out.println("Session created with ID: " + session.getSessionId());
     }
 
     /**
-     * Clean up resources after each test.
+     * Clean up resources after all tests.
      */
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         System.out.println("Cleaning up: Deleting the session...");
         try {
-            if (this.session != null) {
-                this.agentBay.delete(this.session, false);
+            if (session != null) {
+                agentBay.delete(session, false);
             }
         } catch (Exception e) {
             System.err.println("Warning: Error deleting session: " + e.getMessage());

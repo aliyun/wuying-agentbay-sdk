@@ -5,6 +5,8 @@ import com.aliyun.agentbay.client.ApiClient;
 import com.aliyun.agentbay.context.*;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.AuthenticationException;
+import com.aliyun.agentbay.model.GetSessionData;
+import com.aliyun.agentbay.model.GetSessionResult;
 import com.aliyun.agentbay.model.SessionParams;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.Session;
@@ -76,13 +78,199 @@ public class AgentBay {
 
 
     /**
-     * Get an existing session by ID
+     * Get an existing session by ID from local cache only.
+     * This method only retrieves sessions from the local cache (sessions created by this AgentBay instance).
+     * It does not fetch sessions from the server.
      *
      * @param sessionId The session ID
-     * @return Session object if found, null otherwise
+     * @return Session object if found in cache, null otherwise
      */
     public Session getSession(String sessionId) {
         return sessions.get(sessionId);
+    }
+
+    /**
+     * Get session information by session ID from remote server.
+     * This method retrieves detailed session metadata from the API without creating a Session object.
+     *
+     * @param sessionId The ID of the session to retrieve
+     * @return GetSessionResult containing session information
+     */
+    public GetSessionResult getSessionInfo(String sessionId) {
+        try {
+            logger.debug("Getting session information for session: {}", sessionId);
+
+            com.aliyun.wuyingai20250506.models.GetSessionRequest request = 
+                new com.aliyun.wuyingai20250506.models.GetSessionRequest();
+            request.setAuthorization("Bearer " + apiKey);
+            request.setSessionId(sessionId);
+
+            com.aliyun.wuyingai20250506.models.GetSessionResponse response = client.getSession(request);
+
+            String requestId = ResponseUtil.extractRequestId(response);
+
+            if (response == null || response.getBody() == null) {
+                return new GetSessionResult(
+                    requestId,
+                    false,
+                    null,
+                    "Invalid response from GetSession API"
+                );
+            }
+
+            com.aliyun.wuyingai20250506.models.GetSessionResponseBody body = response.getBody();
+            Boolean success = body.getSuccess();
+            String code = body.getCode();
+            String message = body.getMessage();
+
+            // Check for API-level errors
+            if (success == null || !success) {
+                String errorMsg = message != null ? message : "Unknown error";
+                if (code != null) {
+                    errorMsg = "[" + code + "] " + errorMsg;
+                }
+                return new GetSessionResult(
+                    requestId,
+                    false,
+                    null,
+                    errorMsg
+                );
+            }
+
+            // Extract session data
+            GetSessionData data = null;
+            if (body.getData() != null) {
+                com.aliyun.wuyingai20250506.models.GetSessionResponseBody.GetSessionResponseBodyData responseData = 
+                    body.getData();
+                data = new GetSessionData(
+                    responseData.getSessionId(),
+                    responseData.getAppInstanceId(),
+                    responseData.getResourceId(),
+                    responseData.getResourceUrl(),
+                    responseData.getVpcResource() != null ? responseData.getVpcResource() : false,
+                    responseData.getNetworkInterfaceIp(),
+                    responseData.getHttpPort(),
+                    responseData.getToken(),
+                    body.getCode() != null ? body.getCode() : ""
+                );
+            }
+
+            return new GetSessionResult(
+                requestId,
+                true,
+                data,
+                ""
+            );
+
+        } catch (com.aliyun.tea.TeaException e) {
+            String errorStr = e.getMessage();
+            String requestId = "";
+            if (e.getData() != null && e.getData().get("RequestId") != null) {
+                requestId = e.getData().get("RequestId").toString();
+            }
+
+            // Check if this is an expected business error (e.g., session not found)
+            if (errorStr != null && (errorStr.contains("InvalidMcpSession.NotFound") || 
+                                     errorStr.contains("NotFound"))) {
+                logger.info("Session not found: {}", sessionId);
+                return new GetSessionResult(
+                    requestId,
+                    false,
+                    null,
+                    "Session " + sessionId + " not found"
+                );
+            } else {
+                logger.error("Error calling GetSession API for session: {}", sessionId, e);
+                return new GetSessionResult(
+                    requestId,
+                    false,
+                    null,
+                    "Failed to get session " + sessionId + ": " + errorStr
+                );
+            }
+        } catch (Exception e) {
+            logger.error("Unexpected error calling GetSession API for session: {}", sessionId, e);
+            return new GetSessionResult(
+                "",
+                false,
+                null,
+                "Failed to get session " + sessionId + ": " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Get a session by its ID from remote server.
+     * This method calls the GetSession API to retrieve session information and creates a Session object.
+     * Unlike getSession(), this method fetches from the remote server, enabling session recovery scenarios.
+     *
+     * @param sessionId The ID of the session to retrieve. Must be a non-empty string.
+     * @return SessionResult containing the Session instance, request ID, and success status.
+     * @throws AgentBayException if the API request fails
+     */
+    public SessionResult get(String sessionId) throws AgentBayException {
+        // Validate input
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            SessionResult result = new SessionResult();
+            result.setSuccess(false);
+            result.setErrorMessage("session_id is required");
+            result.setRequestId("");
+            return result;
+        }
+
+        // Call GetSession API
+        GetSessionResult getResult = getSessionInfo(sessionId);
+
+        // Check if the API call was successful
+        if (!getResult.isSuccess()) {
+            String errorMsg = getResult.getErrorMessage() != null ? getResult.getErrorMessage() : "Unknown error";
+            SessionResult result = new SessionResult();
+            result.setSuccess(false);
+            result.setErrorMessage("Failed to get session " + sessionId + ": " + errorMsg);
+            result.setRequestId(getResult.getRequestId());
+            return result;
+        }
+
+        // Create the Session object
+        Session session = new Session(sessionId, this, new SessionParams());
+
+        // Set ResourceUrl from GetSession response
+        if (getResult.getData() != null) {
+            GetSessionData data = getResult.getData();
+            session.setResourceUrl(data.getResourceUrl());
+            
+            // TODO: VPC functionality temporarily disabled
+            /*
+            if (data.isVpcResource()) {
+                session.setHttpPort(data.getHttpPort());
+                session.setToken(data.getToken());
+                session.setNetworkInterfaceIp(data.getNetworkInterfaceIp());
+            }
+            */
+        }
+
+        // Create a default context for file transfer operations for the recovered session
+        try {
+            String contextName = "file-transfer-context-" + System.currentTimeMillis() / 1000;
+            com.aliyun.agentbay.context.ContextResult contextResult = 
+                getContextService().get(contextName, true);
+            if (contextResult.isSuccess() && contextResult.getContext() != null) {
+                session.setFileTransferContextId(contextResult.getContext().getContextId());
+                logger.info("Created file transfer context for recovered session: {}", 
+                           contextResult.getContext().getContextId());
+            } else {
+                logger.warn("Failed to create file transfer context for recovered session: {}", 
+                           contextResult.getErrorMessage() != null ? contextResult.getErrorMessage() : "Unknown error");
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to create file transfer context for recovered session: {}", e.getMessage());
+        }
+
+        SessionResult result = new SessionResult();
+        result.setRequestId(getResult.getRequestId());
+        result.setSuccess(true);
+        result.setSession(session);
+        return result;
     }
 
     /**

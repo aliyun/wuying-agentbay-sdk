@@ -8,8 +8,8 @@ import com.aliyun.agentbay.model.DeleteResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -20,8 +20,8 @@ import static org.junit.Assert.*;
  */
 public class TestCodeExecution {
 
-    private AgentBay agentBay;
-    private Session session;
+    private static AgentBay agentBay;
+    private static Session session;
 
     /**
      * Get API key for testing
@@ -36,10 +36,10 @@ public class TestCodeExecution {
     }
 
     /**
-     * Set up before each test - create AgentBay client and session
+     * Set up before all tests - create AgentBay client and session
      */
-    @Before
-    public void setUp() throws AgentBayException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException {
         System.out.println("Setting up test environment...");
         String apiKey = getTestApiKey();
         agentBay = new AgentBay(apiKey);
@@ -58,10 +58,10 @@ public class TestCodeExecution {
     }
 
     /**
-     * Clean up after each test - delete the session
+     * Clean up after all tests - delete the session
      */
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         if (session != null && agentBay != null) {
             try {
                 System.out.println("Cleaning up session...");

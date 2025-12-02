@@ -12,7 +12,9 @@ import com.aliyun.agentbay.model.DeleteResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,19 +29,19 @@ import static org.junit.Assert.*;
 public class TestSessionContextExample {
     private static final Logger logger = LoggerFactory.getLogger(TestSessionContextExample.class);
     
-    private AgentBay agentBay;
-    private Session session;
-    private Context context;
-    private String apiKey;
-    private String contextName;
+    private static AgentBay agentBay;
+    private static Session session;
+    private static Context context;
+    private static String apiKey;
+    private static String contextName;
 
     @BeforeClass
     public static void setUpClass() {
         logger.info("Starting Session Context Example Tests");
     }
 
-    @Before
-    public void setUp() throws AgentBayException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException {
         // Get API key from environment variable
         apiKey = System.getenv("AGENTBAY_API_KEY");
         assertNotNull("AGENTBAY_API_KEY environment variable must be set", apiKey);
@@ -55,8 +57,8 @@ public class TestSessionContextExample {
         logger.info("Test setup completed with API key and context name: {}", contextName);
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         // Clean up session if it was created
         if (agentBay != null && session != null) {
             try {

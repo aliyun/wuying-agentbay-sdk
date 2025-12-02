@@ -157,7 +157,15 @@ Get the context service (alias for `getContext()`).
 **Returns:**
 - `ContextService`: Context service instance
 
-## Helper Methods
+## Session Retrieval Methods
+
+The AgentBay class provides three methods for retrieving sessions, each serving different use cases:
+
+| Method | Data Source | Returns | Use Case |
+|--------|-------------|---------|----------|
+| `getSession(sessionId)` | Local cache only | `Session` or `null` | Quick access to sessions created by this AgentBay instance |
+| `getSessionInfo(sessionId)` | Remote API | `GetSessionResult` | Get session metadata without creating Session object |
+| `get(sessionId)` | Remote API | `SessionResult` | Recover sessions from server (restart, cross-process scenarios) |
 
 ### getSession
 
@@ -165,15 +173,20 @@ Get the context service (alias for `getContext()`).
 public Session getSession(String sessionId)
 ```
 
-Get a cached session object by ID.
+Get a cached session object by ID from local cache only.
 
 **Important:** This method only retrieves sessions from the local cache (sessions created by this AgentBay instance). It does not fetch sessions from the server.
+
+**When to use:**
+- You need quick access to a session that was created by the current AgentBay instance
+- You want to avoid network overhead
+- The session is guaranteed to be in the local cache
 
 **Parameters:**
 - `sessionId` (String): Session ID
 
 **Returns:**
-- `Session`: Session object if found in cache, null otherwise
+- `Session`: Session object if found in cache, `null` otherwise
 
 **Example:**
 
@@ -183,13 +196,141 @@ SessionResult createResult = agentBay.create(new CreateSessionParams());
 Session session = createResult.getSession();
 String sessionId = session.getSessionId();
 
-// Later, retrieve from cache
+// Later, retrieve from cache (fast, no network call)
 Session cachedSession = agentBay.getSession(sessionId);
 if (cachedSession != null) {
     // Use cached session
     System.out.println("Found session in cache: " + sessionId);
 } else {
     System.out.println("Session not in cache");
+}
+```
+
+### getSessionInfo
+
+```java
+public GetSessionResult getSessionInfo(String sessionId)
+```
+
+Get session information by session ID from remote server. This method retrieves detailed session metadata from the API without creating a Session object.
+
+**When to use:**
+- You only need session metadata (resource URL, etc.)
+- You don't need a full Session object for API calls
+- You want to check if a session exists on the server
+
+**Parameters:**
+- `sessionId` (String): The ID of the session to retrieve
+
+**Returns:**
+- `GetSessionResult`: Result containing session information:
+  - `success` (boolean): True if the operation succeeded
+  - `data` (GetSessionData): Session information object with fields:
+    - `sessionId` (String): Session ID
+    - `appInstanceId` (String): Application instance ID
+    - `resourceId` (String): Resource ID
+    - `resourceUrl` (String): Resource URL for accessing the session
+    <!-- VPC-related fields temporarily disabled -->
+    <!-- - `vpcResource` (boolean): Whether this is a VPC resource -->
+    <!-- - `networkInterfaceIp` (String): Network interface IP (for VPC sessions) -->
+    <!-- - `httpPort` (String): HTTP port (for VPC sessions) -->
+    <!-- - `token` (String): Authentication token (for VPC sessions) -->
+  - `requestId` (String): Unique identifier for this API request
+  - `errorMessage` (String): Error description (if success is false)
+
+**Example:**
+
+```java
+// Get session metadata without creating Session object
+GetSessionResult result = agentBay.getSessionInfo(sessionId);
+if (result.isSuccess() && result.getData() != null) {
+    GetSessionData data = result.getData();
+    System.out.println("Session ID: " + data.getSessionId());
+    System.out.println("Resource URL: " + data.getResourceUrl());
+    // VPC functionality temporarily disabled
+    // System.out.println("Is VPC: " + data.isVpcResource());
+} else {
+    System.out.println("Failed to get session info: " + result.getErrorMessage());
+}
+```
+
+### get
+
+```java
+public SessionResult get(String sessionId) throws AgentBayException
+```
+
+Get a session by its ID from remote server. This method calls the GetSession API to retrieve session information and creates a Session object.
+
+**When to use:**
+- You need to recover a session that was created in a previous program run (after restart)
+- You need to access a session created by a different AgentBay instance (cross-process)
+- The session exists on the server but not in local cache
+- You need a full Session object for API calls
+
+**Important:** Unlike `getSession()`, this method fetches from the remote server, enabling session recovery scenarios. The retrieved session is NOT automatically added to the local cache.
+
+**Parameters:**
+- `sessionId` (String): The ID of the session to retrieve. Must be a non-empty string.
+
+**Returns:**
+- `SessionResult`: Result containing the Session instance, request ID, and success status:
+  - `success` (boolean): True if the operation succeeded
+  - `session` (Session): The session object (if success is true)
+  - `requestId` (String): Unique identifier for this API request
+  - `errorMessage` (String): Error description (if success is false)
+
+**Throws:**
+- `AgentBayException`: If the API request fails
+
+**Note:**
+- A default file transfer context is automatically created for the retrieved session
+- <!-- VPC-related information (network_interface_ip, http_port, token) is populated from the API response -->
+- Returns an error if session_id is empty or the session does not exist
+
+**Example:**
+
+```java
+// Recover a session from server (e.g., after restart)
+String sessionId = "your-session-id-from-previous-run";
+SessionResult result = agentBay.get(sessionId);
+
+if (result.isSuccess()) {
+    Session session = result.getSession();
+    System.out.println("Successfully recovered session: " + session.getSessionId());
+    
+    // Use the session normally
+    session.getFileSystem().writeFile("/tmp/test.txt", "Hello");
+    session.delete();
+} else {
+    System.out.println("Failed to recover session: " + result.getErrorMessage());
+}
+```
+
+**Comparison Example:**
+
+```java
+// Scenario 1: Session created by current AgentBay instance - use getSession()
+SessionResult createResult = agentBay.create(new CreateSessionParams());
+String sessionId = createResult.getSession().getSessionId();
+
+Session cachedSession = agentBay.getSession(sessionId);  // Fast, from cache
+assert cachedSession != null;  // Will succeed
+
+// Scenario 2: Session recovery after restart - use get()
+// (In a new program run, sessionId is known but not in cache)
+SessionResult recoveredResult = agentBay.get(sessionId);  // Network call
+if (recoveredResult.isSuccess()) {
+    Session recoveredSession = recoveredResult.getSession();
+    // Use recovered session
+}
+
+// Scenario 3: Only need metadata - use getSessionInfo()
+GetSessionResult infoResult = agentBay.getSessionInfo(sessionId);
+if (infoResult.isSuccess()) {
+    GetSessionData data = infoResult.getData();
+    // Access metadata without creating Session object
+    System.out.println("Resource URL: " + data.getResourceUrl());
 }
 ```
 

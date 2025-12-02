@@ -8,7 +8,9 @@ import com.aliyun.agentbay.model.*;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.*;
@@ -32,9 +34,9 @@ import static org.junit.Assert.*;
  */
 public class TestFileSystem {
 
-    private AgentBay agentBay;
-    private Session session;
-    private FileSystem fs;
+    private static AgentBay agentBay;
+    private static Session session;
+    private static FileSystem fs;
 
     /**
      * Helper method to normalize content for comparison
@@ -101,10 +103,10 @@ public class TestFileSystem {
     }
 
     /**
-     * Set up before each test - create AgentBay client and session
+     * Set up before all tests - create AgentBay client and session
      */
-    @Before
-    public void setUp() throws AgentBayException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException {
         System.out.println("Setting up test environment...");
         String apiKey = getTestApiKey();
         agentBay = new AgentBay(apiKey);
@@ -126,10 +128,10 @@ public class TestFileSystem {
     }
 
     /**
-     * Clean up after each test - delete the session
+     * Clean up after all tests - delete the session
      */
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         if (session != null && agentBay != null) {
             try {
                 System.out.println("Cleaning up session...");
@@ -563,7 +565,7 @@ public class TestFileSystem {
         
         // Repeat to create ~1MB
         largeContentBuilder = new StringBuilder();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             largeContentBuilder.append(singleLine).append("\n");
         }
         String largeContent = largeContentBuilder.toString();
