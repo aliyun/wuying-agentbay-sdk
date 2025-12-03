@@ -11,7 +11,9 @@ import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.playwright.*;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +31,9 @@ import static org.junit.Assert.*;
  */
 public class TestGame2048Example {
     private static final Logger logger = LoggerFactory.getLogger(TestGame2048Example.class);
-    private AgentBay agentBay;
-    private Session session;
-    private String apiKey;
+    private static AgentBay agentBay;
+    private static Session session;
+    private static String apiKey;
 
     public static class GameState {
         @JsonProperty("score")
@@ -68,8 +70,8 @@ public class TestGame2048Example {
         }
     }
 
-    @Before
-    public void setUp() throws AgentBayException {
+    @BeforeClass
+    public static void setUp() throws AgentBayException {
         logger.info("=== Starting Game2048Example Test ===");
         apiKey = System.getenv("AGENTBAY_API_KEY");
         assertNotNull("AGENTBAY_API_KEY environment variable must be set", apiKey);
@@ -91,8 +93,8 @@ public class TestGame2048Example {
         }
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         if (session != null) {
             try {
                 logger.info("Cleaning up session: {}", session.getSessionId());
@@ -216,6 +218,7 @@ public class TestGame2048Example {
                     new Page.NavigateOptions()
                         .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
                         .setTimeout(180000));
+                Thread.sleep(1000);
                 
                 logger.info("Waiting for game grid to load...");
                 page.waitForSelector(".grid-container", new Page.WaitForSelectorOptions().setTimeout(10000));
@@ -293,16 +296,18 @@ public class TestGame2048Example {
                     new Page.NavigateOptions()
                         .setWaitUntil(com.microsoft.playwright.options.WaitUntilState.DOMCONTENTLOADED)
                         .setTimeout(180000));
+
+                Thread.sleep(1000);
                 
                 page.waitForSelector(".grid-container", new Page.WaitForSelectorOptions().setTimeout(10000));
-                Thread.sleep(500);
+                Thread.sleep(1000);
                 
                 logger.info("Testing keyboard arrow key press...");
                 page.keyboard().press("ArrowLeft");
-                Thread.sleep(300);
+                Thread.sleep(1000);
                 
                 page.keyboard().press("ArrowUp");
-                Thread.sleep(300);
+                Thread.sleep(1000);
                 
                 logger.info("✅ Keyboard interaction working correctly");
                 

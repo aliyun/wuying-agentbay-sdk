@@ -53,8 +53,15 @@ public class Browser extends BaseService {
             request.setSessionId(session.getSessionId());
             request.setPersistentPath(Config.BROWSER_DATA_PATH);
 
+            Map<String, Object> browserOptionMap = option.toMap();
+
+            // Enable record if session.enableBrowserReplay is True
+            if (session.getEnableBrowserReplay() != null && session.getEnableBrowserReplay()) {
+                browserOptionMap.put("enableRecord", true);
+            }
+
             // Convert BrowserOption to JSON string
-            String browserOptionJson = objectMapper.writeValueAsString(option.toMap());
+            String browserOptionJson = objectMapper.writeValueAsString(browserOptionMap);
             request.setBrowserOption(browserOptionJson);
 
             InitBrowserResponse response = session.getAgentBay().getClient().initBrowser(request);
@@ -90,6 +97,117 @@ public class Browser extends BaseService {
             this.endpointUrl = null;
             this.option = null;
             return false;
+        }
+    }
+
+    /**
+     * Alias for initialize method.
+     *
+     * @param option Browser initialization options
+     * @return true if successful, false otherwise
+     */
+    public boolean init(BrowserOption option) {
+        return initialize(option);
+    }
+
+    /**
+     * Destroy the browser instance.
+     */
+    public void destroy() {
+        if (isInitialized()) {
+            try {
+                stopBrowser();
+            } catch (BrowserException e) {
+                logger.warn("Failed to destroy browser", e);
+            }
+        }
+    }
+
+    /**
+     * Takes a screenshot of the specified page with enhanced options and error handling.
+     *
+     * @param page The Playwright Page object to take a screenshot of
+     * @param fullPage Whether to capture the full scrollable page
+     * @param options Additional screenshot options
+     * @return Screenshot data as bytes
+     * @throws BrowserException if browser is not initialized
+     */
+    public byte[] screenshot(com.microsoft.playwright.Page page, boolean fullPage, Map<String, Object> options) throws BrowserException {
+        if (!isInitialized()) {
+            throw new BrowserException("Browser must be initialized before calling screenshot.");
+        }
+        if (page == null) {
+            throw new IllegalArgumentException("Page cannot be null");
+        }
+
+        Map<String, Object> enhancedOptions = new HashMap<>();
+        enhancedOptions.put("animations", "disabled");
+        enhancedOptions.put("caret", "hide");
+        enhancedOptions.put("scale", "css");
+        enhancedOptions.put("timeout", options != null && options.containsKey("timeout") ? options.get("timeout") : 60000);
+        enhancedOptions.put("fullPage", fullPage);
+        enhancedOptions.put("type", options != null && options.containsKey("type") ? options.get("type") : com.microsoft.playwright.options.ScreenshotType.PNG);
+
+        if (options != null) {
+            enhancedOptions.putAll(options);
+        }
+
+        try {
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+            page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED,
+                new com.microsoft.playwright.Page.WaitForLoadStateOptions().setTimeout(30000));
+
+            scrollToLoadAllContent(page, 8, 1200);
+
+            page.evaluate(
+                "() => {\n" +
+                "    document.querySelectorAll('img[data-src]').forEach(img => {\n" +
+                "        if (!img.src && img.dataset.src) {\n" +
+                "            img.src = img.dataset.src;\n" +
+                "        }\n" +
+                "    });\n" +
+                "    document.querySelectorAll('[data-bg]').forEach(el => {\n" +
+                "        if (!el.style.backgroundImage) {\n" +
+                "            el.style.backgroundImage = `url(${el.dataset.bg})`;\n" +
+                "        }\n" +
+                "    });\n" +
+                "}"
+            );
+
+            page.waitForTimeout(1500);
+
+            int finalHeight = (int) page.evaluate("document.body.scrollHeight");
+            page.setViewportSize(1920, Math.min(finalHeight, 10000));
+
+            com.microsoft.playwright.Page.ScreenshotOptions screenshotOptions = new com.microsoft.playwright.Page.ScreenshotOptions();
+            screenshotOptions.setFullPage((Boolean) enhancedOptions.get("fullPage"));
+            screenshotOptions.setType((com.microsoft.playwright.options.ScreenshotType) enhancedOptions.get("type"));
+            screenshotOptions.setTimeout((Double) enhancedOptions.getOrDefault("timeout", 60000.0));
+
+            byte[] screenshotBytes = page.screenshot(screenshotOptions);
+            logger.info("Screenshot captured successfully.");
+            return screenshotBytes;
+
+        } catch (Exception e) {
+            String errorMsg = "Failed to capture screenshot: " + e.getMessage();
+            logger.error(errorMsg, e);
+            throw new BrowserException(errorMsg);
+        }
+    }
+
+    /**
+     * Scroll to load all content on the page.
+     */
+    private void scrollToLoadAllContent(com.microsoft.playwright.Page page, int maxScrolls, int delayMs) {
+        int lastHeight = 0;
+        for (int i = 0; i < maxScrolls; i++) {
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+            page.waitForTimeout(delayMs);
+            int newHeight = (int) page.evaluate("Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)");
+            if (newHeight == lastHeight) {
+                break;
+            }
+            lastHeight = newHeight;
         }
     }
 

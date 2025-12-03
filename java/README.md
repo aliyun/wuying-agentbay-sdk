@@ -10,14 +10,14 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>com.aliyun</groupId>
     <artifactId>agentbay-sdk</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.5</version>
 </dependency>
 ```
 
 Or if you're using Gradle:
 
 ```gradle
-implementation 'com.aliyun:agentbay-sdk:0.0.3'
+implementation 'com.aliyun:agentbay-sdk:0.0.5'
 ```
 
 ## 🚀 Prerequisites

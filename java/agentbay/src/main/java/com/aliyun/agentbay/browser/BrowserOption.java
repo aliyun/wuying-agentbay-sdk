@@ -14,6 +14,9 @@ public class BrowserOption {
     private boolean solveCaptchas;
     private List<BrowserProxy> proxies;
     private String extensionPath;
+    private List<String> cmdArgs;
+    private String defaultNavigateUrl;
+    private String browserType;
 
     public BrowserOption() {
         this.useStealth = false;
@@ -23,7 +26,8 @@ public class BrowserOption {
 
     public BrowserOption(boolean useStealth, String userAgent, BrowserViewport viewport,
                          BrowserScreen screen, BrowserFingerprint fingerprint, boolean solveCaptchas,
-                         List<BrowserProxy> proxies, String extensionPath) {
+                         List<BrowserProxy> proxies, String extensionPath, List<String> cmdArgs,
+                         String defaultNavigateUrl, String browserType) {
         this.useStealth = useStealth;
         this.userAgent = userAgent;
         this.viewport = viewport;
@@ -32,6 +36,9 @@ public class BrowserOption {
         this.solveCaptchas = solveCaptchas;
         this.proxies = proxies;
         this.extensionPath = extensionPath;
+        this.cmdArgs = cmdArgs;
+        this.defaultNavigateUrl = defaultNavigateUrl;
+        this.browserType = browserType;
         validate();
     }
 
@@ -44,6 +51,14 @@ public class BrowserOption {
 
         if (extensionPath != null && extensionPath.trim().isEmpty()) {
             throw new IllegalArgumentException("extension_path cannot be empty");
+        }
+
+        if (cmdArgs != null && !(cmdArgs instanceof List)) {
+            throw new IllegalArgumentException("cmd_args must be a list");
+        }
+
+        if (browserType != null && !browserType.equals("chrome") && !browserType.equals("chromium")) {
+            throw new IllegalArgumentException("browser_type must be 'chrome' or 'chromium'");
         }
     }
 
@@ -70,6 +85,9 @@ public class BrowserOption {
             map.put("proxies", proxyMaps);
         }
         if (extensionPath != null) map.put("extensionPath", extensionPath);
+        if (cmdArgs != null) map.put("cmdArgs", cmdArgs);
+        if (defaultNavigateUrl != null) map.put("defaultNavigateUrl", defaultNavigateUrl);
+        if (browserType != null) map.put("browserType", browserType);
 
         return map;
     }
@@ -111,6 +129,13 @@ public class BrowserOption {
 
         option.extensionPath = (String) map.get("extensionPath");
 
+        if (map.get("cmdArgs") instanceof List) {
+            option.cmdArgs = (List<String>) map.get("cmdArgs");
+        }
+
+        option.defaultNavigateUrl = (String) map.get("defaultNavigateUrl");
+        option.browserType = (String) map.get("browserType");
+
         return option;
     }
 
@@ -138,4 +163,13 @@ public class BrowserOption {
 
     public String getExtensionPath() { return extensionPath; }
     public void setExtensionPath(String extensionPath) { this.extensionPath = extensionPath; }
+
+    public List<String> getCmdArgs() { return cmdArgs; }
+    public void setCmdArgs(List<String> cmdArgs) { this.cmdArgs = cmdArgs; }
+
+    public String getDefaultNavigateUrl() { return defaultNavigateUrl; }
+    public void setDefaultNavigateUrl(String defaultNavigateUrl) { this.defaultNavigateUrl = defaultNavigateUrl; }
+
+    public String getBrowserType() { return browserType; }
+    public void setBrowserType(String browserType) { this.browserType = browserType; }
 }

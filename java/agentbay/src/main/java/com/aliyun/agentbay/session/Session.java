@@ -46,7 +46,10 @@ public class Session {
     private String token;
     private String vpcLinkUrl;
     private long vpcLinkUrlTimestamp;
+    private String resourceUrl;
+    private String networkInterfaceIp;
     private java.util.List<com.aliyun.agentbay.mcp.McpTool> mcpTools;
+    private Boolean enableBrowserReplay;
 
     public Session(String sessionId, AgentBay agentBay, SessionParams params) {
         this.sessionId = sessionId;
@@ -453,6 +456,56 @@ public class Session {
      */
     public void setToken(String token) {
         this.token = token;
+    }
+
+    /**
+     * Get enableBrowserReplay flag
+     */
+    public Boolean getEnableBrowserReplay() {
+        return enableBrowserReplay;
+    }
+
+    /**
+     * Set enableBrowserReplay flag
+     */
+    public void setEnableBrowserReplay(Boolean enableBrowserReplay) {
+        this.enableBrowserReplay = enableBrowserReplay;
+    }
+
+    /**
+     * Get the resource URL for accessing the session
+     *
+     * @return Resource URL
+     */
+    public String getResourceUrl() {
+        return resourceUrl;
+    }
+
+    /**
+     * Set the resource URL for accessing the session
+     *
+     * @param resourceUrl Resource URL
+     */
+    public void setResourceUrl(String resourceUrl) {
+        this.resourceUrl = resourceUrl;
+    }
+
+    /**
+     * Get the network interface IP for VPC sessions
+     *
+     * @return Network interface IP
+     */
+    public String getNetworkInterfaceIp() {
+        return networkInterfaceIp;
+    }
+
+    /**
+     * Set the network interface IP for VPC sessions
+     *
+     * @param networkInterfaceIp Network interface IP
+     */
+    public void setNetworkInterfaceIp(String networkInterfaceIp) {
+        this.networkInterfaceIp = networkInterfaceIp;
     }
 
     /**

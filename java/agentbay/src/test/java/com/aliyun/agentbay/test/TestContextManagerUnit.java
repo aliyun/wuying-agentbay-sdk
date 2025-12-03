@@ -27,7 +27,7 @@ public class TestContextManagerUnit {
     
     private static AgentBay agentBay;
     private static Context context;
-    private Session session;
+    private static Session session;
     
     @BeforeClass
     public static void setUpClass() throws AgentBayException {
@@ -39,25 +39,60 @@ public class TestContextManagerUnit {
                 "Skipping unit test: No API key available or running in CI"
             );
         }
-        
+
         // Initialize AgentBay client
         agentBay = new AgentBay(apiKey);
-        
+
         // Create a unique context name for this test
         String contextName = "test-context-manager-" + System.currentTimeMillis();
-        
+
         // Create a context
         ContextResult contextResult = agentBay.getContext().get(contextName, true);
         if (!contextResult.isSuccess() || contextResult.getContext() == null) {
             throw new IllegalStateException("Failed to create context");
         }
-        
+
         context = contextResult.getContext();
         logger.info("Created context: {} (ID: {})", context.getName(), context.getId());
+
+        // Create a session for all tests
+        CreateSessionParams params = new CreateSessionParams();
+        ContextSync contextSync = ContextSync.create(
+            context.getId(),
+            "/home/wuying/test",
+            SyncPolicy.defaultPolicy()
+        );
+        params.setContextSyncs(Arrays.asList(contextSync));
+        params.setImageId("linux_latest");
+
+        SessionResult sessionResult = agentBay.create(params);
+        if (!sessionResult.isSuccess() || sessionResult.getSession() == null) {
+            throw new IllegalStateException("Failed to create session for test");
+        }
+
+        session = sessionResult.getSession();
+        logger.info("Created session: {}", session.getSessionId());
+
+        // Wait a bit for session to be ready
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
     
     @AfterClass
     public static void tearDownClass() {
+        // Clean up session
+        if (session != null && agentBay != null) {
+            try {
+                agentBay.delete(session, false);
+                logger.info("Session deleted: {}", session.getSessionId());
+            } catch (Exception e) {
+                logger.warn("Warning: Failed to delete session: {}", e.getMessage());
+            }
+        }
+
         // Clean up context
         if (context != null && agentBay != null) {
             try {
@@ -69,46 +104,6 @@ public class TestContextManagerUnit {
         }
     }
     
-    @Before
-    public void setUp() throws AgentBayException {
-        // Create a session for each test
-        CreateSessionParams params = new CreateSessionParams();
-        ContextSync contextSync = ContextSync.create(
-            context.getId(),
-            "/home/wuying/test",
-            SyncPolicy.defaultPolicy()
-        );
-        params.setContextSyncs(Arrays.asList(contextSync));
-        params.setImageId("linux_latest");
-        
-        SessionResult sessionResult = agentBay.create(params);
-        if (!sessionResult.isSuccess() || sessionResult.getSession() == null) {
-            throw new IllegalStateException("Failed to create session for test");
-        }
-        
-        session = sessionResult.getSession();
-        logger.info("Created session: {}", session.getSessionId());
-        
-        // Wait a bit for session to be ready
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-    
-    @After
-    public void tearDown() {
-        // Clean up session
-        if (session != null && agentBay != null) {
-            try {
-                agentBay.delete(session, false);
-                logger.info("Session deleted: {}", session.getSessionId());
-            } catch (Exception e) {
-                logger.warn("Warning: Failed to delete session: {}", e.getMessage());
-            }
-        }
-    }
     
     /**
      * Test that context.info() returns context status data

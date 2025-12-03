@@ -9,6 +9,8 @@
 
 The Browser module provides browser automation capabilities using Playwright integration. It enables web scraping, automated testing, form filling, and other browser-based automation tasks in a cloud environment.
 
+The Browser module includes both traditional Playwright integration and an AI-powered BrowserAgent that provides natural language automation capabilities with synchronous and asynchronous methods.
+
 ## Browser
 
 ```java
@@ -507,6 +509,11 @@ The Browser module also includes an AI-powered agent for natural language automa
 BrowserAgent agent = session.getBrowser().getAgent();
 ```
 
+The BrowserAgent provides both synchronous and asynchronous variants of key browser automation methods:
+
+- **Synchronous methods** (`act`, `extract`, `observe`): Use `page_use_act` and `page_use_extract` MCP tools - suitable for simple, quick operations
+- **Asynchronous methods** (`actAsync`, `extractAsync`): Use `page_use_act_async` and `page_use_extract_async` MCP tools - designed for complex, time-consuming tasks with task polling mechanisms
+
 ### act
 
 ```java
@@ -516,7 +523,7 @@ public ActResult act(Page page, Object actionInput) throws BrowserException
 Perform a browser action using natural language or structured action.
 
 **Parameters:**
-- `page` (Page): Playwright Page object
+- `page` (Page): Playwright Page object (can be null to use focused page)
 - `actionInput` (Object): Either ActOptions or ObserveResult
   - `ActOptions`: Contains action description and options
   - `ObserveResult`: Result from previous observe() call
@@ -542,25 +549,69 @@ String endpointUrl = session.getBrowser().getEndpointUrl();
 try (Playwright playwright = Playwright.create()) {
     Browser browser = playwright.chromium().connectOverCDP(endpointUrl);
     Page page = browser.contexts().get(0).newPage();
-    
+
     // Get browser agent
     BrowserAgent agent = session.getBrowser().getAgent();
-    
+
     // Perform actions using natural language
     ActOptions options = new ActOptions();
     options.setAction("Go to google.com");
     ActResult result = agent.act(page, options);
-    
+
     if (result.isSuccess()) {
         System.out.println("Navigation successful");
     }
-    
+
     // Perform another action
     ActOptions searchOptions = new ActOptions();
     searchOptions.setAction("Search for 'AgentBay SDK'");
     ActResult searchResult = agent.act(page, searchOptions);
 }
 ```
+
+### actAsync
+
+```java
+public ActResult actAsync(Page page, Object actionInput) throws BrowserException
+```
+
+Perform browser actions asynchronously with task polling support. Designed for complex, time-consuming operations.
+
+**Parameters:**
+- `page` (Page): Playwright Page object (can be null to use focused page)
+- `actionInput` (Object): Either `ActOptions` or `ObserveResult`
+
+**Returns:**
+- `ActResult`: Result containing success status and execution details
+
+**Throws:**
+- `BrowserException`: If browser is not initialized, task creation fails, or task timeout
+
+**Example:**
+
+```java
+// Basic navigation
+ActOptions options = new ActOptions("goto('https://example.com')");
+ActResult result = agent.actAsync(page, options);
+
+// Click operation
+ActOptions clickOptions = new ActOptions("click('#submit-button')");
+ActResult clickResult = agent.actAsync(page, clickOptions);
+
+// With custom timeout
+ActOptions timeoutOptions = new ActOptions("goto('https://example.com')");
+timeoutOptions.setTimeoutMS(30000);
+ActResult result = agent.actAsync(page, timeoutOptions);
+```
+
+**When to use `actAsync`:**
+- Performing complex multi-step actions
+- Navigating to pages with heavy resources
+- Executing operations that may take significant time
+- You want explicit async semantics in your code
+
+**Polling Configuration:**
+- Max 30 retries, 5-second intervals (150 seconds total)
 
 ### observe
 
@@ -586,18 +637,207 @@ Extract information from the page using natural language.
 try (Playwright playwright = Playwright.create()) {
     Browser browser = playwright.chromium().connectOverCDP(endpointUrl);
     Page page = browser.contexts().get(0).newPage();
-    
+
     BrowserAgent agent = session.getBrowser().getAgent();
-    
+
     ObserveOptions options = new ObserveOptions();
     options.setInstruction("Extract all product names and prices");
     ObserveResult result = agent.observe(page, options);
-    
+
     if (result.isSuccess()) {
         System.out.println("Extracted data: " + result.getData());
     }
 }
 ```
+
+### extract
+
+```java
+public <T> ExtractResultTuple<T> extract(Page page, ExtractOptions<T> options) throws BrowserException
+```
+
+Extract structured data from web pages using AI-powered extraction.
+
+**Parameters:**
+- `page` (Page): Playwright Page object (can be null to use focused page)
+- `options` (ExtractOptions<T>): Contains instruction and schema class
+
+**Returns:**
+- `ExtractResultTuple<T>`: Result containing success status and extracted data of type T
+
+**Throws:**
+- `BrowserException`: If browser is not initialized or extraction fails
+
+**Example:**
+
+```java
+// Define data model
+public class ProductInfo {
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("price")
+    private String price;
+
+    // getters and setters...
+}
+
+// Extract data
+String instruction = "Extract product title and price from the page";
+ExtractOptions<ProductInfo> options = new ExtractOptions<>(instruction, ProductInfo.class);
+options.setUseTextExtract(true);
+options.setUseVision(false);
+
+ExtractResultTuple<ProductInfo> result = agent.extract(page, options);
+
+if (result.isSuccess()) {
+    ProductInfo product = result.getData();
+    System.out.println("Title: " + product.getTitle());
+    System.out.println("Price: " + product.getPrice());
+}
+```
+
+### extractAsync
+
+```java
+public <T> ExtractResultTuple<T> extractAsync(Page page, ExtractOptions<T> options) throws BrowserException
+```
+
+Extract structured data from web pages asynchronously using AI-powered extraction with task polling support.
+
+**Parameters:**
+- `page` (Page): Playwright Page object (can be null to use focused page)
+- `options` (ExtractOptions<T>): Contains instruction and schema class
+
+**Returns:**
+- `ExtractResultTuple<T>`: Result containing success status and extracted data of type T
+
+**Throws:**
+- `BrowserException`: If browser is not initialized, task creation fails, or task timeout
+
+**Example:**
+
+```java
+// Define data model
+public class ProductInfo {
+    @JsonProperty("title")
+    private String title;
+
+    @JsonProperty("price")
+    private String price;
+
+    // getters and setters...
+}
+
+// Extract data asynchronously
+String instruction = "Extract product title and price from the page";
+ExtractOptions<ProductInfo> options = new ExtractOptions<>(instruction, ProductInfo.class);
+options.setUseTextExtract(true);
+options.setUseVision(false);
+
+ExtractResultTuple<ProductInfo> result = agent.extractAsync(page, options);
+
+if (result.isSuccess()) {
+    ProductInfo product = result.getData();
+    System.out.println("Title: " + product.getTitle());
+    System.out.println("Price: " + product.getPrice());
+}
+```
+
+**When to use `extractAsync`:**
+- Extracting complex structured data from pages
+- Working with pages that have dynamic content
+- Extraction requires AI analysis of visual elements
+- The extraction task may be time-consuming
+
+**Polling Configuration:**
+- Max 20 retries, 8-second intervals (160 seconds total)
+
+### Complete Async Example
+
+Here's a complete example demonstrating async methods:
+
+```java
+package examples;
+
+import com.aliyun.agentbay.AgentBay;
+import com.aliyun.agentbay.browser.*;
+import com.aliyun.agentbay.session.Session;
+import com.microsoft.playwright.*;
+
+public class AsyncExample {
+    public static void main(String[] args) throws Exception {
+        // Initialize
+        AgentBay agentBay = new AgentBay(System.getenv("AGENTBAY_API_KEY"));
+        Session session = agentBay.create(new CreateSessionParams().setImageId("browser_latest")).getSession();
+        session.getBrowser().initialize(new BrowserOption());
+
+        try (Playwright playwright = Playwright.create()) {
+            String endpointUrl = session.getBrowser().getEndpointUrl();
+            Browser browser = playwright.chromium().connectOverCDP(endpointUrl);
+            com.microsoft.playwright.BrowserContext context = browser.contexts().get(0);
+            Page page = context.newPage();
+            BrowserAgent agent = session.getBrowser().getAgent();
+
+            // Navigate using actAsync
+            ActOptions navOptions = new ActOptions("goto('https://example.com')");
+            ActResult navResult = agent.actAsync(page, navOptions);
+            System.out.println("Navigation: " + navResult.isSuccess());
+
+            // Extract data using extractAsync
+            ExtractOptions<PageData> extractOptions =
+                new ExtractOptions<>("Extract page title", PageData.class);
+            ExtractResultTuple<PageData> extractResult =
+                agent.extractAsync(page, extractOptions);
+
+            if (extractResult.isSuccess()) {
+                PageData data = extractResult.getData();
+                System.out.println("Title: " + data.getTitle());
+            }
+
+            page.close();
+            browser.close();
+        }
+    }
+
+    public static class PageData {
+        @JsonProperty("title")
+        private String title;
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+    }
+}
+```
+
+### Task Polling Mechanism
+
+Both async methods implement a task polling mechanism:
+
+1. **Initial Request**: Call `page_use_act_async` or `page_use_extract_async`
+2. **Task ID**: Receive a task ID from the server
+3. **Polling Loop**: Periodically check task status using `page_use_get_act_result` or `page_use_get_extract_result`
+4. **Completion**: Return result when task completes or timeout
+
+### Comparison with Python SDK
+
+The Java implementation matches the Python SDK's async behavior:
+
+**Python:**
+```python
+# Async variant
+result = await browser.agent.act_async(page, options)
+extracted = await browser.agent.extract_async(page, options)
+```
+
+**Java:**
+```java
+// Async variant (note: still synchronous Java method, but uses async MCP tool)
+ActResult result = browser.getAgent().actAsync(page, options);
+ExtractResultTuple<T> extracted = browser.getAgent().extractAsync(page, options);
+```
+
+Note: The Java methods are synchronous (blocking) at the API level but use the async MCP tools internally with polling.
 
 ## Common Patterns
 
@@ -742,14 +982,18 @@ session.delete();
 
 ## Best Practices
 
-1. **Stealth Mode**: Enable stealth mode for web scraping to avoid detection
-2. **Behavior Simulation**: Use behavior simulation for more realistic interactions
-3. **Resource Cleanup**: Always close browser and delete session when done
-4. **Error Handling**: Check initialization success before using browser
-5. **Session Image**: Use `browser_latest` image for optimal browser support
-6. **Timeouts**: Set appropriate timeouts for page loads and interactions
-7. **Context Reuse**: Reuse browser contexts for better performance
-8. **Agent Usage**: Use BrowserAgent for complex, natural language-driven automation
+1. **Always initialize browser first**: Call `session.getBrowser().initialize()` before using agent methods
+2. **Stealth Mode**: Enable stealth mode for web scraping to avoid detection
+3. **Behavior Simulation**: Use behavior simulation for more realistic interactions
+4. **Resource Cleanup**: Always close browser and delete session when done
+5. **Error Handling**: Check initialization success before using browser and wrap async calls in try-catch blocks
+6. **Session Image**: Use `browser_latest` image for optimal browser support
+7. **Timeouts**: Set appropriate timeouts for page loads and interactions - use `setTimeoutMS()` for async operations
+8. **Context Reuse**: Reuse browser contexts for better performance
+9. **Agent Usage**: Use BrowserAgent for complex, natural language-driven automation
+10. **Async vs Sync**: Use async methods (`actAsync`, `extractAsync`) for time-consuming tasks, sync methods for simple operations
+11. **Check success status**: Always check `isSuccess()` before accessing result data
+12. **Use typed extraction**: Define proper data models with Jackson annotations for type-safe extraction
 
 ## Use Cases
 
@@ -764,6 +1008,22 @@ session.delete();
 - **Multi-Session Workflows**: Persist browser state across multiple automation sessions
 - **Extension Integration**: Use browser extensions for enhanced functionality
 
+## Troubleshooting
+
+### Common Issues
+
+**Problem**: BrowserException "Browser is not initialized"
+**Solution**: Call `session.getBrowser().initialize(new BrowserOption())` first
+
+**Problem**: Task timeout with async methods
+**Solution**: Increase timeout with `options.setTimeoutMS(60000)` or check network connectivity
+
+**Problem**: Extraction returns unexpected data
+**Solution**: Refine the instruction string and ensure page is fully loaded
+
+**Problem**: ClassCastException when accessing extracted data
+**Solution**: Ensure data model class matches the schema and has proper Jackson annotations
+
 ## Limitations
 
 - Browser automation requires `browser_latest` image
@@ -771,6 +1031,7 @@ session.delete();
 - CAPTCHA solving success rate depends on CAPTCHA type
 - Some websites may still detect and block automation
 - BrowserAgent requires Playwright Page object for all operations
+- Java async methods are synchronous (blocking) at the API level but use async MCP tools internally
 
 ## Important Notes
 
@@ -779,8 +1040,26 @@ session.delete();
 3. **Error Handling**: Always check `isInitialized()` before calling `getEndpointUrl()`.
 4. **Resource Management**: Proper cleanup is essential to avoid resource leaks.
 
+## Testing
+
+See `TestBrowserAgentAsync.java` for comprehensive test cases covering:
+- Basic navigation with actAsync
+- Click operations
+- Game state extraction
+- Custom options and timeouts
+- Comparison with synchronous methods
+- Error handling
+
+Run tests with:
+```bash
+mvn test -Dtest=TestBrowserAgentAsync
+```
+
 ## Related Resources
 
+- [BrowserAgent.java](../../../agentbay/src/main/java/com/aliyun/agentbay/browser/BrowserAgent.java) - Main implementation
+- [TestBrowserAgentAsync.java](../../../agentbay/src/test/java/com/aliyun/agentbay/test/TestBrowserAgentAsync.java) - Async test cases
+- [BrowserAgentAsyncExample.java](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/BrowserAgentAsyncExample.java) - Complete async working example
 - [Browser Context Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/BrowserContextExample.java) - Complete browser context usage examples
 - [Playwright Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/PlaywrightExample.java) - Basic Playwright integration
 - [Visit Aliyun Example](../../../agentbay/src/main/java/com/aliyun/agentbay/examples/VisitAliyunExample.java) - Real-world automation

@@ -9,9 +9,7 @@ import com.aliyun.agentbay.model.FileContentResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.session.Session;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
@@ -118,38 +116,38 @@ public class AgentBayTest {
      * Test cases for the Session class
      */
     public static class TestSession {
-        private AgentBay agentBay;
-        private Session session;
-        private SessionResult result;
+        private static AgentBay agentBay;
+        private static Session session;
+        private static SessionResult result;
 
-        @Before
-        public void setUp() throws AgentBayException {
+        @BeforeClass
+        public static void setUp() throws AgentBayException {
             // Set up test fixtures
             String apiKey = getTestApiKey();
-            this.agentBay = new AgentBay(apiKey);
+            agentBay = new AgentBay(apiKey);
 
             // Create a session with default windows image
             System.out.println("Creating a new session for testing...");
-            this.result = this.agentBay.create(new CreateSessionParams());
-            
+            result = agentBay.create(new CreateSessionParams());
+
             // Check if session creation was successful
-            if (!this.result.isSuccess()) {
-                fail("Session creation failed in setUp: " + this.result.getErrorMessage());
+            if (!result.isSuccess()) {
+                fail("Session creation failed in setUp: " + result.getErrorMessage());
             }
-            if (this.result.getSession() == null) {
+            if (result.getSession() == null) {
                 fail("Session object is null in setUp");
             }
-                
-            this.session = this.result.getSession();
-            System.out.println("Session created with ID: " + this.session.getSessionId());
+
+            session = result.getSession();
+            System.out.println("Session created with ID: " + session.getSessionId());
         }
 
-        @After
-        public void tearDown() {
+        @AfterClass
+        public static void tearDown() {
             // Tear down test fixtures
             System.out.println("Cleaning up: Deleting the session...");
             try {
-                this.agentBay.delete(this.session, false);
+                agentBay.delete(session, false);
             } catch (Exception e) {
                 System.out.println("Warning: Error deleting session: " + e.getMessage());
             }
@@ -158,16 +156,16 @@ public class AgentBayTest {
         @Test
         public void testSessionProperties() {
             // Test session properties and methods
-            assertNotNull(this.session.getSessionId());
-            assertEquals(this.agentBay, this.session.getAgentBay());
+            assertNotNull(session.getSessionId());
+            assertEquals(agentBay, session.getAgentBay());
 
             // Test access to AgentBay properties through session.getAgentBay()
-            assertEquals(this.session.getAgentBay().getApiKey(), this.agentBay.getApiKey());
-            assertEquals(this.session.getAgentBay().getClient(), this.agentBay.getClient());
+            assertEquals(session.getAgentBay().getApiKey(), agentBay.getApiKey());
+            assertEquals(session.getAgentBay().getClient(), agentBay.getClient());
 
             // Test getSessionId method
-            String sessionId = this.session.getSessionId();
-            assertEquals(sessionId, this.session.getSessionId());
+            String sessionId = session.getSessionId();
+            assertEquals(sessionId, session.getSessionId());
             
             System.out.println("✅ testSessionProperties passed");
         }
@@ -177,7 +175,7 @@ public class AgentBayTest {
             // Test session delete method
             // Create a new session specifically for this test
             System.out.println("Creating a new session for delete testing...");
-            SessionResult result = this.agentBay.create(new CreateSessionParams());
+            SessionResult result = agentBay.create(new CreateSessionParams());
             Session session = result.getSession();
             System.out.println("Session created with ID: " + session.getSessionId());
 
@@ -191,7 +189,7 @@ public class AgentBayTest {
                 System.out.println("Note: Session deletion failed: " + e.getMessage());
                 // Clean up if the test failed
                 try {
-                    this.agentBay.delete(session, false);
+                    agentBay.delete(session, false);
                 } catch (Exception cleanupException) {
                     // Ignore cleanup errors
                 }
@@ -202,10 +200,10 @@ public class AgentBayTest {
         @Test
         public void testCommand() {
             // Test command execution
-            if (this.session.getCommand() != null) {
+            if (session.getCommand() != null) {
                 System.out.println("Executing command...");
                 try {
-                    CommandResult response = this.session.getCommand().executeCommand("ls", 1000);
+                    CommandResult response = session.getCommand().executeCommand("ls", 1000);
                     System.out.println("Command execution result: " + response);
                     assertNotNull(response);
                     assertTrue("Command failed: " + response.getErrorMessage(), response.isSuccess());
@@ -227,10 +225,10 @@ public class AgentBayTest {
         @Test
         public void testFilesystem() {
             // Test filesystem operations
-            if (this.session.getFileSystem() != null) {
+            if (session.getFileSystem() != null) {
                 System.out.println("Reading file...");
                 try {
-                    FileContentResult result = this.session.getFileSystem().readFile("/etc/hosts");
+                    FileContentResult result = session.getFileSystem().readFile("/etc/hosts");
                     System.out.println("ReadFile result: content='" + result + "'");
                     assertNotNull(result);
                     assertTrue("Read file failed: " + result.getErrorMessage(), result.isSuccess());
