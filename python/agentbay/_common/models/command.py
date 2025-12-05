@@ -24,7 +24,7 @@ class CommandResult(ApiResponse):
         Args:
             request_id (str, optional): Unique identifier for the API request.
             success (bool, optional): Whether the operation was successful.
-            output (str, optional): The command execution output (stdout). Kept for backward compatibility.
+            output (str, optional): The command execution output (stdout). 
             error_message (str, optional): Error message if the operation failed (stderr or system error).
             exit_code (int, optional): The exit code of the command execution. Default is 0.
             stdout (str, optional): Standard output from the command execution.
