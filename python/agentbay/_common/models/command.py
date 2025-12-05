@@ -14,6 +14,9 @@ class CommandResult(ApiResponse):
         success: bool = False,
         output: str = "",
         error_message: str = "",
+        exit_code: int = 0,
+        stdout: str = "",
+        stderr: str = "",
     ):
         """
         Initialize a CommandResult.
@@ -21,11 +24,17 @@ class CommandResult(ApiResponse):
         Args:
             request_id (str, optional): Unique identifier for the API request.
             success (bool, optional): Whether the operation was successful.
-            output (str, optional): The command execution output (stdout).
+            output (str, optional): The command execution output (stdout). Kept for backward compatibility.
             error_message (str, optional): Error message if the operation failed (stderr or system error).
+            exit_code (int, optional): The exit code of the command execution. Default is 0.
+            stdout (str, optional): Standard output from the command execution.
+            stderr (str, optional): Standard error from the command execution.
         """
         super().__init__(request_id)
         self.success = success
         self.output = output
         self.error_message = error_message
+        self.exit_code = exit_code
+        self.stdout = stdout
+        self.stderr = stderr
 
