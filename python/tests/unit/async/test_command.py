@@ -121,6 +121,90 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Failed to execute command: mock error", result.error_message)
         self.assertEqual(result.output, "")
 
+    async def test_execute_command_with_new_json_format(self):
+        """
+        Test execute_command method with new JSON format response.
+        """
+        from agentbay import McpToolResult
+        import json
+
+        # New format JSON response
+        json_data = json.dumps({
+            "stdout": "output text",
+            "stderr": "error text",
+            "errorCode": 0,
+            "traceId": "trace-123"
+        })
+        mock_result = McpToolResult(
+            request_id="request-123", success=True, data=json_data
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        result = await self.command.execute_command("ls -la")
+        self.assertIsInstance(result, CommandResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.stdout, "output text")
+        self.assertEqual(result.stderr, "error text")
+        self.assertEqual(result.output, "output text")  # Should use stdout
+
+    async def test_execute_command_with_new_json_format_error(self):
+        """
+        Test execute_command method with new JSON format response (error case).
+        """
+        from agentbay import McpToolResult
+        import json
+
+        # New format JSON response with error
+        json_data = json.dumps({
+            "stdout": "",
+            "stderr": "command not found",
+            "errorCode": 127,
+            "traceId": "trace-123"
+        })
+        mock_result = McpToolResult(
+            request_id="request-123", success=True, data=json_data
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        result = await self.command.execute_command("invalid_command")
+        self.assertIsInstance(result, CommandResult)
+        self.assertFalse(result.success)  # errorCode != 0 means failure
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.exit_code, 127)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "command not found")
+        self.assertEqual(result.output, "command not found")  # Should use stderr when stdout is empty
+
+    async def test_execute_command_with_cwd_and_envs(self):
+        """
+        Test execute_command method with cwd and envs parameters.
+        """
+        from agentbay import McpToolResult
+
+        mock_result = McpToolResult(
+            request_id="request-123", success=True, data="test output"
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        result = await self.command.execute_command(
+            "pwd",
+            timeout_ms=5000,
+            cwd="/tmp",
+            envs={"TEST_VAR": "test_value"}
+        )
+        self.assertIsInstance(result, CommandResult)
+        self.assertTrue(result.success)
+
+        # Verify call arguments
+        self.session.call_mcp_tool.assert_called_once()
+        args = self.session.call_mcp_tool.call_args[0][1]
+        self.assertEqual(args["command"], "pwd")
+        self.assertEqual(args["timeout_ms"], 5000)
+        self.assertEqual(args["cwd"], "/tmp")
+        self.assertEqual(args["envs"], {"TEST_VAR": "test_value"})
+
 
 if __name__ == "__main__":
     unittest.main()
