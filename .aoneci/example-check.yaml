@@ -6,18 +6,14 @@ triggers:
   #   - cron: "0 2 * * *"  # Run daily at 2:00 AM
 
 params:
-  python_enabled:
-    name: Enable Python Examples
-    type: boolean
-    default: true
-  typescript_enabled:
-    name: Enable TypeScript Examples
-    type: boolean
-    default: true
-  golang_enabled:
-    name: Enable Golang Examples
-    type: boolean
-    default: true
+  enable_languages:
+    name: Enable Languages
+    type: multi_choice
+    default: ["python", "typescript", "golang"]
+    options:
+      - "python"
+      - "typescript" 
+      - "golang"
 
 jobs:
   example-check:
@@ -57,7 +53,7 @@ jobs:
           
           # Install TypeScript Dependencies
           echo "📜 Setting up TypeScript..."
-          if [ "${{params.typescript_enabled}}" == "true" ]; then
+          if [[ "${{params.enable_languages}}" == *"typescript"* ]]; then
             cd typescript
             npm ci
             npm run build
@@ -70,7 +66,7 @@ jobs:
           
           # Install Golang Dependencies
           echo "🐹 Setting up Golang..."
-          if [ "${{params.golang_enabled}}" == "true" ]; then
+          if [[ "${{params.enable_languages}}" == *"golang"* ]]; then
             cd golang
             go env -w GOPROXY=https://goproxy.cn,direct
             go mod download
@@ -85,7 +81,7 @@ jobs:
           # Run checks sequentially but capture failures
           FAILED=false
           
-          if [ "${{params.python_enabled}}" == "true" ]; then
+          if [[ "${{params.enable_languages}}" == *"python"* ]]; then
             echo "=== Running Python Checks ==="
             set +e
             python scripts/check_examples.py --lang python
@@ -93,7 +89,7 @@ jobs:
             set -e
           fi
           
-          if [ "${{params.typescript_enabled}}" == "true" ]; then
+          if [[ "${{params.enable_languages}}" == *"typescript"* ]]; then
             echo "=== Running TypeScript Checks ==="
             set +e
             python scripts/check_examples.py --lang typescript
@@ -101,7 +97,7 @@ jobs:
             set -e
           fi
           
-          if [ "${{params.golang_enabled}}" == "true" ]; then
+          if [[ "${{params.enable_languages}}" == *"golang"* ]]; then
             echo "=== Running Golang Checks ==="
             set +e
             python scripts/check_examples.py --lang golang
