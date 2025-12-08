@@ -244,10 +244,18 @@ export interface CommandResult extends ApiResponse {
   requestId: string;
   /** Whether the command execution was successful */
   success: boolean;
-  /** The command output */
+  /** The command output (for backward compatibility, equals stdout if available, otherwise stderr) */
   output: string;
   /** Optional error message if the operation failed */
   errorMessage?: string;
+  /** The exit code of the command execution. Default is 0. */
+  exitCode?: number;
+  /** Standard output from the command execution */
+  stdout?: string;
+  /** Standard error from the command execution */
+  stderr?: string;
+  /** Trace ID for error tracking. Only present when errorCode != 0. Used for quick problem localization. */
+  traceId?: string;
 }
 
 /**
