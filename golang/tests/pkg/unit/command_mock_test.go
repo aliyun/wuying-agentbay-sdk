@@ -285,7 +285,7 @@ func TestCommand_Implementation_CwdAndEnvs(t *testing.T) {
 	}
 	cmd := command.NewCommand(mockSession)
 
-	result, err := cmd.ExecuteCommandWithOptions("pwd", 5000, "/tmp", map[string]string{"TEST_VAR": "test_value"})
+	result, err := cmd.ExecuteCommand("pwd", command.WithTimeoutMs(5000), command.WithCwd("/tmp"), command.WithEnvs(map[string]string{"TEST_VAR": "test_value"}))
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)

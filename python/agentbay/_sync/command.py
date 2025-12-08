@@ -59,20 +59,20 @@ class Command(BaseService):
 
         Example:
             session = agent_bay.create().session
-            result = await session.command.execute_command("echo 'Hello, World!'")
+            result = session.command.execute_command("echo 'Hello, World!'")
             print(result.output)
             print(result.exit_code)
-            await session.delete()
+            session.delete()
 
         Example:
-            result = await session.command.execute_command(
+            result = session.command.execute_command(
                 "pwd",
                 timeout_ms=5000,
                 cwd="/tmp",
                 envs={"TEST_VAR": "test_value"}
             )
             print(result.stdout)
-            await session.delete()
+            session.delete()
         """
         try:
             # Limit timeout to maximum 50s (50000ms) as per SDK constraints

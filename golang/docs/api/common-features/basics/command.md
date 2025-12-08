@@ -48,18 +48,27 @@ Command handles command execution operations in the AgentBay cloud environment.
 ### ExecuteCommand
 
 ```go
-func (c *Command) ExecuteCommand(command string, timeoutMs ...int) (*CommandResult, error)
+func (c *Command) ExecuteCommand(command string, options ...interface{}) (*CommandResult, error)
 ```
 
 ExecuteCommand executes a shell command in the session environment.
 
-This method maintains backward compatibility with the original signature. For advanced features like
-working directory and environment variables, use ExecuteCommandWithOptions instead.
+This method supports both the legacy signature (command string, timeoutMs ...int) and the Functional
+Options pattern for flexible configuration.
+
+Legacy usage (backward compatible):
+  - cmd.ExecuteCommand("ls -la")
+  - cmd.ExecuteCommand("ls -la", 5000)
+
+Functional Options usage (recommended for new code):
+  - cmd.ExecuteCommand("ls -la", WithTimeoutMs(5000))
+  - cmd.ExecuteCommand("pwd", WithCwd("/tmp"), WithEnvs(map[string]string{"VAR": "value"}))
 
 Parameters:
   - command: The shell command to execute
-  - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s). Maximum allowed timeout is
-    50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms
+  - options: Either an int (timeoutMs in milliseconds) for legacy usage, or CommandOption functions
+    for Functional Options pattern. Maximum allowed timeout is 50000ms (50s). If a larger value is
+    provided, it will be automatically limited to 50000ms
 
 Returns:
   - *CommandResult: Result containing command output, exit code, stdout, stderr, trace_id, and
@@ -69,55 +78,24 @@ Returns:
 **Example:**
 
 ```go
-client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-result, _ := client.Create(nil)
-defer result.Session.Delete()
-cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la")
-cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la", 5000)
-```
+// Default usage
 
-### ExecuteCommandWithOptions
+cmd.ExecuteCommand("ls")
 
-```go
-func (c *Command) ExecuteCommandWithOptions(
-	command string,
-	timeoutMs int,
-	cwd string,
-	envs map[string]string,
-) (*CommandResult, error)
-```
+// Legacy usage (backward compatible)
 
-ExecuteCommandWithOptions executes a shell command with advanced options.
+cmd.ExecuteCommand("ls", 5000)
 
-Executes a shell command in the session environment with configurable timeout, working directory,
-and environment variables. The command runs with session user permissions in a Linux shell
-environment.
+// New style with Functional Options
 
-Parameters:
-  - command: The shell command to execute
-  - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s). Maximum allowed timeout is
-    50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms
-  - cwd: The working directory for command execution. If empty, the command runs in the default
-    session directory
-  - envs: Environment variables as a map of key-value pairs. These variables are set for the command
-    execution only
+cmd.ExecuteCommand("ls", WithTimeoutMs(5000))
 
-Returns:
-  - *CommandResult: Result containing command output, exit code, stdout, stderr, trace_id, and
-    request ID
-  - error: Error if the operation fails
+// Combined options
 
-**Example:**
-
-```go
-client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-result, _ := client.Create(nil)
-defer result.Session.Delete()
-cmdResult, _ := result.Session.Command.ExecuteCommandWithOptions(
-	"pwd",
-	5000,
-	"/tmp",
-	map[string]string{"TEST_VAR": "test_value"},
+cmd.ExecuteCommand("pwd",
+    WithTimeoutMs(5000),
+    WithCwd("/tmp"),
+    WithEnvs(map[string]string{"FOO": "bar"}),
 )
 ```
 
@@ -139,6 +117,62 @@ func NewCommand(session interface {
 ```
 
 NewCommand creates a new Command instance
+
+## Type CommandOption
+
+```go
+type CommandOption func(*commandOptions)
+```
+
+CommandOption is a function type for configuring ExecuteCommand options. This enables the Functional
+Options pattern for flexible and extensible API design.
+
+### Related Functions
+
+### WithCwd
+
+```go
+func WithCwd(cwd string) CommandOption
+```
+
+WithCwd sets the working directory for command execution. If not set, the command runs in the
+default session directory.
+
+**Example:**
+
+```go
+cmd.ExecuteCommand("pwd", WithCwd("/tmp"))
+```
+
+### WithEnvs
+
+```go
+func WithEnvs(envs map[string]string) CommandOption
+```
+
+WithEnvs sets environment variables for command execution. These variables are set for the command
+execution only.
+
+**Example:**
+
+```go
+cmd.ExecuteCommand("echo $VAR", WithEnvs(map[string]string{"VAR": "value"}))
+```
+
+### WithTimeoutMs
+
+```go
+func WithTimeoutMs(timeoutMs int) CommandOption
+```
+
+WithTimeoutMs sets the timeout for command execution in milliseconds. Maximum allowed timeout is
+50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms.
+
+**Example:**
+
+```go
+cmd.ExecuteCommand("ls -la", WithTimeoutMs(5000))
+```
 
 ## Type CommandResult
 
@@ -164,6 +198,18 @@ type CommandResult struct {
 ```
 
 CommandResult represents the result of a command execution
+
+## Type commandOptions
+
+```go
+type commandOptions struct {
+	timeoutMs	int
+	cwd		string
+	envs		map[string]string
+}
+```
+
+commandOptions holds the configuration for command execution
 
 ## Functions
 

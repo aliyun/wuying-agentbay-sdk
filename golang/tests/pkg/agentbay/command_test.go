@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/command"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
@@ -85,7 +86,7 @@ func TestCommand_ExecuteCommand(t *testing.T) {
 	}
 }
 
-func TestCommand_ExecuteCommandWithOptions(t *testing.T) {
+func TestCommand_ExecuteCommandWithFunctionalOptions(t *testing.T) {
 	// Create session parameters with ImageId set to code_latest
 	params := agentbay.NewCreateSessionParams().WithImageId("code_latest")
 
@@ -99,7 +100,7 @@ func TestCommand_ExecuteCommandWithOptions(t *testing.T) {
 
 	// Test with cwd parameter
 	t.Run("TestWithCwd", func(t *testing.T) {
-		cmdResult, err := session.Command.ExecuteCommandWithOptions("pwd", 10000, "/tmp", nil)
+		cmdResult, err := session.Command.ExecuteCommand("pwd", command.WithTimeoutMs(10000), command.WithCwd("/tmp"))
 		if err != nil {
 			t.Logf("Note: CWD test failed: %v", err)
 		} else {
@@ -114,7 +115,7 @@ func TestCommand_ExecuteCommandWithOptions(t *testing.T) {
 	// Test with envs parameter
 	t.Run("TestWithEnvs", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": "test_value_123"}
-		cmdResult, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		cmdResult, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs test failed: %v", err)
 		} else {
@@ -130,7 +131,7 @@ func TestCommand_ExecuteCommandWithOptions(t *testing.T) {
 	// Test with cwd and envs together
 	t.Run("TestWithCwdAndEnvs", func(t *testing.T) {
 		envs := map[string]string{"CUSTOM_VAR": "custom_value"}
-		cmdResult, err := session.Command.ExecuteCommandWithOptions("pwd && echo $CUSTOM_VAR", 10000, "/tmp", envs)
+		cmdResult, err := session.Command.ExecuteCommand("pwd && echo $CUSTOM_VAR", command.WithTimeoutMs(10000), command.WithCwd("/tmp"), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Combined cwd and envs test failed: %v", err)
 		} else {
@@ -275,7 +276,7 @@ func TestCommand_CwdWithSpaces(t *testing.T) {
 	}
 
 	// Test pwd with cwd containing spaces
-	result, err := session.Command.ExecuteCommandWithOptions("pwd", 10000, testDir, nil)
+	result, err := session.Command.ExecuteCommand("pwd", command.WithTimeoutMs(10000), command.WithCwd(testDir))
 	if err != nil {
 		t.Logf("Note: CWD with spaces test failed: %v", err)
 	} else {
@@ -294,7 +295,7 @@ func TestCommand_CwdWithSpaces(t *testing.T) {
 	}
 
 	// Test creating a file in the directory with spaces
-	fileResult, err := session.Command.ExecuteCommandWithOptions("echo 'test content' > test_file.txt", 10000, testDir, nil)
+	fileResult, err := session.Command.ExecuteCommand("echo 'test content' > test_file.txt", command.WithTimeoutMs(10000), command.WithCwd(testDir))
 	if err != nil {
 		t.Logf("Note: Failed to create file in directory with spaces: %v", err)
 	} else {
@@ -304,7 +305,7 @@ func TestCommand_CwdWithSpaces(t *testing.T) {
 	}
 
 	// Verify file was created
-	listResult, err := session.Command.ExecuteCommandWithOptions("ls test_file.txt", 10000, testDir, nil)
+	listResult, err := session.Command.ExecuteCommand("ls test_file.txt", command.WithTimeoutMs(10000), command.WithCwd(testDir))
 	if err != nil {
 		t.Logf("Note: Failed to list file in directory with spaces: %v", err)
 	} else {
@@ -339,7 +340,7 @@ func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
 	// Test environment variable with quotes
 	t.Run("TestEnvsWithSingleQuotes", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": "value with 'single quotes'"}
-		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		result, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs with single quotes test failed: %v", err)
 		} else {
@@ -358,7 +359,7 @@ func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
 	// Test environment variable with double quotes
 	t.Run("TestEnvsWithDoubleQuotes", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": `value with "double quotes"`}
-		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		result, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs with double quotes test failed: %v", err)
 		} else {
@@ -378,7 +379,7 @@ func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
 	// This should NOT execute as a separate command due to parameter passing
 	t.Run("TestEnvsWithSemicolon", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": "value; rm -rf /"}
-		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		result, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs with semicolon test failed: %v", err)
 		} else {
@@ -398,7 +399,7 @@ func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
 	// Test environment variable with special characters
 	t.Run("TestEnvsWithSpecialChars", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": "value with !@#$%^&*()_+-=[]{}|;':\",./<>?"}
-		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		result, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs with special characters test failed: %v", err)
 		} else {
@@ -421,7 +422,7 @@ func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
 	// Test environment variable with newline (potential injection attempt)
 	t.Run("TestEnvsWithNewlines", func(t *testing.T) {
 		envs := map[string]string{"TEST_VAR": "value\nwith\nnewlines"}
-		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		result, err := session.Command.ExecuteCommand("echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithEnvs(envs))
 		if err != nil {
 			t.Logf("Note: Envs with newlines test failed: %v", err)
 		} else {
@@ -468,7 +469,7 @@ func TestCommand_CwdAndEnvsWithSpecialChars(t *testing.T) {
 
 	// Test with both cwd (spaces) and envs (special chars)
 	envs := map[string]string{"TEST_VAR": "value with 'quotes' and ; semicolon"}
-	result, err := session.Command.ExecuteCommandWithOptions("pwd && echo $TEST_VAR", 10000, testDir, envs)
+	result, err := session.Command.ExecuteCommand("pwd && echo $TEST_VAR", command.WithTimeoutMs(10000), command.WithCwd(testDir), command.WithEnvs(envs))
 	if err != nil {
 		t.Logf("Note: Combined cwd (spaces) and envs (special chars) test failed: %v", err)
 	} else {

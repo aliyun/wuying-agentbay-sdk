@@ -35,7 +35,7 @@ func (m *MockCommandInterface) EXPECT() *MockCommandInterfaceMockRecorder {
 }
 
 // ExecuteCommand mocks base method.
-func (m *MockCommandInterface) ExecuteCommand(arg0 string, arg1 ...int) (*command.CommandResult, error) {
+func (m *MockCommandInterface) ExecuteCommand(arg0 string, arg1 ...interface{}) (*command.CommandResult, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {

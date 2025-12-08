@@ -8,6 +8,7 @@ import (
 
 // CommandInterface defines the interface for command operations
 type CommandInterface interface {
-	// ExecuteCommand executes a command with optional timeout
-	ExecuteCommand(command string, timeoutMs ...int) (*command.CommandResult, error)
+	// ExecuteCommand executes a command with optional timeout or Functional Options.
+	// Supports both legacy usage (timeoutMs ...int) and Functional Options pattern.
+	ExecuteCommand(command string, args ...interface{}) (*command.CommandResult, error)
 }
