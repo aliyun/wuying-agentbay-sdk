@@ -35,22 +35,28 @@ export class Command {
   }
 
   /**
-   * Executes a shell command in the session environment.
+   * Execute a shell command with optional working directory and environment variables.
    *
-   * @param command - The shell command to execute.
-   * @param timeoutMs - Timeout in milliseconds. Defaults to 1000ms (1s).
-   *                    Maximum allowed timeout is 50000ms (50s). If a larger value is provided,
-   *                    it will be automatically limited to 50000ms.
-   * @param cwd - The working directory for command execution. Optional.
-   * @param envs - Environment variables as a dictionary. Optional.
+   * Executes a shell command in the session environment with configurable timeout,
+   * working directory, and environment variables. The command runs with session
+   * user permissions in a Linux shell environment.
+   *
+   * @param command - The shell command to execute
+   * @param timeoutMs - Timeout in milliseconds (default: 1000ms/1s). Maximum allowed
+   *                    timeout is 50000ms (50s). If a larger value is provided,
+   *                    it will be automatically limited to 50000ms
+   * @param cwd - The working directory for command execution. If not specified,
+   *              the command runs in the default session directory
+   * @param envs - Environment variables as a dictionary of key-value pairs.
+   *              These variables are set for the command execution only
    *
    * @returns Promise resolving to CommandResult containing:
-   *          - success: Whether the command executed successfully
-   *          - output: Combined stdout and stderr output (for backward compatibility)
-   *          - exitCode: The exit code of the command execution
+   *          - success: Whether the command executed successfully (exitCode === 0)
+   *          - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+   *          - exitCode: The exit code of the command execution (0 for success)
    *          - stdout: Standard output from the command execution
    *          - stderr: Standard error from the command execution
-   *          - traceId: Trace ID for error tracking (only present when errorCode != 0)
+   *          - traceId: Trace ID for error tracking (only present when exitCode !== 0)
    *          - requestId: Unique identifier for this API request
    *          - errorMessage: Error description if execution failed
    *
@@ -59,7 +65,7 @@ export class Command {
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
    * const result = await agentBay.create();
    * if (result.success) {
-   *   const cmdResult = await result.session.command.executeCommand('echo "Hello"', 3000);
+   *   const cmdResult = await result.session.command.executeCommand('echo "Hello"', 5000);
    *   console.log('Command output:', cmdResult.output);
    *   console.log('Exit code:', cmdResult.exitCode);
    *   console.log('Stdout:', cmdResult.stdout);
@@ -69,23 +75,19 @@ export class Command {
    *
    * @example
    * ```typescript
-   * // Using cwd and envs parameters
-   * const result = await session.command.executeCommand(
-   *   'pwd',
-   *   5000,
-   *   '/tmp',
-   *   { 'TEST_VAR': 'test_value' }
-   * );
+   * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+   * const result = await agentBay.create();
+   * if (result.success) {
+   *   const cmdResult = await result.session.command.executeCommand(
+   *     'pwd',
+   *     5000,
+   *     '/tmp',
+   *     { TEST_VAR: 'test_value' }
+   *   );
+   *   console.log('Working directory:', cmdResult.stdout);
+   *   await result.session.delete();
+   * }
    * ```
-   *
-   * @remarks
-   * **Behavior:**
-   * - Executes in a Linux shell environment
-   * - Default timeout is 60000ms (60s), but will be limited to 50000ms (50s) maximum
-   * - Command runs with session user permissions
-   * - Supports working directory and environment variables
-   *
-   * @see {@link FileSystem.readFile}, {@link FileSystem.writeFile}
    */
   async executeCommand(
     command: string,

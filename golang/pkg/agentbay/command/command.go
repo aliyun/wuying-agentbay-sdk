@@ -59,21 +59,21 @@ func NewCommand(session interface {
 }
 
 // ExecuteCommand executes a shell command in the session environment.
+//
 // This method maintains backward compatibility with the original signature.
+// For advanced features like working directory and environment variables,
+// use ExecuteCommandWithOptions instead.
 //
 // Parameters:
 //   - command: The shell command to execute
-//   - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s)
+//   - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s).
+//     Maximum allowed timeout is 50000ms (50s). If a larger value
+//     is provided, it will be automatically limited to 50000ms
 //
 // Returns:
-//   - *CommandResult: Result containing command output, exit code, stdout, stderr, trace_id, and request ID
+//   - *CommandResult: Result containing command output, exit code, stdout,
+//     stderr, trace_id, and request ID
 //   - error: Error if the operation fails
-//
-// Behavior:
-//
-// - Executes in a Linux shell environment
-// - Default timeout is 60000ms (60s), but will be limited to 50000ms (50s) maximum
-// - Command runs with session user permissions
 //
 // Example:
 //
@@ -140,6 +140,10 @@ func WithEnvs(envs map[string]string) CommandOption {
 //   - cmd.ExecuteCommand("ls -la", WithTimeoutMs(5000))
 //   - cmd.ExecuteCommand("pwd", WithCwd("/tmp"), WithEnvs(map[string]string{"VAR": "value"}))
 //
+// Executes a shell command in the session environment with configurable timeout,
+// working directory, and environment variables. The command runs with session
+// user permissions in a Linux shell environment.
+//
 // Parameters:
 //   - command: The shell command to execute
 //   - options: Either an int (timeoutMs in milliseconds) for legacy usage, or
@@ -168,6 +172,7 @@ func WithEnvs(envs map[string]string) CommandOption {
 //	    WithTimeoutMs(5000),
 //	    WithCwd("/tmp"),
 //	    WithEnvs(map[string]string{"FOO": "bar"}),
+>>>>>>> f2ef8d07 (Update command interface documentation to match API documentation standards)
 //	)
 func (c *Command) ExecuteCommand(command string, options ...interface{}) (*CommandResult, error) {
 	// Default configuration

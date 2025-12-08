@@ -24,30 +24,52 @@ class AsyncCommand(AsyncBaseService):
         envs: Optional[Dict[str, str]] = None,
     ) -> CommandResult:
         """
-        Execute a shell command with a timeout.
+        Execute a shell command with optional working directory and environment variables.
+
+        Executes a shell command in the session environment with configurable timeout,
+        working directory, and environment variables. The command runs with session
+        user permissions in a Linux shell environment.
 
         Args:
-            command: The shell command to execute.
-            timeout_ms: The timeout for the command execution in milliseconds. Default is 60000ms (60s).
-                Maximum allowed timeout is 50000ms (50s). If a larger value is provided, it will be
-                automatically limited to 50000ms.
-            cwd: The working directory for command execution. Optional.
-            envs: Environment variables as a dictionary. Optional.
+            command: The shell command to execute
+            timeout_ms: Timeout in milliseconds (default: 60000ms/60s). Maximum allowed
+                timeout is 50000ms (50s). If a larger value is provided, it will be
+                automatically limited to 50000ms
+            cwd: The working directory for command execution. If not specified,
+                the command runs in the default session directory
+            envs: Environment variables as a dictionary of key-value pairs.
+                These variables are set for the command execution only
 
         Returns:
-            CommandResult: Result object containing success status, execution
-                output, exit code, stdout, stderr, trace_id, and error message if any.
+            CommandResult: Result object containing:
+                - success: Whether the command executed successfully (exit_code == 0)
+                - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+                - exit_code: The exit code of the command execution (0 for success)
+                - stdout: Standard output from the command execution
+                - stderr: Standard error from the command execution
+                - trace_id: Trace ID for error tracking (only present when exit_code != 0)
+                - request_id: Unique identifier for this API request
+                - error_message: Error description if execution failed
 
         Raises:
-            CommandError: If the command execution fails.
+            CommandError: If the command execution fails due to system errors
 
         Example:
-            ```python
-            result = await session.command.execute_command("ls -la")
+            session = agent_bay.create().session
+            result = await session.command.execute_command("echo 'Hello, World!'")
             print(result.output)
-            print(result.stdout)
             print(result.exit_code)
-            ```
+            session.delete()
+
+        Example:
+            result = await session.command.execute_command(
+                "pwd",
+                timeout_ms=5000,
+                cwd="/tmp",
+                envs={"TEST_VAR": "test_value"}
+            )
+            print(result.stdout)
+            session.delete()
         """
         try:
             # Limit timeout to maximum 50s (50000ms) as per SDK constraints
