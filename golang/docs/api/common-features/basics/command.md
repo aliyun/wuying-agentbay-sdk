@@ -53,18 +53,18 @@ func (c *Command) ExecuteCommand(command string, timeoutMs ...int) (*CommandResu
 
 ExecuteCommand executes a shell command in the session environment.
 
+This method maintains backward compatibility with the original signature. For advanced features like
+working directory and environment variables, use ExecuteCommandWithOptions instead.
+
 Parameters:
   - command: The shell command to execute
-  - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms)
+  - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s). Maximum allowed timeout is
+    50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms
 
 Returns:
-  - *CommandResult: Result containing command output and request ID
+  - *CommandResult: Result containing command output, exit code, stdout, stderr, trace_id, and
+    request ID
   - error: Error if the operation fails
-
-Behavior:
-
-- Executes in a Linux shell environment - Combines stdout and stderr in the output - Default timeout
-is 1000ms (1 second) - Command runs with session user permissions
 
 **Example:**
 
@@ -73,6 +73,52 @@ client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(nil)
 defer result.Session.Delete()
 cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la")
+cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la", 5000)
+```
+
+### ExecuteCommandWithOptions
+
+```go
+func (c *Command) ExecuteCommandWithOptions(
+	command string,
+	timeoutMs int,
+	cwd string,
+	envs map[string]string,
+) (*CommandResult, error)
+```
+
+ExecuteCommandWithOptions executes a shell command with advanced options.
+
+Executes a shell command in the session environment with configurable timeout, working directory,
+and environment variables. The command runs with session user permissions in a Linux shell
+environment.
+
+Parameters:
+  - command: The shell command to execute
+  - timeoutMs: Timeout in milliseconds (optional, defaults to 1000ms/1s). Maximum allowed timeout is
+    50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms
+  - cwd: The working directory for command execution. If empty, the command runs in the default
+    session directory
+  - envs: Environment variables as a map of key-value pairs. These variables are set for the command
+    execution only
+
+Returns:
+  - *CommandResult: Result containing command output, exit code, stdout, stderr, trace_id, and
+    request ID
+  - error: Error if the operation fails
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+cmdResult, _ := result.Session.Command.ExecuteCommandWithOptions(
+	"pwd",
+	5000,
+	"/tmp",
+	map[string]string{"TEST_VAR": "test_value"},
+)
 ```
 
 ### Related Functions
@@ -100,8 +146,20 @@ NewCommand creates a new Command instance
 type CommandResult struct {
 	// Embed the basic API response structure
 	models.ApiResponse
-	// Output contains the command execution output
-	Output	string
+	// Success indicates whether the command execution was successful
+	Success	bool	`json:"success"`
+	// Output contains the command execution output (for backward compatibility, equals stdout if available, otherwise stderr)
+	Output	string	`json:"output"`
+	// ErrorMessage contains error message if the operation failed
+	ErrorMessage	string	`json:"error_message,omitempty"`
+	// ExitCode is the exit code of the command execution. Default is 0.
+	ExitCode	int	`json:"exit_code"`
+	// Stdout is the standard output from the command execution
+	Stdout	string	`json:"stdout"`
+	// Stderr is the standard error from the command execution
+	Stderr	string	`json:"stderr"`
+	// TraceID is the trace ID for error tracking. Only present when errorCode != 0. Used for quick problem localization.
+	TraceID	string	`json:"trace_id,omitempty"`
 }
 ```
 
