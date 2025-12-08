@@ -35,7 +35,8 @@ result = agentbay.create(CreateSessionParams())
 session = result.session
 
 # Use session
-session.command.run("echo 'Hello World'")
+result = session.command.execute_command("echo 'Hello World'")
+print(result.output)
 
 # Cleanup
 session.delete()
@@ -56,7 +57,8 @@ async def main():
     session = result.session
     
     # Use session
-    await session.command.run("echo 'Hello World'")
+    result = await session.command.execute_command("echo 'Hello World'")
+    print(result.output)
     
     # Cleanup
     await session.delete()
@@ -70,7 +72,7 @@ asyncio.run(main())
 | Aspect | Synchronous | Asynchronous |
 |--------|-------------|--------------|
 | Import | `from agentbay import AgentBay` | `from agentbay import AsyncAgentBay` |
-| Method calls | `session.command.run()` | `await session.command.run()` |
+| Method calls | `session.command.execute_command()` | `await session.command.execute_command()` |
 | Error handling | Standard try/except | Async try/except |
 | Concurrency | Sequential | Concurrent with asyncio |
 
