@@ -146,10 +146,10 @@ jobs:
             echo ""
             cat example_check_report.md
             
-            # Extract statistics for summary
-            TOTAL_EXAMPLES=$(grep -o "[0-9]\+ Examples" example_check_report.md | grep -o "[0-9]\+" || echo "0")
-            PASSED_EXAMPLES=$(grep -o "✅ [0-9]\+ Passed" example_check_report.md | grep -o "[0-9]\+" || echo "0")
-            FAILED_EXAMPLES=$(grep -o "❌ [0-9]\+ Failed" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            # Extract statistics for summary from Chinese format
+            TOTAL_EXAMPLES=$(grep -o "共检测 [0-9]\+ 个示例" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            PASSED_EXAMPLES=$(grep -o "✅ [0-9]\+ 通过" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            FAILED_EXAMPLES=$(grep -o "❌ [0-9]\+ 失败" example_check_report.md | grep -o "[0-9]\+" || echo "0")
             
             # Generate example summary for notification
             EXAMPLE_SUMMARY="$TOTAL_EXAMPLES Examples | ✅ $PASSED_EXAMPLES Passed | ❌ $FAILED_EXAMPLES Failed"
@@ -217,8 +217,8 @@ jobs:
         run: |
           if [ -f "example_check_report.md" ]; then
             # Show success summary from the summary line
-            if grep -q "Examples |" example_check_report.md; then
-              SUMMARY_LINE=$(grep "Examples |" example_check_report.md | head -1)
+            if grep -q "汇总" example_check_report.md; then
+              SUMMARY_LINE=$(grep "汇总" example_check_report.md | head -1)
               echo "📊 $SUMMARY_LINE"
               echo ""
             fi
