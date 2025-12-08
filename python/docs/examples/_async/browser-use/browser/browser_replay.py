@@ -17,7 +17,7 @@ import time
 from agentbay import AsyncAgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 
 
 async def main():
@@ -64,13 +64,13 @@ async def main():
         print(f"🔗 Browser endpoint: {endpoint_url}")
 
         # Wait for browser to be ready
-        asyncio.sleep(5)
+        await asyncio.sleep(5)
 
         # Perform browser operations that will be captured
         print("\n🎥 Starting browser operations for replay...")
 
-        with sync_playwright() as p:
-            playwright_browser = p.chromium.connect_over_cdp(endpoint_url)
+        async with async_playwright() as p:
+            playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
 
             # Test multiple websites and operations
             test_scenarios = [
@@ -96,38 +96,38 @@ async def main():
 
                 default_context = playwright_browser.contexts[0]
                 # Create a new page
-                page = default_context.new_page()
+                page = await default_context.new_page()
 
                 try:
                     # Navigate to the website
                     print(f"🔄 Navigating to {scenario['url']}")
-                    page.goto(scenario['url'], timeout=30000, wait_until="domcontentloaded")
-                    asyncio.sleep(2)
+                    await page.goto(scenario['url'], timeout=30000, wait_until="domcontentloaded")
+                    await asyncio.sleep(2)
 
                     # Get page title
-                    title = page.title()
+                    title = await page.title()
                     print(f"📄 Page title: {title}")
 
                     # Take a screenshot
                     screenshot_path = f"/tmp/replay_screenshot_{i}.png"
-                    page.screenshot(path=screenshot_path)
+                    await page.screenshot(path=screenshot_path)
                     print(f"📸 Screenshot saved: {screenshot_path}")
 
                     # Perform specific actions for this scenario
-                    scenario['actions'](page)
+                    await scenario['actions'](page)
 
                     # Wait to ensure the actions are captured
-                    asyncio.sleep(3)
+                    await asyncio.sleep(3)
 
                 except Exception as e:
                     print(f"⚠️  Warning: Failed to complete scenario {scenario['name']}: {e}")
 
                 finally:
-                    page.close()
-                    asyncio.sleep(1)
+                    await page.close()
+                    await asyncio.sleep(1)
 
             # Close the browser
-            playwright_browser.close()
+            await playwright_browser.close()
 
         print(f"\n🎬 Browser replay completed!")
         print("📁 Replay files are automatically generated and stored by the system")
@@ -149,63 +149,63 @@ async def main():
             print(f"⚠️  Warning: Error during cleanup: {e}")
 
 
-def perform_baidu_search(page):
+async def perform_baidu_search(page):
     """Perform a search on Baidu"""
     try:
         # Find search input and enter search term
-        search_input = page.query_selector("#kw")
+        search_input = await page.query_selector("#kw")
         if search_input:
             search_term = "AgentBay cloud automation"
-            search_input.fill(search_term)
+            await search_input.fill(search_term)
             print(f"🔍 Searching for: {search_term}")
-            asyncio.sleep(1)
+            await asyncio.sleep(1)
 
             # Click search button
-            search_button = page.query_selector("#su")
+            search_button = await page.query_selector("#su")
             if search_button:
-                search_button.click()
+                await search_button.click()
                 print("🔄 Search submitted")
-                asyncio.sleep(3)  # Wait for results
+                await asyncio.sleep(3)  # Wait for results
     except Exception as e:
         print(f"⚠️  Search failed: {e}")
 
 
-def perform_google_search(page):
+async def perform_google_search(page):
     """Perform a search on Google"""
     try:
         # Find search input and enter search term
-        search_input = page.query_selector("input[name='q']")
+        search_input = await page.query_selector("input[name='q']")
         if search_input:
             search_term = "AgentBay browser recording"
-            search_input.fill(search_term)
+            await search_input.fill(search_term)
             print(f"🔍 Searching for: {search_term}")
-            asyncio.sleep(1)
+            await asyncio.sleep(1)
 
             # Press Enter to search
-            search_input.press("Enter")
+            await search_input.press("Enter")
             print("🔄 Search submitted")
-            asyncio.sleep(3)  # Wait for results
+            await asyncio.sleep(3)  # Wait for results
     except Exception as e:
         print(f"⚠️  Search failed: {e}")
 
 
-def browse_documentation(page):
+async def browse_documentation(page):
     """Browse documentation site"""
     try:
         # Wait for page to load
-        asyncio.sleep(2)
+        await asyncio.sleep(2)
 
         # Try to find and click on a link
-        links = page.query_selector_all("a")
+        links = await page.query_selector_all("a")
         if links and len(links) > 0:
             # Click on the first few links to demonstrate navigation
             for i, link in enumerate(links[:3]):
                 try:
-                    link_text = link.text_content()
+                    link_text = await link.text_content()
                     if link_text and len(link_text.strip()) > 0:
                         print(f"🔗 Clicking link: {link_text[:50]}...")
-                        link.click()
-                        asyncio.sleep(2)
+                        await link.click()
+                        await asyncio.sleep(2)
                         break
                 except:
                     continue
