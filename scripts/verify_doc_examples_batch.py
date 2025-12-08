@@ -429,6 +429,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--pattern", help="Filter files by pattern")
     parser.add_argument("--report", default="verification_report.md")
+    parser.add_argument("--limit", type=int, help="Limit number of files to process")
     args = parser.parse_args()
     
     # Init components
@@ -454,6 +455,9 @@ def main():
                     if args.pattern and args.pattern not in rel_path:
                         continue
                     files_to_process.append(path)
+
+    if args.limit:
+        files_to_process = files_to_process[:args.limit]
                     
     print(f"🚀 Starting verification for {len(files_to_process)} files...")
     
