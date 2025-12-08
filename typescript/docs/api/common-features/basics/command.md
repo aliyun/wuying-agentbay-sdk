@@ -22,24 +22,34 @@ Handles command execution operations in the AgentBay cloud environment.
 
 ### executeCommand
 
-▸ **executeCommand**(`command`, `timeoutMs?`): `Promise`\<`CommandResult`\>
+▸ **executeCommand**(`command`, `timeoutMs?`, `cwd?`, `envs?`): `Promise`\<`CommandResult`\>
 
-Executes a shell command in the session environment.
+Execute a shell command with optional working directory and environment variables.
+
+Executes a shell command in the session environment with configurable timeout,
+working directory, and environment variables. The command runs with session
+user permissions in a Linux shell environment.
 
 #### Parameters
 
 | Name | Type | Default value | Description |
 | :------ | :------ | :------ | :------ |
-| `command` | `string` | `undefined` | The shell command to execute. |
-| `timeoutMs` | `number` | `1000` | Timeout in milliseconds. Defaults to 1000ms. |
+| `command` | `string` | `undefined` | The shell command to execute |
+| `timeoutMs` | `number` | `1000` | Timeout in milliseconds (default: 1000ms/1s). Maximum allowed timeout is 50000ms (50s). If a larger value is provided, it will be automatically limited to 50000ms |
+| `cwd?` | `string` | `undefined` | The working directory for command execution. If not specified, the command runs in the default session directory |
+| `envs?` | `Record`\<`string`, `string`\> | `undefined` | Environment variables as a dictionary of key-value pairs. These variables are set for the command execution only |
 
 #### Returns
 
 `Promise`\<`CommandResult`\>
 
 Promise resolving to CommandResult containing:
-         - success: Whether the command executed successfully
-         - output: Combined stdout and stderr output
+         - success: Whether the command executed successfully (exitCode === 0)
+         - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+         - exitCode: The exit code of the command execution (0 for success)
+         - stdout: Standard output from the command execution
+         - stderr: Standard error from the command execution
+         - traceId: Trace ID for error tracking (only present when exitCode !== 0)
          - requestId: Unique identifier for this API request
          - errorMessage: Error description if execution failed
 
@@ -49,23 +59,30 @@ Promise resolving to CommandResult containing:
 const agentBay = new AgentBay({ apiKey: 'your_api_key' });
 const result = await agentBay.create();
 if (result.success) {
-  const cmdResult = await result.session.command.executeCommand('echo "Hello"', 3000);
+  const cmdResult = await result.session.command.executeCommand('echo "Hello"', 5000);
   console.log('Command output:', cmdResult.output);
+  console.log('Exit code:', cmdResult.exitCode);
+  console.log('Stdout:', cmdResult.stdout);
   await result.session.delete();
 }
 ```
 
-**`Remarks`**
+**`Example`**
 
-**Behavior:**
-- Executes in a Linux shell environment
-- Combines stdout and stderr in the output
-- Default timeout is 1000ms (1 second)
-- Command runs with session user permissions
-
-**`See`**
-
-[FileSystem.readFile](filesystem.md#readfile), [FileSystem.writeFile](filesystem.md#writefile)
+```typescript
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+const result = await agentBay.create();
+if (result.success) {
+  const cmdResult = await result.session.command.executeCommand(
+    'pwd',
+    5000,
+    '/tmp',
+    { TEST_VAR: 'test_value' }
+  );
+  console.log('Working directory:', cmdResult.stdout);
+  await result.session.delete();
+}
+```
 
 ## Best Practices
 
