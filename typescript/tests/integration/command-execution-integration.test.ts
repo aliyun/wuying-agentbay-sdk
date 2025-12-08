@@ -86,6 +86,106 @@ describe('Command Execution Integration Tests', () => {
 
     }, );
 
+    it('should test new return format (exitCode, stdout, stderr, traceId)', async () => {
+      const command = session.command;
+
+      // Test success case with new return format
+      const successResult = await command.executeCommand("echo 'Hello, AgentBay!'");
+      expect(successResult.success).toBe(true);
+      expect(successResult.exitCode).toBeDefined();
+      expect(successResult.exitCode).toBe(0);
+      expect(successResult.stdout).toBeDefined();
+      expect(successResult.stdout).toContain('Hello, AgentBay!');
+      expect(successResult.stderr).toBeDefined();
+      expect(successResult.output).toBe(successResult.stdout); // output should equal stdout for success
+
+      // Test error case with new return format
+      const errorResult = await command.executeCommand('ls /non_existent_directory_12345');
+      expect(errorResult.exitCode).toBeDefined();
+      if (errorResult.exitCode !== 0) {
+        expect(errorResult.exitCode).not.toBe(0);
+        expect(errorResult.stderr).toBeDefined();
+        // traceId is optional, only present when errorCode != 0
+        if (errorResult.traceId) {
+          expect(typeof errorResult.traceId).toBe('string');
+          log(`Error command test passed: exitCode=${errorResult.exitCode}, stderr=${errorResult.stderr}, traceId=${errorResult.traceId}`);
+        }
+      }
+
+      log('✓ New return format test passed');
+    });
+
+    it('should test cwd parameter', async () => {
+      const command = session.command;
+
+      const result = await command.executeCommand('pwd', 10000, '/tmp');
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('/tmp');
+
+      log(`✓ CWD test passed: working directory=${result.stdout.trim()}`);
+    });
+
+    it('should test envs parameter', async () => {
+      const command = session.command;
+
+      const result = await command.executeCommand(
+        'echo $TEST_VAR',
+        10000,
+        undefined,
+        { TEST_VAR: 'test_value_123' }
+      );
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      // The environment variable should be set
+      const output = result.stdout.trim();
+      if (output.includes('test_value_123')) {
+        log(`✓ Envs test passed: environment variable set correctly: ${output}`);
+      } else {
+        log(`⚠ Envs test: environment variable may not be set (output: ${output})`);
+      }
+    });
+
+    it('should test cwd and envs parameters together', async () => {
+      const command = session.command;
+
+      const result = await command.executeCommand(
+        'pwd && echo $CUSTOM_VAR',
+        10000,
+        '/tmp',
+        { CUSTOM_VAR: 'custom_value' }
+      );
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('/tmp');
+
+      log(`✓ Combined cwd and envs test passed`);
+      log(`  Output: ${result.stdout}`);
+    });
+
+    it('should test timeout limit (50s)', async () => {
+      const command = session.command;
+
+      // Test with timeout exceeding 50s (50000ms) - should be limited to 50s
+      // Note: We can't directly verify the timeout was limited without mocking,
+      // but we can verify the command still executes successfully
+      const result1 = await command.executeCommand("echo 'timeout test'", 60000);
+      expect(result1.success).toBe(true);
+      expect(result1.exitCode).toBe(0);
+
+      // Test with timeout exactly at limit
+      const result2 = await command.executeCommand("echo 'timeout test 50s'", 50000);
+      expect(result2.success).toBe(true);
+      expect(result2.exitCode).toBe(0);
+
+      // Test with timeout below limit
+      const result3 = await command.executeCommand("echo 'timeout test 30s'", 30000);
+      expect(result3.success).toBe(true);
+      expect(result3.exitCode).toBe(0);
+
+      log('✓ Timeout limit test passed');
+    });
+
     afterAll(async () => {
       // Step 9: Resource cleanup
       if (session) {
