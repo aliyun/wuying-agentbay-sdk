@@ -217,7 +217,7 @@ jobs:
             fi
             
             # Create individual collapsible sections for each failed example - only show AI fix prompt
-            if grep -q "❌ 失败示例" example_check_report.md; then
+            if grep -q "❌" example_check_report.md || grep -q "失败" example_check_report.md; then
               echo "📋 失败示例概览："
               echo ""
               
@@ -231,7 +231,8 @@ jobs:
                 current_section = "";
               }
               
-              /^❌ 失败示例/ {
+              # Match various failure patterns
+              /^❌/ || /失败/ || /FAILED/ || /ERROR/ {
                 # If we have a previous example, output it
                 if (example_count > 0 && example_id != "" && fix_prompt != "") {
                   print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
@@ -245,37 +246,46 @@ jobs:
                 # Start new example
                 example_count++;
                 in_example = 1;
-                example_id = "";
+                example_id = $0;  # Use the whole line as ID initially
                 fix_prompt = "";
                 current_section = "";
                 
-                # Read next line which should contain the example ID
-                if (getline > 0 && /^示例ID:/) {
-                  # Extract example ID from "示例ID: example_id_here"
-                  gsub(/^示例ID: /, "", $0);
-                  example_id = $0;
+                # Try to read next lines to find better ID
+                while (getline > 0) {
+                  if (/^示例ID:/ || /^Example:/ || /^File:/ || /^测试ID:/) {
+                    gsub(/^[^:]*: */, "", $0);
+                    example_id = $0;
+                    break;
+                  } else if (/^🛠️/ || /AI修复/ || /修复提示/ || /Fix/) {
+                    current_section = "fix_prompt";
+                    break;
+                  } else if (/^---/ || /^===/ || /^$/) {
+                    break;
+                  }
                 }
                 next;
               }
               
-              /^🛠️ AI修复提示词/ && in_example {
+              # AI fix prompt section markers
+              /^🛠️/ || /AI修复/ || /修复提示/ || /Fix.*[Pp]rompt/ && in_example {
                 current_section = "fix_prompt";
                 next;
               }
               
+              # Skip code block markers
               /^```/ && in_example {
-                # Skip code block markers
                 next;
               }
               
-              /^---$/ && in_example {
-                # End of current example section
+              # End of example section
+              /^---/ || /^===/ || (/^$/ && current_section == "fix_prompt" && fix_prompt != "") {
                 in_example = 0;
                 current_section = "";
                 next;
               }
               
-              in_example && current_section == "fix_prompt" {
+              # Collect fix prompt content
+              in_example && current_section == "fix_prompt" && $0 != "" {
                 fix_prompt = fix_prompt $0 "\n";
               }
               
@@ -287,6 +297,12 @@ jobs:
                   print fix_prompt;
                   print "```";
                   print "::endgroup::";
+                }
+                
+                # If no examples were found, show debug info
+                if (example_count == 0) {
+                  print "⚠️ 未找到失败示例的AI修复提示词";
+                  print "请检查报告格式是否正确";
                 }
               }
               ' example_check_report.md
