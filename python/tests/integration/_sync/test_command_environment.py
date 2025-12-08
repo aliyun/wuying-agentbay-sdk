@@ -186,9 +186,7 @@ def test_command_timeout_limit(test_session):
 @pytest.mark.sync
 def test_command_cwd_with_spaces(test_session):
     """Test command execution with cwd containing spaces (security test for parameter passing)."""
-    cmd = test_session.command
-    fs = test_session.filesystem
-    
+    cmd = test_session.command    
     # Create a directory with spaces in the path
     test_dir = "/tmp/test dir with spaces"
     
