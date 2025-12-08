@@ -129,3 +129,96 @@ jobs:
             echo "✅ All enabled checks passed successfully."
             exit 0
           fi
+          
+      - id: display-example-results
+        name: "Display Example Results"
+        run: |
+          if [ -f "example_check_report.md" ]; then
+            # Show success summary from the summary line
+            if grep -q "Examples |" example_check_report.md; then
+              SUMMARY_LINE=$(grep "Examples |" example_check_report.md | head -1)
+              echo "📊 $SUMMARY_LINE"
+              echo ""
+            fi
+            
+            # Create individual collapsible sections for each failed example - only show AI fix prompt
+            if grep -q "❌ 失败示例" example_check_report.md; then
+              echo "📋 失败示例概览："
+              echo ""
+              
+              # Process each failed example and only show AI fix prompt in collapsible sections
+              awk '
+              BEGIN { 
+                example_count = 0;
+                in_example = 0;
+                example_id = "";
+                fix_prompt = "";
+                current_section = "";
+              }
+              
+              /^❌ 失败示例/ {
+                # If we have a previous example, output it
+                if (example_count > 0 && example_id != "" && fix_prompt != "") {
+                  print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
+                  print "```";
+                  print fix_prompt;
+                  print "```";
+                  print "::endgroup::";
+                  print "";
+                }
+                
+                # Start new example
+                example_count++;
+                in_example = 1;
+                example_id = "";
+                fix_prompt = "";
+                current_section = "";
+                
+                # Read next line which should contain the example ID
+                if (getline > 0 && /^示例ID:/) {
+                  # Extract example ID from "示例ID: example_id_here"
+                  gsub(/^示例ID: /, "", $0);
+                  example_id = $0;
+                }
+                next;
+              }
+              
+              /^🛠️ AI修复提示词/ && in_example {
+                current_section = "fix_prompt";
+                next;
+              }
+              
+              /^```/ && in_example {
+                # Skip code block markers
+                next;
+              }
+              
+              /^---$/ && in_example {
+                # End of current example section
+                in_example = 0;
+                current_section = "";
+                next;
+              }
+              
+              in_example && current_section == "fix_prompt" {
+                fix_prompt = fix_prompt $0 "\n";
+              }
+              
+              END {
+                # Output the last example if exists
+                if (example_count > 0 && example_id != "" && fix_prompt != "") {
+                  print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
+                  print "```";
+                  print fix_prompt;
+                  print "```";
+                  print "::endgroup::";
+                }
+              }
+              ' example_check_report.md
+              
+            else
+              echo "✅ 所有示例都通过了！"
+            fi
+          else
+            echo "⚠️ 示例检查报告文件不存在"
+          fi
