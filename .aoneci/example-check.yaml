@@ -224,28 +224,28 @@ jobs:
               echo ""
             fi
             
-            # Create individual collapsible sections for each failed example - only show AI fix prompt
-            if grep -q "❌ 失败示例" example_check_report.md; then
+            # Create individual collapsible sections for each failed example - show AI analysis
+            if grep -q "失败示例详情" example_check_report.md; then
               echo "📋 失败示例概览："
               echo ""
               
-              # Process each failed example and only show AI fix prompt in collapsible sections
+              # Process each failed example and show AI analysis in collapsible sections
               awk '
               BEGIN { 
                 example_count = 0;
                 in_example = 0;
-                example_id = "";
-                fix_prompt = "";
+                example_path = "";
+                ai_analysis = "";
                 current_section = "";
+                in_details = 0;
               }
               
-              /^❌ 失败示例/ {
+              # Start of a failed example
+              /^#### 📄/ {
                 # If we have a previous example, output it
-                if (example_count > 0 && example_id != "" && fix_prompt != "") {
-                  print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
-                  print "```";
-                  print fix_prompt;
-                  print "```";
+                if (example_count > 0 && example_path != "" && ai_analysis != "") {
+                  print "::group::" example_count ". " example_path " - 🤖 AI分析";
+                  print ai_analysis;
                   print "::endgroup::";
                   print "";
                 }
@@ -253,48 +253,45 @@ jobs:
                 # Start new example
                 example_count++;
                 in_example = 1;
-                example_id = "";
-                fix_prompt = "";
+                gsub(/^#### 📄 /, "", $0);
+                example_path = $0;
+                ai_analysis = "";
                 current_section = "";
-                
-                # Read next line which should contain the example ID
-                if (getline > 0 && /^示例ID:/) {
-                  # Extract example ID from "示例ID: example_id_here"
-                  gsub(/^示例ID: /, "", $0);
-                  example_id = $0;
+                in_details = 0;
+                next;
+              }
+              
+              # AI Analysis section start
+              in_example && /<summary>🤖 AI 智能分析<\/summary>/ {
+                current_section = "ai_analysis";
+                in_details = 1;
+                next;
+              }
+              
+              # End of details section
+              in_example && in_details && /<\/details>/ {
+                current_section = "";
+                in_details = 0;
+                next;
+              }
+              
+              # Collect AI analysis content
+              in_example && current_section == "ai_analysis" && in_details {
+                if ($0 != "") {
+                  ai_analysis = ai_analysis $0 "\n";
                 }
-                next;
-              }
-              
-              /^🛠️ AI修复提示词/ && in_example {
-                current_section = "fix_prompt";
-                next;
-              }
-              
-              /^```/ && in_example {
-                # Skip code block markers
-                next;
-              }
-              
-              /^---$/ && in_example {
-                # End of current example section
-                in_example = 0;
-                current_section = "";
-                next;
-              }
-              
-              in_example && current_section == "fix_prompt" {
-                fix_prompt = fix_prompt $0 "\n";
               }
               
               END {
                 # Output the last example if exists
-                if (example_count > 0 && example_id != "" && fix_prompt != "") {
-                  print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
-                  print "```";
-                  print fix_prompt;
-                  print "```";
+                if (example_count > 0 && example_path != "" && ai_analysis != "") {
+                  print "::group::" example_count ". " example_path " - 🤖 AI分析";
+                  print ai_analysis;
                   print "::endgroup::";
+                }
+                
+                if (example_count == 0) {
+                  print "⚠️ 未找到失败示例详情";
                 }
               }
               ' example_check_report.md
