@@ -89,7 +89,7 @@ jobs:
                       "pydantic>=2.0" \
                       "playwright>=1.5.0" \
                       "loguru>=0.7.0" \
-                      pytest pytest-asyncio langchain-openai langgraph langchain-core
+                      pytest pytest-asyncio langchain-openai langgraph langchain-core markdown-it-py
           
           # Install playwright browsers and system dependencies
           echo "🎭 Installing Playwright browsers and system dependencies..."
@@ -129,32 +129,32 @@ jobs:
             echo "✅ Report generated"
             
             # Extract statistics for summary
-            TOTAL=$(grep -o "[0-9]\+ Snippets" test_report.md | grep -o "[0-9]\+" || echo "0")
-            PASSED=$(grep -o "✅ [0-9]\+ Passed" test_report.md | grep -o "[0-9]\+" || echo "0")
-            DOC_ISSUES=$(grep -o "❌ [0-9]\+ Doc Issues" test_report.md | grep -o "[0-9]\+" || echo "0")
-            GEN_ISSUES=$(grep -o "⚠️ [0-9]\+ Script Issues" test_report.md | grep -o "[0-9]\+" || echo "0")
+            TOTAL=$(grep -o "\*\*总计文件\*\*: [0-9]\+" test_report.md | grep -o "[0-9]\+" || echo "0")
+            PASSED=$(grep -o "\*\*✅ 通过\*\*: [0-9]\+" test_report.md | grep -o "[0-9]\+" || echo "0")
+            FAILED=$(grep -o "\*\*❌ 失败\*\*: [0-9]\+" test_report.md | grep -o "[0-9]\+" || echo "0")
             
-            SUMMARY="$TOTAL Snippets | ✅ $PASSED Passed | ❌ $DOC_ISSUES Doc Issues | ⚠️ $GEN_ISSUES Script Issues"
+            SUMMARY="$TOTAL Files | ✅ $PASSED Passed | ❌ $FAILED Failed"
             
-            # Generate failed list for notification (Doc issues only)
+            # Generate failed list for notification
             FAILED_LIST=""
-            if [ "$DOC_ISSUES" -gt 0 ]; then
-              grep -A1 "### 📄 文件:" test_report.md | grep "Line" | head -5 | while IFS= read -r line; do
-                 file=$(grep -B1 "$line" test_report.md | grep "### 📄 文件:" | sed 's/### 📄 文件: `//' | sed 's/`//')
-                 loc=$(echo "$line" | sed 's/**位置**: //')
-                 echo "- $file ($loc)" >> /tmp/failed_list
+            if [ "$FAILED" -gt 0 ]; then
+              # Extract failed files from the markdown table (skip header and separator)
+              grep "^| \`" test_report.md | head -5 | while IFS= read -r line; do
+                 # Extract file path from table cell `path`
+                 file=$(echo "$line" | cut -d'|' -f2 | tr -d '`' | xargs)
+                 error=$(echo "$line" | cut -d'|' -f3 | tr -d '*' | xargs)
+                 echo "- $file ($error)" >> /tmp/failed_list
               done
               
               if [ -f /tmp/failed_list ]; then
                 FAILED_LIST=$(cat /tmp/failed_list)
+                if [ "$FAILED" -gt 5 ]; then
+                   FAILED_LIST="$FAILED_LIST\n... (更多请查看CI报告)"
+                fi
                 rm -f /tmp/failed_list
               fi
             else
-              if [ "$GEN_ISSUES" -gt 0 ]; then
-                FAILED_LIST="⚠️ 发现 $GEN_ISSUES 个脚本生成问题，请查看报告。"
-              else
-                FAILED_LIST="✅ 文档示例验证通过！"
-              fi
+              FAILED_LIST="✅ 文档示例验证通过！"
             fi
             
             # Output to step outputs
@@ -170,7 +170,7 @@ jobs:
             cp test_report.md artifacts/doc_verification_report.md
             
             # Fail pipeline if doc issues found
-            if [ "$DOC_ISSUES" -gt 0 ]; then
+            if [ "$FAILED" -gt 0 ]; then
               echo "❌ Found documentation issues"
               exit 1
             fi
