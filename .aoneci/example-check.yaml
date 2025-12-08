@@ -156,26 +156,26 @@ jobs:
             
             # Extract failed example IDs for notification with language info
             if [ "$FAILED_EXAMPLES" -gt 0 ]; then
-              # Extract failed examples with language detection
+              # Extract failed examples with language detection from "#### 📄 path" lines
               FAILED_EXAMPLE_LIST=""
-              grep -A1 "❌ 失败示例" example_check_report.md | grep "示例ID:" | head -10 | while IFS= read -r line; do
-                example_id=$(echo "$line" | sed 's/示例ID: //')
+              grep "#### 📄" example_check_report.md | head -10 | while IFS= read -r line; do
+                example_path=$(echo "$line" | sed 's/#### 📄 //')
                 
-                # Detect language based on example ID patterns
-                if echo "$example_id" | grep -q "golang\|\.go"; then
+                # Detect language based on path patterns
+                if echo "$example_path" | grep -q "golang\|\.go"; then
                   lang="Golang"
-                elif echo "$example_id" | grep -q "python\|\.py"; then
+                elif echo "$example_path" | grep -q "python\|\.py"; then
                   lang="Python"
-                elif echo "$example_id" | grep -q "typescript\|\.ts\|\.js"; then
+                elif echo "$example_path" | grep -q "typescript\|\.ts\|\.js"; then
                   lang="TypeScript"
                 else
                   lang="未知"
                 fi
                 
-                # Clean up example ID
-                clean_example_id=$(echo "$example_id" | sed -e 's/^.*\///' -e 's/^example_//')
+                # Clean up example path - get filename only
+                clean_example=$(basename "$example_path")
                 
-                echo "- [$lang] $clean_example_id" >> /tmp/failed_examples_list
+                echo "- [$lang] $clean_example" >> /tmp/failed_examples_list
               done
               
               if [ -f /tmp/failed_examples_list ]; then
