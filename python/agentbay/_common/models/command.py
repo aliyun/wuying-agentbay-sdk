@@ -17,6 +17,7 @@ class CommandResult(ApiResponse):
         exit_code: int = 0,
         stdout: str = "",
         stderr: str = "",
+        trace_id: str = "",
     ):
         """
         Initialize a CommandResult.
@@ -29,6 +30,8 @@ class CommandResult(ApiResponse):
             exit_code (int, optional): The exit code of the command execution. Default is 0.
             stdout (str, optional): Standard output from the command execution.
             stderr (str, optional): Standard error from the command execution.
+            trace_id (str, optional): Trace ID for error tracking. Only present when errorCode != 0.
+                Used for quick problem localization.
         """
         super().__init__(request_id)
         self.success = success
@@ -37,4 +40,5 @@ class CommandResult(ApiResponse):
         self.exit_code = exit_code
         self.stdout = stdout
         self.stderr = stderr
+        self.trace_id = trace_id
 

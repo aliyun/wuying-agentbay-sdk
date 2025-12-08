@@ -44,7 +44,7 @@ class Command(BaseService):
 
         Example:
             ```python
-            result = session.command.execute_command("ls -la")
+            result = await session.command.execute_command("ls -la")
             print(result.output)
             print(result.stdout)
             print(result.exit_code)

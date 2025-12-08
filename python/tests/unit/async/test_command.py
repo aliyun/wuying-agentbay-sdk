@@ -128,12 +128,11 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         from agentbay import McpToolResult
         import json
 
-        # New format JSON response
+        # New format JSON response (success case, traceId should be empty or not present)
         json_data = json.dumps({
             "stdout": "output text",
             "stderr": "error text",
             "errorCode": 0,
-            "traceId": "trace-123"
         })
         mock_result = McpToolResult(
             request_id="request-123", success=True, data=json_data
@@ -148,6 +147,7 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.stdout, "output text")
         self.assertEqual(result.stderr, "error text")
         self.assertEqual(result.output, "output text")  # Should use stdout
+        self.assertEqual(result.trace_id, "")  # traceId should be empty for success
 
     async def test_execute_command_with_new_json_format_error(self):
         """
@@ -176,6 +176,7 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "command not found")
         self.assertEqual(result.output, "command not found")  # Should use stderr when stdout is empty
+        self.assertEqual(result.trace_id, "trace-123")  # traceId should be present for errors
 
     async def test_execute_command_with_cwd_and_envs(self):
         """
@@ -204,6 +205,39 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(args["timeout_ms"], 5000)
         self.assertEqual(args["cwd"], "/tmp")
         self.assertEqual(args["envs"], {"TEST_VAR": "test_value"})
+
+    async def test_execute_command_timeout_limit(self):
+        """
+        Test execute_command method with timeout exceeding maximum limit (50s).
+        """
+        from agentbay import McpToolResult
+
+        mock_result = McpToolResult(
+            request_id="request-123", success=True, data="test output"
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        # Test with timeout exceeding 50s (50000ms)
+        result = await self.command.execute_command("ls -la", timeout_ms=60000)
+        self.assertIsInstance(result, CommandResult)
+        self.assertTrue(result.success)
+
+        # Verify timeout was limited to 50000ms
+        self.session.call_mcp_tool.assert_called_once()
+        args = self.session.call_mcp_tool.call_args[0][1]
+        self.assertEqual(args["timeout_ms"], 50000)  # Should be limited to 50s
+
+        # Test with timeout exactly at limit
+        self.session.call_mcp_tool.reset_mock()
+        result = await self.command.execute_command("ls -la", timeout_ms=50000)
+        args = self.session.call_mcp_tool.call_args[0][1]
+        self.assertEqual(args["timeout_ms"], 50000)  # Should remain 50s
+
+        # Test with timeout below limit
+        self.session.call_mcp_tool.reset_mock()
+        result = await self.command.execute_command("ls -la", timeout_ms=30000)
+        args = self.session.call_mcp_tool.call_args[0][1]
+        self.assertEqual(args["timeout_ms"], 30000)  # Should remain unchanged
 
 
 if __name__ == "__main__":
