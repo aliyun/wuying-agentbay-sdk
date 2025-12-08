@@ -17,6 +17,8 @@ logger = get_logger("agentbay-agent-example")
 
 
 async def main():
+    from dotenv import load_dotenv
+    load_dotenv()
     # Get API key from environment variable
     api_key = os.getenv("AGENTBAY_API_KEY")
     if not api_key:
@@ -41,7 +43,7 @@ async def main():
         task_description = "创建一个word文件，输入“无影Agentbay”,保存并关闭。"
         logger.info(f"🚀 Executing task: {task_description}")
 
-        execution_result = await session.agent.execute_task(
+        execution_result = await session.agent.computer.execute_task(
             task_description, max_try_times=50
         )
 

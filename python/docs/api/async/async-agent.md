@@ -18,6 +18,14 @@ class AsyncAgent(AsyncBaseService)
 
 An Agent to manipulate applications to complete specific tasks.
 
+## Computer
+
+```python
+class Computer()
+```
+
+An Agent to perform tasks on the computer.
+
 ### async\_execute\_task
 
 ```python
@@ -46,9 +54,9 @@ get_task_status and the max_try_times.
 
 ```python
 session = await agent_bay.create().session
-result = await session.agent.async_execute_task("Open Chrome browser")
+result = await session.agent.computer.async_execute_task("Open Chrome browser")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
-status = await session.agent.get_task_status(result.task_id)
+status = await session.agent.computer.get_task_status(result.task_id)
 print(f"Task status: {status.task_status}")
 await session.delete()
 ```
@@ -81,7 +89,7 @@ so set a proper max_try_times according to your task complexity.
 
 ```python
 session = await agent_bay.create().session
-result = await session.agent.execute_task("Open Chrome browser", max_try_times=20)
+result = await session.agent.computer.execute_task("Open Chrome browser", max_try_times=20)
 print(f"Task result: {result.task_result}")
 await session.delete()
 ```
@@ -109,8 +117,8 @@ Get the status of the task with the given task ID.
 
 ```python
 session = await agent_bay.create().session
-result = await session.agent.async_execute_task("Open Chrome browser")
-status = await session.agent.get_task_status(result.task_id)
+result = await session.agent.computer.async_execute_task("Open Chrome browser")
+status = await session.agent.computer.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
 await session.delete()
 ```
@@ -138,8 +146,170 @@ Terminate a task with a specified task ID.
 
 ```python
 session = await agent_bay.create().session
-result = await session.agent.async_execute_task("Open Chrome browser")
-terminate_result = await session.agent.terminate_task(result.task_id)
+result = await session.agent.computer.async_execute_task("Open Chrome browser")
+terminate_result = await session.agent.computer.terminate_task(result.task_id)
+print(f"Terminated: {terminate_result.success}")
+await session.delete()
+```
+
+## Browser
+
+```python
+class Browser()
+```
+
+An Agent(⚠️ Still in BETA) to perform tasks on the browser
+
+### initialize
+
+```python
+async def initialize(options: AgentOptions = None) -> InitializationResult
+```
+
+Initialize the browser agent with options.
+
+**Arguments**:
+
+    options: options for the agent.
+  
+
+**Returns**:
+
+    InitializationResult: Result object containing success status, and error message if any.
+  
+
+**Example**:
+
+```python
+session = await agent_bay.create().session
+options:AgentOptions = AgentOptions(use_vision=False, output_schema="")
+initialize_result = await session.agent.browser.initialize(options)
+print(f"Initialized: {initialize_result.success}")
+await session.delete()
+```
+
+### async\_execute\_task
+
+```python
+async def async_execute_task(task: str) -> ExecutionResult
+```
+
+Execute a specific task described in human language asynchronously.
+
+This is an asynchronous interface that returns immediately with a task ID.
+Call get_task_status to check the task status. You can control the timeout
+of the task execution in your own code by setting the frequency of calling
+get_task_status and the max_try_times.
+
+**Arguments**:
+
+    task: Task description in human language.
+  
+
+**Returns**:
+
+    ExecutionResult: Result object containing success status, task ID,
+  task status, and error message if any.
+  
+
+**Example**:
+
+```python
+session = await agent_bay.create().session
+result = await session.agent.browser.async_execute_task("Open Chrome browser")
+print(f"Task ID: {result.task_id}, Status: {result.task_status}")
+status = await session.agent.browser.get_task_status(result.task_id)
+print(f"Task status: {status.task_status}")
+await session.delete()
+```
+
+### execute\_task
+
+```python
+async def execute_task(task: str, max_try_times: int) -> ExecutionResult
+```
+
+Execute a specific task described in human language synchronously.
+
+This is a synchronous interface that blocks until the task is completed or
+an error occurs, or timeout happens. The default polling interval is 3 seconds,
+so set a proper max_try_times according to your task complexity.
+
+**Arguments**:
+
+    task: Task description in human language.
+    max_try_times: Maximum number of retries.
+  
+
+**Returns**:
+
+    ExecutionResult: Result object containing success status, task ID,
+  task status, and error message if any.
+  
+
+**Example**:
+
+```python
+session = await agent_bay.create().session
+result = await session.agent.browser.execute_task("Open Chrome browser", max_try_times=20)
+print(f"Task result: {result.task_result}")
+await session.delete()
+```
+
+### get\_task\_status
+
+```python
+async def get_task_status(task_id: str) -> QueryResult
+```
+
+Get the status of the task with the given task ID.
+
+**Arguments**:
+
+    task_id: The ID of the task to query.
+  
+
+**Returns**:
+
+    QueryResult: Result object containing success status, task status,
+  task action, task product, and error message if any.
+  
+
+**Example**:
+
+```python
+session = await agent_bay.create().session
+result = await session.agent.browser.async_execute_task("Open Chrome browser")
+status = await session.agent.browser.get_task_status(result.task_id)
+print(f"Status: {status.task_status}, Action: {status.task_action}")
+await session.delete()
+```
+
+### terminate\_task
+
+```python
+async def terminate_task(task_id: str) -> ExecutionResult
+```
+
+Terminate a task with a specified task ID.
+
+**Arguments**:
+
+    task_id: The ID of the running task to terminate.
+  
+
+**Returns**:
+
+    ExecutionResult: Result object containing success status, task ID,
+  task status, and error message if any.
+  
+
+**Example**:
+
+```python
+session = await agent_bay.create().session
+result = await session.agent.browser.async_execute_task("Open Chrome browser")
+terminate_result = await session.agent.browser.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
 await session.delete()
 ```

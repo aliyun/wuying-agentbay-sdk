@@ -7,24 +7,30 @@ Agent modules are specialized AI task execution units running in AgentBay window
 ## 🤖 Agent Module Overview
 
 Agent modules are specialized AI task execution units
-runnning in Agentbay windows environment to execute tasks decribed in natural language. 
+runnning in Agentbay windows/linux environment to execute tasks decribed in natural language. 
 The task to be executed can be as simple as "Create a word document, input some words and save the document.", in which only one application is involved, or as complex as "Find out the current weather in New York City by Google/Baidu, and write the weather report to a word document, send the word document to a specific email address", in which multiple applications are involved.
 
-The agent is capable of understanding user instructions, planning task execution steps, operating various applications, and managing files and folders on the computer.
+Currently, there are two types of agents: ComputerUseAgent and BrowserUseAgent.
+
+The ComputerUseAgent module is designed for tasks that involve multiple applications, while the BrowserUseAgent module is designed for tasks that involve specially web browsers.
+
+The agents are capable of understanding user instructions, planning task execution steps, operating various applications, and managing files and folders on the computer.
 
 ## System Image Support
 
 Agent Module functionality is currently only available on specific system images:
 
-| System Image | Agent Module Support | Available APIs |
-|-------------|---------------------|----------------|
-| `windows_latest` | ✅ Supported | `execute_task`, `get_task_status`, `terminate_task` |
-| `linux_latest` | ❌ Not Supported | - |
-| `browser_latest` | ❌ Not Supported | - |
-| `code_latest` | ❌ Not Supported | - |
-| `mobile_latest` | ❌ Not Supported | - |
+| System Image | Agent Module Support | Available APIs | Supported Agent |
+|-------------|---------------------|----------------|----------|
+| `windows_latest` | ✅ Supported | `execute_task`, `get_task_status`, `terminate_task` | ComputerUseAgent |
+| `linux_latest` | ✅ Supported | `execute_task`, `get_task_status`, `terminate_task` | BrowserUseAgent(⚠️BETA) |
+| `browser_latest` | ❌ Not Supported | - |  - |
+| `code_latest` | ❌ Not Supported | - |  - |
+| `mobile_latest` | ❌ Not Supported | - |  - |
 
-**Important:** When using Agent Module features, you must create sessions with `image_id="windows_latest"` to ensure the required MCP tools are available.
+**Important:** When using ComputerUseAgent Module features, you must create sessions with `image_id="windows_latest"` to ensure the required MCP tools are available. When using BrowserUseAgent Module features, you must create sessions with `image_id="linux_latest"`.
+
+**NOTE:** ⚠️ BrowserUseAgent is still in beta. Please use with caution.
 
 ## Creating Agent Sessions
 
@@ -57,10 +63,25 @@ else:
 - Text Edition: Using notepad to edit(Read/Write/Edit) text file
 
 ### Task Execution
+#### ComputerUseAgent
 ```python
 # Execute a task using natural language
 task_description = "Calculate the square root of 144"
-execution_result = agent_session.agent.execute_task(task_description, max_try_times=5)
+execution_result = agent_session.agent.computer.execute_task(task_description, max_try_times=5)
+
+if execution_result.success:
+    print("Task completed successfully!")
+    print(f"Task ID: {execution_result.task_id}")
+    print(f"Task status: {execution_result.task_status}")
+else:
+    print(f"Task failed: {execution_result.error_message}")
+```
+
+#### BrowserUseAgent
+```python
+# Execute a task using natural language
+task_description = "Navigate to baidu.com and query the weather in Beijing"
+execution_result = agent_session.agent.browser.execute_task(task_description, max_try_times=5)
 
 if execution_result.success:
     print("Task completed successfully!")
