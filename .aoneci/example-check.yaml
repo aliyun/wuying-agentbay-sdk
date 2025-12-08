@@ -208,7 +208,18 @@ jobs:
         name: "Display Example Results"
         if: always()
         run: |
+          echo "🔍 Debug: Checking for report files..."
+          ls -la *report*.md || echo "No report files found"
+          
           if [ -f "example_check_report.md" ]; then
+            echo "✅ Found example_check_report.md"
+            echo "📄 Report file size: $(wc -l < example_check_report.md) lines"
+            echo "📄 First 20 lines of report:"
+            head -20 example_check_report.md
+            echo "📄 Last 20 lines of report:"
+            tail -20 example_check_report.md
+            echo "---"
+            
             # Show success summary from the summary line
             if grep -q "Examples |" example_check_report.md; then
               SUMMARY_LINE=$(grep "Examples |" example_check_report.md | head -1)
@@ -311,5 +322,9 @@ jobs:
               echo "✅ 所有示例都通过了！"
             fi
           else
-            echo "⚠️ 示例检查报告文件不存在"
+            echo "❌ example_check_report.md 不存在"
+            echo "🔍 当前目录文件列表："
+            ls -la
+            echo "🔍 查找所有 .md 文件："
+            find . -name "*.md" -type f 2>/dev/null || echo "未找到 .md 文件"
           fi
