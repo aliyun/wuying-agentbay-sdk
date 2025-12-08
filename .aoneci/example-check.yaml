@@ -19,6 +19,29 @@ params:
     type: boolean
     default: true
 
+traits:
+  - type: notification
+    properties:
+      types: dingtalk
+      when: all
+      users: 187788
+      content: |
+        ---
+        - **Example Check Report**
+            - @${{git.repo}}
+            - **Branch**: ${{git.branch}}
+            - **Commit**: ${{git.commitId}}
+            - **Changed By**: ${{git.employeeId}}
+                      
+        📝 **多语言示例检查报告**
+        
+        📊 **检查结果：** ${{jobs.example-check.outputs.example_summary}}
+        
+        **失败详情：**
+        ${{jobs.example-check.outputs.failed_examples}}
+        
+        💡 请查看CI详情页面获取AI分析和修复建议。
+
 jobs:
   example-check:
     name: "Examples Inspection"
@@ -30,6 +53,9 @@ jobs:
       max: 1
       when:
         - runner_system_failure
+    outputs:
+      example_summary: ${{steps.run-checks.outputs.example_summary}}
+      failed_examples: ${{steps.run-checks.outputs.failed_examples}}
     steps:
       - uses: checkout
       
@@ -109,7 +135,7 @@ jobs:
             set -e
           fi
           
-          # Display report if exists
+          # Display report if exists and extract statistics
           if [ -f "example_check_report.md" ]; then
             echo ""
             echo "=========================================="
@@ -118,8 +144,56 @@ jobs:
             echo ""
             cat example_check_report.md
             
+            # Extract statistics for summary
+            TOTAL_EXAMPLES=$(grep -o "[0-9]\+ Examples" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            PASSED_EXAMPLES=$(grep -o "✅ [0-9]\+ Passed" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            FAILED_EXAMPLES=$(grep -o "❌ [0-9]\+ Failed" example_check_report.md | grep -o "[0-9]\+" || echo "0")
+            
+            # Generate example summary for notification
+            EXAMPLE_SUMMARY="$TOTAL_EXAMPLES Examples | ✅ $PASSED_EXAMPLES Passed | ❌ $FAILED_EXAMPLES Failed"
+            
+            # Extract failed example IDs for notification with language info
+            if [ "$FAILED_EXAMPLES" -gt 0 ]; then
+              # Extract failed examples with language detection
+              FAILED_EXAMPLE_LIST=""
+              grep -A1 "❌ 失败示例" example_check_report.md | grep "示例ID:" | head -10 | while IFS= read -r line; do
+                example_id=$(echo "$line" | sed 's/示例ID: //')
+                
+                # Detect language based on example ID patterns
+                if echo "$example_id" | grep -q "golang\|\.go"; then
+                  lang="Golang"
+                elif echo "$example_id" | grep -q "python\|\.py"; then
+                  lang="Python"
+                elif echo "$example_id" | grep -q "typescript\|\.ts\|\.js"; then
+                  lang="TypeScript"
+                else
+                  lang="未知"
+                fi
+                
+                # Clean up example ID
+                clean_example_id=$(echo "$example_id" | sed -e 's/^.*\///' -e 's/^example_//')
+                
+                echo "- [$lang] $clean_example_id" >> /tmp/failed_examples_list
+              done
+              
+              if [ -f /tmp/failed_examples_list ]; then
+                FAILED_EXAMPLE_LIST=$(cat /tmp/failed_examples_list)
+                rm -f /tmp/failed_examples_list
+              fi
+            else
+              FAILED_EXAMPLE_LIST="✅ 所有示例都通过了！"
+            fi
+            
+            # Output to step outputs for notification access
+            echo "$EXAMPLE_SUMMARY" > "${{outputs.example_summary.path}}"
+            printf "%s\n" "$FAILED_EXAMPLE_LIST" > "${{outputs.failed_examples.path}}"
+            
             # Also append to CI summary
             cat example_check_report.md >> $AONE_CI_SUMMARY_MD
+          else
+            # No report generated
+            echo "⚠️ 示例检查报告未生成" > "${{outputs.example_summary.path}}"
+            echo "无法生成示例检查报告" > "${{outputs.failed_examples.path}}"
           fi
           
           if [ "$FAILED" = "true" ]; then
