@@ -153,3 +153,29 @@ async def test_command_path_env(test_session):
     assert len(result.output) > 0
     print(f"PATH: {result.output[:100]}...")
 
+
+@pytest.mark.asyncio
+async def test_command_timeout_limit(test_session):
+    """Test command execution with timeout exceeding maximum limit (50s)."""
+    cmd = test_session.command
+    
+    # Test with timeout exceeding 50s (50000ms) - should be limited to 50s
+    # Note: We can't directly verify the timeout was limited without mocking,
+    # but we can verify the command still executes successfully
+    result = await cmd.execute_command("echo 'timeout test'", timeout_ms=60000)
+    assert result.success, "Command should succeed even with timeout > 50s"
+    assert result.exit_code == 0, "Exit code should be 0"
+    assert "timeout test" in result.stdout, "Command should execute successfully"
+    
+    # Test with timeout exactly at limit
+    result = await cmd.execute_command("echo 'timeout test 50s'", timeout_ms=50000)
+    assert result.success, "Command should succeed with timeout = 50s"
+    assert result.exit_code == 0, "Exit code should be 0"
+    
+    # Test with timeout below limit
+    result = await cmd.execute_command("echo 'timeout test 30s'", timeout_ms=30000)
+    assert result.success, "Command should succeed with timeout < 50s"
+    assert result.exit_code == 0, "Exit code should be 0"
+    
+    print(f"✓ Timeout limit test passed")
+
