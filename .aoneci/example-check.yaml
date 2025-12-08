@@ -6,14 +6,18 @@ triggers:
   #   - cron: "0 2 * * *"  # Run daily at 2:00 AM
 
 params:
-  enable_languages:
-    name: Enable Languages
-    type: multi_choice
-    default: ["python", "typescript", "golang"]
-    options:
-      - "python"
-      - "typescript" 
-      - "golang"
+  python:
+    name: Python Examples
+    type: boolean
+    default: true
+  typescript:
+    name: TypeScript Examples
+    type: boolean
+    default: true
+  golang:
+    name: Golang Examples
+    type: boolean
+    default: true
 
 jobs:
   example-check:
@@ -53,7 +57,7 @@ jobs:
           
           # Install TypeScript Dependencies
           echo "📜 Setting up TypeScript..."
-          if [[ "${{params.enable_languages}}" == *"typescript"* ]]; then
+          if [ "${{params.typescript}}" == "true" ]; then
             cd typescript
             npm ci
             npm run build
@@ -66,7 +70,7 @@ jobs:
           
           # Install Golang Dependencies
           echo "🐹 Setting up Golang..."
-          if [[ "${{params.enable_languages}}" == *"golang"* ]]; then
+          if [ "${{params.golang}}" == "true" ]; then
             cd golang
             go env -w GOPROXY=https://goproxy.cn,direct
             go mod download
@@ -81,7 +85,7 @@ jobs:
           # Run checks sequentially but capture failures
           FAILED=false
           
-          if [[ "${{params.enable_languages}}" == *"python"* ]]; then
+          if [ "${{params.python}}" == "true" ]; then
             echo "=== Running Python Checks ==="
             set +e
             python scripts/check_examples.py --lang python
@@ -89,7 +93,7 @@ jobs:
             set -e
           fi
           
-          if [[ "${{params.enable_languages}}" == *"typescript"* ]]; then
+          if [ "${{params.typescript}}" == "true" ]; then
             echo "=== Running TypeScript Checks ==="
             set +e
             python scripts/check_examples.py --lang typescript
@@ -97,7 +101,7 @@ jobs:
             set -e
           fi
           
-          if [[ "${{params.enable_languages}}" == *"golang"* ]]; then
+          if [ "${{params.golang}}" == "true" ]; then
             echo "=== Running Golang Checks ==="
             set +e
             python scripts/check_examples.py --lang golang
