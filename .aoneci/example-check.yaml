@@ -214,6 +214,7 @@ jobs:
           
       - id: display-example-results
         name: "Display Example Results"
+        if: always()
         run: |
           if [ -f "example_check_report.md" ]; then
             # Show success summary from the summary line
