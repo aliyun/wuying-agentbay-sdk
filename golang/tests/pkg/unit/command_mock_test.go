@@ -296,7 +296,7 @@ func TestCommand_Implementation_CwdAndEnvs(t *testing.T) {
 	assert.Equal(t, "pwd", argsMap["command"])
 	assert.Equal(t, 5000, argsMap["timeout_ms"])
 	assert.Equal(t, "/tmp", argsMap["cwd"])
-	envs := argsMap["envs"].(map[string]interface{})
+	envs := argsMap["envs"].(map[string]string)
 	assert.Equal(t, "test_value", envs["TEST_VAR"])
 }
 
