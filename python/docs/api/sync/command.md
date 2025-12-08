@@ -25,7 +25,10 @@ Handles command execution operations in the AgentBay cloud environment.
 ### execute\_command
 
 ```python
-def execute_command(command: str, timeout_ms: int = 60000) -> CommandResult
+def execute_command(command: str,
+                    timeout_ms: int = 60000,
+                    cwd: Optional[str] = None,
+                    envs: Optional[Dict[str, str]] = None) -> CommandResult
 ```
 
 Execute a shell command with a timeout.
@@ -34,12 +37,16 @@ Execute a shell command with a timeout.
 
     command: The shell command to execute.
     timeout_ms: The timeout for the command execution in milliseconds. Default is 60000ms (60s).
+  Maximum allowed timeout is 50000ms (50s). If a larger value is provided, it will be
+  automatically limited to 50000ms.
+    cwd: The working directory for command execution. Optional.
+    envs: Environment variables as a dictionary. Optional.
   
 
 **Returns**:
 
     CommandResult: Result object containing success status, execution
-  output, and error message if any.
+  output, exit code, stdout, stderr, trace_id, and error message if any.
   
 
 **Raises**:
@@ -52,6 +59,8 @@ Execute a shell command with a timeout.
 ```python
 result = session.command.execute_command("ls -la")
 print(result.output)
+print(result.stdout)
+print(result.exit_code)
 ```
 
 ## Best Practices
