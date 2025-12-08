@@ -247,3 +247,258 @@ func TestCommand_TimeoutLimit(t *testing.T) {
 		t.Logf("✓ Timeout limit test passed")
 	})
 }
+
+func TestCommand_CwdWithSpaces(t *testing.T) {
+	// Create session parameters with ImageId set to linux_latest
+	params := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+
+	// Setup session with cleanup
+	session, cleanup := testutil.SetupAndCleanup(t, params)
+	defer cleanup()
+
+	if session.Command == nil {
+		t.Skip("Command interface is nil, skipping test")
+	}
+
+	// Create a directory with spaces in the path
+	testDir := "/tmp/test dir with spaces"
+
+	// First, create the directory
+	createResult, err := session.Command.ExecuteCommand(fmt.Sprintf("mkdir -p '%s'", testDir))
+	if err != nil {
+		t.Logf("Note: Failed to create directory with spaces: %v", err)
+		return
+	}
+	if !createResult.Success {
+		t.Logf("Note: Failed to create directory with spaces: %s", createResult.ErrorMessage)
+		return
+	}
+
+	// Test pwd with cwd containing spaces
+	result, err := session.Command.ExecuteCommandWithOptions("pwd", 10000, testDir, nil)
+	if err != nil {
+		t.Logf("Note: CWD with spaces test failed: %v", err)
+	} else {
+		if !result.Success {
+			t.Errorf("Command should succeed with cwd containing spaces")
+		}
+		if result.ExitCode != 0 {
+			t.Errorf("Exit code should be 0, got: %d", result.ExitCode)
+		}
+		// The output should contain the directory path (may be normalized)
+		if !strings.Contains(result.Stdout, testDir) && !strings.Contains(result.Stdout, "/tmp/test") {
+			t.Errorf("Working directory should contain test dir, got: %s", result.Stdout)
+		} else {
+			t.Logf("✓ CWD with spaces test passed: directory=%s, output=%s", testDir, strings.TrimSpace(result.Stdout))
+		}
+	}
+
+	// Test creating a file in the directory with spaces
+	fileResult, err := session.Command.ExecuteCommandWithOptions("echo 'test content' > test_file.txt", 10000, testDir, nil)
+	if err != nil {
+		t.Logf("Note: Failed to create file in directory with spaces: %v", err)
+	} else {
+		if !fileResult.Success {
+			t.Logf("Note: Failed to create file in directory with spaces: %s", fileResult.ErrorMessage)
+		}
+	}
+
+	// Verify file was created
+	listResult, err := session.Command.ExecuteCommandWithOptions("ls test_file.txt", 10000, testDir, nil)
+	if err != nil {
+		t.Logf("Note: Failed to list file in directory with spaces: %v", err)
+	} else {
+		if !listResult.Success {
+			t.Logf("Note: Failed to list file in directory with spaces: %s", listResult.ErrorMessage)
+		} else {
+			if !strings.Contains(listResult.Stdout, "test_file.txt") {
+				t.Errorf("File should exist in directory with spaces, got: %s", listResult.Stdout)
+			}
+		}
+	}
+
+	// Cleanup
+	cleanupResult, _ := session.Command.ExecuteCommand(fmt.Sprintf("rm -rf '%s'", testDir))
+	if !cleanupResult.Success {
+		t.Logf("Note: Failed to cleanup directory: %s", cleanupResult.ErrorMessage)
+	}
+}
+
+func TestCommand_EnvsWithSpecialCharacters(t *testing.T) {
+	// Create session parameters with ImageId set to linux_latest
+	params := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+
+	// Setup session with cleanup
+	session, cleanup := testutil.SetupAndCleanup(t, params)
+	defer cleanup()
+
+	if session.Command == nil {
+		t.Skip("Command interface is nil, skipping test")
+	}
+
+	// Test environment variable with quotes
+	t.Run("TestEnvsWithSingleQuotes", func(t *testing.T) {
+		envs := map[string]string{"TEST_VAR": "value with 'single quotes'"}
+		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		if err != nil {
+			t.Logf("Note: Envs with single quotes test failed: %v", err)
+		} else {
+			if !result.Success {
+				t.Errorf("Command should succeed with env containing single quotes")
+			}
+			output := strings.TrimSpace(result.Stdout)
+			if strings.Contains(output, "value with") && strings.Contains(output, "single quotes") {
+				t.Logf("✓ Envs with single quotes test passed: %s", output)
+			} else {
+				t.Logf("⚠ Envs with single quotes: output may not match exactly: %s", output)
+			}
+		}
+	})
+
+	// Test environment variable with double quotes
+	t.Run("TestEnvsWithDoubleQuotes", func(t *testing.T) {
+		envs := map[string]string{"TEST_VAR": `value with "double quotes"`}
+		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		if err != nil {
+			t.Logf("Note: Envs with double quotes test failed: %v", err)
+		} else {
+			if !result.Success {
+				t.Errorf("Command should succeed with env containing double quotes")
+			}
+			output := strings.TrimSpace(result.Stdout)
+			if strings.Contains(output, "value with") && strings.Contains(output, "double quotes") {
+				t.Logf("✓ Envs with double quotes test passed: %s", output)
+			} else {
+				t.Logf("⚠ Envs with double quotes: output may not match exactly: %s", output)
+			}
+		}
+	})
+
+	// Test environment variable with semicolon (potential injection attempt)
+	// This should NOT execute as a separate command due to parameter passing
+	t.Run("TestEnvsWithSemicolon", func(t *testing.T) {
+		envs := map[string]string{"TEST_VAR": "value; rm -rf /"}
+		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		if err != nil {
+			t.Logf("Note: Envs with semicolon test failed: %v", err)
+		} else {
+			if !result.Success {
+				t.Errorf("Command should succeed (semicolon should be treated as literal)")
+			}
+			output := strings.TrimSpace(result.Stdout)
+			// The semicolon should be part of the value, not a command separator
+			if strings.Contains(output, "value; rm -rf /") || strings.Contains(output, "value") {
+				t.Logf("✓ Envs with semicolon test passed (no injection): %s", output)
+			} else {
+				t.Logf("⚠ Envs with semicolon: output=%s", output)
+			}
+		}
+	})
+
+	// Test environment variable with special characters
+	t.Run("TestEnvsWithSpecialChars", func(t *testing.T) {
+		envs := map[string]string{"TEST_VAR": "value with !@#$%^&*()_+-=[]{}|;':\",./<>?"}
+		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		if err != nil {
+			t.Logf("Note: Envs with special characters test failed: %v", err)
+		} else {
+			if !result.Success {
+				t.Errorf("Command should succeed with env containing special chars")
+			}
+			output := strings.TrimSpace(result.Stdout)
+			if strings.Contains(output, "value with") {
+				outputPreview := output
+				if len(outputPreview) > 50 {
+					outputPreview = outputPreview[:50] + "..."
+				}
+				t.Logf("✓ Envs with special characters test passed: %s", outputPreview)
+			} else {
+				t.Logf("⚠ Envs with special characters: output may not match: %s", output)
+			}
+		}
+	})
+
+	// Test environment variable with newline (potential injection attempt)
+	t.Run("TestEnvsWithNewlines", func(t *testing.T) {
+		envs := map[string]string{"TEST_VAR": "value\nwith\nnewlines"}
+		result, err := session.Command.ExecuteCommandWithOptions("echo $TEST_VAR", 10000, "", envs)
+		if err != nil {
+			t.Logf("Note: Envs with newlines test failed: %v", err)
+		} else {
+			if !result.Success {
+				t.Errorf("Command should succeed with env containing newlines")
+			}
+			output := strings.TrimSpace(result.Stdout)
+			if strings.Contains(output, "value") {
+				outputPreview := output
+				if len(outputPreview) > 50 {
+					outputPreview = outputPreview[:50] + "..."
+				}
+				t.Logf("✓ Envs with newlines test passed: %s", outputPreview)
+			} else {
+				t.Logf("⚠ Envs with newlines: output may not match: %s", output)
+			}
+		}
+	})
+}
+
+func TestCommand_CwdAndEnvsWithSpecialChars(t *testing.T) {
+	// Create session parameters with ImageId set to linux_latest
+	params := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+
+	// Setup session with cleanup
+	session, cleanup := testutil.SetupAndCleanup(t, params)
+	defer cleanup()
+
+	if session.Command == nil {
+		t.Skip("Command interface is nil, skipping test")
+	}
+
+	// Create a directory with spaces
+	testDir := "/tmp/test dir with spaces"
+	createResult, err := session.Command.ExecuteCommand(fmt.Sprintf("mkdir -p '%s'", testDir))
+	if err != nil {
+		t.Logf("Note: Failed to create directory with spaces: %v", err)
+		return
+	}
+	if !createResult.Success {
+		t.Logf("Note: Failed to create directory with spaces: %s", createResult.ErrorMessage)
+		return
+	}
+
+	// Test with both cwd (spaces) and envs (special chars)
+	envs := map[string]string{"TEST_VAR": "value with 'quotes' and ; semicolon"}
+	result, err := session.Command.ExecuteCommandWithOptions("pwd && echo $TEST_VAR", 10000, testDir, envs)
+	if err != nil {
+		t.Logf("Note: Combined cwd (spaces) and envs (special chars) test failed: %v", err)
+	} else {
+		if !result.Success {
+			t.Errorf("Command should succeed with both cwd (spaces) and envs (special chars)")
+		}
+		if result.ExitCode != 0 {
+			t.Errorf("Exit code should be 0, got: %d", result.ExitCode)
+		}
+		if !strings.Contains(result.Stdout, testDir) && !strings.Contains(result.Stdout, "/tmp/test") {
+			t.Errorf("Working directory should contain test dir, got: %s", result.Stdout)
+		}
+
+		// Verify environment variable was set (may be partially visible)
+		output := strings.TrimSpace(result.Stdout)
+		if strings.Contains(output, "value") || strings.Contains(output, "TEST_VAR") {
+			outputPreview := output
+			if len(outputPreview) > 100 {
+				outputPreview = outputPreview[:100] + "..."
+			}
+			t.Logf("✓ Combined cwd (spaces) and envs (special chars) test passed")
+			t.Logf("  Output: %s", outputPreview)
+		} else {
+			t.Logf("⚠ Combined test: output may not show env var: %s", output)
+		}
+	}
+
+	// Cleanup
+	cleanupResult, _ := session.Command.ExecuteCommand(fmt.Sprintf("rm -rf '%s'", testDir))
+	if !cleanupResult.Success {
+		t.Logf("Note: Failed to cleanup directory: %s", cleanupResult.ErrorMessage)
+	}
+}

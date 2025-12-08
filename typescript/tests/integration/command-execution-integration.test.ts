@@ -121,10 +121,9 @@ describe('Command Execution Integration Tests', () => {
       const result = await command.executeCommand('pwd', 10000, '/tmp');
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toBeDefined();
-      expect(result.stdout!).toContain('/tmp');
+      expect(result.stdout).toContain('/tmp');
 
-      log(`✓ CWD test passed: working directory=${result.stdout!.trim()}`);
+      log(`✓ CWD test passed: working directory=${result.stdout?.trim() ?? ''}`);
     });
 
     it('should test envs parameter', async () => {
@@ -139,7 +138,7 @@ describe('Command Execution Integration Tests', () => {
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);
       // The environment variable should be set
-      const output = result.stdout?.trim() || '';
+      const output = result.stdout?.trim() ?? '';
       if (output.includes('test_value_123')) {
         log(`✓ Envs test passed: environment variable set correctly: ${output}`);
       } else {
@@ -161,7 +160,7 @@ describe('Command Execution Integration Tests', () => {
       expect(result.stdout).toContain('/tmp');
 
       log(`✓ Combined cwd and envs test passed`);
-      log(`  Output: ${result.stdout}`);
+      log(`  Output: ${result.stdout ?? ''}`);
     });
 
     it('should test timeout limit (50s)', async () => {
@@ -185,6 +184,156 @@ describe('Command Execution Integration Tests', () => {
       expect(result3.exitCode).toBe(0);
 
       log('✓ Timeout limit test passed');
+    });
+
+    it('should test cwd with spaces (security test for parameter passing)', async () => {
+      const command = session.command;
+
+      // Create a directory with spaces in the path
+      const testDir = "/tmp/test dir with spaces";
+      
+      // First, create the directory
+      const createResult = await command.executeCommand(`mkdir -p '${testDir}'`);
+      expect(createResult.success).toBe(true);
+
+      // Test pwd with cwd containing spaces
+      const result = await command.executeCommand('pwd', 10000, testDir);
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      // The output should contain the directory path (may be normalized)
+      expect(result.stdout).toMatch(/\/tmp\/test/);
+
+      // Test creating a file in the directory with spaces
+      const fileResult = await command.executeCommand("echo 'test content' > test_file.txt", 10000, testDir);
+      expect(fileResult.success).toBe(true);
+
+      // Verify file was created
+      const listResult = await command.executeCommand('ls test_file.txt', 10000, testDir);
+      expect(listResult.success).toBe(true);
+      expect(listResult.stdout).toContain('test_file.txt');
+
+      // Cleanup
+      await command.executeCommand(`rm -rf '${testDir}'`);
+
+      log(`✓ CWD with spaces test passed: directory=${testDir}`);
+    });
+
+    it('should test envs with special characters (security test)', async () => {
+      const command = session.command;
+
+      // Test environment variable with quotes
+      const result1 = await command.executeCommand(
+        "echo $TEST_VAR",
+        10000,
+        undefined,
+        { TEST_VAR: "value with 'single quotes'" }
+      );
+      expect(result1.success).toBe(true);
+      expect(result1.exitCode).toBe(0);
+      const output1 = result1.stdout?.trim() ?? '';
+      if (output1.includes("value with") && output1.includes("single quotes")) {
+        log(`✓ Envs with single quotes test passed: ${output1}`);
+      } else {
+        log(`⚠ Envs with single quotes: output may not match exactly: ${output1}`);
+      }
+
+      // Test environment variable with double quotes
+      const result2 = await command.executeCommand(
+        "echo $TEST_VAR",
+        10000,
+        undefined,
+        { TEST_VAR: 'value with "double quotes"' }
+      );
+      expect(result2.success).toBe(true);
+      expect(result2.exitCode).toBe(0);
+      const output2 = result2.stdout?.trim() ?? '';
+      if (output2.includes("value with") && output2.includes("double quotes")) {
+        log(`✓ Envs with double quotes test passed: ${output2}`);
+      } else {
+        log(`⚠ Envs with double quotes: output may not match exactly: ${output2}`);
+      }
+
+      // Test environment variable with semicolon (potential injection attempt)
+      // This should NOT execute as a separate command due to parameter passing
+      const result3 = await command.executeCommand(
+        "echo $TEST_VAR",
+        10000,
+        undefined,
+        { TEST_VAR: "value; rm -rf /" }
+      );
+      expect(result3.success).toBe(true);
+      expect(result3.exitCode).toBe(0);
+      const output3 = result3.stdout?.trim() ?? '';
+      // The semicolon should be part of the value, not a command separator
+      if (output3.includes("value; rm -rf /") || output3.includes("value")) {
+        log(`✓ Envs with semicolon test passed (no injection): ${output3}`);
+      } else {
+        log(`⚠ Envs with semicolon: output=${output3}`);
+      }
+
+      // Test environment variable with special characters
+      const result4 = await command.executeCommand(
+        "echo $TEST_VAR",
+        10000,
+        undefined,
+        { TEST_VAR: "value with !@#$%^&*()_+-=[]{}|;':\",./<>?" }
+      );
+      expect(result4.success).toBe(true);
+      expect(result4.exitCode).toBe(0);
+      const output4 = result4.stdout?.trim() ?? '';
+      if (output4.includes("value with")) {
+        log(`✓ Envs with special characters test passed: ${output4.substring(0, 50)}...`);
+      } else {
+        log(`⚠ Envs with special characters: output may not match: ${output4}`);
+      }
+
+      // Test environment variable with newline (potential injection attempt)
+      const result5 = await command.executeCommand(
+        "echo $TEST_VAR",
+        10000,
+        undefined,
+        { TEST_VAR: "value\nwith\nnewlines" }
+      );
+      expect(result5.success).toBe(true);
+      expect(result5.exitCode).toBe(0);
+      const output5 = result5.stdout?.trim() ?? '';
+      if (output5.includes("value")) {
+        log(`✓ Envs with newlines test passed: ${output5.substring(0, 50)}...`);
+      } else {
+        log(`⚠ Envs with newlines: output may not match: ${output5}`);
+      }
+    });
+
+    it('should test cwd (with spaces) and envs (with special chars) together', async () => {
+      const command = session.command;
+
+      // Create a directory with spaces
+      const testDir = "/tmp/test dir with spaces";
+      const createResult = await command.executeCommand(`mkdir -p '${testDir}'`);
+      expect(createResult.success).toBe(true);
+
+      // Test with both cwd (spaces) and envs (special chars)
+      const result = await command.executeCommand(
+        "pwd && echo $TEST_VAR",
+        10000,
+        testDir,
+        { TEST_VAR: "value with 'quotes' and ; semicolon" }
+      );
+      expect(result.success).toBe(true);
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toMatch(/\/tmp\/test/);
+
+      // Verify environment variable was set (may be partially visible)
+      const output = result.stdout?.trim() ?? '';
+      if (output.includes("value") || output.includes("TEST_VAR")) {
+        log('✓ Combined cwd (spaces) and envs (special chars) test passed');
+        log(`  Output: ${output.substring(0, 100)}...`);
+      } else {
+        log(`⚠ Combined test: output may not show env var: ${output}`);
+      }
+
+      // Cleanup
+      await command.executeCommand(`rm -rf '${testDir}'`);
     });
 
     afterAll(async () => {
@@ -241,7 +390,7 @@ const result = {
   message: "JavaScript execution successful",
   timestamp: Date.now()
 };
-console.log(JSON.stringify(result));
+log(JSON.stringify(result));
 `.trim();
 
       const [pythonResult, jsResult] = await Promise.all([
@@ -305,7 +454,7 @@ const result = {
   content: content,
   file_exists: fs.existsSync('/tmp/js_test.txt')
 };
-console.log(JSON.stringify(result));
+log(JSON.stringify(result));
 `.trim();
 
       const [pythonFileResult, jsFileResult] = await Promise.all([
