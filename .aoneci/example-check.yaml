@@ -135,8 +135,10 @@ jobs:
             set -e
           fi
           
-          # Display report if exists and extract statistics
+          # Check if report was generated and extract statistics
           if [ -f "example_check_report.md" ]; then
+            echo "✅ Example check report generated successfully"
+            
             echo ""
             echo "=========================================="
             echo "      Examples Inspection Report"
@@ -190,10 +192,16 @@ jobs:
             
             # Also append to CI summary
             cat example_check_report.md >> $AONE_CI_SUMMARY_MD
+            
+            # Archive as build artifacts
+            mkdir -p artifacts
+            cp example_check_report.md artifacts/example_check_report.md
           else
-            # No report generated
+            echo "⚠️ No example check report generated"
             echo "⚠️ 示例检查报告未生成" > "${{outputs.example_summary.path}}"
             echo "无法生成示例检查报告" > "${{outputs.failed_examples.path}}"
+            echo "## ❌ Example Check Report" >> $AONE_CI_SUMMARY_MD
+            echo "No example check report was generated. Check the logs above for errors." >> $AONE_CI_SUMMARY_MD
           fi
           
           if [ "$FAILED" = "true" ]; then
@@ -206,20 +214,8 @@ jobs:
           
       - id: display-example-results
         name: "Display Example Results"
-        if: always()
         run: |
-          echo "🔍 Debug: Checking for report files..."
-          ls -la *report*.md || echo "No report files found"
-          
           if [ -f "example_check_report.md" ]; then
-            echo "✅ Found example_check_report.md"
-            echo "📄 Report file size: $(wc -l < example_check_report.md) lines"
-            echo "📄 First 20 lines of report:"
-            head -20 example_check_report.md
-            echo "📄 Last 20 lines of report:"
-            tail -20 example_check_report.md
-            echo "---"
-            
             # Show success summary from the summary line
             if grep -q "Examples |" example_check_report.md; then
               SUMMARY_LINE=$(grep "Examples |" example_check_report.md | head -1)
@@ -228,7 +224,7 @@ jobs:
             fi
             
             # Create individual collapsible sections for each failed example - only show AI fix prompt
-            if grep -q "❌" example_check_report.md || grep -q "失败" example_check_report.md; then
+            if grep -q "❌ 失败示例" example_check_report.md; then
               echo "📋 失败示例概览："
               echo ""
               
@@ -242,8 +238,7 @@ jobs:
                 current_section = "";
               }
               
-              # Match various failure patterns
-              /^❌/ || /失败/ || /FAILED/ || /ERROR/ {
+              /^❌ 失败示例/ {
                 # If we have a previous example, output it
                 if (example_count > 0 && example_id != "" && fix_prompt != "") {
                   print "::group::" example_count ". " example_id " - 🛠️ AI修复提示词";
@@ -257,46 +252,37 @@ jobs:
                 # Start new example
                 example_count++;
                 in_example = 1;
-                example_id = $0;  # Use the whole line as ID initially
+                example_id = "";
                 fix_prompt = "";
                 current_section = "";
                 
-                # Try to read next lines to find better ID
-                while (getline > 0) {
-                  if (/^示例ID:/ || /^Example:/ || /^File:/ || /^测试ID:/) {
-                    gsub(/^[^:]*: */, "", $0);
-                    example_id = $0;
-                    break;
-                  } else if (/^🛠️/ || /AI修复/ || /修复提示/ || /Fix/) {
-                    current_section = "fix_prompt";
-                    break;
-                  } else if (/^---/ || /^===/ || /^$/) {
-                    break;
-                  }
+                # Read next line which should contain the example ID
+                if (getline > 0 && /^示例ID:/) {
+                  # Extract example ID from "示例ID: example_id_here"
+                  gsub(/^示例ID: /, "", $0);
+                  example_id = $0;
                 }
                 next;
               }
               
-              # AI fix prompt section markers
-              /^🛠️/ || /AI修复/ || /修复提示/ || /Fix.*[Pp]rompt/ && in_example {
+              /^🛠️ AI修复提示词/ && in_example {
                 current_section = "fix_prompt";
                 next;
               }
               
-              # Skip code block markers
               /^```/ && in_example {
+                # Skip code block markers
                 next;
               }
               
-              # End of example section
-              /^---/ || /^===/ || (/^$/ && current_section == "fix_prompt" && fix_prompt != "") {
+              /^---$/ && in_example {
+                # End of current example section
                 in_example = 0;
                 current_section = "";
                 next;
               }
               
-              # Collect fix prompt content
-              in_example && current_section == "fix_prompt" && $0 != "" {
+              in_example && current_section == "fix_prompt" {
                 fix_prompt = fix_prompt $0 "\n";
               }
               
@@ -309,12 +295,6 @@ jobs:
                   print "```";
                   print "::endgroup::";
                 }
-                
-                # If no examples were found, show debug info
-                if (example_count == 0) {
-                  print "⚠️ 未找到失败示例的AI修复提示词";
-                  print "请检查报告格式是否正确";
-                }
               }
               ' example_check_report.md
               
@@ -322,9 +302,5 @@ jobs:
               echo "✅ 所有示例都通过了！"
             fi
           else
-            echo "❌ example_check_report.md 不存在"
-            echo "🔍 当前目录文件列表："
-            ls -la
-            echo "🔍 查找所有 .md 文件："
-            find . -name "*.md" -type f 2>/dev/null || echo "未找到 .md 文件"
+            echo "⚠️ 示例检查报告文件不存在"
           fi
