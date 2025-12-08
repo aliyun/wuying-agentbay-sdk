@@ -121,9 +121,10 @@ describe('Command Execution Integration Tests', () => {
       const result = await command.executeCommand('pwd', 10000, '/tmp');
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('/tmp');
+      expect(result.stdout).toBeDefined();
+      expect(result.stdout!).toContain('/tmp');
 
-      log(`✓ CWD test passed: working directory=${result.stdout.trim()}`);
+      log(`✓ CWD test passed: working directory=${result.stdout!.trim()}`);
     });
 
     it('should test envs parameter', async () => {
@@ -138,7 +139,7 @@ describe('Command Execution Integration Tests', () => {
       expect(result.success).toBe(true);
       expect(result.exitCode).toBe(0);
       // The environment variable should be set
-      const output = result.stdout.trim();
+      const output = result.stdout?.trim() || '';
       if (output.includes('test_value_123')) {
         log(`✓ Envs test passed: environment variable set correctly: ${output}`);
       } else {
@@ -240,7 +241,7 @@ const result = {
   message: "JavaScript execution successful",
   timestamp: Date.now()
 };
-log(JSON.stringify(result));
+console.log(JSON.stringify(result));
 `.trim();
 
       const [pythonResult, jsResult] = await Promise.all([
@@ -304,7 +305,7 @@ const result = {
   content: content,
   file_exists: fs.existsSync('/tmp/js_test.txt')
 };
-log(JSON.stringify(result));
+console.log(JSON.stringify(result));
 `.trim();
 
       const [pythonFileResult, jsFileResult] = await Promise.all([
