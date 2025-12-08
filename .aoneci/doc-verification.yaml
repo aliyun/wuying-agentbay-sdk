@@ -102,10 +102,10 @@ jobs:
           export AGENTBAY_API_KEY="${{secrets.AGENTBAY_API_KEY}}"
           export DASHSCOPE_API_KEY="${{secrets.DASHSCOPE_API_KEY}}"
           
-          echo "🚀 Starting Doc Verification..."
+          echo "🚀 Starting Doc Verification (Batch Mode)..."
           
-          # Build command arguments
-          CMD="python scripts/verify_doc_examples.py --report test_report.md"
+          # Build command arguments - 使用批量优化版本
+          CMD="python scripts/verify_doc_examples_batch.py --report test_report.md"
           if [ -n "${{params.pattern}}" ]; then
             CMD="$CMD --pattern ${{params.pattern}}"
           fi
