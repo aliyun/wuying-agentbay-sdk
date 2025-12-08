@@ -91,8 +91,9 @@ jobs:
                       "loguru>=0.7.0" \
                       pytest pytest-asyncio langchain-openai langgraph langchain-core
           
-          # Install playwright browsers
-          echo "🎭 Installing Playwright browsers..."
+          # Install playwright browsers and system dependencies
+          echo "🎭 Installing Playwright browsers and system dependencies..."
+          playwright install-deps || echo "⚠️ Playwright system deps install failed"
           playwright install chromium || echo "⚠️ Playwright install failed"
           
           echo "🔧 Setting up environment..."
