@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import MagicMock, MagicMock, patch
 
 from agentbay import McpToolResult, OperationResult
@@ -35,6 +36,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.fs = FileSystem(self.session)
 
     # Test internal chunk methods exist and work correctly
+    @pytest.mark.sync
+
     def test_read_file_chunk_internal_method_exists(self):
         """
         Test that _read_file_chunk internal method exists and works correctly.
@@ -52,6 +55,9 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.content, "chunk content")
         self.assertEqual(result.request_id, "request-123")
+
+    @pytest.mark.sync
+
 
     def test_write_file_chunk_internal_method_exists(self):
         """
@@ -74,6 +80,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
     # Test new unified read_file method
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
     @patch("agentbay._sync.filesystem.FileSystem._read_file_chunk")
+    @pytest.mark.sync
+
     def test_read_file_small_file_direct_read(
         self, mock_read_chunk, mock_get_file_info
     ):
@@ -103,6 +111,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
     @patch("agentbay._sync.filesystem.FileSystem._read_file_chunk")
+    @pytest.mark.sync
+
     def test_read_file_large_file_chunked_read(
         self, mock_read_chunk, mock_get_file_info
     ):
@@ -139,6 +149,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.assertEqual(mock_read_chunk.call_count, 3)
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
+    @pytest.mark.sync
+
     def test_read_file_empty_file(self, mock_get_file_info):
         """
         Test that read_file handles empty files correctly.
@@ -159,6 +171,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         mock_get_file_info.assert_called_once_with("/path/to/empty_file.txt")
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
+    @pytest.mark.sync
+
     def test_read_file_directory_error(self, mock_get_file_info):
         """
         Test that read_file returns error when path is a directory.
@@ -179,6 +193,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
 
     # Test new unified write_file method
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_small_content_direct_write(self, mock_write_chunk):
         """
         Test that write_file handles small content efficiently (single chunk).
@@ -198,6 +214,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         )
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_large_content_chunked_write(self, mock_write_chunk):
         """
         Test that write_file handles large content with automatic chunking.
@@ -229,6 +247,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
             self.assertEqual(call[0][2], "append")  # mode parameter
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_append_mode_small_content(self, mock_write_chunk):
         """
         Test that write_file respects append mode for small content.
@@ -247,6 +267,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         )
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_append_mode_large_content(self, mock_write_chunk):
         """
         Test that write_file respects append mode for large content.
@@ -278,6 +300,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
 
     # Test error handling
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_chunk_error_propagation(self, mock_write_chunk):
         """
         Test that write_file properly propagates errors from chunk operations.
@@ -293,6 +317,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.assertEqual(result.error_message, "Write failed")
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
+    @pytest.mark.sync
+
     def test_read_file_file_info_error_propagation(self, mock_get_file_info):
         """
         Test that read_file properly propagates errors from get_file_info.
@@ -308,6 +334,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.assertEqual(result.error_message, "File not found")
 
     # Test that old large file methods no longer exist (after refactor)
+    @pytest.mark.sync
+
     def test_old_large_file_methods_removed(self):
         """
         Test that the old read_large_file and write_large_file methods are removed.
@@ -318,6 +346,8 @@ class TestAsyncFileSystemRefactor(unittest.TestCase):
         self.assertFalse(hasattr(self.fs, "write_large_file"))
 
     # Test default chunk size configuration
+    @pytest.mark.sync
+
     def test_default_chunk_size_configuration(self):
         """
         Test that the default chunk size is properly configured.

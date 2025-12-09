@@ -126,6 +126,12 @@ from ._sync.context import (
     ContextService,
 )
 from ._sync.code import Code, CodeExecutionResult
+from ._common.models.code import (
+    EnhancedCodeExecutionResult,
+    ExecutionResult,
+    ExecutionLogs,
+    ExecutionError,
+)
 from ._common.models import MobileSimulateUploadResult
 
 # Async API (Explicitly marked)
@@ -255,6 +261,10 @@ __all__ = [
     "ExecutionResult",
     "CommandResult",
     "CodeExecutionResult",
+    "EnhancedCodeExecutionResult",
+    "ExecutionResult",
+    "ExecutionLogs",
+    "ExecutionError",
     "_generate_random_context_name",
     "_colorize_log_message",
     "_BROWSER_DATA_PATH",

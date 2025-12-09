@@ -8,6 +8,7 @@ This test suite follows TDD principles:
 """
 
 import json
+import pytest
 import unittest
 from unittest.mock import MagicMock, MagicMock, Mock, patch
 
@@ -44,6 +45,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
 
     @patch("agentbay._sync.session.CallMcpToolRequest")
     @patch("agentbay._sync.session.extract_request_id")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_success_non_vpc(
         self, mock_extract_request_id, MockCallMcpToolRequest
     ):
@@ -94,6 +97,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
 
     @patch("agentbay._sync.session.CallMcpToolRequest")
     @patch("agentbay._sync.session.extract_request_id")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_with_error_response(
         self, mock_extract_request_id, MockCallMcpToolRequest
     ):
@@ -133,6 +138,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
 
     @patch("agentbay._sync.session.CallMcpToolRequest")
     @patch("agentbay._sync.session.extract_request_id")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_api_exception(
         self, mock_extract_request_id, MockCallMcpToolRequest
     ):
@@ -154,6 +161,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
         self.assertIn("Network error", result.error_message)
 
     @patch("httpx.Client")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_vpc_mode_success(self, mock_httpx_client):
         """Test successful MCP tool call in VPC mode."""
         # Setup VPC session
@@ -198,6 +207,9 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
         self.assertIn("192.168.1.100", call_args[0][0])
         self.assertIn("8080", call_args[0][0])
 
+    @pytest.mark.sync
+
+
     def test_call_mcp_tool_vpc_mode_server_not_found(self):
         """Test VPC mode when server for tool is not found."""
         # Setup VPC session without matching tool
@@ -214,6 +226,9 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
         self.assertIn("server not found", result.error_message.lower())
+
+    @pytest.mark.sync
+
 
     def test_call_mcp_tool_vpc_mode_incomplete_config(self):
         """Test VPC mode with incomplete network configuration."""
@@ -238,6 +253,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
 
     @patch("agentbay._sync.session.CallMcpToolRequest")
     @patch("agentbay._sync.session.extract_request_id")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_with_custom_timeouts(
         self, mock_extract_request_id, MockCallMcpToolRequest
     ):
@@ -280,6 +297,8 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
 
     @patch("agentbay._sync.session.CallMcpToolRequest")
     @patch("agentbay._sync.session.extract_request_id")
+    @pytest.mark.sync
+
     def test_call_mcp_tool_with_complex_args(
         self, mock_extract_request_id, MockCallMcpToolRequest
     ):
@@ -330,6 +349,9 @@ class TestAsyncSessionCallMcpTool(unittest.TestCase):
         self.assertEqual(args_dict["options"]["format"], "json")
         self.assertTrue(args_dict["options"]["compress"])
         self.assertEqual(len(args_dict["options"]["filters"]), 2)
+
+    @pytest.mark.sync
+
 
     def test_call_mcp_tool_return_type(self):
         """Test that call_mcp_tool returns McpToolResult type."""

@@ -21,7 +21,9 @@ def code_session():
         pytest.skip(f"Failed to create session: {session_result.error_message}")
     
     session = session_result.session
-    yield session.code
+    code_obj = session.code
+    
+    yield code_obj
     
     # Cleanup
     session.delete()

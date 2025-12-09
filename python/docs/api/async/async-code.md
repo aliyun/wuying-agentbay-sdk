@@ -33,7 +33,7 @@ Handles code execution operations in the AgentBay cloud environment.
 ```python
 async def run_code(code: str,
                    language: str,
-                   timeout_s: int = 60) -> CodeExecutionResult
+                   timeout_s: int = 60) -> EnhancedCodeExecutionResult
 ```
 
 Execute code in the specified language with a timeout.
@@ -49,7 +49,7 @@ Execute code in the specified language with a timeout.
 
 **Returns**:
 
-    CodeExecutionResult: Result object containing success status, execution
+    EnhancedCodeExecutionResult: Result object containing success status, execution
   result, and error message if any.
   
 

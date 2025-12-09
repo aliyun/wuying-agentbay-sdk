@@ -1,4 +1,5 @@
 import os
+import pytest
 import sys
 import unittest
 from unittest.mock import MagicMock, Mock, patch
@@ -18,6 +19,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.agent_bay = AgentBay(api_key="test-api-key")
+
+    @pytest.mark.sync
+
 
     def test_build_session_from_response(self):
         """Test _build_session_from_response method."""
@@ -61,6 +65,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
             # Verify result
             self.assertEqual(result, mock_session)
 
+    @pytest.mark.sync
+
+
     def test_fetch_mcp_tools_for_vpc_session(self):
         """Test _fetch_mcp_tools_for_vpc_session method."""
         # Mock session
@@ -76,6 +83,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
         # Verify list_mcp_tools was called
         mock_session.list_mcp_tools.assert_called_once()
 
+    @pytest.mark.sync
+
+
     def test_fetch_mcp_tools_for_vpc_session_with_error(self):
         """Test _fetch_mcp_tools_for_vpc_session method with error."""
         # Mock session that raises an exception
@@ -87,6 +97,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
 
         # Verify list_mcp_tools was called
         mock_session.list_mcp_tools.assert_called_once()
+
+    @pytest.mark.sync
+
 
     def test_wait_for_context_synchronization(self):
         """Test _wait_for_context_synchronization method."""
@@ -112,6 +125,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
         # Verify context.info was called
         mock_context.info.assert_called_once()
 
+    @pytest.mark.sync
+
+
     def test_log_request_debug_info(self):
         """Test _log_request_debug_info method."""
         # Mock request
@@ -126,6 +142,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
 
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
+
+    @pytest.mark.sync
+
 
     def test_log_request_debug_info_with_short_auth(self):
         """Test _log_request_debug_info method with short authorization."""
@@ -142,6 +161,9 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
 
+    @pytest.mark.sync
+
+
     def test_log_request_debug_info_with_exception(self):
         """Test _log_request_debug_info method with exception."""
         # Mock request that raises an exception
@@ -154,6 +176,144 @@ class TestAsyncRefactoredMethods(unittest.TestCase):
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
 
+    @pytest.mark.sync
+
+
+    def test_update_browser_replay_context_success(self):
+        """Test _update_browser_replay_context method with successful update."""
+        # Mock response data
+        response_data = {
+            "AppInstanceId": "ai-0d67g8gz0l6tsd17i",
+            "SessionId": "session-123",
+            "Success": True,
+        }
+        record_context_id = "record-context-123"
+
+        # Mock context update result
+        mock_update_result = Mock()
+        mock_update_result.success = True
+        mock_update_result.error_message = None
+
+        # Mock context service
+        with patch.object(self.agent_bay, "context") as mock_context:
+            mock_context.update = MagicMock(return_value=mock_update_result)
+
+            # Call the method
+            self.agent_bay._update_browser_replay_context(
+                response_data, record_context_id
+            )
+
+            # Verify context.update was called with a Context object
+            mock_context.update.assert_called_once()
+            call_args = mock_context.update.call_args[0]
+            context_obj = call_args[0]
+            self.assertEqual(context_obj.id, record_context_id)
+            self.assertEqual(context_obj.name, "browserreplay-ai-0d67g8gz0l6tsd17i")
+
+    @pytest.mark.sync
+
+
+    def test_update_browser_replay_context_no_record_context_id(self):
+        """Test _update_browser_replay_context method when no record context ID provided."""
+        # Mock response data
+        response_data = {
+            "AppInstanceId": "ai-0d67g8gz0l6tsd17i",
+            "SessionId": "session-123",
+            "Success": True,
+        }
+        record_context_id = ""  # Empty record context ID
+
+        # Mock context service
+        with patch.object(self.agent_bay, "context") as mock_context:
+            # Call the method
+            self.agent_bay._update_browser_replay_context(
+                response_data, record_context_id
+            )
+
+            # Verify context.update was not called
+            mock_context.update.assert_not_called()
+
+    @pytest.mark.sync
+
+
+    def test_update_browser_replay_context_no_app_instance_id(self):
+        """Test _update_browser_replay_context method when AppInstanceId is missing."""
+        # Mock response data without AppInstanceId
+        response_data = {"SessionId": "session-123", "Success": True}
+        record_context_id = "record-context-123"
+
+        # Mock context service
+        with patch.object(self.agent_bay, "context") as mock_context:
+            # Call the method
+            self.agent_bay._update_browser_replay_context(
+                response_data, record_context_id
+            )
+
+            # Verify context.update was not called
+            mock_context.update.assert_not_called()
+
+    @pytest.mark.sync
+
+
+    def test_update_browser_replay_context_with_error(self):
+        """Test _update_browser_replay_context method with context update error."""
+        # Mock response data
+        response_data = {
+            "AppInstanceId": "ai-0d67g8gz0l6tsd17i",
+            "SessionId": "session-123",
+            "Success": True,
+        }
+        record_context_id = "record-context-123"
+
+        # Mock context update result with error
+        mock_update_result = Mock()
+        mock_update_result.success = False
+        mock_update_result.error_message = "Context update failed"
+
+        # Mock context service
+        with patch.object(self.agent_bay, "context") as mock_context:
+            mock_context.update = MagicMock(return_value=mock_update_result)
+
+            # Call the method - should not raise an exception
+            self.agent_bay._update_browser_replay_context(
+                response_data, record_context_id
+            )
+
+            # Verify context.update was called
+            mock_context.update.assert_called_once()
+            call_args = mock_context.update.call_args[0]
+            context_obj = call_args[0]
+            self.assertEqual(context_obj.id, record_context_id)
+            self.assertEqual(context_obj.name, "browserreplay-ai-0d67g8gz0l6tsd17i")
+
+    @pytest.mark.sync
+
+
+    def test_update_browser_replay_context_with_exception(self):
+        """Test _update_browser_replay_context method with exception."""
+        # Mock response data
+        response_data = {
+            "AppInstanceId": "ai-0d67g8gz0l6tsd17i",
+            "SessionId": "session-123",
+            "Success": True,
+        }
+        record_context_id = "record-context-123"
+
+        # Mock context service that raises an exception
+        with patch.object(self.agent_bay, "context") as mock_context:
+            mock_context.update = MagicMock(side_effect=Exception("Test error"))
+
+            # Call the method - should not raise an exception
+            self.agent_bay._update_browser_replay_context(
+                response_data, record_context_id
+            )
+
+            # Verify context.update was called
+            mock_context.update.assert_called_once()
+            call_args = mock_context.update.call_args[0]
+            context_obj = call_args[0]
+            self.assertEqual(context_obj.id, record_context_id)
+            self.assertEqual(context_obj.name, "browserreplay-ai-0d67g8gz0l6tsd17i")
 
 if __name__ == "__main__":
     unittest.main()

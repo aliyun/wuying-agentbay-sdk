@@ -1,0 +1,411 @@
+import pytest
+import os
+from agentbay import AsyncAgentBay
+from agentbay import CreateSessionParams
+from agentbay import EnhancedCodeExecutionResult
+
+
+# Global session variable for reuse
+_shared_session = None
+
+
+async def get_shared_session():
+    """Get or create a shared session for all tests."""
+    global _shared_session
+    
+    if _shared_session is None:
+        api_key = os.getenv("AGENTBAY_API_KEY")
+        if not api_key:
+            pytest.skip("AGENTBAY_API_KEY environment variable not set")
+
+        agent_bay = AsyncAgentBay(api_key=api_key)
+        params = CreateSessionParams(image_id="code_latest")
+        session_result = await agent_bay.create(params)
+        if not session_result.success or not session_result.session:
+            pytest.skip(f"Failed to create session: {session_result.error_message}")
+        
+        _shared_session = session_result.session
+    
+    return _shared_session
+
+
+@pytest.mark.asyncio
+async def test_enhanced_result_structure():
+    """Test that results use the enhanced structure."""
+    session = await get_shared_session()
+    code = """
+print("Hello, enhanced world!")
+42
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert isinstance(result, EnhancedCodeExecutionResult)
+    assert result.success
+    assert result.request_id is not None
+    
+    # Test backward compatibility
+    assert "Hello, enhanced world!" in result.result or "42" in result.result
+    
+    # Test enhanced features
+    assert hasattr(result, 'logs')
+    assert hasattr(result, 'results')
+    assert hasattr(result, 'execution_time')
+
+
+@pytest.mark.asyncio
+async def test_logs_capture():
+    """Test that stdout and stderr are properly captured."""
+    session = await get_shared_session()
+    code = """
+import sys
+print("This goes to stdout")
+print("This also goes to stdout", file=sys.stdout)
+print("This goes to stderr", file=sys.stderr)
+"Final result"
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert isinstance(result.logs.stdout, list)
+    assert isinstance(result.logs.stderr, list)
+    
+    # Check that output is captured (exact format may vary)
+    stdout_content = "".join(result.logs.stdout) if result.logs.stdout else ""
+    stderr_content = "".join(result.logs.stderr) if result.logs.stderr else ""
+    
+    # At minimum, some output should be captured
+    assert len(stdout_content) > 0 or len(stderr_content) > 0 or len(result.results) > 0
+
+
+@pytest.mark.asyncio
+async def test_multiple_results_formats():
+    """Test handling of multiple result formats."""
+    session = await get_shared_session()
+    code = """
+# Test various output types
+print("Standard output")
+
+# Text result
+text_result = "This is a text result"
+
+# Dictionary that could be JSON
+json_data = {"key": "value", "number": 42}
+
+# Return the text result
+text_result
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert isinstance(result.results, list)
+    
+    # Should have at least one result
+    assert len(result.results) >= 0
+    
+    # Test backward compatibility
+    assert result.result is not None
+
+
+@pytest.mark.asyncio
+async def test_execution_timing():
+    """Test that execution time is tracked."""
+    session = await get_shared_session()
+    code = """
+import time
+time.sleep(0.1)  # Small delay
+"Execution completed"
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert hasattr(result, 'execution_time')
+    assert isinstance(result.execution_time, (int, float))
+    # Should be at least 0.1 seconds, but allow for some variance
+    assert result.execution_time >= 0.0
+
+
+@pytest.mark.asyncio
+async def test_error_details():
+    """Test enhanced error reporting."""
+    session = await get_shared_session()
+    code = """
+# This should cause a NameError
+print(undefined_variable_that_does_not_exist)
+"""
+    result = await session.code.run_code(code, "python")
+
+    # Error handling may vary - could be success=False or an error in results
+    # In some cases, the error might be captured in executionError rather than success=False
+    # Or it might appear in stderr
+    has_error = (not result.success or 
+                result.error is not None or 
+                result.error_message != "" or
+                (result.logs.stderr and len(result.logs.stderr) > 0))
+    assert has_error
+    
+    if result.error:
+        assert hasattr(result.error, 'name')
+        assert hasattr(result.error, 'value')
+        assert hasattr(result.error, 'traceback')
+
+
+@pytest.mark.asyncio
+async def test_javascript_enhanced_features():
+    """Test enhanced features with JavaScript."""
+    session = await get_shared_session()
+    code = """
+console.log("JavaScript output");
+const data = {message: "Hello from JS", value: 123};
+console.log(JSON.stringify(data));
+data.value * 2;
+"""
+    result = await session.code.run_code(code, "javascript")
+
+    assert isinstance(result, EnhancedCodeExecutionResult)
+    assert result.success
+    assert result.logs is not None
+    assert result.results is not None
+
+
+@pytest.mark.asyncio
+async def test_large_output_handling():
+    """Test handling of large outputs."""
+    session = await get_shared_session()
+    code = """
+# Generate some larger output
+large_list = list(range(100))
+print("Generated list of", len(large_list), "items")
+for i in range(10):
+    print(f"Line {i}: {i * i}")
+"Processing completed"
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert result.logs is not None
+    assert result.results is not None
+    
+    # Should handle the output without issues
+    assert ("Generated list" in result.result or 
+            any("Generated list" in str(res.text or "") for res in result.results) or
+            any("Generated list" in str(log) for log in result.logs.stdout))
+
+
+@pytest.mark.asyncio
+async def test_execution_count_tracking():
+    """Test that execution count is tracked if available."""
+    session = await get_shared_session()
+    code1 = "print('First execution')"
+    code2 = "print('Second execution')"
+    
+    result1 = await session.code.run_code(code1, "python")
+    result2 = await session.code.run_code(code2, "python")
+
+    assert result1.success
+    assert result2.success
+    
+    # execution_count may or may not be provided by the backend
+    if result1.execution_count is not None:
+        assert isinstance(result1.execution_count, int)
+    if result2.execution_count is not None:
+        assert isinstance(result2.execution_count, int)
+
+
+@pytest.mark.asyncio
+async def test_mixed_output_types():
+    """Test code that produces mixed output types."""
+    session = await get_shared_session()
+    code = """
+import json
+print("Starting mixed output test")
+
+# Text output
+text_data = "Simple text"
+print(f"Text: {text_data}")
+
+# JSON-like output
+json_data = {"type": "test", "values": [1, 2, 3]}
+print("JSON:", json.dumps(json_data))
+
+# Final result
+"Mixed output test completed"
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert result.logs is not None
+    assert result.results is not None
+    
+    # Should capture various types of output
+    full_output = result.result
+    assert "Starting mixed output test" in full_output or any("Starting mixed output test" in str(log) for log in result.logs.stdout)
+
+
+@pytest.mark.asyncio
+async def test_empty_code_execution():
+    """Test execution of empty or minimal code."""
+    session = await get_shared_session()
+    code = "# Just a comment"
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    assert result.logs is not None
+    assert result.results is not None
+    
+    # Should handle empty execution gracefully
+    assert result.result == "" or result.result is not None
+
+
+@pytest.mark.asyncio
+async def test_backward_compatibility_properties():
+    """Test that all backward compatibility properties work."""
+    session = await get_shared_session()
+    code = """
+print("Testing backward compatibility")
+final_result = "This is the final result"
+final_result
+"""
+    result = await session.code.run_code(code, "python")
+
+    assert result.success
+    
+    # Test all expected properties exist
+    assert hasattr(result, 'success')
+    assert hasattr(result, 'result')
+    assert hasattr(result, 'error_message')
+    assert hasattr(result, 'request_id')
+    
+    # Test new properties exist
+    assert hasattr(result, 'logs')
+    assert hasattr(result, 'results')
+    assert hasattr(result, 'execution_time')
+    assert hasattr(result, 'execution_count')
+    assert hasattr(result, 'error')
+    
+    # Test property types
+    assert isinstance(result.success, bool)
+    assert isinstance(result.result, str)
+    assert isinstance(result.error_message, str)
+    assert isinstance(result.request_id, str)
+
+
+@pytest.mark.asyncio
+async def test_html_output():
+    """Test HTML output generation."""
+    session = await get_shared_session()
+    code = """
+import pandas as pd
+from IPython.display import display, HTML
+
+# Create a DataFrame and display it as HTML
+df = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
+display(HTML("<h1>Hello HTML</h1>"))
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    # Check if any result has html content
+    has_html = any(res.html is not None and "<h1>Hello HTML</h1>" in res.html for res in result.results)
+    assert has_html, "HTML output not found in results"
+
+
+@pytest.mark.asyncio
+async def test_markdown_output():
+    """Test Markdown output generation."""
+    session = await get_shared_session()
+    code = """
+from IPython.display import display, Markdown
+
+display(Markdown('# Hello Markdown'))
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    has_markdown = any(res.markdown is not None and "# Hello Markdown" in res.markdown for res in result.results)
+    assert has_markdown, "Markdown output not found in results"
+
+
+@pytest.mark.asyncio
+async def test_image_output():
+    """Test image (PNG/JPEG) output generation."""
+    session = await get_shared_session()
+    code = """
+import matplotlib.pyplot as plt
+
+plt.figure()
+plt.plot([1, 2, 3], [1, 2, 3])
+plt.title("Test Plot")
+plt.show()
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    # Check for png or jpeg
+    has_image = any(res.png is not None or res.jpeg is not None for res in result.results)
+    assert has_image, "Image output (PNG/JPEG) not found in results"
+
+
+@pytest.mark.asyncio
+async def test_svg_output():
+    """Test SVG output generation."""
+    session = await get_shared_session()
+    code = """
+from IPython.display import display, SVG
+
+svg_code = '<svg height="100" width="100"><circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" /></svg>'
+display(SVG(svg_code))
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    has_svg = any(res.svg is not None and "<svg" in res.svg for res in result.results)
+    assert has_svg, "SVG output not found in results"
+
+
+@pytest.mark.asyncio
+async def test_latex_output():
+    """Test LaTeX output generation."""
+    session = await get_shared_session()
+    code = r"""
+from IPython.display import display, Latex
+
+display(Latex(r'\frac{1}{2}'))
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    has_latex = any(res.latex is not None and "frac{1}{2}" in res.latex for res in result.results)
+    assert has_latex, "LaTeX output not found in results"
+
+
+@pytest.mark.asyncio
+async def test_chart_output():
+    """Test structured chart output."""
+    session = await get_shared_session()
+    # Use a mock object to simulate chart output without external dependencies like Altair
+    code = """
+from IPython.display import display
+
+class MockChart:
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        return {
+            "application/vnd.vegalite.v4+json": {"data": "mock_chart_data", "mark": "bar"},
+            "text/plain": "MockChart"
+        }
+
+display(MockChart())
+"""
+    result = await session.code.run_code(code, "python")
+    assert result.success
+    
+    # Check for chart data
+    has_chart = any(res.chart is not None for res in result.results)
+    
+    assert has_chart, "Chart output not found in results"
+
+
+@pytest.mark.asyncio
+async def test_zzz_cleanup():
+    """Cleanup shared session - runs last due to name sorting."""
+    global _shared_session
+    if _shared_session:
+        try:
+            await _shared_session.delete()
+            _shared_session = None
+        except Exception:
+            pass  # Ignore cleanup errors

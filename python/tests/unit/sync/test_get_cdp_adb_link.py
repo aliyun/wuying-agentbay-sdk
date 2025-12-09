@@ -24,6 +24,9 @@ class TestGetCdpLink:
         )
         return Client(config)
 
+    @pytest.mark.sync
+
+
     def test_get_cdp_link_success(self, client):
         """Test get_cdp_link with successful response"""
         # Prepare mock response
@@ -55,6 +58,9 @@ class TestGetCdpLink:
             assert response.body.data is not None
             assert response.body.data.url == "ws://test-cdp-url:9222"
 
+    @pytest.mark.sync
+
+
     def test_get_cdp_link_with_options(self, client):
         """Test get_cdp_link_with_options"""
         mock_response = {
@@ -82,6 +88,8 @@ class TestGetCdpLink:
             assert response.body.data.url == "ws://test-cdp-url:9222"
 
     @pytest.mark.sync
+    @pytest.mark.sync
+
     def test_get_cdp_link_async(self, client):
         """Test get_cdp_link_async"""
         mock_response = {
@@ -104,6 +112,9 @@ class TestGetCdpLink:
             assert response is not None
             assert response.status_code == 200
             assert response.body.data.url == "ws://test-cdp-url:9222"
+
+    @pytest.mark.sync
+
 
     def test_get_cdp_link_failure(self, client):
         """Test get_cdp_link with failed response"""
@@ -145,6 +156,9 @@ class TestGetAdbLink:
         )
         return Client(config)
 
+    @pytest.mark.sync
+
+
     def test_get_adb_link_success(self, client):
         """Test get_adb_link with successful response"""
         mock_response = {
@@ -178,6 +192,9 @@ class TestGetAdbLink:
             assert response.body.data is not None
             assert response.body.data.url == "adb://test-adb-url:5555"
 
+    @pytest.mark.sync
+
+
     def test_get_adb_link_with_options(self, client):
         """Test get_adb_link_with_options"""
         mock_response = {
@@ -210,6 +227,8 @@ class TestGetAdbLink:
             assert response.body.data.url == "adb://test-adb-url:5555"
 
     @pytest.mark.sync
+    @pytest.mark.sync
+
     def test_get_adb_link_async(self, client):
         """Test get_adb_link_async"""
         mock_response = {
@@ -237,6 +256,9 @@ class TestGetAdbLink:
             assert response is not None
             assert response.status_code == 200
             assert response.body.data.url == "adb://test-adb-url:5555"
+
+    @pytest.mark.sync
+
 
     def test_get_adb_link_failure(self, client):
         """Test get_adb_link with failed response"""

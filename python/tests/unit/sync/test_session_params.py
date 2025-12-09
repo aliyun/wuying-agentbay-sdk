@@ -1,20 +1,29 @@
 import json
+import pytest
 import unittest
 
 from agentbay import CreateSessionParams, AppManagerRule, ExtraConfigs, MobileExtraConfig
 
 
 class TestAsyncCreateSessionParams(unittest.TestCase):
+    @pytest.mark.sync
+
     def test_default_initialization(self):
         """Test that CreateSessionParams initializes with default values."""
         params = CreateSessionParams()
         self.assertEqual(params.labels, {})
+
+    @pytest.mark.sync
+
 
     def test_custom_labels(self):
         """Test that CreateSessionParams accepts custom labels."""
         labels = {"username": "alice", "project": "my-project"}
         params = CreateSessionParams(labels=labels)
         self.assertEqual(params.labels, labels)
+
+    @pytest.mark.sync
+
 
     def test_labels_json_conversion(self):
         """Test that labels can be converted to JSON for the API request."""
@@ -28,10 +37,16 @@ class TestAsyncCreateSessionParams(unittest.TestCase):
         parsed_labels = json.loads(labels_json)
         self.assertEqual(parsed_labels, labels)
 
+    @pytest.mark.sync
+
+
     def test_policy_id(self):
         """Test that policy_id can be carried by CreateSessionParams."""
         params = CreateSessionParams(policy_id="policy-xyz")
         self.assertEqual(params.policy_id, "policy-xyz")
+
+    @pytest.mark.sync
+
 
     def test_extra_configs_initialization(self):
         """Test that CreateSessionParams accepts extra_configs parameter."""
@@ -54,6 +69,9 @@ class TestAsyncCreateSessionParams(unittest.TestCase):
         self.assertEqual(
             len(params.extra_configs.mobile.app_manager_rule.app_package_name_list), 2
         )
+
+    @pytest.mark.sync
+
 
     def test_mobile_extra_config_comprehensive(self):
         """Comprehensive test for MobileExtraConfig with all configuration options."""
@@ -116,6 +134,9 @@ class TestAsyncCreateSessionParams(unittest.TestCase):
         self.assertEqual(len(minimal_config.uninstall_blacklist), 1)
         self.assertIn("com.critical.app", minimal_config.uninstall_blacklist)
 
+    @pytest.mark.sync
+
+
     def test_app_manager_rule_validation(self):
         """Test AppManagerRule validation with various inputs."""
         # Test with valid string list
@@ -129,6 +150,9 @@ class TestAsyncCreateSessionParams(unittest.TestCase):
         # Test with empty list
         app_rule_empty = AppManagerRule(rule_type="Black", app_package_name_list=[])
         app_rule_empty.validate()  # Should not raise
+
+    @pytest.mark.sync
+
 
     def test_extra_configs_serialization_comprehensive(self):
         """Comprehensive test for ExtraConfigs serialization and deserialization."""

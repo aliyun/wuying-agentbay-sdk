@@ -70,6 +70,7 @@ COMMON_DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("common/exceptions.md", "Exceptions", ("agentbay._common.exceptions",)),
     DocMapping("common/logging.md", "Logging", ("agentbay._common.logger",)),
     DocMapping("common/context-sync.md", "Context Sync", ("agentbay._common.params.context_sync",)),
+    DocMapping("common/code-models.md", "Code Execution Models", ("agentbay._common.models.code",)),
 )
 
 

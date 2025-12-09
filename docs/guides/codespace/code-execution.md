@@ -6,8 +6,10 @@ This guide covers code execution capabilities in AgentBay SDK's CodeSpace enviro
 
 - [Overview](#overview)
 - [CodeSpace Environment](#codespace-environment)
+- [Enhanced Code Execution](#enhanced-code-execution)
 - [Python Code Execution](#python-code-execution)
 - [JavaScript Code Execution](#javascript-code-execution)
+- [Rich Output Formats](#rich-output-formats)
 - [Code Execution with File I/O](#code-execution-with-file-io)
 - [Best Practices](#best-practices)
 
@@ -18,6 +20,7 @@ CodeSpace is AgentBay's development-focused environment that provides:
 
 - **Multi-language Support** - Run Python and JavaScript/Node.js code
 - **Isolated Execution** - Secure, containerized code execution
+- **Enhanced Results** - Rich output formats including HTML, images, charts, and more
 - **Development Tools** - Pre-installed interpreters and development utilities
 - **File Operations** - Read and write files for script execution
 
@@ -45,6 +48,86 @@ else:
 ```
 
 **Important:** The `run_code()` method requires `image_id="code_latest"` when creating the session.
+
+<a id="enhanced-code-execution"></a>
+## ✨ Enhanced Code Execution
+
+AgentBay now provides enhanced code execution results with rich output formats and detailed execution information.
+
+### Enhanced Result Structure
+
+```python
+from agentbay import AgentBay, CreateSessionParams, EnhancedCodeExecutionResult
+
+agent_bay = AgentBay(api_key="your-api-key")
+session_params = CreateSessionParams(image_id="code_latest")
+result = agent_bay.create(session_params)
+
+if result.success:
+    session = result.session
+    
+    code = """
+print("Hello, Enhanced AgentBay!")
+result = 2 + 2
+print(f"2 + 2 = {result}")
+result
+"""
+    
+    result = session.code.run_code(code, "python")
+    
+    # Enhanced result provides rich information
+    print(f"Success: {result.success}")
+    print(f"Execution time: {result.execution_time}s")
+    print(f"Request ID: {result.request_id}")
+    
+    # Access logs
+    print(f"Stdout: {result.logs.stdout}")
+    print(f"Stderr: {result.logs.stderr}")
+    
+    # Access results in multiple formats
+    for i, res in enumerate(result.results):
+        print(f"Result {i}: {res.text}")
+        print(f"Available formats: {res.formats()}")
+    
+    # Backward compatibility - still works
+    print(f"Result (legacy): {result.result}")
+    
+    session.delete()
+```
+
+### Working with Result Types
+
+```python
+from agentbay import (
+    AgentBay, 
+    CreateSessionParams,
+    EnhancedCodeExecutionResult,
+    ExecutionResult,
+    ExecutionLogs,
+    ExecutionError
+)
+
+# Type checking and handling
+result = session.code.run_code(code, "python")
+
+if isinstance(result, EnhancedCodeExecutionResult):
+    # Access execution logs
+    if isinstance(result.logs, ExecutionLogs):
+        print(f"Stdout lines: {len(result.logs.stdout)}")
+        print(f"Stderr lines: {len(result.logs.stderr)}")
+    
+    # Process multiple results
+    for exec_result in result.results:
+        if isinstance(exec_result, ExecutionResult):
+            if exec_result.text:
+                print(f"Text output: {exec_result.text}")
+            if exec_result.html:
+                print(f"HTML output: {exec_result.html}")
+    
+    # Handle errors
+    if result.error and isinstance(result.error, ExecutionError):
+        print(f"Error: {result.error.name} - {result.error.value}")
+```
 
 <a id="python-code-execution"></a>
 ## 🐍 Python Code Execution
@@ -217,6 +300,212 @@ console.log('\\nData:', JSON.stringify(data, null, 2));
     agent_bay.delete(session)
 ```
 
+<a id="rich-output-formats"></a>
+## 🎨 Rich Output Formats
+
+AgentBay's enhanced code execution supports multiple output formats including HTML, images, charts, and more.
+
+### HTML Output
+
+```python
+from agentbay import AgentBay, CreateSessionParams
+
+agent_bay = AgentBay(api_key="your-api-key")
+session_params = CreateSessionParams(image_id="code_latest")
+result = agent_bay.create(session_params)
+
+if result.success:
+    session = result.session
+    
+    code = """
+from IPython.display import display, HTML
+
+# Create HTML output
+html_content = '''
+<div style="background: #f0f8ff; padding: 20px; border-radius: 10px;">
+    <h2 style="color: #2e8b57;">AgentBay Results</h2>
+    <p>This is <strong>HTML output</strong> from code execution!</p>
+    <ul>
+        <li>Rich formatting</li>
+        <li>Interactive elements</li>
+        <li>Custom styling</li>
+    </ul>
+</div>
+'''
+
+display(HTML(html_content))
+"""
+    
+    result = session.code.run_code(code, "python")
+    
+    # Check for HTML output
+    for res in result.results:
+        if res.html:
+            print("HTML output found:")
+            print(res.html)
+    
+    session.delete()
+```
+
+### Markdown Output
+
+```python
+code = """
+from IPython.display import display, Markdown
+
+markdown_content = '''
+# AgentBay Code Execution
+
+## Features
+
+- **Enhanced Results**: Multiple output formats
+- **Rich Content**: HTML, Markdown, Images
+- **Performance**: Execution timing and metadata
+
+### Example Table
+
+| Language | Support | Performance |
+|----------|---------|-------------|
+| Python   | ✅      | Excellent   |
+| JavaScript| ✅     | Excellent   |
+
+> This is generated from code execution!
+'''
+
+display(Markdown(markdown_content))
+"""
+
+result = session.code.run_code(code, "python")
+
+# Check for Markdown output
+for res in result.results:
+    if res.markdown:
+        print("Markdown output found:")
+        print(res.markdown)
+```
+
+### Image Output (Charts and Plots)
+
+```python
+code = """
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Create a simple plot
+x = np.linspace(0, 10, 100)
+y = np.sin(x)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, 'b-', linewidth=2, label='sin(x)')
+plt.title('Sine Wave Generated by AgentBay')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+"""
+
+result = session.code.run_code(code, "python")
+
+# Check for image output
+for res in result.results:
+    if res.png:
+        print("PNG image found (base64 encoded)")
+        # res.png contains base64 encoded image data
+    if res.jpeg:
+        print("JPEG image found (base64 encoded)")
+        # res.jpeg contains base64 encoded image data
+```
+
+### SVG Output
+
+```python
+code = """
+from IPython.display import display, SVG
+
+svg_content = '''
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="80" fill="#4CAF50" stroke="#2E7D32" stroke-width="4"/>
+  <text x="100" y="110" text-anchor="middle" fill="white" font-size="16" font-family="Arial">
+    AgentBay
+  </text>
+</svg>
+'''
+
+display(SVG(svg_content))
+"""
+
+result = session.code.run_code(code, "python")
+
+# Check for SVG output
+for res in result.results:
+    if res.svg:
+        print("SVG output found:")
+        print(res.svg)
+```
+
+### LaTeX Mathematical Expressions
+
+```python
+code = r"""
+from IPython.display import display, Latex
+
+latex_content = r'''
+\begin{align}
+E &= mc^2 \\
+F &= ma \\
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\epsilon_0}
+\end{align}
+'''
+
+display(Latex(latex_content))
+"""
+
+result = session.code.run_code(code, "python")
+
+# Check for LaTeX output
+for res in result.results:
+    if res.latex:
+        print("LaTeX output found:")
+        print(res.latex)
+```
+
+### Chart Data (Vega-Lite)
+
+```python
+code = """
+# Simulate chart output with structured data
+class MockChart:
+    def _repr_mimebundle_(self, include=None, exclude=None):
+        return {
+            "application/vnd.vegalite.v4+json": {
+                "data": {"values": [
+                    {"x": "A", "y": 28},
+                    {"x": "B", "y": 55},
+                    {"x": "C", "y": 43},
+                    {"x": "D", "y": 91}
+                ]},
+                "mark": "bar",
+                "encoding": {
+                    "x": {"field": "x", "type": "nominal"},
+                    "y": {"field": "y", "type": "quantitative"}
+                }
+            }
+        }
+
+from IPython.display import display
+display(MockChart())
+"""
+
+result = session.code.run_code(code, "python")
+
+# Check for chart data
+for res in result.results:
+    if res.chart:
+        print("Chart data found:")
+        print(res.chart)
+```
+
 <a id="code-execution-with-file-io"></a>
 ## 📁 Code Execution with File I/O
 
@@ -323,7 +612,69 @@ def greet(name):
 <a id="best-practices"></a>
 ## 💡 Best Practices
 
-### 1. Use Timeout for Long-Running Code
+### 1. Use Enhanced Result Types
+
+Always use the enhanced result types for better type safety and functionality:
+
+```python
+from agentbay import EnhancedCodeExecutionResult, ExecutionResult
+
+result = session.code.run_code(code, "python")
+
+# Type-safe access to enhanced features
+if isinstance(result, EnhancedCodeExecutionResult):
+    # Access execution metadata
+    print(f"Execution time: {result.execution_time}s")
+    
+    # Check all available output formats
+    for res in result.results:
+        if isinstance(res, ExecutionResult):
+            formats = res.formats()
+            print(f"Available formats: {formats}")
+```
+
+### 2. Handle Multiple Output Formats
+
+Code execution can produce multiple types of output. Check all available formats:
+
+```python
+result = session.code.run_code(code, "python")
+
+for i, res in enumerate(result.results):
+    print(f"Result {i}:")
+    
+    if res.text:
+        print(f"  Text: {res.text}")
+    if res.html:
+        print(f"  HTML available: {len(res.html)} chars")
+    if res.png:
+        print(f"  PNG image available")
+    if res.markdown:
+        print(f"  Markdown available")
+    if res.chart:
+        print(f"  Chart data available")
+```
+
+### 3. Monitor Execution Logs
+
+Use the enhanced logging capabilities to debug and monitor your code:
+
+```python
+result = session.code.run_code(code, "python")
+
+# Check stdout and stderr separately
+if result.logs.stdout:
+    print("Standard output:")
+    for line in result.logs.stdout:
+        print(f"  {line.strip()}")
+
+if result.logs.stderr:
+    print("Error output:")
+    for line in result.logs.stderr:
+        print(f"  {line.strip()}")
+```
+
+### 4. Use Timeout for Long-Running Code
 
 The default timeout for `run_code()` is 60 seconds. **Note: Due to gateway limitations, each request cannot exceed 60 seconds.**
 
@@ -335,15 +686,58 @@ result = session.code.run_code(code, "python")
 result = session.code.run_code(code, "python", timeout_s=60)
 ```
 
-### 2. Use Standard Library Only
+### 5. Error Handling with Enhanced Details
+
+Take advantage of enhanced error information:
+
+```python
+result = session.code.run_code(code, "python")
+
+if not result.success:
+    # Check for detailed error information
+    if result.error:
+        print(f"Error type: {result.error.name}")
+        print(f"Error message: {result.error.value}")
+        print(f"Traceback: {result.error.traceback}")
+    else:
+        # Fallback to basic error message
+        print(f"Error: {result.error_message}")
+    
+    # Check stderr for additional error details
+    if result.logs.stderr:
+        print("Additional error output:")
+        for line in result.logs.stderr:
+            print(f"  {line.strip()}")
+```
+
+### 6. Use Standard Library Only
 
 CodeSpace comes with Python and Node.js standard libraries pre-installed. For best performance and reliability, use only built-in modules:
 
-**Python**: `os`, `sys`, `json`, `math`, `datetime`, `re`, etc.  
+**Python**: `os`, `sys`, `json`, `math`, `datetime`, `re`, `matplotlib`, `numpy`, etc.  
 **JavaScript**: `fs`, `path`, `os`, `crypto`, etc.
+
+### 7. Backward Compatibility
+
+The enhanced results maintain backward compatibility with existing code:
+
+```python
+# Old way (still works)
+result = session.code.run_code(code, "python")
+print(result.result)  # Returns combined text output
+
+# New way (recommended)
+result = session.code.run_code(code, "python")
+for res in result.results:
+    if res.is_main_result:
+        print(res.text)  # Get the main result specifically
+```
 
 ## 📚 Related Documentation
 
+- [Code API Reference (Sync)](../../python/docs/api/sync/code.md) - Synchronous code execution API
+- [AsyncCode API Reference](../../python/docs/api/async/async-code.md) - Asynchronous code execution API
+- [Code Execution Models](../../python/docs/api/common/code-models.md) - Enhanced result types and data models
 - [File Operations](../common-features/basics/file-operations.md) - File handling and management
 - [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
 - [Command Execution](../common-features/basics/command-execution.md) - Shell command execution

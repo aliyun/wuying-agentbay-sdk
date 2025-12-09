@@ -1,4 +1,5 @@
 import os
+import pytest
 import unittest
 from unittest.mock import MagicMock, MagicMock, patch
 
@@ -18,6 +19,8 @@ class TestAgentBay(unittest.TestCase):
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_initialization_with_env_var(self, mock_mcp_client, mock_load_config):
         """Test initializing AgentBay with an API key from environment variable"""
         # Mock configuration
@@ -43,6 +46,8 @@ class TestAgentBay(unittest.TestCase):
 
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_initialization_with_provided_key(
         self, mock_mcp_client, mock_load_config
     ):
@@ -66,6 +71,8 @@ class TestAgentBay(unittest.TestCase):
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("agentbay._sync.agentbay._load_config")
+    @pytest.mark.sync
+
     def test_initialization_without_api_key(self, mock_load_config):
         """Test initialization failure when no API key is available"""
         # Mock configuration
@@ -84,6 +91,8 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay._sync.agentbay.extract_request_id")
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_create_session_success(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -146,6 +155,8 @@ class TestAgentBay(unittest.TestCase):
 
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_create_session_invalid_response(
         self, mock_mcp_client, mock_load_config
     ):
@@ -203,6 +214,8 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay._sync.agentbay.extract_request_id")
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_list(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -264,6 +277,8 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay._sync.agentbay.extract_request_id")
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_list_pagination(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -333,6 +348,8 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay._sync.agentbay.extract_request_id")
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_create_session_with_policy_id(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -393,6 +410,8 @@ class TestAgentBay(unittest.TestCase):
 
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_create_with_mobile_extra_configs(
         self, mock_mcp_client, mock_load_config
     ):
@@ -417,6 +436,16 @@ class TestAgentBay(unittest.TestCase):
             }
         }
         mock_client.create_mcp_session = MagicMock(return_value=mock_response)
+
+        # Mock call_mcp_tool_async for mobile configuration
+        mock_tool_response = MagicMock()
+        mock_tool_response.to_map.return_value = {
+            "body": {
+                "Data": {"Success": True, "Output": "Command executed"},
+                "RequestId": "tool-request-id",
+            }
+        }
+        mock_client.call_mcp_tool = MagicMock(return_value=mock_tool_response)
 
         # Mock context info response
         mock_context_response = MagicMock()
@@ -479,6 +508,8 @@ class TestAgentBay(unittest.TestCase):
 
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_create_with_mobile_blacklist_config(
         self, mock_mcp_client, mock_load_config
     ):
@@ -503,6 +534,16 @@ class TestAgentBay(unittest.TestCase):
             }
         }
         mock_client.create_mcp_session = MagicMock(return_value=mock_response)
+
+        # Mock call_mcp_tool_async for mobile configuration
+        mock_tool_response = MagicMock()
+        mock_tool_response.to_map.return_value = {
+            "body": {
+                "Data": {"Success": True, "Output": "Command executed"},
+                "RequestId": "tool-request-id",
+            }
+        }
+        mock_client.call_mcp_tool = MagicMock(return_value=mock_tool_response)
 
         # Mock context info response
         mock_context_response = MagicMock()
@@ -563,6 +604,8 @@ class TestAgentBay(unittest.TestCase):
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
     @patch("agentbay._sync.agentbay._log_api_response_with_details")
+    @pytest.mark.sync
+
     def test_create_session_logs_full_resource_url(
         self,
         mock_log_api_response,

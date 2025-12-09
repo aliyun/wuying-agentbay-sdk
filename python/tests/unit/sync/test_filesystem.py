@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import MagicMock, MagicMock, patch
 
 from agentbay import McpToolResult, OperationResult
@@ -37,6 +38,8 @@ class TestAsyncFileSystem(unittest.TestCase):
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
     @patch("agentbay._sync.filesystem.FileSystem._read_file_chunk")
+    @pytest.mark.sync
+
     def test_read_file_success(self, mock_read_file_chunk, mock_get_file_info):
         """
         Test read_file method with successful response (small file).
@@ -61,6 +64,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.request_id, "request-123")
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
+    @pytest.mark.sync
+
     def test_read_file_get_info_error(self, mock_get_file_info):
         """
         Test read_file method with error in get_file_info.
@@ -81,6 +86,8 @@ class TestAsyncFileSystem(unittest.TestCase):
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
     @patch("agentbay._sync.filesystem.FileSystem._read_file_chunk")
+    @pytest.mark.sync
+
     def test_read_file_chunk_error(
         self, mock_read_file_chunk, mock_get_file_info
     ):
@@ -108,6 +115,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Invalid response body")
 
+    @pytest.mark.sync
+
+
     def test_create_directory_success(self):
         """
         Test create_directory method with successful response.
@@ -122,6 +132,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertTrue(result.data)
+
+    @pytest.mark.sync
+
 
     def test_create_directory_error(self):
         """
@@ -141,6 +154,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Directory creation failed")
 
+    @pytest.mark.sync
+
+
     def test_edit_file_success(self):
         """
         Test edit_file method with successful response.
@@ -157,6 +173,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertTrue(result.data)
+
+    @pytest.mark.sync
+
 
     def test_edit_file_error(self):
         """
@@ -180,6 +199,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.error_message, "Edit failed")
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_success(self, mock_write_file_chunk):
         """
         Test write_file method with successful response (small content).
@@ -200,6 +221,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         )
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_error(self, mock_write_file_chunk):
         """
         Test write_file method with error response.
@@ -217,6 +240,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Write failed")
+
+    @pytest.mark.sync
+
 
     def test_get_file_info_success(self):
         """
@@ -240,6 +266,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.file_info["modified"], "2023-01-01T12:00:00Z")
         self.assertEqual(result.file_info["isDirectory"], False)
 
+    @pytest.mark.sync
+
+
     def test_get_file_info_error(self):
         """
         Test get_file_info method with error response.
@@ -258,6 +287,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "File not found")
+
+    @pytest.mark.sync
+
 
     def test_list_directory_success(self):
         """
@@ -284,6 +316,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.entries[2].name, "file2.txt")
         self.assertEqual(result.entries[2].is_directory, False)
 
+    @pytest.mark.sync
+
+
     def test_list_directory_error(self):
         """
         Test list_directory method with error response.
@@ -304,6 +339,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.error_message, "Directory not found")
         self.assertEqual(result.entries, [])
 
+    @pytest.mark.sync
+
+
     def test_move_file_success(self):
         """
         Test move_file method with successful response.
@@ -318,6 +356,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertTrue(result.data)
+
+    @pytest.mark.sync
+
 
     def test_move_file_error(self):
         """
@@ -337,6 +378,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Move operation failed")
+
+    @pytest.mark.sync
+
 
     def test_read_multiple_files_success(self):
         """
@@ -361,6 +405,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.contents["file1.txt"], "File 1 content")
         self.assertEqual(result.contents["file2.txt"], "File 2 content")
 
+    @pytest.mark.sync
+
+
     def test_search_files_success(self):
         """
         Test search_files method with successful response.
@@ -381,6 +428,9 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(len(result.matches), 2)
         self.assertEqual(result.matches[0], "/path/to/file1.txt")
         self.assertEqual(result.matches[1], "/path/to/file2.txt")
+
+    @pytest.mark.sync
+
 
     def test_search_files_with_exclude(self):
         """
@@ -404,6 +454,8 @@ class TestAsyncFileSystem(unittest.TestCase):
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
     @patch("agentbay._sync.filesystem.FileSystem._read_file_chunk")
+    @pytest.mark.sync
+
     def test_read_file_large_success(
         self, mock_read_file_chunk, mock_get_file_info
     ):
@@ -439,6 +491,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(mock_read_file_chunk.call_count, 3)
 
     @patch("agentbay._sync.filesystem.FileSystem.get_file_info")
+    @pytest.mark.sync
+
     def test_read_file_error(self, mock_get_file_info):
         """
         Test read_file method with error in get_file_info.
@@ -457,6 +511,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         mock_get_file_info.assert_called_once()
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_large_success(self, mock_write_file_chunk):
         """
         Test write_file method with large content (automatic chunking).
@@ -481,6 +537,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(calls[2][0][2], "append")  # Third call mode
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_small_content(self, mock_write_file_chunk):
         """
         Test write_file method with content smaller than chunk size.
@@ -499,6 +557,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         )
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_large_error(self, mock_write_file_chunk):
         """
         Test write_file method with error in first write.
@@ -517,6 +577,8 @@ class TestAsyncFileSystem(unittest.TestCase):
         mock_write_file_chunk.assert_called_once()
 
     @patch("agentbay._sync.filesystem.FileSystem._write_file_chunk")
+    @pytest.mark.sync
+
     def test_write_file_invalid_mode(self, mock_write_file_chunk):
         """
         Test write_file method with invalid mode.

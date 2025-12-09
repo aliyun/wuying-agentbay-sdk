@@ -1,4 +1,5 @@
 import os
+import pytest
 import time
 import unittest
 from unittest.mock import MagicMock, MagicMock
@@ -37,6 +38,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
         if not self.max_try_times:
             self.max_try_times = 5
 
+    @pytest.mark.sync
+
+
     def test_computer_task_execute_success(self):
         """
         Test flux_execute_task method with successful response.
@@ -63,6 +67,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
         self.assertEqual(args["task_id"], "task-123")
         logger.info(f"Result of Task Hello, Computer Agent: {result.task_result}")
 
+    @pytest.mark.sync
+
+
     def test_computer_execute_task_error(self):
         """
         Test execute_task method with error response.
@@ -85,6 +92,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["task"], "Hello, Computer Agent")
         logger.info(f"Result of task Hello, Computer Agent: {result.task_result}")
+
+    @pytest.mark.sync
+
 
     def test_computer_task_terminate_success(self):
         """
@@ -110,6 +120,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
         self.session.call_mcp_tool.assert_called_once()
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["task_id"], "task-123")
+
+    @pytest.mark.sync
+
 
     def test_computer_task_async_execute_timeout(self):
         """
@@ -154,6 +167,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
             time.sleep(3)
         self.assertTrue(retry_times >= int(self.max_try_times))
 
+    @pytest.mark.sync
+
+
     def test_computer_task_async_execute_success(self):
         """
         Test flux_execute_task method with successful response.
@@ -174,6 +190,9 @@ class TestAsyncAgentComputer(unittest.TestCase):
         self.assertEqual(result.task_status, "running")
         self.assertEqual(result.error_message, "")
         self.assertEqual(result.task_id, "task-123")
+
+    @pytest.mark.sync
+
 
     def test_computer_task_terminate_error(self):
         """
@@ -207,6 +226,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
         if not self.max_try_times:
             self.max_try_times = 5
 
+    @pytest.mark.sync
+
+
     def test_browser_task_execute_success(self):
         """
         Test flux_execute_task method with successful response.
@@ -233,6 +255,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
         self.assertEqual(args["task_id"], "task-123")
         logger.info(f"Result of Task Hello, Browser Agent: {result.task_result}")
 
+    @pytest.mark.sync
+
+
     def test_browser_execute_task_error(self):
         """
         Test execute_task method with error response.
@@ -255,6 +280,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["task"], "Hello, Browser Agent")
         logger.info(f"Result of Task Hello, Browser Agent: {result.task_result}")
+
+    @pytest.mark.sync
+
 
     def test_browser_task_terminate_success(self):
         """
@@ -280,6 +308,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
         self.session.call_mcp_tool.assert_called_once()
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["task_id"], "task-123")
+
+    @pytest.mark.sync
+
 
     def test_browser_task_async_execute_timeout(self):
         """
@@ -324,6 +355,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
             time.sleep(3)
         self.assertTrue(retry_times >= int(self.max_try_times))
 
+    @pytest.mark.sync
+
+
     def test_browser_task_async_execute_success(self):
         """
         Test flux_execute_task method with successful response.
@@ -344,6 +378,9 @@ class TestAsyncAgentBrowser(unittest.TestCase):
         self.assertEqual(result.task_status, "running")
         self.assertEqual(result.error_message, "")
         self.assertEqual(result.task_id, "task-123")
+
+    @pytest.mark.sync
+
 
     def test_browser_task_terminate_error(self):
         """

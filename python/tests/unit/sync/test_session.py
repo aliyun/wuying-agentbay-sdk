@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import MagicMock, MagicMock, patch
 
 from agentbay import OperationResult
@@ -23,11 +24,17 @@ class TestAsyncSession(unittest.TestCase):
         self.session_id = "test_session_id"
         self.session = Session(self.agent_bay, self.session_id)
 
+    @pytest.mark.sync
+
+
     def test_validate_labels_success(self):
         # Test successful validation with valid labels
         labels = {"key1": "value1", "key2": "value2"}
         result = self.session._validate_labels(labels)
         self.assertIsNone(result)
+
+    @pytest.mark.sync
+
 
     def test_validate_labels_none(self):
         # Test validation with None labels
@@ -37,6 +44,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("Labels cannot be null", result.error_message)
 
+    @pytest.mark.sync
+
+
     def test_validate_labels_list(self):
         # Test validation with list instead of dict
         labels = ["key1", "value1"]
@@ -44,6 +54,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
         self.assertIn("Labels cannot be an array", result.error_message)
+
+    @pytest.mark.sync
+
 
     def test_validate_labels_empty_dict(self):
         # Test validation with empty dict
@@ -53,6 +66,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("Labels cannot be empty", result.error_message)
 
+    @pytest.mark.sync
+
+
     def test_validate_labels_empty_key(self):
         # Test validation with empty key
         labels = {"": "value1"}
@@ -60,6 +76,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
         self.assertIn("Label keys cannot be empty", result.error_message)
+
+    @pytest.mark.sync
+
 
     def test_validate_labels_empty_value(self):
         # Test validation with empty value
@@ -69,6 +88,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("Label values cannot be empty", result.error_message)
 
+    @pytest.mark.sync
+
+
     def test_validate_labels_none_value(self):
         # Test validation with None value
         labels = {"key1": None}
@@ -76,6 +98,9 @@ class TestAsyncSession(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertFalse(result.success)
         self.assertIn("Label values cannot be empty", result.error_message)
+
+    @pytest.mark.sync
+
 
     def test_initialization(self):
         self.assertEqual(self.session.session_id, self.session_id)
@@ -87,6 +112,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.ReleaseMcpSessionRequest")
+    @pytest.mark.sync
+
     def test_delete_success(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -117,6 +144,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.ReleaseMcpSessionRequest")
+    @pytest.mark.sync
+
     def test_delete_without_params(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -155,6 +184,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.ReleaseMcpSessionRequest")
+    @pytest.mark.sync
+
     def test_delete_with_sync_context(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -198,6 +229,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.ReleaseMcpSessionRequest")
+    @pytest.mark.sync
+
     def test_delete_failure(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -225,6 +258,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.ReleaseMcpSessionRequest")
+    @pytest.mark.sync
+
     def test_delete_api_failure_response(
         self, MockReleaseMcpSessionRequest, mock_extract_request_id
     ):
@@ -255,6 +290,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.SetLabelRequest")
+    @pytest.mark.sync
+
     def test_set_labels_success(
         self, MockSetLabelRequest, mock_extract_request_id
     ):
@@ -282,6 +319,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.SetLabelRequest")
+    @pytest.mark.sync
+
     def test_set_labels_api_failure(
         self, MockSetLabelRequest, mock_extract_request_id
     ):
@@ -307,6 +346,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.GetLabelRequest")
+    @pytest.mark.sync
+
     def test_get_labels_success(
         self, MockGetLabelRequest, mock_extract_request_id
     ):
@@ -335,6 +376,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.GetLabelRequest")
+    @pytest.mark.sync
+
     def test_get_labels_api_failure(
         self, MockGetLabelRequest, mock_extract_request_id
     ):
@@ -358,6 +401,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.GetLinkRequest")
+    @pytest.mark.sync
+
     def test_get_link_success(self, MockGetLinkRequest, mock_extract_request_id):
         mock_request = MagicMock()
         mock_response = MagicMock()
@@ -387,6 +432,8 @@ class TestAsyncSession(unittest.TestCase):
 
     @patch("agentbay._sync.session.extract_request_id")
     @patch("agentbay._sync.session.GetLinkRequest")
+    @pytest.mark.sync
+
     def test_get_link_with_valid_port(
         self, MockGetLinkRequest, mock_extract_request_id
     ):
@@ -427,6 +474,9 @@ class TestAsyncSession(unittest.TestCase):
                     mock_request
                 )
 
+    @pytest.mark.sync
+
+
     def test_get_link_with_invalid_port_below_range(self):
         """Test get_link with port below valid range raises SessionError"""
         from agentbay import SessionError
@@ -440,6 +490,9 @@ class TestAsyncSession(unittest.TestCase):
         expected_message = f"Invalid port value: {invalid_port}. Port must be an integer in the range [30100, 30199]."
         self.assertEqual(error_message, expected_message)
 
+    @pytest.mark.sync
+
+
     def test_get_link_with_invalid_port_above_range(self):
         """Test get_link with port above valid range raises SessionError"""
         from agentbay import SessionError
@@ -452,6 +505,9 @@ class TestAsyncSession(unittest.TestCase):
         error_message = str(context.exception)
         expected_message = f"Invalid port value: {invalid_port}. Port must be an integer in the range [30100, 30199]."
         self.assertEqual(error_message, expected_message)
+
+    @pytest.mark.sync
+
 
     def test_get_link_with_invalid_port_non_integer(self):
         """Test get_link with non-integer port raises SessionError"""
@@ -468,6 +524,9 @@ class TestAsyncSession(unittest.TestCase):
                 expected_message = f"Invalid port value: {invalid_port}. Port must be an integer in the range [30100, 30199]."
                 self.assertEqual(error_message, expected_message)
 
+    @pytest.mark.sync
+
+
     def test_get_link_with_invalid_port_boundary_values(self):
         """Test get_link with boundary values outside valid range"""
         from agentbay import SessionError
@@ -483,6 +542,9 @@ class TestAsyncSession(unittest.TestCase):
                 error_message = str(context.exception)
                 expected_message = f"Invalid port value: {invalid_port}. Port must be an integer in the range [30100, 30199]."
                 self.assertEqual(error_message, expected_message)
+
+    @pytest.mark.sync
+
 
     def test_get_link_with_options_parameter(self):
         """Test get_link accepts options parameter without raising error."""
@@ -506,6 +568,9 @@ class TestAsyncSession(unittest.TestCase):
         # Verify the result
         self.assertTrue(result.success)
         self.assertEqual(result.data, "adb connect 47.99.76.99:54848")
+
+    @pytest.mark.sync
+
 
     def test_get_link_passes_options_to_request(self):
         """Test that get_link passes options parameter to GetLinkRequest."""
@@ -536,6 +601,9 @@ class TestAsyncSession(unittest.TestCase):
         # Verify the request has the options field
         self.assertEqual(request.options, options_json)
         self.assertEqual(request.protocol_type, "adb")
+
+    @pytest.mark.sync
+
 
     def test_get_link_adb_protocol_with_options(self):
         """Test get_link with adb protocol type and options."""
@@ -572,6 +640,9 @@ class TestAgentBayDelete(unittest.TestCase):
         self.agent_bay._lock = MagicMock()
         self.agent_bay._sessions = {"test_session_id": self.session}
 
+    @pytest.mark.sync
+
+
     def test_delete_without_params(self):
         # Test AgentBay.delete without parameters
         # Mock session.delete return value
@@ -593,6 +664,9 @@ class TestAgentBayDelete(unittest.TestCase):
         # Verify session.delete was called with default sync_context=False
         self.session.delete.assert_called_once_with(sync_context=False)
         self.assertEqual(result, delete_result)
+
+    @pytest.mark.sync
+
 
     def test_delete_with_sync_context(self):
         # Test AgentBay.delete with sync_context=True

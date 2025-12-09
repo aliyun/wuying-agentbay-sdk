@@ -1,4 +1,5 @@
 import os
+import pytest
 import unittest
 from unittest.mock import MagicMock, MagicMock, patch
 
@@ -11,6 +12,8 @@ class TestRegionIdSupport(unittest.TestCase):
 
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_agentbay_initialization_with_region_id(
         self, mock_mcp_client
     ):
@@ -30,6 +33,8 @@ class TestRegionIdSupport(unittest.TestCase):
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_agentbay_initialization_without_region_id(
         self, mock_mcp_client, mock_load_config
     ):
@@ -53,6 +58,8 @@ class TestRegionIdSupport(unittest.TestCase):
 
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_session_create_with_region_id(
         self, mock_mcp_client
     ):
@@ -107,6 +114,8 @@ class TestRegionIdSupport(unittest.TestCase):
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay._load_config")
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_session_create_without_region_id(
         self, mock_mcp_client, mock_load_config
     ):
@@ -166,6 +175,8 @@ class TestRegionIdSupport(unittest.TestCase):
 
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_context_create_with_region_id(
         self, mock_mcp_client
     ):
@@ -198,6 +209,8 @@ class TestRegionIdSupport(unittest.TestCase):
 
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
     def test_context_get_without_create_no_region_id(
         self, mock_mcp_client
     ):

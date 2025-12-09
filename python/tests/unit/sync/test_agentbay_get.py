@@ -1,4 +1,6 @@
+import os
 import pytest
+from unittest.mock import MagicMock, MagicMock, patch
 
 from agentbay import AgentBay
 from agentbay import SessionResult
@@ -8,8 +10,24 @@ from agentbay import Session
 class TestAgentBayGet:
     """Unit tests for AgentBay.get method."""
 
-    def test_get_empty_session_id(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_empty_session_id(self, mock_mcp_client, mock_load_config):
         """Test get with empty session ID."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         result = agentbay.get("")
@@ -18,8 +36,24 @@ class TestAgentBayGet:
         assert not result.success
         assert "session_id is required" in result.error_message
 
-    def test_get_none_session_id(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_none_session_id(self, mock_mcp_client, mock_load_config):
         """Test get with None session ID."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         result = agentbay.get(None)
@@ -28,8 +62,24 @@ class TestAgentBayGet:
         assert not result.success
         assert "session_id is required" in result.error_message
 
-    def test_get_whitespace_session_id(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_whitespace_session_id(self, mock_mcp_client, mock_load_config):
         """Test get with whitespace-only session ID."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         result = agentbay.get("   ")
@@ -38,16 +88,48 @@ class TestAgentBayGet:
         assert not result.success
         assert "session_id is required" in result.error_message
 
-    def test_get_method_exists(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_method_exists(self, mock_mcp_client, mock_load_config):
         """Test that get method exists and has correct signature."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         # Verify method exists
         assert hasattr(agentbay, "get")
         assert callable(getattr(agentbay, "get"))
 
-    def test_get_returns_session_result_type(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_returns_session_result_type(self, mock_mcp_client, mock_load_config):
         """Test that get method returns SessionResult."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         # Check the method exists and is callable
@@ -59,8 +141,24 @@ class TestAgentBayGet:
         result = agentbay.get("")
         assert isinstance(result, SessionResult)
 
-    def test_get_error_message_format(self):
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+
+    def test_get_error_message_format(self, mock_mcp_client, mock_load_config):
         """Test error message formatting for various invalid inputs."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-api-key")
 
         test_cases = [
@@ -79,25 +177,42 @@ class TestAgentBayGet:
 class TestAgentBayGetValidation:
     """Validation tests for AgentBay.get method."""
 
-    def test_get_requires_api_key(self):
+    @pytest.mark.sync
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("agentbay._sync.agentbay._load_config")
+    @pytest.mark.sync
+
+    def test_get_requires_api_key(self, mock_load_config):
         """Test that AgentBay requires an API key."""
-        import os
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
 
-        # Temporarily remove environment variable
-        old_api_key = os.environ.get("AGENTBAY_API_KEY")
-        if old_api_key:
-            del os.environ["AGENTBAY_API_KEY"]
+        # Test initialization failure with empty API key
+        with pytest.raises(ValueError):
+            AgentBay(api_key="")
 
-        try:
-            with pytest.raises(ValueError):
-                AgentBay(api_key="")
-        finally:
-            # Restore environment variable if it existed
-            if old_api_key:
-                os.environ["AGENTBAY_API_KEY"] = old_api_key
+    @pytest.mark.sync
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
 
-    def test_get_interface_compliance(self):
+    def test_get_interface_compliance(self, mock_mcp_client, mock_load_config):
         """Test that get method has the expected interface."""
+        # Mock configuration
+        mock_load_config.return_value = {
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+
+        # Mock client
+        mock_client = MagicMock()
+        mock_mcp_client.return_value = mock_client
+
         agentbay = AgentBay(api_key="test-key")
 
         # Method should exist
@@ -108,8 +223,21 @@ class TestAgentBayGetValidation:
         assert callable(get_method)
 
 
-def test_get_documentation():
+@patch("agentbay._sync.agentbay._load_config")
+@patch("agentbay._sync.agentbay.mcp_client")
+def test_get_documentation(mock_mcp_client, mock_load_config):
     """Test that get method is properly documented."""
+    # Mock configuration
+    mock_load_config.return_value = {
+        "endpoint": "test.endpoint.com",
+        "timeout_ms": 30000,
+        "region_id": None,
+    }
+
+    # Mock client
+    mock_client = MagicMock()
+    mock_mcp_client.return_value = mock_client
+
     agentbay = AgentBay(api_key="test-key")
 
     get_method = getattr(agentbay, "get", None)

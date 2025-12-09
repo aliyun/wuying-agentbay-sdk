@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import MagicMock, MagicMock, patch
 
 from agentbay import OperationResult
@@ -29,6 +30,9 @@ class TestAsyncCommand(unittest.TestCase):
         self.session = DummySession()
         self.command = Command(self.session)
 
+    @pytest.mark.sync
+
+
     def test_execute_command_success(self):
         """
         Test execute_command method with successful response.
@@ -53,6 +57,9 @@ class TestAsyncCommand(unittest.TestCase):
         self.assertEqual(args["command"], "ls -la")
         self.assertEqual(args["timeout_ms"], 50000)  # Default timeout (60000ms) is limited to 50000ms
 
+    @pytest.mark.sync
+
+
     def test_execute_command_with_custom_timeout(self):
         """
         Test execute_command method with custom timeout.
@@ -75,6 +82,9 @@ class TestAsyncCommand(unittest.TestCase):
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["timeout_ms"], custom_timeout)
 
+    @pytest.mark.sync
+
+
     def test_execute_command_error(self):
         """
         Test execute_command method with error response.
@@ -94,6 +104,9 @@ class TestAsyncCommand(unittest.TestCase):
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Command execution failed")
         self.assertEqual(result.output, "")
+
+    @pytest.mark.sync
+
 
     def test_execute_command_exception(self):
         """

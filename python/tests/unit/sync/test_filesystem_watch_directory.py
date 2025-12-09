@@ -3,6 +3,7 @@ Unit tests for watch_directory functionality in FileSystem module.
 """
 
 import json
+import pytest
 import threading
 import time
 import unittest
@@ -15,6 +16,9 @@ from agentbay import FileChangeEvent, FileChangeResult, FileSystem
 class TestAsyncFileChangeEvent(unittest.TestCase):
     """Test FileChangeEvent class."""
 
+    @pytest.mark.sync
+
+
     def test_file_change_event_init(self):
         """Test FileChangeEvent initialization."""
         event = FileChangeEvent(
@@ -25,6 +29,9 @@ class TestAsyncFileChangeEvent(unittest.TestCase):
         self.assertEqual(event.path, "/tmp/test.txt")
         self.assertEqual(event.path_type, "file")
 
+    @pytest.mark.sync
+
+
     def test_file_change_event_repr(self):
         """Test FileChangeEvent string representation."""
         event = FileChangeEvent(
@@ -33,6 +40,9 @@ class TestAsyncFileChangeEvent(unittest.TestCase):
 
         expected = "FileChangeEvent(event_type='create', path='/tmp/new_file.txt', path_type='file')"
         self.assertEqual(repr(event), expected)
+
+    @pytest.mark.sync
+
 
     def test_file_change_event_to_dict(self):
         """Test FileChangeEvent to_dict method."""
@@ -47,6 +57,9 @@ class TestAsyncFileChangeEvent(unittest.TestCase):
         }
         self.assertEqual(event._to_dict(), expected_dict)
 
+    @pytest.mark.sync
+
+
     def test_file_change_event_from_dict(self):
         """Test FileChangeEvent from_dict class method."""
         data = {"eventType": "modify", "path": "/tmp/modified.txt", "pathType": "file"}
@@ -56,6 +69,9 @@ class TestAsyncFileChangeEvent(unittest.TestCase):
         self.assertEqual(event.event_type, "modify")
         self.assertEqual(event.path, "/tmp/modified.txt")
         self.assertEqual(event.path_type, "file")
+
+    @pytest.mark.sync
+
 
     def test_file_change_event_from_dict_missing_fields(self):
         """Test FileChangeEvent from_dict with missing fields."""
@@ -70,6 +86,9 @@ class TestAsyncFileChangeEvent(unittest.TestCase):
 
 class TestAsyncFileChangeResult(unittest.TestCase):
     """Test FileChangeResult class."""
+
+    @pytest.mark.sync
+
 
     def test_file_change_result_init(self):
         """Test FileChangeResult initialization."""
@@ -91,6 +110,9 @@ class TestAsyncFileChangeResult(unittest.TestCase):
         self.assertEqual(result.events[0].event_type, "create")
         self.assertEqual(result.events[1].event_type, "modify")
 
+    @pytest.mark.sync
+
+
     def test_file_change_result_has_changes(self):
         """Test FileChangeResult has_changes method."""
         # Test with events
@@ -101,6 +123,9 @@ class TestAsyncFileChangeResult(unittest.TestCase):
         # Test without events
         result_empty = FileChangeResult(success=True, events=[])
         self.assertFalse(result_empty.has_changes())
+
+    @pytest.mark.sync
+
 
     def test_file_change_result_get_modified_files(self):
         """Test FileChangeResult get_modified_files method."""
@@ -118,6 +143,9 @@ class TestAsyncFileChangeResult(unittest.TestCase):
         expected = ["/tmp/file2.txt", "/tmp/file4.txt"]
         self.assertEqual(modified_files, expected)
 
+    @pytest.mark.sync
+
+
     def test_file_change_result_get_created_files(self):
         """Test FileChangeResult get_created_files method."""
         events = [
@@ -132,6 +160,9 @@ class TestAsyncFileChangeResult(unittest.TestCase):
 
         expected = ["/tmp/file1.txt", "/tmp/file3.txt"]
         self.assertEqual(created_files, expected)
+
+    @pytest.mark.sync
+
 
     def test_file_change_result_get_deleted_files(self):
         """Test FileChangeResult get_deleted_files method."""
@@ -162,6 +193,9 @@ class TestAsyncFileSystemWatchDirectory(unittest.TestCase):
         self.mock_session._is_expired.return_value = False
 
         self.filesystem = FileSystem(self.mock_session)
+
+    @pytest.mark.sync
+
 
     def test_get_file_change_success(self):
         """Test _get_file_change method with successful response."""
@@ -195,6 +229,9 @@ class TestAsyncFileSystemWatchDirectory(unittest.TestCase):
         self.assertEqual(result.events[1].event_type, "modify")
         self.assertEqual(result.events[1].path, "/tmp/file2.txt")
 
+    @pytest.mark.sync
+
+
     def test_get_file_change_failure(self):
         """Test _get_file_change method with failed response."""
         # Mock failed response
@@ -215,6 +252,9 @@ class TestAsyncFileSystemWatchDirectory(unittest.TestCase):
         self.assertEqual(result.error_message, "Directory not found")
         self.assertEqual(len(result.events), 0)
 
+    @pytest.mark.sync
+
+
     def test_get_file_change_invalid_json(self):
         """Test _get_file_change method with invalid JSON response."""
         # Mock response with invalid JSON
@@ -232,6 +272,9 @@ class TestAsyncFileSystemWatchDirectory(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "test-789")
         self.assertEqual(len(result.events), 0)
+
+    @pytest.mark.sync
+
 
     def test_watch_directory_basic(self):
         """Test basic watch_directory functionality."""
@@ -272,6 +315,9 @@ class TestAsyncFileSystemWatchDirectory(unittest.TestCase):
         self.assertGreater(len(callback_events), 0)
         self.assertEqual(callback_events[0].event_type, "create")
         self.assertEqual(callback_events[0].path, "/tmp/test.txt")
+
+    @pytest.mark.sync
+
 
     def test_watch_directory_callback_exception(self):
         """Test watch_directory handles callback exceptions gracefully."""

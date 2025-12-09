@@ -15,6 +15,8 @@ except ImportError:
 
 
 @pytest.mark.sync
+@pytest.mark.sync
+
 def test_async_agentbay_structure():
     # Verify AgentBay exists and has async create method
     assert inspect.isclass(AgentBay)
@@ -39,6 +41,8 @@ def test_sync_agentbay_structure():
 
 
 @pytest.mark.sync
+@pytest.mark.sync
+
 def test_async_session_structure():
     assert inspect.isclass(Session)
     # Check if delete is async

@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import MagicMock, MagicMock
 
 from agentbay import McpToolResult, OperationResult
@@ -10,6 +11,9 @@ class TestAsyncOss(unittest.TestCase):
         self.mock_session = MagicMock()
         self.session = self.mock_session  # Add session reference
         self.oss = Oss(self.mock_session)
+
+    @pytest.mark.sync
+
 
     def test_env_init_success(self):
         # Create a mock OperationResult
@@ -30,6 +34,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.client_config, "Set oss config successfully")
         self.assertEqual(result.error_message, "")
 
+    @pytest.mark.sync
+
+
     def test_env_init_failure(self):
         # Create a mock failed OperationResult
         mock_result = McpToolResult(
@@ -46,6 +53,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(result.client_config, {})
         self.assertEqual(result.error_message, "Failed to create OSS client")
+
+    @pytest.mark.sync
+
 
     def test_upload_success(self):
         """
@@ -68,6 +78,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.content, "Upload success")
         self.assertEqual(result.error_message, "")
 
+    @pytest.mark.sync
+
+
     def test_upload_failure(self):
         """
         Test the upload method to ensure it handles failure correctly.
@@ -88,6 +101,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.content, "")
         self.assertEqual(result.error_message, error_msg)
 
+    @pytest.mark.sync
+
+
     def test_upload_anonymous_success(self):
         mock_result = McpToolResult(
             request_id="test-request-id",
@@ -103,6 +119,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(result.content, "upload_anon_success")
         self.assertEqual(result.error_message, "")
+
+    @pytest.mark.sync
+
 
     def test_upload_anonymous_failure(self):
         mock_result = McpToolResult(
@@ -120,6 +139,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.content, "")
         self.assertEqual(result.error_message, "Failed to upload anonymously")
 
+    @pytest.mark.sync
+
+
     def test_download_success(self):
         mock_result = McpToolResult(
             request_id="test-request-id",
@@ -135,6 +157,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(result.content, "download_success")
         self.assertEqual(result.error_message, "")
+
+    @pytest.mark.sync
+
 
     def test_download_failure(self):
         mock_result = McpToolResult(
@@ -152,6 +177,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.content, "")
         self.assertEqual(result.error_message, "Failed to download from OSS")
 
+    @pytest.mark.sync
+
+
     def test_download_anonymous_success(self):
         mock_result = McpToolResult(
             request_id="test-request-id",
@@ -167,6 +195,9 @@ class TestAsyncOss(unittest.TestCase):
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(result.content, "download_anon_success")
         self.assertEqual(result.error_message, "")
+
+    @pytest.mark.sync
+
 
     def test_download_anonymous_failure(self):
         mock_result = McpToolResult(
