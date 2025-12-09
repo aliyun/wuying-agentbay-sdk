@@ -147,14 +147,14 @@ jobs:
                       "pydantic>=2.0" \
                       "playwright>=1.5.0" \
                       "loguru>=0.7.0"
-          # Install test dependencies
-          pip install pytest pytest-cov pytest-asyncio
+          # Install test dependencies with specific versions for compatibility
+          pip install pytest>=8.2.2 pytest-cov>=6.0.0 pytest-asyncio>=0.25.0
           # Install documentation generation dependencies
           pip install pydoc-markdown
           # Add current directory to PYTHONPATH so tests can import agentbay
           export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-          # Run tests
-          pytest tests/unit -v
+          # Run tests with asyncio mode enabled
+          pytest tests/unit -v --asyncio-mode=strict
 
   # TypeScript testing job
   typescript-lint-test:
