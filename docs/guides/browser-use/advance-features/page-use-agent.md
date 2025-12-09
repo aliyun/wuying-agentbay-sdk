@@ -29,8 +29,8 @@ An AI-powered, natural-language web agent that performs precise, reliable page o
   - [Error Handling and Debug](#error-handling-and-debug)
   - [Best Practices](#best-practices)
   - [FAQ](#faq)
-  - [📚 Related Guides](#related-guides)
-  - [🆘 Getting Help](#getting-help)
+  - [Related Guides](#related-guides)
+  - [Getting Help](#getting-help)
 
 ---
 
@@ -73,7 +73,7 @@ async def main():
     session = session_result.session
 
     # Initialize managed browser
-    ok = await session.browser.initialize_async(BrowserOption())
+    ok = await session.browser.initialize(BrowserOption())
     if not ok:
         print("Browser initialization failed")
         return
@@ -81,7 +81,7 @@ async def main():
     agent: BrowserAgent = session.browser.agent
 
     # Navigate
-    print(await agent.navigate_async("https://example.com"))
+    print(await agent.navigate("https://example.com"))
 
     # Act (natural language)
     await agent.act(action_input=ActOptions(action="go to products or shop page"))
@@ -136,7 +136,7 @@ Notes:
 def navigate(self, url: str) -> str
 
 # Async
-async def navigate_async(self, url: str) -> str
+async def navigate(self, url: str) -> str
 ```
 
 - Description: Navigates the managed page to the given URL.
@@ -144,7 +144,7 @@ async def navigate_async(self, url: str) -> str
 
 Example:
 ```python
-await agent.navigate_async("https://example.com")
+await agent.navigate("https://example.com")
 ```
 
 ---
@@ -156,7 +156,7 @@ await agent.navigate_async("https://example.com")
 def screenshot(self, page=None, full_page=True, quality=80, clip=None, timeout=None) -> str
 
 # Async
-async def screenshot_async(self, page=None, full_page=True, quality=80, clip=None, timeout=None) -> str
+async def screenshot(self, page=None, full_page=True, quality=80, clip=None, timeout=None) -> str
 ```
 
 - Returns: A base64-encoded PNG.
@@ -172,7 +172,7 @@ Parameters:
 
 Example (robust decode for both formats):
 ```python
-data = await agent.screenshot_async()
+data = await agent.screenshot()
 if data.startswith("data:image/"):
     header, encoded = data.split(",", 1)
     png_bytes = base64.b64decode(encoded)
@@ -312,7 +312,7 @@ class RecipeDetails(BaseModel):
     title: str = Field(..., description="Recipe title")
     total_ratings: int | None
 
-await agent.navigate_async("https://www.allrecipes.com/")
+await agent.navigate("https://www.allrecipes.com/")
 await agent.act(action_input=ActOptions(action='type "chocolate chip cookies" in the search bar'))
 await agent.act(action_input=ActOptions(action="press enter"))
 
