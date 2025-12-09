@@ -124,7 +124,7 @@ Result of code execution operations. Kept for backward compatibility but users s
 - [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
-- [Session API Reference](../sync/session.md)
+- [Session API Reference](./session.md)
 
 ---
 

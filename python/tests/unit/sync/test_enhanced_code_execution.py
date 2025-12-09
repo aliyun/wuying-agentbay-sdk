@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, Mock, MagicMock
 from agentbay import Code
 from agentbay import (
     EnhancedCodeExecutionResult,
-    ExecutionResult,
+    CodeExecutionResult as ExecutionResult,
     ExecutionLogs,
     ExecutionError,
 )

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, MagicMock
 from agentbay import AsyncCode
 from agentbay import (
     EnhancedCodeExecutionResult,
-    ExecutionResult,
+    CodeExecutionResult as ExecutionResult,
     ExecutionLogs,
     ExecutionError,
 )
