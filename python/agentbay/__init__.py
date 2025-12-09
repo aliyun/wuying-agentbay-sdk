@@ -95,7 +95,8 @@ from ._sync.computer import (
 from ._sync.mobile import Mobile
 from ._common.models.mobile import KeyCode, UIElementListResult
 from ._sync.mobile_simulate import MobileSimulateService
-from ._sync.agent import Agent, ExecutionResult
+from ._sync.agent import Agent
+from ._common.models.agent import ExecutionResult
 from ._sync.command import Command, CommandResult
 from ._sync.filesystem import (
     FileSystem,
@@ -128,7 +129,7 @@ from ._sync.context import (
 from ._sync.code import Code, CodeExecutionResult
 from ._common.models.code import (
     EnhancedCodeExecutionResult,
-    ExecutionResult,
+    ExecutionResult as CodeExecutionResult,
     ExecutionLogs,
     ExecutionError,
 )
@@ -259,10 +260,10 @@ __all__ = [
     "GetSessionData",
     "extract_request_id",
     "ExecutionResult",
-    "CommandResult",
+    "CommandResult", 
     "CodeExecutionResult",
     "EnhancedCodeExecutionResult",
-    "ExecutionResult",
+    "CodeExecutionResult",
     "ExecutionLogs",
     "ExecutionError",
     "_generate_random_context_name",
