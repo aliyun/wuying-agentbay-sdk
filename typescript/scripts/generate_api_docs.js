@@ -41,6 +41,8 @@ const docMappings = [
     identifiers: ['logger', 'log'],
   },
   { target: 'common-features/advanced/agent.md', symbol: 'Agent', identifiers: ['Class Agent', 'Agent'] },
+  { target: 'common-features/advanced/browser-use-agent.md', symbol: 'BrowserUseAgent', identifiers: ['Class BrowserUseAgent', 'BrowserUseAgent'] },
+  { target: 'common-features/advanced/computer-use-agent.md', symbol: 'ComputerUseAgent', identifiers: ['Class ComputerUseAgent', 'ComputerUseAgent'] },
   { target: 'common-features/advanced/oss.md', symbol: 'Oss', identifiers: ['Class Oss', 'Oss'] },
   { target: 'browser-use/browser.md', symbol: 'Browser', identifiers: ['Class Browser', 'Browser'] },
   {

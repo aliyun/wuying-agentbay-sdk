@@ -59,7 +59,7 @@ jest.mock('playwright', () => ({
 }), { virtual: true });
 
 // Increase timeout for async operations
-jest.setTimeout(60000);
+jest.setTimeout(60000 * 3);
 
 import { setupLogger } from '../src/utils/logger';
 

@@ -1,1 +1,1 @@
-export { Agent, ExecutionResult, QueryResult, McpToolResult, McpSession } from "./agent"; 
+export { ComputerUseAgent, BrowserUseAgent, Agent, ExecutionResult, QueryResult, McpToolResult, McpSession, InitializationResult, AgentOptions } from "./agent"; 

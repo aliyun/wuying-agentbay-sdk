@@ -33,7 +33,7 @@ async function main() {
       const taskDescription = "Calculate the square root of 144";
       console.log(`Executing task: ${taskDescription}`);
       
-      const executionResult = await session.agent.executeTask(taskDescription, 5);
+      const executionResult = await session.agent.computer.executeTask(taskDescription, 5);
       
       if (executionResult.success) {
         console.log("Task completed successfully!");

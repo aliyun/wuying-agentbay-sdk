@@ -45,7 +45,7 @@ func main() {
 	taskDescription := "Calculate the square root of 144"
 	fmt.Printf("Executing task: %s\n", taskDescription)
 
-	executionResult := session.Agent.ExecuteTask(taskDescription, 5)
+	executionResult := session.Agent.Computer.ExecuteTask(taskDescription, 5)
 
 	if executionResult.Success {
 		fmt.Println("Task completed successfully!")
