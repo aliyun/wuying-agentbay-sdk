@@ -1,20 +1,10 @@
 # Code Execution Models API Reference
 
-> **💡 Async Version**: This documentation covers the synchronous API. For async/await support, see [`AsyncCode`](../async/async-code.md) which provides the same functionality with async methods.
-
-## 💻 Related Tutorial
-
-- [Code Execution Guide](../../../../docs/guides/codespace/code-execution.md) - Execute code in isolated environments
-
 ## Overview
 
-The Code module provides secure code execution capabilities in isolated environments.
-It supports multiple programming languages including Python, JavaScript, and more.
+The Code Execution Models define data structures for code execution results, logs, and errors.
+These models provide enhanced support for multi-format outputs and detailed execution information.
 
-
-## Requirements
-
-- Requires `code_latest` image for code execution features
 
 
 
@@ -111,20 +101,13 @@ class CodeExecutionResult(ApiResponse)
 
 Result of code execution operations. Kept for backward compatibility but users should transition to EnhancedCodeExecutionResult.
 
-## Best Practices
-
-1. Validate code syntax before execution
-2. Set appropriate execution timeouts
-3. Handle execution errors and exceptions
-4. Use proper resource limits to prevent resource exhaustion
-5. Clean up temporary files after code execution
-
 ## See Also
 
 - [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
-- [Session API Reference](./session.md)
+- [Session API Reference](../sync/session.md)
+- [Code API Reference](../sync/code.md)
 
 ---
 

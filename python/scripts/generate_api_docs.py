@@ -259,6 +259,9 @@ def load_metadata() -> dict[str, Any]:
 
 def get_module_name_from_path(module_path: str) -> str:
     """Extract module name from Python module path (e.g., agentbay.session -> session)."""
+    # Special handling for common models
+    if module_path == "agentbay._common.models.code":
+        return "code-models"
     return module_path.split('.')[-1]
 
 
@@ -490,16 +493,20 @@ def get_see_also_section(module_name: str, metadata: dict[str, Any], is_async: b
         for resource in resources:
             # Map simple module names to actual file names with prefixes
             resource_module = resource.get("module", "")
-            # Determine correct file name based on whether this is async docs or not
-            if resource_module in ['session', 'command', 'filesystem', 'context', 'context-manager', 'browser', 'extension', 'oss', 'agent', 'code', 'computer', 'mobile']:
+            
+            # First check if a custom path is specified
+            if "path" in resource:
+                resource_path = resource["path"]
+            # Then determine correct file name based on whether this is async docs or not
+            elif resource_module in ['session', 'command', 'filesystem', 'context', 'context-manager', 'browser', 'extension', 'oss', 'agent', 'code', 'computer', 'mobile']:
                 # These modules have both sync and async versions
                 if is_async:
                     resource_path = f"./async-{resource_module}.md"
                 else:
                     resource_path = f"./{resource_module}.md"
             else:
-                # For other modules, use the path as specified or default
-                resource_path = resource.get("path", f"./{resource_module}.md")
+                # For other modules, use default path
+                resource_path = f"./{resource_module}.md"
             lines.append(f"- [{resource['name']}]({resource_path})")
 
     return "\n".join(lines) + "\n\n"

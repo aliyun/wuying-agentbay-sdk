@@ -485,3 +485,26 @@ modules:
     emoji: 📱
     category: mobile-use
 
+  # Code Models module (common/shared)  
+  code-models:
+    python: agentbay._common.models.code
+    typescript: models/code
+    golang: pkg/models/code
+
+    overview: |
+      The Code Execution Models define data structures for code execution results, logs, and errors.
+      These models provide enhanced support for multi-format outputs and detailed execution information.
+
+    related_resources:
+      - name: Session API Reference
+        module: session
+        path: ../sync/session.md
+        category: common-features/basics
+      - name: Code API Reference
+        module: code
+        path: ../sync/code.md
+        category: codespace
+
+    emoji: 🔧
+    category: common-features/basics
+
