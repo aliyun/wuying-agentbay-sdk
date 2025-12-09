@@ -34,46 +34,49 @@ class LocalMCPClient:
         self._loop: asyncio.AbstractEventLoop | None = None
 
     def connect(self) -> None:
+        """
+        Connect to the MCP server in a dedicated worker thread.
+        The MCP stdio client is async-only, so we spin up an event loop inside the
+        worker thread and bridge calls from the sync world via a queue.
+        """
         if self.worker_thread is None:
             promise: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
-            def thread_target() -> None:
-                def _connect_and_list_tools() -> None:
+            async def _connect_and_list_tools_async() -> None:
+                success = False
+                _logger.info("Start connect to mcp server")
+                try:
+                    _logger.debug(f"command = {self.command}, args = {self.args}")
+                    server_params = StdioServerParameters(
+                        command=self.command, args=self.args
+                    )
+                    async with stdio_client(server_params) as (
+                        read_stream,
+                        write_stream,
+                    ):
+                        async with ClientSession(read_stream, write_stream) as session:
+                            # Setup queue and event loop reference
+                            self._tool_call_queue = asyncio.Queue()
+                            self._loop = asyncio.get_running_loop()
+
+                            self.session = session
+                            _logger.info("Initialize MCP client session")
+                            await self.session.initialize()
+                            _logger.info(
+                                "Client initialized. Listing available tools..."
+                            )
+                            tools = await self.session.list_tools()
+                            _logger.info(f"Tools: {tools}")
+                            success = True
+                            promise.set_result(success)
+                            await self._interactive_loop()
+                except Exception as e:
+                    _logger.error(f"Failed to connect to MCP server: {e}")
                     success = False
-                    _logger.info("Start connect to mcp server")
-                    try:
-                        _logger.debug(f"command = {self.command}, args = {self.args}")
-                        server_params = StdioServerParameters(
-                            command=self.command, args=self.args
-                        )
-                        with stdio_client(server_params) as (
-                            read_stream,
-                            write_stream,
-                        ):
-                            with ClientSession(
-                                read_stream, write_stream
-                            ) as session:
-                                # Setup queue and event loop reference
-                                self._tool_call_queue = asyncio.Queue()
-                                self._loop = asyncio.get_running_loop()
+                    promise.set_result(success)
 
-                                self.session = session
-                                _logger.info("Initialize MCP client session")
-                                self.session.initialize()
-                                _logger.info(
-                                    "Client initialized. Listing available tools..."
-                                )
-                                tools = self.session.list_tools()
-                                _logger.info(f"Tools: {tools}")
-                                success = True
-                                promise.set_result(success)
-                                self._interactive_loop()
-                    except Exception as e:
-                        _logger.error(f"Failed to connect to MCP server: {e}")
-                        success = False
-                        promise.set_result(success)
-
-                _connect_and_list_tools()
+            def thread_target() -> None:
+                asyncio.run(_connect_and_list_tools_async())
 
             self.worker_thread = concurrent.futures.ThreadPoolExecutor().submit(
                 thread_target
@@ -85,17 +88,20 @@ class LocalMCPClient:
             raise RuntimeError(
                 "MCP client is not connected. Call connect() and ensure it returns True before calling callTool."
             )
-        caller_loop = asyncio.get_running_loop()
-        fut = caller_loop.create_future()
-        self._tool_call_queue.put((tool_name, arguments, fut))
+        fut: concurrent.futures.Future = concurrent.futures.Future()
+        # Enqueue the tool invocation on the worker thread's loop
+        if self._loop:
+            asyncio.run_coroutine_threadsafe(
+                self._tool_call_queue.put((tool_name, arguments, fut)), self._loop
+            )
         return fut
 
-    def _interactive_loop(self):
-        """Run interactive loop."""
+    async def _interactive_loop(self):
+        """Run interactive loop on the worker thread's event loop."""
         while True:
             if self._tool_call_queue is not None:
                 try:
-                    tool_name, arguments, future = asyncio.wait_for(
+                    tool_name, arguments, future = await asyncio.wait_for(
                         self._tool_call_queue.get(), timeout=1.0
                     )
                     try:
@@ -103,7 +109,7 @@ class LocalMCPClient:
                             f"Call tool {tool_name} with arguments {arguments}"
                         )
                         if self.session is not None:
-                            response = self.session.call_tool(
+                            response = await self.session.call_tool(
                                 tool_name, arguments
                             )
                             is_successful = not response.isError
@@ -154,7 +160,7 @@ class LocalMCPClient:
                 except asyncio.TimeoutError:
                     pass
             else:
-                time.sleep(1)
+                await asyncio.sleep(1)
 
 
 class LocalPageAgent(BrowserAgent):
@@ -195,7 +201,7 @@ class LocalPageAgent(BrowserAgent):
             error_message=error_message,
         )
 
-    def _call_mcp_tool_async(self, name: str, args: dict) -> OperationResult:
+    def _call_mcp_tool(self, name: str, args: dict) -> OperationResult:
         if not self.mcp_client:
             raise RuntimeError("mcp_client is not set on LocalBrowserAgent.")
         return self.mcp_client.call_tool(name, args)
@@ -238,7 +244,7 @@ class LocalBrowser(Browser):
                             user_data_dir = os.path.join(cwd, "tmp/browser_user_data")
 
                             self._browser = p.chromium.launch_persistent_context(
-                                headless=True,
+                                headless=False,
                                 viewport={"width": 1280, "height": 1200},
                                 args=[
                                     f"--remote-debugging-port={self._cdp_port}",
@@ -331,17 +337,7 @@ class LocalSession(Session):
         read_timeout: int = None,
         connect_timeout: int = None,
     ):
-        # Return a mock tool result that indicates the operation isn't supported in local mode
-        return type(
-            "OperationResult",
-            (),
-            {
-                "request_id": "mock_request_id",
-                "success": False,
-                "data": None,
-                "error_message": "Local mode: Cannot execute MCP tools without connection",
-            },
-        )()
+        return self.browser.agent._call_mcp_tool(name, args, read_timeout, connect_timeout)
 
     def delete(self, sync_context: bool = False) -> None:
         pass

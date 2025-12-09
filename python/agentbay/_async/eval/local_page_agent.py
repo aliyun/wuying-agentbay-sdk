@@ -205,7 +205,7 @@ class LocalBrowser(Browser):
         self.agent: LocalPageAgent = LocalPageAgent(session, self)
         self._worker_thread = None
 
-    async def initialize_async(self, options: BrowserOption) -> bool:
+    async def initialize(self, options: BrowserOption) -> bool:
         if self._worker_thread is None:
             promise: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
@@ -234,7 +234,7 @@ class LocalBrowser(Browser):
                             user_data_dir = os.path.join(cwd, "tmp/browser_user_data")
 
                             self._browser = await p.chromium.launch_persistent_context(
-                                headless=True,
+                                headless=False,
                                 viewport={"width": 1280, "height": 1200},
                                 args=[
                                     f"--remote-debugging-port={self._cdp_port}",
@@ -246,6 +246,7 @@ class LocalBrowser(Browser):
                             success = True
                             promise.set_result(success)
                             await self._playwright_interactive_loop()
+                            _logger.info("Local browser interactive loop completed")
                     except Exception as e:
                         _logger.error(f"Failed to connect to browser: {e}")
                         success = False
@@ -320,24 +321,19 @@ class LocalSession(Session):
         super().__init__(mock_agent_bay, "local_session")
         self.browser = LocalBrowser(self)
 
-    def call_mcp_tool(
+    async def call_mcp_tool(
         self,
         name: str,
         args: dict,
         read_timeout: int = None,
         connect_timeout: int = None,
     ):
-        # Return a mock tool result that indicates the operation isn't supported in local mode
-        return type(
-            "OperationResult",
-            (),
-            {
-                "request_id": "mock_request_id",
-                "success": False,
-                "data": None,
-                "error_message": "Local mode: Cannot execute MCP tools without connection",
-            },
-        )()
+        """
+        Async stub for local mode. Keeps call signature compatible with the async
+        browser agent, which awaits session.call_mcp_tool. We return a real
+        OperationResult instance to avoid 'await OperationResult' errors.
+        """
+        return await self.browser.agent._call_mcp_tool_async(name, args)
 
     def delete(self, sync_context: bool = False) -> None:
         pass
