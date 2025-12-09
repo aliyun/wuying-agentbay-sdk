@@ -4,10 +4,12 @@
 
 <div align="center">
 
+[![arXiv](https://img.shields.io/badge/Paper-arXiv-b31b1b.svg?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2512.04367)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/wuying-agentbay-sdk?label=PyPI%20Downloads&logo=python&logoColor=white&cacheSeconds=86400)](https://pypi.org/project/wuying-agentbay-sdk/)
 [![NPM Downloads](https://img.shields.io/npm/dm/wuying-agentbay-sdk?label=NPM%20Downloads&logo=npm)](https://www.npmjs.com/package/wuying-agentbay-sdk)
 [![Go Report Card](https://goreportcard.com/badge/github.com/aliyun/wuying-agentbay-sdk/golang)](https://goreportcard.com/report/github.com/aliyun/wuying-agentbay-sdk/golang)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue)](https://github.com/aliyun/wuying-agentbay-sdk/blob/main/LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/aliyun/wuying-agentbay-sdk)
 
 </div>
 
@@ -56,7 +58,7 @@ Before using the SDK, you need to:
 
 ## 🚀 Quick Start
 
-### Python (Sync)
+### Python
 ```python
 from agentbay import AgentBay, CreateSessionParams
 
@@ -69,26 +71,6 @@ if result.success:
 
 # Clean up
 agent_bay.delete(session)
-```
-
-### Python (Async)
-```python
-import asyncio
-from agentbay import AsyncAgentBay, CreateSessionParams
-
-async def main():
-    # Create session and execute code
-    agent_bay = AsyncAgentBay()
-    session = (await agent_bay.create(CreateSessionParams(image_id="code_latest"))).session
-    result = await session.code.run_code("print('Hello AgentBay')", "python")
-    if result.success:
-        print(result.result)  # Hello AgentBay
-
-    # Clean up
-    await agent_bay.delete(session)
-
-if __name__ == "__main__":
-    asyncio.run(main())
 ```
 
 ### TypeScript
@@ -123,16 +105,7 @@ fmt.Println(res.Output)  // Hello AgentBay
 client.Delete(session, false)
 ```
 
-## 🔄 Python Sync vs Async API
 
-AgentBay Python SDK provides both synchronous and asynchronous APIs to suit different application needs.
-
-| Feature | Sync API (`AgentBay`) | Async API (`AsyncAgentBay`) |
-|---------|-----------------------|-----------------------------|
-| **Import** | `from agentbay import AgentBay` | `from agentbay import AsyncAgentBay` |
-| **Best for** | Scripts, simple tools, CLI apps | Web servers (FastAPI/Django), high-concurrency apps |
-| **Blocking** | Yes, blocks thread until complete | No, allows other tasks to run |
-| **Usage** | `client.create(...)` | `await client.create(...)` |
 
 ## 🎯 Use Cases
 
@@ -1025,6 +998,8 @@ An AI-powered, natural-language web agent that performs precise, reliable page o
   - [Error Handling and Debug](#error-handling-and-debug)
   - [Best Practices](#best-practices)
   - [FAQ](#faq)
+  - [📚 Related Guides](#related-guides)
+  - [🆘 Getting Help](#getting-help)
 
 ---
 
@@ -1211,20 +1186,20 @@ ok, items = await agent.observe(
 ```python
 # Options
 class ActOptions:
-    def __init__(self, action: str, timeout: int | None = None,
-                 use_vision: bool | None = None, variables: dict[str, str] | None = None)
+    def __init__(self, action: str, timeoutMS: int | None = None, iframes: bool | None = None,
+                 dom_settle_timeout_ms: int | None = None, variables: dict[str, str] | None = None)
 
 # Result
 class ActResult:
-    def __init__(self, success: bool, message: str)
+    def __init__(self, success: bool, message: str, action: str)
 
 # APIs
 def act(self, action_input: Union[ObserveResult, ActOptions], page) -> ActResult
-async def act_async(self, action_input: Union[ObserveResult, ActOptions], page) -> ActResult
+async def act(self, action_input: Union[ObserveResult, ActOptions], page) -> ActResult
 ```
 
 - Description: Performs an action with NL instruction or using an `ObserveResult`.
-- Returns: `ActResult(success, message)`
+- Returns: `ActResult(success, message, action)`
 
 Examples:
 ```python
@@ -1363,7 +1338,7 @@ if ok and obs2:
   - `AgentBayError`: Service-related errors (wrapped to `BrowserError` by default).
 
 - Result types:
-  - `ActResult`: `{ success: bool, message: str}`
+  - `ActResult`: `{ success: bool, message: str, action: str }`
   - `observe` returns `(success: bool, results: list[ObserveResult])`
   - `extract` returns `(success: bool, data: T)`
 
@@ -1397,13 +1372,13 @@ if ok and obs2:
 
 - Observe vs Extract?
   - `observe` finds actionable elements; `extract` returns structured data based on your schema.
-## 📚 Related Guides
+## Related Guides
 
 - [Browser Use Overview](../README.md) - Complete browser automation features
 - [Session Management](../../common-features/basics/session-management.md) - Session lifecycle and configuration
 - [Code Examples](../code-example.md) - PageUseAgent example code
 
-## 🆘 Getting Help
+## Getting Help
 
 - [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues)
 - [Documentation Home](../../README.md)
@@ -32586,7 +32561,8 @@ result = agentbay.create(CreateSessionParams())
 session = result.session
 
 # Use session
-session.command.run("echo 'Hello World'")
+result = session.command.execute_command("echo 'Hello World'")
+print(result.output)
 
 # Cleanup
 session.delete()
@@ -32607,7 +32583,8 @@ async def main():
     session = result.session
     
     # Use session
-    await session.command.run("echo 'Hello World'")
+    result = await session.command.execute_command("echo 'Hello World'")
+    print(result.output)
     
     # Cleanup
     await session.delete()
@@ -32621,7 +32598,7 @@ asyncio.run(main())
 | Aspect | Synchronous | Asynchronous |
 |--------|-------------|--------------|
 | Import | `from agentbay import AgentBay` | `from agentbay import AsyncAgentBay` |
-| Method calls | `session.command.run()` | `await session.command.run()` |
+| Method calls | `session.command.execute_command()` | `await session.command.execute_command()` |
 | Error handling | Standard try/except | Async try/except |
 | Concurrency | Sequential | Concurrent with asyncio |
 
@@ -39699,7 +39676,7 @@ if session.Browser.IsInitialized() {
 ### Screenshot
 
 ```go
-func (b *Browser) Screenshot(page interface{}, options *ScreenshotOptions) ([]byte, error)
+func (b *Browser) Screenshot(page playwright.Page, options *ScreenshotOptions) ([]byte, error)
 ```
 
 Screenshot takes a screenshot of the specified page with enhanced options and error handling.
@@ -40438,8 +40415,9 @@ AgentBayConfig holds optional configuration for the AgentBay client.
 type AgentBay struct {
 	APIKey		string
 	Client		*mcp.Client
-	Sessions	sync.Map
 	Context		*ContextService
+	MobileSimulate	*MobileSimulateService
+	config		Config
 }
 ```
 
@@ -40537,6 +40515,14 @@ sessionID := createResult.Session.SessionID
 result, _ := client.Get(sessionID)
 defer result.Session.Delete()
 ```
+
+### GetRegionID
+
+```go
+func (a *AgentBay) GetRegionID() string
+```
+
+GetRegionID returns the region ID from config
 
 ### GetSession
 
@@ -42880,6 +42866,12 @@ type Session struct {
 	// File transfer context ID for file operations
 	FileTransferContextID	string
 
+	// Browser recording context ID
+	RecordContextID	string
+
+	// Browser replay enabled flag
+	EnableBrowserReplay	bool
+
 	// File, command and code handlers
 	FileSystem	*filesystem.FileSystem
 	Command		*command.Command
@@ -42938,6 +42930,14 @@ result, _ := client.Create(nil)
 defer result.Session.Delete()
 deleteResult, _ := result.Session.Delete()
 ```
+
+### GetEnableBrowserReplay
+
+```go
+func (s *Session) GetEnableBrowserReplay() bool
+```
+
+GetEnableBrowserReplay returns whether browser replay is enabled for this session.
 
 ### GetLabels
 
@@ -43203,6 +43203,9 @@ type CreateSessionParams struct {
 
 	// Framework specifies the framework name for tracking (e.g., "langchain"). Empty string means direct call.
 	Framework	string
+
+	// EnableBrowserReplay specifies whether to enable browser recording for this session.
+	EnableBrowserReplay	bool
 }
 ```
 
@@ -43250,6 +43253,15 @@ func (p *CreateSessionParams) WithContextSync(contextSyncs []*ContextSync) *Crea
 ```
 
 WithContextSync sets the context sync configurations for the session parameters.
+
+### WithEnableBrowserReplay
+
+```go
+func (p *CreateSessionParams) WithEnableBrowserReplay(enableBrowserReplay bool) *CreateSessionParams
+```
+
+WithEnableBrowserReplay sets the browser replay flag for the session parameters and returns the
+updated parameters.
 
 ### WithExtraConfigs
 
@@ -43667,6 +43679,23 @@ defer result.Session.Delete()
 position := result.Session.Computer.GetCursorPosition()
 ```
 
+### GetInstalledApps
+
+```go
+func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) *InstalledAppListResult
+```
+
+GetInstalledApps retrieves a list of installed applications
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+appsResult := result.Session.Computer.GetInstalledApps(true, true, true)
+```
+
 ### GetScreenSize
 
 ```go
@@ -43708,6 +43737,23 @@ func (c *Computer) ListRootWindows(timeoutMs ...int) (*WindowListResult, error)
 ```
 
 ListRootWindows lists all root windows
+
+### ListVisibleApps
+
+```go
+func (c *Computer) ListVisibleApps() *ProcessListResult
+```
+
+ListVisibleApps lists all applications with visible windows
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+processResult := result.Session.Computer.ListVisibleApps()
+```
 
 ### MaximizeWindow
 
@@ -43847,6 +43893,74 @@ defer result.Session.Delete()
 scrollResult := result.Session.Computer.Scroll(400, 300, computer.ScrollDirectionDown, 5)
 ```
 
+### StartApp
+
+```go
+func (c *Computer) StartApp(startCmd, workDirectory, activity string) *ProcessListResult
+```
+
+StartApp starts the specified application
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+processResult := result.Session.Computer.StartApp("notepad.exe", "", "")
+```
+
+### StopAppByCmd
+
+```go
+func (c *Computer) StopAppByCmd(stopCmd string) *BoolResult
+```
+
+StopAppByCmd stops an application using the provided stop command
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+stopResult := result.Session.Computer.StopAppByCmd("taskkill /F /IM notepad.exe")
+```
+
+### StopAppByPID
+
+```go
+func (c *Computer) StopAppByPID(pid int) *BoolResult
+```
+
+StopAppByPID stops an application by process ID
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+stopResult := result.Session.Computer.StopAppByPID(1234)
+```
+
+### StopAppByPName
+
+```go
+func (c *Computer) StopAppByPName(pname string) *BoolResult
+```
+
+StopAppByPName stops an application by process name
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+defer result.Session.Delete()
+stopResult := result.Session.Computer.StopAppByPName("notepad.exe")
+```
+
 ### Related Functions
 
 ### NewComputer
@@ -43879,6 +43993,31 @@ type CursorPosition struct {
 
 CursorPosition represents the cursor position on screen
 
+## Type InstalledApp
+
+```go
+type InstalledApp struct {
+	Name		string	`json:"name"`
+	StartCmd	string	`json:"start_cmd"`
+	StopCmd		string	`json:"stop_cmd,omitempty"`
+	WorkDirectory	string	`json:"work_directory,omitempty"`
+}
+```
+
+InstalledApp represents an installed application
+
+## Type InstalledAppListResult
+
+```go
+type InstalledAppListResult struct {
+	models.ApiResponse
+	Apps		[]InstalledApp	`json:"apps"`
+	ErrorMessage	string		`json:"error_message"`
+}
+```
+
+InstalledAppListResult wraps installed app list and RequestID
+
 ## Type MouseButton
 
 ```go
@@ -43886,6 +44025,30 @@ type MouseButton string
 ```
 
 MouseButton represents mouse button types
+
+## Type Process
+
+```go
+type Process struct {
+	PName	string	`json:"pname"`
+	PID	int	`json:"pid"`
+	CmdLine	string	`json:"cmdline,omitempty"`
+}
+```
+
+Process represents a running process
+
+## Type ProcessListResult
+
+```go
+type ProcessListResult struct {
+	models.ApiResponse
+	Processes	[]Process	`json:"processes"`
+	ErrorMessage	string		`json:"error_message"`
+}
+```
+
+ProcessListResult wraps process list and RequestID
 
 ## Type ScreenSize
 

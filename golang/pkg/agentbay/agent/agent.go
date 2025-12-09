@@ -48,10 +48,10 @@ func NewAgent(session McpSession) *Agent {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
-//    defer sessionResult.Session.Delete()
-//    result := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+//	defer sessionResult.Session.Delete()
+//	result := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
 func (a *Agent) ExecuteTask(task string, maxTryTimes int) *ExecutionResult {
 	args := map[string]interface{}{
 		"task": task,
@@ -182,11 +182,11 @@ func (a *Agent) ExecuteTask(task string, maxTryTimes int) *ExecutionResult {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
-//    defer sessionResult.Session.Delete()
-//    execResult := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
-//    statusResult := sessionResult.Session.Agent.GetTaskStatus(execResult.TaskID)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+//	defer sessionResult.Session.Delete()
+//	execResult := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
+//	statusResult := sessionResult.Session.Agent.GetTaskStatus(execResult.TaskID)
 func (a *Agent) GetTaskStatus(taskID string) *QueryResult {
 	args := map[string]interface{}{
 		"task_id": taskID,
@@ -220,11 +220,11 @@ func (a *Agent) GetTaskStatus(taskID string) *QueryResult {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
-//    defer sessionResult.Session.Delete()
-//    execResult := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
-//    terminateResult := sessionResult.Session.Agent.TerminateTask(execResult.TaskID)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
+//	defer sessionResult.Session.Delete()
+//	execResult := sessionResult.Session.Agent.ExecuteTask("Find weather in NYC", 10)
+//	terminateResult := sessionResult.Session.Agent.TerminateTask(execResult.TaskID)
 func (a *Agent) TerminateTask(taskID string) *ExecutionResult {
 	fmt.Println("Terminating task")
 

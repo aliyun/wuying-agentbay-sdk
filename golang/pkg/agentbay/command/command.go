@@ -64,10 +64,10 @@ func NewCommand(session interface {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	cmdResult, _ := result.Session.Command.ExecuteCommand("ls -la")
 func (c *Command) ExecuteCommand(command string, timeoutMs ...int) (*CommandResult, error) {
 	// Set default timeout if not provided
 	timeout := 1000

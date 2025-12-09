@@ -180,4 +180,3 @@ func main() {
 	fmt.Println("Example completed successfully!")
 	fmt.Println(strings.Repeat("=", 60))
 }
-

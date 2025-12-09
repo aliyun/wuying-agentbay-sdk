@@ -54,7 +54,7 @@ Before using the SDK, you need to:
 
 ## 🚀 Quick Start
 
-### Python (Sync)
+### Python
 ```python
 from agentbay import AgentBay, CreateSessionParams
 
@@ -67,26 +67,6 @@ if result.success:
 
 # Clean up
 agent_bay.delete(session)
-```
-
-### Python (Async)
-```python
-import asyncio
-from agentbay import AsyncAgentBay, CreateSessionParams
-
-async def main():
-    # Create session and execute code
-    agent_bay = AsyncAgentBay()
-    session = (await agent_bay.create(CreateSessionParams(image_id="code_latest"))).session
-    result = await session.code.run_code("print('Hello AgentBay')", "python")
-    if result.success:
-        print(result.result)  # Hello AgentBay
-
-    # Clean up
-    await agent_bay.delete(session)
-
-if __name__ == "__main__":
-    asyncio.run(main())
 ```
 
 ### TypeScript
@@ -121,16 +101,7 @@ fmt.Println(res.Output)  // Hello AgentBay
 client.Delete(session, false)
 ```
 
-## 🔄 Python Sync vs Async API
 
-AgentBay Python SDK provides both synchronous and asynchronous APIs to suit different application needs.
-
-| Feature | Sync API (`AgentBay`) | Async API (`AsyncAgentBay`) |
-|---------|-----------------------|-----------------------------|
-| **Import** | `from agentbay import AgentBay` | `from agentbay import AsyncAgentBay` |
-| **Best for** | Scripts, simple tools, CLI apps | Web servers (FastAPI/Django), high-concurrency apps |
-| **Blocking** | Yes, blocks thread until complete | No, allows other tasks to run |
-| **Usage** | `client.create(...)` | `await client.create(...)` |
 
 ## 🎯 Use Cases
 

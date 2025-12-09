@@ -105,8 +105,8 @@ func NewContextListParams() *ContextListParams {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Context.List(nil)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Context.List(nil)
 func (cs *ContextService) List(params *ContextListParams) (*ContextListResult, error) {
 	if params == nil {
 		params = NewContextListParams()
@@ -239,8 +239,8 @@ func (cs *ContextService) List(params *ContextListParams) (*ContextListResult, e
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
 func (cs *ContextService) Get(name string, create bool) (*ContextResult, error) {
 	request := &mcp.GetContextRequest{
 		Name:          tea.String(name),
@@ -351,8 +351,8 @@ func (cs *ContextService) Get(name string, create bool) (*ContextResult, error) 
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    createResult, _ := client.Context.Create("my-context")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	createResult, _ := client.Context.Create("my-context")
 func (cs *ContextService) Create(name string) (*ContextCreateResult, error) {
 	result, err := cs.Get(name, true)
 	if err != nil {
@@ -388,10 +388,10 @@ func (cs *ContextService) Create(name string) (*ContextCreateResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    contextResult.Context.Name = "new-name"
-//    client.Context.Update(contextResult.Context)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	contextResult.Context.Name = "new-name"
+//	client.Context.Update(contextResult.Context)
 func (cs *ContextService) Update(context *Context) (*ContextModifyResult, error) {
 	request := &mcp.ModifyContextRequest{
 		Id:            tea.String(context.ID),
@@ -460,9 +460,9 @@ func (cs *ContextService) Update(context *Context) (*ContextModifyResult, error)
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    client.Context.Delete(contextResult.Context)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	client.Context.Delete(contextResult.Context)
 func (cs *ContextService) Delete(context *Context) (*ContextDeleteResult, error) {
 	request := &mcp.DeleteContextRequest{
 		Id:            tea.String(context.ID),
@@ -567,9 +567,9 @@ type ContextFileDeleteResult struct {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    urlResult, _ := client.Context.GetFileDownloadUrl(contextResult.ContextID, "/data/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	urlResult, _ := client.Context.GetFileDownloadUrl(contextResult.ContextID, "/data/file.txt")
 func (cs *ContextService) GetFileDownloadUrl(contextID string, filePath string) (*ContextFileUrlResult, error) {
 	req := &mcp.GetContextFileDownloadUrlRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
@@ -660,9 +660,9 @@ func (cs *ContextService) GetFileDownloadUrl(contextID string, filePath string) 
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    urlResult, _ := client.Context.GetFileUploadUrl(contextResult.ContextID, "/data/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	urlResult, _ := client.Context.GetFileUploadUrl(contextResult.ContextID, "/data/file.txt")
 func (cs *ContextService) GetFileUploadUrl(contextID string, filePath string) (*ContextFileUrlResult, error) {
 	req := &mcp.GetContextFileUploadUrlRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
@@ -755,9 +755,9 @@ func (cs *ContextService) GetFileUploadUrl(contextID string, filePath string) (*
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    fileList, _ := client.Context.ListFiles(contextResult.ContextID, "/", 1, 10)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	fileList, _ := client.Context.ListFiles(contextResult.ContextID, "/", 1, 10)
 func (cs *ContextService) ListFiles(contextID string, parentFolderPath string, pageNumber int32, pageSize int32) (*ContextFileListResult, error) {
 	req := &mcp.DescribeContextFilesRequest{
 		Authorization:    tea.String("Bearer " + cs.AgentBay.APIKey),
@@ -876,9 +876,9 @@ func (cs *ContextService) ListFiles(contextID string, parentFolderPath string, p
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    client.Context.DeleteFile(contextResult.ContextID, "/data/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	client.Context.DeleteFile(contextResult.ContextID, "/data/file.txt")
 func (cs *ContextService) DeleteFile(contextID string, filePath string) (*ContextFileDeleteResult, error) {
 	req := &mcp.DeleteContextFileRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
@@ -943,9 +943,9 @@ func (cs *ContextService) DeleteFile(contextID string, filePath string) (*Contex
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    clearResult, _ := client.Context.ClearAsync(contextResult.ContextID)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	clearResult, _ := client.Context.ClearAsync(contextResult.ContextID)
 func (cs *ContextService) ClearAsync(contextID string) (*ContextClearResult, error) {
 	request := &mcp.ClearContextRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),
@@ -1044,9 +1044,9 @@ func (cs *ContextService) ClearAsync(contextID string) (*ContextClearResult, err
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    contextResult, _ := client.Context.Get("my-context", true)
-//    statusResult, _ := client.Context.GetClearStatus(contextResult.ContextID)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	contextResult, _ := client.Context.Get("my-context", true)
+//	statusResult, _ := client.Context.GetClearStatus(contextResult.ContextID)
 func (cs *ContextService) GetClearStatus(contextID string) (*ContextClearResult, error) {
 	request := &mcp.GetContextRequest{
 		Authorization: tea.String("Bearer " + cs.AgentBay.APIKey),

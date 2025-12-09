@@ -47,13 +47,13 @@ func TestGetAdbLink_WithMobileSession(t *testing.T) {
 	}
 
 	response, err := agentBayClient.Client.GetAdbLink(request)
-	
+
 	// Check if API is available
 	if err != nil && strings.Contains(err.Error(), "InvalidAction.NotFound") {
 		t.Skip("GetAdbLink API not yet available in production")
 		return
 	}
-	
+
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	assert.NotNil(t, response.Body)
@@ -64,7 +64,7 @@ func TestGetAdbLink_WithMobileSession(t *testing.T) {
 	url := *response.Body.Data.Url
 	assert.True(t, strings.Contains(strings.ToLower(url), "adb") || strings.Contains(url, ":"),
 		"ADB URL should contain 'adb' or ':'")
-	
+
 	t.Logf("ADB URL: %s", url)
 }
 
@@ -92,12 +92,11 @@ func TestGetAdbLink_WithInvalidSession(t *testing.T) {
 	}
 
 	_, err = agentBayClient.Client.GetAdbLink(request)
-	
+
 	// Should get an error for invalid session
 	assert.Error(t, err)
-	assert.True(t, 
+	assert.True(t,
 		strings.Contains(err.Error(), "InvalidMcpSession.NotFound") ||
-		strings.Contains(err.Error(), "InvalidAction.NotFound"),
+			strings.Contains(err.Error(), "InvalidAction.NotFound"),
 		"Expected InvalidMcpSession.NotFound or InvalidAction.NotFound error")
 }
-

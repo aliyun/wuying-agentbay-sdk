@@ -40,13 +40,13 @@ func TestGetCdpLink_WithBrowserSession(t *testing.T) {
 	}
 
 	response, err := agentBayClient.Client.GetCdpLink(request)
-	
+
 	// Check if API is available
 	if err != nil && strings.Contains(err.Error(), "InvalidAction.NotFound") {
 		t.Skip("GetCdpLink API not yet available in production")
 		return
 	}
-	
+
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	assert.NotNil(t, response.Body)
@@ -57,7 +57,7 @@ func TestGetCdpLink_WithBrowserSession(t *testing.T) {
 	url := *response.Body.Data.Url
 	assert.True(t, strings.HasPrefix(url, "ws://") || strings.HasPrefix(url, "wss://"),
 		"CDP URL should start with ws:// or wss://")
-	
+
 	t.Logf("CDP URL: %s", url)
 }
 
@@ -79,12 +79,11 @@ func TestGetCdpLink_WithInvalidSession(t *testing.T) {
 	}
 
 	_, err = agentBayClient.Client.GetCdpLink(request)
-	
+
 	// Should get an error for invalid session
 	assert.Error(t, err)
-	assert.True(t, 
+	assert.True(t,
 		strings.Contains(err.Error(), "InvalidMcpSession.NotFound") ||
-		strings.Contains(err.Error(), "InvalidAction.NotFound"),
+			strings.Contains(err.Error(), "InvalidAction.NotFound"),
 		"Expected InvalidMcpSession.NotFound or InvalidAction.NotFound error")
 }
-

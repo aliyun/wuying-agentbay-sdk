@@ -60,10 +60,10 @@ func NewOss(session interface {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    ossResult, _ := result.Session.Oss.EnvInit("stsAccessKeyId", "stsAccessKeySecret", "stsToken", "endpoint", "cn-hangzhou")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	ossResult, _ := result.Session.Oss.EnvInit("stsAccessKeyId", "stsAccessKeySecret", "stsToken", "endpoint", "cn-hangzhou")
 func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoint, region string) (*EnvInitResult, error) {
 	// Build arguments map
 	args := map[string]interface{}{
@@ -99,11 +99,11 @@ func (o *OSSManager) EnvInit(accessKeyId, accessKeySecret, securityToken, endpoi
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
-//    uploadResult, _ := result.Session.Oss.Upload("my-bucket", "my-object", "/tmp/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
+//	uploadResult, _ := result.Session.Oss.Upload("my-bucket", "my-object", "/tmp/file.txt")
 func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) {
 	args := map[string]interface{}{
 		"bucket": bucket,
@@ -130,11 +130,11 @@ func (o *OSSManager) Upload(bucket, object, path string) (*UploadResult, error) 
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
-//    uploadResult, _ := result.Session.Oss.UploadAnonymous("https://example.com/upload", "/tmp/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
+//	uploadResult, _ := result.Session.Oss.UploadAnonymous("https://example.com/upload", "/tmp/file.txt")
 func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 	args := map[string]interface{}{
 		"url":  url,
@@ -160,11 +160,11 @@ func (o *OSSManager) UploadAnonymous(url, path string) (*UploadResult, error) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
-//    downloadResult, _ := result.Session.Oss.Download("my-bucket", "my-object", "/tmp/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
+//	downloadResult, _ := result.Session.Oss.Download("my-bucket", "my-object", "/tmp/file.txt")
 func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, error) {
 	args := map[string]interface{}{
 		"bucket": bucket,
@@ -191,11 +191,11 @@ func (o *OSSManager) Download(bucket, object, path string) (*DownloadResult, err
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(nil)
-//    defer result.Session.Delete()
-//    result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
-//    downloadResult, _ := result.Session.Oss.DownloadAnonymous("https://example.com/file.txt", "/tmp/file.txt")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.Oss.EnvInit("accessKeyId", "accessKeySecret", "token", "endpoint", "cn-hangzhou")
+//	downloadResult, _ := result.Session.Oss.DownloadAnonymous("https://example.com/file.txt", "/tmp/file.txt")
 func (o *OSSManager) DownloadAnonymous(url, path string) (*DownloadResult, error) {
 	args := map[string]interface{}{
 		"url":  url,

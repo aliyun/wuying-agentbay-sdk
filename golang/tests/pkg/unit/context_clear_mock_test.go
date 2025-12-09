@@ -19,10 +19,10 @@ func TestContext_ClearAsync_Success(t *testing.T) {
 	// Mock the ClearContext response
 	mockResponse := &mcp.ClearContextResponse{
 		Body: &mcp.ClearContextResponseBody{
-			Success:    tea.Bool(true),
-			RequestId:  tea.String("test-request-id"),
-			Code:       nil,
-			Message:    nil,
+			Success:   tea.Bool(true),
+			RequestId: tea.String("test-request-id"),
+			Code:      nil,
+			Message:   nil,
 		},
 	}
 	assert.NotNil(t, mockResponse.Body)
@@ -171,4 +171,3 @@ func TestContext_Clear_ConcurrentCalls(t *testing.T) {
 		agentBay.Context.Delete(ctx)
 	}
 }
-

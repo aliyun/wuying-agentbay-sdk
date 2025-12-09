@@ -84,4 +84,3 @@ func TestBrowserOption_BrowserType(t *testing.T) {
 
 // Removed tests for private toMap methods - these are internal implementation details
 // The functionality is tested through integration tests
-

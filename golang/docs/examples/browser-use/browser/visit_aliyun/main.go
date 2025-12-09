@@ -121,4 +121,3 @@ func main() {
 
 	fmt.Println("Browser automation completed successfully!")
 }
-

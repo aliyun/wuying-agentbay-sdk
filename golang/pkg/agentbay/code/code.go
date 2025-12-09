@@ -49,10 +49,10 @@ func NewCode(session interface {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
-//    defer sessionResult.Session.Delete()
-//    codeResult, _ := sessionResult.Session.Code.RunCode("print('Hello')", "python")
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	sessionResult, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
+//	defer sessionResult.Session.Delete()
+//	codeResult, _ := sessionResult.Session.Code.RunCode("print('Hello')", "python")
 func (c *Code) RunCode(code string, language string, timeoutS ...int) (*CodeResult, error) {
 	// Set default timeout if not provided
 	timeout := 60

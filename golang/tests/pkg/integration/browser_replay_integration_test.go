@@ -140,7 +140,7 @@ func TestBrowserReplay_Integration(t *testing.T) {
 					fmt.Printf("Retrying in %v...\n", retryDelay)
 					time.Sleep(retryDelay)
 					retryDelay *= 2 // Exponential backoff
-					_ = pw.Stop()  // Clean up before retry
+					_ = pw.Stop()   // Clean up before retry
 					continue
 				} else {
 					_ = pw.Stop()
@@ -287,4 +287,3 @@ func TestBrowserReplay_Integration(t *testing.T) {
 		}
 	}
 }
-

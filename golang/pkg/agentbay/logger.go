@@ -85,7 +85,7 @@ func parseLogLevel(levelStr string) int {
 //
 // Example:
 //
-//    agentbay.SetLogLevel(agentbay.LOG_DEBUG)
+//	agentbay.SetLogLevel(agentbay.LOG_DEBUG)
 func SetLogLevel(level int) {
 	if level >= LOG_DEBUG && level <= LOG_ERROR {
 		globalLogLevel = level
@@ -182,8 +182,8 @@ func writeToFile(message string) {
 //
 // Example:
 //
-//    config := agentbay.LoggerConfig{Level: "DEBUG", LogFile: "/tmp/agentbay.log"}
-//    agentbay.SetupLogger(config)
+//	config := agentbay.LoggerConfig{Level: "DEBUG", LogFile: "/tmp/agentbay.log"}
+//	agentbay.SetupLogger(config)
 func SetupLogger(config LoggerConfig) {
 	if config.Level != "" {
 		level := parseLogLevel(config.Level)
@@ -280,7 +280,7 @@ func isIDEEnvironment() bool {
 //
 // Example:
 //
-//    logAPICall("CreateSession", "ImageId=browser_latest")
+//	logAPICall("CreateSession", "ImageId=browser_latest")
 func logAPICall(apiName, requestParams string) {
 	if globalLogLevel > LOG_INFO {
 		return
@@ -308,8 +308,8 @@ func logAPICall(apiName, requestParams string) {
 //
 // Example:
 //
-//    keyFields := map[string]interface{}{"session_id": "abc123"}
-//    logAPIResponseWithDetails("CreateSession", "req-123", true, keyFields, "")
+//	keyFields := map[string]interface{}{"session_id": "abc123"}
+//	logAPIResponseWithDetails("CreateSession", "req-123", true, keyFields, "")
 func logAPIResponseWithDetails(apiName, requestID string, success bool, keyFields map[string]interface{}, fullResponse string) {
 	if globalLogLevel > LOG_INFO {
 		return
@@ -382,7 +382,7 @@ func logAPIResponseWithDetails(apiName, requestID string, success bool, keyField
 //
 // Example:
 //
-//    logOperationError("CreateSession", "connection timeout", false)
+//	logOperationError("CreateSession", "connection timeout", false)
 func logOperationError(operation, errorMsg string, withStack bool) {
 	if globalLogLevel > LOG_ERROR {
 		return
@@ -422,11 +422,11 @@ func logOperationError(operation, errorMsg string, withStack bool) {
 //
 // Example:
 //
-//    client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
-//    result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
-//    defer result.Session.Delete()
-//    execResult, _ := result.Session.Code.RunCode("print('Hello')", "python")
-//    logCodeExecutionOutput(execResult.RequestID, execResult.Output)
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("code_latest"))
+//	defer result.Session.Delete()
+//	execResult, _ := result.Session.Code.RunCode("print('Hello')", "python")
+//	logCodeExecutionOutput(execResult.RequestID, execResult.Output)
 func logCodeExecutionOutput(requestID, rawOutput string) {
 	if globalLogLevel > LOG_INFO {
 		return
@@ -594,7 +594,7 @@ func maskSensitiveDataWithRegex(str string) string {
 //
 // Example:
 //
-//    agentbay.LogInfo("Session created successfully")
+//	agentbay.LogInfo("Session created successfully")
 func LogInfo(message string) {
 	if globalLogLevel > LOG_INFO {
 		return
@@ -614,7 +614,7 @@ func LogInfo(message string) {
 //
 // Example:
 //
-//    agentbay.LogDebug("Processing request parameters")
+//	agentbay.LogDebug("Processing request parameters")
 func LogDebug(message string) {
 	if globalLogLevel > LOG_DEBUG {
 		return
@@ -634,7 +634,7 @@ func LogDebug(message string) {
 //
 // Example:
 //
-//    logInfoWithColor("Important notification")
+//	logInfoWithColor("Important notification")
 func logInfoWithColor(message string) {
 	if globalLogLevel > LOG_INFO {
 		return

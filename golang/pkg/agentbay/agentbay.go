@@ -36,8 +36,6 @@ func WithEnvFile(envFile string) Option {
 	}
 }
 
-
-
 // AgentBay represents the main client for interacting with the AgentBay cloud runtime environment.
 type AgentBay struct {
 	APIKey         string
