@@ -90,7 +90,7 @@ def test_file_upload_integration():
         pytest.skip("AGENTBAY_API_KEY environment variable not set")
 
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Create a simple session - let AgentBay handle context creation automatically
     params = CreateSessionParams(
         image_id="linux_latest",  # Use linux image for stable file transfer testing
@@ -102,7 +102,6 @@ def test_file_upload_integration():
 
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
-    print(f"File transfer context ID: {session.file_transfer_context_id}")
 
     try:
         print("Testing file upload...")
@@ -121,7 +120,7 @@ def test_file_upload_integration():
         try:
             # Upload the file - use path that matches the auto-created file_transfer context
             remote_path = "/tmp/file-transfer/upload_test.txt"  # Use the same path as auto-created context sync
-            
+
             upload_result = session.file_system.upload_file(
                 local_path=temp_file_path,
                 remote_path=remote_path,
@@ -189,7 +188,7 @@ def test_file_download_integration():
         pytest.skip("AGENTBAY_API_KEY environment variable not set")
 
     agent_bay = AgentBay(api_key=api_key)
-    
+
     # Create a simple session - let AgentBay handle context creation automatically
     params = CreateSessionParams(
         image_id="linux_latest",  # Use linux image for stable file transfer testing
@@ -201,7 +200,6 @@ def test_file_download_integration():
 
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
-    print(f"File transfer context ID: {session.file_transfer_context_id}")
 
     try:
         # First, create a file in the remote location
@@ -211,7 +209,7 @@ def test_file_download_integration():
             * 15
         )
         print("\n Creating test directory...")
-        
+
         create_dir_result = session.file_system.create_directory(
             "/tmp/file-transfer/"
         )

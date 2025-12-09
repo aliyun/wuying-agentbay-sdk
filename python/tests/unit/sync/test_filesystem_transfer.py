@@ -118,7 +118,6 @@ class TestAsyncFileTransfer(unittest.TestCase):
 
         self.mock_agent_bay.context = self.mock_context_svc
         self.mock_session.context = Mock()
-        self.mock_session.file_transfer_context_id = "ctx_123"
 
         self.file_transfer = FileTransfer(self.mock_agent_bay, self.mock_session)
 
@@ -165,9 +164,12 @@ class TestAsyncFileTransfer(unittest.TestCase):
 
         self.mock_agent_bay.context = self.mock_context_svc
         self.mock_session.context = Mock()
-        self.mock_session.file_transfer_context_id = "ctx_123"
 
         self.file_transfer = FileTransfer(self.mock_agent_bay, self.mock_session)
+        # Provide deterministic context id to satisfy upload/download calls
+        self.file_transfer._context_id = "ctx_123"
+        # Provide deterministic context id to satisfy upload/download calls
+        self.file_transfer._context_id = "ctx_123"
 
     def _run_async_test(self, coro):
         """Helper method to run async tests."""

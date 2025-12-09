@@ -4,7 +4,7 @@ import os
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import httpx
 
@@ -22,6 +22,7 @@ from .._common.models.filesystem import (
 )
 from .._common.models import ApiResponse, BoolResult
 from ..api.base_service import BaseService
+from ..api.models import ListContextsRequest
 
 from .._common.logger import (
     _log_api_response,
@@ -68,7 +69,7 @@ class AsyncFileTransfer:
         self._session = session
         self._http_timeout = http_timeout
         self._follow_redirects = follow_redirects
-        self._context_id: str = self._session.file_transfer_context_id
+        self._context_id: Optional[str] = None
 
         # Task completion states (for compatibility)
         self._finished_states = {
@@ -80,6 +81,45 @@ class AsyncFileTransfer:
             "completed",
             "complete",
         }
+
+    async def _ensure_context_id(self) -> bool:
+        """
+        Lazy-load the file_transfer context ID for this session.
+        This calls ListContexts with SessionId and Type=file_transfer without exposing
+        the Type parameter via the public context.list API.
+        """
+        if self._context_id:
+            return True
+
+        try:
+            request = ListContextsRequest(
+                authorization=f"Bearer {self._agent_bay.api_key}",
+                session_id=self._session._get_session_id(),
+                type="file_transfer",
+                max_results=10,
+            )
+            client = self._agent_bay.client
+            if hasattr(client, "list_contexts_async") and callable(
+                getattr(client, "list_contexts_async")
+            ):
+                response = await client.list_contexts_async(request)
+            else:
+                response = await asyncio.to_thread(client.list_contexts, request)
+
+            response_map = response.to_map() if hasattr(response, "to_map") else {}
+            body = response_map.get("body", {}) if isinstance(response_map, dict) else {}
+            data = body.get("Data", [])
+            if isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        context_id = item.get("Id") or item.get("ContextId")
+                        if context_id:
+                            self._context_id = context_id
+                            return True
+        except Exception:
+            return False
+
+        return False
 
     async def upload(
         self,
@@ -115,7 +155,7 @@ class AsyncFileTransfer:
                 path=remote_path,
                 error=f"Local file not found: {local_path}",
             )
-        if self._context_id is None:
+        if self._context_id is None and not await self._ensure_context_id():
             return UploadResult(
                 success=False,
                 request_id_upload_url=None,
@@ -258,7 +298,7 @@ class AsyncFileTransfer:
         Returns DownloadResult containing sync and download request_ids, HTTP status, byte count, etc.
         """
         # Use default context if none provided
-        if self._context_id is None:
+        if self._context_id is None and not await self._ensure_context_id():
             return DownloadResult(
                 success=False,
                 request_id_download_url=None,

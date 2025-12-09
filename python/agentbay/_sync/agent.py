@@ -340,7 +340,7 @@ class Agent(BaseService):
 
     class Browser:
         """
-        An Agent to perform tasks on the browser.
+        An Agent(⚠️ Still in BETA) to perform tasks on the browser
         """
 
         def __init__(self, session):

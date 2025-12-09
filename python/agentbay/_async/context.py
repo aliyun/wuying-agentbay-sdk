@@ -227,6 +227,7 @@ class ContextListParams:
         self,
         max_results: Optional[int] = None,
         next_token: Optional[str] = None,
+        session_id: Optional[str] = None,
     ):
         """
         Initialize ContextListParams.
@@ -235,9 +236,11 @@ class ContextListParams:
             max_results (Optional[int], optional): Maximum number of results per page.
                 Defaults to 10 if not specified.
             next_token (Optional[str], optional): Token for the next page of results.
+            session_id (Optional[str], optional): Filter by session ID.
         """
         self.max_results = max_results
         self.next_token = next_token
+        self.session_id = session_id
 
 
 class AsyncContextService:
@@ -282,6 +285,8 @@ class AsyncContextService:
             request_details = f"MaxResults={max_results}"
             if params.next_token:
                 request_details += f", NextToken={params.next_token}"
+            if params.session_id:
+                request_details += f", SessionId={params.session_id}"
             _log_api_call("ListContexts", request_details)
             request = ListContextsRequest(
                 authorization=f"Bearer {self.agent_bay.api_key}",
@@ -289,6 +294,8 @@ class AsyncContextService:
             )
             if params.next_token:
                 request.next_token = params.next_token
+            if params.session_id:
+                request.session_id = params.session_id
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self.agent_bay.client
             if hasattr(client, "list_contexts_async") and callable(

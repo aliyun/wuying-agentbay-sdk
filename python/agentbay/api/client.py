@@ -1190,6 +1190,10 @@ class Client(OpenApiClient):
             body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
             body["NextToken"] = request.next_token
+        if not DaraCore.is_null(request.session_id):
+            body["SessionId"] = request.session_id
+        if not DaraCore.is_null(request.type):
+            body["ContextType"] = request.type
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
             action="ListContexts",
@@ -1219,6 +1223,10 @@ class Client(OpenApiClient):
             body["MaxResults"] = request.max_results
         if not DaraCore.is_null(request.next_token):
             body["NextToken"] = request.next_token
+        if not DaraCore.is_null(request.session_id):
+            body["SessionId"] = request.session_id
+        if not DaraCore.is_null(request.type):
+            body["ContextType"] = request.type
         req = open_api_util_models.OpenApiRequest(body=Utils.parse_to_map(body))
         params = open_api_util_models.Params(
             action="ListContexts",

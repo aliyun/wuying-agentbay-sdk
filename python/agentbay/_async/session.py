@@ -103,12 +103,6 @@ class AsyncSession:
         # MCP tools available for this session
         self.mcp_tools = []  # List[McpTool]
 
-        # File transfer context ID
-        self.file_transfer_context_id: Optional[str] = None
-
-        # Browser recording context ID
-        self.record_context_id: Optional[str] = None
-
         # Initialize file system, command and code handlers
         self.file_system = AsyncFileSystem(self)
         self.command = AsyncCommand(self)
@@ -177,29 +171,8 @@ class AsyncSession:
             SessionError: If the deletion request fails or the response is invalid.
         """
         try:
-            # Determine sync behavior based on enableBrowserReplay and sync_context
-            should_sync = False
-            sync_context_id = None
-
-            if sync_context:
-                # User explicitly requested sync - sync all contexts
-                should_sync = True
-                _logger.info("🔄 User requested context synchronization")
-            elif hasattr(self, "enableBrowserReplay") and self.enableBrowserReplay:
-                # Browser replay enabled but no explicit sync - sync only browser recording context
-                if hasattr(self, "record_context_id") and self.record_context_id:
-                    should_sync = True
-                    sync_context_id = self.record_context_id
-                    _logger.info(
-                        f"🎥 Browser replay enabled - syncing recording context: {sync_context_id}"
-                    )
-                else:
-                    _logger.warning(
-                        "⚠️  Browser replay enabled but no record_context_id found"
-                    )
-
             # Perform context synchronization if needed
-            if should_sync:
+            if sync_context:
                 _log_operation_start(
                     "Context synchronization", "Before session deletion"
                 )
@@ -207,18 +180,9 @@ class AsyncSession:
                 sync_start_time = time.time()
 
                 try:
-                    if sync_context_id:
-                        # Sync specific context (browser recording)
-                        sync_result = await self.context.sync(
-                            context_id=sync_context_id
-                        )
-                        _logger.info(
-                            f"🎥 Synced browser recording context: {sync_context_id}"
-                        )
-                    else:
-                        # Sync all contexts
-                        sync_result = await self.context.sync()
-                        _logger.info("🔄 Synced all contexts")
+                    # Sync all contexts
+                    sync_result = await self.context.sync()
+                    _logger.info("🔄 Synced all contexts")
 
                     sync_duration = time.time() - sync_start_time
 

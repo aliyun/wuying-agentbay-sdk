@@ -12,11 +12,15 @@ class ListContextsRequest(DaraModel):
         max_results: int = None,
         next_token: str = None,
         login_region_id: str = None,
+        session_id: str = None,
+        type: str = None,
     ):
         self.authorization = authorization
         self.max_results = max_results
         self.next_token = next_token
         self.login_region_id = login_region_id
+        self.session_id = session_id
+        self.type = type
 
     def validate(self):
         pass
@@ -38,6 +42,12 @@ class ListContextsRequest(DaraModel):
         if self.login_region_id is not None:
             result["LoginRegionId"] = self.login_region_id
 
+        if self.session_id is not None:
+            result["SessionId"] = self.session_id
+
+        if self.type is not None:
+            result["ContextType"] = self.type
+
         return result
 
     def from_map(self, m: dict = None):
@@ -53,5 +63,11 @@ class ListContextsRequest(DaraModel):
 
         if m.get("LoginRegionId") is not None:
             self.login_region_id = m.get("LoginRegionId")
+
+        if m.get("SessionId") is not None:
+            self.session_id = m.get("SessionId")
+
+        if m.get("ContextType") is not None:
+            self.type = m.get("ContextType")
 
         return self

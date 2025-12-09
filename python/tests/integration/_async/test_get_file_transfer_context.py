@@ -35,35 +35,6 @@ class TestGetFileTransferContext:
         except Exception as e:
             print(f"Warning: Failed to cleanup session {session.session_id}: {e}")
 
-    async def test_get_method_creates_file_transfer_context(self, agent_bay, test_session):
-        """
-        Test that get method creates file transfer context automatically.
-
-        This test verifies the fix for the bug where recovered sessions
-        couldn't perform file operations due to missing file transfer context.
-        """
-        # Get the session_id from the test_session
-        session_id = test_session.session_id
-
-        # Use get method to recover the session
-        get_result = await agent_bay.get(session_id)
-
-        # Verify get was successful
-        assert get_result.success, f"Get failed: {get_result.error_message}"
-        assert get_result.session is not None
-        assert get_result.session.session_id == session_id
-
-        # Verify that the recovered session has a file transfer context ID
-        recovered_session = get_result.session
-        assert hasattr(
-            recovered_session, "file_transfer_context_id"
-        ), "Recovered session should have file_transfer_context_id attribute"
-        assert (
-            recovered_session.file_transfer_context_id is not None
-        ), "Recovered session should have a non-None file_transfer_context_id"
-        assert (
-            recovered_session.file_transfer_context_id != ""
-        ), "Recovered session should have a non-empty file_transfer_context_id"
 
     async def test_recovered_session_can_perform_file_operations(
         self, agent_bay, test_session

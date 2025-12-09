@@ -165,7 +165,6 @@ class AgentBay:
         self,
         response_data: dict,
         params: CreateSessionParams,
-        record_context_id: Optional[str] = None,
     ) -> Session:
         """
         Build Session object from API response data.
@@ -173,7 +172,6 @@ class AgentBay:
         Args:
             response_data: Data field from API response
             params: Parameters for creating the session
-            record_context_id: Request ID
 
         Returns:
             AsyncSession: Built Session object
@@ -204,14 +202,6 @@ class AgentBay:
 
         # Set browser recording state
         session.enableBrowserReplay = params.enable_browser_replay
-
-        # Store the file transfer context ID if we created one
-        session.file_transfer_context_id = (
-            self._file_transfer_context.id if self._file_transfer_context else None
-        )
-
-        # Store the browser recording context ID if we created one
-        session.record_context_id = record_context_id
 
         # Store image_id used for this session
         setattr(session, "image_id", params.image_id)
@@ -383,56 +373,6 @@ class AgentBay:
         except Exception:
             _logger.debug(f"📤 CreateMcpSessionRequest: {request}")
 
-    def _update_browser_replay_context(
-        self, response_data: dict, record_context_id: str
-    ) -> None:
-        """
-        Update browser replay context with AppInstanceId from response data asynchronously.
-
-        Args:
-            response_data: Response data containing AppInstanceId
-            record_context_id: The record context ID to update
-        """
-        # Check if record_context_id is provided
-        if not record_context_id:
-            return
-
-        try:
-            # Extract AppInstanceId from response data
-            app_instance_id = response_data.get("AppInstanceId")
-            if not app_instance_id:
-                _logger.warning(
-                    "AppInstanceId not found in response data, skipping browser replay context update"
-                )
-                return
-
-            # Create context name with prefix
-            context_name = f"browserreplay-{app_instance_id}"
-
-            # Create Context object for update
-            from .context import Context
-
-            context_obj = Context(id=record_context_id, name=context_name)
-
-            # Call context.update interface
-            _logger.info(
-                f"Updating browser replay context: {context_name} -> {record_context_id}"
-            )
-            update_result = self.context.update(context_obj)
-
-            if update_result.success:
-                _logger.info(
-                    f"✅ Successfully updated browser replay context: {context_name}"
-                )
-            else:
-                _logger.warning(
-                    f"⚠️ Failed to update browser replay context: {update_result.error_message}"
-                )
-
-        except Exception as e:
-            _logger.error(f"❌ Error updating browser replay context: {e}")
-            # Continue execution even if context update fails
-
     def create(
         self, params: Optional[CreateSessionParams] = None
     ) -> SessionResult:
@@ -483,28 +423,6 @@ class AgentBay:
                             f"Adding context sync for mobile simulate: {mobile_sim_context_sync}"
                         )
                         params.context_syncs.append(mobile_sim_context_sync)
-
-            # Create a default context for file transfer operations if none provided
-            # and no context_syncs are specified
-            import time
-
-            context_name = f"file-transfer-context-{int(time.time())}"
-            context_result = self.context.get(context_name, create=True)
-            if context_result.success and context_result.context:
-                self._file_transfer_context = context_result.context
-                # Add the context to the session params for file transfer operations
-                from .context_sync import ContextSync
-
-                file_transfer_context_sync = ContextSync(
-                    context_id=context_result.context.id,
-                    path="/tmp/file-transfer",
-                )
-                if not hasattr(params, "context_syncs") or params.context_syncs is None:
-                    params.context_syncs = []
-                _logger.info(
-                    f"Adding context sync for file transfer operations: {file_transfer_context_sync}"
-                )
-                params.context_syncs.append(file_transfer_context_sync)
 
             request = CreateMcpSessionRequest(authorization=f"Bearer {self.api_key}")
 
@@ -626,31 +544,6 @@ class AgentBay:
             if params.image_id:
                 request.image_id = params.image_id
 
-            # Add browser recording persistence if enabled
-            record_context_id = ""  # Initialize record_context_id
-            if (
-                hasattr(params, "enable_browser_replay")
-                and params.enable_browser_replay
-            ):
-                from ..api.models import CreateMcpSessionRequestPersistenceDataList
-
-                # Create browser recording persistence configuration
-                record_path = "/home/wuying/record"
-                record_context_name = _generate_random_context_name()
-                result = self.context.get(record_context_name, True)
-                record_context_id = result.context_id if result.success else ""
-                record_persistence = CreateMcpSessionRequestPersistenceDataList(
-                    context_id=record_context_id, path=record_path
-                )
-
-                # Add to persistence data list or create new one if not exists
-                if (
-                    not hasattr(request, "persistence_data_list")
-                    or request.persistence_data_list is None
-                ):
-                    request.persistence_data_list = []
-                request.persistence_data_list.append(record_persistence)
-
             # Add extra_configs if provided
             mobile_sim_path = None
             needs_mobile_sim = False
@@ -759,14 +652,7 @@ class AgentBay:
             )
 
             # Build Session object from response data
-            session = self._build_session_from_response(data, params, record_context_id)
-
-            # Update browser replay context if enabled
-            if (
-                hasattr(params, "enable_browser_replay")
-                and params.enable_browser_replay
-            ):
-                self._update_browser_replay_context(data, record_context_id)
+            session = self._build_session_from_response(data, params)
 
             # For VPC sessions, automatically fetch MCP tools information
             if params.is_vpc:
@@ -1185,21 +1071,6 @@ class AgentBay:
             session.http_port = get_result.data.http_port
             session.token = get_result.data.token
             session.resource_url = get_result.data.resource_url
-
-        # Create a default context for file transfer operations for the recovered session
-        import time
-
-        context_name = f"file-transfer-context-{int(time.time())}"
-        context_result = self.context.get(context_name, create=True)
-        if context_result.success and context_result.context:
-            session.file_transfer_context_id = context_result.context.id
-            _logger.info(
-                f"📁 Created file transfer context for recovered session: {context_result.context.id}"
-            )
-        else:
-            _logger.warning(
-                f"⚠️  Failed to create file transfer context for recovered session: {context_result.error_message if hasattr(context_result, 'error_message') else 'Unknown error'}"
-            )
 
         return SessionResult(
             request_id=get_result.request_id,
