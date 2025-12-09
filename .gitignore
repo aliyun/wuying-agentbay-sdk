@@ -61,6 +61,9 @@ go.work
 vendor/
 *.mod
 *.sum
+# Golang compiled binaries
+start_app
+*/start_app
 
 # IDE
 .idea/
