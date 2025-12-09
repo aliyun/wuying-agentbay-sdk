@@ -109,7 +109,7 @@ Create a new directory at the specified path.
 session = agent_bay.create().session
 create_result = session.file_system.create_directory("/tmp/mydir")
 nested_result = session.file_system.create_directory("/tmp/parent/child/grandchild")
-session.delete()
+await session.delete()
 ```
 
 ### edit\_file
@@ -143,7 +143,7 @@ session.file_system.write_file("/tmp/config.txt", "DEBUG=false
 LOG_LEVEL=info")
 edits = [{"oldText": "false", "newText": "true"}]
 edit_result = session.file_system.edit_file("/tmp/config.txt", edits)
-session.delete()
+await session.delete()
 ```
 
 ### get\_file\_info
@@ -171,7 +171,7 @@ session = agent_bay.create().session
 session.file_system.write_file("/tmp/test.txt", "Sample content")
 info_result = session.file_system.get_file_info("/tmp/test.txt")
 print(info_result.file_info)
-session.delete()
+await session.delete()
 ```
 
 ### list\_directory
@@ -212,7 +212,7 @@ session.file_system.create_directory("/tmp/testdir")
 session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
 list_result = session.file_system.list_directory("/tmp/testdir")
 print(f"Found {len(list_result.entries)} entries")
-session.delete()
+await session.delete()
 ```
 
 
@@ -254,7 +254,7 @@ session = agent_bay.create().session
 session.file_system.write_file("/tmp/original.txt", "Test content")
 move_result = session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
 read_result = session.file_system.read_file("/tmp/moved.txt")
-session.delete()
+await session.delete()
 ```
 
 ### read\_multiple\_files
@@ -286,7 +286,7 @@ session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
 session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
 paths = ["/tmp/file1.txt", "/tmp/file2.txt", "/tmp/file3.txt"]
 read_result = session.file_system.read_multiple_files(paths)
-session.delete()
+await session.delete()
 ```
 
 ### search\_files
@@ -322,7 +322,7 @@ session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
 session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
 session.file_system.write_file("/tmp/test/other.txt", "text content")
 search_result = session.file_system.search_files("/tmp/test", "test_*")
-session.delete()
+await session.delete()
 ```
 
 ### read\_file
@@ -359,7 +359,7 @@ session = agent_bay.create().session
 write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
 read_result = session.file_system.read_file("/tmp/test.txt")
 print(read_result.content)
-session.delete()
+await session.delete()
 ```
 
 
@@ -415,7 +415,7 @@ write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
 append_result = session.file_system.write_file("/tmp/test.txt", "
 New line", mode="append")
 read_result = session.file_system.read_file("/tmp/test.txt")
-session.delete()
+await session.delete()
 ```
 
 
@@ -469,7 +469,7 @@ Upload a file from local to remote path using pre-signed URLs.
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
 session = await agent_bay.create(params)
 upload_result = await session.session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
-await session.session.delete()
+await session.delete()
 ```
 
 ### download\_file
@@ -510,7 +510,7 @@ Download a file from remote path to local path using pre-signed URLs.
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
 session = await agent_bay.create(params)
 download_result = await session.session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
-await session.session.delete()
+await session.delete()
 ```
 
 ### watch\_directory
@@ -552,7 +552,7 @@ monitor_thread = session.file_system.watch_directory("/tmp/watch_test", on_chang
 monitor_thread.start()
 session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
 session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
-session.delete()
+await session.delete()
 ```
 
 ## See Also

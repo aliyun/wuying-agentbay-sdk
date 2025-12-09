@@ -465,7 +465,7 @@ Upload a file from local to remote path using pre-signed URLs.
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
 session = agent_bay.create(params)
 upload_result = session.session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
-session.session.delete()
+session.delete()
 ```
 
 ### download\_file
@@ -506,7 +506,7 @@ Download a file from remote path to local path using pre-signed URLs.
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
 session = agent_bay.create(params)
 download_result = session.session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
-session.session.delete()
+session.delete()
 ```
 
 ### watch\_directory

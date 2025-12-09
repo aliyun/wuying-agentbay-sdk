@@ -62,7 +62,7 @@ class Command(BaseService):
             result = await session.command.execute_command("echo 'Hello, World!'")
             print(result.output)
             print(result.exit_code)
-            session.delete()
+            await session.delete()
 
         Example:
             result = await session.command.execute_command(
@@ -72,7 +72,7 @@ class Command(BaseService):
                 envs={"TEST_VAR": "test_value"}
             )
             print(result.stdout)
-            session.delete()
+            await session.delete()
         """
         # Validate environment variables - strict type checking (before try block to allow ValueError to propagate)
         if envs is not None:

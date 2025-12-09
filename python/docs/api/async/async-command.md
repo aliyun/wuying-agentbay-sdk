@@ -76,7 +76,7 @@ session = agent_bay.create().session
 result = await session.command.execute_command("echo 'Hello, World!'")
 print(result.output)
 print(result.exit_code)
-session.delete()
+await session.delete()
 
 
 **Example**:
@@ -88,7 +88,7 @@ cwd="/tmp",
     envs={"TEST_VAR": "test_value"}
 )
 print(result.stdout)
-session.delete()
+await session.delete()
 
 ## Best Practices
 

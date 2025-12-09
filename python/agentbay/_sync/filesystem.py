@@ -658,7 +658,7 @@ class FileSystem(BaseService):
             session = agent_bay.create().session
             create_result = session.file_system.create_directory("/tmp/mydir")
             nested_result = session.file_system.create_directory("/tmp/parent/child/grandchild")
-            session.delete()
+            await session.delete()
             ```
         """
         args = {"path": path}
@@ -703,7 +703,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/config.txt", "DEBUG=false\nLOG_LEVEL=info")
             edits = [{"oldText": "false", "newText": "true"}]
             edit_result = session.file_system.edit_file("/tmp/config.txt", edits)
-            session.delete()
+            await session.delete()
             ```
         """
         args = {"path": path, "edits": edits, "dryRun": dry_run}
@@ -743,7 +743,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/test.txt", "Sample content")
             info_result = session.file_system.get_file_info("/tmp/test.txt")
             print(info_result.file_info)
-            session.delete()
+            await session.delete()
             ```
         """
 
@@ -840,7 +840,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
             list_result = session.file_system.list_directory("/tmp/testdir")
             print(f"Found {len(list_result.entries)} entries")
-            session.delete()
+            await session.delete()
             ```
 
         Note:
@@ -951,7 +951,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/original.txt", "Test content")
             move_result = session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
             read_result = session.file_system.read_file("/tmp/moved.txt")
-            session.delete()
+            await session.delete()
             ```
         """
         args = {"source": source, "destination": destination}
@@ -1046,7 +1046,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
             paths = ["/tmp/file1.txt", "/tmp/file2.txt", "/tmp/file3.txt"]
             read_result = session.file_system.read_multiple_files(paths)
-            session.delete()
+            await session.delete()
             ```
         """
 
@@ -1166,7 +1166,7 @@ class FileSystem(BaseService):
             session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
             session.file_system.write_file("/tmp/test/other.txt", "text content")
             search_result = session.file_system.search_files("/tmp/test", "test_*")
-            session.delete()
+            await session.delete()
             ```
         """
         args = {"path": path, "pattern": pattern}
@@ -1275,7 +1275,7 @@ class FileSystem(BaseService):
             write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
             read_result = session.file_system.read_file("/tmp/test.txt")
             print(read_result.content)
-            session.delete()
+            await session.delete()
             ```
 
         Note:
@@ -1381,7 +1381,7 @@ class FileSystem(BaseService):
             write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
             append_result = session.file_system.write_file("/tmp/test.txt", "\nNew line", mode="append")
             read_result = session.file_system.read_file("/tmp/test.txt")
-            session.delete()
+            await session.delete()
             ```
 
         Note:
@@ -1464,7 +1464,7 @@ class FileSystem(BaseService):
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
             session = await agent_bay.create(params)
             upload_result = await session.session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
-            await session.session.delete()
+            await session.delete()
             ```
         """
         try:
@@ -1523,7 +1523,7 @@ class FileSystem(BaseService):
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
             session = await agent_bay.create(params)
             download_result = await session.session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
-            await session.session.delete()
+            await session.delete()
             ```
         """
 
@@ -1661,7 +1661,7 @@ class FileSystem(BaseService):
             monitor_thread.start()
             session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
             session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
-            session.delete()
+            await session.delete()
             ```
         """
 
