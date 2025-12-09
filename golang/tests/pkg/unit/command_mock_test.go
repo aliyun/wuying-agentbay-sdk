@@ -351,3 +351,40 @@ func TestCommand_Implementation_TimeoutLimit(t *testing.T) {
 	assert.NotNil(t, result3)
 	assert.Equal(t, 30000, capturedTimeout3) // Should remain unchanged
 }
+
+func TestCommand_Implementation_ValidEnvs(t *testing.T) {
+	// Test that valid envs (all strings) are accepted
+	// Note: In Go, the type system enforces map[string]string at compile time,
+	// so invalid types cannot be passed. This test verifies that valid envs work correctly.
+	mockResult := &models.McpToolResult{
+		Success:      true,
+		Data:         "test output",
+		ErrorMessage: "",
+		RequestID:    "request-123",
+	}
+
+	var capturedEnvs interface{}
+	mockSession := &CommandTestMockSession{
+		callMcpToolFunc: func(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error) {
+			assert.Equal(t, "shell", toolName)
+			capturedEnvs = args.(map[string]interface{})["envs"]
+			return mockResult, nil
+		},
+	}
+	cmd := command.NewCommand(mockSession)
+
+	validEnvs := map[string]string{
+		"TEST_VAR": "123",
+		"MODE":     "production",
+	}
+	result, err := cmd.ExecuteCommand("echo test", command.WithEnvs(validEnvs))
+
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.True(t, result.Success)
+
+	// Verify envs were passed correctly
+	envsMap := capturedEnvs.(map[string]string)
+	assert.Equal(t, "123", envsMap["TEST_VAR"])
+	assert.Equal(t, "production", envsMap["MODE"])
+}

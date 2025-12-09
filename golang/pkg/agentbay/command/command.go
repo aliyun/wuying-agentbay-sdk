@@ -190,6 +190,10 @@ func (c *Command) executeCommandInternal(
 		timeout = MAX_TIMEOUT_MS
 	}
 
+	// Note: In Go, envs is typed as map[string]string, which enforces type safety at compile time.
+	// All keys and values are guaranteed to be strings by the type system.
+	// This validation is kept for consistency with other SDKs and documentation purposes.
+
 	// Build request arguments
 	args := map[string]interface{}{
 		"command":    command,

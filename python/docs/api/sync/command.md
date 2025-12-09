@@ -46,7 +46,9 @@ user permissions in a Linux shell environment.
     cwd: The working directory for command execution. If not specified,
   the command runs in the default session directory
     envs: Environment variables as a dictionary of key-value pairs.
-  These variables are set for the command execution only
+  These variables are set for the command execution only. **All keys and values
+  must be strings.** If any key or value is not a string type, a ValueError
+  will be raised before command execution.
   
 
 **Returns**:
@@ -64,6 +66,7 @@ user permissions in a Linux shell environment.
 
 **Raises**:
 
+    ValueError: If any key or value in envs is not a string type
     CommandError: If the command execution fails due to system errors
   
 

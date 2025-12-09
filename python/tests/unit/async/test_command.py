@@ -239,6 +239,73 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["timeout_ms"], 30000)  # Should remain unchanged
 
+    async def test_execute_command_invalid_envs_key(self):
+        """
+        Test execute_command method with invalid envs key (not string).
+        Should raise ValueError.
+        """
+        # Test with non-string key
+        with self.assertRaises(ValueError) as context:
+            await self.command.execute_command(
+                "echo test",
+                envs={123: "value"}  # Invalid: key is int, not string
+            )
+        self.assertIn("Invalid environment variables", str(context.exception))
+        self.assertIn("must be strings", str(context.exception))
+
+    async def test_execute_command_invalid_envs_value(self):
+        """
+        Test execute_command method with invalid envs value (not string).
+        Should raise ValueError.
+        """
+        # Test with non-string value
+        with self.assertRaises(ValueError) as context:
+            await self.command.execute_command(
+                "echo test",
+                envs={"TEST_VAR": 123}  # Invalid: value is int, not string
+            )
+        self.assertIn("Invalid environment variables", str(context.exception))
+        self.assertIn("must be strings", str(context.exception))
+
+    async def test_execute_command_invalid_envs_mixed(self):
+        """
+        Test execute_command method with mixed valid and invalid envs.
+        Should raise ValueError.
+        """
+        # Test with mixed valid and invalid values
+        with self.assertRaises(ValueError) as context:
+            await self.command.execute_command(
+                "echo test",
+                envs={"VALID": "ok", "INVALID": True, "ANOTHER": 123}  # Mixed valid and invalid
+            )
+        self.assertIn("Invalid environment variables", str(context.exception))
+        self.assertIn("must be strings", str(context.exception))
+
+    async def test_execute_command_valid_envs(self):
+        """
+        Test execute_command method with valid envs (all strings).
+        Should not raise any error.
+        """
+        from agentbay import McpToolResult
+
+        mock_result = McpToolResult(
+            request_id="request-123", success=True, data='{"stdout": "test", "stderr": "", "errorCode": 0}'
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        # Test with valid envs (all strings)
+        result = await self.command.execute_command(
+            "echo test",
+            envs={"TEST_VAR": "123", "MODE": "production"}
+        )
+        self.assertIsInstance(result, CommandResult)
+        self.assertTrue(result.success)
+
+        # Verify envs were passed correctly
+        self.session.call_mcp_tool.assert_called_once()
+        args = self.session.call_mcp_tool.call_args[0][1]
+        self.assertEqual(args["envs"], {"TEST_VAR": "123", "MODE": "production"})
+
 
 if __name__ == "__main__":
     unittest.main()

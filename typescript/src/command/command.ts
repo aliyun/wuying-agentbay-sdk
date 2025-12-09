@@ -95,6 +95,26 @@ export class Command {
     cwd?: string,
     envs?: Record<string, string>
   ): Promise<CommandResult> {
+    // Validate environment variables - strict type checking (before try block to allow Error to propagate)
+    if (envs !== undefined) {
+      const invalidVars: string[] = [];
+      for (const [key, value] of Object.entries(envs)) {
+        if (typeof key !== "string") {
+          invalidVars.push(`key '${key}' (type: ${typeof key})`);
+        }
+        if (typeof value !== "string") {
+          invalidVars.push(`value for key '${key}' (type: ${typeof value})`);
+        }
+      }
+      
+      if (invalidVars.length > 0) {
+        throw new Error(
+          `Invalid environment variables: all keys and values must be strings. ` +
+          `Found invalid entries: ${invalidVars.join(", ")}`
+        );
+      }
+    }
+
     try {
       // Limit timeout to maximum 50s (50000ms) as per SDK constraints
       const MAX_TIMEOUT_MS = 50000;

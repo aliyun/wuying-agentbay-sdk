@@ -12,6 +12,10 @@ This guide covers command execution capabilities in AgentBay SDK. The command mo
 - [Command with Timeout](#command-with-timeout)
 - [Working with Command Output](#working-with-command-output)
 - [Advanced Patterns](#advanced-patterns)
+  - [Working Directory (cwd)](#working-directory-cwd)
+  - [Environment Variables (envs)](#environment-variables-envs)
+  - [Combining cwd and envs](#combining-cwd-and-envs)
+  - [Command Chaining](#command-chaining-legacy-pattern)
 - [Async-Specific Patterns](#async-specific-patterns)
 - [Choosing Sync vs Async](#choosing-sync-vs-async)
 
@@ -28,9 +32,12 @@ The `session.command` module provides programmatic access to execute shell comma
 ### Command Module Features
 
 - ✅ Synchronous and asynchronous command execution
-- ✅ Timeout support
-- ✅ Output and error capture
-- ✅ Exit code handling
+- ✅ Timeout support (maximum 50 seconds)
+- ✅ Working directory (cwd) configuration
+- ✅ Environment variables (envs) support
+- ✅ Detailed output capture (stdout, stderr)
+- ✅ Exit code and trace ID handling
+- ✅ Backward compatible output field
 
 <a id="basic-command-execution"></a>
 ## 💻 Basic Command Execution
@@ -132,8 +139,40 @@ agent_bay.delete(session)
 # Command timed out: Error in response: Execution failed. Error code:-1 Error message: [timeout]
 ```
 
+### Timeout Limits
+
+- **Default timeout**: 60 seconds (60000ms) for Python SDK
+- **Maximum timeout**: 50 seconds (50000ms) - SDK automatically limits larger values
+- If you specify a timeout greater than 50 seconds, the SDK will automatically cap it to 50 seconds and log a warning
+
+```python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Timeout will be automatically limited to 50000ms (50s)
+result = session.command.execute_command("sleep 1", timeout_ms=60000)
+# Warning: Timeout 60000ms exceeds maximum allowed 50000ms. Limiting to 50000ms.
+
+agent_bay.delete(session)
+```
+
 <a id="working-with-command-output"></a>
 ## 📤 Working with Command Output
+
+### Understanding Command Result Fields
+
+The `execute_command` method returns a `CommandResult` object with the following fields:
+
+- **`output`** - Combined stdout and stderr (for backward compatibility: `output = stdout + stderr`)
+- **`stdout`** - Standard output from the command
+- **`stderr`** - Standard error from the command
+- **`exit_code`** - Command exit code (0 for success)
+- **`success`** - Boolean indicating if command succeeded (based on exit_code)
+- **`trace_id`** - Trace ID for error tracking (only present when exit_code != 0)
+- **`request_id`** - Unique identifier for the API request
+- **`error_message`** - Error description if execution failed
 
 ### Capturing and Processing Output
 
@@ -145,31 +184,154 @@ session = agent_bay.create().session
 
 result = session.command.execute_command("df -h")
 if result.success:
-    print("Full output:")
+    print("Full output (stdout + stderr):")
     print(result.output)
-
-    lines = result.output.strip().split('\n')
+    
+    print("\nStandard output:")
+    print(result.stdout)
+    
+    print("\nStandard error:")
+    print(result.stderr)
+    
+    print(f"\nExit code: {result.exit_code}")
+    
+    lines = result.stdout.strip().split('\n')
     print(f"Found {len(lines)} filesystems")
 else:
     print("Command failed:", result.error_message)
+    print(f"Exit code: {result.exit_code}")
+    if result.trace_id:
+        print(f"Trace ID: {result.trace_id}")
 
 agent_bay.delete(session)
 
 # Output example:
-# Full output:
+# Full output (stdout + stderr):
 # Filesystem      Size  Used Avail Use% Mounted on
 # tmpfs           756M  2.9M  753M   1% /run
 # /dev/vda3        99G   23G   72G  24% /
-# tmpfs           3.7G     0  3.7G   0% /dev/shm
-# tmpfs           5.0M     0  5.0M   0% /run/lock
 # ...
+# 
+# Standard output:
+# Filesystem      Size  Used Avail Use% Mounted on
+# ...
+# 
+# Standard error:
+# 
+# Exit code: 0
 # Found 8 filesystems
+```
+
+### Separating stdout and stderr
+
+```python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Command that produces both stdout and stderr
+result = session.command.execute_command("echo 'Hello' && echo 'Error' >&2")
+if result.success:
+    print(f"stdout: {repr(result.stdout)}")  # 'Hello\n'
+    print(f"stderr: {repr(result.stderr)}")   # 'Error\n'
+    print(f"output: {repr(result.output)}")   # 'Hello\nError\n' (stdout + stderr)
+    print(f"output == stdout + stderr: {result.output == result.stdout + result.stderr}")  # True
+
+agent_bay.delete(session)
 ```
 
 <a id="advanced-patterns"></a>
 ## 🔧 Advanced Patterns
 
-### Command Chaining
+### Working Directory (cwd)
+
+Execute commands in a specific directory:
+
+```python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Execute command in /tmp directory
+result = session.command.execute_command(
+    "pwd",
+    cwd="/tmp"
+)
+if result.success:
+    print(f"Current directory: {result.stdout.strip()}")  # /tmp
+
+agent_bay.delete(session)
+```
+
+### Environment Variables (envs)
+
+Set environment variables for command execution:
+
+```python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Execute command with custom environment variables
+result = session.command.execute_command(
+    "echo $API_KEY && echo $MODE",
+    envs={
+        "API_KEY": "secret123",
+        "MODE": "production"
+    }
+)
+if result.success:
+    print("Output:", result.stdout)
+    # Output: secret123
+    #         production
+
+agent_bay.delete(session)
+```
+
+> **⚠️ Type Requirements**: The `envs` parameter requires all keys and values to be strings. If any key or value is not a string type, the SDK will raise a `ValueError` (Python) or `Error` (TypeScript) before executing the command. In Go, the type system enforces `map[string]string` at compile time.
+>
+> **Valid examples:**
+> ```python
+> envs={"API_KEY": "secret123", "MODE": "production"}  # ✅ All strings
+> ```
+>
+> **Invalid examples (will raise error):**
+> ```python
+> envs={"API_KEY": 123}  # ❌ Value is int, not string
+> envs={"DEBUG": True}   # ❌ Value is bool, not string
+> envs={123: "value"}    # ❌ Key is int, not string
+> ```
+
+### Combining cwd and envs
+
+Use both working directory and environment variables:
+
+```python
+from agentbay import AgentBay
+
+agent_bay = AgentBay()
+session = agent_bay.create().session
+
+# Execute command in specific directory with environment variables
+result = session.command.execute_command(
+    "pwd && echo $TEST_VAR",
+    cwd="/tmp",
+    envs={"TEST_VAR": "test_value"}
+)
+if result.success:
+    print("Output:", result.stdout)
+    # Output: /tmp
+    #         test_value
+
+agent_bay.delete(session)
+```
+
+### Command Chaining (Legacy Pattern)
+
+> **Note**: While command chaining still works, it's recommended to use `cwd` and `envs` parameters instead for better clarity and security.
 
 Execute multiple commands in a single shell invocation:
 
@@ -179,8 +341,17 @@ from agentbay import AgentBay
 agent_bay = AgentBay()
 session = agent_bay.create().session
 
+# Old pattern (still supported)
 result = session.command.execute_command(
     "mkdir -p /tmp/test && cd /tmp/test && echo 'Hello' > file.txt && cat file.txt"
+)
+if result.success:
+    print("Output:", result.output)
+
+# Recommended pattern (using cwd)
+result = session.command.execute_command(
+    "echo 'Hello' > file.txt && cat file.txt",
+    cwd="/tmp/test"
 )
 if result.success:
     print("Output:", result.output)

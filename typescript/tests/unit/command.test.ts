@@ -254,6 +254,55 @@ describe('Command', () => {
       expect(result.output).toBe('');
       expect(result.errorMessage).toContain('Failed to execute command');
     });
+
+    it('should throw error for invalid envs value (not string)', async () => {
+      const invalidEnvs = { TEST_VAR: 123 } as any; // Force invalid type (number instead of string)
+      
+      await expect(
+        command.executeCommand('echo test', 1000, undefined, invalidEnvs)
+      ).rejects.toThrow('Invalid environment variables');
+      expect(invalidEnvs).toBeDefined(); // Suppress unused variable warning
+    });
+
+    it('should throw error for invalid envs value (boolean)', async () => {
+      const invalidEnvs = { DEBUG: true } as any; // Force invalid type (boolean instead of string)
+      
+      await expect(
+        command.executeCommand('echo test', 1000, undefined, invalidEnvs)
+      ).rejects.toThrow('Invalid environment variables');
+    });
+
+    it('should throw error for mixed valid and invalid envs', async () => {
+      const invalidEnvs = { VALID: 'ok', INVALID: true, ANOTHER: 123 } as any;
+      
+      await expect(
+        command.executeCommand('echo test', 1000, undefined, invalidEnvs)
+      ).rejects.toThrow('Invalid environment variables');
+    });
+
+    it('should accept valid envs (all strings)', async () => {
+      const mockResult = {
+        requestId: 'request-123',
+        success: true,
+        data: 'test output',
+        errorMessage: undefined,
+      };
+      mockSession.callMcpTool.mockResolvedValue(mockResult);
+
+      const result = await command.executeCommand(
+        'echo test',
+        1000,
+        undefined,
+        { TEST_VAR: '123', MODE: 'production' }
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockSession.callMcpTool).toHaveBeenCalledWith('shell', {
+        command: 'echo test',
+        timeout_ms: 1000,
+        envs: { TEST_VAR: '123', MODE: 'production' },
+      });
+    });
   });
 });
 

@@ -71,6 +71,21 @@ class AsyncCommand(AsyncBaseService):
             print(result.stdout)
             session.delete()
         """
+        # Validate environment variables - strict type checking (before try block to allow ValueError to propagate)
+        if envs is not None:
+            invalid_vars = []
+            for key, value in envs.items():
+                if not isinstance(key, str):
+                    invalid_vars.append(f"key '{key}' (type: {type(key).__name__})")
+                if not isinstance(value, str):
+                    invalid_vars.append(f"value for key '{key}' (type: {type(value).__name__})")
+            
+            if invalid_vars:
+                raise ValueError(
+                    f"Invalid environment variables: all keys and values must be strings. "
+                    f"Found invalid entries: {', '.join(invalid_vars)}"
+                )
+
         try:
             # Limit timeout to maximum 50s (50000ms) as per SDK constraints
             MAX_TIMEOUT_MS = 50000

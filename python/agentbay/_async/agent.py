@@ -337,7 +337,7 @@ class AsyncAgent(AsyncBaseService):
 
     class Browser:
         """
-        An Agent(⚠️ Still in BETA) to perform tasks on the browser
+        An Agent to perform tasks on the browser
         """
 
         def __init__(self, session):
