@@ -418,6 +418,16 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
         }
         mock_client.create_mcp_session_async = AsyncMock(return_value=mock_response)
 
+        # Mock call_mcp_tool_async for mobile configuration
+        mock_tool_response = MagicMock()
+        mock_tool_response.to_map.return_value = {
+            "body": {
+                "Data": {"Success": True, "Output": "Command executed"},
+                "RequestId": "tool-request-id",
+            }
+        }
+        mock_client.call_mcp_tool_async = AsyncMock(return_value=mock_tool_response)
+
         # Mock context info response
         mock_context_response = MagicMock()
         mock_context_response.to_map.return_value = {
@@ -503,6 +513,16 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
             }
         }
         mock_client.create_mcp_session_async = AsyncMock(return_value=mock_response)
+
+        # Mock call_mcp_tool_async for mobile configuration
+        mock_tool_response = MagicMock()
+        mock_tool_response.to_map.return_value = {
+            "body": {
+                "Data": {"Success": True, "Output": "Command executed"},
+                "RequestId": "tool-request-id",
+            }
+        }
+        mock_client.call_mcp_tool_async = AsyncMock(return_value=mock_tool_response)
 
         # Mock context info response
         mock_context_response = MagicMock()

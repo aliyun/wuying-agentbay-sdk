@@ -253,7 +253,7 @@ print(f"Delete success: {success}")
 ### create\_extension\_option
 
 ```python
-def create_extension_option(extension_ids: List[str]) -> ExtensionOption
+async def create_extension_option(extension_ids: List[str]) -> ExtensionOption
 ```
 
 Create an ExtensionOption for the current context with specified extension IDs.
@@ -282,7 +282,7 @@ used with BrowserContext for browser session creation.
 
 ```python
 extensions_service = AsyncExtensionsService(agent_bay, "my-extensions")
-ext_option = extensions_service.create_extension_option(["ext1.zip", "ext2.zip"])
+ext_option = await extensions_service.create_extension_option(["ext1.zip", "ext2.zip"])
 print(f"Extension option: {ext_option}")
 ```
 

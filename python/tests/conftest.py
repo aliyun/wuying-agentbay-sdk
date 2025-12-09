@@ -4,7 +4,7 @@ import sys
 # Set environment variables for IDE testing
 os.environ["FORCE_COLOR"] = "1"
 os.environ["TERM"] = "xterm-256color"
-os.environ.setdefault("AGENTBAY_LOG_LEVEL", "INFO")
+os.environ.setdefault("AGENTBAY_LOG_LEVEL", "WARNING")
 os.environ["PYTHONUNBUFFERED"] = "1"
 
 
