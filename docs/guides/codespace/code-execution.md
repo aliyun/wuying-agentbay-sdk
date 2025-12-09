@@ -735,9 +735,9 @@ for res in result.results:
 
 ## 📚 Related Documentation
 
-- [Code API Reference (Sync)](../../python/docs/api/sync/code.md) - Synchronous code execution API
-- [AsyncCode API Reference](../../python/docs/api/async/async-code.md) - Asynchronous code execution API
-- [Code Execution Models](../../python/docs/api/common/code-models.md) - Enhanced result types and data models
+- [Code API Reference (Sync)](../../../python/docs/api/sync/code.md) - Synchronous code execution API
+- [AsyncCode API Reference](../../../python/docs/api/async/async-code.md) - Asynchronous code execution API
+- [Code Execution Models](../../../python/docs/api/common/code-models.md) - Enhanced result types and data models
 - [File Operations](../common-features/basics/file-operations.md) - File handling and management
 - [Session Management](../common-features/basics/session-management.md) - Session lifecycle and configuration
 - [Command Execution](../common-features/basics/command-execution.md) - Shell command execution
