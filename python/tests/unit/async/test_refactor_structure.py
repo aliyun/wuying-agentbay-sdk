@@ -16,6 +16,8 @@ except ImportError:
 
 
 @pytest.mark.asyncio
+@pytest.mark.asyncio
+
 async def test_async_agentbay_structure():
     # Verify AsyncAgentBay exists and has async create method
     assert inspect.isclass(AsyncAgentBay)
@@ -40,6 +42,8 @@ def test_sync_agentbay_structure():
 
 
 @pytest.mark.asyncio
+@pytest.mark.asyncio
+
 async def test_async_session_structure():
     assert inspect.isclass(AsyncSession)
     # Check if delete is async

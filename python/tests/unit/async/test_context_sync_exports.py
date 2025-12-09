@@ -15,6 +15,9 @@ import pytest
 class TestContextSyncExports:
     """Test that all context_sync related classes are properly exported"""
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_mode_enum_export(self):
         """Test that UploadMode enum can be imported from agentbay package"""
         # Verify it's an enum
@@ -29,6 +32,9 @@ class TestContextSyncExports:
         assert hasattr(UploadMode, "ARCHIVE")
         assert UploadMode.FILE.value == "File"
         assert UploadMode.ARCHIVE.value == "Archive"
+
+    @pytest.mark.asyncio
+
 
     async def test_lifecycle_enum_export(self):
         """Test that Lifecycle enum can be imported from agentbay package"""
@@ -46,6 +52,9 @@ class TestContextSyncExports:
         assert Lifecycle.LIFECYCLE_1DAY.value == "Lifecycle_1Day"
         assert Lifecycle.LIFECYCLE_FOREVER.value == "Lifecycle_Forever"
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_policy_with_upload_mode(self):
         """Test that UploadPolicy can be created with UploadMode from main package"""
         from agentbay import UploadMode, UploadPolicy
@@ -58,6 +67,9 @@ class TestContextSyncExports:
         policy = UploadPolicy(upload_mode=UploadMode.ARCHIVE)
         assert policy.upload_mode == UploadMode.ARCHIVE
 
+    @pytest.mark.asyncio
+
+
     async def test_recycle_policy_with_lifecycle(self):
         """Test that RecyclePolicy can be created with Lifecycle from main package"""
         from agentbay import Lifecycle, RecyclePolicy
@@ -69,6 +81,9 @@ class TestContextSyncExports:
         # Test forever lifecycle
         policy = RecyclePolicy(lifecycle=Lifecycle.LIFECYCLE_FOREVER, paths=[""])
         assert policy.lifecycle == Lifecycle.LIFECYCLE_FOREVER
+
+    @pytest.mark.asyncio
+
 
     async def test_all_context_sync_classes_exported(self):
         """Test that all context_sync classes can be imported from main package"""
@@ -103,6 +118,9 @@ class TestContextSyncExports:
         assert BWList is not None
         assert WhiteList is not None
 
+    @pytest.mark.asyncio
+
+
     async def test_backward_compatibility_context_sync_import(self):
         """Test that importing from context_sync module still works (backward compatibility)"""
         from agentbay import Lifecycle as Lifecycle2
@@ -118,6 +136,9 @@ class TestContextSyncExports:
         assert UploadMode is UploadMode2
         assert Lifecycle is Lifecycle2
         assert RecyclePolicy is RecyclePolicy2
+
+    @pytest.mark.asyncio
+
 
     async def test_all_exports_in_all_list(self):
         """Test that all context_sync exports are in __all__ list"""
@@ -145,6 +166,9 @@ class TestContextSyncExports:
 
         for export in expected_exports:
             assert export in all_exports, f"{export} is not in __all__ list"
+
+    @pytest.mark.asyncio
+
 
     async def test_complete_sync_policy_with_all_imports(self):
         """Test creating a complete SyncPolicy using imports from main package"""

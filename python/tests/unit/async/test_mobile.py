@@ -27,11 +27,16 @@ class TestMobile:
         self.session = self.mock_session  # Add session reference for tests
         self.mobile = AsyncMobile(self.mock_session)
 
+    @pytest.mark.asyncio
+
+
     async def test_mobile_initialization(self):
         """Test Mobile module initialization."""
         assert self.mobile.session == self.mock_session
 
     # Touch Operations Tests
+    @pytest.mark.asyncio
+
     async def test_tap_success(self):
         """Test successful tap."""
         # Arrange
@@ -50,6 +55,9 @@ class TestMobile:
         assert result.success is True
         assert result.data is True
         self.session.call_mcp_tool.assert_called_once_with("tap", {"x": 100, "y": 200})
+
+    @pytest.mark.asyncio
+
 
     async def test_swipe_success(self):
         """Test successful swipe."""
@@ -77,6 +85,9 @@ class TestMobile:
             },
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_swipe_with_duration(self):
         """Test swipe with custom duration."""
         # Arrange
@@ -101,6 +112,9 @@ class TestMobile:
             },
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_input_text_success(self):
         """Test successful text input."""
         # Arrange
@@ -120,6 +134,9 @@ class TestMobile:
             "input_text", {"text": "Hello Mobile"}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_send_key_success(self):
         """Test successful key send."""
         # Arrange
@@ -138,6 +155,8 @@ class TestMobile:
         self.session.call_mcp_tool.assert_called_once_with("send_key", {"key": 4})
 
     # UI Elements Tests
+    @pytest.mark.asyncio
+
     async def test_get_clickable_ui_elements_success(self):
         """Test successful clickable UI elements retrieval."""
         # Arrange
@@ -159,6 +178,9 @@ class TestMobile:
             "get_clickable_ui_elements", {"timeout_ms": 2000}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_get_clickable_ui_elements_with_timeout(self):
         """Test clickable UI elements with custom timeout."""
         # Arrange
@@ -176,6 +198,9 @@ class TestMobile:
         self.session.call_mcp_tool.assert_called_once_with(
             "get_clickable_ui_elements", {"timeout_ms": 5000}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_get_all_ui_elements_success(self):
         """Test successful all UI elements retrieval."""
@@ -210,6 +235,8 @@ class TestMobile:
         )
 
     # Application Management Tests
+    @pytest.mark.asyncio
+
     async def test_get_installed_apps_success(self):
         """Test successful installed apps retrieval."""
         # Arrange - Mock the _call_mcp_tool method
@@ -233,6 +260,9 @@ class TestMobile:
             {"start_menu": False, "desktop": True, "ignore_system_apps": True},
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_get_installed_apps_with_options(self):
         """Test installed apps with custom options."""
         # Arrange - Mock the _call_mcp_tool method
@@ -254,6 +284,9 @@ class TestMobile:
             {"start_menu": True, "desktop": False, "ignore_system_apps": False},
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_start_app_success(self):
         """Test successful app start."""
         # Arrange
@@ -273,6 +306,9 @@ class TestMobile:
         self.session.call_mcp_tool.assert_called_once_with(
             "start_app", {"start_cmd": "com.android.calculator2"}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_start_app_with_activity(self):
         """Test app start with specific activity."""
@@ -295,6 +331,9 @@ class TestMobile:
             {"start_cmd": "com.android.settings", "activity": ".MainActivity"},
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_stop_app_by_cmd_success(self):
         """Test successful app stop by command."""
         # Arrange - Mock the _call_mcp_tool method
@@ -316,6 +355,8 @@ class TestMobile:
         )
 
     # Screenshot Tests
+    @pytest.mark.asyncio
+
     async def test_screenshot_success(self):
         """Test successful screenshot."""
         # Arrange
@@ -336,6 +377,8 @@ class TestMobile:
         self.session.call_mcp_tool.assert_called_once_with("system_screenshot", {})
 
     # ADB URL Tests
+    @pytest.mark.asyncio
+
     async def test_get_adb_url_success_with_valid_mobile_env(self):
         """Test get_adb_url returns AdbUrlResult with valid adbkey_pub in mobile environment."""
         # Arrange
@@ -364,6 +407,9 @@ class TestMobile:
         assert result.success is True
         assert result.request_id == "adb-request-123"
         assert result.data == "adb connect 47.99.76.99:54848"
+
+    @pytest.mark.asyncio
+
 
     async def test_get_adb_url_fails_on_non_mobile_env(self):
         """Test get_adb_url fails when session is not mobile environment."""
@@ -397,6 +443,9 @@ class TestMobile:
             "imagetypenotmatched" in result.error_message.lower()
             or "failed" in result.error_message.lower()
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_get_adb_url_calls_get_link_with_correct_params(self):
         """Test get_adb_url calls client.get_adb_link with correct parameters."""
@@ -433,6 +482,9 @@ class TestMobile:
         options_dict = json.loads(request.option)
         assert options_dict["adbkey_pub"] == adbkey_pub
 
+    @pytest.mark.asyncio
+
+
     async def test_get_adb_url_returns_correct_structure(self):
         """Test get_adb_url returns AdbUrlResult with all required fields."""
         # Arrange
@@ -457,6 +509,8 @@ class TestMobile:
         assert hasattr(result, "error_message")
 
     # Error Handling Tests
+    @pytest.mark.asyncio
+
     async def test_tap_mcp_failure(self):
         """Test tap when MCP tool fails."""
         # Arrange
@@ -475,6 +529,9 @@ class TestMobile:
         assert result.success is False
         assert result.error_message == "MCP tool failed"
 
+    @pytest.mark.asyncio
+
+
     async def test_tap_exception(self):
         """Test tap when exception occurs."""
         # Arrange
@@ -487,6 +544,9 @@ class TestMobile:
         assert isinstance(result, BoolResult)
         assert result.success is False
         assert "Failed to tap" in result.error_message
+
+    @pytest.mark.asyncio
+
 
     async def test_get_clickable_ui_elements_exception(self):
         """Test UI elements retrieval when exception occurs."""

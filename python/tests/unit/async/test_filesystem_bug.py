@@ -40,6 +40,8 @@ class TestAsyncFileSystemBugVerification:
             ), f"{method_name} should be an async function (async def), but it's not"
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
+
     async def test_read_file_returns_awaitable(self):
         """Verify read_file returns an awaitable coroutine."""
         # Create mock session
@@ -67,6 +69,8 @@ class TestAsyncFileSystemBugVerification:
             pytest.fail("read_file should return a coroutine (must use await)")
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
+
     async def test_write_file_calls_with_await(self):
         """Verify write_file properly awaits call_mcp_tool."""
         # Create mock session

@@ -1,6 +1,7 @@
 """Unit tests for Context clear operations."""
 
 import time
+import pytest
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -24,6 +25,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.agent_bay.api_key = "test-api-key"
         self.agent_bay.client = MagicMock()
         self.context_service = AsyncContextService(self.agent_bay)
+
+    @pytest.mark.asyncio
+
 
     async def test_clear_async_success(self):
         """Test successful async clear initiation."""
@@ -49,6 +53,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.error_message, "")
         self.assertEqual(result.request_id, "test-request-id")
 
+    @pytest.mark.asyncio
+
+
     async def test_clear_async_api_error(self):
         """Test async clear with API error."""
         # Mock the ClearContext response with error
@@ -71,6 +78,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertIn("InvalidContext", result.error_message)
         self.assertIn("Context not found", result.error_message)
 
+    @pytest.mark.asyncio
+
+
     async def test_clear_async_empty_body(self):
         """Test async clear with empty response body."""
         # Mock the ClearContext response with no body
@@ -87,6 +97,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Empty response body")
 
+    @pytest.mark.asyncio
+
+
     async def test_clear_async_exception(self):
         """Test async clear with exception."""
         # Mock the client to raise an exception
@@ -99,6 +112,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
             await self.context_service.start_clear("context-123")
 
         self.assertIn("Network error", str(context.exception))
+
+    @pytest.mark.asyncio
+
 
     async def test_get_clear_status_clearing(self):
         """Test get clear status when clearing is in progress."""
@@ -125,6 +141,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.context_id, "context-123")
         self.assertEqual(result.status, "clearing")
 
+    @pytest.mark.asyncio
+
+
     async def test_get_clear_status_available(self):
         """Test get clear status when clearing is completed."""
         # Mock the GetContext response
@@ -150,6 +169,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.context_id, "context-123")
         self.assertEqual(result.status, "available")
 
+    @pytest.mark.asyncio
+
+
     async def test_get_clear_status_api_error(self):
         """Test get clear status with API error."""
         # Mock the GetContext response with error
@@ -170,6 +192,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.success)
         self.assertIn("ContextNotFound", result.error_message)
 
+    @pytest.mark.asyncio
+
+
     async def test_get_clear_status_empty_body(self):
         """Test get clear status with empty response body."""
         # Mock the GetContext response with no body
@@ -183,6 +208,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         # Verify the result
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Empty response body")
+
+    @pytest.mark.asyncio
+
 
     async def test_get_clear_status_no_data(self):
         """Test get clear status with no data in response."""
@@ -205,6 +233,8 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.error_message, "No data in response")
 
     @patch("asyncio.sleep")  # Mock asyncio.sleep to speed up the test
+    @pytest.mark.asyncio
+
     async def test_clear_sync_success(self, mock_sleep):
         """Test successful synchronous clear operation."""
         # Mock asyncio.sleep to be a no-op
@@ -254,6 +284,8 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(mock_sleep.call_count, 2)
 
     @patch("asyncio.sleep")
+    @pytest.mark.asyncio
+
     async def test_clear_sync_timeout(self, mock_sleep):
         """Test synchronous clear operation timeout."""
         # Mock asyncio.sleep to be a no-op
@@ -291,6 +323,8 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
             self.assertIn("timed out", str(context.exception))
 
     @patch("asyncio.sleep")
+    @pytest.mark.asyncio
+
     async def test_clear_sync_status_check_failure(self, mock_sleep):
         """Test synchronous clear when status check fails."""
         # Mock asyncio.sleep to be a no-op
@@ -324,6 +358,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(result.success)
             self.assertIn("Failed to check status", result.error_message)
 
+    @pytest.mark.asyncio
+
+
     async def test_clear_sync_async_failure(self):
         """Test synchronous clear when async initiation fails."""
         # Mock start_clear to return failure
@@ -344,6 +381,8 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
             self.assertIn("Failed to start clearing", result.error_message)
 
     @patch("asyncio.sleep")
+    @pytest.mark.asyncio
+
     async def test_clear_sync_unexpected_state(self, mock_sleep):
         """Test synchronous clear with unexpected state."""
         # Mock asyncio.sleep to be a no-op
@@ -394,6 +433,9 @@ class TestAsyncContextClear(unittest.IsolatedAsyncioTestCase):
 class TestAsyncClearContextResult(unittest.IsolatedAsyncioTestCase):
     """Test suite for ClearContextResult class."""
 
+    @pytest.mark.asyncio
+
+
     async def test_clear_context_result_initialization(self):
         """Test ClearContextResult initialization."""
         result = ClearContextResult(
@@ -409,6 +451,9 @@ class TestAsyncClearContextResult(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.error_message, "")
         self.assertEqual(result.status, "clearing")
         self.assertEqual(result.context_id, "context-123")
+
+    @pytest.mark.asyncio
+
 
     async def test_clear_context_result_defaults(self):
         """Test ClearContextResult with default values."""

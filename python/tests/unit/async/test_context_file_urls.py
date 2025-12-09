@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from agentbay import (
@@ -16,6 +17,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         self.context = AsyncContextService(self.agent_bay)
         self.context_id = "ctx-123"
         self.test_path = "/tmp/integration_upload_test.txt"
+
+    @pytest.mark.asyncio
+
 
     async def test_get_file_upload_url_success(self):
         mock_resp = MagicMock()
@@ -36,6 +40,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.url, "https://oss.example.com/upload-url")
         self.assertEqual(result.expire_time, 3600)
+
+    @pytest.mark.asyncio
+
 
     async def test_get_file_download_url_success(self):
         mock_resp = MagicMock()
@@ -59,6 +66,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.url, "https://oss.example.com/download-url")
         self.assertEqual(result.expire_time, 7200)
 
+    @pytest.mark.asyncio
+
+
     async def test_get_file_download_url_unavailable(self):
         mock_resp = MagicMock()
         mock_body = MagicMock()
@@ -77,6 +87,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.url, "")
         self.assertIsNone(result.expire_time)
+
+    @pytest.mark.asyncio
+
 
     async def test_list_files_with_entry(self):
         mock_resp = MagicMock()
@@ -107,6 +120,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(result.count, 1)
 
+    @pytest.mark.asyncio
+
+
     async def test_list_files_empty(self):
         mock_resp = MagicMock()
         mock_body = MagicMock()
@@ -126,6 +142,9 @@ class TestAsyncContextFileUrls(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.success)
         self.assertEqual(len(result.entries), 0)
         self.assertIsNone(result.count)
+
+    @pytest.mark.asyncio
+
 
     async def test_delete_file_success(self):
         mock_resp = MagicMock()

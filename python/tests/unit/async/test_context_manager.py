@@ -1,4 +1,5 @@
 import asyncio
+import pytest
 import json
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -22,6 +23,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
 
         self.context_manager = AsyncContextManager(self.mock_session)
 
+    @pytest.mark.asyncio
+
+
     async def test_info_with_empty_response(self):
         """Test info method with empty response."""
         # Mock the API response
@@ -40,6 +44,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
 
         # Verify the API was called correctly
         self.mock_client.get_context_info_async.assert_called_once()
+
+    @pytest.mark.asyncio
+
 
     async def test_info_with_valid_response(self):
         """Test info method with valid response containing context status data."""
@@ -72,6 +79,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status_data.start_time, 1600000000)
         self.assertEqual(status_data.finish_time, 1600000100)
         self.assertEqual(status_data.task_type, "download")
+
+    @pytest.mark.asyncio
+
 
     async def test_info_with_multiple_status_items(self):
         """Test info method with multiple context status items."""
@@ -107,6 +117,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status_data2.path, "/home/user/docs")
         self.assertEqual(status_data2.task_type, "upload")
 
+    @pytest.mark.asyncio
+
+
     async def test_info_with_invalid_json(self):
         """Test info method with invalid JSON response."""
         # Create an invalid JSON string
@@ -128,6 +141,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
         # Verify the results - should not raise exception but return empty list
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(len(result.context_status_data), 0)
+
+    @pytest.mark.asyncio
+
 
     async def test_info_with_params(self):
         """Test info method with optional parameters."""
@@ -158,6 +174,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call_args.path, "/home/user")
         self.assertEqual(call_args.task_type, "download")
 
+    @pytest.mark.asyncio
+
+
     async def test_sync_context(self):
         """Test sync_context method."""
         # Mock the API response
@@ -182,6 +201,9 @@ class TestAsyncContextManager(unittest.IsolatedAsyncioTestCase):
 
             # Verify the API was called correctly
             self.mock_client.sync_context_async.assert_called_once()
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_context_with_params(self):
         """Test sync_context method with optional parameters."""

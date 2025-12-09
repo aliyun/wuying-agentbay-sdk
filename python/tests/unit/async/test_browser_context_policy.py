@@ -1,4 +1,5 @@
 import json
+import pytest
 import os
 import sys
 import unittest
@@ -10,6 +11,9 @@ from agentbay import AsyncAgentBay
 
 class TestAsyncBrowserContextPolicy(unittest.IsolatedAsyncioTestCase):
     """Test that browser_context policy includes BWList with white lists."""
+
+    @pytest.mark.asyncio
+
 
     async def test_browser_context_policy_creation(self):
         # Create session parameters with browser context

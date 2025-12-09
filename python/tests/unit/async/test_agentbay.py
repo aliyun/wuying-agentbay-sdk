@@ -1,4 +1,5 @@
 import os
+import pytest
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -18,6 +19,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch.dict(os.environ, {"AGENTBAY_API_KEY": "test-api-key"})
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_initialization_with_env_var(self, mock_mcp_client, mock_load_config):
         """Test initializing AgentBay with an API key from environment variable"""
         # Mock configuration
@@ -43,6 +46,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
 
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_initialization_with_provided_key(
         self, mock_mcp_client, mock_load_config
     ):
@@ -66,6 +71,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("agentbay._async.agentbay._load_config")
+    @pytest.mark.asyncio
+
     async def test_initialization_without_api_key(self, mock_load_config):
         """Test initialization failure when no API key is available"""
         # Mock configuration
@@ -84,6 +91,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch("agentbay._async.agentbay.extract_request_id")
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_create_session_success(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -146,6 +155,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
 
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_create_session_invalid_response(
         self, mock_mcp_client, mock_load_config
     ):
@@ -203,6 +214,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch("agentbay._async.agentbay.extract_request_id")
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_list(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -264,6 +277,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch("agentbay._async.agentbay.extract_request_id")
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_list_pagination(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -333,6 +348,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch("agentbay._async.agentbay.extract_request_id")
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_create_session_with_policy_id(
         self, mock_mcp_client, mock_load_config, mock_extract_request_id
     ):
@@ -393,6 +410,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
 
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_create_with_mobile_extra_configs(
         self, mock_mcp_client, mock_load_config
     ):
@@ -489,6 +508,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
 
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
+    @pytest.mark.asyncio
+
     async def test_create_with_mobile_blacklist_config(
         self, mock_mcp_client, mock_load_config
     ):
@@ -583,6 +604,8 @@ class TestAsyncAgentBay(unittest.IsolatedAsyncioTestCase):
     @patch("agentbay._async.agentbay._load_config")
     @patch("agentbay._async.agentbay.mcp_client")
     @patch("agentbay._async.agentbay._log_api_response_with_details")
+    @pytest.mark.asyncio
+
     async def test_create_session_logs_full_resource_url(
         self,
         mock_log_api_response,

@@ -1,4 +1,5 @@
 import json
+import pytest
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -122,6 +123,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(config.simulate_mode, MobileSimulateMode.PROPERTIES_ONLY)
         self.assertIsNone(config.simulated_context_id)
 
+    @pytest.mark.asyncio
+
+
     async def test_has_mobile_info_exists(self):
         """Test checking if mobile info exists in context"""
         context_sync = ContextSync(
@@ -144,6 +148,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.mobile_simulate_service.context_id, "test-context")
         self.assertFalse(self.mobile_simulate_service.use_internal_context)
 
+    @pytest.mark.asyncio
+
+
     async def test_has_mobile_info_not_exists(self):
         """Test checking when mobile info doesn't exist"""
         context_sync = ContextSync(
@@ -159,6 +166,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         result = await self.mobile_simulate_service.has_mobile_info(context_sync)
 
         self.assertFalse(result)
+
+    @pytest.mark.asyncio
+
 
     async def test_has_mobile_info_list_failed(self):
         """Test handling list files failure"""
@@ -176,11 +186,17 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result)
 
+    @pytest.mark.asyncio
+
+
     async def test_has_mobile_info_invalid_context_sync(self):
         """Test validation when context_sync is None"""
         with self.assertRaises(ValueError) as context:
             await self.mobile_simulate_service.has_mobile_info(None)
         self.assertIn("context_sync is required", str(context.exception))
+
+    @pytest.mark.asyncio
+
 
     async def test_has_mobile_info_missing_context_id(self):
         """Test validation when context_id is missing"""
@@ -190,6 +206,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError) as context:
             await self.mobile_simulate_service.has_mobile_info(context_sync)
         self.assertIn("context_sync.context_id is required", str(context.exception))
+
+    @pytest.mark.asyncio
+
 
     async def test_has_mobile_info_missing_path(self):
         """Test validation when path is missing"""
@@ -201,6 +220,8 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         self.assertIn("context_sync.path is required", str(context.exception))
 
     @patch("httpx.AsyncClient")
+    @pytest.mark.asyncio
+
     async def test_upload_mobile_info_success_without_context(self, mock_client_cls):
         """Test uploading mobile info without providing context sync"""
         mobile_dev_info = json.dumps({"device": "test", "model": "test-model"})
@@ -234,6 +255,8 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         )
 
     @patch("httpx.AsyncClient")
+    @pytest.mark.asyncio
+
     async def test_upload_mobile_info_success_with_context(self, mock_client_cls):
         """Test uploading mobile info with existing context sync"""
         mobile_dev_info = json.dumps({"device": "test"})
@@ -264,15 +287,24 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.mobile_simulate_context_id, "existing-context")
         self.assertFalse(self.mobile_simulate_service.use_internal_context)
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_mobile_info_invalid_json(self):
         """Test upload fails with invalid JSON"""
         with self.assertRaises(ValueError):
             await self.mobile_simulate_service.upload_mobile_info("invalid json")
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_mobile_info_empty_string(self):
         """Test upload fails with empty string"""
         with self.assertRaises(ValueError):
             await self.mobile_simulate_service.upload_mobile_info("")
+
+    @pytest.mark.asyncio
+
 
     async def test_upload_mobile_info_context_creation_failed(self):
         """Test handling context creation failure"""
@@ -287,6 +319,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result.success)
         self.assertIn("Failed to create context for simulate", result.error_message)
+
+    @pytest.mark.asyncio
+
 
     async def test_upload_mobile_info_get_upload_url_failed(self):
         """Test handling get upload URL failure"""
@@ -309,6 +344,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result.success)
         self.assertIn("Failed to get upload URL", result.error_message)
+
+    @pytest.mark.asyncio
+
 
     async def test_upload_mobile_info_with_context_missing_context_id(self):
         """Test validation when context_sync has no context_id"""
@@ -357,6 +395,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
             )
         self.assertIn("context_sync is required", str(context.exception))
 
+    @pytest.mark.asyncio
+
+
     async def test_create_context_for_simulate_success(self):
         """Test creating context for simulate"""
         mock_context_result = MagicMock()
@@ -369,6 +410,9 @@ class TestAsyncMobileSimulateService(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNotNone(result)
         self.assertEqual(result.id, "new-context-id")
+
+    @pytest.mark.asyncio
+
 
     async def test_create_context_for_simulate_failed(self):
         """Test handling context creation failure"""

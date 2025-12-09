@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from agentbay import OperationResult
@@ -29,6 +30,9 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.session = DummySession()
         self.command = AsyncCommand(self.session)
 
+    @pytest.mark.asyncio
+
+
     async def test_execute_command_success(self):
         """
         Test execute_command method with successful response.
@@ -53,6 +57,9 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(args["command"], "ls -la")
         self.assertEqual(args["timeout_ms"], 60000)  # Default timeout
 
+    @pytest.mark.asyncio
+
+
     async def test_execute_command_with_custom_timeout(self):
         """
         Test execute_command method with custom timeout.
@@ -75,6 +82,9 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["timeout_ms"], custom_timeout)
 
+    @pytest.mark.asyncio
+
+
     async def test_execute_command_error(self):
         """
         Test execute_command method with error response.
@@ -94,6 +104,9 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.error_message, "Command execution failed")
         self.assertEqual(result.output, "")
+
+    @pytest.mark.asyncio
+
 
     async def test_execute_command_exception(self):
         """

@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import AsyncMock, Mock, patch
 
 from agentbay import AsyncCode
@@ -18,6 +19,9 @@ class TestAsyncCode(unittest.IsolatedAsyncioTestCase):
         self.mock_session.call_mcp_tool = AsyncMock()
 
         self.code = AsyncCode(self.mock_session)
+
+    @pytest.mark.asyncio
+
 
     async def test_run_code_success_python(self):
         """
@@ -43,6 +47,9 @@ class TestAsyncCode(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.result, "Hello, world!\n2\n")
         self.assertEqual(result.request_id, "test-request-id")
+
+    @pytest.mark.asyncio
+
 
     async def test_run_code_success_javascript(self):
         """
@@ -72,6 +79,9 @@ class TestAsyncCode(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.result, "Hello, world!\n2\n")
         self.assertEqual(result.request_id, "test-request-id")
 
+    @pytest.mark.asyncio
+
+
     async def test_run_code_invalid_language(self):
         """
         Test run_code method with invalid language.
@@ -81,6 +91,9 @@ class TestAsyncCode(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(result, CodeExecutionResult)
         self.assertFalse(result.success)
         self.assertIn("Unsupported language", result.error_message)
+
+    @pytest.mark.asyncio
+
 
     async def test_run_code_error(self):
         """
@@ -99,6 +112,9 @@ class TestAsyncCode(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.error_message, "Execution failed")
         self.assertEqual(result.request_id, "test-request-id")
+
+    @pytest.mark.asyncio
+
 
     async def test_run_code_exception(self):
         """

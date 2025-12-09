@@ -5,6 +5,7 @@ Tests data structures and API without network calls.
 """
 
 import unittest
+import pytest
 
 from agentbay import (
     BWList,
@@ -21,6 +22,9 @@ from agentbay import (
 
 class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
     """Unit tests for context synchronization functionality."""
+
+    @pytest.mark.asyncio
+
 
     async def test_01_basic_context_sync_creation(self):
         """Test creating a basic context sync configuration."""
@@ -53,6 +57,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
         print(
             f"Basic sync - ContextID: {basic_sync.context_id}, Path: {basic_sync.path}"
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_02_advanced_context_sync_configuration(self):
         """Test creating an advanced context sync configuration with custom policies."""
@@ -142,6 +149,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
             f"ExcludePaths={advanced_sync.policy.bw_list.white_lists[0].exclude_paths}"
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_03_builder_pattern_context_sync(self):
         """Test using builder pattern for context sync."""
         print("\nTest 3: Using builder pattern for context sync...")
@@ -198,6 +208,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
             f"Builder sync - ContextID: {builder_sync.context_id}, Path: {builder_sync.path}"
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_04_multiple_white_lists_context_sync(self):
         """Test creating context sync with multiple white lists."""
         print("\nTest 4: Creating context sync with multiple white lists...")
@@ -242,6 +255,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
             f"  - Number of white lists: {len(context_sync.policy.bw_list.white_lists)}"
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_05_different_upload_strategies(self):
         """Test different upload strategies."""
         print("\nTest 5: Testing different upload strategies...")
@@ -261,6 +277,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
             )
             print(f"  - Strategy: {strategy}")
 
+    @pytest.mark.asyncio
+
+
     async def test_06_different_download_strategies(self):
         """Test different download strategies."""
         print("\nTest 6: Testing different download strategies...")
@@ -279,6 +298,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
                 context_sync.policy.download_policy.download_strategy, strategy
             )
             print(f"  - Strategy: {strategy}")
+
+    @pytest.mark.asyncio
+
 
     async def test_07_policy_modification(self):
         """Test modifying existing policies."""
@@ -315,6 +337,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
             f"Strategy: {context_sync.policy.upload_policy.upload_strategy}"
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_08_default_policies(self):
         """Test default policy creation."""
         print("\nTest 8: Testing default policies...")
@@ -344,6 +369,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(sync_policy.delete_policy.sync_local_file)
 
         print("Default policies created successfully")
+
+    @pytest.mark.asyncio
+
 
     async def test_09_context_sync_serialization(self):
         """Test context sync object serialization."""
@@ -380,6 +408,9 @@ class TestAsyncContextSyncUnit(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(context_sync.policy.bw_list.white_lists), 1)
 
         print("Context sync serialization test passed")
+
+    @pytest.mark.asyncio
+
 
     async def test_10_edge_cases(self):
         """Test edge cases and error handling."""

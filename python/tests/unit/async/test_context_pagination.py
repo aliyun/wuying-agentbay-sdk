@@ -1,4 +1,5 @@
 import unittest
+import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from agentbay import (
@@ -16,6 +17,9 @@ class TestAsyncContextPagination(unittest.IsolatedAsyncioTestCase):
         self.agent_bay.api_key = "test-api-key"
         self.agent_bay.client = MagicMock()
         self.context_service = AsyncContextService(self.agent_bay)
+
+    @pytest.mark.asyncio
+
 
     async def test_list_contexts_with_default_params(self):
         """Test listing contexts with default pagination parameters."""
@@ -69,6 +73,9 @@ class TestAsyncContextPagination(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.next_token, "next-page-token")
         self.assertEqual(result.max_results, 10)
         self.assertEqual(result.total_count, 15)
+
+    @pytest.mark.asyncio
+
 
     async def test_list_contexts_with_custom_params(self):
         """Test listing contexts with custom pagination parameters."""
@@ -133,6 +140,9 @@ class TestAsyncContextPagination(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.max_results, 5)
         self.assertEqual(result.total_count, 15)
 
+    @pytest.mark.asyncio
+
+
     async def test_list_contexts_with_default_params_object(self):
         """Test listing contexts with a default ContextListParams object."""
         # Mock the response from the API
@@ -177,6 +187,9 @@ class TestAsyncContextPagination(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.next_token, "")
         self.assertEqual(result.max_results, 10)
         self.assertEqual(result.total_count, 1)
+
+    @pytest.mark.asyncio
+
 
     async def test_list_contexts_error_handling(self):
         """Test error handling in list contexts method."""

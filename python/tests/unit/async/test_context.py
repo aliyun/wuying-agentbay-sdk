@@ -1,10 +1,13 @@
 import unittest
+import pytest
 from unittest.mock import AsyncMock, MagicMock
 
 from agentbay import Context, AsyncContextService
 
 
 class TestAsyncContext(unittest.IsolatedAsyncioTestCase):
+    @pytest.mark.asyncio
+
     async def test_context_initialization(self):
         """Test that Context initializes with the correct attributes."""
         context = Context(
@@ -27,6 +30,9 @@ class TestAsyncContextService(unittest.IsolatedAsyncioTestCase):
         self.agent_bay.api_key = "test-api-key"
         self.agent_bay.client = MagicMock()
         self.context_service = AsyncContextService(self.agent_bay)
+
+    @pytest.mark.asyncio
+
 
     async def test_list_contexts(self):
         """Test listing contexts."""
@@ -68,6 +74,9 @@ class TestAsyncContextService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.contexts[1].id, "context-2")
         self.assertEqual(result.contexts[1].name, "context-2-name")
 
+    @pytest.mark.asyncio
+
+
     async def test_get_context(self):
         """Test getting a context."""
         # Mock the response from the API
@@ -105,6 +114,9 @@ class TestAsyncContextService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.context_id, "context-1")
         self.assertEqual(result.context.id, "context-1")
         self.assertEqual(result.context.name, "test-context")
+
+    @pytest.mark.asyncio
+
 
     async def test_create_context(self):
         """Test creating a context."""
@@ -146,6 +158,9 @@ class TestAsyncContextService(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.context.id, "new-context-id")
         self.assertEqual(result.context.name, "new-context")
 
+    @pytest.mark.asyncio
+
+
     async def test_update_context(self):
         """Test updating a context."""
         # Create a context to update
@@ -173,6 +188,9 @@ class TestAsyncContextService(unittest.IsolatedAsyncioTestCase):
 
         # Verify the results - should return the original context if update successful
         self.assertTrue(result.success)
+
+    @pytest.mark.asyncio
+
 
     async def test_delete_context(self):
         """Test deleting a context."""

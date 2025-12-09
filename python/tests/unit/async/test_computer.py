@@ -21,11 +21,16 @@ class TestComputer:
         self.session.call_mcp_tool = AsyncMock()
         self.computer = AsyncComputer(self.session)
 
+    @pytest.mark.asyncio
+
+
     async def test_computer_initialization(self):
         """Test Computer module initialization."""
         assert self.computer.session == self.session
 
     # Mouse Operations Tests
+    @pytest.mark.asyncio
+
     async def test_click_mouse_success(self):
         """Test successful mouse click."""
         # Arrange
@@ -47,6 +52,9 @@ class TestComputer:
             "click_mouse", {"x": 100, "y": 200, "button": "left"}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_click_mouse_with_button(self):
         """Test mouse click with specific button."""
         # Arrange
@@ -64,11 +72,17 @@ class TestComputer:
             "click_mouse", {"x": 100, "y": 200, "button": "right"}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_click_mouse_invalid_button(self):
         """Test mouse click with invalid button."""
         # Act & Assert
         with pytest.raises(ValueError, match="Invalid button"):
             await self.computer.click_mouse(100, 200, button="invalid")
+
+    @pytest.mark.asyncio
+
 
     async def test_click_mouse_with_enum(self):
         """Test mouse click with MouseButton enum."""
@@ -87,6 +101,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "click_mouse", {"x": 100, "y": 200, "button": "right"}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_click_mouse_with_double_left_enum(self):
         """Test mouse click with MouseButton.DOUBLE_LEFT enum."""
@@ -107,6 +124,9 @@ class TestComputer:
             "click_mouse", {"x": 100, "y": 200, "button": "double_left"}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_move_mouse_success(self):
         """Test successful mouse move."""
         # Arrange
@@ -125,6 +145,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "move_mouse", {"x": 150, "y": 250}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_drag_mouse_success(self):
         """Test successful mouse drag."""
@@ -146,6 +169,9 @@ class TestComputer:
             {"from_x": 100, "from_y": 100, "to_x": 200, "to_y": 200, "button": "left"},
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_scroll_success(self):
         """Test successful scroll."""
         # Arrange
@@ -165,6 +191,9 @@ class TestComputer:
             "scroll", {"x": 300, "y": 300, "direction": "up", "amount": 1}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_scroll_with_params(self):
         """Test scroll with custom parameters."""
         # Arrange
@@ -181,6 +210,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "scroll", {"x": 300, "y": 300, "direction": "down", "amount": 3}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_get_cursor_position_success(self):
         """Test successful cursor position retrieval."""
@@ -202,6 +234,8 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with("get_cursor_position", {})
 
     # Keyboard Operations Tests
+    @pytest.mark.asyncio
+
     async def test_input_text_success(self):
         """Test successful text input."""
         # Arrange
@@ -220,6 +254,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "input_text", {"text": "Hello World"}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_press_keys_success(self):
         """Test successful key press."""
@@ -240,6 +277,9 @@ class TestComputer:
             "press_keys", {"keys": ["Ctrl", "a"], "hold": False}
         )
 
+    @pytest.mark.asyncio
+
+
     async def test_press_keys_with_hold(self):
         """Test key press with hold."""
         # Arrange
@@ -256,6 +296,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "press_keys", {"keys": ["Shift"], "hold": True}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_release_keys_success(self):
         """Test successful key release."""
@@ -277,6 +320,8 @@ class TestComputer:
         )
 
     # Screen Operations Tests
+    @pytest.mark.asyncio
+
     async def test_get_screen_size_success(self):
         """Test successful screen size retrieval."""
         # Arrange
@@ -296,6 +341,9 @@ class TestComputer:
         assert result.data["width"] == 1920
         assert result.data["height"] == 1080
         self.session.call_mcp_tool.assert_called_once_with("get_screen_size", {})
+
+    @pytest.mark.asyncio
+
 
     async def test_screenshot_success(self):
         """Test successful screenshot."""
@@ -317,6 +365,8 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with("system_screenshot", {})
 
     # Error Handling Tests
+    @pytest.mark.asyncio
+
     async def test_click_mouse_mcp_failure(self):
         """Test mouse click when MCP tool fails."""
         # Arrange
@@ -335,6 +385,9 @@ class TestComputer:
         assert result.success is False
         assert result.error_message == "MCP tool failed"
 
+    @pytest.mark.asyncio
+
+
     async def test_click_mouse_exception(self):
         """Test mouse click when exception occurs."""
         # Arrange
@@ -348,11 +401,17 @@ class TestComputer:
         assert result.success is False
         assert "Failed to click mouse" in result.error_message
 
+    @pytest.mark.asyncio
+
+
     async def test_invalid_scroll_direction(self):
         """Test scroll with invalid direction."""
         # Act & Assert
         with pytest.raises(ValueError, match="Invalid direction"):
             await self.computer.scroll(100, 100, direction="invalid")
+
+    @pytest.mark.asyncio
+
 
     async def test_scroll_with_enum(self):
         """Test scroll with ScrollDirection enum."""
@@ -373,6 +432,9 @@ class TestComputer:
         self.session.call_mcp_tool.assert_called_once_with(
             "scroll", {"x": 300, "y": 300, "direction": "down", "amount": 5}
         )
+
+    @pytest.mark.asyncio
+
 
     async def test_drag_mouse_with_enum(self):
         """Test drag mouse with MouseButton enum."""
@@ -402,6 +464,8 @@ class TestComputer:
         )
 
     # Application Management Operations Tests
+    @pytest.mark.asyncio
+
     async def test_list_visible_apps_success(self):
         """Test list_visible_apps success."""
         self.session.call_mcp_tool.return_value = Mock(
@@ -416,6 +480,9 @@ class TestComputer:
         assert len(result.data) == 1
         assert result.data[0].pname == "Calculator"
         self.session.call_mcp_tool.assert_called_once_with("list_visible_apps", {})
+
+    @pytest.mark.asyncio
+
 
     async def test_get_installed_apps_success(self):
         """Test get_installed_apps success."""
@@ -432,6 +499,9 @@ class TestComputer:
         assert result.data[0].name == "Notepad"
         assert result.data[1].name == "Calculator"
 
+    @pytest.mark.asyncio
+
+
     async def test_start_app_success(self):
         """Test start_app success."""
         self.session.call_mcp_tool.return_value = Mock(
@@ -447,6 +517,9 @@ class TestComputer:
         assert result.data[0].pname == "notepad"
         assert result.data[0].pid == 1234
 
+    @pytest.mark.asyncio
+
+
     async def test_start_app_with_working_directory(self):
         """Test start_app with working directory."""
         self.session.call_mcp_tool.return_value = Mock(
@@ -456,6 +529,9 @@ class TestComputer:
         result = await self.computer.start_app("notepad.exe", "/home/user/documents")
 
         assert result.success is True
+
+    @pytest.mark.asyncio
+
 
     async def test_stop_app_by_pname_success(self):
         """Test stop_app_by_pname success."""
@@ -467,6 +543,9 @@ class TestComputer:
 
         assert result.success is True
 
+    @pytest.mark.asyncio
+
+
     async def test_stop_app_by_pid_success(self):
         """Test stop_app_by_pid success."""
         self.session.call_mcp_tool.return_value = Mock(
@@ -477,6 +556,9 @@ class TestComputer:
 
         assert result.success is True
 
+    @pytest.mark.asyncio
+
+
     async def test_stop_app_by_cmd_success(self):
         """Test stop_app_by_cmd success."""
         self.session.call_mcp_tool.return_value = Mock(
@@ -486,6 +568,9 @@ class TestComputer:
         result = await self.computer.stop_app_by_cmd("pkill notepad")
 
         assert result.success is True
+
+    @pytest.mark.asyncio
+
 
     async def test_application_management_methods_exist(self):
         """Test that all application management methods exist on Computer class."""

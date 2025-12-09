@@ -1,4 +1,5 @@
 import json
+import pytest
 import unittest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
@@ -10,11 +11,17 @@ from agentbay import AsyncAgentBay
 class TestAsyncBrowserContextConfig(unittest.IsolatedAsyncioTestCase):
     """Test browser context configuration and constant usage."""
 
+    @pytest.mark.asyncio
+
+
     async def test_browser_data_path_constant(self):
         """Test that _BROWSER_DATA_PATH constant is correctly defined."""
         self.assertEqual(_BROWSER_DATA_PATH, "/tmp/agentbay_browser")
         self.assertIsInstance(_BROWSER_DATA_PATH, str)
         self.assertTrue(_BROWSER_DATA_PATH.startswith("/"))
+
+    @pytest.mark.asyncio
+
 
     async def test_browser_context_creation(self):
         """Test BrowserContext creation with correct attributes."""
@@ -26,6 +33,9 @@ class TestAsyncBrowserContextConfig(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(browser_context.context_id, context_id)
         self.assertEqual(browser_context.auto_upload, auto_upload)
 
+    @pytest.mark.asyncio
+
+
     async def test_browser_context_default_auto_upload(self):
         """Test BrowserContext creation with default auto_upload value."""
         context_id = "test-context-456"
@@ -34,6 +44,9 @@ class TestAsyncBrowserContextConfig(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(browser_context.context_id, context_id)
         self.assertTrue(browser_context.auto_upload)  # Default should be True
+
+    @pytest.mark.asyncio
+
 
     async def test_create_session_params_with_browser_context(self):
         """Test CreateSessionParams with browser context."""
@@ -45,6 +58,9 @@ class TestAsyncBrowserContextConfig(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(params.browser_context)
         self.assertEqual(params.browser_context.context_id, context_id)
         self.assertFalse(params.browser_context.auto_upload)
+
+    @pytest.mark.asyncio
+
 
     async def test_agentbay_create_with_browser_context_uses_constant(self):
         """Test that AgentBay.create uses _BROWSER_DATA_PATH constant when creating browser context sync."""
@@ -59,6 +75,9 @@ class TestAsyncBrowserContextConfig(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(params.browser_context)
         self.assertEqual(params.browser_context.context_id, context_id)
         self.assertTrue(params.browser_context.auto_upload)
+
+    @pytest.mark.asyncio
+
 
     async def test_browser_context_serialization(self):
         """Test that BrowserContext can be properly serialized for JSON."""

@@ -1,4 +1,5 @@
 import os
+import pytest
 import sys
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
@@ -18,6 +19,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.agent_bay = AsyncAgentBay(api_key="test-api-key")
+
+    @pytest.mark.asyncio
+
 
     async def test_build_session_from_response(self):
         """Test _build_session_from_response method."""
@@ -61,6 +65,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
             # Verify result
             self.assertEqual(result, mock_session)
 
+    @pytest.mark.asyncio
+
+
     async def test_fetch_mcp_tools_for_vpc_session(self):
         """Test _fetch_mcp_tools_for_vpc_session method."""
         # Mock session
@@ -76,6 +83,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
         # Verify list_mcp_tools was called
         mock_session.list_mcp_tools.assert_called_once()
 
+    @pytest.mark.asyncio
+
+
     async def test_fetch_mcp_tools_for_vpc_session_with_error(self):
         """Test _fetch_mcp_tools_for_vpc_session method with error."""
         # Mock session that raises an exception
@@ -87,6 +97,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
 
         # Verify list_mcp_tools was called
         mock_session.list_mcp_tools.assert_called_once()
+
+    @pytest.mark.asyncio
+
 
     async def test_wait_for_context_synchronization(self):
         """Test _wait_for_context_synchronization method."""
@@ -112,6 +125,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
         # Verify context.info was called
         mock_context.info.assert_called_once()
 
+    @pytest.mark.asyncio
+
+
     async def test_log_request_debug_info(self):
         """Test _log_request_debug_info method."""
         # Mock request
@@ -126,6 +142,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
 
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
+
+    @pytest.mark.asyncio
+
 
     async def test_log_request_debug_info_with_short_auth(self):
         """Test _log_request_debug_info method with short authorization."""
@@ -142,6 +161,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
 
+    @pytest.mark.asyncio
+
+
     async def test_log_request_debug_info_with_exception(self):
         """Test _log_request_debug_info method with exception."""
         # Mock request that raises an exception
@@ -153,6 +175,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
 
         # Verify to_map was called
         mock_request.to_map.assert_called_once()
+
+    @pytest.mark.asyncio
+
 
     async def test_update_browser_replay_context_success(self):
         """Test _update_browser_replay_context method with successful update."""
@@ -185,6 +210,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(context_obj.id, record_context_id)
             self.assertEqual(context_obj.name, "browserreplay-ai-0d67g8gz0l6tsd17i")
 
+    @pytest.mark.asyncio
+
+
     async def test_update_browser_replay_context_no_record_context_id(self):
         """Test _update_browser_replay_context method when no record context ID provided."""
         # Mock response data
@@ -205,6 +233,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
             # Verify context.update was not called
             mock_context.update.assert_not_called()
 
+    @pytest.mark.asyncio
+
+
     async def test_update_browser_replay_context_no_app_instance_id(self):
         """Test _update_browser_replay_context method when AppInstanceId is missing."""
         # Mock response data without AppInstanceId
@@ -220,6 +251,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
 
             # Verify context.update was not called
             mock_context.update.assert_not_called()
+
+    @pytest.mark.asyncio
+
 
     async def test_update_browser_replay_context_with_error(self):
         """Test _update_browser_replay_context method with context update error."""
@@ -251,6 +285,9 @@ class TestAsyncRefactoredMethods(unittest.IsolatedAsyncioTestCase):
             context_obj = call_args[0]
             self.assertEqual(context_obj.id, record_context_id)
             self.assertEqual(context_obj.name, "browserreplay-ai-0d67g8gz0l6tsd17i")
+
+    @pytest.mark.asyncio
+
 
     async def test_update_browser_replay_context_with_exception(self):
         """Test _update_browser_replay_context method with exception."""

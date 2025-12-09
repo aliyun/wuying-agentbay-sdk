@@ -4,6 +4,7 @@ Unit tests for context_sync module.
 """
 
 import unittest
+import pytest
 
 from agentbay import (
     BWList,
@@ -21,6 +22,9 @@ from agentbay import (
 
 class TestAsyncSyncPolicy(unittest.IsolatedAsyncioTestCase):
     """Test SyncPolicy class functionality."""
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_policy_with_partial_parameters(self):
         """Test that SyncPolicy automatically fills missing parameters with defaults."""
@@ -44,6 +48,9 @@ class TestAsyncSyncPolicy(unittest.IsolatedAsyncioTestCase):
         )
         self.assertTrue(sync_policy.delete_policy.sync_local_file)
         self.assertEqual(len(sync_policy.bw_list.white_lists), 1)
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_policy_with_no_parameters(self):
         """Test that SyncPolicy with no parameters uses all defaults."""
@@ -74,6 +81,9 @@ class TestAsyncSyncPolicy(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sync_policy.bw_list.white_lists[0].path, "")
         self.assertEqual(sync_policy.bw_list.white_lists[0].exclude_paths, [])
 
+    @pytest.mark.asyncio
+
+
     async def test_sync_policy_with_all_parameters(self):
         """Test that SyncPolicy with all parameters works correctly."""
         upload_policy = UploadPolicy(auto_upload=False)
@@ -99,6 +109,9 @@ class TestAsyncSyncPolicy(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(sync_policy.bw_list.white_lists), 1)
         self.assertEqual(sync_policy.bw_list.white_lists[0].path, "/test")
         self.assertEqual(sync_policy.bw_list.white_lists[0].exclude_paths, ["/exclude"])
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_policy_serialization(self):
         """Test that SyncPolicy serializes correctly with all policies present."""
@@ -139,16 +152,25 @@ class TestAsyncSyncPolicy(unittest.IsolatedAsyncioTestCase):
 class TestAsyncMappingPolicy(unittest.IsolatedAsyncioTestCase):
     """Test MappingPolicy class functionality."""
 
+    @pytest.mark.asyncio
+
+
     async def test_mapping_policy_default(self):
         """Test that MappingPolicy can be created with default values."""
         mapping_policy = MappingPolicy()
         self.assertEqual(mapping_policy.path, "")
+
+    @pytest.mark.asyncio
+
 
     async def test_mapping_policy_with_path(self):
         """Test that MappingPolicy can be created with a Windows path."""
         windows_path = "c:\\Users\\Administrator\\Downloads"
         mapping_policy = MappingPolicy(path=windows_path)
         self.assertEqual(mapping_policy.path, windows_path)
+
+    @pytest.mark.asyncio
+
 
     async def test_mapping_policy_serialization(self):
         """Test that MappingPolicy serializes correctly."""
@@ -162,6 +184,9 @@ class TestAsyncMappingPolicy(unittest.IsolatedAsyncioTestCase):
 
 class TestAsyncSyncPolicyWithMappingPolicy(unittest.IsolatedAsyncioTestCase):
     """Test SyncPolicy with MappingPolicy functionality."""
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_policy_with_mapping_policy(self):
         """Test that SyncPolicy can include MappingPolicy."""
@@ -177,6 +202,9 @@ class TestAsyncSyncPolicyWithMappingPolicy(unittest.IsolatedAsyncioTestCase):
 
         self.assertIsNotNone(sync_policy.mapping_policy)
         self.assertEqual(sync_policy.mapping_policy.path, windows_path)
+
+    @pytest.mark.asyncio
+
 
     async def test_sync_policy_serialization_with_mapping_policy(self):
         """Test that SyncPolicy with MappingPolicy serializes correctly."""
@@ -194,6 +222,9 @@ class TestAsyncSyncPolicyWithMappingPolicy(unittest.IsolatedAsyncioTestCase):
 
 class TestAsyncContextSyncWithMappingPolicy(unittest.IsolatedAsyncioTestCase):
     """Test ContextSync with MappingPolicy functionality."""
+
+    @pytest.mark.asyncio
+
 
     async def test_context_sync_with_mapping_policy(self):
         """Test that ContextSync can be created with MappingPolicy."""

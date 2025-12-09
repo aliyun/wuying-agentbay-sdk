@@ -9,6 +9,7 @@ This module contains comprehensive unit tests for:
 """
 
 import asyncio
+import pytest
 import os
 import unittest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -33,6 +34,9 @@ def attach_file_transfer(agent_bay, session):
 class TestAsyncFileTransferResultClasses(unittest.IsolatedAsyncioTestCase):
     """Test cases for result classes."""
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_result_creation(self):
         """Test UploadResult object creation."""
         result = UploadResult(
@@ -54,6 +58,9 @@ class TestAsyncFileTransferResultClasses(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.path, "/remote/file.txt")
         self.assertIsNone(result.error)
 
+    @pytest.mark.asyncio
+
+
     async def test_upload_result_with_error(self):
         """Test UploadResult creation with error."""
         result = UploadResult(
@@ -69,6 +76,9 @@ class TestAsyncFileTransferResultClasses(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result.success)
         self.assertEqual(result.error, "Test error message")
+
+    @pytest.mark.asyncio
+
 
     async def test_download_result_creation(self):
         """Test DownloadResult object creation."""
@@ -90,6 +100,9 @@ class TestAsyncFileTransferResultClasses(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.path, "/remote/file.txt")
         self.assertEqual(result.local_path, "/local/file.txt")
         self.assertIsNone(result.error)
+
+    @pytest.mark.asyncio
+
 
     async def test_download_result_with_error(self):
         """Test DownloadResult creation with error."""
@@ -123,6 +136,9 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
 
         self.file_transfer = AsyncFileTransfer(self.mock_agent_bay, self.mock_session)
 
+    @pytest.mark.asyncio
+
+
     async def test_file_transfer_initialization(self):
         """Test FileTransfer initialization."""
         # Test default parameters
@@ -143,6 +159,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(ft._follow_redirects)
 
     @patch("os.path.isfile")
+    @pytest.mark.asyncio
+
     async def test_upload_file_not_found(self, mock_isfile):
         """Test upload with non-existent local file."""
         mock_isfile.return_value = False
@@ -175,6 +193,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
         return asyncio.run(coro)
 
     @patch("os.path.isfile")
+    @pytest.mark.asyncio
+
     async def test_upload_success(self, mock_isfile):
         """Test successful upload operation."""
 
@@ -245,6 +265,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
         await async_test()
 
     @patch("os.path.isfile")
+    @pytest.mark.asyncio
+
     async def test_upload_get_url_failure(self, mock_isfile):
         """Test upload failure when getting upload URL fails."""
 
@@ -280,6 +302,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
         await async_test()
 
     @patch("os.path.isfile")
+    @pytest.mark.asyncio
+
     async def test_upload_http_failure(self, mock_isfile):
         """Test upload failure during HTTP upload."""
 
@@ -325,6 +349,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
     @patch("os.path.exists")
     @patch("os.path.getsize")
     @patch("os.makedirs")
+    @pytest.mark.asyncio
+
     async def test_download_success(self, mock_makedirs, mock_getsize, mock_exists):
         """Test successful download operation."""
 
@@ -394,6 +420,8 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
     @patch("os.path.exists")
     @patch("os.path.getsize")
     @patch("os.makedirs")
+    @pytest.mark.asyncio
+
     async def test_download_get_url_failure(
         self, mock_makedirs, mock_getsize, mock_exists
     ):
@@ -443,6 +471,9 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
         # Run the async test
         await async_test()
 
+    @pytest.mark.asyncio
+
+
     async def test_wait_for_task_success(self):
         """Test _wait_for_task method with successful completion."""
 
@@ -480,6 +511,9 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
 
         # Run the async test
         await async_test()
+
+    @pytest.mark.asyncio
+
 
     async def test_wait_for_task_with_error(self):
         """Test _wait_for_task method with task error."""
@@ -520,6 +554,9 @@ class TestAsyncFileTransfer(unittest.IsolatedAsyncioTestCase):
 
         # Run the async test
         await async_test()
+
+    @pytest.mark.asyncio
+
 
     async def test_wait_for_task_timeout(self):
         """Test _wait_for_task method with timeout."""
@@ -570,6 +607,8 @@ class TestAsyncFileSystemFileTransfer(unittest.IsolatedAsyncioTestCase):
         self.file_system = AsyncFileSystem(session=self.mock_session)
 
     @patch("agentbay._async.filesystem.AsyncFileTransfer")
+    @pytest.mark.asyncio
+
     async def test_upload_file(self, mock_file_transfer_cls):
         """Test FileSystem.upload_file method."""
         # Mock FileTransfer instance
@@ -607,6 +646,8 @@ class TestAsyncFileSystemFileTransfer(unittest.IsolatedAsyncioTestCase):
         )
 
     @patch("agentbay._async.filesystem.AsyncFileTransfer")
+    @pytest.mark.asyncio
+
     async def test_download_file(self, mock_file_transfer_cls):
         """Test FileSystem.download_file method."""
         # Mock FileTransfer instance
