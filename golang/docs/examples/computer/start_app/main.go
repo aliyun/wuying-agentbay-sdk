@@ -36,9 +36,9 @@ func main() {
 
 	// Start Notepad
 	fmt.Println("Starting Notepad...")
-	startResult := result.Session.Computer.StartApp("notepad.exe", "", "")
-	if startResult.ErrorMessage != "" {
-		fmt.Printf("Failed to start app: %s\n", startResult.ErrorMessage)
+	startResult, err := result.Session.Computer.StartApp("notepad.exe", "", "")
+	if err != nil {
+		fmt.Printf("Failed to start app: %v\n", err)
 		return
 	}
 

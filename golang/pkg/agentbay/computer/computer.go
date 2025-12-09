@@ -856,51 +856,42 @@ type InstalledAppListResult struct {
 //	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 //	result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 //	defer result.Session.Delete()
-//	processResult := result.Session.Computer.StartApp("notepad.exe", "", "")
-func (c *Computer) StartApp(startCmd, workDirectory, activity string) *ProcessListResult {
+//	processResult, err := result.Session.Computer.StartApp("notepad.exe", "", "")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+func (c *Computer) StartApp(startCmd, workDirectory, activity string) (*ProcessListResult, error) {
 	args := map[string]interface{}{
-		"start_cmd":      startCmd,
-		"work_directory": workDirectory,
-		"activity":       activity,
+		"start_cmd": startCmd,
+	}
+	if workDirectory != "" {
+		args["work_directory"] = workDirectory
+	}
+	if activity != "" {
+		args["activity"] = activity
 	}
 
 	result, err := c.Session.CallMcpTool("start_app", args)
 	if err != nil {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: "",
-			},
-			ErrorMessage: fmt.Sprintf("failed to call start_app: %v", err),
-		}
+		return nil, fmt.Errorf("failed to call start_app: %w", err)
 	}
 
 	if !result.Success {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: result.ErrorMessage,
-		}
+		return nil, fmt.Errorf("failed to start app: %s", result.ErrorMessage)
 	}
 
 	// Parse processes from JSON
 	var processes []Process
 	if err := json.Unmarshal([]byte(result.Data), &processes); err != nil {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: fmt.Sprintf("failed to parse processes: %v", err),
-		}
+		return nil, fmt.Errorf("failed to parse processes: %w", err)
 	}
 
 	return &ProcessListResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Processes:    processes,
-		ErrorMessage: result.ErrorMessage,
-	}
+		Processes: processes,
+	}, nil
 }
 
 // GetInstalledApps retrieves a list of installed applications
@@ -910,8 +901,11 @@ func (c *Computer) StartApp(startCmd, workDirectory, activity string) *ProcessLi
 //	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 //	result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 //	defer result.Session.Delete()
-//	appsResult := result.Session.Computer.GetInstalledApps(true, true, true)
-func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) *InstalledAppListResult {
+//	appsResult, err := result.Session.Computer.GetInstalledApps(true, true, true)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) (*InstalledAppListResult, error) {
 	args := map[string]interface{}{
 		"start_menu":         startMenu,
 		"desktop":            desktop,
@@ -920,41 +914,25 @@ func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) *
 
 	result, err := c.Session.CallMcpTool("get_installed_apps", args)
 	if err != nil {
-		return &InstalledAppListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: "",
-			},
-			ErrorMessage: fmt.Sprintf("failed to call get_installed_apps: %v", err),
-		}
+		return nil, fmt.Errorf("failed to call get_installed_apps: %w", err)
 	}
 
 	if !result.Success {
-		return &InstalledAppListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: result.ErrorMessage,
-		}
+		return nil, fmt.Errorf("failed to get installed apps: %s", result.ErrorMessage)
 	}
 
 	// Parse installed apps from JSON
 	var apps []InstalledApp
 	if err := json.Unmarshal([]byte(result.Data), &apps); err != nil {
-		return &InstalledAppListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: fmt.Sprintf("failed to parse installed apps: %v", err),
-		}
+		return nil, fmt.Errorf("failed to parse installed apps: %w", err)
 	}
 
 	return &InstalledAppListResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Apps:         apps,
-		ErrorMessage: result.ErrorMessage,
-	}
+		Apps: apps,
+	}, nil
 }
 
 // ListVisibleApps lists all applications with visible windows
@@ -964,47 +942,34 @@ func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) *
 //	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 //	result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 //	defer result.Session.Delete()
-//	processResult := result.Session.Computer.ListVisibleApps()
-func (c *Computer) ListVisibleApps() *ProcessListResult {
+//	processResult, err := result.Session.Computer.ListVisibleApps()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+func (c *Computer) ListVisibleApps() (*ProcessListResult, error) {
 	args := map[string]interface{}{}
 
 	result, err := c.Session.CallMcpTool("list_visible_apps", args)
 	if err != nil {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: "",
-			},
-			ErrorMessage: fmt.Sprintf("failed to call list_visible_apps: %v", err),
-		}
+		return nil, fmt.Errorf("failed to call list_visible_apps: %w", err)
 	}
 
 	if !result.Success {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: result.ErrorMessage,
-		}
+		return nil, fmt.Errorf("failed to list visible apps: %s", result.ErrorMessage)
 	}
 
 	// Parse processes from JSON
 	var processes []Process
 	if err := json.Unmarshal([]byte(result.Data), &processes); err != nil {
-		return &ProcessListResult{
-			ApiResponse: models.ApiResponse{
-				RequestID: result.RequestID,
-			},
-			ErrorMessage: fmt.Sprintf("failed to parse processes: %v", err),
-		}
+		return nil, fmt.Errorf("failed to parse processes: %w", err)
 	}
 
 	return &ProcessListResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: result.RequestID,
 		},
-		Processes:    processes,
-		ErrorMessage: result.ErrorMessage,
-	}
+		Processes: processes,
+	}, nil
 }
 
 // StopAppByPName stops an application by process name

@@ -52,9 +52,10 @@ func TestComputerAppsIntegration(t *testing.T) {
 
 	t.Run("StartApp", func(t *testing.T) {
 		t.Log("Testing StartApp (notepad.exe)...")
-		result := session.Computer.StartApp("notepad.exe", "", "")
+		result, err := session.Computer.StartApp("notepad.exe", "", "")
 
-		assert.Empty(t, result.ErrorMessage, "StartApp should not return error message")
+		assert.NoError(t, err, "StartApp should not return error")
+		assert.NotNil(t, result, "Should return result")
 		assert.NotEmpty(t, result.Processes, "Should return started processes")
 
 		if len(result.Processes) > 0 {
@@ -67,10 +68,10 @@ func TestComputerAppsIntegration(t *testing.T) {
 
 	t.Run("GetInstalledApps", func(t *testing.T) {
 		t.Log("Testing GetInstalledApps...")
-		result := session.Computer.GetInstalledApps(true, false, true)
+		result, err := session.Computer.GetInstalledApps(true, false, true)
 
-		if result.ErrorMessage != "" {
-			t.Logf("GetInstalledApps failed: %s", result.ErrorMessage)
+		if err != nil {
+			t.Logf("GetInstalledApps failed: %v", err)
 			// Don't fail the test if it's just not supported in the environment or returns empty
 		} else {
 			assert.NotNil(t, result.Apps)
@@ -90,10 +91,10 @@ func TestComputerAppsIntegration(t *testing.T) {
 		var foundNotepad bool
 		// Poll for up to 10 seconds (5 attempts * 2 seconds)
 		for i := 0; i < 5; i++ {
-			result := session.Computer.ListVisibleApps()
+			result, err := session.Computer.ListVisibleApps()
 
-			if result.ErrorMessage != "" {
-				t.Logf("ListVisibleApps returned error: %s (attempt %d)", result.ErrorMessage, i+1)
+			if err != nil {
+				t.Logf("ListVisibleApps returned error: %v (attempt %d)", err, i+1)
 			} else {
 				assert.NotNil(t, result.Processes)
 
@@ -138,10 +139,10 @@ func TestComputerAppsIntegration(t *testing.T) {
 		t.Log("Testing App Lifecycle (Find -> Start -> Verify -> Stop -> Verify)...")
 
 		// 1. Get Installed Apps
-		installedApps := session.Computer.GetInstalledApps(true, false, true)
+		installedApps, err := session.Computer.GetInstalledApps(true, false, true)
 		startCmd := "notepad.exe"
 
-		if installedApps.ErrorMessage == "" && len(installedApps.Apps) > 0 {
+		if err == nil && len(installedApps.Apps) > 0 {
 			for _, app := range installedApps.Apps {
 				if app.Name == "Notepad" || app.StartCmd == "notepad.exe" {
 					startCmd = app.StartCmd
@@ -155,8 +156,9 @@ func TestComputerAppsIntegration(t *testing.T) {
 
 		// 2. Start App
 		t.Logf("Starting app with command: %s", startCmd)
-		startResult := session.Computer.StartApp(startCmd, "", "")
-		assert.Empty(t, startResult.ErrorMessage, "StartApp should succeed")
+		startResult, err := session.Computer.StartApp(startCmd, "", "")
+		assert.NoError(t, err, "StartApp should succeed")
+		require.NotNil(t, startResult, "StartApp should return result")
 		require.NotEmpty(t, startResult.Processes, "StartApp should return processes")
 
 		pid := startResult.Processes[0].PID
@@ -167,9 +169,9 @@ func TestComputerAppsIntegration(t *testing.T) {
 
 		foundInVisible := false
 		for i := 0; i < 5; i++ {
-			visibleApps := session.Computer.ListVisibleApps()
-			if visibleApps.ErrorMessage != "" {
-				t.Logf("ListVisibleApps error: %s", visibleApps.ErrorMessage)
+			visibleApps, err := session.Computer.ListVisibleApps()
+			if err != nil {
+				t.Logf("ListVisibleApps error: %v", err)
 			} else {
 				for _, p := range visibleApps.Processes {
 					if p.PID == pid {
@@ -198,13 +200,15 @@ func TestComputerAppsIntegration(t *testing.T) {
 
 		// 5. Verify it's gone
 		time.Sleep(2 * time.Second)
-		visibleAppsAfter := session.Computer.ListVisibleApps()
+		visibleAppsAfter, err := session.Computer.ListVisibleApps()
 
 		foundAfterStop := false
-		for _, p := range visibleAppsAfter.Processes {
-			if p.PID == pid {
-				foundAfterStop = true
-				break
+		if err == nil {
+			for _, p := range visibleAppsAfter.Processes {
+				if p.PID == pid {
+					foundAfterStop = true
+					break
+				}
 			}
 		}
 		assert.False(t, foundAfterStop, "App PID should NOT be in visible apps list after stopping")

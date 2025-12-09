@@ -424,17 +424,16 @@ func (suite *ComputerTestSuite) TestStartApp_Success() {
 	}
 
 	suite.mockSession.On("CallMcpTool", "start_app", map[string]interface{}{
-		"start_cmd":      "notepad.exe",
-		"work_directory": "",
-		"activity":       "",
+		"start_cmd": "notepad.exe",
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.StartApp("notepad.exe", "", "")
+	result, err := suite.computer.StartApp("notepad.exe", "", "")
 
 	// Assert
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), "test-start-app-123", result.RequestID)
-	assert.Empty(suite.T(), result.ErrorMessage)
 	assert.Len(suite.T(), result.Processes, 1)
 	assert.Equal(suite.T(), "notepad.exe", result.Processes[0].PName)
 	assert.Equal(suite.T(), 1234, result.Processes[0].PID)
@@ -449,19 +448,16 @@ func (suite *ComputerTestSuite) TestStartApp_McpToolError() {
 	}
 
 	suite.mockSession.On("CallMcpTool", "start_app", map[string]interface{}{
-		"start_cmd":      "invalid.exe",
-		"work_directory": "",
-		"activity":       "",
+		"start_cmd": "invalid.exe",
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.StartApp("invalid.exe", "", "")
+	result, err := suite.computer.StartApp("invalid.exe", "", "")
 
 	// Assert
-	// assert.False(suite.T(), result.Success) // ProcessListResult does not have Success field
-	assert.Equal(suite.T(), "test-start-app-error", result.RequestID)
-	assert.Equal(suite.T(), "Failed to start app", result.ErrorMessage)
-	assert.Empty(suite.T(), result.Processes)
+	assert.Error(suite.T(), err)
+	assert.Nil(suite.T(), result)
+	assert.Contains(suite.T(), err.Error(), "Failed to start app")
 }
 
 func (suite *ComputerTestSuite) TestStartApp_WithWorkDirAndActivity() {
@@ -480,9 +476,11 @@ func (suite *ComputerTestSuite) TestStartApp_WithWorkDirAndActivity() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.StartApp("cmd.exe", "C:\\", "MainActivity")
+	result, err := suite.computer.StartApp("cmd.exe", "C:\\", "MainActivity")
 
 	// Assert
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), "test-start-app-args", result.RequestID)
 	assert.Empty(suite.T(), result.ErrorMessage)
 }
@@ -504,11 +502,12 @@ func (suite *ComputerTestSuite) TestGetInstalledApps_Success() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.GetInstalledApps(true, false, true)
+	result, err := suite.computer.GetInstalledApps(true, false, true)
 
 	// Assert
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), "test-get-apps-123", result.RequestID)
-	assert.Empty(suite.T(), result.ErrorMessage)
 	assert.Len(suite.T(), result.Apps, 1)
 	assert.Equal(suite.T(), "Notepad", result.Apps[0].Name)
 	assert.Equal(suite.T(), "notepad.exe", result.Apps[0].StartCmd)
@@ -529,11 +528,12 @@ func (suite *ComputerTestSuite) TestGetInstalledApps_Error() {
 	}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.GetInstalledApps(true, true, true)
+	result, err := suite.computer.GetInstalledApps(true, true, true)
 
 	// Assert
-	assert.Equal(suite.T(), "test-get-apps-error", result.RequestID)
-	assert.Equal(suite.T(), "Failed to get apps", result.ErrorMessage)
+	assert.Error(suite.T(), err)
+	assert.Nil(suite.T(), result)
+	assert.Contains(suite.T(), err.Error(), "Failed to get apps")
 	assert.Empty(suite.T(), result.Apps)
 }
 
@@ -550,11 +550,12 @@ func (suite *ComputerTestSuite) TestListVisibleApps_Success() {
 	suite.mockSession.On("CallMcpTool", "list_visible_apps", map[string]interface{}{}).Return(expectedResult, nil)
 
 	// Act
-	result := suite.computer.ListVisibleApps()
+	result, err := suite.computer.ListVisibleApps()
 
 	// Assert
+	assert.NoError(suite.T(), err)
+	assert.NotNil(suite.T(), result)
 	assert.Equal(suite.T(), "test-visible-apps-123", result.RequestID)
-	assert.Empty(suite.T(), result.ErrorMessage)
 	assert.Len(suite.T(), result.Processes, 1)
 	assert.Equal(suite.T(), "chrome.exe", result.Processes[0].PName)
 }
