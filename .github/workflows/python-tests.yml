@@ -81,8 +81,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install
-        poetry add --dev pytest-cov
+        poetry install --with dev
+        # Ensure pytest-asyncio is installed for async test support
+        poetry run pip install pytest-asyncio
 
     - name: Run unit tests
       working-directory: ./python
