@@ -52,7 +52,7 @@ export class Command {
    *
    * @returns Promise resolving to CommandResult containing:
    *          - success: Whether the command executed successfully (exitCode === 0)
-   *          - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+   *          - output: Command output for backward compatibility (stdout + stderr)
    *          - exitCode: The exit code of the command execution (0 for success)
    *          - stdout: Standard output from the command execution
    *          - stderr: Standard error from the command execution
@@ -138,8 +138,8 @@ export class Command {
           // Determine success based on errorCode (0 means success)
           const success = errorCode === 0;
 
-          // For backward compatibility, output should be stdout if available, otherwise stderr
-          const output = stdout || stderr;
+          // For backward compatibility, output should be stdout + stderr
+          const output = stdout + stderr;
 
           return {
             requestId: result.requestId,
@@ -172,7 +172,8 @@ export class Command {
             const stderr = errorData.stderr || "";
             const errorCode = errorData.errorCode || 0;
             const traceId = errorData.traceId || "";
-            const output = stdout || stderr;
+            // For backward compatibility, output should be stdout + stderr
+            const output = stdout + stderr;
 
             return {
               requestId: result.requestId,

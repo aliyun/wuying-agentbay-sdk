@@ -135,11 +135,9 @@ async def test_command_backward_compatibility(test_session):
     assert hasattr(result, 'output'), "output field should exist for backward compatibility"
     assert result.output is not None, "output should not be None"
     
-    # output should be stdout if available, otherwise stderr
-    if result.stdout:
-        assert result.output == result.stdout, "output should equal stdout when stdout is available"
-    elif result.stderr:
-        assert result.output == result.stderr, "output should equal stderr when stdout is empty"
+    # output should be stdout + stderr
+    expected_output = (result.stdout or "") + (result.stderr or "")
+    assert result.output == expected_output, f"output should equal stdout + stderr, got: {result.output}, expected: {expected_output}"
     
     print(f"✓ Backward compatibility test passed: output={result.output}")
 

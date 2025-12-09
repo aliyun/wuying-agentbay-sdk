@@ -224,7 +224,7 @@ func TestCommand_Implementation_NewJsonFormat(t *testing.T) {
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Equal(t, "output text", result.Stdout)
 	assert.Equal(t, "error text", result.Stderr)
-	assert.Equal(t, "output text", result.Output)
+	assert.Equal(t, "output texterror text", result.Output) // output = stdout + stderr
 	assert.Equal(t, "", result.TraceID)
 }
 

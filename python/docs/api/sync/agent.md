@@ -156,7 +156,7 @@ session.delete()
 class Browser()
 ```
 
-An Agent to perform tasks on the browser.
+An Agent(⚠️ Still in BETA) to perform tasks on the browser
 
 ### initialize
 

@@ -46,7 +46,7 @@ class Command(BaseService):
         Returns:
             CommandResult: Result object containing:
                 - success: Whether the command executed successfully (exit_code == 0)
-                - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+                - output: Command output for backward compatibility (stdout + stderr)
                 - exit_code: The exit code of the command execution (0 for success)
                 - stdout: Standard output from the command execution
                 - stderr: Standard error from the command execution
@@ -112,8 +112,8 @@ class Command(BaseService):
                     # Determine success based on errorCode (0 means success)
                     success = error_code == 0
 
-                    # For backward compatibility, output should be stdout if available, otherwise stderr
-                    output = stdout if stdout else stderr
+                    # For backward compatibility, output should be stdout + stderr
+                    output = stdout + stderr
 
                     return CommandResult(
                         request_id=result.request_id,

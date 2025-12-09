@@ -244,7 +244,7 @@ export interface CommandResult extends ApiResponse {
   requestId: string;
   /** Whether the command execution was successful */
   success: boolean;
-  /** The command output (for backward compatibility, equals stdout if available, otherwise stderr) */
+  /** The command output (for backward compatibility, equals stdout + stderr) */
   output: string;
   /** Optional error message if the operation failed */
   errorMessage?: string;

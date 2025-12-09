@@ -56,7 +56,7 @@ user permissions in a Linux shell environment.
 
     CommandResult: Result object containing:
   - success: Whether the command executed successfully (exit_code == 0)
-  - output: Command output for backward compatibility (stdout if available, otherwise stderr)
+  - output: Command output for backward compatibility (stdout + stderr)
   - exit_code: The exit code of the command execution (0 for success)
   - stdout: Standard output from the command execution
   - stderr: Standard error from the command execution
@@ -76,7 +76,7 @@ session = agent_bay.create().session
 result = await session.command.execute_command("echo 'Hello, World!'")
 print(result.output)
 print(result.exit_code)
-session.delete()
+await session.delete()
 
 
 **Example**:
@@ -88,7 +88,7 @@ cwd="/tmp",
     envs={"TEST_VAR": "test_value"}
 )
 print(result.stdout)
-session.delete()
+await session.delete()
 
 ## Best Practices
 

@@ -182,7 +182,7 @@ type CommandResult struct {
 	models.ApiResponse
 	// Success indicates whether the command execution was successful
 	Success	bool	`json:"success"`
-	// Output contains the command execution output (for backward compatibility, equals stdout if available, otherwise stderr)
+	// Output contains the command execution output (for backward compatibility, equals stdout + stderr)
 	Output	string	`json:"output"`
 	// ErrorMessage contains error message if the operation failed
 	ErrorMessage	string	`json:"error_message,omitempty"`
