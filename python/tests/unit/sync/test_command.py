@@ -133,7 +133,7 @@ class TestAsyncCommand(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.stdout, "output text")
         self.assertEqual(result.stderr, "error text")
-        self.assertEqual(result.output, "output text")  # Should use stdout
+        self.assertEqual(result.output, "output texterror text")  # output = stdout + stderr for backward compatibility
         self.assertEqual(result.trace_id, "")  # traceId should be empty for success
 
     def test_execute_command_with_new_json_format_error(self):
@@ -162,7 +162,7 @@ class TestAsyncCommand(unittest.TestCase):
         self.assertEqual(result.exit_code, 127)
         self.assertEqual(result.stdout, "")
         self.assertEqual(result.stderr, "command not found")
-        self.assertEqual(result.output, "command not found")  # Should use stderr when stdout is empty
+        self.assertEqual(result.output, "command not found")  # output = stdout + stderr ("" + "command not found")
         self.assertEqual(result.trace_id, "trace-123")  # traceId should be present for errors
 
     def test_execute_command_with_cwd_and_envs(self):

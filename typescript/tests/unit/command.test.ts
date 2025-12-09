@@ -79,7 +79,7 @@ describe('Command', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toBe('output text');
       expect(result.stderr).toBe('error text');
-      expect(result.output).toBe('output text');
+      expect(result.output).toBe('output texterror text'); // output = stdout + stderr for backward compatibility
       expect(result.traceId).toBeUndefined();
     });
 
