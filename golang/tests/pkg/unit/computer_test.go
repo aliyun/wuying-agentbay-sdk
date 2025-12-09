@@ -534,7 +534,6 @@ func (suite *ComputerTestSuite) TestGetInstalledApps_Error() {
 	assert.Error(suite.T(), err)
 	assert.Nil(suite.T(), result)
 	assert.Contains(suite.T(), err.Error(), "Failed to get apps")
-	assert.Empty(suite.T(), result.Apps)
 }
 
 // Test ListVisibleApps functionality

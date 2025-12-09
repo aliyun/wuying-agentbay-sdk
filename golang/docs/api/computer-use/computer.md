@@ -201,7 +201,7 @@ position := result.Session.Computer.GetCursorPosition()
 ### GetInstalledApps
 
 ```go
-func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) *InstalledAppListResult
+func (c *Computer) GetInstalledApps(startMenu, desktop, ignoreSystemApps bool) (*InstalledAppListResult, error)
 ```
 
 GetInstalledApps retrieves a list of installed applications
@@ -212,7 +212,10 @@ GetInstalledApps retrieves a list of installed applications
 client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 defer result.Session.Delete()
-appsResult := result.Session.Computer.GetInstalledApps(true, true, true)
+appsResult, err := result.Session.Computer.GetInstalledApps(true, true, true)
+if err != nil {
+	log.Fatal(err)
+}
 ```
 
 ### GetScreenSize
@@ -260,7 +263,7 @@ ListRootWindows lists all root windows
 ### ListVisibleApps
 
 ```go
-func (c *Computer) ListVisibleApps() *ProcessListResult
+func (c *Computer) ListVisibleApps() (*ProcessListResult, error)
 ```
 
 ListVisibleApps lists all applications with visible windows
@@ -271,7 +274,10 @@ ListVisibleApps lists all applications with visible windows
 client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 defer result.Session.Delete()
-processResult := result.Session.Computer.ListVisibleApps()
+processResult, err := result.Session.Computer.ListVisibleApps()
+if err != nil {
+	log.Fatal(err)
+}
 ```
 
 ### MaximizeWindow
@@ -415,7 +421,7 @@ scrollResult := result.Session.Computer.Scroll(400, 300, computer.ScrollDirectio
 ### StartApp
 
 ```go
-func (c *Computer) StartApp(startCmd, workDirectory, activity string) *ProcessListResult
+func (c *Computer) StartApp(startCmd, workDirectory, activity string) (*ProcessListResult, error)
 ```
 
 StartApp starts the specified application
@@ -426,7 +432,10 @@ StartApp starts the specified application
 client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 defer result.Session.Delete()
-processResult := result.Session.Computer.StartApp("notepad.exe", "", "")
+processResult, err := result.Session.Computer.StartApp("notepad.exe", "", "")
+if err != nil {
+	log.Fatal(err)
+}
 ```
 
 ### StopAppByCmd
