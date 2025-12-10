@@ -71,16 +71,89 @@ func NewCode(session interface {
 
 NewCode creates a new Code instance
 
+## Type CodeExecutionError
+
+```go
+type CodeExecutionError struct {
+	Name		string	`json:"name"`
+	Value		string	`json:"value"`
+	Traceback	string	`json:"traceback"`
+}
+```
+
+CodeExecutionError represents an error during code execution
+
+## Type CodeExecutionLogs
+
+```go
+type CodeExecutionLogs struct {
+	Stdout	[]string	`json:"stdout"`
+	Stderr	[]string	`json:"stderr"`
+}
+```
+
+CodeExecutionLogs represents stdout and stderr logs
+
+## Type CodeExecutionResultItem
+
+```go
+type CodeExecutionResultItem struct {
+	Text		string		`json:"text,omitempty"`
+	HTML		string		`json:"html,omitempty"`
+	Markdown	string		`json:"markdown,omitempty"`
+	PNG		string		`json:"png,omitempty"`
+	JPEG		string		`json:"jpeg,omitempty"`
+	SVG		string		`json:"svg,omitempty"`
+	Latex		string		`json:"latex,omitempty"`
+	JSON		interface{}	`json:"json,omitempty"`
+	Chart		interface{}	`json:"chart,omitempty"`
+	IsMainResult	bool		`json:"is_main_result,omitempty"`
+}
+```
+
+CodeExecutionResultItem represents a single result item (text, image, etc.)
+
 ## Type CodeResult
 
 ```go
 type CodeResult struct {
 	models.ApiResponse	// Embedded ApiResponse
-	Output			string
+
+	// Legacy/Simple output
+	Output	string
+
+	// Enhanced fields
+	Success		bool				`json:"success"`
+	Result		string				`json:"result"`	// Legacy compatible result text
+	ErrorMessage	string				`json:"error_message,omitempty"`
+	Logs		*CodeExecutionLogs		`json:"logs,omitempty"`
+	Results		[]CodeExecutionResultItem	`json:"results,omitempty"`
+	Error		*CodeExecutionError		`json:"error,omitempty"`
+	ExecutionTime	float64				`json:"execution_time,omitempty"`
+	ExecutionCount	*int				`json:"execution_count,omitempty"`
 }
 ```
 
 CodeResult represents the result of a code execution
+
+## Type backendResponse
+
+```go
+type backendResponse struct {
+	ExecutionError	string		`json:"executionError"`
+	Result		[]string	`json:"result"`	// List of JSON strings
+	Stdout		[]string	`json:"stdout"`
+	Stderr		[]string	`json:"stderr"`
+	TraceID		string		`json:"traceId"`
+	// Try both cases just in case
+	ExecutionTime	float64	`json:"executionTime"`
+	ExecutionTimeSn	float64	`json:"execution_time"`
+	ExecutionCount	*int	`json:"executionCount"`
+	ExecutionCntSn	*int	`json:"execution_count"`
+}
+```
+
+backendResponse represents the raw JSON structure returned by the backend tool
 
 ## Best Practices
 

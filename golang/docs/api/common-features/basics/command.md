@@ -153,8 +153,6 @@ func WithEnvs(envs map[string]string) CommandOption
 WithEnvs sets environment variables for command execution. These variables are set for the command
 execution only.
 
-> **Note**: In Go, the type system enforces `map[string]string` at compile time, ensuring all keys and values are strings. No runtime validation is needed.
-
 **Example:**
 
 ```go
