@@ -58,18 +58,18 @@ with open(adbkey_path, 'r') as f:
 print(f"ADB key loaded (first 50 chars): {adbkey_pub[:50]}...")
 ```
 
-> **Important**: You must use your actual ADB public key. Using a test string will result in an "unauthorized" device status, and ADB commands will fail.
+> **Important**: While the `adbkey_pub` parameter is not validated by the AgentBay server (any non-empty string will work for getting the URL), you **must use your actual ADB public key** for the subsequent ADB connection to work properly. Using a fake key will result in "unauthorized" device status when connecting via ADB.
 
 ### Step 2: Create a Mobile Session
 
 ```python
-from agentbay import AgentBay
+from agentbay import AgentBay, CreateSessionParams
 
 # Initialize AgentBay client
 client = AgentBay(api_key="your_api_key")
 
 # Create a mobile session
-result = client.create(image_id="mobile_latest")
+result = client.create(CreateSessionParams(image_id="mobile_latest"))
 session = result.session
 
 print(f"Session created: {session.session_id}")
@@ -185,7 +185,7 @@ print("Session deleted")
 Here's a complete Python example that demonstrates the full workflow:
 
 ```python
-from agentbay import AgentBay
+from agentbay import AgentBay, CreateSessionParams
 import subprocess
 import time
 
@@ -203,7 +203,7 @@ def main():
     try:
         # Step 2: Create mobile session
         print("\nCreating mobile session...")
-        result = client.create(image_id="mobile_latest")
+        result = client.create(CreateSessionParams(image_id="mobile_latest"))
         session = result.session
         print(f"✅ Session created: {session.session_id}")
         
@@ -336,21 +336,31 @@ List of devices attached
 47.99.76.99:54321	unauthorized
 ```
 
-**Cause**: You are not using your actual ADB public key.
+**Cause**: You are not using your actual ADB public key, or there's an ADB client-side authentication issue.
 
 **Solution**: 
-1. Locate your ADB public key: `~/.android/adbkey.pub` (Linux/macOS) or `%USERPROFILE%\.android\adbkey.pub` (Windows)
-2. Read the entire content of the file
-3. Pass the complete key string to `get_adb_url()`
+1. **First, ensure you're using your real ADB public key**:
+   ```python
+   import os
+   adbkey_path = os.path.expanduser('~/.android/adbkey.pub')
+   with open(adbkey_path, 'r') as f:
+       adbkey_pub = f.read().strip()  # Read the entire key
+   
+   result = session.mobile.get_adb_url(adbkey_pub=adbkey_pub)
+   ```
 
-```python
-import os
-adbkey_path = os.path.expanduser('~/.android/adbkey.pub')
-with open(adbkey_path, 'r') as f:
-    adbkey_pub = f.read().strip()  # Read the entire key
+2. **If still unauthorized, restart the ADB server**:
+   ```bash
+   adb kill-server
+   adb start-server
+   ```
 
-result = session.mobile.get_adb_url(adbkey_pub=adbkey_pub)
-```
+3. **Try reconnecting**:
+   ```bash
+   adb connect <IP>:<Port>
+   ```
+
+**Note**: While the AgentBay server doesn't validate the `adbkey_pub` parameter, the ADB client requires the correct key for device authorization.
 
 ### Connection Refused
 
@@ -428,8 +438,8 @@ The ADB connection feature enables you to:
 4. ✅ Debug and test mobile applications remotely
 
 **Key Points:**
-- Only works with `mobile_latest` sessions
-- The `adbkey_pub` parameter is not validated (can use any string)
+- Only works with `mobile_latest` sessions  
+- Must use your actual ADB public key for successful device connection (server doesn't validate the parameter, but ADB client does)
 - Returns URL in format: `adb connect <IP>:<Port>`
 - Always verify connection with `adb devices` before running commands
 - Remember to disconnect and delete the session when done
