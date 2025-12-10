@@ -57,7 +57,7 @@ def browser_agent_session(agent_bay):
     # Ensure a delay to avoid session creation conflicts
     time.sleep(3)
     params = CreateSessionParams(
-        image_id="linux_latest",
+        image_id="imgc-0aae4rgkx5fdch0et",
     )
     session_result = agent_bay.create(params)
     if not session_result.success or not session_result.session:
@@ -74,7 +74,7 @@ def browser_agent_session(agent_bay):
 
 
 @pytest.mark.sync
-def test_computer_execute_task_success(computer_agent_session):
+def test_computer_execute_task_and_wait_success(computer_agent_session):
     """Test executing a flux task successfully."""
     agent = computer_agent_session.agent
 
@@ -83,7 +83,7 @@ def test_computer_execute_task_success(computer_agent_session):
     if not max_try_times:
         max_try_times = 100
     logger.info("🚀 task of creating folders")
-    result = agent.computer.execute_task(task, int(max_try_times))
+    result = agent.computer.execute_task_and_wait(task, int(max_try_times))
     assert result.success
     assert result.request_id != ""
     assert result.error_message == ""
@@ -91,7 +91,7 @@ def test_computer_execute_task_success(computer_agent_session):
 
 
 @pytest.mark.sync
-def test_computer_async_execute_task_success(computer_agent_session):
+def test_computer_execute_task_success(computer_agent_session):
     """Test executing a flux task successfully."""
     agent = computer_agent_session.agent
 
@@ -100,7 +100,7 @@ def test_computer_async_execute_task_success(computer_agent_session):
     if not max_try_times:
         max_try_times = 100
     logger.info("🚀 async task of creating folders")
-    result = agent.computer.async_execute_task(task)
+    result = agent.computer.execute_task(task)
     assert result.success
     assert result.request_id != ""
     assert result.error_message == ""
@@ -122,7 +122,7 @@ def test_computer_async_execute_task_success(computer_agent_session):
 
 
 @pytest.mark.sync
-def test_browser_execute_task_success(browser_agent_session):
+def test_browser_execute_task_and_wait_success(browser_agent_session):
     """Test executing a flux task successfully."""
     agent = browser_agent_session.agent
 
@@ -134,7 +134,7 @@ def test_browser_execute_task_success(browser_agent_session):
     options: AgentOptions = AgentOptions(use_vision=False, output_schema="text")
     result = agent.browser.initialize(options)
     assert result.success
-    result = agent.browser.execute_task(task, int(max_try_times))
+    result = agent.browser.execute_task_and_wait(task, int(max_try_times))
     assert result.success
     assert result.request_id != ""
     assert result.error_message == ""
@@ -142,7 +142,7 @@ def test_browser_execute_task_success(browser_agent_session):
 
 
 @pytest.mark.sync
-def test_browser_async_execute_task_success(browser_agent_session):
+def test_browser_execute_task_success(browser_agent_session):
     """Test executing a flux task successfully."""
     agent = browser_agent_session.agent
 
@@ -151,7 +151,7 @@ def test_browser_async_execute_task_success(browser_agent_session):
     if not max_try_times:
         max_try_times = 100
     logger.info("🚀 async task Query the weather in Shanghai.")
-    result = agent.browser.async_execute_task(task)
+    result = agent.browser.execute_task(task)
     assert result.success
     assert result.request_id != ""
     assert result.error_message == ""

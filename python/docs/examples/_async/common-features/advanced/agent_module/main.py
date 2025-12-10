@@ -43,7 +43,7 @@ async def main():
         task_description = "创建一个word文件，输入“无影Agentbay”,保存并关闭。"
         logger.info(f"🚀 Executing task: {task_description}")
 
-        execution_result = await session.agent.computer.execute_task(
+        execution_result = await session.agent.computer.execute_task_and_wait(
             task_description, max_try_times=50
         )
 

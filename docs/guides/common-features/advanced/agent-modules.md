@@ -67,7 +67,7 @@ else:
 ```python
 # Execute a task using natural language
 task_description = "Calculate the square root of 144"
-execution_result = agent_session.agent.computer.execute_task(task_description, max_try_times=5)
+execution_result = agent_session.agent.computer.execute_task_and_wait(task_description, max_try_times=5)
 
 if execution_result.success:
     print("Task completed successfully!")
@@ -81,7 +81,7 @@ else:
 ```python
 # Execute a task using natural language
 task_description = "Navigate to baidu.com and query the weather in Beijing"
-execution_result = agent_session.agent.browser.execute_task(task_description, max_try_times=5)
+execution_result = agent_session.agent.browser.execute_task_and_wait(task_description, max_try_times=5)
 
 if execution_result.success:
     print("Task completed successfully!")

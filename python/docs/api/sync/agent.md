@@ -24,10 +24,10 @@ class Computer()
 
 An Agent to perform tasks on the computer.
 
-### async\_execute\_task
+### execute\_task
 
 ```python
-def async_execute_task(task: str) -> ExecutionResult
+def execute_task(task: str) -> ExecutionResult
 ```
 
 Execute a specific task described in human language synchronously.
@@ -52,17 +52,17 @@ get_task_status and the max_try_times.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.async_execute_task("Open Chrome browser")
+result = session.agent.computer.execute_task("Open Chrome browser")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = session.agent.computer.get_task_status(result.task_id)
 print(f"Task status: {status.task_status}")
 session.delete()
 ```
 
-### execute\_task
+### execute\_task\_and\_wait
 
 ```python
-def execute_task(task: str, max_try_times: int) -> ExecutionResult
+def execute_task_and_wait(task: str, max_try_times: int) -> ExecutionResult
 ```
 
 Execute a specific task described in human language synchronously.
@@ -87,7 +87,7 @@ so set a proper max_try_times according to your task complexity.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.execute_task("Open Chrome browser", max_try_times=20)
+result = session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
 print(f"Task result: {result.task_result}")
 session.delete()
 ```
@@ -115,7 +115,7 @@ Get the status of the task with the given task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.async_execute_task("Open Chrome browser")
+result = session.agent.computer.execute_task("Open Chrome browser")
 status = session.agent.computer.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
 session.delete()
@@ -144,7 +144,7 @@ Terminate a task with a specified task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.async_execute_task("Open Chrome browser")
+result = session.agent.computer.execute_task("Open Chrome browser")
 terminate_result = session.agent.computer.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
 session.delete()
@@ -186,10 +186,10 @@ print(f"Initialized: {initialize_result.success}")
 session.delete()
 ```
 
-### async\_execute\_task
+### execute\_task
 
 ```python
-def async_execute_task(task: str) -> ExecutionResult
+def execute_task(task: str) -> ExecutionResult
 ```
 
 Execute a specific task described in human language synchronously.
@@ -214,17 +214,17 @@ get_task_status and the max_try_times.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.async_execute_task("Open Chrome browser")
+result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu.")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = session.agent.browser.get_task_status(result.task_id)
 print(f"Task status: {status.task_status}")
 session.delete()
 ```
 
-### execute\_task
+### execute\_task\_and\_wait
 
 ```python
-def execute_task(task: str, max_try_times: int) -> ExecutionResult
+def execute_task_and_wait(task: str, max_try_times: int) -> ExecutionResult
 ```
 
 Execute a specific task described in human language synchronously.
@@ -249,7 +249,7 @@ so set a proper max_try_times according to your task complexity.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.execute_task("Open Chrome browser", max_try_times=20)
+result = session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
 print(f"Task result: {result.task_result}")
 session.delete()
 ```
@@ -277,7 +277,7 @@ Get the status of the task with the given task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.async_execute_task("Open Chrome browser")
+result = session.agent.browser.execute_task("Open Chrome browser")
 status = session.agent.browser.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
 session.delete()
@@ -306,7 +306,7 @@ Terminate a task with a specified task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.async_execute_task("Open Chrome browser")
+result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
 terminate_result = session.agent.browser.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
 session.delete()
