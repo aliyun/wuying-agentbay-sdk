@@ -105,7 +105,7 @@ func TestAgentBayDeleteWithSyncContext(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to create 1GB test file: %v", err)
 	} else {
-		t.Logf("Created 1GB test file: %s", cmdResult)
+		t.Logf("Created 1GB test file: %+v", cmdResult)
 	}
 
 	// Delete session using client.Delete with syncContext=true

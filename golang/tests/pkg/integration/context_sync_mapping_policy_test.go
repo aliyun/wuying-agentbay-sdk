@@ -93,7 +93,7 @@ func TestContextSyncWithMappingPolicyIntegration(t *testing.T) {
 	createFileCmd := fmt.Sprintf("echo %s > \"%s\"", testContent, testFilePath)
 	windowsCmdResult, err := windowsSession.Command.ExecuteCommand(createFileCmd)
 	require.NoError(t, err, "Error creating test file in Windows")
-	t.Logf("Windows file creation result: %s", windowsCmdResult)
+	t.Logf("Windows file creation result: %+v", windowsCmdResult)
 
 	// Verify file exists in Windows session
 	verifyFileCmd := fmt.Sprintf("type \"%s\"", testFilePath)

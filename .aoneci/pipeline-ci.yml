@@ -241,7 +241,7 @@ jobs:
           echo "Building code..."
           go build -v ./api/client/... || echo "Build completed with warnings"
           echo "Running go vet..."
-          go vet ./... || echo "Vet completed with warnings"
+          go vet ./...
           # Run go fmt check (non-destructive)
           echo "Checking code formatting..."
           UNFORMATTED=$(gofmt -l . | grep -v "api/client" || true)

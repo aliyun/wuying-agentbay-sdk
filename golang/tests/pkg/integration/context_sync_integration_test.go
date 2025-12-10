@@ -538,7 +538,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to create 1GB file: %v", err)
 	} else {
-		t.Logf("Created 1GB file: %s", cmdResult)
+		t.Logf("Created 1GB file: %+v", cmdResult)
 	}
 
 	// 6. Sync to trigger file upload using explicit Sync() call
@@ -642,7 +642,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to check file info: %v", err)
 	} else {
-		t.Logf("File info: %s", fileInfo)
+		t.Logf("File info: %+v", fileInfo)
 	}
 
 	// Verify file exists and has expected size (approximately 1GB)
@@ -651,7 +651,7 @@ func TestContextSyncFilePersistence(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to check if file exists: %v", err)
 	} else {
-		t.Logf("File existence check: %s", existsResult)
+		t.Logf("File existence check: %+v", existsResult)
 		require.Contains(t, existsResult.Output, "File exists", "1GB file should exist in second session")
 	}
 
@@ -919,7 +919,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to create 1GB file: %v", err)
 	} else {
-		t.Logf("Created 1GB file: %s", cmdResult)
+		t.Logf("Created 1GB file: %+v", cmdResult)
 	}
 
 	// 5. Sync to trigger file upload
@@ -1034,7 +1034,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to check file info: %v", err)
 	} else {
-		t.Logf("File info: %s", fileInfo)
+		t.Logf("File info: %+v", fileInfo)
 	}
 
 	// Verify file exists and has expected size (approximately 1GB)
@@ -1043,7 +1043,7 @@ func TestContextSyncPersistenceWithRetry(t *testing.T) {
 	if err != nil {
 		t.Logf("Warning: Failed to check if file exists: %v", err)
 	} else {
-		t.Logf("File existence check: %s", existsResult)
+		t.Logf("File existence check: %+v", existsResult)
 		require.Contains(t, existsResult.Output, "File exists", "1GB file should exist in second session")
 	}
 
