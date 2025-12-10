@@ -58,6 +58,9 @@ const result = await agentBay.create({ imageId: "code_latest" });
 if (result.success) {
   const codeResult = await result.session.code.runCode('print("Hello")', "python");
   console.log(codeResult.result);
+  if (codeResult.results) {
+     // Access rich output like images or charts
+  }
   await result.session.delete();
 }
 ```

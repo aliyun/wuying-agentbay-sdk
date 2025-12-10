@@ -1274,12 +1274,20 @@ export class Session {
         }
 
         // For run_code tool, extract and log the actual code execution output
+        // And return raw data to let Code service handle parsing
         if (toolName === "run_code" && actualResult) {
           const dataStr =
             typeof actualResult === "string"
               ? actualResult
               : JSON.stringify(actualResult);
           logCodeExecutionOutput(requestId, dataStr);
+          
+          return {
+            success: true,
+            data: dataStr,
+            errorMessage: "",
+            requestId: "",
+          };
         }
 
         return {
@@ -1323,6 +1331,35 @@ export class Session {
         }
 
         const data = response.body.data as Record<string, any>;
+        const reqId = extractRequestId(response) || "";
+
+        // For run_code tool, return raw data to let Code service handle parsing
+        if (toolName === "run_code") {
+          let dataStr = "";
+          
+          // Check if data has content array (standard MCP tool response)
+          // The backend might wrap the actual result JSON inside content[0].text
+          if (data && Array.isArray(data.content) && data.content.length > 0 && data.content[0].text) {
+             dataStr = data.content[0].text;
+          } else {
+             // Fallback: use the whole data object/string
+             dataStr = typeof response.body.data === "string"
+              ? response.body.data
+              : JSON.stringify(response.body.data);
+          }
+
+          logCodeExecutionOutput(reqId, dataStr);
+
+          // If the backend marked it as an error, we should reflect that
+          const isError = data.isError === true;
+
+          return {
+            success: !isError,
+            data: dataStr,
+            errorMessage: isError ? dataStr : "",
+            requestId: reqId,
+          };
+        }
 
         // Check if there's an error in the response
         if (data.isError) {
@@ -1335,7 +1372,7 @@ export class Session {
             success: false,
             data: "",
             errorMessage,
-            requestId: extractRequestId(response) || "",
+            requestId: reqId,
           };
         }
 
@@ -1344,16 +1381,6 @@ export class Session {
         let textContent = "";
         if (content.length > 0 && content[0].text !== undefined) {
           textContent = content[0].text;
-        }
-
-        // For run_code tool, extract and log the actual code execution output
-        const reqId = extractRequestId(response) || "";
-        if (toolName === "run_code" && data) {
-          const dataStr =
-            typeof response.body.data === "string"
-              ? response.body.data
-              : JSON.stringify(response.body.data);
-          logCodeExecutionOutput(reqId, dataStr);
         }
 
         return {

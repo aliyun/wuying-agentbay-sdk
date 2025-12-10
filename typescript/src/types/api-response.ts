@@ -259,18 +259,58 @@ export interface CommandResult extends ApiResponse {
 }
 
 /**
+ * Interface for single result item in enhanced code execution
+ */
+export interface CodeExecutionResultItem {
+  text?: string;
+  html?: string;
+  markdown?: string;
+  png?: string;
+  jpeg?: string;
+  svg?: string;
+  latex?: string;
+  json?: any;
+  chart?: any;
+  isMainResult?: boolean;
+}
+
+/**
+ * Interface for code execution logs
+ */
+export interface CodeExecutionLogs {
+  stdout: string[];
+  stderr: string[];
+}
+
+/**
+ * Interface for code execution error details
+ */
+export interface CodeExecutionError {
+  name: string;
+  value: string;
+  traceback: string;
+}
+
+/**
  * Interface for code execution operation responses
- * Corresponds to Python's CodeExecutionResult type
+ * Corresponds to Python's EnhancedCodeExecutionResult type
  */
 export interface CodeExecutionResult extends ApiResponse {
   /** Request identifier for tracking API calls */
   requestId: string;
   /** Whether the code execution was successful */
   success: boolean;
-  /** The execution result */
+  /** The execution result (backward compatible text) */
   result: string;
   /** Optional error message if the operation failed */
   errorMessage?: string;
+  
+  /** Enhanced fields */
+  logs?: CodeExecutionLogs;
+  results?: CodeExecutionResultItem[];
+  error?: CodeExecutionError;
+  executionTime?: number;
+  executionCount?: number;
 }
 
 /**
