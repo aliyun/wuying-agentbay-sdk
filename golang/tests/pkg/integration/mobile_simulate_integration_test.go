@@ -16,8 +16,6 @@ const (
 	MobileInfoModelB = "moto g stylus 5G - 2024"
 )
 
-var mobileSimPersistenceContextID string
-
 func getInsecureClient(t *testing.T, apiKey string) *agentbay.AgentBay {
 	client, err := agentbay.NewAgentBay(apiKey)
 	if err != nil {
@@ -70,7 +68,6 @@ func TestMobileSimulateForModelAIntegration(t *testing.T) {
 		t.Fatal("Expected non-empty MobileSimulateContextID")
 	}
 	mobileSimContextID := uploadResult.MobileSimulateContextID
-	mobileSimPersistenceContextID = mobileSimContextID
 	t.Logf("Mobile dev info uploaded successfully: %s", mobileSimContextID)
 
 	params := agentbay.NewCreateSessionParams().
@@ -229,33 +226,50 @@ func TestMobileSimulatePersistenceIntegration(t *testing.T) {
 		t.Skip("AGENTBAY_API_KEY not set, skipping integration test")
 	}
 
-	if mobileSimPersistenceContextID == "" {
-		t.Skip("Skipping test: mobileSimPersistenceContextID not set (run Model A test first)")
-	}
-
 	client := getInsecureClient(t, apiKey)
 
-	t.Logf("Using a persistent mobild simulate context id: %s", mobileSimPersistenceContextID)
+	// In Session 1
+	t.Log("Upload mobile dev info file for model A...")
+	// Assuming the test is running from golang/tests/pkg/integration
+	mobileInfoFilePath := filepath.Join("..", "..", "..", "..", "resource", "mobile_info_model_a.json")
+	mobileInfoContent, err := os.ReadFile(mobileInfoFilePath)
+	if err != nil {
+		// Try alternative path if running from root
+		mobileInfoFilePath = filepath.Join("resource", "mobile_info_model_a.json")
+		mobileInfoContent, err = os.ReadFile(mobileInfoFilePath)
+		if err != nil {
+			t.Fatalf("Failed to read mobile info file: %v", err)
+		}
+	}
 
 	// Create mobile simulate service and set simulate params
 	t.Log("Creating mobile simulate service and set simulate params...")
-	simulateService, err := agentbay.NewMobileSimulateService(client)
+	simulateService1, err := agentbay.NewMobileSimulateService(client)
 	if err != nil {
 		t.Fatalf("Failed to create mobile simulate service: %v", err)
 	}
-	simulateService.SetSimulateEnable(true)
-	simulateService.SetSimulateMode(models.MobileSimulateModePropertiesOnly)
-	simulateService.SetSimulateContextID(mobileSimPersistenceContextID)
+	simulateService1.SetSimulateEnable(true)
+	simulateService1.SetSimulateMode(models.MobileSimulateModePropertiesOnly)
 
-	params := agentbay.NewCreateSessionParams().
+	uploadResult := simulateService1.UploadMobileInfo(string(mobileInfoContent), nil)
+	if !uploadResult.Success {
+		t.Fatalf("Failed to upload mobile dev info file: %s", uploadResult.ErrorMessage)
+	}
+	if uploadResult.MobileSimulateContextID == "" {
+		t.Fatal("Expected non-empty MobileSimulateContextID")
+	}
+	mobileSimContextID := uploadResult.MobileSimulateContextID
+	t.Logf("Mobile dev info uploaded successfully: %s", mobileSimContextID)
+
+	params1 := agentbay.NewCreateSessionParams().
 		WithImageId("mobile_latest").
 		WithExtraConfigs(&models.ExtraConfigs{
 			Mobile: &models.MobileExtraConfig{
-				SimulateConfig: simulateService.GetSimulateConfig(),
+				SimulateConfig: simulateService1.GetSimulateConfig(),
 			},
 		})
 
-	result, err := client.Create(params)
+	result, err := client.Create(params1)
 	if err != nil {
 		t.Fatalf("Failed to create session: %v", err)
 	}
@@ -265,23 +279,23 @@ func TestMobileSimulatePersistenceIntegration(t *testing.T) {
 	if result.Session == nil {
 		t.Fatal("Session is nil")
 	}
-	session := result.Session
-	t.Logf("Session created successfully: %s", session.GetSessionId())
+	session1 := result.Session
+	t.Logf("Session 1 created successfully: %s", session1.GetSessionId())
 
 	defer func() {
-		t.Log("Deleting session...")
-		deleteResult, err := client.Delete(session)
+		t.Log("Deleting session 1...")
+		deleteResult, err := client.Delete(session1)
 		if err != nil {
 			t.Errorf("Failed to delete session: %v", err)
 		}
 		if deleteResult != nil && deleteResult.Success {
-			t.Logf("Session deleted successfully (RequestID: %s)", deleteResult.RequestID)
+			t.Logf("Session 1 deleted successfully (RequestID: %s)", deleteResult.RequestID)
 		}
 	}()
 
 	time.Sleep(5 * time.Second)
-	t.Log("Getting device model after mobile simulate with user context...")
-	cmdResult, err := session.GetCommand().ExecuteCommand("getprop ro.product.model")
+	t.Log("Getting device model after mobile simulate for model A...")
+	cmdResult, err := session1.GetCommand().ExecuteCommand("getprop ro.product.model")
 	if err != nil {
 		t.Fatalf("Failed to execute command: %v", err)
 	}
@@ -289,9 +303,70 @@ func TestMobileSimulatePersistenceIntegration(t *testing.T) {
 		t.Fatal("Command result is nil")
 	}
 
-	productModel := strings.TrimSpace(cmdResult.Output)
-	t.Logf("Persistence simulated mobile product model: %s", productModel)
-	if productModel != MobileInfoModelA {
-		t.Errorf("Expected device model %s, got %s", MobileInfoModelA, productModel)
+	modelAProductModel := strings.TrimSpace(cmdResult.Output)
+	t.Logf("Simulated model A mobile product model: %s", modelAProductModel)
+	if modelAProductModel != MobileInfoModelA {
+		t.Errorf("Expected device model %s, got %s", MobileInfoModelA, modelAProductModel)
+	}
+
+	// In Session 2
+	t.Logf("Using a persistent mobild simulate context id: %s", mobileSimContextID)
+
+	// Create mobile simulate service and set simulate params
+	t.Log("Creating mobile simulate service and set simulate params...")
+	simulateService2, err := agentbay.NewMobileSimulateService(client)
+	if err != nil {
+		t.Fatalf("Failed to create mobile simulate service: %v", err)
+	}
+	simulateService2.SetSimulateEnable(true)
+	simulateService2.SetSimulateMode(models.MobileSimulateModePropertiesOnly)
+	simulateService2.SetSimulateContextID(mobileSimContextID)
+
+	params2 := agentbay.NewCreateSessionParams().
+		WithImageId("mobile_latest").
+		WithExtraConfigs(&models.ExtraConfigs{
+			Mobile: &models.MobileExtraConfig{
+				SimulateConfig: simulateService2.GetSimulateConfig(),
+			},
+		})
+
+	result2, err := client.Create(params2)
+	if err != nil {
+		t.Fatalf("Failed to create session: %v", err)
+	}
+	if !result2.Success {
+		t.Fatal("Create session returned Success=false")
+	}
+	if result2.Session == nil {
+		t.Fatal("Session is nil")
+	}
+	session2 := result2.Session
+	t.Logf("Session 2 created successfully: %s", session2.GetSessionId())
+
+	defer func() {
+		t.Log("Deleting session 2...")
+		deleteResult, err := client.Delete(session2)
+		if err != nil {
+			t.Errorf("Failed to delete session: %v", err)
+		}
+		if deleteResult != nil && deleteResult.Success {
+			t.Logf("Session 2 deleted successfully (RequestID: %s)", deleteResult.RequestID)
+		}
+	}()
+
+	time.Sleep(5 * time.Second)
+	t.Log("Getting device model after mobile simulate with user context...")
+	cmdResult2, err := session2.GetCommand().ExecuteCommand("getprop ro.product.model")
+	if err != nil {
+		t.Fatalf("Failed to execute command: %v", err)
+	}
+	if cmdResult2 == nil {
+		t.Fatal("Command result is nil")
+	}
+
+	productModel2 := strings.TrimSpace(cmdResult2.Output)
+	t.Logf("Persistence simulated mobile product model: %s", productModel2)
+	if productModel2 != MobileInfoModelA {
+		t.Errorf("Expected device model %s, got %s", MobileInfoModelA, productModel2)
 	}
 }
