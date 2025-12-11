@@ -83,7 +83,7 @@ browser initialization options.
 - [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
-- [Session API Reference](./session.md)
+- [Session API Reference](../sync/session.md)
 
 ---
 

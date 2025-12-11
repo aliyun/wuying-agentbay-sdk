@@ -483,8 +483,31 @@ def calculate_resource_path(resource: dict[str, Any], module_config: dict[str, A
     return relative_path
 
 
-def get_see_also_section(module_name: str, metadata: dict[str, Any], is_async: bool = False) -> str:
-    """Generate See Also section with links to guides and related APIs."""
+SYNC_ASYNC_MODULES = {
+    'session',
+    'command',
+    'filesystem',
+    'context',
+    'context-manager',
+    'browser',
+    'extension',
+    'oss',
+    'agent',
+    'code',
+    'computer',
+    'mobile',
+}
+
+
+def get_see_also_section(module_name: str, metadata: dict[str, Any], doc_group: str = "sync") -> str:
+    """
+    Generate See Also section with links to guides and related APIs.
+
+    Args:
+        module_name: The current module being documented.
+        metadata: Documentation metadata containing related resources.
+        doc_group: Which doc set is being generated: "sync", "async", or "common".
+    """
     # Flat structure: api/sync/{file}.md or api/async/{file}.md
     # Go up 4 levels to reach project root: sync/async -> api -> docs -> python -> root
     depth = 4
@@ -502,19 +525,18 @@ def get_see_also_section(module_name: str, metadata: dict[str, Any], is_async: b
         lines.append("")
         lines.append("**Related APIs:**")
         for resource in resources:
-            # Map simple module names to actual file names with prefixes
             resource_module = resource.get("module", "")
-            
+
             # First check if a custom path is specified
             if "path" in resource:
                 resource_path = resource["path"]
-            # Then determine correct file name based on whether this is async docs or not
-            elif resource_module in ['session', 'command', 'filesystem', 'context', 'context-manager', 'browser', 'extension', 'oss', 'agent', 'code', 'computer', 'mobile']:
-                # These modules have both sync and async versions
-                if is_async:
-                    resource_path = f"./async-{resource_module}.md"
-                else:
-                    resource_path = f"./{resource_module}.md"
+            elif doc_group == "async" and resource_module in SYNC_ASYNC_MODULES:
+                resource_path = f"./async-{resource_module}.md"
+            elif doc_group == "common" and resource_module in SYNC_ASYNC_MODULES:
+                # Common docs should link to the canonical sync docs for core APIs
+                resource_path = f"../sync/{resource_module}.md"
+            elif resource_module in SYNC_ASYNC_MODULES:
+                resource_path = f"./{resource_module}.md"
             else:
                 # For other modules, use default path
                 resource_path = f"./{resource_module}.md"
@@ -1029,7 +1051,14 @@ def fix_async_references_in_sync_docs(content: str) -> str:
     return '\n'.join(fixed_lines)
 
 
-def format_markdown(raw_content: str, title: str, module_name: str, metadata: dict[str, Any], is_async: bool = False) -> str:
+def format_markdown(
+    raw_content: str,
+    title: str,
+    module_name: str,
+    metadata: dict[str, Any],
+    is_async: bool = False,
+    doc_group: str = "sync",
+) -> str:
     """Enhanced markdown formatting with metadata injection."""
     content = raw_content.lstrip()
 
@@ -1123,7 +1152,7 @@ def format_markdown(raw_content: str, title: str, module_name: str, metadata: di
         content = content.rstrip() + "\n\n" + best_practices_section
 
     # Add see also section (replaces related resources)
-    see_also_section = get_see_also_section(module_name, metadata, is_async)
+    see_also_section = get_see_also_section(module_name, metadata, doc_group)
     if see_also_section:
         content = content.rstrip() + "\n\n" + see_also_section
 
@@ -1220,7 +1249,7 @@ def main() -> None:
         exclude_methods = module_config.get('exclude_methods', [])
 
         markdown = render_markdown(mapping.modules, exclude_methods, global_rules)
-        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=False)
+        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=False, doc_group="sync")
         output_path = DOCS_ROOT / mapping.target
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(formatted, encoding="utf-8")
@@ -1234,7 +1263,7 @@ def main() -> None:
         exclude_methods = module_config.get('exclude_methods', [])
 
         markdown = render_markdown(mapping.modules, exclude_methods, global_rules)
-        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=True)
+        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=True, doc_group="async")
         output_path = DOCS_ROOT / mapping.target
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(formatted, encoding="utf-8")
@@ -1248,8 +1277,8 @@ def main() -> None:
         exclude_methods = module_config.get('exclude_methods', [])
 
         markdown = render_markdown(mapping.modules, exclude_methods, global_rules)
-        # Common docs don't need sync/async notes (is_async=None will skip both notes)
-        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=False)
+        # Common docs don't need sync/async notes (is_async=False will skip async section)
+        formatted = format_markdown(markdown, mapping.title, module_name, metadata, is_async=False, doc_group="common")
         output_path = DOCS_ROOT / mapping.target
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(formatted, encoding="utf-8")
