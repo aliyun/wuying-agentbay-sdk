@@ -2,17 +2,17 @@
 
 Agent modules are specialized AI task execution units running in AgentBay windows environment to execute tasks described in natural language.
 
-> **💡 Async API Support**: This guide uses synchronous API. For async patterns, see:
+> **💡 Async API Support**: This guide uses synchronous API. For async patterns, see [Async Agent API](../../../../python/docs/api/async/async-agent.md).
 
 ## 🤖 Agent Module Overview
 
 Agent modules are specialized AI task execution units
-runnning in Agentbay windows/linux environment to execute tasks decribed in natural language. 
+running in AgentBay windows/linux environment to execute tasks described in natural language. 
 The task to be executed can be as simple as "Create a word document, input some words and save the document.", in which only one application is involved, or as complex as "Find out the current weather in New York City by Google/Baidu, and write the weather report to a word document, send the word document to a specific email address", in which multiple applications are involved.
 
 Currently, there are two types of agents: ComputerUseAgent and BrowserUseAgent.
 
-The ComputerUseAgent module is designed for tasks that involve multiple applications, while the BrowserUseAgent module is designed for tasks that involve specially web browsers.
+The ComputerUseAgent module is designed for tasks that involve multiple applications, while the BrowserUseAgent module is designed for tasks that involve specifically web browsers.
 
 The agents are capable of understanding user instructions, planning task execution steps, operating various applications, and managing files and folders on the computer.
 
@@ -55,12 +55,12 @@ else:
 
 ## Agent Capabilities
 - Office Automation: Word/Excel/PowerPoint automation
-- File Operations:Create/Delete/Move/Copy files and folders
-- Infomation Processing: 
+- File Operations: Create/Delete/Move/Copy files and folders
+- Information Processing: 
     - Gather information from webpages
     - Extract information from a web page
     - Fill forms in a web page
-- Text Edition: Using notepad to edit(Read/Write/Edit) text file
+- Text Editing: Using notepad to edit (Read/Write/Edit) text file
 
 ### Task Execution
 #### ComputerUseAgent
@@ -104,5 +104,5 @@ If you encounter issues with Agent modules:
 1. Check the [Documentation](../../README.md) for detailed information
 2. Search [GitHub Issues](https://github.com/aliyun/wuying-agentbay-sdk/issues) for similar problems
 3. Contact support with detailed error information and reproduction steps
-4. Please refer to the [Agent Task Excution Example](../../../../python/docs/examples/_async/common-features/advanced/agent_module/main.py) to see how to use the Agent.
+4. Please refer to the [Agent Task Execution Example](../../../../python/docs/examples/_async/common-features/advanced/agent_module/main.py) to see how to use the Agent.
 5. Please refer to the [Agent API Definition](../../../../python/docs/api/async/async-agent.md) for more details.
