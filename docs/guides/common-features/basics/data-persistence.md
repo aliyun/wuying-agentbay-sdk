@@ -649,38 +649,34 @@ agent_bay.delete(session, sync_context=True)
 - The SDK waits for OSS upload confirmation before returning
 - This ensures the next session will definitely see all persisted data
 
-**⚠️ Auto-upload Timeout Limitation:**
+**⚠️ Auto-upload Completeness:**
 
-Even with auto-upload enabled in the sync policy, the backend enforces a **1-minute timeout** for automatic uploads when a session ends. This can cause issues with:
-
-- **Large file counts**: Many files may not finish uploading within 60 seconds
-- **Large file sizes**: Big files may not complete upload before timeout
-- **Network latency**: Slow connections may trigger timeout
+Automatic upload runs when the session ends, but it happens asynchronously on the service side. If you delete a session and immediately start another one, the new session might not see the latest changes until the upload finishes.
 
 **Best Practice to Prevent Data Loss:**
 
 ```python
 # Option 1: Manual sync before session ends (recommended for large datasets)
 session.file_system.write_file("/tmp/data/large_file.bin", large_content)
-sync_result = session.context.sync()  # Explicit sync with no timeout limit
+sync_result = session.context.sync()  # Explicit sync; waits for completion
 if sync_result.success:
     print("✅ Data fully synced")
 agent_bay.delete(session)  # Safe to delete now
 
 # Option 2: Use sync_context=True on delete (recommended for standard workflows)
 session.file_system.write_file("/tmp/data/config.json", config_data)
-agent_bay.delete(session, sync_context=True)  # Ensures complete sync before deletion
+agent_bay.delete(session, sync_context=True)  # Triggers sync and polls until done
 ```
 
 **Key Differences:**
 
-| Method | Timeout Limit | Best For | Notes |
-|--------|---------------|----------|-------|
-| Auto-upload only | 1 minute | Small files, quick operations | May fail silently for large datasets |
-| `session.context.sync()` | None | Large files, many files | Full control, no timeout constraint |
-| `delete(sync_context=True)` | None | Standard workflows | Convenient, guaranteed completion |
+| Method | Waits for completion | Best For | Notes |
+|--------|----------------------|----------|-------|
+| Auto-upload only | No | Quick operations | Next session may briefly miss latest changes |
+| `session.context.sync()` | Yes | Large files, many files | Polls for completion (default 150 × 1.5s; adjustable via args) |
+| `delete(sync_context=True)` | Yes | Standard workflows | SDK triggers `sync()` then deletes after sync completes |
 
-**Recommendation:** Always use either manual `sync()` or `delete(sync_context=True)` to ensure data persistence, especially when working with large files or multiple files.
+**Recommendation:** Use manual `sync()` or `delete(sync_context=True)` when you need immediate consistency, especially with large or numerous files.
 
 <a id="data-synchronization-strategies"></a>
 
@@ -705,9 +701,9 @@ context_sync = ContextSync.new(context.id, "/tmp/data", default_policy)
 ```
 
 **Default policy characteristics:**
-- **Auto-download**: Context data is automatically downloaded when session starts
-- **Auto-upload**: Local changes are automatically uploaded when session ends
-- **Service-controlled intervals**: The sync timing is managed by the AgentBay service
+- **Auto-download**: Context data is automatically downloaded when the session starts
+- **Auto-upload**: Local changes are automatically uploaded when the session ends
+- **No periodic sync**: During the session, there is no timed background sync; call `session.context.sync()` if you need mid-session consistency
 
 #### When to Use Custom Sync Policies
 
@@ -719,7 +715,7 @@ You should consider custom sync policies in these scenarios:
 4. **Large file synchronization**: When you need to sync large quantities of files, compression mode can significantly reduce sync time and storage costs (use Archive upload mode)
 
 
-**Note:** Selective file synchronization based on patterns is currently not supported. Use the default policy to sync all files, or organize files into separate contexts.
+**Note:** Directory-level whitelisting is supported via `BWList`/`WhiteList` (exact paths only, no wildcards). Use it to limit which subdirectories under the mount point are synced.
 
 #### Available Sync Policy Options
 

@@ -2,7 +2,7 @@
 
 This guide explains how to configure the AgentBay SDK for different environments and requirements.
 
-> **💡 Async API Support**: Configuration works identically for both sync and async APIs. For async patterns, see:
+> **💡 Async API Support**: Configuration works identically for both sync and async APIs. For async patterns, see [Async AgentBay API](../../../../python/docs/api/async/async-agentbay.md).
 
 > **Important:** The `endpoint` configuration specifies the **API Gateway location** used for SDK-backend communication. This determines which regional gateway your SDK connects to. You can use the `region_id` configuration to specify where your cloud sessions will be created.
 
