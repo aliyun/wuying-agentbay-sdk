@@ -14,6 +14,10 @@ The session management system provides:
 4. **Session Recovery**: Restore session objects using session IDs for continued operations
 5. **Session Deletion**: Clean up sessions to free cloud resources
 
+## Asynchronous API
+
+All session capabilities are available through the asynchronous client `AsyncAgentBay`. Use it for web applications or high-concurrency workloads. For migration guidance and performance tips, see the async programming guide and the async examples in this document.
+
 ## Getting Started
 
 ### Prerequisites
