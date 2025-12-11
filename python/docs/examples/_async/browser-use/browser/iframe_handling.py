@@ -132,8 +132,8 @@ async def main():
 
         # Test nested iframes
         print("\n10. Testing nested iframes...")
-        await session.browser.agent.act(
-            "Execute JavaScript to add a nested iframe: "
+        await session.browser.agent.act(ActOptions(
+            action="Execute JavaScript to add a nested iframe: "
             "var iframes = document.getElementsByTagName('iframe'); "
             "if (iframes.length > 0) { "
             "  var nestedIframe = document.createElement('iframe'); "
@@ -142,7 +142,7 @@ async def main():
             "  nestedIframe.style.height = '200px'; "
             "  document.body.appendChild(nestedIframe); "
             "}"
-        )
+        ))
         print("Nested iframe added")
 
         # Count total iframes

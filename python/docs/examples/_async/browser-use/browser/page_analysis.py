@@ -56,7 +56,7 @@ async def main():
 
         # Extract page title
         print("\n2. Extracting page title...")
-        success, title_result = await session.browser.agent.extract(ExtractOptions(instruction="What is the page title?", schema=TextContent))
+        success, title_result = await session.browser.agent.extract(ExtractOptions(instruction="What is the page title?", schema=TextContent,timeout=600))
         if success:
             print(f"Page title: {title_result.content}")
         else:
@@ -64,7 +64,7 @@ async def main():
 
         # Extract page description
         print("\n3. Extracting page description...")
-        success, desc_result = await session.browser.agent.extract(ExtractOptions(instruction="What is the main content or description on this page?", schema=TextContent))
+        success, desc_result = await session.browser.agent.extract(ExtractOptions(instruction="What is the main content or description on this page?", schema=TextContent,timeout=600))
         if success:
             print(f"Page description: {desc_result.content}")
         else:
@@ -78,7 +78,8 @@ async def main():
         print("\n5. Extracting top 5 story titles...")
         success, stories_result = await session.browser.agent.extract(ExtractOptions(
             instruction="List the titles of the top 5 stories on the page",
-            schema=TextContent
+            schema=TextContent,
+            timeout=600
         ))
         if success:
             print(f"Top stories:\n{stories_result.content}")
@@ -89,7 +90,8 @@ async def main():
         print("\n6. Analyzing page structure...")
         success, structure_result = await session.browser.agent.extract(ExtractOptions(
             instruction="Describe the main sections and layout of this page",
-            schema=TextContent
+            schema=TextContent,
+            timeout=600
         ))
         if success:
             print(f"Page structure:\n{structure_result.content}")
@@ -100,7 +102,8 @@ async def main():
         print("\n7. Finding navigation elements...")
         success, nav_result = await session.browser.agent.extract(ExtractOptions(
             instruction="What navigation options are available on this page?",
-            schema=TextContent
+            schema=TextContent,
+            timeout=600
         ))
         if success:
             print(f"Navigation elements:\n{nav_result.content}")
@@ -111,7 +114,8 @@ async def main():
         print("\n8. Extracting page metadata...")
         success, meta_result = await session.browser.agent.extract(ExtractOptions(
             instruction="What is the page URL and any visible metadata?",
-            schema=TextContent
+            schema=TextContent,
+            timeout=600
         ))
         if success:
             print(f"Metadata:\n{meta_result.content}")

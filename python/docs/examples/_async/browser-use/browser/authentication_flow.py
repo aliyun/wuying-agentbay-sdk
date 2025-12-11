@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 
 from agentbay import AsyncAgentBay, CreateSessionParams
 from agentbay import BrowserOption
-from agentbay import AsyncActOptions as ActOptions, AsyncExtractOptions as ExtractOptions
+from agentbay import ActOptions, ExtractOptions
 from pydantic import BaseModel, Field
 
 

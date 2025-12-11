@@ -5,7 +5,7 @@
  * an ADB (Android Debug Bridge) connection URL for a mobile session.
  */
 
-import { AgentBay } from '@aliyun/wuying-agentbay-sdk';
+import { AgentBay } from 'wuying-agentbay-sdk';
 
 async function main() {
   // Get API key from environment variable
