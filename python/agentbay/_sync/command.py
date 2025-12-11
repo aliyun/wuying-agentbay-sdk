@@ -22,7 +22,7 @@ class Command(BaseService):
     def execute_command(
         self,
         command: str,
-        timeout_ms: int = 60000,
+        timeout_ms: int = 50000,
         cwd: Optional[str] = None,
         envs: Optional[Dict[str, str]] = None,
     ) -> CommandResult:
@@ -35,7 +35,7 @@ class Command(BaseService):
 
         Args:
             command: The shell command to execute
-            timeout_ms: Timeout in milliseconds (default: 60000ms/60s). Maximum allowed
+            timeout_ms: Timeout in milliseconds (default: 50000ms/50s). Maximum allowed
                 timeout is 50000ms (50s). If a larger value is provided, it will be
                 automatically limited to 50000ms
             cwd: The working directory for command execution. If not specified,

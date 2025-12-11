@@ -55,7 +55,7 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.session.call_mcp_tool.assert_called_once()
         args = self.session.call_mcp_tool.call_args[0][1]
         self.assertEqual(args["command"], "ls -la")
-        self.assertEqual(args["timeout_ms"], 50000)  # Default timeout (60000ms) is limited to 50000ms
+        self.assertEqual(args["timeout_ms"], 50000)  # Default timeout is 50000ms
 
     @pytest.mark.asyncio
 
