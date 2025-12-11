@@ -97,12 +97,14 @@ result
 
 ### Working with Result Types
 
+Use `CodeExecutionResult` (the code-execution model) instead of the agent module's `ExecutionResult` to avoid type confusion.
+
 ```python
 from agentbay import (
     AgentBay, 
     CreateSessionParams,
     EnhancedCodeExecutionResult,
-    ExecutionResult,
+    CodeExecutionResult,
     ExecutionLogs,
     ExecutionError
 )
@@ -118,7 +120,7 @@ if isinstance(result, EnhancedCodeExecutionResult):
     
     # Process multiple results
     for exec_result in result.results:
-        if isinstance(exec_result, ExecutionResult):
+        if isinstance(exec_result, CodeExecutionResult):
             if exec_result.text:
                 print(f"Text output: {exec_result.text}")
             if exec_result.html:
@@ -617,7 +619,7 @@ def greet(name):
 Always use the enhanced result types for better type safety and functionality:
 
 ```python
-from agentbay import EnhancedCodeExecutionResult, ExecutionResult
+from agentbay import EnhancedCodeExecutionResult, CodeExecutionResult
 
 result = session.code.run_code(code, "python")
 
@@ -628,7 +630,7 @@ if isinstance(result, EnhancedCodeExecutionResult):
     
     # Check all available output formats
     for res in result.results:
-        if isinstance(res, ExecutionResult):
+        if isinstance(res, CodeExecutionResult):
             formats = res.formats()
             print(f"Available formats: {formats}")
 ```
