@@ -88,6 +88,7 @@ async def browser_replay_session():
 
     print("Cleaning up: Deleting the session...")
     try:
+        await asyncio.sleep(30)
         await session.delete()
         print("Session deleted successfully")
     except Exception as e:

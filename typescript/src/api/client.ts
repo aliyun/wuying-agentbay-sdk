@@ -133,7 +133,7 @@ export class Client extends OpenApi {
 
   /**
    * Delete Persistent Context
-   * 
+   *
    * @param request - ClearContextRequest
    * @param runtime - runtime options for this request RuntimeOptions
    * @returns ClearContextResponse
@@ -168,7 +168,7 @@ export class Client extends OpenApi {
 
   /**
    * Delete Persistent Context
-   * 
+   *
    * @param request - ClearContextRequest
    * @returns ClearContextResponse
    */
@@ -836,6 +836,14 @@ export class Client extends OpenApi {
       body["NextToken"] = request.nextToken;
     }
 
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    if (!$dara.isNull(request.type)) {
+      body["ContextType"] = request.type;
+    }
+
     const req = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),
     });
@@ -1291,7 +1299,7 @@ export class Client extends OpenApi {
     request: $_model.InitBrowserRequest
   ): $_model.InitBrowserResponse {
     const runtime = new $dara.RuntimeOptions({});
-    
+
     request.validate();
     const body: { [key: string]: any } = {};
     if (!$dara.isNull(request.authorization)) {

@@ -21,12 +21,6 @@ type Session struct {
 	// Resource URL for accessing the session
 	ResourceUrl	string
 
-	// File transfer context ID for file operations
-	FileTransferContextID	string
-
-	// Browser recording context ID
-	RecordContextID	string
-
 	// Browser replay enabled flag
 	EnableBrowserReplay	bool
 

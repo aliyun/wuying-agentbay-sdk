@@ -81,6 +81,10 @@ export interface ContextListParams {
    * Token for the next page of results.
    */
   nextToken?: string;
+  /**
+   * Optional session id to filter contexts by session
+   */
+  sessionId?: string;
 }
 
 /**
@@ -124,7 +128,13 @@ export class ContextService {
         authorization: `Bearer ${this.agentBay.getAPIKey()}`,
         maxResults: maxResults,
         nextToken: params?.nextToken,
+        sessionId: params?.sessionId,
       });
+
+      // Pass through optional sessionId if provided
+      if (params?.sessionId) {
+        request.sessionId = params.sessionId;
+      }
 
       // Log API request
       logAPICall("ListContexts");

@@ -90,6 +90,7 @@ def browser_replay_session():
 
     print("Cleaning up: Deleting the session...")
     try:
+        time.sleep(30)
         session.delete()
         print("Session deleted successfully")
     except Exception as e:

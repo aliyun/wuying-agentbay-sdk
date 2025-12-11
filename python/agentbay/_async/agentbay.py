@@ -43,43 +43,6 @@ from .session_params import CreateSessionParams
 _logger = get_logger("agentbay")
 
 
-def _generate_random_context_name(
-    length: int = 8, include_timestamp: bool = True
-) -> str:
-    """
-    Generate a random context name string using alphanumeric characters with optional timestamp.
-
-    This is an internal helper function used by the SDK to generate unique context names.
-
-    Args:
-        length (int): Length of the random part. Defaults to 8.
-        include_timestamp (bool): Whether to include timestamp prefix. Defaults to True.
-
-    Returns:
-        str: Random alphanumeric string with optional timestamp prefix in format:
-            - With timestamp: "YYYYMMDDHHMMSS_<random>" (e.g., "20250112143025_kG8hN2pQ")
-            - Without timestamp: "<random>" (e.g., "kG8hN2pQ")
-
-    Note:
-        - This is a private function for internal SDK use only
-        - Characters are randomly selected from a-zA-Z0-9
-        - Timestamp format is YYYYMMDDHHMMSS (local time)
-        - Useful for creating unique context names that can be sorted chronologically
-    """
-    import time
-
-    random_part = "".join(
-        random.choices(string.ascii_letters + string.digits, k=length)
-    )
-
-    if include_timestamp:
-        # Format: YYYYMMDDHHMMSS
-        timestamp = time.strftime("%Y%m%d%H%M%S", time.localtime())
-        return f"{timestamp}_{random_part}"
-    else:
-        return random_part
-
-
 class Config:
     def __init__(self, endpoint: str, timeout_ms: int):
         self.endpoint = endpoint

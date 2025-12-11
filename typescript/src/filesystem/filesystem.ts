@@ -196,7 +196,7 @@ function parseDirectoryListing(text: string): DirectoryEntry[] {
  */
 export class FileSystem {
   private session: Session;
-  
+
   private _fileTransfer: FileTransfer | null = null;
 
   /**
@@ -210,7 +210,7 @@ export class FileSystem {
 
   /**
    * Ensure FileTransfer is initialized with the current session.
-   * 
+   *
    * @returns The FileTransfer instance
    */
   private _ensureFileTransfer(): FileTransfer {
@@ -220,10 +220,10 @@ export class FileSystem {
       if (agentBay === undefined) {
         throw new Error("FileTransfer requires an AgentBay instance");
       }
-      
+
       this._fileTransfer = new FileTransfer(agentBay, this.session);
     }
-    
+
     return this._fileTransfer;
   }
 
@@ -1148,7 +1148,7 @@ export class FileSystem {
    */
   private parseFileChangeData(rawData: string): FileChangeEvent[] {
     const events: FileChangeEvent[] = [];
-    
+
     try {
       const changeData = JSON.parse(rawData);
       if (Array.isArray(changeData)) {
@@ -1162,7 +1162,7 @@ export class FileSystem {
     } catch (error) {
       console.warn(`Failed to parse JSON data: ${error}`);
     }
-    
+
     return events;
   }
 
@@ -1290,13 +1290,13 @@ export class FileSystem {
     try {
       // Ensure FileTransfer is initialized
       const fileTransfer = this._ensureFileTransfer();
-      
+
       // Perform upload
       const result = await fileTransfer.upload(localPath, remotePath, options);
-      
+
       // If upload was successful, delete the file from OSS
-      if (result.success && (this.session as any).fileTransferContextId) {
-        const contextId = (this.session as any).fileTransferContextId;
+      if (result.success) {
+        const contextId = (fileTransfer as any).contextId;
         if (contextId) {
           try {
             // Delete the uploaded file from OSS
@@ -1309,7 +1309,7 @@ export class FileSystem {
           }
         }
       }
-      
+
       return result;
     } catch (error) {
       return {
@@ -1356,13 +1356,13 @@ export class FileSystem {
     try {
       // Ensure FileTransfer is initialized
       const fileTransfer = this._ensureFileTransfer();
-      
+
       // Perform download
       const result = await fileTransfer.download(remotePath, localPath, options);
-      
+
       // If download was successful, delete the file from OSS
-      if (result.success && (this.session as any).fileTransferContextId) {
-        const contextId = (this.session as any).fileTransferContextId;
+      if (result.success) {
+        const contextId = (fileTransfer as any).contextId;
         if (contextId) {
           try {
             // Delete the downloaded file from OSS
@@ -1375,7 +1375,7 @@ export class FileSystem {
           }
         }
       }
-      
+
       return result;
     } catch (error) {
       return {

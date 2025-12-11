@@ -1123,6 +1123,14 @@ func (client *Client) ListContextsWithOptions(request *ListContextsRequest, runt
 		body["NextToken"] = request.NextToken
 	}
 
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	if !dara.IsNil(request.Type) {
+		body["ContextType"] = request.Type
+	}
+
 	req := &openapiutil.OpenApiRequest{
 		Body: openapiutil.ParseToMap(body),
 	}

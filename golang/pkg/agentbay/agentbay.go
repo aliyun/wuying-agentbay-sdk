@@ -269,23 +269,6 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		}
 	}
 
-	// Add browser recording persistence if enabled
-	var recordContextID string
-	if params.EnableBrowserReplay {
-		// Generate random context name for browser recording
-		recordContextName := fmt.Sprintf("browser-record-%d", time.Now().UnixNano())
-		recordResult, err := a.Context.Get(recordContextName, true)
-		if err == nil && recordResult.Success {
-			recordContextID = recordResult.ContextID
-			// Create browser recording persistence configuration
-			recordPersistence := &mcp.CreateMcpSessionRequestPersistenceDataList{
-				ContextId: tea.String(recordContextID),
-				Path:      tea.String(BrowserRecordPath),
-			}
-			persistenceDataList = append(persistenceDataList, recordPersistence)
-		}
-	}
-
 	if len(persistenceDataList) > 0 {
 		createSessionRequest.PersistenceDataList = persistenceDataList
 		needsContextSync = true
@@ -381,9 +364,8 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		session.ResourceUrl = *response.Body.Data.ResourceUrl
 	}
 
-	// Set browser recording state and context ID
+	// Set browser recording state
 	session.EnableBrowserReplay = params.EnableBrowserReplay
-	session.RecordContextID = recordContextID
 
 	// Log successful session creation
 	keyFields := map[string]interface{}{
@@ -393,11 +375,6 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	}
 	responseJSON, _ := json.MarshalIndent(response.Body, "", "  ")
 	logAPIResponseWithDetails("CreateMcpSession", requestID, true, keyFields, string(responseJSON))
-
-	// Update browser replay context if enabled
-	if params.EnableBrowserReplay && recordContextID != "" {
-		a.updateBrowserReplayContext(response.Body.Data, recordContextID)
-	}
 
 	// Apply mobile configuration if provided
 	if params.ExtraConfigs != nil && params.ExtraConfigs.Mobile != nil {
@@ -1041,57 +1018,6 @@ func (a *AgentBay) Get(sessionID string) (*SessionResult, error) {
 		session.ResourceUrl = getResult.Data.ResourceUrl
 	}
 
-	// Extract file transfer context ID from contexts list
-	if getResult.Data != nil && len(getResult.Data.Contexts) > 0 {
-		contexts := getResult.Data.Contexts
-		// Filter contexts with 'file-transfer-context-' prefix
-		fileTransferContexts := []ContextInfo{}
-		for _, ctx := range contexts {
-			if strings.HasPrefix(ctx.Name, "file-transfer-context-") {
-				fileTransferContexts = append(fileTransferContexts, ctx)
-			}
-		}
-
-		if len(fileTransferContexts) == 0 {
-			// No file transfer context found
-			availableContexts := []string{}
-			for _, ctx := range contexts {
-				if ctx.Name != "" {
-					availableContexts = append(availableContexts, ctx.Name)
-				}
-			}
-			fmt.Printf("⚠️  No file-transfer-context- found in contexts list for session %s. Available contexts: %v\n",
-				sessionID, availableContexts)
-			session.FileTransferContextID = ""
-		} else if len(fileTransferContexts) == 1 {
-			// Exactly one file transfer context found
-			contextID := fileTransferContexts[0].ID
-			if contextID != "" {
-				session.FileTransferContextID = contextID
-				fmt.Printf("📁 Found file transfer context for recovered session: %s\n", contextID)
-			} else {
-				fmt.Printf("⚠️  File transfer context found but missing 'id' field: %+v\n", fileTransferContexts[0])
-				session.FileTransferContextID = ""
-			}
-		} else {
-			// Multiple file transfer contexts found
-			contextNames := []string{}
-			for _, ctx := range fileTransferContexts {
-				if ctx.Name != "" {
-					contextNames = append(contextNames, ctx.Name)
-				}
-			}
-			fmt.Printf("⚠️  Multiple file-transfer-context- found in contexts list for session %s. Found %d contexts: %v. Not setting FileTransferContextID.\n",
-				sessionID, len(fileTransferContexts), contextNames)
-			session.FileTransferContextID = ""
-		}
-	} else {
-		// No contexts list in response
-		fmt.Printf("⚠️  No contexts list found in GetSession response for session %s. FileTransferContextID will remain empty.\n",
-			sessionID)
-		session.FileTransferContextID = ""
-	}
-
 	// Log successful retrieval
 	keyFields := map[string]interface{}{
 		"session_id":   sessionID,
@@ -1200,44 +1126,6 @@ func (ab *AgentBay) Resume(session *Session, timeout int, pollInterval float64) 
 
 	// Call session's Resume method with provided parameters
 	return session.Resume(timeout, pollInterval)
-}
-
-// updateBrowserReplayContext updates browser replay context with AppInstanceId from response data.
-// This method updates the context name to include the AppInstanceId for better tracking.
-func (a *AgentBay) updateBrowserReplayContext(responseData *mcp.CreateMcpSessionResponseBodyData, recordContextID string) {
-	// Check if recordContextID is provided
-	if recordContextID == "" {
-		return
-	}
-
-	// Extract AppInstanceId from response data
-	if responseData == nil || responseData.AppInstanceId == nil || *responseData.AppInstanceId == "" {
-		fmt.Printf("⚠️  AppInstanceId not found in response data, skipping browser replay context update\n")
-		return
-	}
-
-	appInstanceID := *responseData.AppInstanceId
-
-	// Create context name with prefix
-	contextName := fmt.Sprintf("browserreplay-%s", appInstanceID)
-
-	// Create Context object for update
-	contextObj := &Context{
-		ID:   recordContextID,
-		Name: contextName,
-	}
-
-	// Call context.update interface
-	fmt.Printf("Updating browser replay context: %s -> %s\n", contextName, recordContextID)
-	updateResult, err := a.Context.Update(contextObj)
-
-	if err != nil {
-		fmt.Printf("❌ Error updating browser replay context: %v\n", err)
-		// Continue execution even if context update fails
-		return
-	}
-
-	_ = updateResult // Ignore result
 }
 
 // GetRegionID returns the region ID from config

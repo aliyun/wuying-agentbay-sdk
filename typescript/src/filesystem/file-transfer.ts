@@ -54,10 +54,10 @@ export interface DownloadResult {
 /**
  * FileTransfer provides pre-signed URL upload/download functionality between local and OSS,
  * with integration to Session Context synchronization.
- * 
+ *
  * Prerequisites and Constraints:
- * - Session must be associated with the corresponding context_id and path through 
- *   CreateSessionParams.contextSyncs, and remotePath should fall within that 
+ * - Session must be associated with the corresponding context_id and path through
+ *   CreateSessionParams.contextSyncs, and remotePath should fall within that
  *   synchronization path (or conform to backend path rules).
  * - Requires available AgentBay context service (agentBay.context) and session context.
  */
@@ -74,7 +74,7 @@ export class FileTransfer {
 
   /**
    * Initialize FileTransfer with AgentBay client and session.
-   * 
+   *
    * @param agentBay - AgentBay instance for context service access
    * @param session - Created session object for context operations
    * @param httpTimeout - HTTP request timeout in seconds (default: 60.0)
@@ -91,7 +91,63 @@ export class FileTransfer {
     this.session = session;
     this.httpTimeout = httpTimeout;
     this.followRedirects = followRedirects;
-    this.contextId = session.fileTransferContextId || "";
+    this.contextId = "";
+  }
+
+  /**
+   * Ensure the file transfer context id is set by calling ListContexts with SessionId and type=file_transfer.
+   * Returns true if contextId is available after the call.
+   */
+  private async ensureContextId(): Promise<boolean> {
+    if (this.contextId) {
+      return true;
+    }
+
+    try {
+      const sid = this.session.getSessionId();
+      if (!sid) return false;
+
+      const req = new (require("../api/models/model").ListContextsRequest)({
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+        sessionId: sid,
+        type: "file_transfer",
+        maxResults: 10,
+      });
+
+      const client = this.agentBay.getClient();
+      let response: any;
+      if (client && typeof (client as any).listContextsWithOptions === "function") {
+        // prefer async variant if exists
+        try {
+          response = await (client as any).listContextsWithOptions(
+            req,
+            new (require("@darabonba/typescript").RuntimeOptions)({})
+          );
+        } catch (e) {
+          // fall back
+          response = await (client as any).listContexts(req);
+        }
+      } else {
+        response = await (client as any).listContexts(req);
+      }
+
+      const body = response && response.body ? response.body : {};
+      const data = body.Data || body.data || [];
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (item && typeof item === "object") {
+            const context_id = item.Id || item.ContextId || item.id || item.contextId;
+            if (context_id) {
+              this.contextId = context_id;
+              return true;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // ignore errors and return false
+    }
+    return false;
   }
 
   /**
@@ -133,6 +189,11 @@ export class FileTransfer {
         };
       }
 
+      // Try to ensure context id is available (lazy-load)
+      if (!this.contextId) {
+        await this.ensureContextId();
+      }
+
       if (!this.contextId) {
         return {
           success: false,
@@ -167,7 +228,7 @@ export class FileTransfer {
           contentType,
           progressCb
         );
-        
+
         logInfo(`Upload completed with HTTP ${httpStatus}`);
         if (httpStatus && ![200, 201, 204].includes(httpStatus)) {
           return {
@@ -209,7 +270,7 @@ export class FileTransfer {
       }
 
       logInfo(`Sync request ID: ${reqIdSync}`);
-      
+
       // 4. Optionally wait for task completion
       if (wait) {
         const { success, error } = await this.waitForTask({
@@ -219,7 +280,7 @@ export class FileTransfer {
           timeout: waitTimeout,
           interval: pollInterval
         });
-        
+
         if (!success) {
           return {
             success: false,
@@ -258,7 +319,7 @@ export class FileTransfer {
    * 1) Trigger session.context.sync(mode="upload") to sync cloud disk data to OSS
    * 2) Get pre-signed download URL via context.getFileDownloadUrl
    * 3) Download the file and save to local localPath
-   * 4) If wait=true, wait for download task to reach completion after step 1 
+   * 4) If wait=true, wait for download task to reach completion after step 1
    *    (ensuring backend has prepared the download object)
    *
    * Returns DownloadResult containing sync and download request_ids, HTTP status, byte count, etc.
@@ -283,6 +344,11 @@ export class FileTransfer {
     } = options || {};
 
     try {
+      // Try to ensure context id is available (lazy-load)
+      if (!this.contextId) {
+        await this.ensureContextId();
+      }
+
       // Use default context if none provided
       if (!this.contextId) {
         return {
@@ -318,7 +384,7 @@ export class FileTransfer {
           timeout: waitTimeout,
           interval: pollInterval
         });
-        
+
         if (!success) {
           return {
             success: false,
@@ -435,7 +501,7 @@ export class FileTransfer {
 
     const syncFn = this.session.context.sync.bind(this.session.context);
     logDebug(`session.context.sync(mode=${mode}, path=${remotePath}, contextId=${contextId})`);
-    
+
     // Try calling with all parameters
     try {
       const result = await syncFn(contextId || undefined, remotePath || undefined, mode);
@@ -573,20 +639,20 @@ export class FileTransfer {
     progressCb?: (bytesReceived: number) => void
   ): Promise<number> {
     let bytesReceived = 0;
-    
+
     const response = await fetch(url);
     const status = response.status;
-    
+
     if (status !== 200) {
       throw new Error(`HTTP ${status}`);
     }
 
     const buffer = await response.buffer();
     bytesReceived = buffer.length;
-    
+
     // Save to file
     fs.writeFileSync(destPath, buffer);
-    
+
     if (progressCb) {
       progressCb(bytesReceived);
     }

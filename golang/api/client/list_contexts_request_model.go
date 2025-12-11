@@ -21,6 +21,8 @@ type ListContextsRequest struct {
 	Authorization *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
 	MaxResults    *int32  `json:"MaxResults,omitempty" xml:"MaxResults,omitempty"`
 	NextToken     *string `json:"NextToken,omitempty" xml:"NextToken,omitempty"`
+	SessionId     *string `json:"SessionId,omitempty" xml:"SessionId,omitempty"`
+	Type          *string `json:"ContextType,omitempty" xml:"ContextType,omitempty"`
 }
 
 func (s ListContextsRequest) String() string {
@@ -43,6 +45,14 @@ func (s *ListContextsRequest) GetNextToken() *string {
 	return s.NextToken
 }
 
+func (s *ListContextsRequest) GetSessionId() *string {
+	return s.SessionId
+}
+
+func (s *ListContextsRequest) GetType() *string {
+	return s.Type
+}
+
 func (s *ListContextsRequest) SetAuthorization(v string) *ListContextsRequest {
 	s.Authorization = &v
 	return s
@@ -55,6 +65,16 @@ func (s *ListContextsRequest) SetMaxResults(v int32) *ListContextsRequest {
 
 func (s *ListContextsRequest) SetNextToken(v string) *ListContextsRequest {
 	s.NextToken = &v
+	return s
+}
+
+func (s *ListContextsRequest) SetSessionId(v string) *ListContextsRequest {
+	s.SessionId = &v
+	return s
+}
+
+func (s *ListContextsRequest) SetType(v string) *ListContextsRequest {
+	s.Type = &v
 	return s
 }
 

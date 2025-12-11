@@ -118,12 +118,6 @@ type Session struct {
 	// Resource URL for accessing the session
 	ResourceUrl string
 
-	// File transfer context ID for file operations
-	FileTransferContextID string
-
-	// Browser recording context ID
-	RecordContextID string
-
 	// Browser replay enabled flag
 	EnableBrowserReplay bool
 
@@ -285,37 +279,16 @@ func (s *Session) GetCommand() *command.Command {
 func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	userRequestedSync := len(syncContext) > 0 && syncContext[0]
 
-	// Determine sync behavior based on enableBrowserReplay and syncContext
-	var shouldSync bool
-	var syncContextID string
-
 	if userRequestedSync {
-		// User explicitly requested sync - sync all contexts
-		shouldSync = true
-		fmt.Printf("🔄 User requested context synchronization\n")
-	} else if s.EnableBrowserReplay && s.RecordContextID != "" {
-		// Browser replay enabled but no explicit sync - sync only browser recording context
-		shouldSync = true
-		syncContextID = s.RecordContextID
-		fmt.Printf("🎥 Browser replay enabled - syncing recording context: %s\n", syncContextID)
-	}
-
-	// If sync is needed, trigger file uploads first
-	if shouldSync {
 		syncStartTime := time.Now()
 
 		// Use the new sync method without callback (sync mode)
 		var syncResult *ContextSyncResult
 		var err error
-		if syncContextID != "" {
-			// Sync specific context (browser recording)
-			syncResult, err = s.Context.SyncWithCallback(syncContextID, BrowserRecordPath, "", nil, 150, 1500)
-			fmt.Printf("🎥 Synced browser recording context: %s\n", syncContextID)
-		} else {
-			// Sync all contexts
-			syncResult, err = s.Context.SyncWithCallback("", "", "", nil, 150, 1500)
-			fmt.Printf("🔄 Synced all contexts\n")
-		}
+
+		// Sync all contexts
+		syncResult, err = s.Context.SyncWithCallback("", "", "", nil, 150, 1500)
+		fmt.Printf("🔄 Synced all contexts\n")
 
 		if err != nil {
 			syncDuration := time.Since(syncStartTime)

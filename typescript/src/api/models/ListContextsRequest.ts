@@ -6,11 +6,15 @@ export class ListContextsRequest extends $dara.Model {
   authorization?: string;
   maxResults?: number;
   nextToken?: string;
+  sessionId?: string;
+  type?: string;
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
       maxResults: 'MaxResults',
       nextToken: 'NextToken',
+      sessionId: 'SessionId',
+      type: 'ContextType',
     };
   }
 
@@ -19,6 +23,8 @@ export class ListContextsRequest extends $dara.Model {
       authorization: 'string',
       maxResults: 'number',
       nextToken: 'string',
+      sessionId: 'string',
+      type: 'string',
     };
   }
 

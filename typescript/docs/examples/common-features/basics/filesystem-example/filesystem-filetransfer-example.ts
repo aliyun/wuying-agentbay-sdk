@@ -30,7 +30,7 @@ async function main() {
     const createResponse = await agentBay.create({
       imageId: 'code_latest'
     });
-    
+
     if (!createResponse.success || !createResponse.session) {
       log(`Failed to create session: ${createResponse.errorMessage}`);
       return;
@@ -39,13 +39,12 @@ async function main() {
     const session = createResponse.session;
     log(`\nSession created with ID: ${session.sessionId}`);
     log(`Create Session RequestId: ${createResponse.requestId}`);
-    log(`Session fileTransferContextId: ${session.fileTransferContextId}`);
 
     try {
       // 1. Upload a file
       const remotePath = '/tmp/file_transfer_test/uploaded-file.txt';
       log(`\nUploading file from ${localUploadPath} to ${remotePath}`);
-      
+
       // Create the remote directory first
       const dirPath = path.dirname(remotePath);
       const createDirResult = await session.fileSystem.createDirectory(dirPath);
@@ -69,7 +68,7 @@ async function main() {
         log(`Bytes sent: ${uploadResult.bytesSent}`);
         log(`Request ID (upload URL): ${uploadResult.requestIdUploadUrl}`);
         log(`Request ID (sync): ${uploadResult.requestIdSync}`);
-        
+
         // Verify the file exists in remote location
         const listResult = await session.fileSystem.listDirectory(dirPath);
         if (listResult.success) {
@@ -87,7 +86,7 @@ async function main() {
       // 2. Create a file in the remote location for download
       const remoteDownloadPath = '/tmp/file_transfer_test/download-test.txt';
       const downloadContent = "This is a test file for AgentBay FileTransfer download functionality.\n".repeat(15);
-      
+
       log(`\nCreating remote file for download: ${remoteDownloadPath}`);
       const writeResult = await session.fileSystem.writeFile(remoteDownloadPath, downloadContent);
       if (writeResult.success) {
@@ -99,7 +98,7 @@ async function main() {
       // 3. Download the file
       const localDownloadPath = path.join(tempDir, 'downloaded-file.txt');
       log(`\nDownloading file from ${remoteDownloadPath} to ${localDownloadPath}`);
-      
+
       const downloadResult = await session.fileSystem.downloadFile(
         remoteDownloadPath,
         localDownloadPath,
@@ -115,7 +114,7 @@ async function main() {
         log(`Bytes received: ${downloadResult.bytesReceived}`);
         log(`Request ID (download URL): ${downloadResult.requestIdDownloadUrl}`);
         log(`Request ID (sync): ${downloadResult.requestIdSync}`);
-        
+
         // Verify downloaded file content
         const downloadedContent = fs.readFileSync(localDownloadPath, 'utf-8');
         if (downloadedContent === downloadContent) {
