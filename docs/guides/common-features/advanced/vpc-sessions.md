@@ -2,7 +2,7 @@
 
 VPC (Virtual Private Cloud) sessions provide a secure communication mechanism where the SDK directly connects to cloud environments within the same VPC after session creation.
 
-> **💡 Async API Support**: This guide uses synchronous API. For async patterns, see:
+> **💡 Async API Support**: This guide uses synchronous API. For async patterns, see [Async Session API](../../../../python/docs/api/async/async-session.md).
 
 ## Overview
 
@@ -24,19 +24,24 @@ VPC (Virtual Private Cloud) sessions provide a secure communication mechanism wh
 ## Creating VPC Sessions
 
 ```python
+import os
 from agentbay import AgentBay, CreateSessionParams
 
+api_key = os.environ["AGENTBAY_API_KEY"]
 agent_bay = AgentBay(api_key=api_key)
 
 # Create VPC session
 vpc_params = CreateSessionParams(is_vpc=True)
 
 result = agent_bay.create(vpc_params)
-if result.success:
-    vpc_session = result.session
-    print(f"VPC session created successfully: {vpc_session.session_id}")
-else:
+if not result.success:
     print(f"VPC session creation failed: {result.error_message}")
+    raise SystemExit(1)
+
+vpc_session = result.session
+print(f"VPC session created successfully: {vpc_session.session_id}")
+
+# Clean up the session when done
 agent_bay.delete(vpc_session)
 ```
 
