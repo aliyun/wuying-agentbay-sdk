@@ -50,7 +50,8 @@ Returns True if successful, False otherwise.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+create_result = await agent_bay.create()
+session = create_result.session
 # Use default options
 await session.browser.initialize()
 # Or with specific options
@@ -129,7 +130,8 @@ When initialized, always fetches the latest CDP url from session.get_link().
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+create_result = await agent_bay.create()
+session = create_result.session
 browser_option = BrowserOption()
 await session.browser.initialize(browser_option)
 endpoint_url = await session.browser.get_endpoint_url()
@@ -153,7 +155,8 @@ Returns the current BrowserOption used to initialize the browser, or None if not
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+create_result = await agent_bay.create()
+session = create_result.session
 browser_option = BrowserOption(use_stealth=True)
 await session.browser.initialize(browser_option)
 current_options = session.browser.get_option()
@@ -177,7 +180,8 @@ Returns True if the browser was initialized, False otherwise.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+create_result = await agent_bay.create()
+session = create_result.session
 print(f"Initialized: {session.browser.is_initialized()}")
 browser_option = BrowserOption()
 await session.browser.initialize(browser_option)
@@ -195,7 +199,7 @@ await session.delete()
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

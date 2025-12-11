@@ -62,7 +62,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.tap(500, 800)
             await session.delete()
             ```
@@ -120,7 +120,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.swipe(100, 1000, 100, 200, duration_ms=500)
             await session.delete()
             ```
@@ -169,7 +169,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.input_text("Hello Mobile!")
             await session.delete()
             ```
@@ -218,7 +218,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.send_key(4)  # Press BACK button
             await session.delete()
             ```
@@ -265,7 +265,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             result = await session.mobile.get_clickable_ui_elements()
             print(f"Found {len(result.elements)} clickable elements")
             await session.delete()
@@ -322,7 +322,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             result = await session.mobile.get_all_ui_elements()
             print(f"Found {len(result.elements)} UI elements")
             await session.delete()
@@ -412,7 +412,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             apps = await session.mobile.get_installed_apps(True, False, True)
             print(f"Found {len(apps.data)} apps")
             await session.delete()
@@ -476,7 +476,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             processes = await session.mobile.start_app("monkey -p com.android.settings 1")
             print(f"Started {len(processes.data)} process(es)")
             await session.delete()
@@ -532,7 +532,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             result = await session.mobile.stop_app_by_cmd("com.android.settings")
             print(f"Stop successful: {result.success}")
             await session.delete()
@@ -561,7 +561,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             result = await session.mobile.screenshot()
             print(f"Screenshot URL: {result.data}")
             await session.delete()
@@ -674,7 +674,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.set_resolution_lock(True)
             await session.mobile.set_resolution_lock(False)
             await session.delete()
@@ -691,7 +691,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             whitelist = ["com.android.settings", "com.android.chrome"]
             await session.mobile.set_app_whitelist(whitelist)
             await session.delete()
@@ -716,7 +716,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             blacklist = ["com.example.app1", "com.example.app2"]
             await session.mobile.set_app_blacklist(blacklist)
             await session.delete()
@@ -740,7 +740,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             await session.mobile.set_navigation_bar_visibility(hide=True)
             await session.mobile.set_navigation_bar_visibility(hide=False)
             await session.delete()
@@ -761,7 +761,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             protected_apps = ["com.android.settings", "com.android.chrome"]
             await session.mobile.set_uninstall_blacklist(protected_apps)
             await session.delete()
@@ -798,7 +798,7 @@ class AsyncMobile(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create(image="mobile_latest").session
+            session = (await agent_bay.create(image="mobile_latest")).session
             adbkey_pub = "your_adb_public_key"
             adb_result = await session.mobile.get_adb_url(adbkey_pub)
             print(f"ADB URL: {adb_result.data}")

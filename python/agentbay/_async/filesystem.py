@@ -138,7 +138,7 @@ class AsyncFileTransfer:
         Upload workflow:
         1) Get OSS pre-signed URL via context.get_file_upload_url
         2) Upload local file to OSS using the URL (HTTP PUT)
-        * 1) Trigger session.context.sync(mode="upload") to sync cloud disk data to OSS
+        3) Trigger session.context.sync(mode="download") to sync cloud disk data from OSS
         4) If wait=True, poll session.context.info until upload task reaches completion or timeout
 
         Returns UploadResult containing request_ids, HTTP status, ETag and other information.
@@ -678,9 +678,9 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            create_result = session.file_system.create_directory("/tmp/mydir")
-            nested_result = session.file_system.create_directory("/tmp/parent/child/grandchild")
+            session = (await agent_bay.create()).session
+            create_result = await session.file_system.create_directory("/tmp/mydir")
+            nested_result = await session.file_system.create_directory("/tmp/parent/child/grandchild")
             await session.delete()
             ```
         """
@@ -722,10 +722,10 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.write_file("/tmp/config.txt", "DEBUG=false\nLOG_LEVEL=info")
+            session = (await agent_bay.create()).session
+            await session.file_system.write_file("/tmp/config.txt", "DEBUG=false\\nLOG_LEVEL=info")
             edits = [{"oldText": "false", "newText": "true"}]
-            edit_result = session.file_system.edit_file("/tmp/config.txt", edits)
+            edit_result = await session.file_system.edit_file("/tmp/config.txt", edits)
             await session.delete()
             ```
         """
@@ -762,9 +762,9 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.write_file("/tmp/test.txt", "Sample content")
-            info_result = session.file_system.get_file_info("/tmp/test.txt")
+            session = (await agent_bay.create()).session
+            await session.file_system.write_file("/tmp/test.txt", "Sample content")
+            info_result = await session.file_system.get_file_info("/tmp/test.txt")
             print(info_result.file_info)
             await session.delete()
             ```
@@ -858,10 +858,10 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.create_directory("/tmp/testdir")
-            session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
-            list_result = session.file_system.list_directory("/tmp/testdir")
+            session = (await agent_bay.create()).session
+            await session.file_system.create_directory("/tmp/testdir")
+            await session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
+            list_result = await session.file_system.list_directory("/tmp/testdir")
             print(f"Found {len(list_result.entries)} entries")
             await session.delete()
             ```
@@ -970,10 +970,10 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.write_file("/tmp/original.txt", "Test content")
-            move_result = session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
-            read_result = session.file_system.read_file("/tmp/moved.txt")
+            session = (await agent_bay.create()).session
+            await session.file_system.write_file("/tmp/original.txt", "Test content")
+            move_result = await session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
+            read_result = await session.file_system.read_file("/tmp/moved.txt")
             await session.delete()
             ```
         """
@@ -1063,12 +1063,12 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.write_file("/tmp/file1.txt", "Content of file 1")
-            session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
-            session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
+            session = (await agent_bay.create()).session
+            await session.file_system.write_file("/tmp/file1.txt", "Content of file 1")
+            await session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
+            await session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
             paths = ["/tmp/file1.txt", "/tmp/file2.txt", "/tmp/file3.txt"]
-            read_result = session.file_system.read_multiple_files(paths)
+            read_result = await session.file_system.read_multiple_files(paths)
             await session.delete()
             ```
         """
@@ -1184,11 +1184,11 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
-            session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
-            session.file_system.write_file("/tmp/test/other.txt", "text content")
-            search_result = session.file_system.search_files("/tmp/test", "test_*")
+            session = (await agent_bay.create()).session
+            await session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
+            await session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
+            await session.file_system.write_file("/tmp/test/other.txt", "text content")
+            search_result = await session.file_system.search_files("/tmp/test", "test_*")
             await session.delete()
             ```
         """
@@ -1294,9 +1294,9 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
-            read_result = session.file_system.read_file("/tmp/test.txt")
+            session = (await agent_bay.create()).session
+            write_result = await session.file_system.write_file("/tmp/test.txt", "Hello, World!")
+            read_result = await session.file_system.read_file("/tmp/test.txt")
             print(read_result.content)
             await session.delete()
             ```
@@ -1400,10 +1400,10 @@ class AsyncFileSystem(BaseService):
 
         Example:
             ```python
-            session = agent_bay.create().session
-            write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
-            append_result = session.file_system.write_file("/tmp/test.txt", "\nNew line", mode="append")
-            read_result = session.file_system.read_file("/tmp/test.txt")
+            session = (await agent_bay.create()).session
+            write_result = await session.file_system.write_file("/tmp/test.txt", "Hello, World!")
+            append_result = await session.file_system.write_file("/tmp/test.txt", "\\nNew line", mode="append")
+            read_result = await session.file_system.read_file("/tmp/test.txt")
             await session.delete()
             ```
 
@@ -1485,8 +1485,8 @@ class AsyncFileSystem(BaseService):
         Example:
             ```python
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-            session = await agent_bay.create(params)
-            upload_result = await session.session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
+            session = (await agent_bay.create(params)).session
+            upload_result = await session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
             await session.delete()
             ```
         """
@@ -1544,8 +1544,8 @@ class AsyncFileSystem(BaseService):
         Example:
             ```python
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-            session = await agent_bay.create(params)
-            download_result = await session.session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
+            session = (await agent_bay.create(params)).session
+            download_result = await session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
             await session.delete()
             ```
         """
@@ -1678,12 +1678,12 @@ class AsyncFileSystem(BaseService):
             ```python
             def on_changes(events):
                 print(f"Detected {len(events)} changes")
-            session = agent_bay.create().session
-            session.file_system.create_directory("/tmp/watch_test")
+            session = (await agent_bay.create()).session
+            await session.file_system.create_directory("/tmp/watch_test")
             monitor_thread = session.file_system.watch_directory("/tmp/watch_test", on_changes)
             monitor_thread.start()
-            session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
-            session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
+            await session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
+            await session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
             await session.delete()
             ```
         """

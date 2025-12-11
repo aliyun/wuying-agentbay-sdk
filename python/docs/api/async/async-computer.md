@@ -22,7 +22,7 @@ keyboard input, screen capture, and window management. It enables automated UI t
 
 ### MouseButton
 
-Mouse button constants: Left, Right, Middle
+Mouse button constants: Left, Right, Middle, DoubleLeft
 
 ### ScrollDirection
 
@@ -1141,7 +1141,7 @@ get_installed_apps, start_app, stop_app_by_pname, stop_app_by_pid
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

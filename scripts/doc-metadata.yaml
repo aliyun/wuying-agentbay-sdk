@@ -143,7 +143,7 @@ modules:
 
     overview: |
       The Command module provides methods for executing shell commands within a session in the AgentBay cloud environment.
-      It supports both synchronous command execution with configurable timeouts.
+      Commands support configurable timeouts and optional working directory or environment settings.
 
     best_practices:
       - "Always specify appropriate timeout values based on expected command duration"
@@ -365,7 +365,7 @@ modules:
 
     data_types:
       - name: MouseButton
-        description: "Mouse button constants: Left, Right, Middle"
+        description: "Mouse button constants: Left, Right, Middle, DoubleLeft"
       - name: ScrollDirection
         description: "Scroll direction constants: Up, Down, Left, Right"
       - name: KeyModifier

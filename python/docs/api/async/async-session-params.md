@@ -78,14 +78,14 @@ Get context syncs for extensions.
 ### get\_fingerprint\_context\_sync
 
 ```python
-def get_fingerprint_context_sync() -> ContextSync
+def get_fingerprint_context_sync() -> Optional[ContextSync]
 ```
 
 Get context sync for fingerprint.
 
 **Returns**:
 
-    ContextSync: Context sync configurations for fingerprint.
+    Optional[ContextSync]: Context sync configurations for fingerprint.
   Returns None if fingerprint configuration is invalid.
 
 ## CreateSessionParams
@@ -100,6 +100,7 @@ Parameters for creating a new session in the AgentBay cloud environment.
 
 - `labels` _Optional[Dict[str, str]]_ - Custom labels for the Session. These can be
   used for organizing and filtering sessions.
+- `image_id` _Optional[str]_ - ID of the image to use for the session.
 - `context_syncs` _Optional[List[ContextSync]]_ - List of context synchronization
   configurations that define how contexts should be synchronized and mounted.
 - `browser_context` _Optional[BrowserContext]_ - Optional configuration for browser data synchronization.
@@ -125,7 +126,7 @@ Parameters for listing sessions with pagination support.
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

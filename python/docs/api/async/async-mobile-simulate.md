@@ -164,7 +164,7 @@ Upload the mobile simulate dev info.
 **Raises**:
 
     ValueError: If mobile_dev_info_content is not provided or not a valid JSON string.
-    ValueError: If context_sync is not provided or context_sync.context_id is not provided.
+    ValueError: If context_sync is provided but context_sync.context_id is missing.
   
 
 **Notes**:
@@ -177,7 +177,7 @@ Upload the mobile simulate dev info.
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

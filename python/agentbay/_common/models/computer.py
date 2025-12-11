@@ -10,7 +10,11 @@ from .response import ApiResponse
 
 
 class MouseButton(str, Enum):
-    """Mouse button types for click and drag operations."""
+    """
+    Mouse button types for click and drag operations.
+
+    Available values: left, right, middle, double_left.
+    """
 
     LEFT = "left"
     RIGHT = "right"

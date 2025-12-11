@@ -111,7 +111,8 @@ the OSS environment.
 session = await agent_bay.create().session
 await session.oss.env_init(
   access_key_id="your_access_key_id",
-  access_key_secret="your_access_key_secret"
+  access_key_secret="your_access_key_secret",
+  securityToken="your_security_token"
 )
 result = await session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
 print(f"Upload result: {result.content}")
@@ -180,7 +181,8 @@ the OSS environment.
 session = await agent_bay.create().session
 await session.oss.env_init(
   access_key_id="your_access_key_id",
-  access_key_secret="your_access_key_secret"
+  access_key_secret="your_access_key_secret",
+  securityToken="your_security_token"
 )
 result = await session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
 print(f"Download result: {result.content}")
@@ -221,7 +223,7 @@ await session.delete()
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

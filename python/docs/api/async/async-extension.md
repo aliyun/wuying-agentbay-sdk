@@ -87,7 +87,7 @@ ext1 = await extensions_service.create("/path/to/ext1.zip")
 ext2 = await extensions_service.create("/path/to/ext2.zip")
 
 # Create extension option for browser integration (no context_id needed!)
-ext_option = extensions_service.create_extension_option([ext1.id, ext2.id])
+ext_option = await extensions_service.create_extension_option([ext1.id, ext2.id])
 
 # Use with BrowserContext for session creation
 browser_context = BrowserContext(
@@ -288,7 +288,7 @@ print(f"Extension option: {ext_option}")
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Browser API Reference](./async-browser.md)

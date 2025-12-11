@@ -454,7 +454,7 @@ the state field, which indicates the current clearing status.
 
 ```python
 result = await agent_bay.context.get(name="my-context", create=True)
-clear_result = await agent_bay.context.clear_async(result.context_id)
+await agent_bay.context.start_clear(result.context_id)
 status_result = await agent_bay.context.get_clear_status(result.context_id)
 print(status_result.status)
 ```
@@ -469,7 +469,7 @@ async def clear(context_id: str,
 
 Asynchronously clear the context's persistent data and wait for the final result.
 
-This method wraps the `clear_async` and `_get_clear_status` polling logic,
+This method wraps the `start_clear` and `get_clear_status` polling logic,
 providing the simplest and most direct way to handle clearing tasks.
 
 The clearing process transitions through the following states:
@@ -504,7 +504,7 @@ clear_result = await agent_bay.context.clear(result.context_id, timeout=60)
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

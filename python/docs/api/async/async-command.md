@@ -11,7 +11,7 @@
 ## Overview
 
 The Command module provides methods for executing shell commands within a session in the AgentBay cloud environment.
-It supports both synchronous command execution with configurable timeouts.
+Commands support configurable timeouts and optional working directory or environment settings.
 
 
 
@@ -22,7 +22,10 @@ It supports both synchronous command execution with configurable timeouts.
 class AsyncCommand(AsyncBaseService)
 ```
 
-Handles command execution operations in the AgentBay cloud environment.
+Async command execution service for session shells in the AgentBay cloud environment.
+
+Use this class for non-blocking command execution; for blocking/synchronous usage,
+refer to the `Command` service in the sync API.
 
 ### execute\_command
 
@@ -100,7 +103,7 @@ await session.delete()
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

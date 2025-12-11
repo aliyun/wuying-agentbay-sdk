@@ -53,7 +53,8 @@ get_task_status and the max_try_times.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.computer.execute_task("Open Chrome browser")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = await session.agent.computer.get_task_status(result.task_id)
@@ -89,7 +90,8 @@ so set a proper max_try_times according to your task complexity.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
 print(f"Task result: {result.task_result}")
 await session.delete()
@@ -117,7 +119,8 @@ Get the status of the task with the given task ID.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 status = await session.agent.computer.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -146,7 +149,8 @@ Terminate a task with a specified task ID.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 terminate_result = await session.agent.computer.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
@@ -182,7 +186,8 @@ Initialize the browser agent with options.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 options:AgentOptions = AgentOptions(use_vision=False, output_schema="")
 initialize_result = await session.agent.browser.initialize(options)
 print(f"Initialized: {initialize_result.success}")
@@ -216,7 +221,8 @@ get_task_status and the max_try_times.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = await session.agent.browser.get_task_status(result.task_id)
@@ -252,7 +258,8 @@ so set a proper max_try_times according to your task complexity.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
 print(f"Task result: {result.task_result}")
 await session.delete()
@@ -280,7 +287,8 @@ Get the status of the task with the given task ID.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.browser.execute_task("Open Chrome browser")
 status = await session.agent.browser.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -309,7 +317,8 @@ Terminate a task with a specified task ID.
 **Example**:
 
 ```python
-session = await agent_bay.create().session
+session_result = await agent_bay.create()
+session = session_result.session
 result = await session.agent.browser.execute_task("Open Chrome browser")
 terminate_result = await session.agent.browser.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
@@ -318,7 +327,7 @@ await session.delete()
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

@@ -238,7 +238,8 @@ class AsyncOss(AsyncBaseService):
             session = await agent_bay.create().session
             await session.oss.env_init(
                 access_key_id="your_access_key_id",
-                access_key_secret="your_access_key_secret"
+                access_key_secret="your_access_key_secret",
+                securityToken="your_security_token"
             )
             result = await session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Upload result: {result.content}")
@@ -344,7 +345,8 @@ class AsyncOss(AsyncBaseService):
             session = await agent_bay.create().session
             await session.oss.env_init(
                 access_key_id="your_access_key_id",
-                access_key_secret="your_access_key_secret"
+                access_key_secret="your_access_key_secret",
+                securityToken="your_security_token"
             )
             result = await session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Download result: {result.content}")
