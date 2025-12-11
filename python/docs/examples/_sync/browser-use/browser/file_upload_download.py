@@ -18,7 +18,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
 from agentbay import AgentBay, CreateSessionParams
-from agentbay import BrowserOption, SyncActOptions as ActOptions, SyncExtractOptions as ExtractOptions
+from agentbay import BrowserOption, ActOptions, ExtractOptions
 from pydantic import BaseModel, Field
 
 
@@ -90,7 +90,11 @@ def main():
         # Test downloading text content
         print("\n7. Testing text content download...")
         session.browser.agent.navigate("https://httpbin.org/robots.txt")
-        success, content_result = session.browser.agent.extract(ExtractOptions(instruction="What is the content of this page?", schema=TextContent))
+        extract_options = ExtractOptions(
+            instruction="What is the content of this page?", 
+            schema=TextContent
+        )
+        success, content_result = session.browser.agent.extract(extract_options)
         if success:
             print(f"Downloaded content:\n{content_result.content}")
             content_to_save = content_result.content

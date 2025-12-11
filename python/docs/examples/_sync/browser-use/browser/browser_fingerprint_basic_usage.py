@@ -78,26 +78,41 @@ def main():
                 
                 # Check user agent.
                 print("\n--- Check User Agent ---")
-                page.goto("https://httpbin.org/user-agent")
+                try:
+                    page.goto("https://httpbin.org/user-agent", timeout=60000)
+                    response = page.evaluate("""
+                        () => {
+                            try {
+                                const text = document.body.textContent || document.body.innerText;
+                                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                                return jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+                            } catch (e) {
+                                return { error: e.message };
+                            }
+                        }
+                    """)
+                    user_agent = response.get("user-agent", "")
+                    print(f"User Agent: {user_agent}")
+                except Exception as e:
+                    print(f"Error while checking user agent: {e}")
 
-                response = page.evaluate("() => JSON.parse(document.body.textContent)")
-                user_agent = response.get("user-agent", "")
-                print(f"User Agent: {user_agent}")
-                
                 # Check navigator properties.
                 print("\n--- Check Navigator Properties ---")
-                nav_info = page.evaluate("""
-                    () => ({
-                        platform: navigator.platform,
-                        language: navigator.language,
-                        languages: navigator.languages,
-                        webdriver: navigator.webdriver
-                    })
-                """)
-                print(f"Platform: {nav_info.get('platform')}")
-                print(f"Language: {nav_info.get('language')}")
-                print(f"Languages: {nav_info.get('languages')}")
-                print(f"WebDriver: {nav_info.get('webdriver')}")
+                try:
+                    nav_info = page.evaluate("""
+                        () => ({
+                            platform: navigator.platform,
+                            language: navigator.language,
+                            languages: navigator.languages,
+                            webdriver: navigator.webdriver
+                        })
+                    """)
+                    print(f"Platform: {nav_info.get('platform')}")
+                    print(f"Language: {nav_info.get('language')}")
+                    print(f"Languages: {nav_info.get('languages')}")
+                    print(f"WebDriver: {nav_info.get('webdriver')}")
+                except Exception as e:
+                    print(f"Error while checking navigator properties: {e}")
 
                 page.wait_for_timeout(3000)
                 browser.close()

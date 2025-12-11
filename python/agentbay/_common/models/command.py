@@ -30,7 +30,7 @@ class CommandResult(ApiResponse):
             exit_code (int, optional): The exit code of the command execution. Default is 0.
             stdout (str, optional): Standard output from the command execution.
             stderr (str, optional): Standard error from the command execution.
-            trace_id (str, optional): Trace ID for error tracking. Only present when errorCode != 0.
+            trace_id (str, optional): Trace ID for error tracking. Only present when exit_code != 0.
                 Used for quick problem localization.
         """
         super().__init__(request_id)

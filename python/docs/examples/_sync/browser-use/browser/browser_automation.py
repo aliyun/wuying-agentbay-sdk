@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from agentbay import AgentBay, CreateSessionParams
-from agentbay import SyncActOptions as ActOptions, SyncExtractOptions as ExtractOptions
+from agentbay import ActOptions, ExtractOptions, BrowserOption
 from agentbay import AgentBayError
 
 class SearchResult(BaseModel):
@@ -32,7 +32,7 @@ def main():
 
         # Initialize Browser
         print("Initializing browser...")
-        session.browser.init()
+        session.browser.initialize(BrowserOption())
 
         # 1. Navigate
         url = "https://www.bing.com"

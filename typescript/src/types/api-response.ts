@@ -254,7 +254,7 @@ export interface CommandResult extends ApiResponse {
   stdout?: string;
   /** Standard error from the command execution */
   stderr?: string;
-  /** Trace ID for error tracking. Only present when errorCode != 0. Used for quick problem localization. */
+  /** Trace ID for error tracking. Only present when exit_code != 0. Used for quick problem localization. */
   traceId?: string;
 }
 

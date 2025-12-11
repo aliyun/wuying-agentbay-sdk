@@ -152,11 +152,11 @@ export class Command {
           // Extract fields from new format
           const stdout = dataJson.stdout || "";
           const stderr = dataJson.stderr || "";
-          const errorCode = dataJson.errorCode || 0;
+          const exitCode = dataJson.exit_code || 0;
           const traceId = dataJson.traceId || "";
 
-          // Determine success based on errorCode (0 means success)
-          const success = errorCode === 0;
+          // Determine success based on exit_code (0 means success)
+          const success = exitCode === 0;
 
           // For backward compatibility, output should be stdout + stderr
           const output = stdout + stderr;
@@ -165,7 +165,7 @@ export class Command {
             requestId: result.requestId,
             success,
             output,
-            exitCode: errorCode,
+            exitCode: exitCode,
             stdout,
             stderr,
             traceId: traceId || undefined,
@@ -190,7 +190,8 @@ export class Command {
           if (errorData && typeof errorData === "object") {
             const stdout = errorData.stdout || "";
             const stderr = errorData.stderr || "";
-            const errorCode = errorData.errorCode || 0;
+            // Backend may return either "exit_code" or "errorCode", support both
+            const exitCode = errorData.exit_code || errorData.errorCode || 0;
             const traceId = errorData.traceId || "";
             // For backward compatibility, output should be stdout + stderr
             const output = stdout + stderr;
@@ -199,7 +200,7 @@ export class Command {
               requestId: result.requestId,
               success: false,
               output,
-              exitCode: errorCode,
+              exitCode: exitCode,
               stdout,
               stderr,
               traceId: traceId || undefined,

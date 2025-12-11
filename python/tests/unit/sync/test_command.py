@@ -102,6 +102,38 @@ class TestAsyncCommand(unittest.TestCase):
         self.assertIsInstance(result, CommandResult)
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
+
+    def test_execute_command_error_with_json_in_error_message(self):
+        """
+        Test execute_command method when success=False but error_message contains JSON with errorCode.
+        This simulates the case where backend returns success=False with JSON in error_message.
+        """
+        from agentbay import McpToolResult
+        import json
+
+        # Simulate backend returning success=False with JSON in error_message
+        error_json = json.dumps({
+            "errorCode": 1,
+            "stderr": "cat: /nonexistent_file_12345: 没有那个文件或目录\n",
+            "stdout": "",
+            "traceId": "77f9ba80cfac79d39872942b3b4485f2"
+        })
+        mock_result = McpToolResult(
+            request_id="request-123",
+            success=False,
+            error_message=error_json,
+        )
+        self.session.call_mcp_tool = MagicMock(return_value=mock_result)
+
+        result = self.command.execute_command("cat /nonexistent_file_12345")
+        self.assertIsInstance(result, CommandResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.exit_code, 1)  # Should parse errorCode from JSON
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "cat: /nonexistent_file_12345: 没有那个文件或目录\n")
+        self.assertEqual(result.trace_id, "77f9ba80cfac79d39872942b3b4485f2")
+        self.assertEqual(result.output, "cat: /nonexistent_file_12345: 没有那个文件或目录\n")  # stdout + stderr
         self.assertEqual(result.error_message, "Command execution failed")
         self.assertEqual(result.output, "")
 
@@ -132,7 +164,7 @@ class TestAsyncCommand(unittest.TestCase):
         json_data = json.dumps({
             "stdout": "output text",
             "stderr": "error text",
-            "errorCode": 0,
+            "exit_code": 0,
         })
         mock_result = McpToolResult(
             request_id="request-123", success=True, data=json_data
@@ -160,7 +192,7 @@ class TestAsyncCommand(unittest.TestCase):
         json_data = json.dumps({
             "stdout": "",
             "stderr": "command not found",
-            "errorCode": 127,
+            "exit_code": 127,
             "traceId": "trace-123"
         })
         mock_result = McpToolResult(
@@ -170,7 +202,7 @@ class TestAsyncCommand(unittest.TestCase):
 
         result = self.command.execute_command("invalid_command")
         self.assertIsInstance(result, CommandResult)
-        self.assertFalse(result.success)  # errorCode != 0 means failure
+        self.assertFalse(result.success)  # exit_code != 0 means failure
         self.assertEqual(result.request_id, "request-123")
         self.assertEqual(result.exit_code, 127)
         self.assertEqual(result.stdout, "")
@@ -289,7 +321,7 @@ class TestAsyncCommand(unittest.TestCase):
         from agentbay import McpToolResult
 
         mock_result = McpToolResult(
-            request_id="request-123", success=True, data='{"stdout": "test", "stderr": "", "errorCode": 0}'
+            request_id="request-123", success=True, data='{"stdout": "test", "stderr": "", "exit_code": 0}'
         )
         self.session.call_mcp_tool = MagicMock(return_value=mock_result)
 
