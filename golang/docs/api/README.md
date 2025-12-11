@@ -16,6 +16,7 @@ This directory is generated. Run `go run scripts/generate_api_docs.go` to refres
 - `common-features/basics/session.md` – Session
 - `common-features/basics/command.md` – Command
 - `common-features/basics/context.md` – Context
+- `common-features/basics/session-params.md` – Session Params
 - `common-features/basics/context-manager.md` – Context Manager
 - `common-features/basics/filesystem.md` – File System
 - `common-features/basics/context-sync.md` – Context Sync
@@ -30,4 +31,5 @@ This directory is generated. Run `go run scripts/generate_api_docs.go` to refres
 ## Mobile Use
 
 - `mobile-use/mobile.md` – Mobile
+- `mobile-use/mobile-simulate.md` – Mobile Simulate
 

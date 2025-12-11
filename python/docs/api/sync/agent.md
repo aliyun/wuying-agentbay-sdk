@@ -115,7 +115,7 @@ Get the status of the task with the given task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.execute_task("Open Chrome browser")
+result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 status = session.agent.computer.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
 session.delete()
@@ -144,7 +144,7 @@ Terminate a task with a specified task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.computer.execute_task("Open Chrome browser")
+result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 terminate_result = session.agent.computer.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
 session.delete()
@@ -214,7 +214,7 @@ get_task_status and the max_try_times.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu.")
+result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = session.agent.browser.get_task_status(result.task_id)
 print(f"Task status: {status.task_status}")
@@ -306,7 +306,7 @@ Terminate a task with a specified task ID.
 
 ```python
 session = agent_bay.create().session
-result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
+result = session.agent.browser.execute_task("Open Chrome browser")
 terminate_result = session.agent.browser.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
 session.delete()

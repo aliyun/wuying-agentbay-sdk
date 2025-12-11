@@ -4,8 +4,10 @@ These documents are generated automatically using TypeDoc. Run `npm run docs:gen
 
 ## Structure
 - `browser-use`
+  - browser-agent.md
   - browser.md
   - extension.md
+  - fingerprint.md
 - `codespace`
   - code.md
 - `common-features/advanced`
@@ -21,8 +23,10 @@ These documents are generated automatically using TypeDoc. Run `npm run docs:gen
   - context.md
   - filesystem.md
   - logging.md
+  - session-params.md
   - session.md
 - `computer-use`
   - computer.md
 - `mobile-use`
+  - mobile-simulate.md
   - mobile.md
