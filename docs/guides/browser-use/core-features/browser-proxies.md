@@ -51,82 +51,103 @@ Provided by the Wuying Proxy Service integrated in AgentBay SDK
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption, BrowserProxy
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def proxy_example():
-    # Initialize AgentBay client
+def main():
+    """Main function demonstrating browser proxy functionality."""
+    # Get API key from environment variable
     api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+
+    print("Initializing AgentBay client...")
     agent_bay = AgentBay(api_key=api_key)
 
-    # Create session
-    params = CreateSessionParams(image_id="browser_latest")
+    print("Creating new session...")
+    params = CreateSessionParams(
+        image_id="browser_latest",  # Use latest browser image
+    )
     session_result = agent_bay.create(params)
 
     if session_result.success:
         session = session_result.session
         print(f"Session created successfully, Session ID: {session.session_id}")
 
+        # ==================== Proxy Configuration Examples ====================
+        
         # Example 1: Custom Proxy Configuration
+        # Suitable for users who have their own proxy servers
         # browser_proxy = BrowserProxy(
-        #     proxy_type="custom",
-        #     server="http://127.0.0.1:9090",
-        #     username="username",
-        #     password="password"
+        #     proxy_type="custom",           # Proxy type: custom
+        #     server="http://127.0.0.1:9090", # Proxy server address (required)
+        #     username="username",           # Proxy username (optional)
+        #     password="password"            # Proxy password (optional)
         # )
 
         # Example 2: Wuying Proxy - Polling Strategy
+        # Rotates through proxy pool nodes, suitable for scenarios requiring frequent IP switching
         browser_proxy = BrowserProxy(
-            proxy_type="wuying",
-            strategy="polling",
-            pollsize=2
+            proxy_type="wuying",    # Proxy type: wuying proxy
+            strategy="polling",     # Strategy: polling
+            pollsize=2             # Proxy pool size: 2 nodes
         )
 
         # Example 3: Wuying Proxy - Restricted Strategy
+        # Uses fixed proxy nodes, suitable for scenarios requiring stable IP
         # browser_proxy = BrowserProxy(
-        #     proxy_type="wuying",
-        #     strategy="restricted"
+        #     proxy_type="wuying",    # Proxy type: wuying proxy
+        #     strategy="restricted"   # Strategy: restricted (fixed nodes)
         # )
 
-        # Create browser options with proxy configuration
+        # Create browser options with proxy configuration, now only support one proxy
         browser_option = BrowserOption(
             proxies=[browser_proxy]
         )
 
         # Initialize browser instance
-        if await session.browser.initialize_async(browser_option):
+        if session.browser.initialize(browser_option):
+            # Get browser CDP connection endpoint
             endpoint_url = session.browser.get_endpoint_url()
             print(f"Browser CDP endpoint: {endpoint_url}")
 
             # Use Playwright to connect to remote browser instance
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
-                context = browser.contexts[0]
-                page = await context.new_page()
+            with sync_playwright() as p:
+                browser = p.chromium.connect_over_cdp(endpoint_url)
+                context = browser.contexts[0]  # Get default browser context
+                page = context.new_page()  # Create new page
 
-                # Verify proxy IP
+                # ==================== Verify Proxy IP ====================
                 print("\n--- Starting proxy public IP check ---")
-                await page.goto("https://httpbin.org/ip")
+                page.goto("https://httpbin.org/ip")  # Visit IP checking service
 
                 try:
-                    response = await page.evaluate("() => JSON.parse(document.body.textContent)")
+                    # Parse JSON response from page content
+                    response = page.evaluate("() => JSON.parse(document.body.textContent)")
                     public_ip = response.get("origin", "").strip()
                     print(f"Proxy public IP: {public_ip}")
                 except Exception as e:
                     print(f"Failed to get proxy public IP: {e}")
-
+                    public_ip = None
                 print("--- Proxy IP check completed ---\n")
-                await page.wait_for_timeout(3000)
-                await browser.close()
+                
+                # Wait 3 seconds to observe results
+                page.wait_for_timeout(3000)
+                browser.close()
+        else:
+            print("Browser initialization failed")
 
-        # Clean up session
+        # Clean up session resources
+        print("Cleaning up session...")
         agent_bay.delete(session)
+        print("Session cleanup completed")
+
 
 if __name__ == "__main__":
-    asyncio.run(proxy_example())
+    main()
 ```
 
 ## TypeScript Implementation
@@ -288,22 +309,22 @@ wuying_proxy = BrowserProxy(
 ### 2. Error Handling and Monitoring
 
 ```python
-async def robust_proxy_usage():
+def robust_proxy_usage():
     try:
         # Initialize browser with proxy
-        if await session.browser.initialize_async(browser_option):
+        if session.browser.initialize(browser_option):
             endpoint_url = session.browser.get_endpoint_url()
             
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
+            with sync_playwright() as p:
+                browser = p.chromium.connect_over_cdp(endpoint_url)
                 context = browser.contexts[0]
-                page = await context.new_page()
+                page = context.new_page()
                 
                 # Verify proxy is working
-                await page.goto("https://httpbin.org/ip", timeout=30000)
+                page.goto("https://httpbin.org/ip", timeout=30000)
                 
                 # Check if proxy is applied
-                response = await page.evaluate("() => JSON.parse(document.body.textContent)")
+                response = page.evaluate("() => JSON.parse(document.body.textContent)")
                 proxy_ip = response.get("origin", "").strip()
                 
                 if not proxy_ip:
@@ -311,7 +332,7 @@ async def robust_proxy_usage():
                     
                 print(f"Successfully using proxy IP: {proxy_ip}")
                 
-                await browser.close()
+                browser.close()
         else:
             print("Browser initialization failed - check proxy configuration")
             

@@ -37,7 +37,8 @@ The Python SDK provides two screenshot methods:
 - [Python Browser API Documentation](../../../../python/docs/api/async/async-browser.md#screenshot)
 
 #### Example Usage
-- [Python Browser Screenshot Example](../../../../python/docs/examples/_async/browser-use/browser/browser_screenshot.py)
+- [Python Browser Screenshot Example (Async)](../../../../python/docs/examples/_async/browser-use/browser/browser_screenshot.py)
+- [Python Browser Screenshot Example (Sync)](../../../../python/docs/examples/_sync/browser-use/browser/browser_screenshot.py)
 - [Python Integration Tests](../../../../python/tests/integration/_async/test_browser_screenshot.py)
 - [Python Unit Tests](../../../../python/tests/unit/shared/test_browser_screenshot.py)
 
@@ -116,48 +117,54 @@ All implementations include enhanced functionality to ensure high-quality screen
 ## Usage Patterns
 
 ### Basic Screenshot
-```python
-# Python - Direct Browser
-screenshot_data = await session.browser.screenshot(page)
 
-# Python - Browser Agent
-screenshot_data = await session.browser.agent.screenshot()
+**Python (Sync)**
+```python
+# Direct Browser
+screenshot_data = session.browser.screenshot(page)
+
+# Browser Agent
+screenshot_data = session.browser.agent.screenshot()
 ```
 
+**TypeScript**
 ```typescript
-// TypeScript
 const screenshotData = await browser.screenshot(page);
 ```
 
+**Go**
 ```go
-// Go
 screenshotData, err := browser.Screenshot(page, nil)
 ```
 
 ### Full Page Screenshot
-```python
-# Python - Direct Browser
-screenshot_data = await session.browser.screenshot(page, full_page=True)
 
-# Python - Browser Agent
-screenshot_data = await session.browser.agent.screenshot(full_page=True)
+**Python (Sync)**
+```python
+# Direct Browser
+screenshot_data = session.browser.screenshot(page, full_page=True)
+
+# Browser Agent
+screenshot_data = session.browser.agent.screenshot(full_page=True)
 ```
 
+**TypeScript**
 ```typescript
-// TypeScript
 const screenshotData = await browser.screenshot(page, true);
 ```
 
+**Go**
 ```go
-// Go
 options := &browser.ScreenshotOptions{FullPage: true}
 screenshotData, err := browser.Screenshot(page, options)
 ```
 
 ### Custom Options
+
+**Python (Sync)**
 ```python
-# Python - Direct Browser
-screenshot_data = await session.browser.screenshot(
+# Direct Browser
+screenshot_data = session.browser.screenshot(
     page,
     full_page=False,
     type="jpeg",
@@ -166,8 +173,8 @@ screenshot_data = await session.browser.screenshot(
 )
 ```
 
+**TypeScript**
 ```typescript
-// TypeScript
 const screenshotData = await browser.screenshot(page, false, {
     type: "jpeg",
     quality: 80,
@@ -175,8 +182,8 @@ const screenshotData = await browser.screenshot(page, false, {
 });
 ```
 
+**Go**
 ```go
-// Go
 options := &browser.ScreenshotOptions{
     FullPage: false,
     Type: "jpeg",

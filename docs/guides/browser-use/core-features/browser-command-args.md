@@ -29,6 +29,112 @@ An array of Chrome/Chromium command-line arguments to customize browser behavior
 The URL that the browser automatically navigates to after initialization. For Browser Initialize operations, it's **highly recommended** to use Chrome internal pages (e.g., `chrome://version/`, `chrome://settings/`) or extension pages instead of internet URLs. Navigating to internet pages during initialization may cause timeout of browser launch.
 
 
+## Python Implementation
+
+```python
+import os
+import time
+
+from agentbay import AgentBay
+from agentbay import CreateSessionParams
+from agentbay import BrowserOption
+from playwright.sync_api import sync_playwright
+
+def main():
+    # Get API key from environment variable
+    api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+
+    # Initialize AgentBay client
+    print("Initializing AgentBay client...")
+    agent_bay = AgentBay(api_key=api_key)
+
+    # Create a session
+    print("Creating a new session...")
+    params = CreateSessionParams(
+        image_id="linux_latest"
+    )
+    session_result = agent_bay.create(params)
+
+    if session_result.success:
+        session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
+
+        # Create browser option with custom command arguments and default navigate URL
+        browser_option = BrowserOption(
+            cmd_args=["--disable-features=PrivacySandboxSettings4"],
+            default_navigate_url="chrome://version/",
+        )
+
+        print("Browser configuration:")
+        print("- Command arguments:", browser_option.cmd_args)
+        print("- Default navigate URL:", browser_option.default_navigate_url)
+
+        if session.browser.initialize(browser_option):
+            print("Browser initialized successfully")
+            
+            # Get browser endpoint URL
+            endpoint_url = session.browser.get_endpoint_url()
+            print(f"endpoint_url = {endpoint_url}")
+
+            # Use Playwright to connect and validate
+            with sync_playwright() as p:
+                browser = p.chromium.connect_over_cdp(endpoint_url)
+                context = browser.contexts[0]
+                page = context.pages[0]
+
+                try:
+                    # Check if browser navigated to default URL
+                    print("\n--- Check Default Navigation ---")
+                    time.sleep(2)  # Wait for navigation
+                    current_url = page.url
+                    print(f"Current URL: {current_url}")
+                    
+                    if "chrome://version/" in current_url:
+                        print("✓ Browser successfully navigated to default URL")
+                    else:
+                        print("✗ Browser did not navigate to default URL")
+
+                    # Test command arguments effect by checking Chrome version page
+                    if "chrome://version/" in current_url:
+                        print("\n--- Check Chrome Version Info ---")
+                        version_info = page.evaluate("""
+                            () => {
+                                const versionElement = document.querySelector('#version');
+                                const commandLineElement = document.querySelector('#command_line');
+                                return {
+                                    version: versionElement ? versionElement.textContent : 'Not found',
+                                    commandLine: commandLineElement ? commandLineElement.textContent : 'Not found'
+                                };
+                            }
+                        """)
+                        
+                        print(f"Chrome Version: {version_info['version']}")
+                        print(f"Command Line: {version_info['commandLine']}")
+                        
+                        if "--disable-features=PrivacySandboxSettings4" in version_info['commandLine']:
+                            print("✓ Custom command argument found in browser")
+                        else:
+                            print("✗ Custom command argument not found in browser")
+
+                    time.sleep(3)
+                finally:
+                    browser.close()
+                    session.browser.destroy()
+        else:
+            print("Failed to initialize browser")
+
+        # Clean up session
+        agent_bay.delete(session)
+    else:
+        print("Failed to create session", session_result.error_message)
+
+if __name__ == "__main__":
+    main()
+```
+
 ## Go Implementation
 
 ```go
@@ -120,112 +226,6 @@ func main() {
 
 	fmt.Println("\n=== Browser Command Arguments Example Completed ===")
 }
-```
-
-## Python Implementation
-
-```python
-import os
-import asyncio
-
-from agentbay import AgentBay
-from agentbay import CreateSessionParams
-from agentbay import BrowserOption
-from playwright.async_api import async_playwright
-
-async def main():
-    # Get API key from environment variable
-    api_key = os.getenv("AGENTBAY_API_KEY")
-    if not api_key:
-        print("Error: AGENTBAY_API_KEY environment variable not set")
-        return
-
-    # Initialize AgentBay client
-    print("Initializing AgentBay client...")
-    agent_bay = AgentBay(api_key=api_key)
-
-    # Create a session
-    print("Creating a new session...")
-    params = CreateSessionParams(
-        image_id="linux_latest"
-    )
-    session_result = agent_bay.create(params)
-
-    if session_result.success:
-        session = session_result.session
-        print(f"Session created with ID: {session.session_id}")
-
-        # Create browser option with custom command arguments and default navigate URL
-        browser_option = BrowserOption(
-            cmd_args=["--disable-features=PrivacySandboxSettings4"],
-            default_navigate_url="chrome://version/",
-        )
-
-        print("Browser configuration:")
-        print("- Command arguments:", browser_option.cmd_args)
-        print("- Default navigate URL:", browser_option.default_navigate_url)
-
-        if await session.browser.initialize_async(browser_option):
-            print("Browser initialized successfully")
-            
-            # Get browser endpoint URL
-            endpoint_url = session.browser.get_endpoint_url()
-            print(f"endpoint_url = {endpoint_url}")
-
-            # Use Playwright to connect and validate
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
-                context = browser.contexts[0]
-                page = context.pages[0]
-
-                try:
-                    # Check if browser navigated to default URL
-                    print("\n--- Check Default Navigation ---")
-                    await asyncio.sleep(2)  # Wait for navigation
-                    current_url = page.url
-                    print(f"Current URL: {current_url}")
-                    
-                    if "chrome://version/" in current_url:
-                        print("✓ Browser successfully navigated to default URL")
-                    else:
-                        print("✗ Browser did not navigate to default URL")
-
-                    # Test command arguments effect by checking Chrome version page
-                    if "chrome://version/" in current_url:
-                        print("\n--- Check Chrome Version Info ---")
-                        version_info = await page.evaluate("""
-                            () => {
-                                const versionElement = document.querySelector('#version');
-                                const commandLineElement = document.querySelector('#command_line');
-                                return {
-                                    version: versionElement ? versionElement.textContent : 'Not found',
-                                    commandLine: commandLineElement ? commandLineElement.textContent : 'Not found'
-                                };
-                            }
-                        """)
-                        
-                        print(f"Chrome Version: {version_info['version']}")
-                        print(f"Command Line: {version_info['commandLine']}")
-                        
-                        if "--disable-features=PrivacySandboxSettings4" in version_info['commandLine']:
-                            print("✓ Custom command argument found in browser")
-                        else:
-                            print("✗ Custom command argument not found in browser")
-
-                    await asyncio.sleep(3)
-                finally:
-                    await browser.close()
-                    session.browser.destroy()
-        else:
-            print("Failed to initialize browser")
-
-        # Clean up session
-        agent_bay.delete(session)
-    else:
-        print("Failed to create session", session_result.error_message)
-
-if __name__ == "__main__":
-    asyncio.run(main())
 ```
 
 ## TypeScript Implementation

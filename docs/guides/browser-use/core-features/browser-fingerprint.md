@@ -26,15 +26,18 @@ Generate random fingerprints based on specified criteria such as device type, op
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption, BrowserFingerprint
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def random_fingerprint_example():
+def random_fingerprint_example():
     # Initialize AgentBay client
     api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+    
     agent_bay = AgentBay(api_key=api_key)
     
     # Create session
@@ -43,12 +46,13 @@ async def random_fingerprint_example():
     
     if session_result.success:
         session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
         
         # Configure random fingerprint
         browser_fingerprint = BrowserFingerprint(
             devices=["desktop"],
-            operating_systems=["windows", "macos"],
-            locales=["en-US", "zh-CN"]
+            operating_systems=["windows"],
+            locales=["zh-CN", "zh"]
         )
         
         # Enable stealth mode with random fingerprint
@@ -58,42 +62,47 @@ async def random_fingerprint_example():
         )
         
         # Initialize browser
-        if await session.browser.initialize_async(browser_option):
+        if session.browser.initialize(browser_option):
             endpoint_url = session.browser.get_endpoint_url()
+            print("endpoint_url =", endpoint_url)
             
             # Connect using Playwright
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
+            with sync_playwright() as p:
+                browser = p.chromium.connect_over_cdp(endpoint_url)
                 context = browser.contexts[0]
-                page = await context.new_page()
+                page = context.new_page()
                 
                 # Test fingerprint
-                await page.goto("https://httpbin.org/user-agent")
-                response = await page.evaluate("() => JSON.parse(document.body.textContent)")
-                print(f"Random User Agent: {response.get('user-agent')}")
+                print("\n--- Check User Agent ---")
+                page.goto("https://httpbin.org/user-agent")
+                response = page.evaluate("() => JSON.parse(document.body.textContent)")
+                user_agent = response.get("user-agent", "")
+                print(f"User Agent: {user_agent}")
                 
                 # Check navigator properties
-                nav_info = await page.evaluate("""
+                print("\n--- Check Navigator Properties ---")
+                nav_info = page.evaluate("""
                     () => ({
                         platform: navigator.platform,
                         language: navigator.language,
-                        hardwareConcurrency: navigator.hardwareConcurrency,
-                        deviceMemory: navigator.deviceMemory
+                        languages: navigator.languages,
+                        webdriver: navigator.webdriver
                     })
                 """)
                 
                 print(f"Platform: {nav_info.get('platform')}")
                 print(f"Language: {nav_info.get('language')}")
-                print(f"CPU Cores: {nav_info.get('hardwareConcurrency')}")
-                print(f"Device Memory: {nav_info.get('deviceMemory')} GB")
+                print(f"Languages: {nav_info.get('languages')}")
+                print(f"WebDriver: {nav_info.get('webdriver')}")
                 
-                await browser.close()
+                page.wait_for_timeout(3000)
+                browser.close()
         
         # Clean up session
         agent_bay.delete(session)
 
 if __name__ == "__main__":
-    asyncio.run(random_fingerprint_example())
+    random_fingerprint_example()
 ```
 
 #### TypeScript Example
@@ -209,29 +218,34 @@ Capture fingerprint characteristics from your local Chrome browser and apply the
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption
 from agentbay import BrowserFingerprintGenerator
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def local_sync_fingerprint_example():
+def local_sync_fingerprint_example():
     # Initialize AgentBay client
     api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+    
+    print("Initializing AgentBay client...")
     agent_bay = AgentBay(api_key=api_key)
     
     # Create session
+    print("Creating a new session...")
     params = CreateSessionParams(image_id="browser_latest")
     session_result = agent_bay.create(params)
     
     if session_result.success:
         session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
         
         # Generate fingerprint from local Chrome browser
-        print("Extracting fingerprint from local Chrome browser...")
-        fingerprint_generator = BrowserFingerprintGenerator(headless=False)
-        fingerprint_format = await fingerprint_generator.generate_fingerprint()
+        fingerprint_generator = BrowserFingerprintGenerator()
+        fingerprint_format = fingerprint_generator.generate_fingerprint()
         
         if not fingerprint_format:
             print("Failed to generate local fingerprint")
@@ -246,32 +260,53 @@ async def local_sync_fingerprint_example():
         )
         
         # Initialize browser
-        if await session.browser.initialize_async(browser_option):
+        if session.browser.initialize(browser_option):
             endpoint_url = session.browser.get_endpoint_url()
+            print("endpoint_url =", endpoint_url)
             
             # Connect using Playwright
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
+            with sync_playwright() as p:
+                browser = p.chromium.connect_over_cdp(endpoint_url)
                 context = browser.contexts[0]
-                page = await context.new_page()
+                page = context.new_page()
                 
-                # Verify fingerprint sync
-                await page.goto("https://httpbin.org/user-agent")
-                response = await page.evaluate("() => JSON.parse(document.body.textContent)")
-                remote_ua = response.get('user-agent')
-                local_ua = fingerprint_format.fingerprint.navigator.userAgent
+                # Check user agent
+                print("\n--- Check User Agent ---")
+                page.goto("https://httpbin.org/user-agent")
                 
-                print(f"Local User Agent: {local_ua}")
-                print(f"Remote User Agent: {remote_ua}")
-                print(f"Fingerprint Sync: {'✓ Success' if remote_ua == local_ua else '✗ Failed'}")
+                # Wait for page to load completely
+                page.wait_for_load_state("networkidle")
                 
-                await browser.close()
+                # Get the response text more safely
+                try:
+                    response_text = page.evaluate("() => document.body.innerText.trim()")
+                    print(f"Raw response: {response_text}")
+                    
+                    import json
+                    response = json.loads(response_text)
+                    user_agent = response.get("user-agent", "")
+                    print(f"User Agent: {user_agent}")
+                except json.JSONDecodeError as e:
+                    print(f"Failed to parse JSON response: {e}")
+                    print(f"Raw response content: {response_text}")
+                    # Fallback: try to get user agent directly
+                    user_agent = page.evaluate("() => navigator.userAgent")
+                    print(f"Fallback User Agent: {user_agent}")
+                except Exception as e:
+                    print(f"Error getting user agent: {e}")
+                    user_agent = page.evaluate("() => navigator.userAgent")
+                    print(f"Fallback User Agent: {user_agent}")
+                
+                print("Please check if User Agent is synced correctly by visiting https://httpbin.org/user-agent in local chrome browser.")
+                
+                page.wait_for_timeout(3000)
+                browser.close()
         
         # Clean up session
         agent_bay.delete(session)
 
 if __name__ == "__main__":
-    asyncio.run(local_sync_fingerprint_example())
+    local_sync_fingerprint_example()
 ```
 
 #### TypeScript Example
@@ -381,37 +416,43 @@ Load and apply custom fingerprint data from JSON files or construct fingerprints
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption
 from agentbay import FingerprintFormat
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def custom_fingerprint_example():
+def generate_fingerprint_by_file() -> FingerprintFormat:
+    """Generate fingerprint by file."""
+    with open(os.path.join(os.path.dirname(__file__), "../../resource/fingerprint.example.json"), "r") as f:
+        fingerprint_format = FingerprintFormat.load(f.read())
+    return fingerprint_format
+
+def custom_fingerprint_example():
     # Initialize AgentBay client
     api_key = os.getenv("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+    
+    print("Initializing AgentBay client...")
     agent_bay = AgentBay(api_key=api_key)
     
     # Create session
+    print("Creating a new session...")
     params = CreateSessionParams(image_id="browser_latest")
-    session_result = agent_bay.create(params)
+    try:
+        session_result = agent_bay.create(params)
+    except Exception as e:
+        print(f"Failed to create session: {e}")
+        return
     
     if session_result.success:
         session = session_result.session
+        print(f"Session created with ID: {session.session_id}")
         
-        # Load fingerprint from JSON file
-        fingerprint_file = "path/to/custom_fingerprint.json"
-        try:
-            with open(fingerprint_file, "r") as f:
-                fingerprint_format = FingerprintFormat.from_json(f.read())
-            print("Custom fingerprint loaded from file")
-        except FileNotFoundError:
-            # Fallback: Use example fingerprint data
-            print("Using example fingerprint data")
-            # You can also construct fingerprint programmatically here
-            # For demonstration, we'll use a simple approach
-            return
+        # You can generate fingerprint by file or construct FingerprintFormat by yourself totally.
+        fingerprint_format = generate_fingerprint_by_file()
         
         # Apply custom fingerprint to browser
         browser_option = BrowserOption(
@@ -420,45 +461,71 @@ async def custom_fingerprint_example():
         )
         
         # Initialize browser
-        if await session.browser.initialize_async(browser_option):
-            endpoint_url = session.browser.get_endpoint_url()
+        try:
+            browser_init_result = session.browser.initialize(browser_option)
+            if not browser_init_result:
+                print("Failed to initialize browser")
+                agent_bay.delete(session)
+                return
+        except Exception as e:
+            print(f"Failed to initialize browser: {e}")
+            agent_bay.delete(session)
+            return
+        
+        endpoint_url = session.browser.get_endpoint_url()
+        print("endpoint_url =", endpoint_url)
+        
+        # Connect using Playwright
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp(endpoint_url)
+            context = browser.contexts[0]
+            page = context.new_page()
             
-            # Connect using Playwright
-            async with async_playwright() as p:
-                browser = await p.chromium.connect_over_cdp(endpoint_url)
-                context = browser.contexts[0]
-                page = await context.new_page()
+            # Check user agent
+            print("\n--- Check User Agent ---")
+            page.goto("https://httpbin.org/user-agent")
+            
+            # Wait for page to load completely
+            page.wait_for_load_state("networkidle")
+            
+            # Get the response text more safely
+            try:
+                response_text = page.evaluate("() => document.body.innerText.trim()")
+                print(f"Raw response: {response_text}")
                 
-                # Verify custom fingerprint
-                await page.goto("https://httpbin.org/user-agent")
-                response = await page.evaluate("() => JSON.parse(document.body.textContent)")
-                remote_ua = response.get('user-agent')
-                expected_ua = fingerprint_format.fingerprint.navigator.userAgent
-                
-                print(f"Expected User Agent: {expected_ua}")
-                print(f"Remote User Agent: {remote_ua}")
-                print(f"Custom Fingerprint: {'✓ Applied' if remote_ua == expected_ua else '✗ Failed'}")
-                
-                # Test additional properties
-                screen_info = await page.evaluate("""
-                    () => ({
-                        width: screen.width,
-                        height: screen.height,
-                        colorDepth: screen.colorDepth,
-                        pixelDepth: screen.pixelDepth
-                    })
-                """)
-                
-                print(f"Screen Resolution: {screen_info.get('width')}x{screen_info.get('height')}")
-                print(f"Color Depth: {screen_info.get('colorDepth')}")
-                
-                await browser.close()
+                import json
+                response = json.loads(response_text)
+                user_agent = response.get("user-agent", "")
+                print(f"User Agent: {user_agent}")
+                assert user_agent == fingerprint_format.fingerprint.navigator.userAgent
+                print("User Agent constructed correctly")
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON response: {e}")
+                print(f"Raw response content: {response_text}")
+                # Fallback: try to get user agent directly
+                user_agent = page.evaluate("() => navigator.userAgent")
+                print(f"Fallback User Agent: {user_agent}")
+                assert user_agent == fingerprint_format.fingerprint.navigator.userAgent
+                print("User Agent constructed correctly (fallback)")
+            except Exception as e:
+                print(f"Error getting user agent: {e}")
+                user_agent = page.evaluate("() => navigator.userAgent")
+                print(f"Fallback User Agent: {user_agent}")
+                assert user_agent == fingerprint_format.fingerprint.navigator.userAgent
+                print("User Agent constructed correctly (fallback)")
+            
+            page.wait_for_timeout(3000)
+            browser.close()
         
         # Clean up session
         agent_bay.delete(session)
+    else:
+        print(f"Failed to create session: {session_result}")
+        if hasattr(session_result, 'error_message'):
+            print(f"Error message: {session_result.error_message}")
 
 if __name__ == "__main__":
-    asyncio.run(custom_fingerprint_example())
+    custom_fingerprint_example()
 ```
 
 #### TypeScript Example
@@ -582,136 +649,186 @@ Fingerprint persistence allows you to maintain consistent browser characteristic
 ```python
 import os
 import time
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams, BrowserContext
 from agentbay import BrowserOption, BrowserFingerprint, BrowserFingerprintContext
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def fingerprint_persistence_example():
-    # Initialize AgentBay client
-    api_key = os.getenv("AGENTBAY_API_KEY")
-    agent_bay = AgentBay(api_key=api_key)
+# Global variables for persistent context and fingerprint context
+persistent_context = None
+persistent_fingerprint_context = None
+
+def run_as_first_time():
+    """Run as first time"""
+    print("="*20)
+    print("Run as first time")
+    print("="*20)
+    global persistent_context, persistent_fingerprint_context
+    api_key = os.environ.get("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+
+    agent_bay = AgentBay(api_key)
+
+    # Create a browser context for first time
+    session_context_name = f"test-browser-context-{int(time.time())}"
+    context_result = agent_bay.context.get(session_context_name, True)
+    if not context_result.success or not context_result.context:
+        print("Failed to create browser context")
+        return
+
+    persistent_context = context_result.context
+    print(f"Created browser context: {persistent_context.name} (ID: {persistent_context.id})")
+
+    # Create a browser fingerprint context for first time
+    fingerprint_context_name = f"test-browser-fingerprint-{int(time.time())}"
+    fingerprint_context_result = agent_bay.context.get(fingerprint_context_name, True)
+    if not fingerprint_context_result.success or not fingerprint_context_result.context:
+        print("Failed to create fingerprint context")
+        return
     
-    # Create browser context for persistence
-    browser_context_name = f"persistent-browser-{int(time.time())}"
-    browser_context_result = agent_bay.context.get(browser_context_name, create_if_not_exists=True)
-    browser_context = BrowserContext(browser_context_result.context.id, auto_upload=True)
-    
-    # Create fingerprint context for persistence
-    fingerprint_context_name = f"persistent-fingerprint-{int(time.time())}"
-    fingerprint_context_result = agent_bay.context.get(fingerprint_context_name, create_if_not_exists=True)
-    fingerprint_context = BrowserFingerprintContext(fingerprint_context_result.context.id)
-    browser_context.fingerprint_context = fingerprint_context
-    
-    print(f"Created contexts - Browser: {browser_context.context_id}, Fingerprint: {fingerprint_context.fingerprint_context_id}")
-    
-    # === FIRST SESSION: Generate and persist fingerprint ===
-    print("\n=== First Session: Generating and persisting fingerprint ===")
-    
-    params1 = CreateSessionParams(
+    persistent_fingerprint_context = fingerprint_context_result.context
+    print(f"Created fingerprint context: {persistent_fingerprint_context.name} (ID: {persistent_fingerprint_context.id})")
+
+    # Create session with BrowserContext and FingerprintContext
+    print(f"Creating session with browser context ID: {persistent_context.id} "
+            f"and fingerprint context ID: {persistent_fingerprint_context.id}")
+    fingerprint_context = BrowserFingerprintContext(persistent_fingerprint_context.id)
+    browser_context = BrowserContext(persistent_context.id, auto_upload=True, fingerprint_context=fingerprint_context)
+    params = CreateSessionParams(
         image_id="browser_latest",
         browser_context=browser_context
     )
-    session1_result = agent_bay.create(params1)
-    
-    if session1_result.success:
-        session1 = session1_result.session
-        print(f"First session created: {session1.session_id}")
-        
-        # Configure random fingerprint with persistence
-        browser_option1 = BrowserOption(
-            use_stealth=True,
-            fingerprint_persistent=True,  # Enable persistence
-            fingerprint=BrowserFingerprint(
-                devices=["desktop"],
-                operating_systems=["windows"],
-                locales=["en-US"]
-            )
-        )
-        
-        # Initialize browser and capture fingerprint
-        if await session1.browser.initialize_async(browser_option1):
-            endpoint_url1 = session1.browser.get_endpoint_url()
-            
-            async with async_playwright() as p:
-                browser1 = await p.chromium.connect_over_cdp(endpoint_url1)
-                context1 = browser1.contexts[0]
-                page1 = await context1.new_page()
-                
-                # Capture first session fingerprint
-                await page1.goto("https://httpbin.org/user-agent")
-                response1 = await page1.evaluate("() => JSON.parse(document.body.textContent)")
-                first_user_agent = response1.get('user-agent')
-                print(f"First session User Agent: {first_user_agent}")
-                
-                await browser1.close()
-        
-        # Delete session with context sync to save fingerprint
-        agent_bay.delete(session1, sync_context=True)
-        print("First session deleted with fingerprint saved to context")
-    
-    # Wait for context sync to complete
-    await asyncio.sleep(3)
-    
-    # === SECOND SESSION: Reuse persisted fingerprint ===
-    print("\n=== Second Session: Reusing persisted fingerprint ===")
-    
-    params2 = CreateSessionParams(
-        image_id="browser_latest",
-        browser_context=browser_context  # Same context
+
+    session_result = agent_bay.create(params)
+    if not session_result.success or not session_result.session:
+        print(f"Failed to create first session: {session_result.error_message}")
+        return
+
+    session = session_result.session
+    print(f"First session created with ID: {session.session_id}")
+
+    # Initialize browser with fingerprint persistent enabled and set fingerprint generation options
+    browser_option = BrowserOption(
+        use_stealth=True,
+        fingerprint_persistent=True,
+        fingerprint=BrowserFingerprint(
+            devices=["desktop"],
+            operating_systems=["windows"],
+            locales=["zh-CN"],
+        ),
     )
-    session2_result = agent_bay.create(params2)
-    
-    if session2_result.success:
-        session2 = session2_result.session
-        print(f"Second session created: {session2.session_id}")
-        
-        # Configure browser to load persisted fingerprint
-        browser_option2 = BrowserOption(
-            use_stealth=True,
-            fingerprint_persistent=True  # Will load saved fingerprint
-            # No fingerprint parameter - will use persisted one
-        )
-        
-        # Initialize browser with persisted fingerprint
-        if await session2.browser.initialize_async(browser_option2):
-            endpoint_url2 = session2.browser.get_endpoint_url()
-            
-            async with async_playwright() as p:
-                browser2 = await p.chromium.connect_over_cdp(endpoint_url2)
-                context2 = browser2.contexts[0]
-                page2 = await context2.new_page()
-                
-                # Verify fingerprint persistence
-                await page2.goto("https://httpbin.org/user-agent")
-                response2 = await page2.evaluate("() => JSON.parse(document.body.textContent)")
-                second_user_agent = response2.get('user-agent')
-                print(f"Second session User Agent: {second_user_agent}")
-                
-                # Check if fingerprints match
-                fingerprint_persisted = first_user_agent == second_user_agent
-                print(f"Fingerprint Persistence: {'✓ Success' if fingerprint_persisted else '✗ Failed'}")
-                
-                if fingerprint_persisted:
-                    print("🎉 Fingerprint successfully persisted across sessions!")
-                
-                await browser2.close()
-        
-        # Clean up second session
-        agent_bay.delete(session2, sync_context=True)
-        print("Second session deleted")
-    
-    # Clean up contexts
-    try:
-        agent_bay.context.delete(browser_context_result.context)
-        agent_bay.context.delete(fingerprint_context_result.context)
-        print("Contexts cleaned up")
-    except Exception as e:
-        print(f"Context cleanup warning: {e}")
+    init_success = session.browser.initialize(browser_option)
+    if not init_success:
+        print("Failed to initialize browser")
+        return
+    print("First session browser initialized successfully")
+
+    # Get endpoint URL
+    endpoint_url = session.browser.get_endpoint_url()
+    if not endpoint_url:
+        print("Failed to get browser endpoint URL")
+        return
+    print(f"First session browser endpoint URL: {endpoint_url}")
+
+    # Connect with playwright, test first session fingerprint
+    print("Opening https://httpbin.org/user-agent and test user agent...")
+    with sync_playwright() as p:
+        browser = p.chromium.connect_over_cdp(endpoint_url)
+        context = browser.contexts[0] if browser.contexts else browser.new_context()
+
+        page = context.new_page()
+        page.goto("https://httpbin.org/user-agent", timeout=60000)
+        response = page.evaluate("() => JSON.parse(document.body.innerText)")
+        user_agent = response["user-agent"]
+        print("user_agent =", user_agent)
+
+        context.close()
+        print("First session browser fingerprint check completed")
+
+    # Delete first session with syncContext=True
+    print("Deleting first session with syncContext=True...")
+    delete_result = agent_bay.delete(session, sync_context=True)
+    print(f"First session deleted successfully (RequestID: {delete_result.request_id})")
+
+
+def run_as_second_time():
+    """Run as second time"""
+    print("="*20)
+    print("Run as second time")
+    print("="*20)
+    global persistent_context, persistent_fingerprint_context
+    api_key = os.environ.get("AGENTBAY_API_KEY")
+    if not api_key:
+        print("Error: AGENTBAY_API_KEY environment variable not set")
+        return
+
+    agent_bay = AgentBay(api_key)
+
+    # Create second session with same browser context and fingerprint context
+    print(f"Creating second session with same browser context ID: {persistent_context.id} "
+            f"and fingerprint context ID: {persistent_fingerprint_context.id}")
+    fingerprint_context = BrowserFingerprintContext(persistent_fingerprint_context.id)
+    browser_context = BrowserContext(persistent_context.id, auto_upload=True, fingerprint_context=fingerprint_context)
+    params = CreateSessionParams(
+        image_id="browser_latest",
+        browser_context=browser_context
+    )
+    session_result = agent_bay.create(params)
+    if not session_result.success or not session_result.session:
+        print(f"Failed to create second session: {session_result.error_message}")
+        return
+
+    session = session_result.session
+    print(f"Second session created with ID: {session.session_id}")
+
+    # Initialize browser with fingerprint persistent enabled but not specific fingerprint generation options
+    browser_option = BrowserOption(
+        use_stealth=True,
+        fingerprint_persistent=True,
+    )
+    init_success = session.browser.initialize(browser_option)
+    if not init_success:
+        print("Failed to initialize browser in second session")
+        return
+    print("Second session browser initialized successfully")
+
+    # Get endpoint URL
+    endpoint_url = session.browser.get_endpoint_url()
+    if not endpoint_url:
+        print("Failed to get browser endpoint URL in second session")
+        return
+    print(f"Second session browser endpoint URL: {endpoint_url}")
+
+    # Connect with playwright and test second session fingerprint
+    with sync_playwright() as p:
+        browser = p.chromium.connect_over_cdp(endpoint_url)
+        context = browser.contexts[0] if browser.contexts else browser.new_context()
+        page = context.new_page()
+        page.goto("https://httpbin.org/user-agent", timeout=60000)
+        response = page.evaluate("() => JSON.parse(document.body.innerText)")
+        user_agent = response["user-agent"]
+        print("user_agent =", user_agent)
+        print(f"SUCCESS: fingerprint persisted correctly!")
+
+        context.close()
+        print("Second session browser fingerprint check completed")
+
+    # Delete second session with syncContext=True
+    print("Deleting second session with syncContext=True...")
+    delete_result = agent_bay.delete(session, sync_context=True)
+    print(f"Second session deleted successfully (RequestID: {delete_result.request_id})")
+
+
+def fingerprint_persistence_example():
+    """Test browser fingerprint persist across sessions with the same browser and fingerprint context."""
+    run_as_first_time()
+    time.sleep(3)
+    run_as_second_time()
 
 if __name__ == "__main__":
-    asyncio.run(fingerprint_persistence_example())
+    fingerprint_persistence_example()
 ```
 
 ### TypeScript Example (Random Fingerprint Persistence)
@@ -947,20 +1064,26 @@ The fingerprint persistence feature works with all three generation methods:
 #### Local Sync Persistence
 ```python
 # First session: Generate from local browser and persist
+fingerprint_generator = BrowserFingerprintGenerator()
+fingerprint_format = fingerprint_generator.generate_fingerprint()
+
 browser_option = BrowserOption(
     use_stealth=True,
     fingerprint_persistent=True,
-    fingerprint_format=local_fingerprint_format  # From BrowserFingerprintGenerator
+    fingerprint_format=fingerprint_format  # From BrowserFingerprintGenerator
 )
 ```
 
 #### Custom Fingerprint Persistence
 ```python
 # First session: Load custom fingerprint and persist
+with open("path/to/fingerprint.json", "r") as f:
+    fingerprint_format = FingerprintFormat.load(f.read())
+
 browser_option = BrowserOption(
     use_stealth=True,
     fingerprint_persistent=True,
-    fingerprint_format=custom_fingerprint_format  # From JSON file or constructed
+    fingerprint_format=fingerprint_format  # From JSON file or constructed
 )
 ```
 
@@ -972,16 +1095,18 @@ browser_option = BrowserOption(
 
 ```python
 # ✅ Correct - Use the existing context
-browser = await p.chromium.connect_over_cdp(endpoint_url)
-context = browser.contexts[0]  # Use the default context
-page = await context.new_page()
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp(endpoint_url)
+    context = browser.contexts[0]  # Use the default context
+    page = context.new_page()
 ```
 
 ```python
 # ❌ Incorrect - Creating new context breaks stealth features
-browser = await p.chromium.connect_over_cdp(endpoint_url)
-context = await browser.new_context()  # Don't do this
-page = await context.new_page()
+with sync_playwright() as p:
+    browser = p.chromium.connect_over_cdp(endpoint_url)
+    context = browser.new_context()  # Don't do this
+    page = context.new_page()
 ```
 
 ### 2. Important Notice
@@ -999,9 +1124,8 @@ browser_option = BrowserOption(
     )
 )
 
-session = await agentbay.start_browser_session(
-    browser_option=browser_option
-)
+# Initialize browser with fingerprint
+session.browser.initialize(browser_option)
 ```
 
 ```python

@@ -105,17 +105,17 @@ We can use a persistent mobile simulate context id to simulate mobile devices ac
 ### Python Example
 
 ```python
-import asyncio
-from agentbay import AsyncAgentBay, AsyncMobileSimulateService
+import time
+from agentbay import AgentBay, MobileSimulateService
 from agentbay import CreateSessionParams, ExtraConfigs
 from agentbay import MobileExtraConfig, MobileSimulateMode
 
-async def main():
+def main():
     # Initialize AgentBay client
-    agent_bay = AsyncAgentBay(api_key="your_api_key")
+    agent_bay = AgentBay(api_key="your_api_key")
 
     # Step 1: Create MobileSimulateService and configure
-    simulate_service = AsyncMobileSimulateService(agent_bay)
+    simulate_service = MobileSimulateService(agent_bay)
     simulate_service.set_simulate_enable(True)
     simulate_service.set_simulate_mode(MobileSimulateMode.PROPERTIES_ONLY)
 
@@ -123,7 +123,7 @@ async def main():
     with open("mobile_info_model_a.json", "r") as f:
         mobile_info_content = f.read()
 
-    upload_result = await simulate_service.upload_mobile_info(mobile_info_content)
+    upload_result = simulate_service.upload_mobile_info(mobile_info_content)
     if not upload_result.success:
         print(f"Failed to upload: {upload_result.error_message}")
         return
@@ -141,7 +141,7 @@ async def main():
         )
     )
 
-    session_result = await agent_bay.create(params)
+    session_result = agent_bay.create(params)
     if not session_result.success or not session_result.session:
         print(f"Failed to create session: {session_result.error_message}")
         return
@@ -150,22 +150,22 @@ async def main():
     print(f"Session created with ID: {session1.session_id}")
 
     # Step 4: Wait for mobile simulate to complete
-    await asyncio.sleep(5)
+    time.sleep(5)
 
     # Step 5: Verify device simulation
-    result = await session1.command.execute_command("getprop ro.product.model")
+    result = session1.command.execute_command("getprop ro.product.model")
     if result.success:
         print(f"First session device model: {result.output.strip()}")
 
     # Step 6: Cleanup first session
-    delete_result = await agent_bay.delete(session1, sync_context=True)
+    delete_result = agent_bay.delete(session1, sync_context=True)
     if not delete_result.success:
         print(f"Failed to delete first session: {delete_result.error_message}")
         return
     print(f"First session deleted successfully (RequestID: {delete_result.request_id})")
 
     # Step 7: Create second session with the same mobile simulate context
-    simulate_service2 = AsyncMobileSimulateService(agent_bay)
+    simulate_service2 = MobileSimulateService(agent_bay)
     simulate_service2.set_simulate_enable(True)
     simulate_service2.set_simulate_mode(MobileSimulateMode.PROPERTIES_ONLY)
     simulate_service2.set_simulate_context_id(mobile_sim_context_id)
@@ -179,7 +179,7 @@ async def main():
         )
     )
 
-    session_result2 = await agent_bay.create(params2)
+    session_result2 = agent_bay.create(params2)
     if not session_result2.success or not session_result2.session:
         print(f"Failed to create session: {session_result2.error_message}")
         return
@@ -188,22 +188,22 @@ async def main():
     print(f"Second session created with ID: {session2.session_id}")
 
     # Step 8: Wait for mobile simulate to complete
-    await asyncio.sleep(5)
+    time.sleep(5)
 
     # Step 9: Verify device simulation
-    result = await session2.command.execute_command("getprop ro.product.model")
+    result = session2.command.execute_command("getprop ro.product.model")
     if result.success:
         print(f"Second session device model: {result.output.strip()}")
 
     # Step 10: Cleanup second session
-    delete_result = await agent_bay.delete(session2, sync_context=True)
+    delete_result = agent_bay.delete(session2, sync_context=True)
     if not delete_result.success:
         print(f"Failed to delete second session: {delete_result.error_message}")
         return
     print(f"Second session deleted successfully (RequestID: {delete_result.request_id})")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### TypeScript Example
@@ -389,19 +389,19 @@ For persistent device simulation across multiple sessions, use user-specific con
 ### Python Example with Context
 
 ```python
-import asyncio
-from agentbay import AsyncAgentBay, AsyncMobileSimulateService
+import time
+from agentbay import AgentBay, MobileSimulateService
 from agentbay import ContextSync, SyncPolicy, BWList, WhiteList
 from agentbay import CreateSessionParams, ExtraConfigs
 from agentbay import MobileExtraConfig, MobileSimulateMode
 
-async def main():
+def main():
     # Initialize AgentBay client
-    agent_bay = AsyncAgentBay(api_key="your_api_key")
+    agent_bay = AgentBay(api_key="your_api_key")
 
     # Step 1: Get or create user-specific context
     print("Getting a user specific context...")
-    context_result = await agent_bay.context.get("user_phone_number", create=True)
+    context_result = agent_bay.context.get("user_phone_number", create=True)
     if not context_result.success or not context_result.context:
         print(f"Failed to get context: {context_result.error_message}")
         return
@@ -425,18 +425,18 @@ async def main():
     )
 
     # Step 3: Create MobileSimulateService and configure
-    simulate_service = AsyncMobileSimulateService(agent_bay)
+    simulate_service = MobileSimulateService(agent_bay)
     simulate_service.set_simulate_enable(True)
     simulate_service.set_simulate_mode(MobileSimulateMode.PROPERTIES_ONLY)
 
     # Step 4: Check and upload mobile info if needed
     print("Checking or uploading mobile dev info file...")
-    has_mobile_info = await simulate_service.has_mobile_info(context_sync)
+    has_mobile_info = simulate_service.has_mobile_info(context_sync)
     if not has_mobile_info:
         with open("mobile_info_model_a.json", "r") as f:
             mobile_info_content = f.read()
         
-        upload_result = await simulate_service.upload_mobile_info(
+        upload_result = simulate_service.upload_mobile_info(
             mobile_info_content, 
             context_sync
         )
@@ -459,7 +459,7 @@ async def main():
     )
 
     print("Creating session...")
-    session_result = await agent_bay.create(params)
+    session_result = agent_bay.create(params)
     if not session_result.success or not session_result.session:
         print(f"Failed to create session: {session_result.error_message}")
         return
@@ -468,25 +468,25 @@ async def main():
     print(f"Session created with ID: {session.session_id}")
 
     # Step 6: Wait for mobile simulate to complete
-    await asyncio.sleep(5)
+    time.sleep(5)
 
     # Step 7: Use the session
     # Device info is automatically loaded from context
     print("Getting device model after mobile simulate...")
-    result = await session.command.execute_command("getprop ro.product.model")
+    result = session.command.execute_command("getprop ro.product.model")
     if result.success:
         print(f"Session device model: {result.output.strip()}")
 
     # Step 8: Delete session with context sync
     print("Deleting session...")
-    delete_result = await agent_bay.delete(session, sync_context=True)
+    delete_result = agent_bay.delete(session, sync_context=True)
     if not delete_result.success:
         print(f"Failed to delete session: {delete_result.error_message}")
         return
     print(f"Session deleted successfully (RequestID: {delete_result.request_id})")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### TypeScript Example with Context
@@ -734,7 +734,7 @@ properties_to_check = [
 ]
 
 for prop in properties_to_check:
-    result = await session.command.execute_command(f"getprop {prop}")
+    result = session.command.execute_command(f"getprop {prop}")
     if result.success:
         print(f"{prop}: {result.output.strip()}")
 ```
@@ -744,24 +744,24 @@ for prop in properties_to_check:
 Always implement proper error handling:
 
 ```python
-import asyncio
+import time
 
-async def main():
+def main():
     session = None
 
     try:
         # Create and configure simulate service
-        simulate_service = AsyncMobileSimulateService(agent_bay)
+        simulate_service = MobileSimulateService(agent_bay)
         simulate_service.set_simulate_enable(True)
         simulate_service.set_simulate_mode(MobileSimulateMode.PROPERTIES_ONLY)
         
         # Upload mobile info
-        upload_result = await simulate_service.upload_mobile_info(mobile_info_content)
+        upload_result = simulate_service.upload_mobile_info(mobile_info_content)
         if not upload_result.success:
             raise Exception(f"Upload failed: {upload_result.error_message}")
         
         # Create session
-        session_result = await agent_bay.create(params)
+        session_result = agent_bay.create(params)
         if not session_result.success or not session_result.session:
             raise Exception(f"Session creation failed: {session_result.error_message}")
         
@@ -774,14 +774,14 @@ async def main():
     finally:
         if session:
             try:
-                delete_result = await agent_bay.delete(session, sync_context=True)
+                delete_result = agent_bay.delete(session, sync_context=True)
                 if not delete_result.success:
                     print(f"Failed to delete session: {delete_result.error_message}")
             except Exception as e:
                 print(f"Cleanup error: {e}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### 6. Resource Cleanup
@@ -791,7 +791,7 @@ Always clean up resources properly:
 ```python
 # Clean up sessions
 try:
-    delete_result = await agent_bay.delete(session, sync_context=True)
+    delete_result = agent_bay.delete(session, sync_context=True)
     if not delete_result.success:
         print(f"Failed to delete session: {delete_result.error_message}")
 except Exception as e:

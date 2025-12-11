@@ -21,19 +21,26 @@ Monitor Call For User events through console messages to implement custom handli
 ```python
 def handle_console(msg):
     print(f"🔍 Received console message: {msg.text}")
+    
     # Parse JSON message
     try:
         message_data = json.loads(msg.text)
         message_type = message_data.get('type', '')
+        print(f"📋 Parsed message type: {message_type}")
     except (json.JSONDecodeError, AttributeError):
         # If not JSON, treat as plain text
         message_type = msg.text
+        print(f"📋 Plain text message: {message_type}")
 
     if message_type == "wuying-call-for-user":
+        print("📞 Received wuying-call-for-user message")
+        print(f"session resource url is {info.resource_url}")
         # Open browser for user interaction
         import webbrowser
+        print("🌐 Opening browser with session resource URL...")
         webbrowser.open(info.resource_url)
         # Wait for user to complete interaction
+        print("⏳ Starting 20 second wait for user interaction...")
         time.sleep(20)
 
 page.on("console", handle_console)
@@ -43,43 +50,98 @@ page.on("console", handle_console)
 
 When a Call For User event is triggered, the recommended flow is:
 
-1. **Parse the console message** to identify the message type
-2. **Open the session resource URL** in a browser for user interaction
-3. **Allow the user to interact** with the browser to complete the required action
-4. **Wait for completion** (typically 20-30 seconds)
-5. **Continue with automation** flow
+1. **Parse the console message** to identify the message type (JSON or plain text)
+2. **Detect the "wuying-call-for-user" message** from the parsed message type
+3. **Open the session resource URL** in a browser for user interaction
+4. **Allow the user to interact** with the browser to complete the required action
+5. **Wait for completion** (typically 20-30 seconds using `time.sleep()`)
+6. **Continue with automation** flow after user completes the interaction
 
-## Configuration
+## Complete Example
 
-The Call For User feature works automatically with any browser session. No special configuration is required:
+Here's a complete example demonstrating the Call For User feature:
 
 ```python
+import os
+import time
+import json
+from agentbay import AgentBay, CreateSessionParams, BrowserOption
+from playwright.sync_api import sync_playwright
+
+# Get API key from environment variable
+api_key = os.getenv("AGENTBAY_API_KEY")
+agent_bay = AgentBay(api_key=api_key)
+
+# Create a session
 params = CreateSessionParams(
-    image_id="browser_latest",  # Specify the image ID
+    image_id="browser_latest",
 )
 session_result = agent_bay.create(params)
 
 if session_result.success:
     session = session_result.session
     print(f"Session created with ID: {session.session_id}")
-
-    # Get session info to access resource URL
-    result = session.info()
-    info = result.data
-    print(f"session resource url is {info.resource_url}")
-
-    # Call For User is automatically enabled
-    if await session.browser.initialize_async(BrowserOption()):
+    
+    if session.browser.initialize(BrowserOption()):
         print("Browser initialized successfully")
+        endpoint_url = session.browser.get_endpoint_url()
+        
+        # Get session info to access resource URL
+        result = session.info()
+        info = result.data
+        print(f"session resource url is {info.resource_url}")
+
+        with sync_playwright() as p:
+            browser = p.chromium.connect_over_cdp(endpoint_url)
+            context = browser.contexts[0]
+            page = context.new_page()
+            
+            # Navigate to target site
+            page.goto("https://www.jd.com/")
+
+            # Listen for console messages
+            def handle_console(msg):
+                print(f"🔍 Received console message: {msg.text}")
+                
+                # Parse JSON message
+                try:
+                    message_data = json.loads(msg.text)
+                    message_type = message_data.get('type', '')
+                    print(f"📋 Parsed message type: {message_type}")
+                except (json.JSONDecodeError, AttributeError):
+                    # If not JSON, treat as plain text
+                    message_type = msg.text
+                    print(f"📋 Plain text message: {message_type}")
+
+                if message_type == "wuying-call-for-user":
+                    print("📞 Received wuying-call-for-user message")
+                    print(f"session resource url is {info.resource_url}")
+                    import webbrowser
+                    print("🌐 Opening browser with session resource URL...")
+                    webbrowser.open(info.resource_url)
+                    print("⏳ Starting 20 second wait for user interaction...")
+                    time.sleep(20)
+
+            page.on("console", handle_console)
+
+            # Trigger login action that may require user intervention
+            time.sleep(5)
+            page.click('.link-login')
+            time.sleep(25)
+            
+            print("Test completed")
+            browser.close()
 ```
 
 ## Usage Tips
 
-- **Monitor console events** to detect when user intervention is needed
-- **Implement proper waiting** mechanisms (20-30 seconds) for user interaction
-- **Handle URL escaping** for special characters in resource URLs
-- **Provide clear feedback** to users about what action is required
+- **Monitor console events** using `page.on("console", handle_console)` to detect when user intervention is needed
+- **Parse both JSON and plain text** messages to handle different message formats
+- **Use `webbrowser.open()`** to open the session resource URL in the user's default browser
+- **Implement proper waiting** mechanisms using `time.sleep(20)` (20-30 seconds) for user interaction
+- **Provide clear feedback** with print statements to inform users about what action is required
 - **Plan for user interaction time** in your automation workflows
+- **Connect via CDP protocol** using Playwright's `connect_over_cdp()` method for browser control
 
 
 ## 📚 Related Guides
