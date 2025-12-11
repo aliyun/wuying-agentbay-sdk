@@ -15,12 +15,12 @@ class TestAsyncOss(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_env_init_success(self):
-        # Create a mock OperationResult
+    async def test_env_init_success_parses_json_string(self):
+        # Create a mock OperationResult with JSON string data
         mock_result = McpToolResult(
             request_id="test-request-id",
             success=True,
-            data="Set oss config successfully",
+            data='{"region":"cn-hangzhou","endpoint":"https://oss-cn-hangzhou.aliyuncs.com"}',
             error_message="",
         )
         self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
@@ -31,8 +31,48 @@ class TestAsyncOss(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "test-request-id")
-        self.assertEqual(result.client_config, "Set oss config successfully")
+        self.assertEqual(
+            result.client_config,
+            {"region": "cn-hangzhou", "endpoint": "https://oss-cn-hangzhou.aliyuncs.com"},
+        )
         self.assertEqual(result.error_message, "")
+
+    @pytest.mark.asyncio
+
+
+    async def test_env_init_success_passes_through_dict(self):
+        mock_result = McpToolResult(
+            request_id="test-request-id",
+            success=True,
+            data={"foo": "bar"},
+            error_message="",
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        result = await self.oss.env_init("key_id", "key_secret", "security_token")
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.client_config, {"foo": "bar"})
+
+    @pytest.mark.asyncio
+
+
+    async def test_env_init_parse_error(self):
+        # Successful call but with invalid JSON content
+        mock_result = McpToolResult(
+            request_id="test-request-id",
+            success=True,
+            data="{invalid-json",
+            error_message="",
+        )
+        self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
+
+        result = await self.oss.env_init("key_id", "key_secret", "security_token")
+
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "test-request-id")
+        self.assertEqual(result.client_config, {})
+        self.assertIn("Failed to parse client configuration", result.error_message)
 
     @pytest.mark.asyncio
 

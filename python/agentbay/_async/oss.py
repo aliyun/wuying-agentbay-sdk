@@ -181,18 +181,25 @@ class AsyncOss(AsyncBaseService):
                 _logger.debug(f"📥 Response: {result}")
 
             if result.success:
+                client_config_raw = result.data
                 try:
-                    client_config = result.data
+                    if isinstance(client_config_raw, str):
+                        client_config = json.loads(client_config_raw)
+                    elif client_config_raw is None:
+                        client_config = {}
+                    else:
+                        client_config = client_config_raw
                     return OSSClientResult(
                         request_id=result.request_id,
                         success=True,
                         client_config=client_config,
                     )
-                except json.JSONDecodeError:
+                except Exception as e:
                     return OSSClientResult(
                         request_id=result.request_id,
                         success=False,
-                        error_message="Failed to parse client configuration JSON",
+                        client_config={},
+                        error_message=f"Failed to parse client configuration JSON: {e}",
                     )
             else:
                 return OSSClientResult(
