@@ -120,6 +120,8 @@ finally:
 
 This quickstart uses synchronous API for simplicity. If you're building a web app or need high concurrency, check out:
 
+- 📖 **[Async API Guide](../guides/common-features/basics/session-management.md#asynchronous-api)** - Complete async patterns and examples
+
 ---
 
 ## 🚀 Next Steps

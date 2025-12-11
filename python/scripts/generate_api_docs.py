@@ -41,10 +41,14 @@ DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("sync/agent.md", "Agent", ("agentbay._sync.agent",)),
     DocMapping("sync/oss.md", "OSS", ("agentbay._sync.oss",)),
     DocMapping("sync/browser.md", "Browser", ("agentbay._sync.browser",)),
+    DocMapping("sync/browser-agent.md", "BrowserAgent", ("agentbay._sync.browser_agent",)),
     DocMapping("sync/extension.md", "Extension", ("agentbay._sync.extension",)),
     DocMapping("sync/code.md", "Code", ("agentbay._sync.code",)),
     DocMapping("sync/computer.md", "Computer", ("agentbay._sync.computer",)),
     DocMapping("sync/mobile.md", "Mobile", ("agentbay._sync.mobile",)),
+    DocMapping("sync/fingerprint.md", "BrowserFingerprint", ("agentbay._sync.fingerprint",)),
+    DocMapping("sync/mobile-simulate.md", "MobileSimulate", ("agentbay._sync.mobile_simulate",)),
+    DocMapping("sync/session-params.md", "SessionParams", ("agentbay._sync.session_params",)),
 )
 
 # Async API docs
@@ -58,10 +62,14 @@ ASYNC_DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("async/async-agent.md", "AsyncAgent", ("agentbay._async.agent",)),
     DocMapping("async/async-oss.md", "AsyncOss", ("agentbay._async.oss",)),
     DocMapping("async/async-browser.md", "AsyncBrowser", ("agentbay._async.browser",)),
+    DocMapping("async/async-browser-agent.md", "AsyncBrowserAgent", ("agentbay._async.browser_agent",)),
     DocMapping("async/async-extension.md", "AsyncExtension", ("agentbay._async.extension",)),
     DocMapping("async/async-code.md", "AsyncCode", ("agentbay._async.code",)),
     DocMapping("async/async-computer.md", "AsyncComputer", ("agentbay._async.computer",)),
     DocMapping("async/async-mobile.md", "AsyncMobile", ("agentbay._async.mobile",)),
+    DocMapping("async/async-fingerprint.md", "AsyncBrowserFingerprint", ("agentbay._async.fingerprint",)),
+    DocMapping("async/async-mobile-simulate.md", "AsyncMobileSimulate", ("agentbay._async.mobile_simulate",)),
+    DocMapping("async/async-session-params.md", "AsyncSessionParams", ("agentbay._async.session_params",)),
 )
 
 # Common/Shared docs (Config, Exceptions, etc.)
@@ -71,6 +79,9 @@ COMMON_DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("common/logging.md", "Logging", ("agentbay._common.logger",)),
     DocMapping("common/context-sync.md", "Context Sync", ("agentbay._common.params.context_sync",)),
     DocMapping("common/code-models.md", "Code Execution Models", ("agentbay._common.models.code",)),
+    DocMapping("common/browser-models.md", "Browser Models", ("agentbay._common.models.browser",)),
+    DocMapping("common/response-models.md", "Response Models", ("agentbay._common.models.response",)),
+    DocMapping("common/browser-agent-models.md", "Browser Agent Models", ("agentbay._common.models.browser_agent",)),
 )
 
 

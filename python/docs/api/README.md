@@ -36,10 +36,14 @@ All synchronous API classes are in the `sync/` directory:
 - [Agent](sync/agent.md) - `agentbay.agent`
 - [OSS](sync/oss.md) - `agentbay.oss`
 - [Browser](sync/browser.md) - `agentbay.browser`
+- [BrowserAgent](sync/browser-agent.md) - `agentbay.browser_agent`
 - [Extension](sync/extension.md) - `agentbay.extension`
 - [Code](sync/code.md) - `agentbay.code`
 - [Computer](sync/computer.md) - `agentbay.computer`
 - [Mobile](sync/mobile.md) - `agentbay.mobile`
+- [BrowserFingerprint](sync/fingerprint.md) - `agentbay.fingerprint`
+- [MobileSimulate](sync/mobile-simulate.md) - `agentbay.mobile_simulate`
+- [SessionParams](sync/session-params.md) - `agentbay.session_params`
 
 ## Asynchronous API
 
@@ -54,10 +58,14 @@ All asynchronous API classes are in the `async/` directory:
 - [AsyncAgent](async/async-agent.md) - `agentbay.agent`
 - [AsyncOss](async/async-oss.md) - `agentbay.oss`
 - [AsyncBrowser](async/async-browser.md) - `agentbay.browser`
+- [AsyncBrowserAgent](async/async-browser-agent.md) - `agentbay.browser_agent`
 - [AsyncExtension](async/async-extension.md) - `agentbay.extension`
 - [AsyncCode](async/async-code.md) - `agentbay.code`
 - [AsyncComputer](async/async-computer.md) - `agentbay.computer`
 - [AsyncMobile](async/async-mobile.md) - `agentbay.mobile`
+- [AsyncBrowserFingerprint](async/async-fingerprint.md) - `agentbay.fingerprint`
+- [AsyncMobileSimulate](async/async-mobile-simulate.md) - `agentbay.mobile_simulate`
+- [AsyncSessionParams](async/async-session-params.md) - `agentbay.session_params`
 
 ## Common Classes
 
@@ -68,6 +76,9 @@ Shared classes used by both sync and async APIs are in the `common/` directory:
 - [Logging](common/logging.md) - `agentbay._common.logger`
 - [Context Sync](common/context-sync.md) - `agentbay._common.params.context_sync`
 - [Code Execution Models](common/code-models.md) - `agentbay._common.models.code`
+- [Browser Models](common/browser-models.md) - `agentbay._common.models.browser`
+- [Response Models](common/response-models.md) - `agentbay._common.models.response`
+- [Browser Agent Models](common/browser-agent-models.md) - `agentbay._common.models.browser_agent`
 
 ---
 
