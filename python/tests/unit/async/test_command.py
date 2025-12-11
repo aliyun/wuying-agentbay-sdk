@@ -134,8 +134,8 @@ class TestAsyncCommand(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.stderr, "cat: /nonexistent_file_12345: 没有那个文件或目录\n")
         self.assertEqual(result.trace_id, "77f9ba80cfac79d39872942b3b4485f2")
         self.assertEqual(result.output, "cat: /nonexistent_file_12345: 没有那个文件或目录\n")  # stdout + stderr
-        self.assertEqual(result.error_message, "Command execution failed")
-        self.assertEqual(result.output, "")
+        # error_message should be stderr when JSON is parsed successfully
+        self.assertEqual(result.error_message, "cat: /nonexistent_file_12345: 没有那个文件或目录\n")
 
     @pytest.mark.asyncio
 
