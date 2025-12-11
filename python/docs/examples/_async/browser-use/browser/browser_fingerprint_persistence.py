@@ -6,6 +6,7 @@ across sessions using the same ContextId and FingerprintContextId.
 """
 
 import asyncio
+import json
 import os
 import time
 import unittest
@@ -125,7 +126,14 @@ async def run_as_first_time():
 
             page = await context.new_page()
             await page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = await page.evaluate("() => JSON.parse(document.body.innerText)")
+
+            response_text = await page.inner_text("body")
+            try:
+                response = json.loads(response_text)
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON: {e}")
+                return
+
             user_agent = response["user-agent"]
             print("user_agent =", user_agent)
             is_windows = is_windows_user_agent(user_agent)
@@ -178,7 +186,7 @@ async def run_as_second_time():
 
     # Get browser object and check if second session fingerprint is the same as first session
     async def second_session_operations():
-        # Initialize browser with fingerprint persistent enabled but not specific fingerprint generation options
+    # Initialize browser with fingerprint persistent enabled but not specific fingerprint generation options
         browser_option = BrowserOption(
             use_stealth=True,
             fingerprint_persistent=True,
@@ -202,7 +210,14 @@ async def run_as_second_time():
             context = browser.contexts[0] if browser.contexts else await browser.new_context()
             page = await context.new_page()
             await page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = await page.evaluate("() => JSON.parse(document.body.innerText)")
+            
+            response_text = await page.inner_text("body")
+            try:
+                response = json.loads(response_text)
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON: {e}")
+                return
+
             user_agent = response["user-agent"]
             print("user_agent =", user_agent)
             is_windows = is_windows_user_agent(user_agent)

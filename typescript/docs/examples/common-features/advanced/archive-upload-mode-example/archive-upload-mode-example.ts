@@ -1,4 +1,4 @@
-import { AgentBay, CreateSessionParams, Session, newContextSync, newSyncPolicy, FileSystem } from "wuying-agentbay-sdk";
+import { AgentBay, CreateSessionParams, Session, newContextSync, newSyncPolicy, FileSystem, UploadMode } from "wuying-agentbay-sdk";
 
 /**
  * Archive Upload Mode Context Sync Example
@@ -57,10 +57,9 @@ async function archiveUploadModeExample(): Promise<void> {
     // Step 2: Configure sync policy with Archive upload mode
     console.log("\n⚙️  Step 2: Configuring sync policy with Archive upload mode...");
     const syncPolicy = newSyncPolicy();
-    syncPolicy.uploadPolicy!.uploadMode = "Archive"; // Set to Archive mode
-    
-    console.log(`✅ Sync policy configured with uploadMode: ${syncPolicy.uploadPolicy!.uploadMode}`);
+    syncPolicy.uploadPolicy!.uploadMode = UploadMode.Archive;
 
+    console.log(`✅ Sync policy configured with uploadMode: ${syncPolicy.uploadPolicy!.uploadMode}`);
     // Step 3: Create context sync configuration
     console.log("\n🔧 Step 3: Creating context sync configuration...");
     const contextSync = newContextSync(
@@ -173,7 +172,7 @@ async function archiveUploadModeExample(): Promise<void> {
     console.log("\n🎉 Archive upload mode example completed successfully!");
     console.log("✅ All operations completed without errors.");
 
-  } catch (error) {
+   } catch (error) {
     console.error("\n❌ Error occurred during example execution:");
     console.error(error);
   } finally {

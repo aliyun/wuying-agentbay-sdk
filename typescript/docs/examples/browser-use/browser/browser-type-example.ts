@@ -66,7 +66,7 @@ async function testBrowserType(
     console.log('   ✓ Browser initialized successfully');
 
     // Get endpoint URL
-    const endpointUrl = session.browser.getEndpointUrl();
+    const endpointUrl = await session.browser.getEndpointUrl();
     console.log(`\n3. CDP endpoint: ${String(endpointUrl).substring(0, 50)}...`);
 
     // Connect Playwright and verify browser
@@ -179,7 +179,7 @@ async function quickExample(): Promise<void> {
       console.log('✓ Chrome browser initialized successfully');
 
       // Get endpoint and use with Playwright
-      const endpointUrl = session.browser.getEndpointUrl();
+      const endpointUrl = await session.browser.getEndpointUrl();
       const browser = await chromium.connectOverCDP(endpointUrl);
       const page = await browser.contexts()[0].newPage();
 
@@ -263,4 +263,3 @@ main()
     console.error('Error:', error.message);
     process.exit(1);
   });
-

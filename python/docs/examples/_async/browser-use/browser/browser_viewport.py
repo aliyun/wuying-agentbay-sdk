@@ -1,22 +1,10 @@
-"""
-Example demonstrating Browser Stealth mode with AgentBay SDK.
-
-This example shows how to initialize the browser with custom viewport and user-agent settings:
-- Create AIBrowser session with custom viewport and user-agent.
-- Use playwright to connect to AIBrowser instance through CDP protocol
-- Verify custom viewport and screen size
-- Verify custom user agent
-"""
-
 import os
 import asyncio
-
 from agentbay import AsyncAgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption, BrowserViewport, BrowserScreen
-
 from playwright.async_api import async_playwright
-
+import json
 
 async def main():
     """Main function demonstrating stealth mode."""
@@ -41,7 +29,7 @@ async def main():
         session = session_result.session
         print(f"Session created with ID: {session.session_id}")
 
-        """Create browser option with viewport and user-agent."""
+        # Create browser option with viewport and user-agent.
         browser_option = BrowserOption(
             user_agent="Mozilla/5.0 (Mocked Windows Desktop)",
             viewport=BrowserViewport(width=1920, height=1080),
@@ -80,21 +68,21 @@ async def main():
                     }
                 """)
                 print(f"Screen Info: {window_info.get('screen')}")
-                
+
                 # Check custom user agent.
                 print("\n--- Check User Agent ---")
-                await page.goto("https://httpbin.org/user-agent")
-                
-                # Wait for page to load completely
-                await page.wait_for_load_state('networkidle')
-                
-                # Get the text content and try to parse it as JSON
                 try:
+                    # Increase the timeout to 60 seconds
+                    await page.goto("https://httpbin.org/user-agent", timeout=60000)
+                    
+                    # Wait for page to load completely
+                    await page.wait_for_load_state('networkidle')
+                    
+                    # Get the text content and try to parse it as JSON
                     body_text = await page.evaluate("() => document.body.textContent")
                     print(f"Raw body content: {body_text}")
                     
                     # Try to extract JSON from the text
-                    import json
                     response = json.loads(body_text.strip())
                     user_agent = response.get("user-agent", "")
                     print(f"User Agent: {user_agent}")
@@ -103,13 +91,14 @@ async def main():
                     print("Falling back to get user agent from navigator")
                     user_agent = await page.evaluate("() => navigator.userAgent")
                     print(f"User Agent: {user_agent}")
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
                 await page.wait_for_timeout(3000)
                 await browser.close()
 
         # Clean up session
         await agent_bay.delete(session)
-    
 
 if __name__ == "__main__":
     asyncio.run(main())

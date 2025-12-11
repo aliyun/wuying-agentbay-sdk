@@ -92,7 +92,7 @@ async def main():
         print(f"Request ID: {filtered_result.request_id}")
         for i, session_id in enumerate(session_ids):
             print(f"Matching session {i + 1} ID: {session_id}")
-            session_result = agent_bay.get(session_id)
+            session_result = await agent_bay.get(session_id)
             if session_result.success:
                 labels_result = await session_result.session.get_labels()
                 print(f"Labels: {labels_result.data}")
