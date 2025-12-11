@@ -88,26 +88,27 @@ func main() {
 ### Python
 
 ```python
-from agentbay import AgentBay
 from agentbay import (
+    AgentBay,
     MappingPolicy,
     SyncPolicy,
     UploadPolicy,
     DownloadPolicy,
     DeletePolicy,
-    ExtractPolicy
+    ExtractPolicy,
+    ContextSync,
+    CreateSessionParams,
 )
-from agentbay import CreateSessionParams
 
 # Initialize AgentBay client
 ab = AgentBay("your-api-key")
 
-# Get or create a context
-context_result = ab.context.get("my-cross-platform-context", create_if_not_exists=True)
+# Get or create a context (use create=True to auto-create)
+context_result = ab.context.get(name="my-cross-platform-context", create=True)
 context = context_result.context
 
 # Define the original Windows path and target Linux path
-windows_path = "c:\\Users\\Administrator\\Downloads"
+windows_path = r"c:\Users\Administrator\Downloads"
 linux_path = "/home/wuying/下载"
 
 # Create mapping policy with the original Windows path
@@ -119,13 +120,17 @@ sync_policy = SyncPolicy(
     download_policy=DownloadPolicy(),
     delete_policy=DeletePolicy(),
     extract_policy=ExtractPolicy(),
-    mapping_policy=mapping_policy
+    mapping_policy=mapping_policy,
 )
 
-# Create session with context sync
-session_params = CreateSessionParams()
-session_params.add_context_sync(context.id, linux_path, sync_policy)
-session_params.with_image_id("linux_latest")
+# Build context sync config
+context_sync = ContextSync.new(context.id, linux_path, sync_policy)
+
+# Create session with context sync and target image
+session_params = CreateSessionParams(
+    image_id="linux_latest",
+    context_syncs=[context_sync],
+)
 
 # Create session
 session_result = ab.create(session_params)

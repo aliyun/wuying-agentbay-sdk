@@ -294,7 +294,7 @@ if result.success:
 
 ## Getting Session Information
 
-The `info()` method provides detailed information about a session, including direct browser access URLs and SDK integration credentials. This API serves two primary purposes:
+The `info()` method provides detailed information about a session, including direct browser access URLs and SDK integration credentials. This API serves three primary purposes:
 
 1. **Cloud Environment Access**: Get the `resource_url` to directly access the cloud environment in a web browser with real-time video streaming and full mouse/keyboard control
 2. **Session Status Validation**: Check if a session is still active and hasn't been released
