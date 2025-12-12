@@ -28,6 +28,14 @@ function runWithFallback(binName, pkgSpecifier, args, options = {}) {
   const localBinary = resolveLocalBinary(binName)
 
   if (localBinary) {
+    // On Windows, use cmd.exe to execute .cmd files to avoid EINVAL errors
+    if (process.platform === 'win32' && localBinary.endsWith('.cmd')) {
+      return spawnSync('cmd.exe', ['/c', localBinary, ...args], {
+        stdio: 'inherit',
+        ...options,
+      })
+    }
+    
     return spawnSync(localBinary, args, {
       stdio: 'inherit',
       ...options,

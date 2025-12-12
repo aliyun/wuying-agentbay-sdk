@@ -4,9 +4,10 @@ import { GetAdbLinkRequest } from "../../src/api/models/model";
 
 describe("GetAdbLink Integration Test", () => {
   let agentBay: AgentBay;
+  let apiKey : string ;
 
   beforeAll(() => {
-    const apiKey = process.env.AGENTBAY_API_KEY;
+    apiKey = process.env.AGENTBAY_API_KEY as string;
     if (!apiKey) {
       throw new Error("AGENTBAY_API_KEY environment variable not set");
     }
@@ -28,7 +29,7 @@ describe("GetAdbLink Integration Test", () => {
       const options = JSON.stringify({ adbkey_pub: "test-adb-public-key" });
 
       const request = new GetAdbLinkRequest({
-        authorization: `Bearer ${agentBay.apiKey}`,
+        authorization: `Bearer ${apiKey}`,
         sessionId: session.sessionId,
         option: options,
       });
@@ -61,7 +62,7 @@ describe("GetAdbLink Integration Test", () => {
   it("should throw error with invalid session ID", async () => {
     const options = JSON.stringify({ adbkey_pub: "test-key" });
     const request = new GetAdbLinkRequest({
-      authorization: `Bearer ${agentBay.apiKey}`,
+      authorization: `Bearer ${apiKey}`,
       sessionId: "invalid-session-id-12345",
       option: options,
     });

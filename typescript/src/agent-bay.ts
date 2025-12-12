@@ -82,7 +82,7 @@ export interface CreateSeesionWithParams {
  * Main class for interacting with the AgentBay cloud runtime environment.
  */
 export class AgentBay {
-  public apiKey: string;
+  private apiKey: string;
   public client: Client;
   private endpoint: string;
   private fileTransferContext: Context | null = null;
