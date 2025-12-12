@@ -32,8 +32,8 @@ def setup(cls,
 Setup the logger with custom configuration.
 
 This method should be called early in your application, before any logging occurs.
-By default, it will not reinitialize if already configured. Use force_reinit=True
-to override existing configuration.
+By default, force_reinit is True so the logger will be reinitialized on each call.
+Set force_reinit=False to keep an existing configuration.
 
 **Arguments**:
 
@@ -181,7 +181,7 @@ log = get_logger("agentbay")
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

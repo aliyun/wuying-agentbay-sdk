@@ -6,35 +6,29 @@
  * - Utilize PageUseAgent to run 2048 game
  */
 
-import { AgentBay, CreateSessionParams } from 'wuying-agentbay-sdk';
-import { BrowserOption, ExtractOptions, ActOptions } from 'wuying-agentbay-sdk/dist/browser';
-// import { chromium } from 'playwright';
+import { AgentBay, CreateSessionParams } from "wuying-agentbay-sdk";
+import { BrowserOption, ExtractOptions } from "wuying-agentbay-sdk";
+import { z } from "zod";
 
-class GameState {
-  score?: number;
-  highestTile?: number;
-  grid: number[][] = [];
-}
-
-class MoveAnalysis {
-  move?: number;
-  confidence: number = 0;
-  reasoning: string = "";
-}
+const GameStateSchema = z.object({
+  score: z.number().optional(),
+  highestTile: z.number().optional(),
+  grid: z.array(z.array(z.number())),
+});
 
 function transposeGrid(grid: number[][]): number[][] {
   if (!grid || grid.length === 0) {
     return [];
   }
-  return grid[0].map((_, colIndex) => grid.map(row => row[colIndex]));
+  return grid[0].map((_, colIndex) => grid.map((row) => row[colIndex]));
 }
 
 function formatGridForLlmInstruction(gridData: number[][]): string {
   const formattedRows: string[] = [];
   for (let i = 0; i < gridData.length; i++) {
-    formattedRows.push(`row${i + 1}: [${gridData[i].join(', ')}]`);
+    formattedRows.push(`row${i + 1}: [${gridData[i].join(", ")}]`);
   }
-  return formattedRows.join('\n');
+  return formattedRows.join("\n");
 }
 
 async function main() {
@@ -66,17 +60,17 @@ async function main() {
       console.log("endpoint_url =", endpointUrl);
 
       // Note: Install playwright with: npm install playwright
-      const { chromium } = require('playwright');
+      const { chromium } = require("playwright");
       const browser = await chromium.connectOverCDP(endpointUrl);
       let page = null;
 
       try {
-        const context = browser.contexts()[0]
+        const context = browser.contexts()[0];
         page = await context.newPage();
         console.log("🌐 Navigating to 2048...");
         await page.goto("https://ovolve.github.io/2048-AI/", {
           waitUntil: "domcontentloaded",
-          timeout: 180000
+          timeout: 180000,
         });
         console.log("🌐 Navigated to 2048 done");
         await page.waitForSelector(".grid-container", { timeout: 10000 });
@@ -87,11 +81,11 @@ async function main() {
 
         while (true) {
           console.log("🔄 Game loop iteration...");
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, 300));
 
           // Get current game state
           console.log("📊 Extracting game state...");
-          const gameStateOptions: ExtractOptions<GameState> = {
+          const gameStateOptions: ExtractOptions<typeof GameStateSchema> = {
             instruction: `
               Extract the current game state:
               1. Score from the score counter
@@ -105,20 +99,25 @@ async function main() {
                  For instance, if the only tiles present are the two above, the grid should be:[[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
               3. Highest tile value present
             `,
-            schema: GameState,
-            use_text_extract: false
-
+            schema: GameStateSchema,
+            use_text_extract: false,
           };
 
-          const [success, gameStates] = await session.browser.agent.extract(gameStateOptions, page);
-          if (success && gameStates.length > 0) {
-            const gameState = gameStates[0];
+          const [success, gameState] = await session.browser.agent.extract(
+            gameStateOptions,
+            page
+          );
+          if (success && gameState) {
             const transposedGrid = transposeGrid(gameState.grid);
             console.log(`transposed grid: ${JSON.stringify(transposedGrid)}`);
             console.log(`gameState: ${JSON.stringify(gameState)}`);
             const gridInstruction = formatGridForLlmInstruction(transposedGrid);
 
-            if (lastTransposedGrid !== null && JSON.stringify(transposedGrid) === JSON.stringify(lastTransposedGrid)) {
+            if (
+              lastTransposedGrid !== null &&
+              JSON.stringify(transposedGrid) ===
+                JSON.stringify(lastTransposedGrid)
+            ) {
               transposedGridNotChangedTimes += 1;
             } else {
               transposedGridNotChangedTimes = 0;
@@ -144,22 +143,33 @@ async function main() {
 
             if (transposedGridNotChangedTimes >= 1) {
               instructionStr += `
-                9. Do not generate move value in ${JSON.stringify(lastMoveHistory)}
-                10. If last move value ${lastMoveHistory[lastMoveHistory.length - 1]} moves up or down, then generate move value with left or right direction, otherwise generate move value with up or down direction
+                9. Do not generate move value in ${JSON.stringify(
+                  lastMoveHistory
+                )}
+                10. If last move value ${
+                  lastMoveHistory[lastMoveHistory.length - 1]
+                } moves up or down, then generate move value with left or right direction, otherwise generate move value with up or down direction
               `;
             }
 
-            const nextMoveOptions: ExtractOptions<MoveAnalysis> = {
+            const nextMoveOptions: ExtractOptions<any> = {
               instruction: instructionStr,
-              schema: MoveAnalysis,
-              use_text_extract: false
+              schema: z.object({
+                move: z.number().optional(),
+                confidence: z.number().optional(),
+                reasoning: z.string().optional(),
+              }),
+              use_text_extract: false,
             };
 
-            const [moveSuccess, nextMove] = await session.browser.agent.extract(nextMoveOptions, page);
+            const [moveSuccess, nextMove] = await session.browser.agent.extract(
+              nextMoveOptions,
+              page
+            );
             let selectedMove = 4; // Default to no move
 
-            if (moveSuccess && nextMove.length > 0) {
-              selectedMove = nextMove[0].move ?? 4;
+            if (moveSuccess && nextMove && typeof nextMove === "object") {
+              selectedMove = (nextMove as any).move ?? 4;
             } else {
               console.log("❌ Failed to extract next move, retry observing");
               continue;

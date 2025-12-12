@@ -106,7 +106,7 @@ describe('Command Execution Integration Tests', () => {
       if (errorResult.exitCode !== 0) {
         expect(errorResult.exitCode).not.toBe(0);
         expect(errorResult.stderr).toBeDefined();
-        // traceId is optional, only present when errorCode != 0
+        // traceId is optional, only present when exit_code != 0
         if (errorResult.traceId) {
           expect(typeof errorResult.traceId).toBe('string');
           log(`Error command test passed: exitCode=${errorResult.exitCode}, stderr=${errorResult.stderr}, traceId=${errorResult.traceId}`);

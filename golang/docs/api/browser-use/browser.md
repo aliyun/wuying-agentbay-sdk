@@ -62,6 +62,9 @@ result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("browse
 defer result.Session.Delete()
 session.Browser.Initialize(browser.NewBrowserOption())
 endpointURL, _ := session.Browser.GetEndpointURL()
+pw, _ := playwright.Run()
+browserConn, _ := pw.Chromium.ConnectOverCDP(endpointURL)
+defer browserConn.Close()
 ```
 
 ### GetOption
@@ -98,6 +101,12 @@ successful, false and error otherwise.
 option := browser.NewBrowserOption()
 option.UseStealth = true
 success, _ := session.Browser.Initialize(option)
+if success {
+    endpoint, _ := session.Browser.GetEndpointURL()
+    pw, _ := playwright.Run()
+    remoteBrowser, _ := pw.Chromium.ConnectOverCDP(endpoint)
+    defer remoteBrowser.Close()
+}
 ```
 
 ### IsInitialized

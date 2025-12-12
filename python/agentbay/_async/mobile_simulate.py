@@ -213,7 +213,7 @@ class AsyncMobileSimulateService:
 
         Raises:
             ValueError: If mobile_dev_info_content is not provided or not a valid JSON string.
-            ValueError: If context_sync is not provided or context_sync.context_id is not provided.
+            ValueError: If context_sync is provided but context_sync.context_id is missing.
 
         Notes:
             If context_sync is not provided, a new context sync will be created for the mobile simulate.

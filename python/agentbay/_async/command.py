@@ -13,13 +13,16 @@ _logger = get_logger("command")
 
 class AsyncCommand(AsyncBaseService):
     """
-    Handles command execution operations in the AgentBay cloud environment.
+    Async command execution service for session shells in the AgentBay cloud environment.
+
+    Use this class for non-blocking command execution; for blocking/synchronous usage,
+    refer to the `Command` service in the sync API.
     """
 
     async def execute_command(
         self,
         command: str,
-        timeout_ms: int = 60000,
+        timeout_ms: int = 50000,
         cwd: Optional[str] = None,
         envs: Optional[Dict[str, str]] = None,
     ) -> CommandResult:
@@ -32,7 +35,7 @@ class AsyncCommand(AsyncBaseService):
 
         Args:
             command: The shell command to execute
-            timeout_ms: Timeout in milliseconds (default: 60000ms/60s). Maximum allowed
+            timeout_ms: Timeout in milliseconds (default: 50000ms/50s). Maximum allowed
                 timeout is 50000ms (50s). If a larger value is provided, it will be
                 automatically limited to 50000ms
             cwd: The working directory for command execution. If not specified,
@@ -118,11 +121,11 @@ class AsyncCommand(AsyncBaseService):
                     # Extract fields from new format
                     stdout = data_json.get("stdout", "")
                     stderr = data_json.get("stderr", "")
-                    error_code = data_json.get("errorCode", 0)
+                    exit_code = data_json.get("exit_code", 0)
                     trace_id = data_json.get("traceId", "")
 
-                    # Determine success based on errorCode (0 means success)
-                    success = error_code == 0
+                    # Determine success based on exit_code (0 means success)
+                    success = exit_code == 0
 
                     # For backward compatibility, output should be stdout + stderr
                     output = stdout + stderr
@@ -131,7 +134,7 @@ class AsyncCommand(AsyncBaseService):
                         request_id=result.request_id,
                         success=success,
                         output=output,
-                        exit_code=error_code,
+                        exit_code=exit_code,
                         stdout=stdout,
                         stderr=stderr,
                         trace_id=trace_id,
@@ -145,6 +148,37 @@ class AsyncCommand(AsyncBaseService):
                         output=result.data if isinstance(result.data, str) else str(result.data),
                     )
             else:
+                # Try to parse error message as JSON (in case backend returns JSON in error_message)
+                try:
+                    if isinstance(result.error_message, str):
+                        error_data = json.loads(result.error_message)
+                    else:
+                        error_data = result.error_message
+                    
+                    if isinstance(error_data, dict):
+                        # Extract fields from error JSON
+                        stdout = error_data.get("stdout", "")
+                        stderr = error_data.get("stderr", "")
+                        # Backend may return either "exit_code" or "errorCode", support both
+                        exit_code = error_data.get("exit_code") or error_data.get("errorCode", 0)
+                        trace_id = error_data.get("traceId", "")
+                        # For backward compatibility, output should be stdout + stderr
+                        output = stdout + stderr
+                        
+                        return CommandResult(
+                            request_id=result.request_id,
+                            success=False,
+                            output=output,
+                            exit_code=exit_code,
+                            stdout=stdout,
+                            stderr=stderr,
+                            trace_id=trace_id,
+                            error_message=stderr or result.error_message or "Failed to execute command",
+                        )
+                except (json.JSONDecodeError, TypeError, AttributeError):
+                    # If parsing fails, use original error message
+                    pass
+                
                 return CommandResult(
                     request_id=result.request_id,
                     success=False,

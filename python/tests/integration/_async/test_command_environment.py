@@ -62,7 +62,7 @@ async def test_command_error_with_exit_code(test_session):
     # Note: success field behavior depends on implementation
     if result.exit_code != 0:
         assert result.exit_code != 0, "Exit code should be non-zero for error"
-        # trace_id is optional, only present when errorCode != 0
+        # trace_id is optional, only present when exit_code != 0
         if result.trace_id:
             print(f"✓ Error command test passed: exit_code={result.exit_code}, stderr={result.stderr}, trace_id={result.trace_id}")
         else:

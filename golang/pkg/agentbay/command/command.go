@@ -24,7 +24,7 @@ type CommandResult struct {
 	Stdout string `json:"stdout"`
 	// Stderr is the standard error from the command execution
 	Stderr string `json:"stderr"`
-	// TraceID is the trace ID for error tracking. Only present when errorCode != 0. Used for quick problem localization.
+	// TraceID is the trace ID for error tracking. Only present when exit_code != 0. Used for quick problem localization.
 	TraceID string `json:"trace_id,omitempty"`
 }
 
@@ -235,17 +235,17 @@ func (c *Command) executeCommandInternal(
 		if val, ok := dataJson["stderr"].(string); ok {
 			stderr = val
 		}
-		errorCode := 0
-		if val, ok := dataJson["errorCode"].(float64); ok {
-			errorCode = int(val)
+		exitCode := 0
+		if val, ok := dataJson["exit_code"].(float64); ok {
+			exitCode = int(val)
 		}
 		traceID := ""
 		if val, ok := dataJson["traceId"].(string); ok {
 			traceID = val
 		}
 
-		// Determine success based on errorCode (0 means success)
-		success := errorCode == 0
+		// Determine success based on exit_code (0 means success)
+		success := exitCode == 0
 
 		// For backward compatibility, output should be stdout + stderr
 		output := stdout + stderr
@@ -256,7 +256,7 @@ func (c *Command) executeCommandInternal(
 			},
 			Success:      success,
 			Output:       output,
-			ExitCode:     errorCode,
+			ExitCode:     exitCode,
 			Stdout:       stdout,
 			Stderr:       stderr,
 			TraceID:      traceID,
@@ -275,9 +275,12 @@ func (c *Command) executeCommandInternal(
 			if val, ok := errorData["stderr"].(string); ok {
 				stderr = val
 			}
-			errorCode := 0
-			if val, ok := errorData["errorCode"].(float64); ok {
-				errorCode = int(val)
+			exitCode := 0
+			// Backend may return either "exit_code" or "errorCode", support both
+			if val, ok := errorData["exit_code"].(float64); ok {
+				exitCode = int(val)
+			} else if val, ok := errorData["errorCode"].(float64); ok {
+				exitCode = int(val)
 			}
 			traceID := ""
 			if val, ok := errorData["traceId"].(string); ok {
@@ -292,7 +295,7 @@ func (c *Command) executeCommandInternal(
 				},
 				Success:      false,
 				Output:       output,
-				ExitCode:     errorCode,
+				ExitCode:     exitCode,
 				Stdout:       stdout,
 				Stderr:       stderr,
 				TraceID:      traceID,

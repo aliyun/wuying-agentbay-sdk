@@ -80,9 +80,12 @@ export class ComputerUseAgent {
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
    * const result = await agentBay.create({ imageId: 'windows_latest' });
    * if (result.success) {
-   *   const taskResult = await result.session.agent.computer.executeTask('Open
-   * notepad', 10); console.log(`Task status: ${taskResult.taskStatus}`); await
-   * result.session.delete();
+   *   const taskResult = await result.session.agent.computer.executeTask(
+   *     'Open notepad',
+   *     10
+   *   );
+   *   console.log(`Task status: ${taskResult.taskStatus}`);
+   *   await result.session.delete();
    * }
    * ```
    */
@@ -280,10 +283,13 @@ export class ComputerUseAgent {
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
    * const result = await agentBay.create({ imageId: 'windows_latest' });
    * if (result.success) {
-   *   const taskResult = await
-   * result.session.agent.computer.executeTask('Open notepad', 5); const
-   * terminateResult = await
-   * result.session.agent.computer.terminateTask(taskResult.taskId);
+   *   const taskResult = await result.session.agent.computer.executeTask(
+   *     'Open notepad',
+   *     5
+   *   );
+   *   const terminateResult = await result.session.agent.computer.terminateTask(
+   *     taskResult.taskId
+   *   );
    *   console.log(`Terminated: ${terminateResult.taskStatus}`);
    *   await result.session.delete();
    * }
@@ -417,10 +423,12 @@ export class BrowserUseAgent {
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
    * const result = await agentBay.create({ imageId: 'linux_latest' });
    * if (result.success) {
-   *   const taskResult = await
-   * result.session.agent.browser.executeTask('Navigate to baidu and query the
-   * weather of Shanghai', 10); console.log(`Task status:
-   * ${taskResult.taskStatus}`); await result.session.delete();
+   *   const taskResult = await result.session.agent.browser.executeTask(
+   *     'Navigate to baidu and query the weather of Shanghai',
+   *     10
+   *   );
+   *   console.log(`Task status: ${taskResult.taskStatus}`);
+   *   await result.session.delete();
    * }
    * ```
    */
@@ -548,15 +556,17 @@ export class BrowserUseAgent {
    * @example
    * ```typescript
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-   * const result = await agentBay.create({ imageId: 'windows_latest' });
+   * const result = await agentBay.create({ imageId: 'linux_latest' });
    * if (result.success) {
-   *   const taskResult = await
-   * result.session.agent.browser.executeTask(Navigate to baidu and query the
-   * weather of Shanghai, 10); const statusResult = await
-   * result.session.agent.browser.getTaskStatus(taskResult.taskId);
-   * console.log(`Status:
-   * ${JSON.parse(statusResult.output).status}`); await
-   * result.session.delete();
+   *   const taskResult = await result.session.agent.browser.executeTask(
+   *     'Navigate to baidu and query the weather of Shanghai',
+   *     10
+   *   );
+   *   const statusResult = await result.session.agent.browser.getTaskStatus(
+   *     taskResult.taskId
+   *   );
+   *   console.log(`Status: ${statusResult.taskStatus}`);
+   *   await result.session.delete();
    * }
    * ```
    */
@@ -619,12 +629,15 @@ export class BrowserUseAgent {
    * @example
    * ```typescript
    * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
-   * const result = await agentBay.create({ imageId: 'windows_latest' });
+   * const result = await agentBay.create({ imageId: 'linux_latest' });
    * if (result.success) {
-   *   const taskResult = await
-   * result.session.agent.browser.executeTask(Navigate to baidu and query the
-   * weather of Shanghai, 10); const terminateResult = await
-   * result.session.agent.browser.terminateTask(taskResult.taskId);
+   *   const taskResult = await result.session.agent.browser.executeTask(
+   *     'Navigate to baidu and query the weather of Shanghai',
+   *     10
+   *   );
+   *   const terminateResult = await result.session.agent.browser.terminateTask(
+   *     taskResult.taskId
+   *   );
    *   console.log(`Terminated: ${terminateResult.taskStatus}`);
    *   await result.session.delete();
    * }

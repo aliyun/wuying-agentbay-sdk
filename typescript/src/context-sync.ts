@@ -211,6 +211,29 @@ export class ContextSync {
   path: string;
   policy?: SyncPolicy;
 
+  /**
+   * Defines a full context sync configuration with optional policy overrides.
+   *
+   * @example
+   * ```typescript
+   * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+   * const result = await agentBay.create();
+   * if (result.success) {
+   *   const policy = new SyncPolicyImpl({
+   *     uploadPolicy: newUploadPolicy(),
+   *     downloadPolicy: newDownloadPolicy(),
+   *     recyclePolicy: newRecyclePolicy(),
+   *   });
+   *   const syncResult = await result.session.context.sync(
+   *     'project-data',
+   *     '/mnt/shared',
+   *     'upload'
+   *   );
+   *   console.log('Context sync:', syncResult.success);
+   *   await result.session.delete();
+   * }
+   * ```
+   */
   constructor(contextId: string, path: string, policy?: SyncPolicy) {
     if (policy) {
       validateSyncPolicy(policy);

@@ -1,12 +1,12 @@
-# OpenAI Data Analysis with AgentBay
+# DashScope/OpenAI-Compatible Data Analysis with AgentBay
 
-This project demonstrates how to integrate AgentBay with OpenAI to perform automated data analysis using the `code_latest` system image. The example showcases e-commerce sales analytics with AI-generated Python code executed in secure cloud environments.
+This project demonstrates how to integrate AgentBay with Alibaba Cloud DashScope (Bailian) via the OpenAI-compatible API to perform automated data analysis using the `code_latest` system image. The example showcases e-commerce sales analytics with AI-generated Python code executed in secure cloud environments.
 
 ## Features
 
 - Create and manage AgentBay sessions with `code_latest` image
 - Upload datasets to AgentBay cloud environments
-- Use OpenAI function calling to generate and execute Python code remotely
+- Use DashScope (OpenAI-compatible) function calling to generate and execute Python code remotely
 - Capture matplotlib visualizations from cloud execution
 - Perform comprehensive data analysis including metrics, trends, and visualizations
 - Handle stdout, stderr, and error reporting from remote execution
@@ -15,8 +15,8 @@ This project demonstrates how to integrate AgentBay with OpenAI to perform autom
 
 This project is structured to support multiple agent frameworks. Please refer to the specific framework integration guide for detailed setup and usage instructions:
 
-- [OpenAI Integration Guide (Sync)](./sync/openai/README.md) - Complete setup and usage instructions for OpenAI function calling (synchronous version)
-- [OpenAI Integration Guide (Async)](./async/openai/README.md) - Complete setup and usage instructions for OpenAI function calling (asynchronous version)
+- [DashScope (OpenAI-compatible) Integration Guide (Sync)](./sync/openai/README.md) - Complete setup and usage instructions for function calling (synchronous version)
+- [DashScope (OpenAI-compatible) Integration Guide (Async)](./async/openai/README.md) - Complete setup and usage instructions for function calling (asynchronous version)
 
 ## Project Structure
 

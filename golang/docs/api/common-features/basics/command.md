@@ -7,7 +7,7 @@
 ## Overview
 
 The Command module provides methods for executing shell commands within a session in the AgentBay cloud environment.
-It supports both synchronous command execution with configurable timeouts.
+Commands support configurable timeouts and optional working directory or environment settings.
 
 Command templates for various AgentBay operations.
 
@@ -192,7 +192,7 @@ type CommandResult struct {
 	Stdout	string	`json:"stdout"`
 	// Stderr is the standard error from the command execution
 	Stderr	string	`json:"stderr"`
-	// TraceID is the trace ID for error tracking. Only present when errorCode != 0. Used for quick problem localization.
+	// TraceID is the trace ID for error tracking. Only present when exit_code != 0. Used for quick problem localization.
 	TraceID	string	`json:"trace_id,omitempty"`
 }
 ```

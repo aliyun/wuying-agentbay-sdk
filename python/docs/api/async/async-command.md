@@ -11,7 +11,7 @@
 ## Overview
 
 The Command module provides methods for executing shell commands within a session in the AgentBay cloud environment.
-It supports both synchronous command execution with configurable timeouts.
+Commands support configurable timeouts and optional working directory or environment settings.
 
 
 
@@ -22,14 +22,17 @@ It supports both synchronous command execution with configurable timeouts.
 class AsyncCommand(AsyncBaseService)
 ```
 
-Handles command execution operations in the AgentBay cloud environment.
+Async command execution service for session shells in the AgentBay cloud environment.
+
+Use this class for non-blocking command execution; for blocking/synchronous usage,
+refer to the `Command` service in the sync API.
 
 ### execute\_command
 
 ```python
 async def execute_command(
         command: str,
-        timeout_ms: int = 60000,
+        timeout_ms: int = 50000,
         cwd: Optional[str] = None,
         envs: Optional[Dict[str, str]] = None) -> CommandResult
 ```
@@ -43,7 +46,7 @@ user permissions in a Linux shell environment.
 **Arguments**:
 
     command: The shell command to execute
-    timeout_ms: Timeout in milliseconds (default: 60000ms/60s). Maximum allowed
+    timeout_ms: Timeout in milliseconds (default: 50000ms/50s). Maximum allowed
   timeout is 50000ms (50s). If a larger value is provided, it will be
   automatically limited to 50000ms
     cwd: The working directory for command execution. If not specified,
@@ -100,7 +103,7 @@ await session.delete()
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Session API Reference](./async-session.md)

@@ -24,6 +24,12 @@ class Extension()
 
 Represents a browser extension as a cloud resource.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, id: str, name: str, created_at: Optional[str] = None)
+```
+
 ## ExtensionOption
 
 ```python
@@ -39,6 +45,26 @@ browser extension synchronization and context management.
 
 - `context_id` _str_ - ID of the extension context for browser extensions
 - `extension_ids` _List[str]_ - List of extension IDs to be loaded/synchronized
+
+### \_\_init\_\_
+
+```python
+def __init__(self, context_id: str, extension_ids: List[str])
+```
+
+Initialize ExtensionOption with context and extension configuration.
+
+**Arguments**:
+
+- `context_id` _str_ - ID of the extension context for browser extensions.
+  This should match the context where extensions are stored.
+- `extension_ids` _List[str]_ - List of extension IDs to be loaded in the browser session.
+  Each ID should correspond to a valid extension in the context.
+  
+
+**Raises**:
+
+    ValueError: If context_id is empty or extension_ids is empty.
 
 ### validate
 
@@ -87,7 +113,7 @@ ext1 = await extensions_service.create("/path/to/ext1.zip")
 ext2 = await extensions_service.create("/path/to/ext2.zip")
 
 # Create extension option for browser integration (no context_id needed!)
-ext_option = extensions_service.create_extension_option([ext1.id, ext2.id])
+ext_option = await extensions_service.create_extension_option([ext1.id, ext2.id])
 
 # Use with BrowserContext for session creation
 browser_context = BrowserContext(
@@ -102,6 +128,22 @@ browser_context = BrowserContext(
 - If context_id provided but doesn't exist: Creates context with provided name
 - If context_id empty or not provided: Generates default name and creates context
 - No need to manually manage context creation
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AsyncAgentBay", context_id: str = "")
+```
+
+Initializes the AsyncExtensionsService.
+
+**Arguments**:
+
+- `agent_bay` _AsyncAgentBay_ - The AgentBay client instance.
+- `context_id` _str, optional_ - The context ID or name. If empty or not provided,
+  a default context name will be generated automatically.
+  If the context doesn't exist, it will be automatically created
+  when needed.
 
 ### list
 
@@ -288,7 +330,7 @@ print(f"Extension option: {ext_option}")
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Browser API Reference](./async-browser.md)

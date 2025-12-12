@@ -183,8 +183,8 @@ client.Delete(session, false)
 
 If you're using AI coding assistants (Claude, Cursor, GitHub Copilot, etc.) to develop with AgentBay SDK, you can use [llms.txt](./llms.txt) and [llms-full.txt](./llms-full.txt) as context for better code suggestions:
 
-- **[llms.txt](./llms.txt)** - Concise documentation index (~900 tokens) for quick reference
-- **[llms-full.txt](./llms-full.txt)** - Complete documentation corpus (~140k tokens) for comprehensive context
+- **[llms.txt](./llms.txt)** - Concise documentation index (≈45.5k tokens, ~0.4 MB) for quick reference
+- **[llms-full.txt](./llms-full.txt)** - Complete documentation corpus (≈443.7k tokens, ~4.8 MB) for comprehensive context
 
 These files contain the full SDK documentation across all languages (Python, TypeScript, Golang), API references, and cookbook examples. Simply reference them in your AI assistant to get better understanding of the SDK's architecture and APIs.
 

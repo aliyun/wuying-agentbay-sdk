@@ -50,9 +50,21 @@ const docMappings = [
     symbol: 'ExtensionsService',
     identifiers: ['Class ExtensionsService', 'Class Extension', 'ExtensionsService', 'Extension'],
   },
+  { target: 'browser-use/browser-agent.md', symbol: 'BrowserAgent', identifiers: ['Class BrowserAgent', 'BrowserAgent', 'browser_agent'] },
+  { target: 'browser-use/fingerprint.md', symbol: 'FingerprintFormat', identifiers: ['Class FingerprintFormat', 'FingerprintFormat', 'Fingerprint', 'browser/fingerprint'] },
   { target: 'codespace/code.md', symbol: 'Code', identifiers: ['Class Code', 'Code'] },
   { target: 'computer-use/computer.md', symbol: 'Computer', identifiers: ['Class Computer', 'Computer'] },
+  {
+    target: 'common-features/basics/session-params.md',
+    symbol: 'CreateSessionParams',
+    identifiers: ['Class CreateSessionParams', 'CreateSessionParams', 'BrowserContext', 'session-params'],
+  },
   { target: 'mobile-use/mobile.md', symbol: 'Mobile', identifiers: ['Class Mobile', 'Mobile'] },
+  {
+    target: 'mobile-use/mobile-simulate.md',
+    symbol: 'MobileSimulateService',
+    identifiers: ['Class MobileSimulateService', 'MobileSimulateService', 'mobile-simulate'],
+  },
 ]
 
 const symbolToTarget = new Map()

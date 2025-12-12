@@ -7,6 +7,7 @@ import concurrent.futures
 import json
 import os
 import sys
+import uuid
 from typing import Any, Dict
 
 from mcp import ClientSession, StdioServerParameters, stdio_client
@@ -16,6 +17,7 @@ from agentbay import get_logger
 from agentbay import Browser as Browser
 from agentbay import Session as Session
 from agentbay.api.base_service import OperationResult
+
 from agentbay import BrowserAgent as BrowserAgent
 from agentbay import BrowserOption
 
@@ -231,11 +233,12 @@ class LocalBrowser(Browser):
                                     },
                                     f,
                                 )
-
-                            # Launch headless browser and create a page for all tests
-                            # use absolute path for user_data_dir
                             cwd = os.getcwd()
-                            user_data_dir = os.path.join(cwd, "tmp/browser_user_data")
+                            user_data_dir = os.path.join(
+                                cwd,
+                                "tmp",
+                                f"browser_user_data_{os.getpid()}_{uuid.uuid4().hex}",
+                            )
 
                             self._browser = p.chromium.launch_persistent_context(
                                 headless=False,

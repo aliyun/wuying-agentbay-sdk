@@ -44,3 +44,18 @@ def test_generate_python_api_docs():
     # Check common docs
     config_file = docs_dir / "common" / "config.md"
     assert config_file.exists(), "Common Config documentation was not generated"
+
+    # Browser Agent models should include constructor signatures (e.g., ActOptions.__init__)
+    browser_agent_models = docs_dir / "common" / "browser-agent-models.md"
+    assert browser_agent_models.exists(), "Browser Agent Models documentation was not generated"
+    browser_agent_content = browser_agent_models.read_text(encoding="utf-8")
+    assert (
+        "(self, action: str" in browser_agent_content
+        or "def __init__(action: str" in browser_agent_content
+    ), "ActOptions constructor not documented"
+
+    # Browser models should include BrowserProxy constructor signature
+    browser_models = docs_dir / "common" / "browser-models.md"
+    assert browser_models.exists(), "Browser Models documentation was not generated"
+    browser_models_content = browser_models.read_text(encoding="utf-8")
+    assert "(self, proxy_type: Literal" in browser_models_content, "BrowserProxy constructor not documented"

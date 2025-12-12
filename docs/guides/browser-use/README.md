@@ -2,7 +2,7 @@
 
 Welcome to the AgentBay AIBrowser Guides! This provides complete functionality introduction and best practices for experienced developers.
 
-> **💡 Async API Support**: This guide uses synchronous API. For async patterns, see:
+> **💡 Async API Support**: This guide uses synchronous API examples. For async patterns, refer to the `_async` directory in the examples folder.
 
 ## 🎯 Quick Navigation
 
@@ -28,7 +28,7 @@ The Agentbay AIBrowser API offers simple primitives to control browsers, practic
 
 ### Quick Start (Python)
 
-Below is a minimal, runnable example showing how to initialize the browser via the AgentBay Python SDK and drive it using Playwright over CDP. It follows the same flow as the reference example in `python/docs/examples/browser/visit_aliyun.py`.
+Below is a minimal, runnable example showing how to initialize the browser via the AgentBay Python SDK and drive it using Playwright over CDP. It follows the same flow as the reference example in `python/docs/examples/_sync/browser-use/browser/visit_aliyun.py`.
 
 Prerequisites:
 - Set your API key: `export AGENTBAY_API_KEY=your_api_key`
@@ -37,13 +37,12 @@ Prerequisites:
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
-async def main():
+def main():
     api_key = os.getenv("AGENTBAY_API_KEY")
     if not api_key:
         raise RuntimeError("AGENTBAY_API_KEY environment variable not set")
@@ -59,25 +58,25 @@ async def main():
     session = session_result.session
 
     # Initialize browser (supports stealth, proxy, fingerprint, etc. via BrowserOption)
-    ok = await session.browser.initialize_async(BrowserOption())
+    ok = session.browser.initialize(BrowserOption())
     if not ok:
         raise RuntimeError("Browser initialization failed")
 
     endpoint_url = session.browser.get_endpoint_url()
 
     # Connect Playwright over CDP and automate
-    async with async_playwright() as p:
-        browser = await p.chromium.connect_over_cdp(endpoint_url)
+    with sync_playwright() as p:
+        browser = p.chromium.connect_over_cdp(endpoint_url)
         context = browser.contexts[0]
-        page = await context.new_page()
-        await page.goto("https://www.aliyun.com")
-        print("Title:", await page.title())
-        await browser.close()
+        page = context.new_page()
+        page.goto("https://www.aliyun.com")
+        print("Title:", page.title())
+        browser.close()
 
     session.delete()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 ### Quick Start (Golang)
@@ -179,16 +178,17 @@ First, the script authenticates by building an `AgentBay` client with your API k
 
 Then it provisions a fresh execution environment by creating a session with a browser-enabled image, ensuring the necessary runtime is available. 
 
-After that, the session’s browser is initialized with `BrowserOption()`, bringing up a remote browser instance ready for automation. 
+After that, the session's browser is initialized with `BrowserOption()`, bringing up a remote browser instance ready for automation. 
 
-Next, it retrieves the CDP endpoint URL via `get_endpoint_url()` and connects to it using Playwright’s `connect_over_cdp`, bridging your local code to the remote browser. 
+Next, it retrieves the CDP endpoint URL via `get_endpoint_url()` and connects to it using Playwright's `connect_over_cdp`, bridging your local code to the remote browser. 
 
 Now, with a live connection established, the code opens a new page, navigates to a website, and can freely inspect or manipulate the DOM just like a local browser. 
 
 Finally, when all work is complete, the session is explicitly deleted to release the allocated resources.
 
 Key Browser APIs:
-- `Browser.initialize(option: BrowserOption) -> bool` / `initialize_async(...)`: Start the browser instance for a session
+- `Browser.initialize(option: BrowserOption) -> bool`: Start the browser instance for a session (synchronous)
+- `Browser.initialize_async(option: BrowserOption) -> bool`: Start the browser instance for a session (asynchronous)
 - `Browser.get_endpoint_url() -> str`: Return CDP WebSocket endpoint; use with Playwright `connect_over_cdp`
 - `Browser.is_initialized() -> bool`: Check if the browser is ready
 
@@ -198,15 +198,14 @@ Sometimes the web needs a different mask and a different stage. By shaping the b
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption, BrowserViewport
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright
 
 CUSTOM_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 
-async def main():
+def main():
     agent_bay = AgentBay(api_key=os.environ["AGENTBAY_API_KEY"])  # first, authenticate
 
     params = CreateSessionParams(image_id="browser_latest")       # then, provision a browser-ready session
@@ -222,31 +221,31 @@ async def main():
         viewport=BrowserViewport(width=1366, height=768),  # and stand on a stage sized like a common laptop
     )
 
-    ok = await session.browser.initialize_async(option)
+    ok = session.browser.initialize(option)
     if not ok:
         raise RuntimeError("Browser initialization failed")
 
     endpoint_url = session.browser.get_endpoint_url()      # now, discover the CDP doorway
 
-    async with async_playwright() as p:
-        browser = await p.chromium.connect_over_cdp(endpoint_url)  # step through and take control
+    with sync_playwright() as p:
+        browser = p.chromium.connect_over_cdp(endpoint_url)  # step through and take control
         context = browser.contexts[0]
-        page = await context.new_page()
+        page = context.new_page()
 
-        await page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent")
+        page.goto("https://www.whatismybrowser.com/detect/what-is-my-user-agent")
         # verify our new voice and our new stage
-        ua = await page.evaluate("navigator.userAgent")
-        w = await page.evaluate("window.innerWidth")
-        h = await page.evaluate("window.innerHeight")
+        ua = page.evaluate("navigator.userAgent")
+        w = page.evaluate("window.innerWidth")
+        h = page.evaluate("window.innerHeight")
         print("Effective UA:", ua)
         print("Viewport:", w, "x", h)
 
-        await browser.close()
+        browser.close()
 
     session.delete()  # finally, bow out and free the stage
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 **Golang:**
@@ -363,11 +362,11 @@ session = result.session
 
 # Use Chrome instead of Chromium
 option = BrowserOption(browser_type="chrome")
-await session.browser.initialize_async(option)
+session.browser.initialize(option)
 
 # Or explicitly use Chromium (default)
 option = BrowserOption(browser_type="chromium")
-await session.browser.initialize_async(option)
+session.browser.initialize(option)
 ```
 
 **TypeScript:**
@@ -441,20 +440,18 @@ If you want to explore more configurable capabilities, see Core Features: [core-
 
 PageUseAgent lets you speak to the browser in natural language and have it carry out intent-driven actions. Instead of meticulously crafting selectors and sequences, you describe the goal; the agent interprets it, maps it to DOM operations, and executes the steps reliably—with optional timeouts, iframe awareness, and variable injection for dynamic prompts.
 
-Below we’ll search for a book on Google. First we bring a browser to life and open Google, then we ask the agent to perform the task: type the query and open the first result.
+Below we'll demonstrate how to use PageUseAgent without Playwright. The agent can directly control the browser through natural language commands.
 
 ```python
 import os
-import asyncio
 from agentbay import AgentBay
 from agentbay import CreateSessionParams
 from agentbay import BrowserOption
-from agentbay import ActOptions
-from playwright.async_api import async_playwright
+from agentbay import SyncActOptions as ActOptions
 
 BOOK_QUERY = "The Pragmatic Programmer"
 
-async def main():
+def main():
     agent_bay = AgentBay(api_key=os.environ["AGENTBAY_API_KEY"])  # authenticate
 
     params = CreateSessionParams(image_id="browser_latest")       # provision session with browser image
@@ -464,47 +461,40 @@ async def main():
     session = result.session
 
     # initialize the remote browser
-    if not await session.browser.initialize_async(BrowserOption()):
+    if not session.browser.initialize(BrowserOption()):
         raise RuntimeError("Browser initialization failed")
 
-    endpoint_url = session.browser.get_endpoint_url()
+    # navigate to Google
+    nav_msg = session.browser.agent.navigate("https://www.google.com")
+    print("Navigation result:", nav_msg)
 
-    async with async_playwright() as p:
-        browser = await p.chromium.connect_over_cdp(endpoint_url)
-        context = browser.contexts[0]
-        page = await context.new_page()
+    # ask the agent to act: type the book name into the search box
+    act_result = session.browser.agent.act(ActOptions(
+        action=f"Type '{BOOK_QUERY}' into the search box and submit",
+        use_vision=True
+    ))
+    print("act_result:", act_result.success, act_result.message)
 
-        # step onto the stage
-        await page.goto("https://www.google.com")
-
-        # ask the agent to act: type the book name into the search box
-        act_result = await session.browser.agent.act(ActOptions(
-            action=f"Type '{BOOK_QUERY}' into the search box and submit",
-        ), page)
-        print("act_result:", act_result.success, act_result.message)
-
-        # let the agent open the first result
-        open_first = await session.browser.agent.act(ActOptions(
-            action="Click the first result in the search results",
-        ), page)
-        print("open_first:", open_first.success, open_first.message)
-
-        # pause briefly to observe
-        await page.wait_for_timeout(5000)
-        await browser.close()
+    # let the agent open the first result
+    open_first = session.browser.agent.act(ActOptions(
+        action="Click the first result in the search results",
+        use_vision=True
+    ))
+    print("open_first:", open_first.success, open_first.message)
 
     session.delete()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
-First we create and initialize a browser session as before; then, rather than hand-writing selectors, we simply tell the agent what to do—type a query and proceed to the first result. After that, the agent translates our intent into concrete interactions on the page. Now the browser flows from search box to results like a guided hand. Finally, we close the browser and release the session.
+First we create and initialize a browser session as before; then, rather than hand-writing selectors, we simply tell the agent what to do—navigate to a URL, type a query and proceed to the first result. After that, the agent translates our intent into concrete interactions on the page. Now the browser flows from search box to results like a guided hand. Finally, we release the session.
 
 About `PageUseAgent.act`:
 - Can interpolate dynamic values using `variables` for reusable prompts
-- Operates on the active Playwright page by resolving its `context_id` and `page_id` under the hood
+- Works directly without Playwright by using the browser's internal context
 - Returns a structured `ActResult` with `success`, `message`, useful for logging and recovery flows
+- Use `SyncActOptions` for synchronous code, `ActOptions` for asynchronous code
 
 If you want to explore full capability of PageUseAgent, or other more advance features, see Advance Features: [advance-features.md](advance-features.md).
 

@@ -141,7 +141,7 @@ agent_bay.delete(session)
 
 ### Timeout Limits
 
-- **Default timeout**: 60 seconds (60000ms) for Python SDK
+- **Default timeout**: 50 seconds (50000ms) for Python SDK
 - **Maximum timeout**: 50 seconds (50000ms) - SDK automatically limits larger values
 - If you specify a timeout greater than 50 seconds, the SDK will automatically cap it to 50 seconds and log a warning
 

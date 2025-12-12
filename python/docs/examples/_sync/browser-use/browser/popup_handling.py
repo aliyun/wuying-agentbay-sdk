@@ -13,6 +13,7 @@ This example demonstrates:
 
 import os
 import sys
+from pydantic import BaseModel, Field
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
@@ -20,6 +21,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 from agentbay import AgentBay, CreateSessionParams
 from agentbay import BrowserOption, ActOptions, ExtractOptions
 
+
+class ModalStatus(BaseModel):
+    is_modal_visible: bool = Field(..., description="Whether to show modal dialog")
+
+class TabCount(BaseModel):
+    count: int = Field(..., description="Number of open browser windows or tabs")
 
 def main():
     """Demonstrate browser popup and dialog handling."""
@@ -107,9 +114,9 @@ def main():
         # Verify modal is closed
         print("\n8. Verifying modal is closed...")
         verify_result = session.browser.agent.extract(
-            ExtractOptions(instruction="Is there a modal dialog visible on the page?", schema=bool)
+            ExtractOptions(instruction="Is there a modal dialog visible on the page?", schema=ModalStatus)
         )
-        print(f"Modal status: {verify_result.extracted_content}")
+        print(f"Modal status: {verify_result.extracted_content.is_modal_visible}")
 
         # Test new window/tab popup
         print("\n9. Testing new window popup...")
@@ -122,9 +129,9 @@ def main():
         # Check for new windows
         print("\n10. Checking for new windows...")
         tab_count = session.browser.agent.extract(
-            ExtractOptions(instruction="How many browser windows or tabs are open?", schema=int)
+            ExtractOptions(instruction="How many browser windows or tabs are open?", schema=TabCount)
         )
-        print(f"Open windows: {windows_result.extracted_content}")
+        print(f"Open windows: {tab_count.extracted_content}")
 
         print("\n=== Example completed successfully ===")
 
@@ -142,4 +149,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

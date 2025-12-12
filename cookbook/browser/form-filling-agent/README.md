@@ -1,11 +1,11 @@
 # Form-Filling Agent
 
-This project demonstrates how to create a form-filling agent using the Agent-Bay SDK. The agent can automatically fill HTML forms with data based on natural language instructions.
+This project demonstrates how to create a form-filling agent using the AgentBay SDK. The agent can automatically fill HTML forms with data based on natural language instructions.
 
 ## Features
 
-- Uploads an HTML form to Agent-Bay environment
-- Opens the form in a browser using Agent-Bay's browser capabilities
+- Uploads an HTML form to AgentBay environment
+- Opens the form in a browser using AgentBay's browser capabilities
 - Uses natural language instructions to fill form fields
 - Submits the form automatically
 
@@ -50,7 +50,7 @@ Framework-specific directories (like `sync/langchain/` and `async/langchain/`) c
 
 You can customize the form filling behavior by modifying the implementation in the framework-specific directories and providing your own forms and instructions.
 
-## Agent-Bay SDK Features Used
+## AgentBay SDK Features Used
 
 - Session management
 - File system operations (uploading files)

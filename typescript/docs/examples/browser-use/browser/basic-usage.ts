@@ -3,14 +3,19 @@
  * This example demonstrates the core browser operations without external dependencies.
  */
 
-import { AgentBay, CreateSessionParams, ActOptions, ObserveOptions, ExtractOptions } from 'wuying-agentbay-sdk';
+import {
+  AgentBay,
+  CreateSessionParams,
+  ActOptions,
+  ObserveOptions,
+  ExtractOptions,
+} from "wuying-agentbay-sdk";
+import { z } from "zod";
 
-// Simple schema for demonstration
-class PageInfo {
-  title: string = "";
-  url: string = "";
-}
-
+const PageInfoSchema = z.object({
+  title: z.string().describe("page title"),
+  url: z.string().describe("page url"),
+});
 async function main() {
   // Get API key from environment variable
   const apiKey = process.env.AGENTBAY_API_KEY;
@@ -57,7 +62,7 @@ async function main() {
     // Example: Mock page object (in real usage, you'd get this from Playwright)
     const mockPage = {
       url: () => "https://example.com",
-      title: () => "Example Domain"
+      title: () => "Example Domain",
     };
 
     // Example 1: Perform an action
@@ -65,7 +70,7 @@ async function main() {
     try {
       const actOptions: ActOptions = {
         action: "Click the 'More information...' link",
-        timeoutMS: 5000
+        timeout: 5,
       };
 
       const actResult = await session.browser.agent.act(actOptions, mockPage);
@@ -81,10 +86,11 @@ async function main() {
     console.log("\n--- Example 2: Observing page elements ---");
     try {
       const observeOptions: ObserveOptions = {
-        instruction: "Find all links and buttons on the page"
+        instruction: "Find all links and buttons on the page",
       };
 
-      const [observeSuccess, observations] = await session.browser.agent.observe(observeOptions, mockPage);
+      const [observeSuccess, observations] =
+        await session.browser.agent.observe(observeOptions, mockPage);
       console.log("Observe success:", observeSuccess);
       console.log("Number of observations:", observations.length);
 
@@ -92,7 +98,7 @@ async function main() {
         console.log(`Observation ${index + 1}:`, {
           selector: obs.selector,
           description: obs.description,
-          method: obs.method
+          method: obs.method,
         });
       });
     } catch (error) {
@@ -102,22 +108,24 @@ async function main() {
     // Example 3: Extract structured data from the page
     console.log("\n--- Example 3: Extracting structured data ---");
     try {
-      const extractOptions: ExtractOptions<PageInfo> = {
+      const extractOptions: ExtractOptions<typeof PageInfoSchema> = {
         instruction: "Extract the page title and URL",
-        schema: PageInfo,
-        use_text_extract: false
+        schema: PageInfoSchema,
+        use_text_extract: false,
       };
 
-      const [extractSuccess, extractedData] = await session.browser.agent.extract(extractOptions, mockPage);
+      const [extractSuccess, extracted] = await session.browser.agent.extract(
+        extractOptions,
+        mockPage
+      );
       console.log("Extract success:", extractSuccess);
-      console.log("Extracted data count:", extractedData.length);
 
-      extractedData.forEach((data: PageInfo, index: number) => {
-        console.log(`Extracted item ${index + 1}:`, {
-          title: data.title,
-          url: data.url
+      if (extractSuccess && extracted) {
+        console.log("Extracted data:", {
+          title: extracted.title,
+          url: extracted.url,
         });
-      });
+      }
     } catch (error) {
       console.log("Extraction failed:", error);
     }
@@ -125,7 +133,6 @@ async function main() {
     // Clean up
     console.log("\n--- Cleanup ---");
     console.log("Browser session completed successfully");
-
   } catch (error) {
     console.error("Error in main function:", error);
   }

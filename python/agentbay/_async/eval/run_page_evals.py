@@ -9,7 +9,8 @@ from typing import Any, Dict
 from dotenv import load_dotenv
 
 from agentbay import get_logger
-from .page_agent import PageAgent
+
+from agentbay._async.eval.page_agent import PageAgent
 
 _logger = get_logger("run_page_evals")
 
@@ -28,10 +29,12 @@ async def run_single_task(
     browser_setup_s += open_end - open_start
 
     try:
-        task_module = importlib.import_module(f"agentbay._async.eval.page_tasks.{task_name}")
+        task_module = importlib.import_module(
+            f"agentbay._async.eval.page_tasks.{task_name}"
+        )
 
-        # result = await task_module.run(agent, _logger, task_config)
-        result = await agent.run_task(task_module, _logger, task_config)
+        result = await task_module.run(agent, _logger, task_config)
+        # result = await agent.run_task(task_module, _logger, task_config)
 
         status = "✅ Passed" if result.get("_success") else "❌ Failed"
         _logger.info(f"{status} - Task: {task_name}")

@@ -22,7 +22,7 @@ keyboard input, screen capture, and window management. It enables automated UI t
 
 ### MouseButton
 
-Mouse button constants: Left, Right, Middle
+Mouse button constants: Left, Right, Middle, DoubleLeft
 
 ### ScrollDirection
 
@@ -54,6 +54,18 @@ class AsyncComputer(AsyncBaseService)
 Handles computer UI automation operations in the AgentBay cloud environment.
 Provides comprehensive desktop automation capabilities including mouse, keyboard,
 window management, application management, and screen operations.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
+Initialize a Computer object.
+
+**Arguments**:
+
+    session: The session object that provides access to the AgentBay API.
 
 ### click\_mouse
 
@@ -1141,7 +1153,7 @@ get_installed_apps, start_app, stop_app_by_pname, stop_app_by_pid
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../python/docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

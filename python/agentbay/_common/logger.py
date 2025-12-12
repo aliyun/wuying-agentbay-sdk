@@ -108,8 +108,8 @@ class AgentBayLogger:
         Setup the logger with custom configuration.
 
         This method should be called early in your application, before any logging occurs.
-        By default, it will not reinitialize if already configured. Use force_reinit=True
-        to override existing configuration.
+        By default, force_reinit is True so the logger will be reinitialized on each call.
+        Set force_reinit=False to keep an existing configuration.
 
         Args:
             level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)

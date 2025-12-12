@@ -139,7 +139,7 @@ class ExtensionsService:
     ext2 = await extensions_service.create("/path/to/ext2.zip")
 
     # Create extension option for browser integration (no context_id needed!)
-    ext_option = extensions_service.create_extension_option([ext1.id, ext2.id])
+    ext_option = await extensions_service.create_extension_option([ext1.id, ext2.id])
 
     # Use with BrowserContext for session creation
     browser_context = BrowserContext(

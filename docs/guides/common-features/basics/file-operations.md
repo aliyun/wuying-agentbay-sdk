@@ -142,55 +142,7 @@ agent_bay.delete(session)
 
 </details>
 
-<details>
-<summary>⚡ <strong>Asynchronous API</strong> (Click to expand)</summary>
-
-```python
-import asyncio
-from agentbay import AsyncAgentBay
-
-async def main():
-    # Create session
-    agent_bay = AsyncAgentBay()
-    session = (await agent_bay.create()).session
-
-    # Create Directory
-    session.file_system.create_directory("/path/to")
-    print("✅ Directory created successfully")
-
-    # Write text file (Note: write_file is currently synchronous in async sessions)
-    result = session.file_system.write_file("/path/to/file.txt", "Hello, World!")
-    if result.success:
-        print("Text file written successfully")
-
-    # Read text file (Note: read_file is currently synchronous in async sessions)
-    result = session.file_system.read_file("/path/to/file.txt")
-    if result.success:
-        content = result.content
-        print(f"File content: {content}")
-
-    # List directory
-    result = session.file_system.list_directory("/path/to")
-    if result.success:
-        entries = result.entries
-        for entry in entries:
-            print(f"Name: {entry['name']}")
-
-    # Get file info
-    result = session.file_system.get_file_info("/path/to/file.txt")
-    if result.success:
-        info = result.file_info
-        print(f"File info: {info}")
-
-    await agent_bay.delete(session)
-
-asyncio.run(main())
-```
-
-**Best for**: High concurrency, async projects, web applications
-
-
-</details>
+> 🔎 Want async examples? `AsyncAgentBay` offers the same methods (use `await`). Follow the async guide, or adapt the sync snippets with `await session.file_system.xxx(...)`.
 
 <a id="basic-file-operations"></a>
 ## 📝 Basic File Operations
@@ -272,7 +224,7 @@ if result.success:
 else:
     print(f"Failed to create directory: {result.error_message}")
 
-# Remove directory with parent directories
+# Move directory (rename or relocate)
 result = session.file_system.move_file("/tmp/data", "/tmp/test/")
 if result.success:
     print("Directory moved successfully")
@@ -409,6 +361,7 @@ else:
 ```python
 from agentbay import AgentBay
 
+agent_bay = AgentBay()
 session = agent_bay.create().session
 
 # Search for files with wildcard pattern

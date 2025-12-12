@@ -61,7 +61,7 @@ describe('Command', () => {
       const jsonData = JSON.stringify({
         stdout: 'output text',
         stderr: 'error text',
-        errorCode: 0,
+        exit_code: 0,
         traceId: '',
       });
       const mockResult = {
@@ -87,7 +87,7 @@ describe('Command', () => {
       const jsonData = JSON.stringify({
         stdout: '',
         stderr: 'command not found',
-        errorCode: 127,
+        exit_code: 127,
         traceId: 'trace-123',
       });
       const mockResult = {

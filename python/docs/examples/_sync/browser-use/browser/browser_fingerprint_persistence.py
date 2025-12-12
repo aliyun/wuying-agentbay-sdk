@@ -8,6 +8,7 @@ This test verifies that browser fingerprint can be persisted
 across sessions using the same ContextId and FingerprintContextId.
 """
 
+import json
 import os
 import time
 import unittest
@@ -127,7 +128,14 @@ def run_as_first_time():
 
             page = context.new_page()
             page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = page.evaluate("() => JSON.parse(document.body.innerText)")
+
+            response_text = page.inner_text("body")
+            try:
+                response = json.loads(response_text)
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON: {e}")
+                return
+
             user_agent = response["user-agent"]
             print("user_agent =", user_agent)
             is_windows = is_windows_user_agent(user_agent)
@@ -180,7 +188,7 @@ def run_as_second_time():
 
     # Get browser object and check if second session fingerprint is the same as first session
     def second_session_operations():
-        # Initialize browser with fingerprint persistent enabled but not specific fingerprint generation options
+    # Initialize browser with fingerprint persistent enabled but not specific fingerprint generation options
         browser_option = BrowserOption(
             use_stealth=True,
             fingerprint_persistent=True,
@@ -204,7 +212,14 @@ def run_as_second_time():
             context = browser.contexts[0] if browser.contexts else browser.new_context()
             page = context.new_page()
             page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = page.evaluate("() => JSON.parse(document.body.innerText)")
+            
+            response_text = page.inner_text("body")
+            try:
+                response = json.loads(response_text)
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON: {e}")
+                return
+
             user_agent = response["user-agent"]
             print("user_agent =", user_agent)
             is_windows = is_windows_user_agent(user_agent)

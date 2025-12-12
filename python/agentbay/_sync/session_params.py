@@ -258,13 +258,13 @@ class BrowserContext:
         """
         return self.extension_context_syncs or []
 
-    def get_fingerprint_context_sync(self) -> ContextSync:
+    def get_fingerprint_context_sync(self) -> Optional[ContextSync]:
         """
         Get context sync for fingerprint.
 
         Returns:
-            ContextSync: Context sync configurations for fingerprint.
-                         Returns None if fingerprint configuration is invalid.
+            Optional[ContextSync]: Context sync configurations for fingerprint.
+                                   Returns None if fingerprint configuration is invalid.
         """
         return self.fingerprint_context_sync
 
@@ -276,6 +276,7 @@ class CreateSessionParams:
     Attributes:
         labels (Optional[Dict[str, str]]): Custom labels for the Session. These can be
             used for organizing and filtering sessions.
+        image_id (Optional[str]): ID of the image to use for the session.
         context_syncs (Optional[List[ContextSync]]): List of context synchronization
             configurations that define how contexts should be synchronized and mounted.
         browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.

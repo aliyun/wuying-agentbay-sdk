@@ -41,7 +41,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_computer_task_execute_success(self):
+    async def test_computer_task_execute_and_wait_success(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -54,7 +54,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.computer.execute_task("Hello, Computer Agent", int(self.max_try_times))
+        result = await self.agent.computer.execute_task_and_wait("Hello, Computer Agent", int(self.max_try_times))
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -70,7 +70,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_computer_execute_task_error(self):
+    async def test_computer_execute_task_and_wait_error(self):
         """
         Test execute_task method with error response.
         """
@@ -83,7 +83,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
             data="""{"task_id": "task-123", "status": "failed", "result":"", "product": "Task Failed"}""",
         )
         self.session.call_mcp_tool.return_value = mock_result
-        result = await self.agent.computer.execute_task("Hello, Computer Agent", self.max_try_times)
+        result = await self.agent.computer.execute_task_and_wait("Hello, Computer Agent", self.max_try_times)
         self.assertIsInstance(result, ExecutionResult)
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -124,7 +124,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_computer_task_async_execute_timeout(self):
+    async def test_computer_task_execute_timeout(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -137,7 +137,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.computer.async_execute_task("Hello, Computer Agent")
+        result = await self.agent.computer.execute_task("Hello, Computer Agent")
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -170,7 +170,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_computer_task_async_execute_success(self):
+    async def test_computer_task_execute_success(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -183,7 +183,7 @@ class TestAsyncAgentComputer(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.computer.async_execute_task("Hello, Computer Agent")
+        result = await self.agent.computer.execute_task("Hello, Computer Agent")
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -229,7 +229,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_browser_task_execute_success(self):
+    async def test_browser_task_execute_and_wait_success(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -242,7 +242,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.browser.execute_task("Hello, Browser Agent", int(self.max_try_times))
+        result = await self.agent.browser.execute_task_and_wait("Hello, Browser Agent", int(self.max_try_times))
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -258,7 +258,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_browser_execute_task_error(self):
+    async def test_browser_execute_task_and_wait_error(self):
         """
         Test execute_task method with error response.
         """
@@ -271,7 +271,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
             data="""{"task_id": "task-123", "status": "failed", "result":"", "product": "Task Failed"}""",
         )
         self.session.call_mcp_tool.return_value = mock_result
-        result = await self.agent.browser.execute_task("Hello, Browser Agent", self.max_try_times)
+        result = await self.agent.browser.execute_task_and_wait("Hello, Browser Agent", self.max_try_times)
         self.assertIsInstance(result, ExecutionResult)
         self.assertFalse(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -312,7 +312,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_browser_task_async_execute_timeout(self):
+    async def test_browser_task_execute_timeout(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -325,7 +325,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.browser.async_execute_task("Hello, Browser Agent")
+        result = await self.agent.browser.execute_task("Hello, Browser Agent")
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")
@@ -358,7 +358,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
     @pytest.mark.asyncio
 
 
-    async def test_browser_task_async_execute_success(self):
+    async def test_browser_task_execute_success(self):
         """
         Test flux_execute_task method with successful response.
         """
@@ -371,7 +371,7 @@ class TestAsyncAgentBrowser(unittest.IsolatedAsyncioTestCase):
         )
         self.session.call_mcp_tool.return_value = mock_result
 
-        result = await self.agent.browser.async_execute_task("Hello, Browser Agent")
+        result = await self.agent.browser.execute_task("Hello, Browser Agent")
         self.assertIsInstance(result, ExecutionResult)
         self.assertTrue(result.success)
         self.assertEqual(result.request_id, "request-123")

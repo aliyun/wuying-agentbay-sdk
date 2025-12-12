@@ -46,7 +46,8 @@ class AsyncBrowser(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
+            create_result = await agent_bay.create()
+            session = create_result.session
             # Use default options
             await session.browser.initialize()
             # Or with specific options
@@ -246,7 +247,8 @@ class AsyncBrowser(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
+            create_result = await agent_bay.create()
+            session = create_result.session
             browser_option = BrowserOption()
             await session.browser.initialize(browser_option)
             endpoint_url = await session.browser.get_endpoint_url()
@@ -295,7 +297,8 @@ class AsyncBrowser(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
+            create_result = await agent_bay.create()
+            session = create_result.session
             browser_option = BrowserOption(use_stealth=True)
             await session.browser.initialize(browser_option)
             current_options = session.browser.get_option()
@@ -314,7 +317,8 @@ class AsyncBrowser(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
+            create_result = await agent_bay.create()
+            session = create_result.session
             print(f"Initialized: {session.browser.is_initialized()}")
             browser_option = BrowserOption()
             await session.browser.initialize(browser_option)

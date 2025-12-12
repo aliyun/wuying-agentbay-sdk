@@ -59,11 +59,14 @@ The use cases document includes:
 ### Method Signature
 
 ```python
-def get_link(
+async def get_link(
     protocol_type: Optional[str] = None,
-    port: Optional[int] = None
-) -> Result[str]
+    port: Optional[int] = None,
+    options: Optional[str] = None
+) -> OperationResult
 ```
+
+Examples below use the async session (via `AsyncAgentBay`). For synchronous sessions, remove `await` when calling `get_link` but keep the same parameters and return fields.
 
 ### Parameters
 
@@ -71,10 +74,11 @@ def get_link(
 |-----------|------|----------|-------------|
 | `protocol_type` | `str` | No | Protocol type: `"https"` or `"wss"`. If not specified, defaults to WSS for browser CDP endpoint |
 | `port` | `int` | No | Port number in range [30100, 30199] for custom services |
+| `options` | `str` | No | Optional passthrough string for backend options |
 
 ### Return Value
 
-Returns a `Result[str]` object containing:
+Returns an `OperationResult` object containing:
 - `success`: Boolean indicating if the operation succeeded
 - `data`: The session link URL (wss:// or https://)
 - `error_message`: Error description if `success` is False
@@ -87,9 +91,9 @@ The `get_link()` method supports three main usage patterns:
 
 | Pattern | Call Syntax | Returns | Use Case |
 |---------|-------------|---------|----------|
-| Browser CDP | `get_link()` | `wss://...` | Browser automation with Playwright/Puppeteer |
-| HTTPS Service | `get_link("https", port)` | `https://...` | Access web applications via HTTPS |
-| WebSocket Service | `get_link(port=port)` | `wss://...` | Connect to custom WebSocket services |
+| Browser CDP | `result = await session.get_link()` | `result.data -> wss://...` | Browser automation with Playwright/Puppeteer |
+| HTTPS Service | `result = await session.get_link("https", port)` | `result.data -> https://...` | Access web applications via HTTPS |
+| WebSocket Service | `result = await session.get_link(port=port)` | `result.data -> wss://...` | Connect to custom WebSocket services |
 
 > **📘 For detailed examples and complete code**, see the [Session Link Use Cases Guide](../use-cases/session-link-use-cases.md).
 
@@ -97,40 +101,45 @@ The `get_link()` method supports three main usage patterns:
 
 **Browser Automation**:
 ```python
-# MUST initialize browser first!
-await session.browser.initialize_async(BrowserOption())
-await asyncio.sleep(10)  # Wait for browser startup
+async def get_browser_cdp(session):
+    # MUST initialize browser first!
+    await session.browser.initialize(BrowserOption())
+    await asyncio.sleep(10)  # Wait for browser startup
 
-link = session.get_link()  # Returns CDP endpoint
+    result = await session.get_link()  # OperationResult
+    if result.success:
+        return result.data
+    raise RuntimeError(f"Failed to get CDP link: {result.error_message}")
 ```
 
 **Web Application Access**:
 ```python
-link = session.get_link(protocol_type="https", port=30150)
-# Returns: https://gateway.../request_ai/.../path/
+result = await session.get_link(protocol_type="https", port=30150)
+if result.success:
+    link = result.data  # https://gateway.../request_ai/.../path/
 ```
 
 **Custom Service Connection**:
 ```python
-link = session.get_link(port=30180)
-# Returns: wss://gateway.../websocket_ai/...
+result = await session.get_link(port=30180)
+if result.success:
+    link = result.data  # wss://gateway.../websocket_ai/...
 ```
 
 ### Parameter Constraints
 
 - **Port Range**: Must be in [30100, 30199]
-- **Protocol Types**: Only `"https"` and `"wss"` are supported
+- **Protocol Types**: Only `"https"` and `"wss"` are supported; omit to use the default WebSocket/CDP endpoint
 - **Browser CDP**: Requires Browser Use image (e.g., `browser_latest`)
-- **Protocol + Port**: If `protocol_type` is specified, `port` must also be provided
+- **Options**: Optional string passed through to the backend unchanged
 
 ### Common Errors
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| "port is not valid" | `protocol_type` specified without `port` | Always provide `port` when using `protocol_type` |
-| "Port must be in [30100, 30199]" | Port outside valid range | Use a port in the valid range |
+| "Invalid port value: <port>. Port must be an integer in the range [30100, 30199]." | Port outside valid range or not an integer | Use a port in the valid range |
 | "http not supported" | Using `protocol_type="http"` | Use `"https"` instead |
-| "only BrowserUse image support cdp" | Non-browser image with no parameters | Use `browser_latest` image or specify port |
+| "only BrowserUse image support cdp" | Non-browser image with no parameters | Use `browser_latest` image or specify a service port |
 
 ---
 
@@ -139,24 +148,27 @@ link = session.get_link(port=30180)
 
 ### Asynchronous Operations
 
-For async applications, use `get_link_async()`:
+For async applications, call `await session.get_link()`:
 
 ```python
 import asyncio
 import os
-from agentbay import AgentBay
+from agentbay import AsyncAgentBay
 
 async def get_multiple_links():
     api_key = os.environ.get("AGENTBAY_API_KEY")
-    agent_bay = AgentBay(api_key=api_key)
-    session = agent_bay.create().session
+    agent_bay = AsyncAgentBay(api_key=api_key)
+    create_result = await agent_bay.create()
+    if not create_result.success or create_result.session is None:
+        raise RuntimeError(f"Create session failed: {create_result.error_message}")
+    session = create_result.session
     
     try:
         # Get multiple links in parallel
         tasks = [
-            session.get_link_async(),  # Default WebSocket
-            session.get_link_async(protocol_type="https", port=30199),  # HTTPS
-            session.get_link_async(port=30150)  # WebSocket with port
+            session.get_link(),  # Default WebSocket/CDP
+            session.get_link(protocol_type="https", port=30199),  # HTTPS
+            session.get_link(port=30150)  # WebSocket with port
         ]
         
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -166,8 +178,10 @@ async def get_multiple_links():
                 print(f"Link {i+1} failed: {result}")
             elif result.success:
                 print(f"Link {i+1}: {result.data}")
+            else:
+                print(f"Link {i+1} failed: {result.error_message}")
     finally:
-        agent_bay.delete(session)
+        await session.delete()
 
 if __name__ == "__main__":
     asyncio.run(get_multiple_links())
@@ -180,9 +194,6 @@ if __name__ == "__main__":
 ```python
 def safe_get_link(session, protocol_type=None, port=None):
     """Safely get session link with validation"""
-    if protocol_type is not None and port is None:
-        raise ValueError("protocol_type requires port parameter")
-    
     if port is not None and not (30100 <= port <= 30199):
         raise ValueError(f"Port {port} outside valid range [30100, 30199]")
     

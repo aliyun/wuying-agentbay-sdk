@@ -29,6 +29,25 @@ class TestAsyncContextClear(unittest.TestCase):
     @pytest.mark.sync
 
 
+    def test_start_clear_alias_uses_clear_async(self):
+        """Ensure start_clear delegates to clear_async for backward compatibility."""
+        expected = ClearContextResult(
+            request_id="req-1",
+            success=True,
+            context_id="ctx-1",
+            status="clearing",
+        )
+        with patch.object(
+            self.context_service, "clear_async", MagicMock(return_value=expected)
+        ) as mock_clear_async:
+            result = self.context_service.start_clear("ctx-1")
+
+        self.assertEqual(result, expected)
+        mock_clear_async.assert_called_once_with("ctx-1")
+
+    @pytest.mark.sync
+
+
     def test_clear_async_success(self):
         """Test successful async clear initiation."""
         # Mock the ClearContext response
@@ -240,7 +259,7 @@ class TestAsyncContextClear(unittest.TestCase):
         # Mock time.sleep to be a no-op
         mock_sleep.return_value = None
 
-        # Mock start_clear
+        # Mock clear_async
         clear_async_result = ClearContextResult(
             request_id="test-request-id",
             success=True,
@@ -291,7 +310,7 @@ class TestAsyncContextClear(unittest.TestCase):
         # Mock time.sleep to be a no-op
         mock_sleep.return_value = None
 
-        # Mock start_clear
+        # Mock clear_async
         clear_async_result = ClearContextResult(
             request_id="test-request-id",
             success=True,
@@ -330,7 +349,7 @@ class TestAsyncContextClear(unittest.TestCase):
         # Mock time.sleep to be a no-op
         mock_sleep.return_value = None
 
-        # Mock start_clear
+        # Mock clear_async
         clear_async_result = ClearContextResult(
             request_id="test-request-id",
             success=True,
@@ -363,7 +382,7 @@ class TestAsyncContextClear(unittest.TestCase):
 
     def test_clear_sync_async_failure(self):
         """Test synchronous clear when async initiation fails."""
-        # Mock start_clear to return failure
+        # Mock clear_async to return failure
         clear_async_result = ClearContextResult(
             request_id="test-request-id",
             success=False,
@@ -388,7 +407,7 @@ class TestAsyncContextClear(unittest.TestCase):
         # Mock time.sleep to be a no-op
         mock_sleep.return_value = None
 
-        # Mock start_clear
+        # Mock clear_async
         clear_async_result = ClearContextResult(
             request_id="test-request-id",
             success=True,

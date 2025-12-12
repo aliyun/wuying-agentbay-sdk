@@ -6,20 +6,28 @@
  * - Utilize PageUseAgent to run sudoku game
  */
 
-import { AgentBay, CreateSessionParams,BrowserOption, ExtractOptions, ActOptions } from 'wuying-agentbay-sdk';
+import {
+  AgentBay,
+  CreateSessionParams,
+  BrowserOption,
+  ExtractOptions,
+  ActOptions,
+} from "wuying-agentbay-sdk";
 
-import { chromium } from 'playwright';
+import { chromium } from "playwright";
+import { z } from "zod";
 
-class SudokuBoard {
-  board: number[][] = [];
-}
+const SudokuBoardSchema = z.object({
+  board: z.array(z.array(z.number())),
+});
+type SudokuBoardType = z.infer<typeof SudokuBoardSchema>;
 
-class SudokuSolution {
-  solution: number[][] = [];
-}
-
+const SudokuSolutionSchema = z.object({
+  solution: z.array(z.array(z.number())),
+});
+type SudokuSolutionType = z.infer<typeof SudokuSolutionSchema>;
 function formatBoardForLlm(board: number[][]): string {
-  return board.map(row => `  [${row.join(', ')}]`).join('\n');
+  return board.map((row) => `  [${row.join(", ")}]`).join("\n");
 }
 
 async function main() {
@@ -52,7 +60,7 @@ async function main() {
 
       const browser = await chromium.connectOverCDP(endpointUrl);
       try {
-        const context = browser.contexts()[0]
+        const context = browser.contexts()[0];
         const page = await context.newPage();
         console.log("🌐 Navigating to Sudoku site...");
         const url = "https://widget.websudoku.com/";
@@ -65,27 +73,31 @@ async function main() {
 
         while (!success) {
           console.log("📊 Extracting sudoku board...");
-          const options: ExtractOptions<SudokuBoard> = {
-            instruction: "Extract the current sudoku board as a 9x9 array. Each cell should be a number (1-9) if filled, or 0 if empty.",
-            schema: SudokuBoard,
-            use_text_extract: false
+          const options: ExtractOptions<typeof SudokuBoardSchema> = {
+            instruction:
+              "Extract the current sudoku board as a 9x9 array. Each cell should be a number (1-9) if filled, or 0 if empty.",
+            schema: SudokuBoardSchema,
+            use_text_extract: false,
           };
 
-          const [extractSuccess, boardObjs] = await session.browser.agent.extract(options, page);
-          if (extractSuccess && boardObjs.length > 0) {
+          const [extractSuccess, boardObj] =
+            await session.browser.agent.extract(options, page);
+          if (extractSuccess && boardObj) {
             success = true;
-            board = boardObjs[0].board;
+            board = boardObj.board;
           } else {
             console.log("❌ Failed to extract sudoku board, retry extracting");
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise((resolve) => setTimeout(resolve, 3000));
           }
         }
 
-        console.log("Current Board:\n" + board.map(row => row.join(' ')).join('\n'));
-        const originalBoard = board.map(row => [...row]);
+        console.log(
+          "Current Board:\n" + board.map((row) => row.join(" ")).join("\n")
+        );
+        const originalBoard = board.map((row) => [...row]);
 
         // 2. Solve the sudoku
-        const solutionOptions: ExtractOptions<SudokuSolution> = {
+        const solutionOptions: ExtractOptions<typeof SudokuSolutionSchema> = {
           instruction: `You are an expert sudoku solver. Given the following sudoku board as a 9x9 array (0 means empty), solve the sudoku and return the completed 9x9 array as 'solution'.
 
 Sudoku rules:
@@ -103,39 +115,46 @@ Return:
 {
   solution: number[][] // 9x9, all filled, valid sudoku
 }`,
-          schema: SudokuSolution,
-          use_text_extract: false
+          schema: SudokuSolutionSchema,
+          use_text_extract: false,
         };
 
-        const [solutionSuccess, solutionObjs] = await session.browser.agent.extract(solutionOptions, page);
-        if (!solutionSuccess || solutionObjs.length === 0) {
+        const [solutionSuccess, solutionObj] =
+          await session.browser.agent.extract(solutionOptions, page);
+        if (!solutionSuccess || !solutionObj) {
           console.log("❌ Failed to solve sudoku");
           return;
         }
 
-        const solution = solutionObjs[0].solution;
-        console.log("Solved Board:\n" + solution.map((row:any) => row.join(' ')).join('\n'));
+        const solution = solutionObj.solution;
+        console.log(
+          "Solved Board:\n" +
+            solution.map((row: any) => row.join(" ")).join("\n")
+        );
 
         // 3. Fill the solution
         for (let row = 0; row < 9; row++) {
           for (let col = 0; col < 9; col++) {
             if (originalBoard[row][col] === 0) {
               const inputId = `f${col}${row}`;
-              console.log(`Type '${solution[row][col]}' into the cell with id '${inputId}'`);
+              console.log(
+                `Type '${solution[row][col]}' into the cell with id '${inputId}'`
+              );
 
               // Use the act method for natural language action
               const actOptions: ActOptions = {
-                action: `Enter '${solution[row][col]}' into the input element where the attribute id is exactly '${inputId}' (for example, if id='f53', you must match the full string 'f53', not just the number 53; do not split or extract numbers from the id)`
+                action: `Enter '${solution[row][col]}' into the input element where the attribute id is exactly '${inputId}' (for example, if id='f53', you must match the full string 'f53', not just the number 53; do not split or extract numbers from the id)`,
               };
 
               await session.browser.agent.act(actOptions, page);
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
             }
           }
         }
 
-        console.log("✅ Finished! The board has been solved and filled in the browser.");
-
+        console.log(
+          "✅ Finished! The board has been solved and filled in the browser."
+        );
       } catch (error) {
         console.log(`❌ Error in game loop: ${error}`);
       }

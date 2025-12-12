@@ -195,7 +195,7 @@ func TestCommand_Implementation_NewJsonFormat(t *testing.T) {
 	jsonData := map[string]interface{}{
 		"stdout":    "output text",
 		"stderr":    "error text",
-		"errorCode": 0,
+		"exit_code": 0,
 		"traceId":   "",
 	}
 	jsonBytes, _ := json.Marshal(jsonData)
@@ -233,7 +233,7 @@ func TestCommand_Implementation_NewJsonFormatError(t *testing.T) {
 	jsonData := map[string]interface{}{
 		"stdout":    "",
 		"stderr":    "command not found",
-		"errorCode": 127,
+		"exit_code": 127,
 		"traceId":   "trace-123",
 	}
 	jsonBytes, _ := json.Marshal(jsonData)

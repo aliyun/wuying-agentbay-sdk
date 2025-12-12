@@ -17,7 +17,7 @@ keyboard input, screen capture, and window management. It enables automated UI t
 
 ### MouseButton
 
-Mouse button constants: Left, Right, Middle
+Mouse button constants: Left, Right, Middle, DoubleLeft
 
 ### ScrollDirection
 
