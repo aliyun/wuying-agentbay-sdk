@@ -7,16 +7,19 @@
 
 - [act](#act)
 - [actAsync](#actasync)
+- [close](#close)
 - [extract](#extract)
 - [extractAsync](#extractasync)
+- [navigate](#navigate)
 - [observe](#observe)
 - [observeAsync](#observeasync)
+- [screenshot](#screenshot)
 
 ## Methods
 
 ### act
 
-▸ **act**(`options`, `page`): `Promise`\<``ActResult``\>
+▸ **act**(`options`, `page?`): `Promise`\<``ActResult``\>
 
 ------------------ ACT ------------------ *
 
@@ -25,7 +28,7 @@
 | Name | Type |
 | :------ | :------ |
 | `options` | ``ActOptions`` |
-| `page` | `any` |
+| `page?` | `any` |
 
 #### Returns
 
@@ -35,14 +38,14 @@ ___
 
 ### actAsync
 
-▸ **actAsync**(`options`, `page`): `Promise`\<``ActResult``\>
+▸ **actAsync**(`options`, `page?`): `Promise`\<``ActResult``\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `options` | ``ActOptions`` |
-| `page` | `any` |
+| `page?` | `any` |
 
 #### Returns
 
@@ -50,57 +53,87 @@ ___
 
 ___
 
+### close
+
+▸ **close**(): `Promise`\<`boolean`\>
+
+------------------ CLOSE ------------------ *
+
+#### Returns
+
+`Promise`\<`boolean`\>
+
+___
+
 ### extract
 
-▸ **extract**\<`T`\>(`options`, `page`): `Promise`\<[`boolean`, ``null`` \| `T`]\>
+▸ **extract**\<`TSchema`\>(`options`, `page?`): `Promise`\<[`boolean`, ``null`` \| `TypeOf`\<`TSchema`\>]\>
 
 ------------------ EXTRACT ------------------ *
 
 #### Type parameters
 
-| Name |
-| :------ |
-| `T` |
+| Name | Type |
+| :------ | :------ |
+| `TSchema` | extends `ZodType`\<`any`, `any`, `any`, `TSchema`\> |
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `options` | ``ExtractOptions``\<`T`\> |
-| `page` | `any` |
+| `options` | ``ExtractOptions``\<`TSchema`\> |
+| `page?` | `any` |
 
 #### Returns
 
-`Promise`\<[`boolean`, ``null`` \| `T`]\>
+`Promise`\<[`boolean`, ``null`` \| `TypeOf`\<`TSchema`\>]\>
 
 ___
 
 ### extractAsync
 
-▸ **extractAsync**\<`T`\>(`options`, `page`): `Promise`\<[`boolean`, ``null`` \| `T`]\>
+▸ **extractAsync**\<`TSchema`\>(`options`, `page?`): `Promise`\<[`boolean`, ``null`` \| `TypeOf`\<`TSchema`\>]\>
 
 #### Type parameters
 
-| Name |
-| :------ |
-| `T` |
+| Name | Type |
+| :------ | :------ |
+| `TSchema` | extends `ZodType`\<`any`, `any`, `any`, `TSchema`\> |
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
-| `options` | ``ExtractOptions``\<`T`\> |
-| `page` | `any` |
+| `options` | ``ExtractOptions``\<`TSchema`\> |
+| `page?` | `any` |
 
 #### Returns
 
-`Promise`\<[`boolean`, ``null`` \| `T`]\>
+`Promise`\<[`boolean`, ``null`` \| `TypeOf`\<`TSchema`\>]\>
+
+___
+
+### navigate
+
+▸ **navigate**(`url`): `Promise`\<`string`\>
+
+------------------ NAVIGATE ------------------ *
+
+#### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `url` | `string` |
+
+#### Returns
+
+`Promise`\<`string`\>
 
 ___
 
 ### observe
 
-▸ **observe**(`options`, `page`): `Promise`\<``boolean`, [`ObserveResult``[]]\>
+▸ **observe**(`options`, `page?`): `Promise`\<``boolean`, [`ObserveResult``[]]\>
 
 ------------------ OBSERVE ------------------ *
 
@@ -109,7 +142,7 @@ ___
 | Name | Type |
 | :------ | :------ |
 | `options` | ``ObserveOptions`` |
-| `page` | `any` |
+| `page?` | `any` |
 
 #### Returns
 
@@ -119,15 +152,37 @@ ___
 
 ### observeAsync
 
-▸ **observeAsync**(`options`, `page`): `Promise`\<``boolean`, [`ObserveResult``[]]\>
+▸ **observeAsync**(`options`, `page?`): `Promise`\<``boolean`, [`ObserveResult``[]]\>
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `options` | ``ObserveOptions`` |
-| `page` | `any` |
+| `page?` | `any` |
 
 #### Returns
 
 `Promise`\<``boolean`, [`ObserveResult``[]]\>
+
+___
+
+### screenshot
+
+▸ **screenshot**(`page?`, `full_page?`, `quality?`, `clip?`, `timeout?`): `Promise`\<`string`\>
+
+------------------ SCREENSHOT ------------------ *
+
+#### Parameters
+
+| Name | Type | Default value |
+| :------ | :------ | :------ |
+| `page` | `any` | `null` |
+| `full_page` | `boolean` | `true` |
+| `quality` | `number` | `80` |
+| `clip?` | `Record`\<`string`, `number`\> | `undefined` |
+| `timeout?` | `number` | `undefined` |
+
+#### Returns
+
+`Promise`\<`string`\>

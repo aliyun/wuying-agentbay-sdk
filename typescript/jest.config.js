@@ -12,7 +12,7 @@ module.exports = {
         }]
     },
     transformIgnorePatterns: [
-        'node_modules/(?!(chai|playwright)/)' // Exclude chai and playwright from transform ignore
+        'node_modules/(?!(.*))' // Transform all node_modules to handle ES modules
     ],
     testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.test.js'],
     collectCoverageFrom: [

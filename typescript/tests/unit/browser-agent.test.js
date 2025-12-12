@@ -5,12 +5,12 @@ const { FingerprintFormat } = require('../../dist/index.cjs');
 const fs = require('fs');
 const path = require('path');
 
-class TestSchema {
-  constructor() {
-    this.title = "";
-    this.content = "";
-  }
-}
+const { z } = require('zod');
+
+const TestSchema = z.object({
+  title: z.string(),
+  content: z.string()
+});
 
 describe('Browser Unit Tests', () => {
   let mockSession;
@@ -143,7 +143,7 @@ describe('Browser Unit Tests', () => {
     
     mockSession.callMcpTool.mockResolvedValue({
       success: true,
-      data: JSON.stringify({ title: 'Test Title' }),
+      data: JSON.stringify({ title: 'Test Title', content: 'Test Content' }),
       errorMessage: '',
       requestId: 'test-request-id'
     });
