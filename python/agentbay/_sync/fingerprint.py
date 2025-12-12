@@ -13,7 +13,13 @@ _logger = get_logger("fingerprint")
 
 
 class BrowserFingerprintGenerator:
-    """Browser fingerprint generator class."""
+    """
+    Browser fingerprint generator class.
+
+    Args:
+        headless: Whether to run browser in headless mode.
+        use_chrome_channel: Whether to launch via the Chrome channel.
+    """
 
     def __init__(self, headless: bool = False, use_chrome_channel: bool = True):
         """

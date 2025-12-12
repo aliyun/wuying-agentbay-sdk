@@ -36,6 +36,13 @@ def _apply_custom_replacements(content: str, file_path: str) -> str:
         "asyncio.wait_for(stop_event.wait(), timeout=interval)",
         "stop_event.wait(timeout=interval)"
     )
+    # Ensure context start_clear alias is not renamed to clear_async (avoids recursion)
+    content = re.sub(
+        r"def clear_async\(self, context_id: str\) -> ClearContextResult:\n(\s+\"\"\"\n\s+Deprecated alias for `clear_async`.\n)",
+        r"def start_clear(self, context_id: str) -> ClearContextResult:\n\1",
+        content,
+        flags=re.MULTILINE,
+    )
     return content
 
 def generate_sync():
@@ -80,7 +87,6 @@ def generate_sync():
         "resume_session_async_async": "resume_session_async",
         "list_mcp_tools_async": "list_mcp_tools",
         "get_adb_link_async": "get_adb_link",
-        "start_clear": "clear_async",
 
         # Client API methods rename
         "get_link_async": "get_link",
@@ -147,6 +153,7 @@ def generate_sync():
         "IsolatedAsyncioTestCase": "TestCase",
         "AsyncMock": "MagicMock",
         "SyncMock": "MagicMock",
+        "assert_awaited_once_with": "assert_called_once_with",
         "async def asyncSetUp": "def setUp",
         "async def asyncTearDown": "def tearDown",
         "asyncSetUp": "setUp",

@@ -8,6 +8,18 @@ class MobileSimulateService()
 
 Provides methods to manage persistent mobile dev info and sync to the mobile device.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AgentBay")
+```
+
+Initialize the MobileSimulateService.
+
+**Arguments**:
+
+- `agent_bay` _AgentBay_ - The AgentBay instance.
+
 ### set\_simulate\_enable
 
 ```python
@@ -164,7 +176,7 @@ Upload the mobile simulate dev info.
 **Raises**:
 
     ValueError: If mobile_dev_info_content is not provided or not a valid JSON string.
-    ValueError: If context_sync is not provided or context_sync.context_id is not provided.
+    ValueError: If context_sync is provided but context_sync.context_id is missing.
   
 
 **Notes**:

@@ -14,6 +14,12 @@ class BrowserAgent(BaseService)
 
 BrowserAgent handles browser automation and agent logic.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session, browser)
+```
+
 ### navigate
 
 ```python
@@ -41,7 +47,7 @@ def screenshot(page=None,
                timeout: Optional[int] = None) -> str
 ```
 
-Synchronously takes a screenshot of the specified page.
+Asynchronously takes a screenshot of the specified page.
 
 **Arguments**:
 
@@ -63,7 +69,7 @@ Synchronously takes a screenshot of the specified page.
 def close() -> bool
 ```
 
-Synchronously closes the remote browser agent session.
+Asynchronously closes the remote browser agent session.
 This will terminate the browser process managed by the agent.
 
 ### act
@@ -73,7 +79,7 @@ def act(action_input: Union[ObserveResult, ActOptions],
         page=None) -> "ActResult"
 ```
 
-Synchronously perform an action on a web page.
+Asynchronously perform an action on a web page.
 
 **Arguments**:
 
@@ -93,7 +99,7 @@ def observe(options: ObserveOptions,
             page=None) -> Tuple[bool, List[ObserveResult]]
 ```
 
-Synchronously observe elements or state on a web page.
+Asynchronously observe elements or state on a web page.
 
 **Arguments**:
 
@@ -113,7 +119,7 @@ Synchronously observe elements or state on a web page.
 def extract(options: ExtractOptions, page=None) -> Tuple[bool, T]
 ```
 
-Synchronously extract information from a web page.
+Asynchronously extract information from a web page.
 
 **Arguments**:
 

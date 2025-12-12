@@ -1019,7 +1019,7 @@ class ContextService:
         Example:
             ```python
             result = await agent_bay.context.get(name="my-context", create=True)
-            clear_result = await agent_bay.context.start_clear(result.context_id)
+            clear_result = await agent_bay.context.clear_async(result.context_id)
             ```
         """
         try:
@@ -1079,6 +1079,21 @@ class ContextService:
                 f"Failed to start context clearing for {context_id}: {e}"
             )
 
+    def start_clear(self, context_id: str) -> ClearContextResult:
+        """
+        Deprecated alias for `clear_async`.
+
+        This method is kept for backward compatibility and simply forwards to
+        `clear_async`. Prefer using `clear_async` going forward.
+
+        Args:
+            context_id: Unique ID of the context to clear.
+
+        Returns:
+            ClearContextResult from `clear_async`.
+        """
+        return self.clear_async(context_id)
+
     def get_clear_status(self, context_id: str) -> ClearContextResult:
         """
         Query the status of the clearing task.
@@ -1095,7 +1110,7 @@ class ContextService:
         Example:
             ```python
             result = await agent_bay.context.get(name="my-context", create=True)
-            clear_result = await agent_bay.context.clear_async(result.context_id)
+            await agent_bay.context.clear_async(result.context_id)
             status_result = await agent_bay.context.get_clear_status(result.context_id)
             print(status_result.status)
             ```
@@ -1184,7 +1199,7 @@ class ContextService:
         """
         Asynchronously clear the context's persistent data and wait for the final result.
 
-        This method wraps the `clear_async` and `_get_clear_status` polling logic,
+        This method wraps the `clear_async` and `get_clear_status` polling logic,
         providing the simplest and most direct way to handle clearing tasks.
 
         The clearing process transitions through the following states:

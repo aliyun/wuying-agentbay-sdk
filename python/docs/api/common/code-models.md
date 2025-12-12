@@ -101,6 +101,24 @@ class CodeExecutionResult(ApiResponse)
 
 Result of code execution operations. Kept for backward compatibility but users should transition to EnhancedCodeExecutionResult.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             result: str = "",
+             error_message: str = "")
+```
+
+Initialize a CodeExecutionResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+- `success` _bool, optional_ - Whether the operation was successful.
+- `result` _str, optional_ - The execution result.
+- `error_message` _str, optional_ - Error message if the operation failed.
+
 ## See Also
 
 - [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)

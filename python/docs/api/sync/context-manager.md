@@ -15,6 +15,12 @@ Manages context operations within a session in the AgentBay cloud environment.
 The ContextManager provides methods to get information about context synchronization
 status and to synchronize contexts with the session.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
 ### info
 
 ```python
@@ -23,7 +29,7 @@ def info(context_id: Optional[str] = None,
          task_type: Optional[str] = None) -> ContextInfoResult
 ```
 
-Get information about context synchronization status synchronously.
+Get information about context synchronization status asynchronously.
 
 **Arguments**:
 
@@ -46,7 +52,7 @@ def sync(context_id: Optional[str] = None,
          retry_interval: int = 1500) -> ContextSyncResult
 ```
 
-Synchronize a context with the session synchronously.
+Synchronize a context with the session asynchronously.
 
 **Arguments**:
 

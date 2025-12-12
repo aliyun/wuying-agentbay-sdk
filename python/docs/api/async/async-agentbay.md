@@ -16,6 +16,12 @@
 class Config()
 ```
 
+### \_\_init\_\_
+
+```python
+def __init__(self, endpoint: str, timeout_ms: int)
+```
+
 ## AsyncAgentBay
 
 ```python
@@ -24,6 +30,22 @@ class AsyncAgentBay()
 
 AsyncAgentBay represents the main client for interacting with the AgentBay cloud runtime
 environment asynchronously.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, api_key: str = "",
+             cfg: Optional[Config] = None,
+             env_file: Optional[str] = None)
+```
+
+Initialize AsyncAgentBay client.
+
+**Arguments**:
+
+    api_key: API key for authentication. If not provided, will read from AGENTBAY_API_KEY environment variable.
+    cfg: Configuration object. If not provided, will load from environment variables and .env file.
+    env_file: Custom path to .env file. If not provided, will search upward from current directory.
 
 ### create
 
@@ -178,7 +200,7 @@ to check the session status until it becomes PAUSED or until timeout.
 async def pause_async(session: AsyncSession) -> SessionPauseResult
 ```
 
-Asynchronously pause a session, putting it into a dormant state.
+Fire-and-return pause: trigger PauseSessionAsync without waiting for PAUSED.
 
 This method directly calls the PauseSessionAsync API without waiting for the session
 to reach the PAUSED state. For behavior that waits for the PAUSED state,
@@ -225,7 +247,7 @@ to check the session status until it becomes RUNNING or until timeout.
 async def resume_async(session: AsyncSession) -> SessionResumeResult
 ```
 
-Asynchronously resume a session from a paused state.
+Fire-and-return resume: trigger ResumeSessionAsync without waiting for RUNNING.
 
 This method directly calls the ResumeSessionAsync API without waiting for the session
 to reach the RUNNING state. For behavior that waits for the RUNNING state,

@@ -14,6 +14,12 @@ class AsyncBrowserAgent(BaseService)
 
 BrowserAgent handles browser automation and agent logic.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session, browser)
+```
+
 ### navigate
 
 ```python

@@ -10,6 +10,19 @@
 
 
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session_id: str = "",
+             resource_url: str = "",
+             app_id: str = "",
+             auth_code: str = "",
+             connection_properties: str = "",
+             resource_id: str = "",
+             resource_type: str = "",
+             ticket: str = "")
+```
+
 ## AsyncSession
 
 ```python
@@ -17,6 +30,12 @@ class AsyncSession()
 ```
 
 AsyncSession represents a session in the AgentBay cloud environment.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AsyncAgentBay", session_id: str)
+```
 
 ### delete
 

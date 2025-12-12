@@ -996,7 +996,7 @@ class AsyncContextService:
             count=(getattr(body, "count", None) if body else None),
         )
 
-    async def start_clear(self, context_id: str) -> ClearContextResult:
+    async def clear_async(self, context_id: str) -> ClearContextResult:
         """
         Asynchronously initiate a task to clear the context's persistent data.
 
@@ -1017,7 +1017,7 @@ class AsyncContextService:
         Example:
             ```python
             result = await agent_bay.context.get(name="my-context", create=True)
-            clear_result = await agent_bay.context.start_clear(result.context_id)
+            clear_result = await agent_bay.context.clear_async(result.context_id)
             ```
         """
         try:
@@ -1077,6 +1077,21 @@ class AsyncContextService:
                 f"Failed to start context clearing for {context_id}: {e}"
             )
 
+    async def start_clear(self, context_id: str) -> ClearContextResult:
+        """
+        Deprecated alias for `clear_async`.
+
+        This method is kept for backward compatibility and simply forwards to
+        `clear_async`. Prefer using `clear_async` going forward.
+
+        Args:
+            context_id: Unique ID of the context to clear.
+
+        Returns:
+            ClearContextResult from `clear_async`.
+        """
+        return await self.clear_async(context_id)
+
     async def get_clear_status(self, context_id: str) -> ClearContextResult:
         """
         Query the status of the clearing task.
@@ -1093,7 +1108,7 @@ class AsyncContextService:
         Example:
             ```python
             result = await agent_bay.context.get(name="my-context", create=True)
-            await agent_bay.context.start_clear(result.context_id)
+            await agent_bay.context.clear_async(result.context_id)
             status_result = await agent_bay.context.get_clear_status(result.context_id)
             print(status_result.status)
             ```
@@ -1182,7 +1197,7 @@ class AsyncContextService:
         """
         Asynchronously clear the context's persistent data and wait for the final result.
 
-        This method wraps the `start_clear` and `get_clear_status` polling logic,
+        This method wraps the `clear_async` and `get_clear_status` polling logic,
         providing the simplest and most direct way to handle clearing tasks.
 
         The clearing process transitions through the following states:
@@ -1209,7 +1224,7 @@ class AsyncContextService:
             ```
         """
         # 1. Asynchronously start the clearing task
-        start_result = await self.start_clear(context_id)
+        start_result = await self.clear_async(context_id)
         if not start_result.success:
             return start_result
 

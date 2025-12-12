@@ -28,6 +28,12 @@ class AsyncBrowser(AsyncBaseService)
 
 Browser provides browser-related operations for the session.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session: "AsyncSession")
+```
+
 ### initialize
 
 ```python

@@ -14,6 +14,12 @@
 class Config()
 ```
 
+### \_\_init\_\_
+
+```python
+def __init__(self, endpoint: str, timeout_ms: int)
+```
+
 ## AgentBay
 
 ```python
@@ -21,7 +27,23 @@ class AgentBay()
 ```
 
 AgentBay represents the main client for interacting with the AgentBay cloud runtime
-environment synchronously.
+environment asynchronously.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, api_key: str = "",
+             cfg: Optional[Config] = None,
+             env_file: Optional[str] = None)
+```
+
+Initialize AgentBay client.
+
+**Arguments**:
+
+    api_key: API key for authentication. If not provided, will read from AGENTBAY_API_KEY environment variable.
+    cfg: Configuration object. If not provided, will load from environment variables and .env file.
+    env_file: Custom path to .env file. If not provided, will search upward from current directory.
 
 ### create
 
@@ -29,7 +51,7 @@ environment synchronously.
 def create(params: Optional[CreateSessionParams] = None) -> SessionResult
 ```
 
-Create a new session in the AgentBay cloud environment synchronously.
+Create a new session in the AgentBay cloud environment asynchronously.
 
 **Arguments**:
 
@@ -70,7 +92,7 @@ def list(labels: Optional[Dict[str, str]] = None,
          limit: Optional[int] = None) -> SessionListResult
 ```
 
-Returns paginated list of session IDs filtered by labels synchronously.
+Returns paginated list of session IDs filtered by labels asynchronously.
 
 **Arguments**:
 
@@ -92,7 +114,7 @@ Returns paginated list of session IDs filtered by labels synchronously.
 def delete(session: Session, sync_context: bool = False) -> DeleteResult
 ```
 
-Delete a session by session object synchronously.
+Delete a session by session object asynchronously.
 
 **Arguments**:
 
@@ -111,7 +133,7 @@ Delete a session by session object synchronously.
 def get_session(session_id: str) -> GetSessionResult
 ```
 
-Get session information by session ID synchronously.
+Get session information by session ID asynchronously.
 
 This method retrieves detailed session metadata from the API. Unlike `get()`,
 this returns raw session data without creating a Session object.
@@ -131,7 +153,7 @@ this returns raw session data without creating a Session object.
 def get(session_id: str) -> SessionResult
 ```
 
-Get a session by its ID synchronously.
+Get a session by its ID asynchronously.
 
 **Arguments**:
 
@@ -150,7 +172,7 @@ def pause(session: Session,
           poll_interval: float = 2.0) -> SessionPauseResult
 ```
 
-Synchronously pause a session, putting it into a dormant state.
+Asynchronously pause a session, putting it into a dormant state.
 
 This method internally calls the PauseSessionAsync API and then polls the GetSession API
 to check the session status until it becomes PAUSED or until timeout.
@@ -174,7 +196,7 @@ to check the session status until it becomes PAUSED or until timeout.
 def pause_async(session: Session) -> SessionPauseResult
 ```
 
-Synchronously pause a session, putting it into a dormant state.
+Fire-and-return pause: trigger PauseSessionAsync without waiting for PAUSED.
 
 This method directly calls the PauseSessionAsync API without waiting for the session
 to reach the PAUSED state. For behavior that waits for the PAUSED state,
@@ -197,7 +219,7 @@ def resume(session: Session,
            poll_interval: float = 2.0) -> SessionResumeResult
 ```
 
-Synchronously resume a session from a paused state.
+Asynchronously resume a session from a paused state.
 
 This method internally calls the ResumeSessionAsync API and then polls the GetSession API
 to check the session status until it becomes RUNNING or until timeout.
@@ -221,7 +243,7 @@ to check the session status until it becomes RUNNING or until timeout.
 def resume_async(session: Session) -> SessionResumeResult
 ```
 
-Synchronously resume a session from a paused state.
+Fire-and-return resume: trigger ResumeSessionAsync without waiting for RUNNING.
 
 This method directly calls the ResumeSessionAsync API without waiting for the session
 to reach the RUNNING state. For behavior that waits for the RUNNING state,

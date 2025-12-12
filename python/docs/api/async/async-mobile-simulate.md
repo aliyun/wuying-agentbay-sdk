@@ -8,6 +8,18 @@ class AsyncMobileSimulateService()
 
 Provides methods to manage persistent mobile dev info and sync to the mobile device.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AsyncAgentBay")
+```
+
+Initialize the MobileSimulateService.
+
+**Arguments**:
+
+- `agent_bay` _AsyncAgentBay_ - The AsyncAgentBay instance.
+
 ### set\_simulate\_enable
 
 ```python

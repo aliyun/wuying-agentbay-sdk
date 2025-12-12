@@ -26,13 +26,19 @@ class Browser(BaseService)
 
 Browser provides browser-related operations for the session.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session: "Session")
+```
+
 ### initialize
 
 ```python
 def initialize(option: Optional["BrowserOption"] = None) -> bool
 ```
 
-Initialize the browser instance with the given options synchronously.
+Initialize the browser instance with the given options asynchronously.
 Returns True if successful, False otherwise.
 
 **Arguments**:
@@ -48,7 +54,8 @@ Returns True if successful, False otherwise.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+create_result = agent_bay.create()
+session = create_result.session
 # Use default options
 session.browser.initialize()
 # Or with specific options
@@ -127,7 +134,8 @@ When initialized, always fetches the latest CDP url from session.get_link().
 **Example**:
 
 ```python
-session = agent_bay.create().session
+create_result = agent_bay.create()
+session = create_result.session
 browser_option = BrowserOption()
 session.browser.initialize(browser_option)
 endpoint_url = session.browser.get_endpoint_url()
@@ -151,7 +159,8 @@ Returns the current BrowserOption used to initialize the browser, or None if not
 **Example**:
 
 ```python
-session = agent_bay.create().session
+create_result = agent_bay.create()
+session = create_result.session
 browser_option = BrowserOption(use_stealth=True)
 session.browser.initialize(browser_option)
 current_options = session.browser.get_option()
@@ -175,7 +184,8 @@ Returns True if the browser was initialized, False otherwise.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+create_result = agent_bay.create()
+session = create_result.session
 print(f"Initialized: {session.browser.is_initialized()}")
 browser_option = BrowserOption()
 session.browser.initialize(browser_option)

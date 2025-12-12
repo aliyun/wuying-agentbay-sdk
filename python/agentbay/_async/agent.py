@@ -51,9 +51,9 @@ class AsyncAgent(AsyncBaseService):
 
         async def execute_task(self, task: str) -> ExecutionResult:
             """
-            Execute a specific task described in human language asynchronously.
+            Execute a task in human language without waiting for completion (non-blocking).
 
-            This is an asynchronous interface that returns immediately with a task ID.
+            This is a fire-and-return interface that immediately provides a task ID.
             Call get_task_status to check the task status. You can control the timeout
             of the task execution in your own code by setting the frequency of calling
             get_task_status and the max_try_times.
@@ -410,9 +410,9 @@ class AsyncAgent(AsyncBaseService):
 
         async def execute_task(self, task: str) -> ExecutionResult:
             """
-            Execute a specific task described in human language asynchronously.
+            Execute a browser task in human language without waiting for completion (non-blocking).
 
-            This is an asynchronous interface that returns immediately with a task ID.
+            This is a fire-and-return interface that immediately provides a task ID.
             Call get_task_status to check the task status. You can control the timeout
             of the task execution in your own code by setting the frequency of calling
             get_task_status and the max_try_times.

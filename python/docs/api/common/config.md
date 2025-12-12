@@ -8,6 +8,12 @@ class Config()
 
 Configuration object for AgentBay client.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, endpoint: str, timeout_ms: int, region_id: Optional[str] = None)
+```
+
 #### BROWSER\_RECORD\_PATH
 
 ```python

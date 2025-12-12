@@ -134,7 +134,7 @@ class SessionResult(ApiResponse):
 
 
 class SessionListResult(ApiResponse):
-    """Result of operations returning a list of Sessions."""
+    """Result of operations returning a list of Session IDs."""
 
     def __init__(
         self,

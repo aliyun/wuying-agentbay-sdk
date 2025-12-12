@@ -33,6 +33,18 @@ Provides comprehensive mobile automation capabilities including touch operations
 UI element interactions, application management, screenshot capabilities,
 and mobile environment configuration operations.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
+Initialize a Mobile object.
+
+**Arguments**:
+
+    session: The session object that provides access to the AgentBay API.
+
 ### tap
 
 ```python
@@ -55,7 +67,7 @@ Taps on the mobile screen at the specified coordinates.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.tap(500, 800)
 session.delete()
 ```
@@ -95,7 +107,7 @@ Performs a swipe gesture from one point to another.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.swipe(100, 1000, 100, 200, duration_ms=500)
 session.delete()
 ```
@@ -121,7 +133,7 @@ Inputs text into the active field.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.input_text("Hello Mobile!")
 session.delete()
 ```
@@ -153,7 +165,7 @@ Sends a key press event.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.send_key(4)  # Press BACK button
 session.delete()
 ```
@@ -180,7 +192,7 @@ Retrieves all clickable UI elements within the specified timeout.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 result = session.mobile.get_clickable_ui_elements()
 print(f"Found {len(result.elements)} clickable elements")
 session.delete()
@@ -208,7 +220,7 @@ Retrieves all UI elements within the specified timeout.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 result = session.mobile.get_all_ui_elements()
 print(f"Found {len(result.elements)} UI elements")
 session.delete()
@@ -239,7 +251,7 @@ Retrieves a list of installed applications.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 apps = session.mobile.get_installed_apps(True, False, True)
 print(f"Found {len(apps.data)} apps")
 session.delete()
@@ -272,7 +284,7 @@ optional activity.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 processes = session.mobile.start_app("monkey -p com.android.settings 1")
 print(f"Started {len(processes.data)} process(es)")
 session.delete()
@@ -299,7 +311,7 @@ Stops an application by stop command.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 result = session.mobile.stop_app_by_cmd("com.android.settings")
 print(f"Stop successful: {result.success}")
 session.delete()
@@ -322,7 +334,7 @@ Takes a screenshot of the current screen.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 result = session.mobile.screenshot()
 print(f"Screenshot URL: {result.data}")
 session.delete()
@@ -392,7 +404,7 @@ Set display resolution lock for mobile devices.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.set_resolution_lock(True)
 session.mobile.set_resolution_lock(False)
 session.delete()
@@ -414,7 +426,7 @@ Set application whitelist.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 whitelist = ["com.android.settings", "com.android.chrome"]
 session.mobile.set_app_whitelist(whitelist)
 session.delete()
@@ -443,7 +455,7 @@ Set application blacklist.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 blacklist = ["com.example.app1", "com.example.app2"]
 session.mobile.set_app_blacklist(blacklist)
 session.delete()
@@ -471,7 +483,7 @@ Set navigation bar visibility for mobile devices.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 session.mobile.set_navigation_bar_visibility(hide=True)
 session.mobile.set_navigation_bar_visibility(hide=False)
 session.delete()
@@ -499,7 +511,7 @@ Set uninstall protection blacklist for mobile devices.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 protected_apps = ["com.android.settings", "com.android.chrome"]
 session.mobile.set_uninstall_blacklist(protected_apps)
 session.delete()
@@ -544,7 +556,7 @@ the ADB connect URL.
 **Example**:
 
 ```python
-session = agent_bay.create(image="mobile_latest").session
+session = (agent_bay.create(image="mobile_latest")).session
 adbkey_pub = "your_adb_public_key"
 adb_result = session.mobile.get_adb_url(adbkey_pub)
 print(f"ADB URL: {adb_result.data}")

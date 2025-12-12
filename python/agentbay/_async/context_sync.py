@@ -304,6 +304,9 @@ class SyncPolicy:
         recycle_policy: Defines the recycle policy
         bw_list: Defines the black and white list
         mapping_policy: Defines the mapping policy for cross-platform context synchronization
+
+    Note:
+        Missing policies are automatically filled with defaults in __post_init__.
     """
 
     upload_policy: Optional[UploadPolicy] = None

@@ -54,9 +54,9 @@ class Agent(BaseService):
 
         def execute_task(self, task: str) -> ExecutionResult:
             """
-            Execute a specific task described in human language asynchronously.
+            Execute a task in human language without waiting for completion (non-blocking).
 
-            This is an asynchronous interface that returns immediately with a task ID.
+            This is a fire-and-return interface that immediately provides a task ID.
             Call get_task_status to check the task status. You can control the timeout
             of the task execution in your own code by setting the frequency of calling
             get_task_status and the max_try_times.
@@ -70,7 +70,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.computer.execute_task("Open Chrome browser")
                 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
                 status = await session.agent.computer.get_task_status(result.task_id)
@@ -133,7 +134,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
                 print(f"Task result: {result.task_result}")
                 await session.delete()
@@ -231,7 +233,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
                 status = await session.agent.computer.get_task_status(result.task_id)
                 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -291,7 +294,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
                 terminate_result = await session.agent.computer.terminate_task(result.task_id)
                 print(f"Terminated: {terminate_result.success}")
@@ -362,7 +366,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 options:AgentOptions = AgentOptions(use_vision=False, output_schema="")
                 initialize_result = await session.agent.browser.initialize(options)
                 print(f"Initialized: {initialize_result.success}")
@@ -408,9 +413,9 @@ class Agent(BaseService):
 
         def execute_task(self, task: str) -> ExecutionResult:
             """
-            Execute a specific task described in human language asynchronously.
+            Execute a browser task in human language without waiting for completion (non-blocking).
 
-            This is an asynchronous interface that returns immediately with a task ID.
+            This is a fire-and-return interface that immediately provides a task ID.
             Call get_task_status to check the task status. You can control the timeout
             of the task execution in your own code by setting the frequency of calling
             get_task_status and the max_try_times.
@@ -424,7 +429,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
                 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
                 status = await session.agent.browser.get_task_status(result.task_id)
@@ -487,7 +493,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
                 print(f"Task result: {result.task_result}")
                 await session.delete()
@@ -587,7 +594,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.browser.execute_task("Open Chrome browser")
                 status = await session.agent.browser.get_task_status(result.task_id)
                 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -649,7 +657,8 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session = await agent_bay.create().session
+                session_result = await agent_bay.create()
+                session = session_result.session
                 result = await session.agent.browser.execute_task("Open Chrome browser")
                 terminate_result = await session.agent.browser.terminate_task(result.task_id)
                 print(f"Terminated: {terminate_result.success}")

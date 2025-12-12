@@ -8,6 +8,19 @@
 
 
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session_id: str = "",
+             resource_url: str = "",
+             app_id: str = "",
+             auth_code: str = "",
+             connection_properties: str = "",
+             resource_id: str = "",
+             resource_type: str = "",
+             ticket: str = "")
+```
+
 ## Session
 
 ```python
@@ -15,6 +28,12 @@ class Session()
 ```
 
 Session represents a session in the AgentBay cloud environment.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AgentBay", session_id: str)
+```
 
 ### delete
 
@@ -48,7 +67,7 @@ Delete this session and release all associated resources.
 def set_labels(labels: Dict[str, str]) -> OperationResult
 ```
 
-Sets the labels for this session synchronously.
+Sets the labels for this session asynchronously.
 
 ### get\_labels
 
@@ -56,7 +75,7 @@ Sets the labels for this session synchronously.
 def get_labels() -> OperationResult
 ```
 
-Gets the labels for this session synchronously.
+Gets the labels for this session asynchronously.
 
 ### info
 
@@ -64,7 +83,7 @@ Gets the labels for this session synchronously.
 def info() -> OperationResult
 ```
 
-Get detailed information about this session synchronously.
+Get detailed information about this session asynchronously.
 
 ### get\_link
 
@@ -74,7 +93,7 @@ def get_link(protocol_type: Optional[str] = None,
              options: Optional[str] = None) -> OperationResult
 ```
 
-Synchronously get a link associated with the current session.
+Asynchronously get a link associated with the current session.
 
 ### list\_mcp\_tools
 
@@ -82,7 +101,7 @@ Synchronously get a link associated with the current session.
 def list_mcp_tools(image_id: Optional[str] = None)
 ```
 
-List MCP tools available for this session synchronously.
+List MCP tools available for this session asynchronously.
 
 ### call\_mcp\_tool
 
@@ -94,7 +113,7 @@ def call_mcp_tool(tool_name: str,
                   auto_gen_session: bool = False)
 ```
 
-Call an MCP tool directly synchronously.
+Call an MCP tool directly asynchronously.
 
 ### pause
 
@@ -103,7 +122,7 @@ def pause(timeout: int = 600,
           poll_interval: float = 2.0) -> SessionPauseResult
 ```
 
-Synchronously pause this session, putting it into a dormant state.
+Asynchronously pause this session, putting it into a dormant state.
 This method waits until the session enters the PAUSED state.
 
 ### pause\_async
@@ -112,7 +131,7 @@ This method waits until the session enters the PAUSED state.
 def pause_async() -> SessionPauseResult
 ```
 
-Synchronously initiate the pause session operation without waiting for completion.
+Asynchronously initiate the pause session operation without waiting for completion.
 
 ### resume
 
@@ -121,7 +140,7 @@ def resume(timeout: int = 600,
            poll_interval: float = 2.0) -> SessionResumeResult
 ```
 
-Synchronously resume this session from a paused state.
+Asynchronously resume this session from a paused state.
 This method waits until the session enters the RUNNING state.
 
 ### resume\_async
@@ -130,7 +149,7 @@ This method waits until the session enters the RUNNING state.
 def resume_async() -> SessionResumeResult
 ```
 
-Synchronously initiate the resume session operation without waiting for completion.
+Asynchronously initiate the resume session operation without waiting for completion.
 
 ## See Also
 

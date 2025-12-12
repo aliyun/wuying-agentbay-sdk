@@ -16,6 +16,28 @@ class OSSClientResult(ApiResponse)
 
 Result of OSS client creation operations.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             client_config: Optional[Dict[str, Any]] = None,
+             error_message: str = "")
+```
+
+Initialize an OSSClientResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+  Defaults to "".
+- `success` _bool, optional_ - Whether the operation was successful.
+  Defaults to False.
+- `client_config` _Dict[str, Any], optional_ - OSS client configuration.
+  Defaults to None.
+- `error_message` _str, optional_ - Error message if the operation failed.
+  Defaults to "".
+
 ## OSSUploadResult
 
 ```python
@@ -23,6 +45,27 @@ class OSSUploadResult(ApiResponse)
 ```
 
 Result of OSS upload operations.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             content: str = "",
+             error_message: str = "")
+```
+
+Initialize an OSSUploadResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+  Defaults to "".
+- `success` _bool, optional_ - Whether the operation was successful.
+  Defaults to False.
+- `content` _str, optional_ - Result of the upload operation. Defaults to "".
+- `error_message` _str, optional_ - Error message if the operation failed.
+  Defaults to "".
 
 ## OSSDownloadResult
 
@@ -32,6 +75,27 @@ class OSSDownloadResult(ApiResponse)
 
 Result of OSS download operations.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             content: str = "",
+             error_message: str = "")
+```
+
+Initialize an OSSDownloadResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+  Defaults to "".
+- `success` _bool, optional_ - Whether the operation was successful.
+  Defaults to False.
+- `content` _string, optional_ - Defaults to "Download success"
+- `error_message` _str, optional_ - Error message if the operation failed.
+  Defaults to "".
+
 ## Oss
 
 ```python
@@ -39,6 +103,18 @@ class Oss(BaseService)
 ```
 
 Handles Object Storage Service operations in the AgentBay cloud environment.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
+Initialize an Oss object.
+
+**Arguments**:
+
+    session: The Session instance that this Oss belongs to.
 
 ### env\_init
 
@@ -109,7 +185,8 @@ the OSS environment.
 session = agent_bay.create().session
 session.oss.env_init(
   access_key_id="your_access_key_id",
-  access_key_secret="your_access_key_secret"
+  access_key_secret="your_access_key_secret",
+  securityToken="your_sts_security_token",
 )
 result = session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
 print(f"Upload result: {result.content}")
@@ -178,7 +255,8 @@ the OSS environment.
 session = agent_bay.create().session
 session.oss.env_init(
   access_key_id="your_access_key_id",
-  access_key_secret="your_access_key_secret"
+  access_key_secret="your_access_key_secret",
+  securityToken="your_sts_security_token",
 )
 result = session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
 print(f"Download result: {result.content}")

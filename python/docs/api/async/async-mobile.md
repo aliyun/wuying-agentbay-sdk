@@ -35,6 +35,18 @@ Provides comprehensive mobile automation capabilities including touch operations
 UI element interactions, application management, screenshot capabilities,
 and mobile environment configuration operations.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
+Initialize a Mobile object.
+
+**Arguments**:
+
+    session: The session object that provides access to the AgentBay API.
+
 ### tap
 
 ```python

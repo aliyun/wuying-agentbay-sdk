@@ -55,6 +55,18 @@ Handles computer UI automation operations in the AgentBay cloud environment.
 Provides comprehensive desktop automation capabilities including mouse, keyboard,
 window management, application management, and screen operations.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
+Initialize a Computer object.
+
+**Arguments**:
+
+    session: The session object that provides access to the AgentBay API.
+
 ### click\_mouse
 
 ```python

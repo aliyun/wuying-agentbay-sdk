@@ -8,6 +8,24 @@ class BrowserFingerprintGenerator()
 
 Browser fingerprint generator class.
 
+**Arguments**:
+
+    headless: Whether to run browser in headless mode.
+    use_chrome_channel: Whether to launch via the Chrome channel.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, headless: bool = False, use_chrome_channel: bool = True)
+```
+
+Initialize the fingerprint generator.
+
+**Arguments**:
+
+    headless: Whether to run browser in headless mode
+    use_chrome_channel: Whether to use Chrome channel
+
 ### generate\_fingerprint
 
 ```python

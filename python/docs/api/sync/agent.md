@@ -16,6 +16,12 @@ class Agent(BaseService)
 
 An Agent to manipulate applications to complete specific tasks.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
 ## Computer
 
 ```python
@@ -24,15 +30,21 @@ class Computer()
 
 An Agent to perform tasks on the computer.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
 ### execute\_task
 
 ```python
 def execute_task(task: str) -> ExecutionResult
 ```
 
-Execute a specific task described in human language synchronously.
+Execute a task in human language without waiting for completion (non-blocking).
 
-This is an asynchronous interface that returns immediately with a task ID.
+This is a fire-and-return interface that immediately provides a task ID.
 Call get_task_status to check the task status. You can control the timeout
 of the task execution in your own code by setting the frequency of calling
 get_task_status and the max_try_times.
@@ -51,7 +63,8 @@ get_task_status and the max_try_times.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.computer.execute_task("Open Chrome browser")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = session.agent.computer.get_task_status(result.task_id)
@@ -86,7 +99,8 @@ so set a proper max_try_times according to your task complexity.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
 print(f"Task result: {result.task_result}")
 session.delete()
@@ -114,7 +128,8 @@ Get the status of the task with the given task ID.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 status = session.agent.computer.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -143,7 +158,8 @@ Terminate a task with a specified task ID.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
 terminate_result = session.agent.computer.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")
@@ -157,6 +173,12 @@ class Browser()
 ```
 
 An Agent(⚠️ Still in BETA) to perform tasks on the browser
+
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
 
 ### initialize
 
@@ -179,7 +201,8 @@ Initialize the browser agent with options.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 options:AgentOptions = AgentOptions(use_vision=False, output_schema="")
 initialize_result = session.agent.browser.initialize(options)
 print(f"Initialized: {initialize_result.success}")
@@ -192,9 +215,9 @@ session.delete()
 def execute_task(task: str) -> ExecutionResult
 ```
 
-Execute a specific task described in human language synchronously.
+Execute a browser task in human language without waiting for completion (non-blocking).
 
-This is an asynchronous interface that returns immediately with a task ID.
+This is a fire-and-return interface that immediately provides a task ID.
 Call get_task_status to check the task status. You can control the timeout
 of the task execution in your own code by setting the frequency of calling
 get_task_status and the max_try_times.
@@ -213,7 +236,8 @@ get_task_status and the max_try_times.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
 status = session.agent.browser.get_task_status(result.task_id)
@@ -248,7 +272,8 @@ so set a proper max_try_times according to your task complexity.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
 print(f"Task result: {result.task_result}")
 session.delete()
@@ -276,7 +301,8 @@ Get the status of the task with the given task ID.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.browser.execute_task("Open Chrome browser")
 status = session.agent.browser.get_task_status(result.task_id)
 print(f"Status: {status.task_status}, Action: {status.task_action}")
@@ -305,7 +331,8 @@ Terminate a task with a specified task ID.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session_result = agent_bay.create()
+session = session_result.session
 result = session.agent.browser.execute_task("Open Chrome browser")
 terminate_result = session.agent.browser.terminate_task(result.task_id)
 print(f"Terminated: {terminate_result.success}")

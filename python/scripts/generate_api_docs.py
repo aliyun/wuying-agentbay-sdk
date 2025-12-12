@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 from dataclasses import dataclass
@@ -236,7 +237,8 @@ def render_markdown(module_names: Iterable[str], exclude_methods: list = None, g
     pydoc = PydocMarkdown(
         loaders=[loader],
         processors=[
-            FilterProcessor(expression="not name.startswith('_')"),
+            # Keep __init__ so constructor signatures appear in docs; hide other private members
+            FilterProcessor(expression="name == '__init__' or not name.startswith('_')"),
             SmartProcessor(),
             CrossrefProcessor(),
         ],
@@ -1037,18 +1039,20 @@ def fix_async_references_in_sync_docs(content: str) -> str:
         modified_line = re.sub(r'AsyncComputer', 'Computer', modified_line)
         modified_line = re.sub(r'AsyncMobile', 'Mobile', modified_line)
 
-        # Replace "asynchronously" -> "synchronously" in method descriptions
-        # But be careful with method names like "pause_async"
-        if not re.search(r'_async\b', modified_line):
-            modified_line = re.sub(r'\basynchronously\b', 'synchronously', modified_line)
-            modified_line = re.sub(r'\bAsynchronously\b', 'Synchronously', modified_line)
-
         # Replace "await " in code examples
         modified_line = re.sub(r'\bawait\s+', '', modified_line)
 
         fixed_lines.append(modified_line)
 
     return '\n'.join(fixed_lines)
+
+
+def ensure_init_signatures_include_self(content: str) -> str:
+    """
+    Pydoc-markdown sometimes omits `self` in rendered __init__ signatures.
+    Add it back when missing to keep constructor docs accurate.
+    """
+    return re.sub(r"(def __init__\()(?!self)", r"\1self, ", content)
 
 
 def format_markdown(
@@ -1080,6 +1084,9 @@ def format_markdown(
 
     # Normalize class headers to consistent format
     content = normalize_class_headers(content)
+
+    # Ensure constructor signatures keep the self parameter
+    content = ensure_init_signatures_include_self(content)
 
     # Only fix async references for sync docs
     if not is_async:

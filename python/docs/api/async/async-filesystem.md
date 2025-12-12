@@ -16,7 +16,7 @@
 class AsyncFileTransfer()
 ```
 
-AsyncFileTransfer provides pre-signed URL upload/download functionality between local and OSS,
+Provides pre-signed URL upload/download functionality between local and OSS,
 with integration to Session Context synchronization.
 
 Prerequisites and Constraints:
@@ -24,6 +24,25 @@ Prerequisites and Constraints:
   CreateSessionParams.context_syncs, and remote_path should fall within that
   synchronization path (or conform to backend path rules).
 - Requires available AgentBay context service (agent_bay.context) and session context.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay,
+             session,
+             *,
+             http_timeout: float = 60.0,
+             follow_redirects: bool = True)
+```
+
+Initialize FileTransfer with AgentBay client and session.
+
+**Arguments**:
+
+    agent_bay: AgentBay instance for context service access
+    session: Created session object for context operations
+    http_timeout: HTTP request timeout in seconds (default: 60.0)
+    follow_redirects: Whether to follow HTTP redirects (default: True)
 
 ### upload
 
@@ -77,6 +96,19 @@ class AsyncFileSystem(BaseService)
 ```
 
 Handles file operations in the AgentBay cloud environment.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, *args, **kwargs)
+```
+
+Initialize FileSystem with FileTransfer capability.
+
+**Arguments**:
+
+    *args: Arguments to pass to BaseService
+    **kwargs: Keyword arguments to pass to BaseService
 
 #### DEFAULT\_CHUNK\_SIZE
 

@@ -17,6 +17,12 @@ Manages context operations within a session in the AgentBay cloud environment.
 The AsyncContextManager provides methods to get information about context synchronization
 status and to synchronize contexts with the session.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, session)
+```
+
 ### info
 
 ```python

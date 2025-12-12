@@ -1110,7 +1110,7 @@ class AgentBay:
 
     def pause_async(self, session: Session) -> SessionPauseResult:
         """
-        Asynchronously pause a session, putting it into a dormant state.
+        Fire-and-return pause: trigger PauseSessionAsync without waiting for PAUSED.
 
         This method directly calls the PauseSessionAsync API without waiting for the session
         to reach the PAUSED state. For behavior that waits for the PAUSED state,
@@ -1214,7 +1214,7 @@ class AgentBay:
 
     def resume_async(self, session: Session) -> SessionResumeResult:
         """
-        Asynchronously resume a session from a paused state.
+        Fire-and-return resume: trigger ResumeSessionAsync without waiting for RUNNING.
 
         This method directly calls the ResumeSessionAsync API without waiting for the session
         to reach the RUNNING state. For behavior that waits for the RUNNING state,

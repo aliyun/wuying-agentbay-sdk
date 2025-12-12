@@ -23,6 +23,26 @@ Represents a persistent storage context in the AgentBay cloud environment.
 - `created_at` _str_ - Date and time when the Context was created.
 - `last_used_at` _str_ - Date and time when the Context was last used.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, id: str,
+             name: str,
+             created_at: Optional[str] = None,
+             last_used_at: Optional[str] = None)
+```
+
+Initialize a Context object.
+
+**Arguments**:
+
+- `id` _str_ - The unique identifier of the context.
+- `name` _str_ - The name of the context.
+- `created_at` _Optional[str], optional_ - Date and time when the Context was
+  created. Defaults to None.
+- `last_used_at` _Optional[str], optional_ - Date and time when the Context was
+  last used. Defaults to None.
+
 ## ContextResult
 
 ```python
@@ -30,6 +50,26 @@ class ContextResult(ApiResponse)
 ```
 
 Result of operations returning a Context.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             context_id: str = "",
+             context: Optional[Context] = None,
+             error_message: str = "")
+```
+
+Initialize a ContextResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+- `success` _bool, optional_ - Whether the operation was successful.
+- `context_id` _str, optional_ - The unique identifier of the context.
+- `context` _Optional[Context], optional_ - The Context object.
+- `error_message` _str, optional_ - Error message if operation failed.
 
 ## ContextListResult
 
@@ -39,6 +79,30 @@ class ContextListResult(ApiResponse)
 
 Result of operations returning a list of Contexts.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             contexts: Optional[List[Context]] = None,
+             next_token: Optional[str] = None,
+             max_results: Optional[int] = None,
+             total_count: Optional[int] = None,
+             error_message: str = "")
+```
+
+Initialize a ContextListResult.
+
+**Arguments**:
+
+- `request_id` _str, optional_ - Unique identifier for the API request.
+- `success` _bool, optional_ - Whether the operation was successful.
+- `contexts` _Optional[List[Context]], optional_ - The list of context objects.
+- `next_token` _Optional[str], optional_ - Token for the next page of results.
+- `max_results` _Optional[int], optional_ - Maximum number of results per page.
+- `total_count` _Optional[int], optional_ - Total number of contexts available.
+- `error_message` _str, optional_ - Error message if operation failed.
+
 ## ContextFileEntry
 
 ```python
@@ -46,6 +110,19 @@ class ContextFileEntry()
 ```
 
 Represents a file item in a context.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, file_id: str,
+             file_name: str,
+             file_path: str,
+             file_type: Optional[str] = None,
+             gmt_create: Optional[str] = None,
+             gmt_modified: Optional[str] = None,
+             size: Optional[int] = None,
+             status: Optional[str] = None)
+```
 
 ## FileUrlResult
 
@@ -55,6 +132,16 @@ class FileUrlResult(ApiResponse)
 
 Result of a presigned URL request.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             url: str = "",
+             expire_time: Optional[int] = None,
+             error_message: str = "")
+```
+
 ## ContextFileListResult
 
 ```python
@@ -62,6 +149,15 @@ class ContextFileListResult(ApiResponse)
 ```
 
 Result of file listing operation.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             entries: Optional[List[ContextFileEntry]] = None,
+             count: Optional[int] = None)
+```
 
 ## ClearContextResult
 
@@ -83,6 +179,16 @@ Result of context clear operations, including the real-time status.
   - Other values may indicate the context state after clearing
 - `context_id` _Optional[str]_ - The unique identifier of the context being cleared.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, request_id: str = "",
+             success: bool = False,
+             error_message: str = "",
+             status: Optional[str] = None,
+             context_id: Optional[str] = None)
+```
+
 ## ContextListParams
 
 ```python
@@ -91,6 +197,23 @@ class ContextListParams()
 
 Parameters for listing contexts with pagination support.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, max_results: Optional[int] = None,
+             next_token: Optional[str] = None,
+             session_id: Optional[str] = None)
+```
+
+Initialize ContextListParams.
+
+**Arguments**:
+
+- `max_results` _Optional[int], optional_ - Maximum number of results per page.
+  Defaults to 10 if not specified.
+- `next_token` _Optional[str], optional_ - Token for the next page of results.
+- `session_id` _Optional[str], optional_ - Filter by session ID.
+
 ## ContextService
 
 ```python
@@ -98,6 +221,18 @@ class ContextService()
 ```
 
 Provides methods to manage persistent contexts in the AgentBay cloud environment.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay: "AgentBay")
+```
+
+Initialize the ContextService.
+
+**Arguments**:
+
+- `agent_bay` _AgentBay_ - The AgentBay instance.
 
 ### list
 
@@ -395,7 +530,7 @@ print(f"Found {len(files_result.entries)} files")
 def clear_async(context_id: str) -> ClearContextResult
 ```
 
-Synchronously initiate a task to clear the context's persistent data.
+Asynchronously initiate a task to clear the context's persistent data.
 
 This is a non-blocking method that returns immediately after initiating the clearing task
 on the backend. The context's state will transition to "clearing" while the operation
@@ -421,8 +556,28 @@ is in progress.
 
 ```python
 result = agent_bay.context.get(name="my-context", create=True)
-clear_result = agent_bay.context.start_clear(result.context_id)
+clear_result = agent_bay.context.clear_async(result.context_id)
 ```
+
+### start\_clear
+
+```python
+def start_clear(context_id: str) -> ClearContextResult
+```
+
+Deprecated alias for `clear_async`.
+
+This method is kept for backward compatibility and simply forwards to
+`clear_async`. Prefer using `clear_async` going forward.
+
+**Arguments**:
+
+    context_id: Unique ID of the context to clear.
+  
+
+**Returns**:
+
+  ClearContextResult from `clear_async`.
 
 ### get\_clear\_status
 
@@ -449,7 +604,7 @@ the state field, which indicates the current clearing status.
 
 ```python
 result = agent_bay.context.get(name="my-context", create=True)
-clear_result = agent_bay.context.clear_async(result.context_id)
+agent_bay.context.clear_async(result.context_id)
 status_result = agent_bay.context.get_clear_status(result.context_id)
 print(status_result.status)
 ```
@@ -462,9 +617,9 @@ def clear(context_id: str,
           poll_interval: float = 2.0) -> ClearContextResult
 ```
 
-Synchronously clear the context's persistent data and wait for the final result.
+Asynchronously clear the context's persistent data and wait for the final result.
 
-This method wraps the `clear_async` and `_get_clear_status` polling logic,
+This method wraps the `clear_async` and `get_clear_status` polling logic,
 providing the simplest and most direct way to handle clearing tasks.
 
 The clearing process transitions through the following states:

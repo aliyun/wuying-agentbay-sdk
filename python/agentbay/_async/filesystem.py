@@ -37,7 +37,7 @@ _logger = get_logger("filesystem")
 
 class AsyncFileTransfer:
     """
-    AsyncFileTransfer provides pre-signed URL upload/download functionality between local and OSS,
+    Provides pre-signed URL upload/download functionality between local and OSS,
     with integration to Session Context synchronization.
 
     Prerequisites and Constraints:

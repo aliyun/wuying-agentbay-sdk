@@ -16,7 +16,10 @@ _logger = get_logger("command")
 
 class Command(BaseService):
     """
-    Handles command execution operations in the AgentBay cloud environment.
+    Async command execution service for session shells in the AgentBay cloud environment.
+
+    Use this class for non-blocking command execution; for blocking/synchronous usage,
+    refer to the `Command` service in the sync API.
     """
 
     def execute_command(

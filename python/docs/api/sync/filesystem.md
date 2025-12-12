@@ -14,7 +14,7 @@
 class FileTransfer()
 ```
 
-AsyncFileTransfer provides pre-signed URL upload/download functionality between local and OSS,
+Provides pre-signed URL upload/download functionality between local and OSS,
 with integration to Session Context synchronization.
 
 Prerequisites and Constraints:
@@ -22,6 +22,25 @@ Prerequisites and Constraints:
   CreateSessionParams.context_syncs, and remote_path should fall within that
   synchronization path (or conform to backend path rules).
 - Requires available AgentBay context service (agent_bay.context) and session context.
+
+### \_\_init\_\_
+
+```python
+def __init__(self, agent_bay,
+             session,
+             *,
+             http_timeout: float = 60.0,
+             follow_redirects: bool = True)
+```
+
+Initialize FileTransfer with AgentBay client and session.
+
+**Arguments**:
+
+    agent_bay: AgentBay instance for context service access
+    session: Created session object for context operations
+    http_timeout: HTTP request timeout in seconds (default: 60.0)
+    follow_redirects: Whether to follow HTTP redirects (default: True)
 
 ### upload
 
@@ -40,7 +59,7 @@ def upload(
 Upload workflow:
 1) Get OSS pre-signed URL via context.get_file_upload_url
 2) Upload local file to OSS using the URL (HTTP PUT)
-* 1) Trigger session.context.sync(mode="upload") to sync cloud disk data to OSS
+3) Trigger session.context.sync(mode="download") to sync cloud disk data from OSS
 4) If wait=True, poll session.context.info until upload task reaches completion or timeout
 
 Returns UploadResult containing request_ids, HTTP status, ETag and other information.
@@ -76,6 +95,19 @@ class FileSystem(BaseService)
 
 Handles file operations in the AgentBay cloud environment.
 
+### \_\_init\_\_
+
+```python
+def __init__(self, *args, **kwargs)
+```
+
+Initialize FileSystem with FileTransfer capability.
+
+**Arguments**:
+
+    *args: Arguments to pass to BaseService
+    **kwargs: Keyword arguments to pass to BaseService
+
 #### DEFAULT\_CHUNK\_SIZE
 
 ```python
@@ -104,7 +136,7 @@ Create a new directory at the specified path.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 create_result = session.file_system.create_directory("/tmp/mydir")
 nested_result = session.file_system.create_directory("/tmp/parent/child/grandchild")
 session.delete()
@@ -136,9 +168,8 @@ Edit a file by replacing occurrences of oldText with newText.
 **Example**:
 
 ```python
-session = agent_bay.create().session
-session.file_system.write_file("/tmp/config.txt", "DEBUG=false
-LOG_LEVEL=info")
+session = (agent_bay.create()).session
+session.file_system.write_file("/tmp/config.txt", "DEBUG=false\nLOG_LEVEL=info")
 edits = [{"oldText": "false", "newText": "true"}]
 edit_result = session.file_system.edit_file("/tmp/config.txt", edits)
 session.delete()
@@ -165,7 +196,7 @@ Get information about a file or directory.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.write_file("/tmp/test.txt", "Sample content")
 info_result = session.file_system.get_file_info("/tmp/test.txt")
 print(info_result.file_info)
@@ -205,7 +236,7 @@ List the contents of a directory.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.create_directory("/tmp/testdir")
 session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
 list_result = session.file_system.list_directory("/tmp/testdir")
@@ -248,7 +279,7 @@ Move a file or directory from source path to destination path.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.write_file("/tmp/original.txt", "Test content")
 move_result = session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
 read_result = session.file_system.read_file("/tmp/moved.txt")
@@ -278,7 +309,7 @@ Read the contents of multiple files at once.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.write_file("/tmp/file1.txt", "Content of file 1")
 session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
 session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
@@ -315,7 +346,7 @@ Search for files in the specified path using a wildcard pattern.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
 session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
 session.file_system.write_file("/tmp/test/other.txt", "text content")
@@ -353,7 +384,7 @@ Read the contents of a file. Automatically handles large files by chunking.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
 read_result = session.file_system.read_file("/tmp/test.txt")
 print(read_result.content)
@@ -406,10 +437,9 @@ Write content to a file. Automatically handles large files by chunking.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
-append_result = session.file_system.write_file("/tmp/test.txt", "
-New line", mode="append")
+append_result = session.file_system.write_file("/tmp/test.txt", "\nNew line", mode="append")
 read_result = session.file_system.read_file("/tmp/test.txt")
 session.delete()
 ```
@@ -463,8 +493,8 @@ Upload a file from local to remote path using pre-signed URLs.
 
 ```python
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-session = agent_bay.create(params)
-upload_result = session.session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
+session = (agent_bay.create(params)).session
+upload_result = session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
 session.delete()
 ```
 
@@ -504,8 +534,8 @@ Download a file from remote path to local path using pre-signed URLs.
 
 ```python
 params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-session = agent_bay.create(params)
-download_result = session.session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
+session = (agent_bay.create(params)).session
+download_result = session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
 session.delete()
 ```
 
@@ -542,7 +572,7 @@ Watch a directory for file changes and call the callback function when changes o
 ```python
 def on_changes(events):
   print(f"Detected {len(events)} changes")
-session = agent_bay.create().session
+session = (agent_bay.create()).session
 session.file_system.create_directory("/tmp/watch_test")
 monitor_thread = session.file_system.watch_directory("/tmp/watch_test", on_changes)
 monitor_thread.start()
