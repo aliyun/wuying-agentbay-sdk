@@ -50,6 +50,13 @@ class UploadPolicy:
         auto_upload: Enables automatic upload
         upload_strategy: Defines the upload strategy
         upload_mode: Defines the upload mode (UploadMode.FILE or UploadMode.ARCHIVE)
+
+    Example:
+        upload_policy = UploadPolicy(
+            auto_upload=True,
+            upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
+            upload_mode=UploadMode.ARCHIVE,
+        )
     """
 
     auto_upload: bool = True
@@ -179,6 +186,12 @@ class RecyclePolicy:
             - Empty string "" means apply to all paths in the context
             - Multiple paths can be specified as a list
             Default: [""] (applies to all paths)
+
+    Example:
+        recycle_policy = RecyclePolicy(
+            lifecycle=Lifecycle.LIFECYCLE_30DAYS,
+            paths=["/data/reports", "/logs/app.log"],
+        )
     """
 
     lifecycle: Lifecycle = Lifecycle.LIFECYCLE_FOREVER
@@ -310,6 +323,39 @@ class SyncPolicy:
 
     Note:
         Missing policies are automatically filled with defaults in __post_init__.
+        Available enum values include UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
+        DownloadStrategy.DOWNLOAD_ASYNC, UploadMode.FILE, UploadMode.ARCHIVE,
+        and lifecycle options from Lifecycle such as LIFECYCLE_1DAY, LIFECYCLE_30DAYS,
+        and LIFECYCLE_FOREVER.
+
+    Example:
+        policy = SyncPolicy(
+            upload_policy=UploadPolicy(
+                auto_upload=True,
+                upload_strategy=UploadStrategy.UPLOAD_BEFORE_RESOURCE_RELEASE,
+                upload_mode=UploadMode.FILE,
+            ),
+            download_policy=DownloadPolicy(
+                auto_download=True,
+                download_strategy=DownloadStrategy.DOWNLOAD_ASYNC,
+            ),
+            delete_policy=DeletePolicy(sync_local_file=True),
+            extract_policy=ExtractPolicy(
+                extract=True,
+                delete_src_file=False,
+                extract_current_folder=True,
+            ),
+            recycle_policy=RecyclePolicy(
+                lifecycle=Lifecycle.LIFECYCLE_90DAYS,
+                paths=["/workspace/data"],
+            ),
+            bw_list=BWList(
+                white_lists=[
+                    WhiteList(path="/workspace/data", exclude_paths=["/workspace/data/tmp"]),
+                ]
+            ),
+            mapping_policy=MappingPolicy(path="C:\\\\workspace\\\\data"),
+        )
     """
 
     upload_policy: Optional[UploadPolicy] = None
@@ -375,6 +421,19 @@ class ContextSync:
         context_id: ID of the context to synchronize
         path: Path where the context should be mounted
         policy: Defines the synchronization policy
+
+    Example:
+        policy = SyncPolicy.default()
+        policy.upload_policy.upload_mode = UploadMode.ARCHIVE
+        policy.recycle_policy = RecyclePolicy(
+            lifecycle=Lifecycle.LIFECYCLE_15DAYS,
+            paths=["/mnt/shared/data"],
+        )
+        context_sync = ContextSync.new(
+            context_id="project-data",
+            path="/mnt/shared",
+            policy=policy,
+        )
     """
 
     context_id: str

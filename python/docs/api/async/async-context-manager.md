@@ -43,6 +43,21 @@ Get information about context synchronization status asynchronously.
 **Returns**:
 
     ContextInfoResult: Result object containing context status data and request ID
+  
+
+**Example**:
+
+session_result = await agent_bay.create()
+if session_result.success:
+session = session_result.session
+result = await session.context_manager.info(
+context_id="project-data",
+path="/mnt/shared",
+task_type="upload",
+)
+for status in result.context_status_data:
+    print(f"{status.context_id}: {status.status}")
+await session.delete()
 
 ### sync
 
@@ -68,6 +83,40 @@ Synchronize a context with the session asynchronously.
 **Returns**:
 
     ContextSyncResult: Result object containing success status and request ID
+  
+
+**Example**:
+
+session_result = await agent_bay.create()
+if session_result.success:
+session = session_result.session
+sync_result = await session.context_manager.sync(
+context_id="project-data",
+path="/mnt/shared",
+mode="upload",
+max_retries=60,
+retry_interval=1000,
+)
+print(f"Sync completed: {sync_result.success}")
+await session.delete()
+
+
+**Example**:
+
+session_result = await agent_bay.create()
+if session_result.success:
+session = session_result.session
+async def on_sync_complete(result):
+print(f"Callback received: {result.success}")
+sync_result = await session.context_manager.sync(
+context_id="reports",
+path="/mnt/reports",
+mode="download",
+max_retries=80,
+retry_interval=500,
+)
+await on_sync_complete(sync_result)
+await session.delete()
 
 ## See Also
 

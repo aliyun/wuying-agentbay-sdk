@@ -35,6 +35,12 @@ class AsyncBrowserFingerprintGenerator:
 
         Returns:
             Optional[FingerprintFormat]: FingerprintFormat object containing fingerprint and headers, or None if generation failed
+
+        Example:
+            generator = AsyncBrowserFingerprintGenerator(headless=True)
+            fingerprint = await generator.generate_fingerprint()
+            if fingerprint:
+                print(fingerprint.headers.get("user-agent"))
         """
         try:
             _logger.info("Starting fingerprint generation")
@@ -89,6 +95,11 @@ class AsyncBrowserFingerprintGenerator:
 
         Returns:
             bool: True if fingerprint generation and saving succeeded, False otherwise
+
+        Example:
+            generator = AsyncBrowserFingerprintGenerator(use_chrome_channel=False)
+            success = await generator.generate_fingerprint_to_file("browser_fp.json")
+            print(f"Saved fingerprint: {success}")
         """
         try:
             _logger.info(

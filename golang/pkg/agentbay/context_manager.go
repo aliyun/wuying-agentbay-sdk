@@ -341,6 +341,23 @@ func (cm *ContextManager) SyncWithCallback(contextId, path, mode string, callbac
 }
 
 // SyncWithParams synchronizes the context for the current session with optional parameters.
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	session := result.Session
+//	_, _ = session.Context.SyncWithCallback(
+//		"project-data",
+//		"/mnt/shared",
+//		"upload",
+//		func(success bool, message string) {
+//			fmt.Printf("Sync callback -> success: %v message: %s\n", success, message)
+//		},
+//		20,
+//		500,
+//	)
 func (cm *ContextManager) SyncWithParams(contextId, path, mode string) (*ContextSyncResult, error) {
 	// Validate that contextId and path are provided together or both omitted
 	hasContextId := contextId != ""

@@ -434,6 +434,9 @@ func (b *Browser) GetOption() *BrowserOption {
 //	defer result.Session.Delete()
 //	session.Browser.Initialize(browser.NewBrowserOption())
 //	endpointURL, _ := session.Browser.GetEndpointURL()
+//	pw, _ := playwright.Run()
+//	browserConn, _ := pw.Chromium.ConnectOverCDP(endpointURL)
+//	defer browserConn.Close()
 func (b *Browser) GetEndpointURL() (string, error) {
 	if !b.initialized {
 		return "", errors.New("browser is not initialized. Cannot access endpoint URL")
@@ -480,6 +483,12 @@ func (b *Browser) GetEndpointURL() (string, error) {
 //	option := browser.NewBrowserOption()
 //	option.UseStealth = true
 //	success, _ := session.Browser.Initialize(option)
+//	if success {
+//	    endpoint, _ := session.Browser.GetEndpointURL()
+//	    pw, _ := playwright.Run()
+//	    remoteBrowser, _ := pw.Chromium.ConnectOverCDP(endpoint)
+//	    defer remoteBrowser.Close()
+//	}
 func (b *Browser) Initialize(option *BrowserOption) (bool, error) {
 	if b.initialized {
 		return true, nil

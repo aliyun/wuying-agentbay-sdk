@@ -37,6 +37,14 @@ Extract comprehensive browser fingerprint using Playwright.
 **Returns**:
 
     Optional[FingerprintFormat]: FingerprintFormat object containing fingerprint and headers, or None if generation failed
+  
+
+**Example**:
+
+generator = BrowserFingerprintGenerator(headless=True)
+fingerprint = generator.generate_fingerprint()
+if fingerprint:
+print(fingerprint.headers.get("user-agent"))
 
 ### generate\_fingerprint\_to\_file
 
@@ -55,6 +63,13 @@ Extract comprehensive browser fingerprint and save to file.
 **Returns**:
 
     bool: True if fingerprint generation and saving succeeded, False otherwise
+  
+
+**Example**:
+
+generator = BrowserFingerprintGenerator(use_chrome_channel=False)
+success = generator.generate_fingerprint_to_file("browser_fp.json")
+print(f"Saved fingerprint: {success}")
 
 ## See Also
 
