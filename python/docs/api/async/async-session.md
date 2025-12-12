@@ -155,7 +155,7 @@ Asynchronously initiate the resume session operation without waiting for complet
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [FileSystem API Reference](./async-filesystem.md)

@@ -189,7 +189,7 @@ Upload the mobile simulate dev info.
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

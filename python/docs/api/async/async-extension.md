@@ -330,7 +330,7 @@ print(f"Extension option: {ext_option}")
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 **Related APIs:**
 - [Browser API Reference](./async-browser.md)

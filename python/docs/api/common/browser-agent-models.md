@@ -91,7 +91,7 @@ def __init__(self, instruction: str,
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 

@@ -22,7 +22,7 @@ BROWSER_RECORD_PATH = "/home/wuying/record"
 
 ## See Also
 
-- [Synchronous vs Asynchronous API](../../../../docs/guides/async-programming/sync-vs-async.md)
+- [Synchronous vs Asynchronous API](../../../docs/guides/async-programming/sync-vs-async.md)
 
 ---
 
