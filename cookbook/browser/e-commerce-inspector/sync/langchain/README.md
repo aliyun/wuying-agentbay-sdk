@@ -133,7 +133,7 @@ The e-commerce inspector agent is orchestrated using LangChain's agent framework
 To run the LangChain orchestration example:
 
 ```bash
-cd YOUR_PREFIX_PATH/cookbook/browser/e-commerce-inspector/langchain/
+cd YOUR_PREFIX_PATH/cookbook/browser/e-commerce-inspector/sync/langchain/
 python src/e_commerce_inspector_example.py
 ```
 

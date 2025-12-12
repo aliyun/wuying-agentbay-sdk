@@ -71,8 +71,8 @@ export AGENTBAY_API_KEY="YOUR_AGENTBAY_API_KEY"
 export DASHSCOPE_API_KEY="YOUR_DASHSCOPE_API_KEY"
 ```
 
-You can get your Agent-Bay API key from the Agent-Bay platform dashboard:
-1. Visit [Agent-Bay Console](https://agentbay.console.aliyun.com/service-management)
+You can get your AgentBay API key from the AgentBay platform dashboard:
+1. Visit [AgentBay Console](https://agentbay.console.aliyun.com/service-management)
 2. Sign up or log in to your Alibaba Cloud account
 3. Navigate to the Service Management section
 4. Create a new API KEY or select an existing one
@@ -94,7 +94,7 @@ For the DashScope API key, you need to register on the Alibaba Cloud DashScope p
 The LangChain integration uses the core functionality from the [common](../common/) directory and wraps it in LangChain-specific components.
 
 This demonstrates how to:
-1. Use LangChain agents with Agent-Bay SDK
+1. Use LangChain agents with AgentBay SDK
 2. Structure the code to separate core functionality from framework-specific integration
 3. Maintain clean separation of concerns between core logic and framework integration
 4. Orchestrate form filling tasks using LangChain's agent framework
@@ -118,7 +118,7 @@ The form filling agent can be orchestrated using LangChain's agent framework. Th
 To run the LangChain orchestration example:
 
 ```bash
-cd YOUR_PREFIX_PATH/cookbook/browser/form-filling-agent/langchain/
+cd YOUR_PREFIX_PATH/cookbook/browser/form-filling-agent/sync/langchain/
 python src/form_filling_agent_example.py
 ```
 
@@ -133,7 +133,7 @@ This example script demonstrates:
 If you encounter issues:
 
 1. Ensure your API key is correct and properly set in the `.env` file
-2. Check that you have network connectivity to Agent-Bay services
+2. Check that you have network connectivity to AgentBay services
 3. Verify that all required packages are installed:
    ```bash
    pip list | grep -E "(wuying-agentbay-sdk|langchain)"
