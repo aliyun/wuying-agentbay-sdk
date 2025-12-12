@@ -78,7 +78,7 @@ describe("Context Sync Upload Mode Integration Tests", () => {
         syncPolicy
       );
 
-      const sessionParams: CreateSessionParams = {
+      const sessionParams = {
         labels: {
           test: `upload-mode-${uniqueId}`,
           type: "basic-functionality"
@@ -144,7 +144,7 @@ describe("Context Sync Upload Mode Integration Tests", () => {
       log("✅ newContextSync works correctly with contextId and path using Archive mode");
 
       // Create session with the contextSync
-      const sessionParams: CreateSessionParams = {
+      const sessionParams = {
         labels: {
           test: `archive-mode-${uniqueId}`,
           type: "contextId-path-validation"

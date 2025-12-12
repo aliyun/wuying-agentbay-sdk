@@ -45,7 +45,7 @@ const contextSync = newContextSync(
 ### Session Creation with Context Sync
 
 ```typescript
-const sessionParams: CreateSessionParams = {
+const sessionParams = {
   labels: {
     example: `archive-mode-${uniqueId}`,
     type: "archive-upload-demo",

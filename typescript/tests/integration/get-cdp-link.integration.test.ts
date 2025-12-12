@@ -4,9 +4,9 @@ import { GetCdpLinkRequest } from "../../src/api/models/model";
 
 describe("GetCdpLink Integration Test", () => {
   let agentBay: AgentBay;
-
+  let apiKey: string;
   beforeAll(() => {
-    const apiKey = process.env.AGENTBAY_API_KEY;
+    apiKey = process.env.AGENTBAY_API_KEY as string;
     if (!apiKey) {
       throw new Error("AGENTBAY_API_KEY environment variable not set");
     }
@@ -26,7 +26,7 @@ describe("GetCdpLink Integration Test", () => {
 
     try {
       const request = new GetCdpLinkRequest({
-        authorization: `Bearer ${agentBay.apiKey}`,
+        authorization: `Bearer ${apiKey}`,
         sessionId: session.sessionId,
       });
 
@@ -57,7 +57,7 @@ describe("GetCdpLink Integration Test", () => {
 
   it("should throw error with invalid session ID", async () => {
     const request = new GetCdpLinkRequest({
-      authorization: `Bearer ${agentBay.apiKey}`,
+      authorization: `Bearer ${apiKey}`,
       sessionId: "invalid-session-id-12345",
     });
 

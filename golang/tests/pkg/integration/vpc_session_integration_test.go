@@ -31,7 +31,7 @@ func TestVpcSessionBasicTools(t *testing.T) {
 	// Step 1: Create a VPC-based session
 	t.Log("Step 1: Creating VPC-based session...")
 	params := agentbay.NewCreateSessionParams().
-		WithImageId("imgc-07eksy57nw6r759fb").
+		WithImageId("linux_latest").
 		WithIsVpc(true).
 		WithLabels(map[string]string{
 			"test-type": "vpc-integration",
@@ -206,7 +206,7 @@ func TestVpcSessionSystemTools(t *testing.T) {
 
 	// Create VPC session
 	params := agentbay.NewCreateSessionParams().
-		WithImageId("imgc-07eksy57nw6r759fb").
+		WithImageId("code_latest").
 		WithIsVpc(true).
 		WithLabels(map[string]string{
 			"test-type": "vpc-system-tools-integration",
@@ -243,7 +243,7 @@ func TestVpcSessionBrowserTools(t *testing.T) {
 
 	// Create VPC session
 	params := agentbay.NewCreateSessionParams().
-		WithImageId("imgc-07eksy57nw6r759fb").
+		WithImageId("code_latest").
 		WithIsVpc(true).
 		WithLabels(map[string]string{
 			"test-type": "vpc-browser-tools-integration",
@@ -280,7 +280,7 @@ func TestVpcSessionComprehensive(t *testing.T) {
 	// Create VPC session
 	t.Log("Creating comprehensive VPC session...")
 	params := agentbay.NewCreateSessionParams().
-		WithImageId("imgc-07eksy57nw6r759fb").
+		WithImageId("code_latest").
 		WithIsVpc(true).
 		WithLabels(map[string]string{
 			"test-type": "vpc-comprehensive-integration",

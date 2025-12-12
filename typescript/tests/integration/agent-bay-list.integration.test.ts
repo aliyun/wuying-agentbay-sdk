@@ -36,7 +36,7 @@ describe("AgentBay.list() Integration Tests", () => {
 
     // Create multiple sessions with different labels for testing
     log("Creating session 1 with dev environment...");
-    const params1: CreateSessionParams = {
+    const params1 = {
       labels: {
         project: `list-test-${uniqueId}`,
         environment: "dev",
@@ -51,7 +51,7 @@ describe("AgentBay.list() Integration Tests", () => {
     }
 
     log("Creating session 2 with staging environment...");
-    const params2: CreateSessionParams = {
+    const params2 = {
       labels: {
         project: `list-test-${uniqueId}`,
         environment: "staging",
@@ -66,7 +66,7 @@ describe("AgentBay.list() Integration Tests", () => {
     }
 
     log("Creating session 3 with prod environment...");
-    const params3: CreateSessionParams = {
+    const params3 = {
       labels: {
         project: `list-test-${uniqueId}`,
         environment: "prod",

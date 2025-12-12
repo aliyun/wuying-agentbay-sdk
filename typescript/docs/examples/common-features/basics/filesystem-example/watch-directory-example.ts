@@ -25,7 +25,7 @@ async function main(): Promise<void> {
     console.log("✅ AgentBay client initialized");
 
     // Create session with code_latest ImageId
-    const sessionParams: CreateSessionParams = { imageId: "code_latest" };
+    const sessionParams = { imageId: "code_latest" };
     const sessionResult = await agentbay.create(sessionParams);
 
     if (!sessionResult.success) {

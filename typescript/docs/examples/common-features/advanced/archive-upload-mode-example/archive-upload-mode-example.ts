@@ -75,7 +75,7 @@ async function archiveUploadModeExample(): Promise<void> {
 
     // Step 4: Create session with Archive mode context sync
     console.log("\n🏗️  Step 4: Creating session with Archive mode context sync...");
-    const sessionParams: CreateSessionParams = {
+    const sessionParams = {
       labels: {
         example: `archive-mode-${uniqueId}`,
         type: "archive-upload-demo",
