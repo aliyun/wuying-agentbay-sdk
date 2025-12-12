@@ -227,8 +227,7 @@ Directory structure:
                 │           └── README.md
                 └── mobile-use/
                     └── mobile-get-adb-url/
-                        ├── README.md
-                        └── package.json
+                        └── README.md
 
 ================================================
 FILE: README.md
@@ -12614,30 +12613,6 @@ The example includes proper error handling for common scenarios:
 - [Mobile API Documentation](../../../api/mobile-use/mobile.md)
 - [Session Management Guide](../../../../../docs/guides/common-features/basics/session-management.md)
 - [Mobile Use Guide](../../../../../docs/guides/mobile-use/README.md)
-
-
-
-
-================================================
-FILE: typescript/docs/examples/mobile-use/mobile-get-adb-url/package.json
-================================================
-{
-  "name": "mobile-get-adb-url-example",
-  "version": "1.0.0",
-  "description": "Example demonstrating Mobile.getAdbUrl functionality",
-  "main": "index.ts",
-  "scripts": {
-    "start": "ts-node index.ts"
-  },
-  "dependencies": {
-    "@aliyun/wuying-agentbay-sdk": "file:../../../"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.0"
-  }
-}
 
 
 
