@@ -292,8 +292,13 @@ export class BrowserOptionClass implements BrowserOption {
     }
     if (this.fingerprintFormat !== undefined) {
       // Encode fingerprint format to base64 string
-      const jsonStr = this.fingerprintFormat.toJson();
-      optionMap['fingerprintRawData'] = Buffer.from(jsonStr, 'utf-8').toString('base64');
+      try {
+        const jsonStr = this.fingerprintFormat.toJson();
+        optionMap['fingerprintRawData'] = Buffer.from(jsonStr, 'utf-8').toString('base64');
+      } catch (error) {
+        logError('Failed to serialize fingerprint format:', error);
+        // Skip fingerprint format if serialization fails
+      }
     }
     if (this.fingerprintPersistent) {
       this.fingerprintPersistPath = `${BROWSER_FINGERPRINT_PERSIST_PATH}/fingerprint.json`;

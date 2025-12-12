@@ -28,7 +28,7 @@ describe("Session Parameters", () => {
   describe("create method options", () => {
     it("should accept empty options", async () => {
       try {
-        const createResponse = await agentBay.create();
+        const createResponse = await agentBay.create({imageId: "linux_latest"});
         session = createResponse.session;
         log(
           `Create Session RequestId: ${createResponse.requestId || "undefined"}`
@@ -50,7 +50,7 @@ describe("Session Parameters", () => {
         const contextName = `test-context-${Date.now()}`;
         const createContextResponse = await agentBay.context.create(contextName);
         const context = createContextResponse.context;
-        const createResponse = await agentBay.create();
+        const createResponse = await agentBay.create({imageId: "linux_latest"});
         session = createResponse.session;
         log(
           `Create Session with ContextId RequestId: ${

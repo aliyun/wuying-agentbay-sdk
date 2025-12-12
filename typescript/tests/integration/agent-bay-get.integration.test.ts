@@ -17,7 +17,7 @@ describe("AgentBay.get integration tests", () => {
     try {
       log("🚀 Creating a new session for Get API testing...");
       // Create session
-      const createResult = await agentBay.create();
+      const createResult = await agentBay.create({imageId: "linux_latest"});
       if (createResult.success && createResult.session) {
         sessionId = createResult.session.sessionId;
         sessionCreated = true;

@@ -62,14 +62,46 @@ describe("Context File URLs Integration", () => {
 		const etag = putResp.headers.get("etag");
 		log(`Uploaded ${uploadContent.length} bytes, status=${putResp.status}, ETag=${etag}`);
 
-		// 3) Get download URL and verify content
-		const dlURLRes = await agentBay.context.getFileDownloadUrl(contextId, testPath);
-		expect(dlURLRes.success).toBe(true);
-		expect(typeof dlURLRes.url).toBe("string");
-		expect(dlURLRes.url.length).toBeGreaterThan(0);
-		log(`Download URL: ${dlURLRes.url.slice(0, 80)}... (RequestID: ${dlURLRes.requestId})`);
+		// 3) Wait a bit for file to be processed, then get download URL and verify content
+		await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds for file processing
+		
+		let dlURLRes: any;
+		let downloadSuccess = false;
+		
+		// Retry download URL generation with exponential backoff
+		for (let attempt = 1; attempt <= 5; attempt++) {
+			try {
+				dlURLRes = await agentBay.context.getFileDownloadUrl(contextId, testPath);
+				if (dlURLRes.success) {
+					downloadSuccess = true;
+					break;
+				}
+				log(`Download URL attempt ${attempt} failed: ${dlURLRes.errorMessage || 'Unknown error'}`);
+			} catch (error: any) {
+				log(`Download URL attempt ${attempt} error: ${error.message || error}`);
+				if (error.message && error.message.includes('file not exist')) {
+					// File doesn't exist yet, wait and retry
+					const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+					log(`File not found, waiting ${waitTime}ms before retry...`);
+					await new Promise((resolve) => setTimeout(resolve, waitTime));
+					continue;
+				}
+				// For other errors, don't retry
+				throw error;
+			}
+			
+			// Wait before next attempt
+			const waitTime = Math.pow(2, attempt) * 1000;
+			await new Promise((resolve) => setTimeout(resolve, waitTime));
+		}
+		
+		expect(downloadSuccess).toBe(true);
+		expect(dlURLRes!.success).toBe(true);
+		expect(typeof dlURLRes!.url).toBe("string");
+		expect(dlURLRes!.url.length).toBeGreaterThan(0);
+		log(`Download URL: ${dlURLRes!.url.slice(0, 80)}... (RequestID: ${dlURLRes!.requestId})`);
 
-		const dlResp = await fetch(dlURLRes.url);
+		const dlResp = await fetch(dlURLRes!.url);
 		expect(dlResp.status).toBe(200);
 		const dlBuf = Buffer.from(await dlResp.arrayBuffer());
 		expect(Buffer.compare(dlBuf, uploadContent)).toBe(0);
@@ -154,13 +186,40 @@ describe("Context File URLs Integration", () => {
 			log(`List files: ${fileName} absent after delete (listing availability: ${prev})`);
 		}
 
-		// 6) Attempt to download after delete and log the status (informational)
-		const postDL = await agentBay.context.getFileDownloadUrl(contextId, testPath);
-		if (postDL && postDL.success && postDL.url && postDL.url.length > 0) {
-			const postResp = await fetch(postDL.url);
-			log(`Post-delete download status (informational): ${postResp.status}`);
-		} else {
-			log("Post-delete: download URL not available, treated as deleted");
+		// 6) Attempt to download after delete and verify it fails (with retry logic)
+		let postDeleteVerified = false;
+		for (let attempt = 1; attempt <= 3; attempt++) {
+			try {
+				const postDL = await agentBay.context.getFileDownloadUrl(contextId, testPath);
+				if (postDL && postDL.success && postDL.url && postDL.url.length > 0) {
+					const postResp = await fetch(postDL.url);
+					log(`Post-delete download attempt ${attempt} status: ${postResp.status}`);
+					if (postResp.status === 404 || postResp.status >= 400) {
+						postDeleteVerified = true;
+						break;
+					}
+				} else {
+					log(`Post-delete attempt ${attempt}: download URL not available, treated as deleted`);
+					postDeleteVerified = true;
+					break;
+				}
+			} catch (error: any) {
+				if (error.message && error.message.includes('file not exist')) {
+					log(`Post-delete attempt ${attempt}: file confirmed deleted (${error.message})`);
+					postDeleteVerified = true;
+					break;
+				}
+				log(`Post-delete attempt ${attempt} error: ${error.message || error}`);
+			}
+			
+			// Wait before next attempt
+			if (attempt < 3) {
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			}
+		}
+		
+		if (!postDeleteVerified) {
+			log("Warning: Could not verify file deletion through download URL check");
 		}
 	});
 }); 

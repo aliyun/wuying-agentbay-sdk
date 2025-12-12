@@ -7,18 +7,14 @@ describe("Context", () => {
     const context = new Context(
       "test-id",
       "test-context",
-      "available",
       "2025-05-29T12:00:00Z",
       "2025-05-29T12:30:00Z",
-      "linux"
     );
 
     expect(context.id).toBe("test-id");
     expect(context.name).toBe("test-context");
-    expect(context.state).toBe("available");
     expect(context.createdAt).toBe("2025-05-29T12:00:00Z");
     expect(context.lastUsedAt).toBe("2025-05-29T12:30:00Z");
-    expect(context.osType).toBe("linux");
   });
 });
 
@@ -83,13 +79,12 @@ describe("ContextService", () => {
         // Verify that the response contains requestId
         expect(contextsResponse.requestId).toBeDefined();
         expect(typeof contextsResponse.requestId).toBe("string");
-
         // Verify the results
         if (contextsResponse.contexts.length > 0) {
           contextsResponse.contexts.forEach((context) => {
             expect(context.id).toBeDefined();
             expect(context.name).toBeDefined();
-            expect(context.state).toBeDefined();
+            expect(context.createdAt).toBeDefined();
           });
         } else {
           log("No contexts found, this might be normal in a fresh environment");
@@ -131,7 +126,6 @@ describe("ContextService", () => {
         if (retrievedContext) {
           expect(retrievedContext.id).toBe(createdContext.id);
           expect(retrievedContext.name).toBe(contextName);
-          expect(retrievedContext.state).toBeDefined();
         }
       } catch (error: any) {
         log(`Error getting context: ${error}`);
@@ -143,7 +137,7 @@ describe("ContextService", () => {
     it.only("should return null if context not found", async () => {
       try {
         const nonExistentName = `non-existent-context-${Date.now()}`;
-        const getResponse = await contextService.get(nonExistentName);
+        const getResponse = await contextService.get(nonExistentName,true);
         log(
           `Get Non-existent Context RequestId: ${
             getResponse.requestId || "undefined"
@@ -186,7 +180,6 @@ describe("ContextService", () => {
         if (context) {
           expect(context.id).toBeDefined();
           expect(context.name).toBe(contextName);
-          expect(context.state).toBeDefined();
         }
       } catch (error: any) {
         log(`Error creating context if missing: ${error}`);
@@ -216,7 +209,6 @@ describe("ContextService", () => {
         // Verify the results
         expect(context.id).toBeDefined();
         expect(context.name).toBe(contextName);
-        expect(context.state).toBeDefined();
       } catch (error: any) {
         log(`Error creating context: ${error}`);
         // Skip test if we can't create context

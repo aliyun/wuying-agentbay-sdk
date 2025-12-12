@@ -16,7 +16,7 @@ describe("MCP Tool AutoGenSession Integration", () => {
     beforeAll(async () => {
       // Create a session
       log("Creating session for MCP tool call test...");
-      const result = await agentBay.create();
+      const result = await agentBay.create({imageId: "linux_latest"});
       expect(result.success).toBe(true);
       expect(result.session).toBeDefined();
       session = result.session;
@@ -57,7 +57,7 @@ describe("MCP Tool AutoGenSession Integration", () => {
     beforeAll(async () => {
       // Create a session
       log("Creating session for deletion test...");
-      const result = await agentBay.create();
+      const result = await agentBay.create({imageId: "linux_latest"});
       expect(result.success).toBe(true);
       expect(result.session).toBeDefined();
       session = result.session;
@@ -102,7 +102,7 @@ describe("MCP Tool AutoGenSession Integration", () => {
     beforeAll(async () => {
       // Create a session
       log("Creating session for auto-gen test...");
-      const result = await agentBay.create();
+      const result = await agentBay.create({imageId: "linux_latest"});
       expect(result.success).toBe(true);
       expect(result.session).toBeDefined();
       session = result.session;

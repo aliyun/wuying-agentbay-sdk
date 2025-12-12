@@ -1,6 +1,7 @@
-import { AgentBay, Session, CreateSessionParams, ContextSync } from "../../src";
+import { AgentBay, Session, ContextSync } from "../../src";
 import { getTestApiKey } from "../utils/test-helpers";
 import { log } from "../../src/utils/logger";
+import { CreateSessionParams } from "../../src/session-params";
 
 // Helper to conditionally run tests
 const itif = it;
@@ -21,7 +22,7 @@ describe("SessionDeleteIntegration", () => {
   itif("should delete session without parameters", async () => {
     // Create a new session
     log("Creating a new session for delete testing...");
-    const createResponse = await agentBay.create();
+    const createResponse = await agentBay.create({ imageId: "linux_latest"});
     expect(createResponse.success).toBe(true);
 
     const session = createResponse.session;
@@ -65,7 +66,7 @@ describe("SessionDeleteIntegration", () => {
       ];
 
       // Create a session with context
-      const params: CreateSessionParams = {
+      const params = {
         imageId: "linux_latest",
         contextSync: persistenceData
       };
@@ -138,7 +139,7 @@ describe("SessionDeleteIntegration", () => {
       ];
 
       // Create a session with context
-      const params: CreateSessionParams = {
+      const params = {
         imageId: "linux_latest",
         contextSync: persistenceData
       };

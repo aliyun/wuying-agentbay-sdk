@@ -24,7 +24,9 @@ describe("AgentBay pause and resume integration tests", () => {
     try {
       log("🚀 Creating a new session for pause/resume testing...");
       // Create session
-      const createResult = await agentBay.create();
+      const params = new CreateSessionParams();
+      params.imageId = "linux_latest";
+      const createResult = await agentBay.create(params);
       if (createResult.success && createResult.session) {
         sessionId = createResult.session.sessionId;
         sessionCreated = true;

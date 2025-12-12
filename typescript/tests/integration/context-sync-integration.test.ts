@@ -10,6 +10,9 @@ describe("ContextSyncIntegration", () => {
   let contextId: string;
   let sessionId: string;
   
+  // Increase timeout for integration tests
+  jest.setTimeout(600000); // 10 minutes for context sync operations
+  
   // Skip tests if no API key is available or in CI environment
   const apiKey = process.env.AGENTBAY_API_KEY;
   const shouldSkip = !apiKey || process.env.CI;
@@ -54,7 +57,7 @@ describe("ContextSyncIntegration", () => {
     log(`Created session: ${sessionId}`);
     
     // Wait for session to be ready
-    await wait(10000);
+    await wait(15000); // Increased wait time for session initialization
   });
   
   afterAll(async () => {
@@ -180,8 +183,9 @@ describe("ContextSyncIntegration", () => {
     expect(syncResult.requestId).toBeDefined();
     expect(syncResult.requestId).not.toBe("");
     
-    // Wait for sync to complete
-    await wait(5000);
+    // Wait for sync to complete with longer timeout
+    log("Waiting for sync to complete...");
+    await wait(15000);
     
     // Get context info
     const contextInfo = await session.context.info();
@@ -228,7 +232,8 @@ describe("ContextSyncIntegration", () => {
     
     // Get the session
     const sessionListResult = await agentBay.list();
-    const sessionIdFound = sessionListResult.sessionIds.find(id => id === sessionId);
+    
+    const sessionIdFound = sessionListResult.sessionIds.find(id => id == sessionId);
     if (!sessionIdFound) {
       throw new Error(`Session ${sessionId} not found`);
     }
@@ -388,7 +393,7 @@ describe("ContextSyncIntegration", () => {
     
     // Wait longer for the session to be fully released and resources to be freed
     log("Waiting for session resources to be fully released...");
-    await wait(5000);
+    await wait(10000); // Increased wait time for resource cleanup
     
     // 8. Create a second session with the same context ID
     log("Creating second session with the same context ID...");

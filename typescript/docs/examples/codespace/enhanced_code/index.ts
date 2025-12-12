@@ -1,4 +1,4 @@
-import { AgentBay } from "../../../../../src";
+import { AgentBay } from 'wuying-agentbay-sdk';
 
 async function main() {
   const apiKey = process.env.AGENTBAY_API_KEY;

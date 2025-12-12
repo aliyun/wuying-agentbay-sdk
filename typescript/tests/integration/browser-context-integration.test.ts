@@ -93,7 +93,7 @@ describe("Browser Context - Integration Tests", () => {
           .withImageId("browser_latest")
           .withBrowserContext(browserContext);
         
-        const sessionResult: SessionResult = await agentBay.create(params.toJSON());
+        const sessionResult: SessionResult = await agentBay.create(params);
         expect(sessionResult.success).toBe(true);
         expect(sessionResult.session).toBeDefined();
         
@@ -154,7 +154,7 @@ describe("Browser Context - Integration Tests", () => {
         
         // Step 6: Create second session with same ContextId
         log(`Step 6: Creating second session with same context ID: ${context.id}`);
-        const sessionResult2: SessionResult = await agentBay.create(params.toJSON());
+        const sessionResult2: SessionResult = await agentBay.create(params);
         expect(sessionResult2.success).toBe(true);
         expect(sessionResult2.session).toBeDefined();
         

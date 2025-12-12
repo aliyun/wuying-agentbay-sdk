@@ -14,7 +14,8 @@ describe("GetCdpLink Integration Test", () => {
   });
 
   it("should get CDP link with a real browser session", async () => {
-    const params = new CreateSessionParams({ imageId: "browser_latest" });
+    const params = new CreateSessionParams();
+    params.imageId = "linux_latest";
     const sessionResult = await agentBay.create(params);
 
     expect(sessionResult).not.toBeNull();

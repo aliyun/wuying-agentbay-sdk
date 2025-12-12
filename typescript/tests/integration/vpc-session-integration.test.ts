@@ -36,7 +36,7 @@ describe("VPC Session Integration", () => {
         // Step 1: Create a VPC-based session
         log("Step 1: Creating VPC-based session...");
         const params = {
-          imageId: "imgc-07eksy57nw6r759fb",
+          imageId: "linux_latest",
           isVpc: true,
           labels: {
             "test-type": "vpc-integration",

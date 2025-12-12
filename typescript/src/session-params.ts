@@ -295,6 +295,8 @@ export interface CreateSessionParamsConfig {
   enableBrowserReplay?: boolean;
   /** Extra configuration settings for different session types (e.g., mobile) */
   extraConfigs?: ExtraConfigs;
+  /** Framework name for SDK statistics tracking */
+  framework?: string;
 }
 
 /**
@@ -328,6 +330,9 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
 
   /** Extra configuration settings for different session types (e.g., mobile) */
   public extraConfigs?: ExtraConfigs;
+
+  /** Framework name for SDK statistics tracking */
+  public framework?: string;
 
   constructor() {
     this.labels = {};
@@ -411,6 +416,14 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
    */
   withExtraConfigs(extraConfigs: ExtraConfigs): CreateSessionParams {
     this.extraConfigs = extraConfigs;
+    return this;
+  }
+
+  /**
+   * WithFramework sets the framework name for the session parameters and returns the updated parameters.
+   */
+  withFramework(framework: string): CreateSessionParams {
+    this.framework = framework;
     return this;
   }
 

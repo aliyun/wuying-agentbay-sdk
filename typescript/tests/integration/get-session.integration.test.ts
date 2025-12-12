@@ -20,7 +20,7 @@ describe('GetSession API Integration Test', () => {
   it('should retrieve session information using GetSession API', async () => {
     // Create a session first
     log('Creating a new session for GetSession testing...');
-    const createResult = await agentBay.create();
+    const createResult = await agentBay.create({ imageId: "linux_latest"});
     expect(createResult.success).toBe(true);
     expect(createResult.session).toBeDefined();
 

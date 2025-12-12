@@ -80,13 +80,13 @@ describe("Context Sync with MappingPolicy Integration Tests", () => {
       console.log(`Creating test file in Windows: ${testFilePath}`);
       const createFileCmd = `echo ${testContent} > "${testFilePath}"`;
       const windowsCmdResult = await windowsSession.command.executeCommand(createFileCmd);
-      expect(windowsCmdResult).toBeDefined();
+      expect(windowsCmdResult.output).toBeDefined();
       console.log(`Windows file creation result: ${windowsCmdResult}`);
 
       // Verify file exists in Windows session
       const verifyFileCmd = `type "${testFilePath}"`;
       const verifyResult = await windowsSession.command.executeCommand(verifyFileCmd);
-      expect(verifyResult).toBeDefined();
+      expect(verifyResult.output).toBeDefined();
       console.log(`Windows file content: ${verifyResult.output}`);
       expect(verifyResult.output).toContain(testContent);
 

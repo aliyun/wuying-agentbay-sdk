@@ -8,7 +8,7 @@ import {
 import { ContextSync, SyncPolicy, newSyncPolicy, Lifecycle } from "../../src/context-sync";
 import { getTestApiKey } from "../utils/test-helpers";
 import { log } from "../../src/utils/logger";
-
+import { CreateSessionParams } from "../../src/session-params";
 // Define Node.js process if it's not available
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -76,7 +76,9 @@ describe("AgentBay", () => {
     it("should create, list, and delete a session with requestId", async () => {
       // Create a session
       log("Creating a new session...");
-      const createResponse = await agentBay.create();
+      const params = new CreateSessionParams();
+      params.imageId = "linux_latest";
+      const createResponse = await agentBay.create(params);
 
       // Verify SessionResult structure
       expect(createResponse.success).toBe(true);
@@ -152,7 +154,6 @@ describe("AgentBay", () => {
           owner: "team-b",
           project: "project-y",
         };
-
         // Create session with labels A
         log("Creating session with labels A...");
         const createResponseA = await agentBay.create({ labels: labelsA });

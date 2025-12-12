@@ -14,7 +14,7 @@ describe("Session", () => {
 
       // Create a session
       log("Creating a new session for session testing...");
-      const createResponse = await agentBay.create();
+      const createResponse = await agentBay.create({ imageId: "linux_latest"});
       session = createResponse.session;
       log(`Session created with ID: ${session.sessionId}`);
       log(
@@ -39,11 +39,13 @@ describe("Session", () => {
       }
     });
     it.only("should have valid sessionId", () => {
+      expect(session).toBeDefined();
       expect(session.sessionId).toBeDefined();
       expect(session.sessionId.length).toBeGreaterThan(0);
     });
 
     it.only("should have filesystem, command, and ui properties", () => {
+      expect(session).toBeDefined();
       expect(session.fileSystem).toBeDefined();
       expect(session.command).toBeDefined();
       expect(session.mobile).toBeDefined();
@@ -85,16 +87,22 @@ describe("Session", () => {
       }
     });
     it.only("should return the session ID", () => {
+      expect(session).toBeDefined();
+      expect(session.getSessionId).toBeDefined();
       const sessionId = session.getSessionId();
       expect(sessionId).toBe(session.sessionId);
     });
 
     it.only("should return the API key", () => {
+      expect(session).toBeDefined();
+      expect(session.getAPIKey).toBeDefined();
       const apiKey = session.getAPIKey();
       expect(apiKey).toBe(agentBay.getAPIKey());
     });
 
     it.only("should return the client", () => {
+      expect(session).toBeDefined();
+      expect(session.getClient).toBeDefined();
       const client = session.getClient();
       expect(client).toBeDefined();
     });
@@ -108,7 +116,7 @@ describe("Session", () => {
     it.only("should delete the session", async () => {
       // Create a new session specifically for this test
       log("Creating a new session for delete testing...");
-      const createResponse = await agentBay.create();
+      const createResponse = await agentBay.create({ imageId: "linux_latest"});
       const testSession = createResponse.session;
       log(`Session created with ID: ${testSession.sessionId}`);
       log(
@@ -163,7 +171,7 @@ describe("Session", () => {
 
       // Create a session
       log("Creating a new session for session testing...");
-      const createResponse = await agentBay.create();
+      const createResponse = await agentBay.create({ imageId: "linux_latest"});
       session = createResponse.session;
       log(`Session created with ID: ${session.sessionId}`);
       log(

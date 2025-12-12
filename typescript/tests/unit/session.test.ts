@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import * as sinon from "sinon";
 import { AgentBay } from "../../src/agent-bay";
 import { Client } from "../../src/api/client";
@@ -29,7 +28,7 @@ describe("TestSession", () => {
     it("should validate labels successfully", () => {
       const labels = { key1: "value1", key2: "value2" };
       const result = mockSession["validateLabels"](labels);
-      expect(result).to.be.null;
+      expect(result).toBeNull();
     });
   });
 
@@ -37,9 +36,9 @@ describe("TestSession", () => {
     it("should fail validation with null labels", () => {
       const labels = null;
       const result = mockSession["validateLabels"](labels as any);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Labels cannot be null");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Labels cannot be null");
     });
   });
 
@@ -47,9 +46,9 @@ describe("TestSession", () => {
     it("should fail validation with array labels", () => {
       const labels = ["key1", "value1"];
       const result = mockSession["validateLabels"](labels as any);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Labels cannot be an array");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Labels cannot be an array");
     });
   });
 
@@ -57,9 +56,9 @@ describe("TestSession", () => {
     it("should fail validation with empty object", () => {
       const labels = {};
       const result = mockSession["validateLabels"](labels);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Labels cannot be empty");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Labels cannot be empty");
     });
   });
 
@@ -67,9 +66,9 @@ describe("TestSession", () => {
     it("should fail validation with empty key", () => {
       const labels = { "": "value1" };
       const result = mockSession["validateLabels"](labels);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Label keys cannot be empty");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Label keys cannot be empty");
     });
   });
 
@@ -77,9 +76,9 @@ describe("TestSession", () => {
     it("should fail validation with empty value", () => {
       const labels = { key1: "" };
       const result = mockSession["validateLabels"](labels);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Label values cannot be empty");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Label values cannot be empty");
     });
   });
 
@@ -87,30 +86,30 @@ describe("TestSession", () => {
     it("should fail validation with null value", () => {
       const labels = { key1: null };
       const result = mockSession["validateLabels"](labels as any);
-      expect(result).to.not.be.null;
-      expect(result?.success).to.be.false;
-      expect(result?.errorMessage).to.include("Label values cannot be empty");
+      expect(result).not.toBeNull();
+      expect(result?.success).toBe(false);
+      expect(result?.errorMessage).toContain("Label values cannot be empty");
     });
   });
 
   describe("test_get_api_key", () => {
     it("should return correct API key", () => {
       const apiKey = mockSession.getAPIKey();
-      expect(apiKey).to.equal("test_api_key");
+      expect(apiKey).toBe("test_api_key");
     });
   });
 
   describe("test_get_client", () => {
     it("should return correct client", () => {
       const client = mockSession.getClient();
-      expect(client).to.equal(mockClient);
+      expect(client).toBe(mockClient);
     });
   });
 
   describe("test_get_session_id", () => {
     it("should return correct session ID", () => {
       const sessionId = mockSession.getSessionId();
-      expect(sessionId).to.equal("test_session_id");
+      expect(sessionId).toBe("test_session_id");
     });
   });
 
@@ -129,15 +128,15 @@ describe("TestSession", () => {
       const result = await mockSession.delete();
 
       // Verify DeleteResult structure
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.errorMessage).to.be.undefined;
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.errorMessage).toBeUndefined();
 
-      expect(mockClient.releaseMcpSession.calledOnce).to.be.true;
+      expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
 
       const callArgs = mockClient.releaseMcpSession.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
     });
   });
 
@@ -163,12 +162,12 @@ describe("TestSession", () => {
       const result = await mockSession.delete();
 
       // Verify sync was not called
-      expect((mockSession.context.sync as sinon.SinonStub).called).to.be.false;
-      expect((mockSession.context.info as sinon.SinonStub).called).to.be.false;
+      expect((mockSession.context.sync as sinon.SinonStub).called).toBe(false);
+      expect((mockSession.context.info as sinon.SinonStub).called).toBe(false);
 
       // Verify result
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
     });
   });
 
@@ -207,12 +206,12 @@ describe("TestSession", () => {
       const result = await mockSession.delete(true);
 
       // Verify sync was called (info is called internally by sync, not directly by delete)
-      expect((mockSession.context.sync as sinon.SinonStub).calledOnce).to.be.true;
+      expect((mockSession.context.sync as sinon.SinonStub).calledOnce).toBe(true);
       // Note: context.info is called internally by context.sync, not directly by session.delete
 
       // Verify result
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
     });
   });
 
@@ -231,11 +230,11 @@ describe("TestSession", () => {
 
       const result = await mockSession.delete();
 
-      expect(result.success).to.equal(false);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.errorMessage).to.equal("[Unknown] Failed to delete session");
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.errorMessage).toBe("[Unknown] Failed to delete session");
 
-      expect(mockClient.releaseMcpSession.calledOnce).to.be.true;
+      expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
     });
   });
 
@@ -247,15 +246,15 @@ describe("TestSession", () => {
       try {
         await mockSession.delete();
         // If we reach here, the test should fail
-        expect.fail("Expected delete to throw an error");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
         errorThrown = true;
         // In this case, we're checking that an error was thrown, which is sufficient
         // The specific type of error may vary depending on the test framework
       }
 
-      expect(errorThrown).to.be.true;
-      expect(mockClient.releaseMcpSession.calledOnce).to.be.true;
+      expect(errorThrown).toBe(true);
+      expect(mockClient.releaseMcpSession.calledOnce).toBe(true);
     });
   });
 
@@ -274,14 +273,14 @@ describe("TestSession", () => {
       const labels = { key1: "value1", key2: "value2" };
       const result = await mockSession.setLabels(labels);
 
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
 
-      expect(mockClient.setLabel.calledOnce).to.be.true;
+      expect(mockClient.setLabel.calledOnce).toBe(true);
       const callArgs = mockClient.setLabel.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
-      expect(callArgs.labels).to.equal('{"key1":"value1","key2":"value2"}');
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.labels).toBe('{"key1":"value1","key2":"value2"}');
     });
   });
 
@@ -293,13 +292,13 @@ describe("TestSession", () => {
       try {
         await mockSession.setLabels(labels);
         // If we reach here, the test should fail
-        expect.fail("Expected setLabels to throw an error");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include("Failed to set labels for session");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Failed to set labels for session");
       }
 
-      expect(mockClient.setLabel.calledOnce).to.be.true;
+      expect(mockClient.setLabel.calledOnce).toBe(true);
     });
   });
 
@@ -320,14 +319,14 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLabels();
 
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.data).to.deep.equal({ key1: "value1", key2: "value2" });
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toEqual({ key1: "value1", key2: "value2" });
 
-      expect(mockClient.getLabel.calledOnce).to.be.true;
+      expect(mockClient.getLabel.calledOnce).toBe(true);
       const callArgs = mockClient.getLabel.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
     });
   });
 
@@ -338,13 +337,13 @@ describe("TestSession", () => {
       try {
         await mockSession.getLabels();
         // If we reach here, the test should fail
-        expect.fail("Expected getLabels to throw an error");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include("Failed to get labels for session");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Failed to get labels for session");
       }
 
-      expect(mockClient.getLabel.calledOnce).to.be.true;
+      expect(mockClient.getLabel.calledOnce).toBe(true);
     });
   });
 
@@ -365,16 +364,16 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLink();
 
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.data).to.equal("wss://example.com/websocket");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe("wss://example.com/websocket");
 
-      expect(mockClient.getLink.calledOnce).to.be.true;
+      expect(mockClient.getLink.calledOnce).toBe(true);
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
-      expect(callArgs.protocolType).to.be.undefined;
-      expect(callArgs.port).to.be.undefined;
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.protocolType).toBeUndefined();
+      expect(callArgs.port).toBeUndefined();
     });
   });
 
@@ -397,16 +396,16 @@ describe("TestSession", () => {
       const validPort = 30150; // Valid port in range
       const result = await mockSession.getLink("wss", validPort);
 
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.data).to.equal("wss://example.com:30150/websocket");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe("wss://example.com:30150/websocket");
 
-      expect(mockClient.getLink.calledOnce).to.be.true;
+      expect(mockClient.getLink.calledOnce).toBe(true);
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
-      expect(callArgs.protocolType).to.equal("wss");
-      expect(callArgs.port).to.equal(30150);
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.protocolType).toBe("wss");
+      expect(callArgs.port).toBe(30150);
     });
   });
 
@@ -427,8 +426,8 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLink("wss", 30100);
 
-      expect(result.success).to.equal(true);
-      expect(result.data).to.equal("wss://example.com:30100/websocket");
+      expect(result.success).toBe(true);
+      expect(result.data).toBe("wss://example.com:30100/websocket");
     });
 
     it("should get link successfully with port at upper boundary (30199)", async () => {
@@ -447,8 +446,8 @@ describe("TestSession", () => {
 
       const result = await mockSession.getLink("wss", 30199);
 
-      expect(result.success).to.equal(true);
-      expect(result.data).to.equal("wss://example.com:30199/websocket");
+      expect(result.success).toBe(true);
+      expect(result.data).toBe("wss://example.com:30199/websocket");
     });
   });
 
@@ -458,15 +457,15 @@ describe("TestSession", () => {
 
       try {
         await mockSession.getLink("wss", invalidPort);
-        expect.fail("Expected getLink to throw an error for invalid port");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include(`Invalid port value: ${invalidPort}`);
-        expect((error as Error).message).to.include("Port must be an integer in the range [30100, 30199]");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(`Invalid port value: ${invalidPort}`);
+        expect((error as Error).message).toContain("Port must be an integer in the range [30100, 30199]");
       }
 
       // Verify that the API was not called due to client-side validation
-      expect(mockClient.getLink.called).to.be.false;
+      expect(mockClient.getLink.called).toBe(false);
     });
   });
 
@@ -476,15 +475,15 @@ describe("TestSession", () => {
 
       try {
         await mockSession.getLink("wss", invalidPort);
-        expect.fail("Expected getLink to throw an error for invalid port");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include(`Invalid port value: ${invalidPort}`);
-        expect((error as Error).message).to.include("Port must be an integer in the range [30100, 30199]");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(`Invalid port value: ${invalidPort}`);
+        expect((error as Error).message).toContain("Port must be an integer in the range [30100, 30199]");
       }
 
       // Verify that the API was not called due to client-side validation
-      expect(mockClient.getLink.called).to.be.false;
+      expect(mockClient.getLink.called).toBe(false);
     });
   });
 
@@ -494,15 +493,15 @@ describe("TestSession", () => {
 
       try {
         await mockSession.getLink("wss", invalidPort);
-        expect.fail("Expected getLink to throw an error for non-integer port");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include(`Invalid port value: ${invalidPort}`);
-        expect((error as Error).message).to.include("Port must be an integer in the range [30100, 30199]");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(`Invalid port value: ${invalidPort}`);
+        expect((error as Error).message).toContain("Port must be an integer in the range [30100, 30199]");
       }
 
       // Verify that the API was not called due to client-side validation
-      expect(mockClient.getLink.called).to.be.false;
+      expect(mockClient.getLink.called).toBe(false);
     });
   });
 
@@ -524,15 +523,15 @@ describe("TestSession", () => {
 
       try {
         await mockSession.getLink("wss", port);
-        expect.fail("Expected getLink to throw an error from backend");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include("Failed to get link");
-        expect((error as Error).message).to.include("Bad Request: Invalid port parameter");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain("Failed to get link");
+        expect((error as Error).message).toContain("Bad Request: Invalid port parameter");
       }
 
       // Verify that the API was called (client-side validation passed)
-      expect(mockClient.getLink.calledOnce).to.be.true;
+      expect(mockClient.getLink.calledOnce).toBe(true);
     });
   });
 
@@ -555,16 +554,16 @@ describe("TestSession", () => {
       const validPort = 30150; // Valid port in range
       const result = await mockSession.getLinkAsync("wss", validPort);
 
-      expect(result.success).to.equal(true);
-      expect(result.requestId).to.equal("test-request-id");
-      expect(result.data).to.equal("wss://example.com:30150/websocket");
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe("wss://example.com:30150/websocket");
 
-      expect(mockClient.getLink.calledOnce).to.be.true;
+      expect(mockClient.getLink.calledOnce).toBe(true);
       const callArgs = mockClient.getLink.getCall(0).args[0];
-      expect(callArgs.authorization).to.equal("Bearer test_api_key");
-      expect(callArgs.sessionId).to.equal("test_session_id");
-      expect(callArgs.protocolType).to.equal("wss");
-      expect(callArgs.port).to.equal(30150);
+      expect(callArgs.authorization).toBe("Bearer test_api_key");
+      expect(callArgs.sessionId).toBe("test_session_id");
+      expect(callArgs.protocolType).toBe("wss");
+      expect(callArgs.port).toBe(30150);
     });
   });
 
@@ -574,15 +573,15 @@ describe("TestSession", () => {
 
       try {
         await mockSession.getLinkAsync("wss", invalidPort);
-        expect.fail("Expected getLinkAsync to throw an error for invalid port");
+        expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).to.be.an("error");
-        expect((error as Error).message).to.include(`Invalid port value: ${invalidPort}`);
-        expect((error as Error).message).to.include("Port must be an integer in the range [30100, 30199]");
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain(`Invalid port value: ${invalidPort}`);
+        expect((error as Error).message).toContain("Port must be an integer in the range [30100, 30199]");
       }
 
       // Verify that the API was not called due to client-side validation
-      expect(mockClient.getLink.called).to.be.false;
+      expect(mockClient.getLink.called).toBe(false);
     });
   });
 });

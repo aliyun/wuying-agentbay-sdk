@@ -5,7 +5,7 @@ export { type Config } from "./config";
 export { VERSION, IS_RELEASE } from "./version";
 
 // Export all public classes and interfaces
-export { AgentBay, type CreateSessionParams} from "./agent-bay";
+export { AgentBay} from "./agent-bay";
 export * from "./agent";
 export * from "./api";
 export * from "./browser";

@@ -32,15 +32,18 @@ const originalRequire = require;
 };
 
 // Set up global test environment
-global.console = {
-  ...console,
-  // Suppress Playwright warnings during tests
-  warn: jest.fn(),
-  error: jest.fn(),
-  log: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn()
-};
+// Only suppress console methods if explicitly requested
+if (process.env.SUPPRESS_TEST_LOGS === 'true') {
+  global.console = {
+    ...console,
+    // Suppress Playwright warnings during tests
+    warn: jest.fn(),
+    error: jest.fn(),
+    log: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn()
+  };
+}
 
 // Mock Playwright if it's causing issues
 jest.mock('playwright', () => ({
@@ -64,9 +67,9 @@ jest.setTimeout(60000 * 3);
 import { setupLogger } from '../src/utils/logger';
 
 // Check if we should suppress logs (can be controlled via environment variable)
-// Default to true for unit tests to reduce noise
-// For integration tests, set SUPPRESS_TEST_LOGS=false to see logs
-const suppressLogs = process.env.SUPPRESS_TEST_LOGS !== 'false';
+// Default to false for integration tests to see logs
+// For unit tests, set SUPPRESS_TEST_LOGS=true to reduce noise
+const suppressLogs = process.env.SUPPRESS_TEST_LOGS === 'true';
 
 if (suppressLogs) {
   // Disable console logging during tests to avoid noise in test output

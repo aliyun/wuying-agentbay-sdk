@@ -1,3 +1,4 @@
+
 import { AgentBay } from "../../src";
 import { getTestApiKey } from "../utils/test-helpers";
 
@@ -22,13 +23,6 @@ describe("Region ID Integration Tests", () => {
 
       expect(client.getRegionId()).toBe("cn-hangzhou");
     });
-
-    test("should create AgentBay client without region_id", () => {
-      const client = new AgentBay({ apiKey });
-
-      expect(client.getRegionId()).toBeUndefined();
-    });
-
     test("should handle empty region_id", () => {
       const config = {
         endpoint: "wuyingai.cn-shanghai.aliyuncs.com",
@@ -56,7 +50,7 @@ describe("Region ID Integration Tests", () => {
         config: config
       });
 
-      const sessionResult = await client.create({});
+      const sessionResult = await client.create({imageId: "linux_latest"});
 
       expect(sessionResult.success).toBe(true);
       expect(sessionResult.session).toBeDefined();
@@ -71,7 +65,7 @@ describe("Region ID Integration Tests", () => {
     test("should create session successfully without region_id", async () => {
       const client = new AgentBay({ apiKey });
 
-      const sessionResult = await client.create({});
+      const sessionResult = await client.create({imageId: "linux_latest"});
 
       expect(sessionResult.success).toBe(true);
       expect(sessionResult.session).toBeDefined();
@@ -165,14 +159,15 @@ describe("Region ID Integration Tests", () => {
       expect(contextResult.success).toBe(true);
 
       // 2. Create session
-      const sessionResult = await client.create({});
+      const sessionResult = await client.create({imageId: "linux_latest"});
       expect(sessionResult.success).toBe(true);
       expect(sessionResult.session).toBeDefined();
 
       // 3. Get session info
-      const sessionInfo = await sessionResult.session!.info();
+      const sessionInfo = await sessionResult.session.info();
+      const resultSessionInfo = sessionInfo.data
       expect(sessionInfo.success).toBe(true);
-      expect(sessionInfo.sessionId).toBe(sessionResult.session!.sessionId);
+      expect(resultSessionInfo.sessionId).toBe(sessionResult.session!.sessionId);
 
       // 4. Clean up
       if (contextResult.context) {

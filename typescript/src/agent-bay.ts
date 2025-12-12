@@ -12,10 +12,9 @@ import { ContextService } from "./context";
 import { ContextSync } from "./context-sync";
 import { APIError, AuthenticationError } from "./exceptions";
 import { Session } from "./session";
-import { BrowserContext } from "./session-params";
+import { BrowserContext,CreateSessionParams } from "./session-params";
 import { Context } from "./context";
 import { ExtraConfigs } from "./types/extra-configs";
-
 import {
   DeleteResult,
   extractRequestId,
@@ -67,7 +66,7 @@ function generateRandomContextName(length = 8, includeTimestamp = true): string 
 /**
  * Parameters for creating a session.
  */
-export interface CreateSessionParams {
+export interface CreateSeesionWithParams {
   labels?: Record<string, string>;
   imageId?: string;
   contextSync?: ContextSync[];
@@ -83,8 +82,8 @@ export interface CreateSessionParams {
  * Main class for interacting with the AgentBay cloud runtime environment.
  */
 export class AgentBay {
-  private apiKey: string;
-  private client: Client;
+  public apiKey: string;
+  public client: Client;
   private endpoint: string;
   private fileTransferContext: Context | null = null;
   private config: Config;
@@ -306,7 +305,7 @@ export class AgentBay {
    *
    * @see {@link get}, {@link list}, {@link Session.delete}
    */
-  async create(params: CreateSessionParams = {}): Promise<SessionResult> {
+  async create(params: CreateSessionParams | CreateSeesionWithParams): Promise<SessionResult> {
     try {
       logDebug(`default context syncs length: ${params.contextSync?.length}`);
       
