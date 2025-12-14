@@ -144,13 +144,21 @@ describe("FileTransfer", () => {
     it("should fail when no context ID is available", async () => {
       const fileTransferWithoutContext = new FileTransfer(mockAgentBay, {
         ...mockSession,
+        getSessionId: sandbox.stub().returns(""),
       });
+
+      // Force ensureContextId to report missing context id
+      const ensureStub = sandbox
+        .stub(fileTransferWithoutContext as any, "ensureContextId")
+        .resolves([false, "No context ID"]);
 
       const result = await fileTransferWithoutContext.download("/remote/file.txt", "/local/file.txt");
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("No context ID");
       expect(result.bytesReceived).toBe(0);
+
+      ensureStub.restore();
     });
   });
 });

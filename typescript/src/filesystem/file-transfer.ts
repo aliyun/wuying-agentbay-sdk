@@ -68,6 +68,7 @@ export class FileTransfer {
   private httpTimeout: number;
   private followRedirects: boolean;
   private contextId: string;
+  private contextPath: string | null = null;
 
   // Task completion states (for compatibility)
   private finishedStates = new Set(["success", "successful", "ok", "finished", "done", "completed", "complete"]);
@@ -95,59 +96,69 @@ export class FileTransfer {
   }
 
   /**
-   * Ensure the file transfer context id is set by calling ListContexts with SessionId and type=file_transfer.
-   * Returns true if contextId is available after the call.
+   * Get the current context ID.
+   * @returns The context ID, or empty string if not yet loaded
    */
-  private async ensureContextId(): Promise<boolean> {
+  getContextId(): string {
+    return this.contextId;
+  }
+
+  /**
+   * Ensure the file transfer context id is set by calling GetAndLoadInternalContext with SessionId and ContextTypes=["file_transfer"].
+   * Returns [success: boolean, errorMessage: string] tuple.
+   */
+  private async ensureContextId(): Promise<[boolean, string]> {
     if (this.contextId) {
-      return true;
+      return [true, ""];
     }
 
     try {
       const sid = this.session.getSessionId();
-      if (!sid) return false;
+      if (!sid) return [false, "No session ID"];
 
-      const req = new (require("../api/models/model").ListContextsRequest)({
-        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
-        sessionId: sid,
-        type: "file_transfer",
-        maxResults: 10,
-      });
-
+      // Try to use GetAndLoadInternalContext API if available
       const client = this.agentBay.getClient();
       let response: any;
-      if (client && typeof (client as any).listContextsWithOptions === "function") {
-        // prefer async variant if exists
-        try {
-          response = await (client as any).listContextsWithOptions(
-            req,
-            new (require("@darabonba/typescript").RuntimeOptions)({})
-          );
-        } catch (e) {
-          // fall back
-          response = await (client as any).listContexts(req);
-        }
-      } else {
-        response = await (client as any).listContexts(req);
-      }
+
+      // Check if getAndLoadInternalContext method exists
+    try {
+        const req: any = {
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+        sessionId: sid,
+        contextTypes: ["file_transfer"],
+        };
+        response = await (client as any).getAndLoadInternalContext(req);
+    } catch (e: any) {
+        return [false, e?.message || String(e)];
+    }
 
       const body = response && response.body ? response.body : {};
-      const data = body.Data || body.data || [];
-      if (Array.isArray(data)) {
+
+      // Check for API-level errors
+      if (body.Success === false && body.Code) {
+        return [false, body.Message || "Unknown error"];
+      }
+
+      // Extract context_id and context_path from response
+      const data = body.Data || body.data;
+      if (Array.isArray(data) && data.length > 0) {
         for (const item of data) {
           if (item && typeof item === "object") {
-            const context_id = item.Id || item.ContextId || item.id || item.contextId;
-            if (context_id) {
+            const context_id = item.ContextId || item.contextId;
+            const context_path = item.ContextPath || item.contextPath;
+            if (context_id && context_path) {
               this.contextId = context_id;
-              return true;
+              this.contextPath = context_path;
+              return [true, ""];
             }
           }
         }
       }
-    } catch (e) {
-      // ignore errors and return false
+
+      return [false, "Response contains no data"];
+    } catch (e: any) {
+      return [false, e?.message || String(e)];
     }
-    return false;
   }
 
   /**
@@ -191,16 +202,15 @@ export class FileTransfer {
 
       // Try to ensure context id is available (lazy-load)
       if (!this.contextId) {
-        await this.ensureContextId();
-      }
-
-      if (!this.contextId) {
-        return {
-          success: false,
-          bytesSent: 0,
-          path: remotePath,
-          error: "No context ID"
-        };
+        const [success, errorMsg] = await this.ensureContextId();
+        if (!success) {
+          return {
+            success: false,
+            bytesSent: 0,
+            path: remotePath,
+            error: errorMsg || "No context ID"
+          };
+        }
       }
 
       // 1. Get pre-signed upload URL
@@ -346,18 +356,16 @@ export class FileTransfer {
     try {
       // Try to ensure context id is available (lazy-load)
       if (!this.contextId) {
-        await this.ensureContextId();
-      }
-
-      // Use default context if none provided
-      if (!this.contextId) {
-        return {
-          success: false,
-          bytesReceived: 0,
-          path: remotePath,
-          localPath,
-          error: "No context ID"
-        };
+        const [success, errorMsg] = await this.ensureContextId();
+        if (!success) {
+          return {
+            success: false,
+            bytesReceived: 0,
+            path: remotePath,
+            localPath,
+            error: errorMsg || "No context ID"
+          };
+        }
       }
 
       // 1. Trigger cloud disk to OSS download sync

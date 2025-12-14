@@ -811,6 +811,45 @@ export class Client extends OpenApi {
     return await this.getMcpResourceWithOptions(request, runtime);
   }
 
+
+  /**
+   * Get internal context request
+   *
+   * @param request - GetAndLoadInternalContextRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns GetAndLoadInternalContextResponse
+   */
+  async getAndLoadInternalContextWithOptions(request: $_model.GetAndLoadInternalContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.GetAndLoadInternalContextResponse> {
+    request.validate();
+    let query = OpenApiUtil.query(request.toMap());
+    let req = new $OpenApiUtil.OpenApiRequest({
+      query: OpenApiUtil.query(query),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "GetAndLoadInternalContext",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "GET",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.GetAndLoadInternalContextResponse>(await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new $_model.GetAndLoadInternalContextResponse({}));
+  }
+
+  /**
+   * Get internal context request
+   *
+   * @param request - GetAndLoadInternalContextRequest
+   * @returns GetAndLoadInternalContextResponse
+   */
+  async getAndLoadInternalContext(request: $_model.GetAndLoadInternalContextRequest): Promise<$_model.GetAndLoadInternalContextResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.getAndLoadInternalContextWithOptions(request, runtime);
+  }
+
   /**
    * Get context list
    *

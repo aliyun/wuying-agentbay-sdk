@@ -228,6 +228,32 @@ export class FileSystem {
   }
 
   /**
+   * Get the context path for file transfer operations.
+   *
+   * This method ensures the context ID is loaded and returns the associated
+   * context path that was retrieved from GetAndLoadInternalContext API.
+   *
+   * @returns The context path if available, null otherwise.
+   *
+   * @example
+   * ```typescript
+   * const session = (await agentBay.create(params)).session;
+   * const contextPath = await session.fileSystem.getFileTransferContextPath();
+   * if (contextPath) {
+   *   console.log(`Context path: ${contextPath}`);
+   * }
+   * ```
+   */
+  async getFileTransferContextPath(): Promise<string | null> {
+    const fileTransfer = this._ensureFileTransfer();
+    // Ensure context_id is loaded (this will also load context_path)
+    if (!fileTransfer.getContextId()) {
+      await (fileTransfer as any).ensureContextId();
+    }
+    return (fileTransfer as any).contextPath || null;
+  }
+
+  /**
    * Creates a new directory at the specified path.
    * Corresponds to Python's create_directory() method
    *

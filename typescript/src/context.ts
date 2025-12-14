@@ -131,11 +131,6 @@ export class ContextService {
         sessionId: params?.sessionId,
       });
 
-      // Pass through optional sessionId if provided
-      if (params?.sessionId) {
-        request.sessionId = params.sessionId;
-      }
-
       // Log API request
       logAPICall("ListContexts");
       logDebug(`Request: MaxResults=${maxResults}`, params?.nextToken ? `, NextToken=${params.nextToken}` : "");

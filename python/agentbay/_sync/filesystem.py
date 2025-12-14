@@ -22,14 +22,17 @@ from .._common.models.filesystem import (
     MultipleFileContentResult,
     UploadResult,
 )
-from .._common.models import ApiResponse, BoolResult
+from .._common.models import ApiResponse, BoolResult, extract_request_id
 from ..api.base_service import BaseService
 from ..api.models import ListContextsRequest
+from ..api.models._get_and_load_internal_context_request import GetAndLoadInternalContextRequest
 
 from .._common.logger import (
     _log_api_response,
+    _log_api_call,
     _log_operation_start,
-    _log_operation_success,
+    _log_operation_error,
+    _log_api_response_with_details,
     get_logger,
 )
 
@@ -72,6 +75,7 @@ class FileTransfer:
         self._http_timeout = http_timeout
         self._follow_redirects = follow_redirects
         self._context_id: Optional[str] = None
+        self._context_path: Optional[str] = None
 
         # Task completion states (for compatibility)
         self._finished_states = {
@@ -84,44 +88,68 @@ class FileTransfer:
             "complete",
         }
 
-    def _ensure_context_id(self) -> bool:
+    def _ensure_context_id(self) -> Tuple[bool, Optional[str]]:
         """
         Lazy-load the file_transfer context ID for this session.
-        This calls ListContexts with SessionId and Type=file_transfer without exposing
-        the Type parameter via the public context.list API.
+        This calls GetAndLoadInternalContext with SessionId and ContextTypes=["file_transfer"].
         """
         if self._context_id:
-            return True
+            return True, ""
 
         try:
-            request = ListContextsRequest(
+            request = GetAndLoadInternalContextRequest(
                 authorization=f"Bearer {self._agent_bay.api_key}",
                 session_id=self._session._get_session_id(),
-                type="file_transfer",
-                max_results=10,
+                context_types=["file_transfer"],
             )
-            client = self._agent_bay.client
-            if hasattr(client, "list_contexts") and callable(
-                getattr(client, "list_contexts")
-            ):
-                response = client.list_contexts(request)
-            else:
-                response = client.list_contexts(request)
+            _log_api_call("GetAndLoadInternalContext", f"SessionId={self._session._get_session_id()}, ContextTypes=file_transfer")
 
-            response_map = response.to_map() if hasattr(response, "to_map") else {}
-            body = response_map.get("body", {}) if isinstance(response_map, dict) else {}
-            data = body.get("Data", [])
-            if isinstance(data, list):
+            client = self._agent_bay.client
+            if hasattr(client, "get_and_load_internal_context_async") and callable(
+                getattr(client, "get_and_load_internal_context_async")
+            ):
+                response = client.get_and_load_internal_context_async(request)
+            else:
+                response = client.get_and_load_internal_context(request)
+
+            # Extract context_id from response.body.data.context_id
+            response_map = response.to_map()
+            body = response_map.get("body", {})
+            try:
+                response_body = json.dumps(body, ensure_ascii=False, indent=2)
+            except Exception:
+                response_body = str(body)
+            # Check for API-level errors
+            if not body.get("Success", True) and body.get("Code"):
+                _log_api_response_with_details(
+                    api_name="GetAndLoadInternalContext",
+                    request_id=extract_request_id(response),
+                    success=False,
+                    full_response=response_body,
+                )
+                return False, body.get("Message", "Unknown error")
+
+            _log_api_response_with_details(
+                api_name="GetAndLoadInternalContext",
+                request_id=extract_request_id(response),
+                success=True,
+                full_response=response_body,
+            )
+
+            data = body.get("Data", {})
+            if isinstance(data, list) and len(data) > 0:
                 for item in data:
                     if isinstance(item, dict):
-                        context_id = item.get("Id") or item.get("ContextId")
-                        if context_id:
+                        context_id = item.get("ContextId", "")
+                        context_path = item.get("ContextPath", "")
+                        if context_id and context_path:
                             self._context_id = context_id
-                            return True
-        except Exception:
-            return False
-
-        return False
+                            self._context_path = context_path
+                            return True, ""
+            return False, "Response contains no data"
+        except Exception as e:
+            _log_operation_error("ensure_context_id", str(e), exc_info=True)
+            return False, str(e)
 
     def upload(
         self,
@@ -157,17 +185,19 @@ class FileTransfer:
                 path=remote_path,
                 error=f"Local file not found: {local_path}",
             )
-        if self._context_id is None and not self._ensure_context_id():
-            return UploadResult(
-                success=False,
-                request_id_upload_url=None,
-                request_id_sync=None,
-                http_status=None,
-                etag=None,
-                bytes_sent=0,
-                path=remote_path,
-                error="No context ID",
-            )
+        if self._context_id is None:
+            ensure_result, message = self._ensure_context_id()
+            if not ensure_result:
+                return UploadResult(
+                    success=False,
+                    request_id_upload_url=None,
+                    request_id_sync=None,
+                    http_status=None,
+                    etag=None,
+                    bytes_sent=0,
+                    path=remote_path,
+                    error=message,
+                )
         # 1. Get pre-signed upload URL
         url_res = self._context_svc.get_file_upload_url(
             self._context_id, remote_path
@@ -298,17 +328,19 @@ class FileTransfer:
         Returns DownloadResult containing sync and download request_ids, HTTP status, byte count, etc.
         """
         # Use default context if none provided
-        if self._context_id is None and not self._ensure_context_id():
-            return DownloadResult(
-                success=False,
-                request_id_download_url=None,
-                request_id_sync=None,
-                http_status=None,
-                bytes_received=0,
-                path=remote_path,
-                local_path=local_path,
-                error="No context ID",
-            )
+        if self._context_id is None:
+            ensure_result, message = self._ensure_context_id()
+            if not ensure_result:
+                return DownloadResult(
+                    success=False,
+                    request_id_download_url=None,
+                    request_id_sync=None,
+                    http_status=None,
+                    bytes_received=0,
+                    path=remote_path,
+                    local_path=local_path,
+                    error=message,
+                )
         # 1. Trigger cloud disk to OSS download sync
         req_id_sync = None
         try:
@@ -622,6 +654,30 @@ class FileSystem(BaseService):
             self._file_transfer = FileTransfer(agent_bay, session)
 
         return self._file_transfer
+
+    def get_file_transfer_context_path(self) -> Optional[str]:
+        """
+        Get the context path for file transfer operations.
+
+        This method ensures the context ID is loaded and returns the associated
+        context path that was retrieved from GetAndLoadInternalContext API.
+
+        Returns:
+            Optional[str]: The context path if available, None otherwise.
+
+        Example:
+            ```python
+            session = (await agent_bay.create(params)).session
+            context_path = await session.file_system.get_file_transfer_context_path()
+            if context_path:
+                print(f"Context path: {context_path}")
+            ```
+        """
+        file_transfer = self._ensure_file_transfer()
+        # Ensure context_id is loaded (this will also load context_path)
+        if file_transfer._context_id is None:
+            file_transfer._ensure_context_id()
+        return file_transfer._context_path
 
     # Default chunk size is 50KB
     DEFAULT_CHUNK_SIZE = 50 * 1024
@@ -1549,7 +1605,7 @@ class FileSystem(BaseService):
                 bytes_received=0,
                 path=remote_path,
                 local_path=local_path,
-                error=f"Download failed: {str(e)}",
+                error=f"Download exception: {str(e)}",
             )
 
     def _get_file_change(self, path: str) -> FileChangeResult:
