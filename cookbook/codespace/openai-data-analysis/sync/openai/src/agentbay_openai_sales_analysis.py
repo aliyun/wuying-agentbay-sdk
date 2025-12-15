@@ -29,7 +29,7 @@ SYSTEM_PROMPT = """
 You are a data analyst specializing in e-commerce analytics. Your task is to analyze sales data and generate insights using Python code.
 
 ## Dataset Information
-The sales dataset is located at `/home/user/ecommerce_sales.csv` with the following structure:
+The sales dataset is located at `/tmp/user/ecommerce_sales.csv` with the following structure:
 - Delimiter: `,` (comma)
 - Columns:
   * Date: Order date in YYYY-MM-DD format
@@ -191,7 +191,7 @@ def chat_with_llm(llm_client, session, user_message: str) -> dict:
     raise Exception('Tool calls not found in message content.')
 
 
-def upload_dataset(session, local_path: str, remote_path: str = '/home/user/ecommerce_sales.csv'):
+def upload_dataset(session, local_path: str, remote_path: str = '/tmp/user/ecommerce_sales.csv'):
     """Upload a dataset file to the AgentBay session."""
     print(f'📤 Uploading dataset to AgentBay session...')
 

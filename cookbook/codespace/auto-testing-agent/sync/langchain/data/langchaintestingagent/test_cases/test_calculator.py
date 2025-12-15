@@ -90,25 +90,25 @@ class TestStandaloneFunctions(unittest.TestCase):
     def test_add_function(self):
         """Test standalone add function"""
         self.assertEqual(add(3, 5), 8)
-        self.assertEqual(add(-2, 7), 5)
-        self.assertAlmostEqual(add(3.5, 2.5), 6.0, places=1)
+        self.assertEqual(add(-3, -5), -8)
+        self.assertAlmostEqual(add(3.5, 2.7), 6.2, places=1)
 
     def test_subtract_function(self):
         """Test standalone subtract function"""
         self.assertEqual(subtract(10, 3), 7)
-        self.assertEqual(subtract(-5, 3), -8)
-        self.assertAlmostEqual(subtract(10.5, 3.5), 7.0, places=1)
+        self.assertEqual(subtract(-10, -3), -7)
+        self.assertAlmostEqual(subtract(10.5, 3.2), 7.3, places=1)
 
     def test_multiply_function(self):
         """Test standalone multiply function"""
         self.assertEqual(multiply(4, 6), 24)
-        self.assertEqual(multiply(-3, 4), -12)
-        self.assertAlmostEqual(multiply(2.5, 4.0), 10.0, places=1)
+        self.assertEqual(multiply(-4, -6), 24)
+        self.assertAlmostEqual(multiply(3.5, 2.0), 7.0, places=1)
 
     def test_divide_function(self):
         """Test standalone divide function"""
         self.assertEqual(divide(15, 3), 5.0)
-        self.assertEqual(divide(-15, 3), -5.0)
+        self.assertEqual(divide(-15, -3), 5.0)
         self.assertAlmostEqual(divide(7.5, 2.5), 3.0, places=1)
 
     def test_divide_function_by_zero_raises_zero_division_error(self):
@@ -130,7 +130,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertFalse(is_even(1))
 
     def test_is_even_with_non_integer_raises_type_error(self):
-        """Test that is_even raises TypeError for non-integer inputs"""
+        """Test that is_even raises TypeError when input is not an integer"""
         with self.assertRaises(TypeError) as context:
             is_even(4.0)
         self.assertEqual(str(context.exception), "Input must be an integer")
@@ -140,7 +140,7 @@ class TestStandaloneFunctions(unittest.TestCase):
         self.assertEqual(str(context.exception), "Input must be an integer")
         
         with self.assertRaises(TypeError) as context:
-            is_even(None)
+            is_even(4.5)
         self.assertEqual(str(context.exception), "Input must be an integer")
 
 

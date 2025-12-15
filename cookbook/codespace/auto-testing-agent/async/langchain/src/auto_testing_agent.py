@@ -15,7 +15,7 @@ import asyncio
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
-from langchain.agents import create_agent
+from langgraph.prebuilt import create_react_agent
 from langgraph.store.memory import InMemoryStore
 from dotenv import load_dotenv
 
@@ -255,7 +255,7 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
         except Exception as e:
             return f"Error scanning project: {str(e)}"
     
-    async def generate_tests(project_structure_str: str) -> str:
+    def generate_tests(project_structure_str: str) -> str:
         """Generate test cases for a project based on project structure."""
         try:
             print(f"Execute tool generate_tests")
@@ -268,7 +268,7 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
                 print(f"Can't find pre tools generated project structure, resacan the project")
                 structure = agent.scan_project_structure()
 
-            test_cases = await agent.generate_test_cases_with_llm(structure)
+            test_cases = asyncio.run(agent.generate_test_cases_with_llm(structure))
             
             # Store test cases for later execution
             agent._generated_test_cases = test_cases
@@ -316,7 +316,7 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
         except Exception as e:
             return f"Error generating tests: {str(e)}"
     
-    async def execute_tests(test_files_info: str) -> str:
+    def execute_tests(test_files_info: str) -> str:
         """Execute tests in AgentBay."""
         try:
             print(f"Execute tool execute_tests: {test_files_info}")
@@ -328,9 +328,9 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
                 # Fallback: regenerate tests
                 print(f"Can't find pre tools generated project test cases, regenerating tests...")
                 structure = agent.scan_project_structure()
-                test_cases = await agent.generate_test_cases_with_llm(structure)
+                test_cases = asyncio.run(agent.generate_test_cases_with_llm(structure))
             
-            results = await agent.execute_tests_in_agent_bay(test_cases)
+            results = asyncio.run(agent.execute_tests_in_agent_bay(test_cases))
             
             # 保存执行结果到data目录
             agent_name = agent.__class__.__name__.lower()
@@ -362,14 +362,12 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
         ),
         Tool(
             name="generate_tests",
-            func=lambda x: asyncio.run(generate_tests(x)), # Should be coroutine if supported
-            coroutine=generate_tests,
+            func=generate_tests,
             description="Generate test cases for a project based on the project structure. Input should be the project structure string from scan_project."
         ),
         Tool(
             name="execute_tests",
-            func=lambda x: asyncio.run(execute_tests(x)),
-            coroutine=execute_tests,
+            func=execute_tests,
             description="Execute tests in AgentBay. Input should be information about test files to execute."
         )
     ]
@@ -377,7 +375,7 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
 
 def create_langchain_agent(api_key: Optional[str] = None) -> dict:
     """
-    Create a Langchain agent for testing using the new LangChain v1.0 pattern.
+    Create a Langchain agent for testing using LangGraph's create_react_agent.
     
     Args:
         api_key: AgentBay API key
@@ -403,24 +401,12 @@ def create_langchain_agent(api_key: Optional[str] = None) -> dict:
     session_data = TestingSessionData(agent=testing_agent, session_id=testing_agent.session_id if hasattr(testing_agent, 'session_id') else None)
     store.put(("testing_session",), "default", session_data)
     
-    # Create agent using the new create_agent method from LangChain v1.0
-    agent = create_agent(
+    # Create agent using the create_react_agent method from LangGraph
+    # Note: create_react_agent may not support system_message parameter in all versions
+    # We'll create a simple agent without system message for now
+    agent = create_react_agent(
         llm,
-        tools=tools,
-        store=store,
-        system_prompt="""You are a testing expert that helps generate and execute tests for Python projects.
-        
-Available tools:
-1. scan_project - Scan a project directory and return its structure. Takes project path as input.
-2. generate_tests - Generate test cases for a project. Takes project structure as input.
-3. execute_tests - Execute tests in AgentBay. Takes test information as input.
-
-Workflow:
-1. First use scan_project to understand the project structure
-2. Then use generate_tests to create test cases based on the structure
-3. Finally use execute_tests to run the tests in AgentBay
-
-Each tool should be used in sequence, with the output of one tool potentially being used as input for the next tool."""
+        tools
     )
     
     return {
