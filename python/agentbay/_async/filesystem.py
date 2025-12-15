@@ -103,12 +103,7 @@ class AsyncFileTransfer:
             _log_api_call("GetAndLoadInternalContext", f"SessionId={self._session._get_session_id()}, ContextTypes=file_transfer")
 
             client = self._agent_bay.client
-            if hasattr(client, "get_and_load_internal_context_async") and callable(
-                getattr(client, "get_and_load_internal_context_async")
-            ):
-                response = await client.get_and_load_internal_context_async(request)
-            else:
-                response = await asyncio.to_thread(client.get_and_load_internal_context, request)
+            response = await client.get_and_load_internal_context_async(request)
 
             # Extract context_id from response.body.data.context_id
             response_map = response.to_map()

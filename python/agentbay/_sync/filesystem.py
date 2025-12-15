@@ -105,12 +105,7 @@ class FileTransfer:
             _log_api_call("GetAndLoadInternalContext", f"SessionId={self._session._get_session_id()}, ContextTypes=file_transfer")
 
             client = self._agent_bay.client
-            if hasattr(client, "get_and_load_internal_context_async") and callable(
-                getattr(client, "get_and_load_internal_context_async")
-            ):
-                response = client.get_and_load_internal_context_async(request)
-            else:
-                response = client.get_and_load_internal_context(request)
+            response = client.get_and_load_internal_context(request)
 
             # Extract context_id from response.body.data.context_id
             response_map = response.to_map()
@@ -1797,7 +1792,7 @@ class FileSystem(BaseService):
         def _sync_monitor():
             """Synchronous wrapper for monitoring function."""
             _monitor_directory()
-        
+
         monitor_thread = threading.Thread(
             target=_sync_monitor,
             name=f"DirectoryWatcher-{path.replace('/', '_')}",
