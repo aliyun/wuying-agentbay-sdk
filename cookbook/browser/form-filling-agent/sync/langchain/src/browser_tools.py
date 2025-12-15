@@ -205,8 +205,15 @@ def browser_screenshot(
             
         if screenshot_result:
             import base64
+            import os
             # Decode base64 string to bytes
             screenshot_data = base64.b64decode(screenshot_result.split(',')[1] if ',' in screenshot_result else screenshot_result)
+            
+            # Create directory if it doesn't exist
+            directory = os.path.dirname(file_path)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
+                print(f"[browser_screenshot] Created directory: {directory}")
             
             # Save to file
             with open(file_path, "wb") as f:

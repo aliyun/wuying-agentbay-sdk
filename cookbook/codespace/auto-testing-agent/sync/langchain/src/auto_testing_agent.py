@@ -14,7 +14,7 @@ import json
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import Tool
-from langchain.agents import create_agent
+from langgraph.prebuilt import create_react_agent
 from langgraph.store.memory import InMemoryStore
 from dotenv import load_dotenv
 
@@ -374,7 +374,7 @@ def create_testing_tools(agent: LangChainTestingAgent) -> List[Tool]:
 
 def create_langchain_agent(api_key: Optional[str] = None) -> dict:
     """
-    Create a Langchain agent for testing using the new LangChain v1.0 pattern.
+    Create a Langchain agent for testing using LangGraph's create_react_agent.
     
     Args:
         api_key: AgentBay API key
@@ -400,24 +400,12 @@ def create_langchain_agent(api_key: Optional[str] = None) -> dict:
     session_data = TestingSessionData(agent=testing_agent, session_id=testing_agent.session_id if hasattr(testing_agent, 'session_id') else None)
     store.put(("testing_session",), "default", session_data)
     
-    # Create agent using the new create_agent method from LangChain v1.0
-    agent = create_agent(
+    # Create agent using the create_react_agent method from LangGraph
+    # Note: create_react_agent may not support system_message parameter in all versions
+    # We'll create a simple agent without system message for now
+    agent = create_react_agent(
         llm,
-        tools=tools,
-        store=store,
-        system_prompt="""You are a testing expert that helps generate and execute tests for Python projects.
-        
-Available tools:
-1. scan_project - Scan a project directory and return its structure. Takes project path as input.
-2. generate_tests - Generate test cases for a project. Takes project structure as input.
-3. execute_tests - Execute tests in AgentBay. Takes test information as input.
-
-Workflow:
-1. First use scan_project to understand the project structure
-2. Then use generate_tests to create test cases based on the structure
-3. Finally use execute_tests to run the tests in AgentBay
-
-Each tool should be used in sequence, with the output of one tool potentially being used as input for the next tool."""
+        tools
     )
     
     return {

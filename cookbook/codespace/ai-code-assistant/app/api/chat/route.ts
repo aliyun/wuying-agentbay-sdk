@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DashScopeClient } from '../../../lib/dashscope-client';
-import { executeCode } from '../../../lib/agentbay-executor';
+import { DashScopeClient, executeCode } from '../../../lib';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -134,7 +133,7 @@ export async function POST(request: NextRequest) {
 
                   // Second attempt: Use a more robust regex that handles escaped sequences properly
                   // Match the entire JSON structure, allowing for any content including escaped quotes
-                  const codeMatch = argsStr.match(/\{\s*"code"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/s);
+                  const codeMatch = argsStr.match(/\{\s*"code"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g);
                   if (codeMatch) {
                     // The matched content already has escape sequences, just need to reconstruct valid JSON
                     const codeContent = codeMatch[1];
