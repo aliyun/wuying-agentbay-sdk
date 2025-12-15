@@ -119,7 +119,9 @@ def test_file_upload_integration():
 
         try:
             # Upload the file - use path that matches the auto-created file_transfer context
-            remote_path = "/tmp/file-transfer/upload_test.txt"  # Use the same path as auto-created context sync
+            context_path = session.file_system.get_file_transfer_context_path()
+            if context_path:
+                remote_path = f"{context_path}/upload_test.txt"
 
             upload_result = session.file_system.upload_file(
                 local_path=temp_file_path,
@@ -203,7 +205,11 @@ def test_file_download_integration():
 
     try:
         # First, create a file in the remote location
-        remote_path = "/tmp/file-transfer/download_test.txt"
+        context_path = session.file_system.get_file_transfer_context_path()
+        if context_path:
+            remote_path = f"{context_path}/download_test.txt"
+        else:
+            pytest.skip("Failed to get context path")
         test_content = (
             "This is a test file for AgentBay FileTransfer download integration test.\n"
             * 15

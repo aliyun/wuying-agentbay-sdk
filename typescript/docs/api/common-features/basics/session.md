@@ -36,14 +36,12 @@ computer: [`Computer`](../../computer-use/computer.md)
 context: [`ContextManager`](context-manager.md)
 enableBrowserReplay: `boolean` = `false`
 fileSystem: [`FileSystem`](filesystem.md)
-fileTransferContextId: ``null`` | `string` = `null`
 httpPort: `string` = `""`
 isVpc: `boolean` = `false`
 mcpTools: `McpTool`[] = `[]`
 mobile: [`Mobile`](../../mobile-use/mobile.md)
 networkInterfaceIp: `string` = `""`
 oss: [`Oss`](../advanced/oss.md)
-recordContextId: ``null`` | `string` = `null`
 resourceUrl: `string` = `""`
 sessionId: `string`
 token: `string` = `""`

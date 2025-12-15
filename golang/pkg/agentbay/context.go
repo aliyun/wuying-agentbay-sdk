@@ -84,6 +84,7 @@ type ContextService struct {
 type ContextListParams struct {
 	MaxResults int32  // Number of results per page
 	NextToken  string // Token for the next page
+	SessionId  string // Optional session id filter
 }
 
 // NewContextListParams creates a new ContextListParams with default values
@@ -91,6 +92,7 @@ func NewContextListParams() *ContextListParams {
 	return &ContextListParams{
 		MaxResults: 10, // Default page size
 		NextToken:  "",
+	SessionId:  "",
 	}
 }
 
@@ -117,6 +119,11 @@ func (cs *ContextService) List(params *ContextListParams) (*ContextListResult, e
 		MaxResults:    tea.Int32(params.MaxResults),
 	}
 
+	// Add optional session id filter
+	if params.SessionId != "" {
+		request.SessionId = tea.String(params.SessionId)
+	}
+
 	// Add NextToken if provided
 	if params.NextToken != "" {
 		request.NextToken = tea.String(params.NextToken)
@@ -126,6 +133,9 @@ func (cs *ContextService) List(params *ContextListParams) (*ContextListResult, e
 	requestInfo := fmt.Sprintf("MaxResults=%d", *request.MaxResults)
 	if request.NextToken != nil {
 		requestInfo += fmt.Sprintf(", NextToken=%s", *request.NextToken)
+	}
+	if request.SessionId != nil {
+		requestInfo += fmt.Sprintf(", SessionId=%s", *request.SessionId)
 	}
 	logAPICall("ListContexts", requestInfo)
 

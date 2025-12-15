@@ -140,12 +140,6 @@ export class Session {
   private agentBay: AgentBay;
   public sessionId: string;
 
-  // File transfer context ID
-  public fileTransferContextId: string | null = null;
-
-  // Browser recording context ID
-  public recordContextId: string | null = null;
-
   // VPC-related information
   public isVpc = false; // Whether this session uses VPC resources
   public networkInterfaceIp = ""; // Network interface IP for VPC sessions
@@ -358,25 +352,7 @@ export class Session {
    */
   async delete(syncContext = false): Promise<DeleteResult> {
     try {
-      // Determine sync behavior based on enableBrowserReplay and syncContext
-      let shouldSync = false;
-      let syncContextId: string | null = null;
-
       if (syncContext) {
-        // User explicitly requested sync - sync all contexts
-        shouldSync = true;
-        logInfo("🔄 User requested context synchronization");
-      } else if (this.enableBrowserReplay && this.recordContextId) {
-        // Browser replay enabled but no explicit sync - sync only browser recording context
-        shouldSync = true;
-        syncContextId = this.recordContextId;
-        logInfo(
-          `🎥 Browser replay enabled - syncing recording context: ${syncContextId}`
-        );
-      }
-
-      // If syncContext is true, trigger file uploads first
-      if (shouldSync) {
         logDebug(
           "Triggering context synchronization before session deletion..."
         );
@@ -386,15 +362,9 @@ export class Session {
 
         try {
           let syncResult: ContextSyncResult;
-          if (syncContextId) {
-            // Sync specific context (browser recording)
-            syncResult = await this.context.sync(syncContextId, BROWSER_RECORD_PATH);
-            logInfo(`🎥 Synced browser recording context: ${syncContextId}`);
-          } else {
-            // Sync all contexts
-            syncResult = await this.context.sync();
-            logInfo("🔄 Synced all contexts");
-          }
+          // Sync all contexts
+          syncResult = await this.context.sync();
+          logInfo("🔄 Synced all contexts");
 
           const syncDuration = Date.now() - syncStartTime;
 
@@ -1281,7 +1251,7 @@ export class Session {
               ? actualResult
               : JSON.stringify(actualResult);
           logCodeExecutionOutput(requestId, dataStr);
-          
+
           return {
             success: true,
             data: dataStr,
@@ -1336,7 +1306,7 @@ export class Session {
         // For run_code tool, return raw data to let Code service handle parsing
         if (toolName === "run_code") {
           let dataStr = "";
-          
+
           // Check if data has content array (standard MCP tool response)
           // The backend might wrap the actual result JSON inside content[0].text
           if (data && Array.isArray(data.content) && data.content.length > 0 && data.content[0].text) {

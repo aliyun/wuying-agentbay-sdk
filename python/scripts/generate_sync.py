@@ -68,7 +68,7 @@ def generate_sync():
         "AsyncBaseService": "BaseService",
         "AsyncMobileSimulateService": "MobileSimulateService",
         "AsyncExtensionsService": "ExtensionsService",
-        
+
         # Variable/Attribute Renames
         "init_browser_async": "init_browser",
         "initialize_async": "initialize",
@@ -108,6 +108,7 @@ def generate_sync():
         "get_mcp_resource_async": "get_mcp_resource",
         "sync_context_async": "sync_context",
         "clear_context_async": "clear_context",
+        "get_and_load_internal_context_async": "get_and_load_internal_context",
 
         # Browser Agent specific
         "navigate_async": "navigate",
@@ -146,7 +147,7 @@ def generate_sync():
 
         # RPC method replacements
         "do_rpcrequest_async": "do_rpcrequest",
-        
+
         # Test specific
         "@pytest.mark.asyncio": "",
         "unittest.IsolatedAsyncioTestCase": "unittest.TestCase",
@@ -203,7 +204,7 @@ def generate_sync():
             for file in files:
                 if file.endswith(".py"):
                     filepaths.append(os.path.join(root, file))
-                    
+
     # Walk unit tests/_async dir
     if os.path.exists(UNIT_TEST_ASYNC_DIR):
         for root, dirs, files in os.walk(UNIT_TEST_ASYNC_DIR):
@@ -295,7 +296,7 @@ def generate_sync():
                                 result.append(text[i])
                                 i += 1
                         return ''.join(result)
-                    
+
                     content = remove_asyncio_run(content)
 
                     # Replace asyncio.get_event_loop().time() with time.time()
@@ -324,7 +325,7 @@ def generate_sync():
                     # Skip for eval module which uses asyncio internally even in sync mode
                     if "eval/" not in path:
                         content = re.sub(r'^import asyncio\s*\n', '', content, flags=re.MULTILINE)
-                    
+
                     # Add threading import if threading.Lock() is used
                     if 'threading.Lock()' in content and 'import threading' not in content:
                         # Find the last import statement and add threading import after it
@@ -338,15 +339,15 @@ def generate_sync():
                             if last_import_match:
                                 insert_pos = last_import_match.end()
                                 content = content[:insert_pos] + 'import threading\n' + content[insert_pos:]
-                    
+
                     # Add time import if time.sleep or time.time is used
                     if ('time.sleep' in content or 'time.time' in content) and 'import time' not in content:
                         content = "import time\n" + content
-                    
+
                     # Add concurrent.futures import if ThreadPoolExecutor is used
                     if 'concurrent.futures.ThreadPoolExecutor' in content and 'import concurrent.futures' not in content:
                         content = "import concurrent.futures\n" + content
-                    
+
                     # Fix import statements for sync versions
                     # Convert AsyncExtensionsService to ExtensionsService in imports
                     content = content.replace('AsyncExtensionsService', 'ExtensionsService')
@@ -354,7 +355,7 @@ def generate_sync():
 
                     # Apply custom replacements
                     content = _apply_custom_replacements(content, path)
-                    
+
                     # Final fix for filesystem.py _sync_monitor function
                     if "filesystem.py" in file and "def _sync_monitor():" in content:
                         # Pattern to match the broken function
@@ -364,7 +365,7 @@ def generate_sync():
             _monitor_directory()
 '''
                         content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-                        
+
                         # Fix the missing monitor_thread assignment
                         content = content.replace(
                             '''def _sync_monitor():
@@ -374,7 +375,7 @@ def generate_sync():
                             '''def _sync_monitor():
             """Synchronous wrapper for monitoring function."""
             _monitor_directory()
-        
+
         monitor_thread = threading.Thread(
             target=_sync_monitor,'''
                         )
@@ -385,7 +386,7 @@ def generate_sync():
                             "                    try:\n                        asyncio.wait_for(stop_event.wait(), timeout=interval)\n                    except asyncio.TimeoutError:\n                        pass",
                             "                    stop_event.wait(timeout=interval)"
                         )
-                        
+
                         # Fix _sync_monitor function - replace asyncio version with direct call
                         # This needs to happen after all other replacements to avoid interference
                         sync_monitor_old = '''def _sync_monitor():
@@ -394,16 +395,16 @@ def generate_sync():
             # Create a new event loop for this thread
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            
+
             try:
                 loop.run_until_complete(_monitor_directory())
             finally:
                 loop.close()'''
-                        
+
                         sync_monitor_new = '''def _sync_monitor():
             """Synchronous wrapper for monitoring function."""
             _monitor_directory()'''
-                        
+
                         content = content.replace(sync_monitor_old, sync_monitor_new)
 
                         # _wait_for_event replacement
@@ -455,7 +456,7 @@ def generate_sync():
                     content = content.replace("@pytest.mark.asyncio", "@pytest.mark.sync")
                     content = content.replace("@pytest_asyncio.fixture", "@pytest.fixture")
                     content = content.replace("import pytest_asyncio", "import pytest")
-                    
+
                     # Fix patch paths in unit tests
                     content = content.replace('"agentbay._async', '"agentbay._sync')
                     content = content.replace("'agentbay._async", "'agentbay._sync")
@@ -465,7 +466,7 @@ def generate_sync():
                     # Also fix patch calls with AsyncSession -> Session
                     content = re.sub(r'patch\("agentbay\._sync\.([^"]+)\.AsyncSession"\)', r'patch("agentbay._sync.\1.Session")', content)
                     content = re.sub(r"patch\('agentbay\._sync\.([^']+)\.AsyncSession'\)", r"patch('agentbay._sync.\1.Session')", content)
-                    
+
                     # Remove asyncio.iscoroutinefunction checks in sync tests
                     content = re.sub(r'assert asyncio\.iscoroutinefunction\([^)]+\)', 'assert True  # Sync version check removed', content)
                     content = re.sub(r'assert not asyncio\.iscoroutinefunction\([^)]+\)', 'assert True  # Sync version check removed', content)
@@ -482,21 +483,21 @@ def process_examples_non_python_files():
     """Process non-Python files in examples directory (Markdown, images, etc.)"""
     if not os.path.exists(EXAMPLES_ASYNC_DIR):
         return
-        
+
     print("Processing non-Python files in examples...")
-    
+
     for root, dirs, files in os.walk(EXAMPLES_ASYNC_DIR):
         for file in files:
             if file.endswith('.py') or file == '__pycache__':
                 continue
-                
+
             src_path = os.path.join(root, file)
             rel_path = os.path.relpath(src_path, EXAMPLES_ASYNC_DIR)
             dest_path = os.path.join(EXAMPLES_SYNC_DIR, rel_path)
-            
+
             # Ensure destination directory exists
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-            
+
             if file.endswith('.md'):
                 # Process Markdown files
                 convert_markdown_file(src_path, dest_path)
@@ -508,27 +509,27 @@ def convert_markdown_file(src_path: str, dest_path: str):
     """Convert Markdown files from async to sync versions"""
     with open(src_path, "r", encoding="utf-8") as f:
         content = f.read()
-        
+
     # Replace AsyncAgentBay -> AgentBay (Documentation text)
     content = content.replace("AsyncAgentBay", "AgentBay")
     content = content.replace("AsyncSession", "Session")
-    
+
     # Remove await keywords from code blocks
     content = re.sub(r'await\s+', '', content)
-    
+
     # Replace async def with def in code blocks
     content = content.replace("async def ", "def ")
-    
+
     # Replace asyncio.sleep with time.sleep
     content = content.replace("await asyncio.sleep(", "time.sleep(")
     content = content.replace("asyncio.sleep(", "time.sleep(")
-    
+
     # Replace API links: docs/api/async/async-*.md -> docs/api/sync/*.md
     content = re.sub(r"docs/api/async/async-([a-z0-9-]+)\.md", r"docs/api/sync/\1.md", content)
-    
+
     # Replace example links: _async -> _sync
     content = content.replace("/_async/", "/_sync/")
-    
+
     # Write converted content
     with open(dest_path, "w", encoding="utf-8") as f:
         f.write(content)

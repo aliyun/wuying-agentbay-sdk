@@ -61,7 +61,7 @@ from ._common.models.response import (
 from .api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule, MobileSimulateMode, MobileSimulateConfig
 
 # Sync API (Default)
-from ._sync.agentbay import AgentBay, _generate_random_context_name
+from ._sync.agentbay import AgentBay
 from ._sync.session import Session
 from ._sync.fingerprint import BrowserFingerprintGenerator
 from ._sync.browser import (
@@ -260,7 +260,7 @@ __all__ = [
     "GetSessionData",
     "extract_request_id",
     "ExecutionResult",
-    "CommandResult", 
+    "CommandResult",
     "CodeExecutionResult",
     "EnhancedCodeExecutionResult",
     "ExecutionLogs",
@@ -297,7 +297,7 @@ __all__ = [
     "MultipleFileContentResult",
     # API Models
     "ExtraConfigs",
-    "MobileExtraConfig", 
+    "MobileExtraConfig",
     "AppManagerRule",
     "MobileSimulateMode",
     "MobileSimulateConfig",

@@ -54,10 +54,10 @@ export interface DownloadResult {
 /**
  * FileTransfer provides pre-signed URL upload/download functionality between local and OSS,
  * with integration to Session Context synchronization.
- * 
+ *
  * Prerequisites and Constraints:
- * - Session must be associated with the corresponding context_id and path through 
- *   CreateSessionParams.contextSyncs, and remotePath should fall within that 
+ * - Session must be associated with the corresponding context_id and path through
+ *   CreateSessionParams.contextSyncs, and remotePath should fall within that
  *   synchronization path (or conform to backend path rules).
  * - Requires available AgentBay context service (agentBay.context) and session context.
  */
@@ -68,13 +68,14 @@ export class FileTransfer {
   private httpTimeout: number;
   private followRedirects: boolean;
   private contextId: string;
+  private contextPath: string | null = null;
 
   // Task completion states (for compatibility)
   private finishedStates = new Set(["success", "successful", "ok", "finished", "done", "completed", "complete"]);
 
   /**
    * Initialize FileTransfer with AgentBay client and session.
-   * 
+   *
    * @param agentBay - AgentBay instance for context service access
    * @param session - Created session object for context operations
    * @param httpTimeout - HTTP request timeout in seconds (default: 60.0)
@@ -91,7 +92,73 @@ export class FileTransfer {
     this.session = session;
     this.httpTimeout = httpTimeout;
     this.followRedirects = followRedirects;
-    this.contextId = session.fileTransferContextId || "";
+    this.contextId = "";
+  }
+
+  /**
+   * Get the current context ID.
+   * @returns The context ID, or empty string if not yet loaded
+   */
+  getContextId(): string {
+    return this.contextId;
+  }
+
+  /**
+   * Ensure the file transfer context id is set by calling GetAndLoadInternalContext with SessionId and ContextTypes=["file_transfer"].
+   * Returns [success: boolean, errorMessage: string] tuple.
+   */
+  private async ensureContextId(): Promise<[boolean, string]> {
+    if (this.contextId) {
+      return [true, ""];
+    }
+
+    try {
+      const sid = this.session.getSessionId();
+      if (!sid) return [false, "No session ID"];
+
+      // Try to use GetAndLoadInternalContext API if available
+      const client = this.agentBay.getClient();
+      let response: any;
+
+      // Check if getAndLoadInternalContext method exists
+    try {
+        const req: any = {
+        authorization: `Bearer ${this.agentBay.getAPIKey()}`,
+        sessionId: sid,
+        contextTypes: ["file_transfer"],
+        };
+        response = await (client as any).getAndLoadInternalContext(req);
+    } catch (e: any) {
+        return [false, e?.message || String(e)];
+    }
+
+      const body = response && response.body ? response.body : {};
+
+      // Check for API-level errors
+      if (body.Success === false && body.Code) {
+        return [false, body.Message || "Unknown error"];
+      }
+
+      // Extract context_id and context_path from response
+      const data = body.Data || body.data;
+      if (Array.isArray(data) && data.length > 0) {
+        for (const item of data) {
+          if (item && typeof item === "object") {
+            const context_id = item.ContextId || item.contextId;
+            const context_path = item.ContextPath || item.contextPath;
+            if (context_id && context_path) {
+              this.contextId = context_id;
+              this.contextPath = context_path;
+              return [true, ""];
+            }
+          }
+        }
+      }
+
+      return [false, "Response contains no data"];
+    } catch (e: any) {
+      return [false, e?.message || String(e)];
+    }
   }
 
   /**
@@ -133,13 +200,17 @@ export class FileTransfer {
         };
       }
 
+      // Try to ensure context id is available (lazy-load)
       if (!this.contextId) {
-        return {
-          success: false,
-          bytesSent: 0,
-          path: remotePath,
-          error: "No context ID"
-        };
+        const [success, errorMsg] = await this.ensureContextId();
+        if (!success) {
+          return {
+            success: false,
+            bytesSent: 0,
+            path: remotePath,
+            error: errorMsg || "No context ID"
+          };
+        }
       }
 
       // 1. Get pre-signed upload URL
@@ -167,7 +238,7 @@ export class FileTransfer {
           contentType,
           progressCb
         );
-        
+
         logInfo(`Upload completed with HTTP ${httpStatus}`);
         if (httpStatus && ![200, 201, 204].includes(httpStatus)) {
           return {
@@ -209,7 +280,7 @@ export class FileTransfer {
       }
 
       logInfo(`Sync request ID: ${reqIdSync}`);
-      
+
       // 4. Optionally wait for task completion
       if (wait) {
         const { success, error } = await this.waitForTask({
@@ -219,7 +290,7 @@ export class FileTransfer {
           timeout: waitTimeout,
           interval: pollInterval
         });
-        
+
         if (!success) {
           return {
             success: false,
@@ -258,7 +329,7 @@ export class FileTransfer {
    * 1) Trigger session.context.sync(mode="upload") to sync cloud disk data to OSS
    * 2) Get pre-signed download URL via context.getFileDownloadUrl
    * 3) Download the file and save to local localPath
-   * 4) If wait=true, wait for download task to reach completion after step 1 
+   * 4) If wait=true, wait for download task to reach completion after step 1
    *    (ensuring backend has prepared the download object)
    *
    * Returns DownloadResult containing sync and download request_ids, HTTP status, byte count, etc.
@@ -283,15 +354,18 @@ export class FileTransfer {
     } = options || {};
 
     try {
-      // Use default context if none provided
+      // Try to ensure context id is available (lazy-load)
       if (!this.contextId) {
-        return {
-          success: false,
-          bytesReceived: 0,
-          path: remotePath,
-          localPath,
-          error: "No context ID"
-        };
+        const [success, errorMsg] = await this.ensureContextId();
+        if (!success) {
+          return {
+            success: false,
+            bytesReceived: 0,
+            path: remotePath,
+            localPath,
+            error: errorMsg || "No context ID"
+          };
+        }
       }
 
       // 1. Trigger cloud disk to OSS download sync
@@ -318,7 +392,7 @@ export class FileTransfer {
           timeout: waitTimeout,
           interval: pollInterval
         });
-        
+
         if (!success) {
           return {
             success: false,
@@ -435,7 +509,7 @@ export class FileTransfer {
 
     const syncFn = this.session.context.sync.bind(this.session.context);
     logDebug(`session.context.sync(mode=${mode}, path=${remotePath}, contextId=${contextId})`);
-    
+
     // Try calling with all parameters
     try {
       const result = await syncFn(contextId || undefined, remotePath || undefined, mode);
@@ -573,20 +647,20 @@ export class FileTransfer {
     progressCb?: (bytesReceived: number) => void
   ): Promise<number> {
     let bytesReceived = 0;
-    
+
     const response = await fetch(url);
     const status = response.status;
-    
+
     if (status !== 200) {
       throw new Error(`HTTP ${status}`);
     }
 
     const buffer = await response.buffer();
     bytesReceived = buffer.length;
-    
+
     // Save to file
     fs.writeFileSync(destPath, buffer);
-    
+
     if (progressCb) {
       progressCb(bytesReceived);
     }

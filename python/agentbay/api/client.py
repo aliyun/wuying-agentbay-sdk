@@ -446,6 +446,85 @@ class Client(OpenApiClient):
         runtime = RuntimeOptions()
         return await self.delete_context_with_options_async(request, runtime)
 
+
+    def get_and_load_internal_context_with_options(
+        self,
+        request: main_models.GetAndLoadInternalContextRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetAndLoadInternalContextResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.context_types):
+            body['ContextTypes'] = request.context_types
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'GetAndLoadInternalContext',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.GetAndLoadInternalContextResponse(),
+            self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, req, runtime)
+        )
+
+    async def get_and_load_internal_context_with_options_async(
+        self,
+        request: main_models.GetAndLoadInternalContextRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.GetAndLoadInternalContextResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.context_types):
+            body['ContextTypes'] = request.context_types
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'GetAndLoadInternalContext',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.GetAndLoadInternalContextResponse(),
+            await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, req, runtime)
+        )
+
+    def get_and_load_internal_context(
+        self,
+        request: main_models.GetAndLoadInternalContextRequest,
+    ) -> main_models.GetAndLoadInternalContextResponse:
+        runtime = RuntimeOptions()
+        return self.get_and_load_internal_context_with_options(request, runtime)
+
+    async def get_and_load_internal_context_async(
+        self,
+        request: main_models.GetAndLoadInternalContextRequest,
+    ) -> main_models.GetAndLoadInternalContextResponse:
+        runtime = RuntimeOptions()
+        return await self.get_and_load_internal_context_with_options_async(request, runtime)
+
     def get_context_with_options(
         self,
         request: main_models.GetContextRequest,

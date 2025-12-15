@@ -79,7 +79,6 @@ func TestBrowserReplay_Integration(t *testing.T) {
 
 	// Verify EnableBrowserReplay is set
 	assert.True(t, session.EnableBrowserReplay, "EnableBrowserReplay should be true")
-	assert.NotEmpty(t, session.RecordContextID, "RecordContextID should not be empty")
 
 	// Test browser operations with recording enabled
 	t.Run("Browser record operations", func(t *testing.T) {

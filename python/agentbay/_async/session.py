@@ -210,14 +210,8 @@ class AsyncSession:
                 authorization=f"Bearer {self._get_api_key()}",
                 session_id=self.session_id,
             )
-            # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "release_mcp_session_async") and callable(
-                getattr(client, "release_mcp_session_async")
-            ):
-                response = await client.release_mcp_session_async(request)
-            else:
-                response = await asyncio.to_thread(client.release_mcp_session, request)
+            response = await client.release_mcp_session_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -335,14 +329,8 @@ class AsyncSession:
                 labels=labels_json,
             )
 
-            # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "set_label_async") and callable(
-                getattr(client, "set_label_async")
-            ):
-                response = await client.set_label_async(request)
-            else:
-                response = await asyncio.to_thread(client.set_label, request)
+            response = await client.set_label_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -375,12 +363,7 @@ class AsyncSession:
 
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "get_label_async") and callable(
-                getattr(client, "get_label_async")
-            ):
-                response = await client.get_label_async(request)
-            else:
-                response = await asyncio.to_thread(client.get_label, request)
+            response = await client.get_label_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -424,12 +407,7 @@ class AsyncSession:
 
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "get_mcp_resource_async") and callable(
-                getattr(client, "get_mcp_resource_async")
-            ):
-                response = await client.get_mcp_resource_async(request)
-            else:
-                response = await asyncio.to_thread(client.get_mcp_resource, request)
+            response = await client.get_mcp_resource_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -543,12 +521,7 @@ class AsyncSession:
 
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self.agent_bay.client
-            if hasattr(client, "get_link_async") and callable(
-                getattr(client, "get_link_async")
-            ):
-                response = await client.get_link_async(request)
-            else:
-                response = await asyncio.to_thread(client.get_link, request)
+            response = await client.get_link_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -618,12 +591,7 @@ class AsyncSession:
 
         # Try async method first, fall back to sync wrapped in asyncio.to_thread
         client = self._get_client()
-        if hasattr(client, "list_mcp_tools_async") and callable(
-            getattr(client, "list_mcp_tools_async")
-        ):
-            response = await client.list_mcp_tools_async(request)
-        else:
-            response = await asyncio.to_thread(client.list_mcp_tools, request)
+        response = await client.list_mcp_tools_async(request)
 
         # Extract request ID
         request_id = extract_request_id(response)
@@ -849,19 +817,9 @@ class AsyncSession:
         try:
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "call_mcp_tool_async") and callable(
-                getattr(client, "call_mcp_tool_async")
-            ):
-                response = await client.call_mcp_tool_async(
-                    request, read_timeout=read_timeout, connect_timeout=connect_timeout
-                )
-            else:
-                response = await asyncio.to_thread(
-                    client.call_mcp_tool,
-                    request,
-                    read_timeout=read_timeout,
-                    connect_timeout=connect_timeout,
-                )
+            response = await client.call_mcp_tool_async(
+                request, read_timeout=read_timeout, connect_timeout=connect_timeout
+            )
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -1057,14 +1015,8 @@ class AsyncSession:
 
             _log_api_call("PauseSessionAsync", f"SessionId={self.session_id}")
 
-            # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "pause_session_async_async") and callable(
-                getattr(client, "pause_session_async_async")
-            ):
-                response = await client.pause_session_async_async(request)
-            else:
-                response = await asyncio.to_thread(client.pause_session_async, request)
+            response = await client.pause_session_async_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -1220,14 +1172,8 @@ class AsyncSession:
 
             _log_api_call("ResumeSessionAsync", f"SessionId={self.session_id}")
 
-            # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
-            if hasattr(client, "resume_session_async_async") and callable(
-                getattr(client, "resume_session_async_async")
-            ):
-                response = await client.resume_session_async_async(request)
-            else:
-                response = await asyncio.to_thread(client.resume_session_async, request)
+            response = await client.resume_session_async_async(request)
 
             request_id = extract_request_id(response)
 

@@ -2,33 +2,30 @@
 import * as $dara from '@darabonba/typescript';
 
 
-export class ListContextsRequest extends $dara.Model {
+export class GetAndLoadInternalContextRequest extends $dara.Model {
   authorization?: string;
-  maxResults?: number;
-  nextToken?: string;
+  contextTypes?: string[];
   sessionId?: string;
-  type?: string;
   static names(): { [key: string]: string } {
     return {
       authorization: 'Authorization',
-      maxResults: 'MaxResults',
-      nextToken: 'NextToken',
+      contextTypes: 'ContextTypes',
       sessionId: 'SessionId',
-      type: 'ContextType',
     };
   }
 
   static types(): { [key: string]: any } {
     return {
       authorization: 'string',
-      maxResults: 'number',
-      nextToken: 'string',
+      contextTypes: { 'type': 'array', 'itemType': 'string' },
       sessionId: 'string',
-      type: 'string',
     };
   }
 
   validate() {
+    if(Array.isArray(this.contextTypes)) {
+      $dara.Model.validateArray(this.contextTypes);
+    }
     super.validate();
   }
 

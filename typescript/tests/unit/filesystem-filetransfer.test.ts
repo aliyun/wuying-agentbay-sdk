@@ -101,7 +101,6 @@ describe("FileTransfer", () => {
         sync: sandbox.stub(),
         info: sandbox.stub()
       },
-      fileTransferContextId: "ctx_123"
     };
 
     fileTransfer = new FileTransfer(mockAgentBay, mockSession);
@@ -115,7 +114,7 @@ describe("FileTransfer", () => {
     it("should initialize with default parameters", () => {
       expect((fileTransfer as any).httpTimeout).toBe(60.0);
       expect((fileTransfer as any).followRedirects).toBe(true);
-      expect((fileTransfer as any).contextId).toBe("ctx_123");
+      expect((fileTransfer as any).contextId).toBe("");
     });
 
     it("should initialize with custom parameters", () => {
@@ -127,14 +126,12 @@ describe("FileTransfer", () => {
 
   describe("upload", () => {
     it("should fail when no context ID is available", async () => {
-      // Create a file transfer instance without context ID
+      // Create a file transfer instance (contextId is managed internally)
       const fileTransferWithoutContext = new FileTransfer(mockAgentBay, {
         ...mockSession,
-        fileTransferContextId: ""
       });
 
-      // We'll test with a path that likely doesn't exist, which will trigger the context ID check first
-      // since the file existence check will fail and return early
+      // Use a non-existent path so the method short-circuits before needing a contextId
       const result = await fileTransferWithoutContext.upload("/probably/nonexistent/file.txt", "/remote/file.txt");
 
       // The result will be "Local file not found" because that check happens first
@@ -147,14 +144,21 @@ describe("FileTransfer", () => {
     it("should fail when no context ID is available", async () => {
       const fileTransferWithoutContext = new FileTransfer(mockAgentBay, {
         ...mockSession,
-        fileTransferContextId: ""
+        getSessionId: sandbox.stub().returns(""),
       });
+
+      // Force ensureContextId to report missing context id
+      const ensureStub = sandbox
+        .stub(fileTransferWithoutContext as any, "ensureContextId")
+        .resolves([false, "No context ID"]);
 
       const result = await fileTransferWithoutContext.download("/remote/file.txt", "/local/file.txt");
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("No context ID");
       expect(result.bytesReceived).toBe(0);
+
+      ensureStub.restore();
     });
   });
 });

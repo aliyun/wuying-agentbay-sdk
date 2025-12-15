@@ -44,25 +44,6 @@ import { VERSION, IS_RELEASE } from "./version";
 const BROWSER_DATA_PATH = "/tmp/agentbay_browser";
 
 
-
-
-
-/**
- * Generate a random context name using alphanumeric characters with timestamp.
- * This function is similar to the Python version's generate_random_context_name.
- */
-function generateRandomContextName(length = 8, includeTimestamp = true): string {
-  const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
-
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let randomPart = '';
-  for (let i = 0; i < length; i++) {
-    randomPart += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return includeTimestamp ? `${timestamp}_${randomPart}` : randomPart;
-}
-
 /**
  * Parameters for creating a session.
  */
@@ -85,7 +66,6 @@ export class AgentBay {
   private apiKey: string;
   public client: Client;
   private endpoint: string;
-  private fileTransferContext: Context | null = null;
   private config: Config;
 
   /**
@@ -154,7 +134,7 @@ export class AgentBay {
 
   /**
    * Wait for mobile simulate command to complete.
-   * 
+   *
    * @param session - The session to wait for mobile simulate
    * @param mobileSimPath - The dev info path to the mobile simulate
    * @param mobileSimMode - The mode of the mobile simulate. If not provided, will use the default mode.
@@ -165,7 +145,7 @@ export class AgentBay {
     mobileSimMode?: string
   ): Promise<void> {
     log("⏳ Mobile simulate: Waiting for completion");
-    
+
     if (!(session as any).mobile) {
       logInfo("Mobile module not found in session, skipping mobile simulate");
       return;
@@ -184,7 +164,7 @@ export class AgentBay {
       const startTime = Date.now();
       const devInfoFilePath = `${mobileSimPath}/dev_info.json`;
       let wyaApplyOption = "";
-      
+
       if (!mobileSimMode || mobileSimMode === "PropertiesOnly") {
         wyaApplyOption = "";
       } else if (mobileSimMode === "SensorsOnly") {
@@ -199,7 +179,7 @@ export class AgentBay {
 
       const command = `chmod -R a+rwx ${mobileSimPath}; wya apply ${wyaApplyOption} ${devInfoFilePath}`.trim();
       logInfo(`ℹ️  ⏳ Waiting for mobile simulate completion, command: [${command}]`);
-      
+
       const cmdResult = await (session as any).command.executeCommand(command);
       if (cmdResult.success) {
         const endTime = Date.now();
@@ -216,46 +196,6 @@ export class AgentBay {
     }
   }
 
-  /**
-   * Update browser replay context with AppInstanceId from response data.
-   *
-   * @param responseData - Response data containing AppInstanceId
-   * @param recordContextId - The record context ID to update
-   */
-  private async _updateBrowserReplayContext(responseData: any, recordContextId: string): Promise<void> {
-    // Check if record_context_id is provided
-    if (!recordContextId) {
-      return;
-    }
-
-    try {
-      // Extract AppInstanceId from response data
-      const appInstanceId = responseData?.appInstanceId;
-      if (!appInstanceId) {
-        logError("AppInstanceId not found in response data, skipping browser replay context update");
-        return;
-      }
-
-      // Create context name with prefix
-      const contextName = `browserreplay-${appInstanceId}`;
-
-      // Create Context object for update
-      const contextObj = new Context(recordContextId, contextName);
-
-      // Call context.update interface
-      logDebug(`Updating browser replay context: ${contextName} -> ${recordContextId}`);
-      const updateResult = await this.context.update(contextObj);
-
-      if (updateResult.success) {
-        logInfo(`✅ Successfully updated browser replay context: ${contextName}`);
-      } else {
-        logError(`⚠️ Failed to update browser replay context: ${updateResult.errorMessage}`);
-      }
-    } catch (error) {
-      logError(`❌ Error updating browser replay context: ${error}`);
-      // Continue execution even if context update fails
-    }
-  }
 
   /**
    * Create a new session in the AgentBay cloud environment.
@@ -308,7 +248,7 @@ export class AgentBay {
   async create(params: CreateSessionParams | CreateSeesionWithParams): Promise<SessionResult> {
     try {
       logDebug(`default context syncs length: ${params.contextSync?.length}`);
-      
+
       // Add context syncs for mobile simulate if provided
       if (params.extraConfigs?.mobile?.simulateConfig) {
         const mobileSimContextId = params.extraConfigs.mobile.simulateConfig.simulatedContextId;
@@ -323,24 +263,6 @@ export class AgentBay {
           logInfo(`Adding context sync for mobile simulate: ${JSON.stringify(mobileSimContextSync)}`);
           params.contextSync.push(mobileSimContextSync);
         }
-      }
-
-      // Create a default context for file transfer operations if none provided
-      // and no context_syncs are specified
-      const contextName = `file-transfer-context-${Date.now()}`;
-      const contextResult = await this.context.get(contextName, true);
-      if (contextResult.success && contextResult.context) {
-        this.fileTransferContext = contextResult.context;
-        // Add the context to the session params for file transfer operations
-        const fileTransferContextSync = new ContextSync(
-          contextResult.context.id,
-          "/tmp/file-transfer"
-        );
-        if (!params.contextSync) {
-          params.contextSync = [];
-        }
-        logDebug(`Adding context sync for file transfer operations: ${fileTransferContextSync}`);
-        params.contextSync.push(fileTransferContextSync);
       }
 
       const request = new $_client.CreateMcpSessionRequest({
@@ -429,30 +351,10 @@ export class AgentBay {
         needsContextSync = true;
       }
 
-      // Add browser recording persistence if enabled
-      let recordContextId = ""; // Initialize record_context_id
-      if (params.enableBrowserReplay) {
-        // Create browser recording persistence configuration
-        const recordPath = BROWSER_RECORD_PATH;
-        const recordContextName = generateRandomContextName();
-        const result = await this.context.get(recordContextName, true);
-        recordContextId = result.success ? result.contextId : "";
-        const recordPersistence = new CreateMcpSessionRequestPersistenceDataList({
-          contextId: recordContextId,
-          path: recordPath,
-        });
-
-        // Add to persistence data list or create new one if not exists
-        if (!request.persistenceDataList) {
-          request.persistenceDataList = [];
-        }
-        request.persistenceDataList.push(recordPersistence);
-      }
-
       // Add extra configs if provided
       if (params.extraConfigs) {
         request.extraConfigs = JSON.stringify(params.extraConfigs);
-        
+
         // Check mobile simulate config
         if (params.extraConfigs.mobile?.simulateConfig?.simulate) {
           mobileSimPath = params.extraConfigs.mobile.simulateConfig.simulatePath;
@@ -602,12 +504,6 @@ export class AgentBay {
       // Set browser recording state
       session.enableBrowserReplay = params.enableBrowserReplay || false;
 
-      // Store the file transfer context ID if we created one
-      session.fileTransferContextId = this.fileTransferContext ? this.fileTransferContext.id : null;
-
-      // Store the browser recording context ID if we created one
-      session.recordContextId = recordContextId || null;
-
       // Store imageId used for this session
       (session as any).imageId = params.imageId;
 
@@ -626,11 +522,6 @@ export class AgentBay {
           logError(`Warning: Failed to apply mobile configuration: ${error}`);
           // Continue with session creation even if mobile config fails
         }
-      }
-
-      // Update browser replay context if enabled
-      if (params.enableBrowserReplay) {
-        await this._updateBrowserReplayContext(data, recordContextId);
       }
 
       // For VPC sessions, automatically fetch MCP tools information
@@ -1110,53 +1001,6 @@ export class AgentBay {
       session.httpPort = getResult.data.httpPort;
       session.token = getResult.data.token;
       session.resourceUrl = getResult.data.resourceUrl;
-    }
-
-    // Extract file transfer context ID from contexts list
-    if (getResult.data && getResult.data.contexts && getResult.data.contexts.length > 0) {
-      const contexts = getResult.data.contexts;
-      // Filter contexts with 'file-transfer-context-' prefix
-      const fileTransferContexts = contexts.filter(
-        (ctx) => ctx.name && ctx.name.startsWith("file-transfer-context-")
-      );
-
-      if (fileTransferContexts.length === 0) {
-        // No file transfer context found
-        const availableContexts = contexts.map((ctx) => ctx.name || "unknown");
-        logWarn(
-          `⚠️  No file-transfer-context- found in contexts list for session ${sessionId}. ` +
-            `Available contexts: ${availableContexts.join(", ")}`
-        );
-        session.fileTransferContextId = null;
-      } else if (fileTransferContexts.length === 1) {
-        // Exactly one file transfer context found
-        const contextId = fileTransferContexts[0].id;
-        if (contextId) {
-          session.fileTransferContextId = contextId;
-          logInfo(`📁 Found file transfer context for recovered session: ${contextId}`);
-        } else {
-          logWarn(
-            `⚠️  File transfer context found but missing 'id' field: ${JSON.stringify(fileTransferContexts[0])}`
-          );
-          session.fileTransferContextId = null;
-        }
-      } else {
-        // Multiple file transfer contexts found
-        const contextNames = fileTransferContexts.map((ctx) => ctx.name || "unknown");
-        logWarn(
-          `⚠️  Multiple file-transfer-context- found in contexts list for session ${sessionId}. ` +
-            `Found ${fileTransferContexts.length} contexts: ${contextNames.join(", ")}. ` +
-            `Not setting fileTransferContextId.`
-        );
-        session.fileTransferContextId = null;
-      }
-    } else {
-      // No contexts list in response
-      logWarn(
-        `⚠️  No contexts list found in GetSession response for session ${sessionId}. ` +
-          `fileTransferContextId will remain null.`
-      );
-      session.fileTransferContextId = null;
     }
 
     return {

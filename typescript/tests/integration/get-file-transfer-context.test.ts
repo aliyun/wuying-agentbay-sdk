@@ -39,35 +39,6 @@ describe("Get Method File Transfer Context", () => {
     }
   });
 
-  it("should create file transfer context when using get method", async () => {
-    /**
-     * Test that get method creates file transfer context automatically.
-     *
-     * This test verifies the fix for the bug where recovered sessions
-     * couldn't perform file operations due to missing file transfer context.
-     */
-    log("Testing get method creates file transfer context...");
-
-    // Get the session_id from the test session
-    const sessionId = testSession.sessionId;
-
-    // Use get method to recover the session
-    const getResult = await agentBay.get(sessionId);
-
-    // Verify get was successful
-    expect(getResult.success).toBe(true);
-    expect(getResult.session).toBeDefined();
-    expect(getResult.session!.sessionId).toBe(sessionId);
-
-    // Verify that the recovered session has a file transfer context ID
-    const recoveredSession = getResult.session!;
-    expect(recoveredSession.fileTransferContextId).toBeDefined();
-    expect(recoveredSession.fileTransferContextId).not.toBeNull();
-    expect(recoveredSession.fileTransferContextId).not.toBe("");
-
-    log(`File transfer context ID: ${recoveredSession.fileTransferContextId}`);
-  });
-
   it("should perform file operations on recovered session", async () => {
     /**
      * Test that recovered session can perform actual file operations.
