@@ -181,7 +181,8 @@ def chat_with_llm(llm_client, session, user_message: str) -> dict:
         for line in code.split('\n')[:20]:  # Show first 20 lines
             print(line)
         if len(code.split('\n')) > 20:
-            print(f"... ({len(code.split('\n')) - 20} more lines)")
+            newline = '\n'
+            print(f"... ({len(code.split(newline)) - 20} more lines)")
         print('-' * 80)
 
         code_result = process_tool_call(session, tool_call)
@@ -249,7 +250,7 @@ def main():
 
     # Create a CodeSpace session
     print("📦 Creating AgentBay CodeSpace environment...")
-    params = CreateSessionParams(image_id="code_latest")
+    params = CreateSessionParams(image_id="linux_latest")
     result = agentbay.create(params)
 
     if not result.success:
@@ -261,11 +262,17 @@ def main():
 
     try:
         # Upload the dataset
-        # Try multiple possible paths for the dataset
+        # Try multiple possible paths for the dataset (including absolute paths)
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))  # Get current script directory
+        repo_root = os.path.join(current_dir, '..', '..', '..', '..', '..')  # Navigate to repo root
+        repo_root = os.path.abspath(repo_root)  # Convert to absolute path
+        
         possible_paths = [
+            '../../common/data/ecommerce_sales.csv',  # Relative path from sync/openai/src/ to sync/common/data/
+            os.path.join(repo_root, 'cookbook', 'codespace', 'openai-data-analysis', 'sync', 'common', 'data', 'ecommerce_sales.csv'),  # Absolute path
+            os.path.join(current_dir, '..', '..', 'common', 'data', 'ecommerce_sales.csv'),  # Absolute path from current script
             './ecommerce_sales.csv',  # If run from data directory
-            '../../common/data/ecommerce_sales.csv',  # Standard cookbook structure
-            '../common/data/ecommerce_sales.csv',  # Alternative path
         ]
 
         dataset_path = None
@@ -273,7 +280,11 @@ def main():
             if os.path.exists(path):
                 dataset_path = path
                 break
-
+        
+        if dataset_path:
+            print(f"✓ Found dataset at: {dataset_path}")
+        else:
+            print("⚠️  Dataset file not found in any expected locations")
         if dataset_path:
             remote_path = upload_dataset(session, dataset_path)
             validate_dataset(session, remote_path)
