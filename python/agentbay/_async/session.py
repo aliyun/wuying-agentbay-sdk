@@ -24,6 +24,7 @@ from .._common.models import (
 )
 from ..api.models import (
     CallMcpToolRequest,
+    DeleteSessionAsyncRequest,
     GetLabelRequest,
     GetLinkRequest,
     GetLinkResponse,
@@ -97,7 +98,7 @@ class AsyncSession:
 
         # Recording functionality
         self.enableBrowserReplay = (
-            False  # Whether browser recording is enabled for this session
+            True  # Whether browser recording is enabled for this session
         )
 
         # MCP tools available for this session
@@ -206,12 +207,12 @@ class AsyncSession:
                     # Continue with deletion even if sync fails
 
             # Proceed with session deletion
-            request = ReleaseMcpSessionRequest(
+            request = DeleteSessionAsyncRequest(
                 authorization=f"Bearer {self._get_api_key()}",
                 session_id=self.session_id,
             )
             client = self._get_client()
-            response = await client.release_mcp_session_async(request)
+            response = await client.delete_session_async_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -224,7 +225,7 @@ class AsyncSession:
             if not success:
                 error_message = f"[{body.get('Code', 'Unknown')}] {body.get('Message', 'Failed to delete session')}"
                 _log_api_response_with_details(
-                    api_name="ReleaseMcpSession",
+                    api_name="DeleteSessionAsync",
                     request_id=request_id,
                     success=False,
                     full_response=json.dumps(body, ensure_ascii=False, indent=2),
@@ -235,9 +236,67 @@ class AsyncSession:
                     error_message=error_message,
                 )
 
+            # Poll for session deletion status
+            _logger.info(f"🔄 Waiting for session {self.session_id} to be deleted...")
+            poll_timeout = 50.0  # 50 seconds timeout
+            poll_interval = 1.0  # Poll every 1 second
+            poll_start_time = time.time()
+
+            while True:
+                # Check timeout
+                elapsed_time = time.time() - poll_start_time
+                if elapsed_time >= poll_timeout:
+                    error_message = f"Timeout waiting for session deletion after {poll_timeout}s"
+                    _logger.warning(f"⏱️  {error_message}")
+                    return DeleteResult(
+                        request_id=request_id,
+                        success=False,
+                        error_message=error_message,
+                    )
+
+                # Get session status
+                session_result = await self.agent_bay.get_session(self.session_id)
+
+                # Check if session is deleted (NotFound error)
+                if not session_result.success:
+                    error_code = session_result.code or ""
+                    error_message = session_result.error_message or ""
+                    http_status_code = session_result.http_status_code or 0
+
+                    # Check for InvalidMcpSession.NotFound, 400 with "not found", or error_message containing "not found"
+                    is_not_found = (
+                        error_code == "InvalidMcpSession.NotFound" or
+                        (http_status_code == 400 and (
+                            "not found" in error_message.lower() or
+                            "NotFound" in error_message or
+                            "not found" in error_code.lower()
+                        )) or
+                        "not found" in error_message.lower()
+                    )
+
+                    if is_not_found:
+                        # Session is deleted
+                        _logger.info(f"✅ Session {self.session_id} successfully deleted (NotFound)")
+                        break
+                    else:
+                        # Other error, continue polling
+                        _logger.debug(f"⚠️  Get session error (will retry): {error_message}")
+                        # Continue to next poll iteration
+
+                # Check session status if we got valid data
+                elif session_result.data and session_result.data.status:
+                    status = session_result.data.status
+                    _logger.debug(f"📊 Session status: {status}")
+                    if status == "FINISH":
+                        _logger.info(f"✅ Session {self.session_id} successfully deleted")
+                        break
+
+                # Wait before next poll
+                await asyncio.sleep(poll_interval)
+
             # Log successful deletion
             _log_api_response_with_details(
-                api_name="ReleaseMcpSession",
+                api_name="DeleteSessionAsync",
                 request_id=request_id,
                 success=True,
                 key_fields={"session_id": self.session_id},
@@ -247,7 +306,7 @@ class AsyncSession:
             return DeleteResult(request_id=request_id, success=True)
 
         except Exception as e:
-            _log_operation_error("release_mcp_session", str(e), exc_info=True)
+            _log_operation_error("delete_session_async", str(e), exc_info=True)
             # In case of error, return failure result with error message
             return DeleteResult(
                 success=False,

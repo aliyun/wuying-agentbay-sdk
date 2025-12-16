@@ -15,6 +15,7 @@ class CreateMcpSessionRequest(DaraModel):
         self,
         authorization: Optional[str] = None,
         context_id: Optional[str] = None,
+        enable_record: Optional[bool] = None,
         external_user_id: Optional[str] = None,
         image_id: Optional[str] = None,
         labels: Optional[str] = None,
@@ -30,6 +31,7 @@ class CreateMcpSessionRequest(DaraModel):
     ):
         self.authorization = authorization
         self.context_id = context_id
+        self.enable_record = enable_record
         self.external_user_id = external_user_id
         self.image_id = image_id
         self.labels = labels
@@ -59,6 +61,9 @@ class CreateMcpSessionRequest(DaraModel):
 
         if self.context_id is not None:
             result["ContextId"] = self.context_id
+
+        if self.enable_record is not None:
+            result['EnableRecord'] = self.enable_record
 
         if self.external_user_id is not None:
             result["ExternalUserId"] = self.external_user_id
@@ -101,6 +106,9 @@ class CreateMcpSessionRequest(DaraModel):
 
         if m.get("ContextId") is not None:
             self.context_id = m.get("ContextId")
+
+        if m.get('EnableRecord') is not None:
+            self.enable_record = m.get('EnableRecord')
 
         if m.get("ExternalUserId") is not None:
             self.external_user_id = m.get("ExternalUserId")

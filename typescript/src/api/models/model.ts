@@ -98,3 +98,6 @@ export { PauseSessionAsyncResponse } from './PauseSessionAsyncResponse';
 export { ResumeSessionAsyncRequest } from './ResumeSessionAsyncRequest';
 export { ResumeSessionAsyncResponseBody } from './ResumeSessionAsyncResponseBody';
 export { ResumeSessionAsyncResponse } from './ResumeSessionAsyncResponse';
+export { DeleteSessionAsyncRequest } from './DeleteSessionAsyncRequest';
+export { DeleteSessionAsyncResponseBody } from './DeleteSessionAsyncResponseBody';
+export { DeleteSessionAsyncResponse } from './DeleteSessionAsyncResponse';

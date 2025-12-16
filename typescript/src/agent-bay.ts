@@ -269,6 +269,11 @@ export class AgentBay {
         authorization: "Bearer " + this.apiKey,
       });
 
+      // browser replay is enabled by default, so if enableBrowserReplay is False, set enableRecord to False
+      if (params.enableBrowserReplay === false) {
+        request.enableRecord = false;
+      }
+
       // Add SDK stats for tracking
       const framework = params?.framework || "";
       const sdkStatsJson = `{"source":"sdk","sdk_language":"typescript","sdk_version":"${VERSION}","is_release":${IS_RELEASE},"framework":"${framework}"}`;
@@ -922,7 +927,7 @@ export class AgentBay {
       if (errorCode === "InvalidMcpSession.NotFound" || errorStr.includes("NotFound")) {
         // This is an expected error - session doesn't exist
         // Use info level logging without stack trace, but with red color for visibility
-        logInfoWithColor(`Session not found: ${sessionId}`);
+        logInfo(`Session not found: ${sessionId}`);
         logDebug(`GetSession error details: ${errorStr}`);
         return {
           requestId: "",

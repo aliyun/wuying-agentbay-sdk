@@ -169,6 +169,11 @@ func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 		Authorization: tea.String("Bearer " + a.APIKey),
 	}
 
+	// browser replay is enabled by default, so if enable_browser_replay is False, set enable_record to False
+	if !params.EnableBrowserReplay {
+		createSessionRequest.EnableRecord = tea.Bool(false)
+	}
+
 	// Add SDK stats for tracking
 	isRelease := isReleaseVersion()
 	framework := ""
@@ -819,7 +824,7 @@ func (a *AgentBay) GetSession(sessionID string) (*GetSessionResult, error) {
 		if strings.Contains(errorStr, "InvalidMcpSession.NotFound") || strings.Contains(errorStr, "NotFound") {
 			// This is an expected error - session doesn't exist
 			// Use info level logging without stack trace, but with red color for visibility
-			logInfoWithColor(fmt.Sprintf("Session not found: %s", sessionID))
+			LogInfo(fmt.Sprintf("Session not found: %s", sessionID))
 			LogDebug(fmt.Sprintf("GetSession error details: %s", errorStr))
 			return &GetSessionResult{
 				ApiResponse: models.ApiResponse{

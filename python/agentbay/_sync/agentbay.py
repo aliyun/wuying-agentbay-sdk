@@ -163,8 +163,8 @@ class AgentBay:
         # Set ResourceUrl
         session.resource_url = resource_url
 
-        # Set browser recording state
-        session.enableBrowserReplay = params.enable_browser_replay
+        # Set browser recording state (default to True if not explicitly set to False)
+        session.enableBrowserReplay = params.enable_browser_replay if params.enable_browser_replay is not None else True
 
         # Store image_id used for this session
         setattr(session, "image_id", params.image_id)
@@ -388,6 +388,12 @@ class AgentBay:
                         params.context_syncs.append(mobile_sim_context_sync)
 
             request = CreateMcpSessionRequest(authorization=f"Bearer {self.api_key}")
+
+            # browser replay is enabled by default, so if enable_browser_replay is explicitly False, set enable_record to False
+            # Only set enable_record when explicitly False, not when None (which means use default behavior)
+            if hasattr(params, "enable_browser_replay") and params.enable_browser_replay is False:
+                request.enable_record = False
+                _logger.info(f"enable_browser_replay is False, setting enable_record to False")
 
             # Add SDK stats for tracking
             framework = (

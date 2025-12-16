@@ -4,11 +4,11 @@ import { Client } from "./api/client";
 import * as $_client from "./api";
 import {
   CallMcpToolRequest,
+  DeleteSessionAsyncRequest,
   GetLabelRequest,
   GetLinkRequest,
   GetMcpResourceRequest,
   ListMcpToolsRequest,
-  ReleaseMcpSessionRequest,
   SetLabelRequest,
 } from "./api/models/model";
 import { Browser } from "./browser";
@@ -386,14 +386,14 @@ export class Session {
       }
 
       // Proceed with session deletion
-      const request = new ReleaseMcpSessionRequest({
+      const request = new DeleteSessionAsyncRequest({
         authorization: `Bearer ${this.getAPIKey()}`,
         sessionId: this.sessionId,
       });
 
-      const response = await this.getClient().releaseMcpSession(request);
+      const response = await this.getClient().deleteSessionAsync(request);
       logDebug(
-        `Response from release_mcp_session: ${JSON.stringify(response)}`
+        `Response from delete_session_async: ${JSON.stringify(response)}`
       );
 
       // Extract request ID
@@ -407,6 +407,13 @@ export class Session {
         const errorMessage = `[${responseBody?.code || "Unknown"}] ${
           responseBody?.message || "Failed to delete session"
         }`;
+        logAPIResponseWithDetails(
+          "DeleteSessionAsync",
+          requestId,
+          false,
+          {},
+          JSON.stringify(responseBody, null, 2)
+        );
         return {
           requestId,
           success: false,
@@ -414,13 +421,82 @@ export class Session {
         };
       }
 
+      // Poll for session deletion status
+      logInfo(`🔄 Waiting for session ${this.sessionId} to be deleted...`);
+      const pollTimeout = 50000; // 50 seconds timeout
+      const pollInterval = 1000; // Poll every 1 second
+      const pollStartTime = Date.now();
+
+      while (true) {
+        // Check timeout
+        const elapsedTime = Date.now() - pollStartTime;
+        if (elapsedTime >= pollTimeout) {
+          const errorMessage = `Timeout waiting for session deletion after ${pollTimeout}ms`;
+          logWarn(`⏱️  ${errorMessage}`);
+          return {
+            requestId,
+            success: false,
+            errorMessage,
+          };
+        }
+
+        // Get session status
+        const sessionResult = await this.agentBay.getSession(this.sessionId);
+
+        // Check if session is deleted (NotFound error)
+        if (!sessionResult.success) {
+          const errorCode = sessionResult.code || "";
+          const errorMessage = sessionResult.errorMessage || "";
+          const httpStatusCode = sessionResult.httpStatusCode || 0;
+
+          // Check for InvalidMcpSession.NotFound, 400 with "not found", or error_message containing "not found"
+          const isNotFound =
+            errorCode === "InvalidMcpSession.NotFound" ||
+            (httpStatusCode === 400 &&
+              (errorMessage.toLowerCase().includes("not found") ||
+                errorMessage.includes("NotFound") ||
+                errorCode.toLowerCase().includes("not found"))) ||
+            errorMessage.toLowerCase().includes("not found");
+
+          if (isNotFound) {
+            // Session is deleted
+            logInfo(`✅ Session ${this.sessionId} successfully deleted (NotFound)`);
+            break;
+          } else {
+            // Other error, continue polling
+            logDebug(`⚠️  Get session error (will retry): ${errorMessage}`);
+            // Continue to next poll iteration
+          }
+        }
+        // Check session status if we got valid data
+        else if (sessionResult.data && sessionResult.data.status) {
+          const status = sessionResult.data.status;
+          logDebug(`📊 Session status: ${status}`);
+          if (status === "FINISH") {
+            logInfo(`✅ Session ${this.sessionId} successfully deleted`);
+            break;
+          }
+        }
+
+        // Wait before next poll
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      }
+
+      // Log successful deletion
+      logAPIResponseWithDetails(
+        "DeleteSessionAsync",
+        requestId,
+        true,
+        { sessionId: this.sessionId }
+      );
+
       // Return success result with request ID
       return {
         requestId,
         success: true,
       };
     } catch (error) {
-      logError("Error calling release_mcp_session:", error);
+      logError("Error calling delete_session_async:", error);
       // In case of error, return failure result with error message (matching Python)
       return {
         requestId: "",

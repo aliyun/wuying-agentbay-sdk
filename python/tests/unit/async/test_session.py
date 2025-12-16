@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from agentbay import OperationResult
-from agentbay import DeleteResult, AsyncSession
+from agentbay import DeleteResult, AsyncSession, GetSessionResult, GetSessionData
 
 
 class DummyAgentBay:
@@ -110,58 +110,80 @@ class TestAsyncSession(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.session.file_system.session, self.session)
         self.assertEqual(self.session.command.session, self.session)
 
-    @patch("agentbay._async.session.extract_request_id")
-    @patch("agentbay._async.session.ReleaseMcpSessionRequest")
+    @patch("asyncio.sleep")
+    @patch("agentbay._async.session._log_api_response_with_details")
+    @patch("agentbay._async.session.DeleteSessionAsyncRequest")
     @pytest.mark.asyncio
 
     async def test_delete_success(
-        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+        self, MockDeleteSessionAsyncRequest, mock_log_api_response, mock_sleep
     ):
         mock_request = MagicMock()
         mock_response = MagicMock()
-        MockReleaseMcpSessionRequest.return_value = mock_request
-        mock_extract_request_id.return_value = "request-123"
-        self.agent_bay.client.release_mcp_session_async = AsyncMock(
+        MockDeleteSessionAsyncRequest.return_value = mock_request
+        self.agent_bay.client.delete_session_async_async = AsyncMock(
             return_value=mock_response
         )
 
-        # Mock the response.to_map() method
+        # Mock the response.to_map() method with RequestId in body
         mock_response.to_map.return_value = {
-            "body": {"Data": {"IsError": False}, "Success": True}
+            "body": {"Success": True, "RequestId": "request-123"}
         }
+
+        # Mock get_session to return NotFound (session deleted)
+        get_session_result = GetSessionResult(
+            request_id="get-session-request-id",
+            success=False,
+            code="InvalidMcpSession.NotFound",
+            error_message="Session not found",
+            http_status_code=400,
+        )
+        # Ensure session.agent_bay is the same as self.agent_bay
+        self.session.agent_bay.get_session = AsyncMock(return_value=get_session_result)
 
         result = await self.session.delete()
         self.assertIsInstance(result, DeleteResult)
         self.assertEqual(result.request_id, "request-123")
         self.assertTrue(result.success)
 
-        MockReleaseMcpSessionRequest.assert_called_once_with(
+        MockDeleteSessionAsyncRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
-        self.agent_bay.client.release_mcp_session_async.assert_called_once_with(
+        self.agent_bay.client.delete_session_async_async.assert_called_once_with(
             mock_request
         )
 
-    @patch("agentbay._async.session.extract_request_id")
-    @patch("agentbay._async.session.ReleaseMcpSessionRequest")
+    @patch("asyncio.sleep")
+    @patch("agentbay._async.session._log_api_response_with_details")
+    @patch("agentbay._async.session.DeleteSessionAsyncRequest")
     @pytest.mark.asyncio
 
     async def test_delete_without_params(
-        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+        self, MockDeleteSessionAsyncRequest, mock_log_api_response, mock_sleep
     ):
         # Test default behavior when no parameters are provided
         mock_request = MagicMock()
         mock_response = MagicMock()
-        MockReleaseMcpSessionRequest.return_value = mock_request
-        mock_extract_request_id.return_value = "request-123"
-        self.agent_bay.client.release_mcp_session_async = AsyncMock(
+        MockDeleteSessionAsyncRequest.return_value = mock_request
+        self.agent_bay.client.delete_session_async_async = AsyncMock(
             return_value=mock_response
         )
 
-        # Mock the response.to_map() method
+        # Mock the response.to_map() method with RequestId in body
         mock_response.to_map.return_value = {
-            "body": {"Data": {"IsError": False}, "Success": True}
+            "body": {"Success": True, "RequestId": "request-123"}
         }
+
+        # Mock get_session to return NotFound (session deleted)
+        get_session_result = GetSessionResult(
+            request_id="get-session-request-id",
+            success=False,
+            code="InvalidMcpSession.NotFound",
+            error_message="Session not found",
+            http_status_code=400,
+        )
+        # Ensure session.agent_bay is the same as self.agent_bay
+        self.session.agent_bay.get_session = AsyncMock(return_value=get_session_result)
 
         # Set up context mock object
         self.session.context = MagicMock()
@@ -172,41 +194,52 @@ class TestAsyncSession(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result.success)
 
         # Verify sync_context was not called
-        self.session.context.sync_context.assert_not_called()
+        self.session.context.sync.assert_not_called()
 
         # Verify API call is correct
-        MockReleaseMcpSessionRequest.assert_called_once_with(
+        MockDeleteSessionAsyncRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
-        self.agent_bay.client.release_mcp_session_async.assert_called_once_with(
+        self.agent_bay.client.delete_session_async_async.assert_called_once_with(
             mock_request
         )
 
-    @patch("agentbay._async.session.extract_request_id")
-    @patch("agentbay._async.session.ReleaseMcpSessionRequest")
+    @patch("asyncio.sleep")
+    @patch("agentbay._async.session._log_api_response_with_details")
+    @patch("agentbay._async.session.DeleteSessionAsyncRequest")
     @pytest.mark.asyncio
 
     async def test_delete_with_sync_context(
-        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+        self, MockDeleteSessionAsyncRequest, mock_log_api_response, mock_sleep
     ):
         # Test behavior when sync_context=True
         mock_request = MagicMock()
         mock_response = MagicMock()
-        MockReleaseMcpSessionRequest.return_value = mock_request
-        mock_extract_request_id.return_value = "request-123"
-        self.agent_bay.client.release_mcp_session_async = AsyncMock(
+        MockDeleteSessionAsyncRequest.return_value = mock_request
+        self.agent_bay.client.delete_session_async_async = AsyncMock(
             return_value=mock_response
         )
 
-        # Mock the response.to_map() method
+        # Mock the response.to_map() method with RequestId in body
         mock_response.to_map.return_value = {
-            "body": {"Data": {"IsError": False}, "Success": True}
+            "body": {"Success": True, "RequestId": "request-123"}
         }
+
+        # Mock get_session to return NotFound (session deleted)
+        get_session_result = GetSessionResult(
+            request_id="get-session-request-id",
+            success=False,
+            code="InvalidMcpSession.NotFound",
+            error_message="Session not found",
+            http_status_code=400,
+        )
+        # Ensure session.agent_bay is the same as self.agent_bay
+        self.session.agent_bay.get_session = AsyncMock(return_value=get_session_result)
 
         # Set up context mock object
         self.session.context = MagicMock()
 
-        # Mock context.sync_context return value (sync result)
+        # Mock context.sync return value (sync result)
         sync_result = MagicMock()
         sync_result.success = True
         self.session.context.sync = AsyncMock(return_value=sync_result)
@@ -220,24 +253,23 @@ class TestAsyncSession(unittest.IsolatedAsyncioTestCase):
         self.session.context.sync.assert_called_once()
 
         # Verify API call is correct
-        MockReleaseMcpSessionRequest.assert_called_once_with(
+        MockDeleteSessionAsyncRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
-        self.agent_bay.client.release_mcp_session_async.assert_called_once_with(
+        self.agent_bay.client.delete_session_async_async.assert_called_once_with(
             mock_request
         )
 
-    @patch("agentbay._async.session.extract_request_id")
-    @patch("agentbay._async.session.ReleaseMcpSessionRequest")
+    @patch("agentbay._async.session.DeleteSessionAsyncRequest")
     @pytest.mark.asyncio
 
     async def test_delete_failure(
-        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+        self, MockDeleteSessionAsyncRequest
     ):
         mock_request = MagicMock()
-        MockReleaseMcpSessionRequest.return_value = mock_request
-        mock_extract_request_id.return_value = "request-123"
-        self.agent_bay.client.release_mcp_session_async = AsyncMock(
+        MockDeleteSessionAsyncRequest.return_value = mock_request
+        # When exception occurs, request_id is not extracted, so it will be empty
+        self.agent_bay.client.delete_session_async_async = AsyncMock(
             side_effect=Exception("Test error")
         )
 
@@ -248,32 +280,37 @@ class TestAsyncSession(unittest.IsolatedAsyncioTestCase):
             result.error_message,
             f"Failed to delete session {self.session_id}: Test error",
         )
+        # request_id should be empty when exception occurs before API call
+        self.assertEqual(result.request_id, "")
 
-        MockReleaseMcpSessionRequest.assert_called_once_with(
+        MockDeleteSessionAsyncRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
-        self.agent_bay.client.release_mcp_session_async.assert_called_once_with(
+        self.agent_bay.client.delete_session_async_async.assert_called_once_with(
             mock_request
         )
 
-    @patch("agentbay._async.session.extract_request_id")
-    @patch("agentbay._async.session.ReleaseMcpSessionRequest")
+    @patch("agentbay._async.session.DeleteSessionAsyncRequest")
     @pytest.mark.asyncio
 
     async def test_delete_api_failure_response(
-        self, MockReleaseMcpSessionRequest, mock_extract_request_id
+        self, MockDeleteSessionAsyncRequest
     ):
         mock_request = MagicMock()
         mock_response = MagicMock()
-        MockReleaseMcpSessionRequest.return_value = mock_request
-        mock_extract_request_id.return_value = "request-123"
-        self.agent_bay.client.release_mcp_session_async = AsyncMock(
+        MockDeleteSessionAsyncRequest.return_value = mock_request
+        self.agent_bay.client.delete_session_async_async = AsyncMock(
             return_value=mock_response
         )
 
-        # Mock the response.to_map() method to return a failure response
+        # Mock the response.to_map() method to return a failure response with RequestId
         mock_response.to_map.return_value = {
-            "body": {"Data": {"IsError": True}, "Success": False}
+            "body": {
+                "Success": False,
+                "Code": "ErrorCode",
+                "Message": "Error message",
+                "RequestId": "request-123"
+            }
         }
 
         result = await self.session.delete()
@@ -281,10 +318,10 @@ class TestAsyncSession(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.request_id, "request-123")
         self.assertFalse(result.success)
 
-        MockReleaseMcpSessionRequest.assert_called_once_with(
+        MockDeleteSessionAsyncRequest.assert_called_once_with(
             authorization="Bearer test_api_key", session_id="test_session_id"
         )
-        self.agent_bay.client.release_mcp_session_async.assert_called_once_with(
+        self.agent_bay.client.delete_session_async_async.assert_called_once_with(
             mock_request
         )
 

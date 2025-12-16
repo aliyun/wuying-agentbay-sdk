@@ -109,6 +109,7 @@ def generate_sync():
         "sync_context_async": "sync_context",
         "clear_context_async": "clear_context",
         "get_and_load_internal_context_async": "get_and_load_internal_context",
+        "delete_session_async_async": "delete_session_async",
 
         # Browser Agent specific
         "navigate_async": "navigate",

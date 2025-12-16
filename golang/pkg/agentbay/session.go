@@ -279,16 +279,13 @@ func (s *Session) GetCommand() *command.Command {
 func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 	userRequestedSync := len(syncContext) > 0 && syncContext[0]
 
+	// Perform context synchronization if needed
 	if userRequestedSync {
 		syncStartTime := time.Now()
 
-		// Use the new sync method without callback (sync mode)
-		var syncResult *ContextSyncResult
-		var err error
-
 		// Sync all contexts
-		syncResult, err = s.Context.SyncWithCallback("", "", "", nil, 150, 1500)
-		fmt.Printf("🔄 Synced all contexts\n")
+		syncResult, err := s.Context.SyncWithCallback("", "", "", nil, 150, 1500)
+		LogInfo("Synced all contexts")
 
 		if err != nil {
 			syncDuration := time.Since(syncStartTime)
@@ -297,7 +294,7 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 		} else {
 			syncDuration := time.Since(syncStartTime)
 			if syncResult.Success {
-				// Context sync successful, continue silently (logged in SyncWithCallback)
+				// Context sync successful
 				_ = syncDuration
 			} else {
 				// Context sync failed, continue with deletion
@@ -306,27 +303,34 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 		}
 	}
 
-	releaseSessionRequest := &mcp.ReleaseMcpSessionRequest{
+	// Proceed with session deletion using DeleteSessionAsync
+	deleteSessionRequest := &mcp.DeleteSessionAsyncRequest{
 		Authorization: tea.String("Bearer " + s.GetAPIKey()),
 		SessionId:     tea.String(s.SessionID),
 	}
 
 	// Log API request
-	requestParams := fmt.Sprintf("SessionId=%s", *releaseSessionRequest.SessionId)
-	logAPICall("ReleaseMcpSession", requestParams)
+	requestParams := fmt.Sprintf("SessionId=%s", *deleteSessionRequest.SessionId)
+	logAPICall("DeleteSessionAsync", requestParams)
 
-	response, err := s.GetClient().ReleaseMcpSession(releaseSessionRequest)
+	response, err := s.GetClient().DeleteSessionAsync(deleteSessionRequest)
 
 	// Log API response
 	if err != nil {
-		logOperationError("ReleaseMcpSession", err.Error(), true)
-		return nil, err
+		logOperationError("DeleteSessionAsync", err.Error(), true)
+		return &DeleteResult{
+			ApiResponse: models.ApiResponse{
+				RequestID: "",
+			},
+			Success:      false,
+			ErrorMessage: fmt.Sprintf("Failed to delete session %s: %v", s.SessionID, err),
+		}, nil
 	}
 
 	// Extract RequestID
 	requestID := models.ExtractRequestID(response)
 
-	// Check for API-level errors
+	// Check if the response is success
 	if response.Body != nil {
 		if response.Body.Success != nil && !*response.Body.Success {
 			errorMsg := "Failed to delete session"
@@ -335,7 +339,8 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 			} else if response.Body.Code != nil {
 				errorMsg = fmt.Sprintf("[%s] Failed to delete session", *response.Body.Code)
 			}
-			logOperationError("ReleaseMcpSession", errorMsg, false)
+			responseJSON, _ := json.MarshalIndent(response.Body, "", "  ")
+			logAPIResponseWithDetails("DeleteSessionAsync", requestID, false, nil, string(responseJSON))
 			return &DeleteResult{
 				ApiResponse: models.ApiResponse{
 					RequestID: requestID,
@@ -346,13 +351,85 @@ func (s *Session) Delete(syncContext ...bool) (*DeleteResult, error) {
 		}
 	}
 
+	// Poll for session deletion status
+	LogInfo(fmt.Sprintf("Waiting for session %s to be deleted...", s.SessionID))
+	pollTimeout := 50 * time.Second // 50 seconds timeout
+	pollInterval := 1 * time.Second // Poll every 1 second
+	pollStartTime := time.Now()
+
+	for {
+		// Check timeout
+		elapsedTime := time.Since(pollStartTime)
+		if elapsedTime >= pollTimeout {
+			errorMsg := fmt.Sprintf("Timeout waiting for session deletion after %v", pollTimeout)
+			LogInfo(errorMsg)
+			return &DeleteResult{
+				ApiResponse: models.ApiResponse{
+					RequestID: requestID,
+				},
+				Success:      false,
+				ErrorMessage: errorMsg,
+			}, nil
+		}
+
+		// Get session status
+		sessionResult, err := s.AgentBay.GetSession(s.SessionID)
+
+		// Check if session is deleted (NotFound error)
+		if err != nil {
+			// If GetSession returns an error, it might be NotFound
+			errorStr := err.Error()
+			if strings.Contains(errorStr, "InvalidMcpSession.NotFound") || strings.Contains(errorStr, "NotFound") {
+				// Session is deleted
+				LogInfo(fmt.Sprintf("Session %s successfully deleted (NotFound)", s.SessionID))
+				break
+			} else {
+				// Other error, continue polling
+				LogDebug(fmt.Sprintf("Get session error (will retry): %v", err))
+				// Continue to next poll iteration
+			}
+		} else if !sessionResult.Success {
+			errorCode := sessionResult.Code
+			errorMessage := sessionResult.ErrorMessage
+			httpStatusCode := sessionResult.HttpStatusCode
+
+			// Check for InvalidMcpSession.NotFound, 400 with "not found", or error_message containing "not found"
+			isNotFound := errorCode == "InvalidMcpSession.NotFound" ||
+				(httpStatusCode == 400 && (strings.Contains(strings.ToLower(errorMessage), "not found") ||
+					strings.Contains(errorMessage, "NotFound") ||
+					strings.Contains(strings.ToLower(errorCode), "not found"))) ||
+				strings.Contains(strings.ToLower(errorMessage), "not found")
+
+			if isNotFound {
+				// Session is deleted
+				LogInfo(fmt.Sprintf("Session %s successfully deleted (NotFound)", s.SessionID))
+				break
+			} else {
+				// Other error, continue polling
+				LogDebug(fmt.Sprintf("Get session error (will retry): %s", errorMessage))
+				// Continue to next poll iteration
+			}
+		} else if sessionResult.Data != nil && sessionResult.Data.Status != "" {
+			// Check session status if we got valid data
+			status := sessionResult.Data.Status
+			LogDebug(fmt.Sprintf("Session status: %s", status))
+			if status == "FINISH" {
+				LogInfo(fmt.Sprintf("Session %s successfully deleted", s.SessionID))
+				break
+			}
+		}
+
+		// Wait before next poll
+		time.Sleep(pollInterval)
+	}
+
 	// Log successful deletion
 	keyFields := map[string]interface{}{
 		"session_id": s.SessionID,
 	}
-	responseJSON, _ := json.MarshalIndent(response.Body, "", "  ")
-	logAPIResponseWithDetails("ReleaseMcpSession", requestID, true, keyFields, string(responseJSON))
+	logAPIResponseWithDetails("DeleteSessionAsync", requestID, true, keyFields, "")
 
+	// Return success result with request ID
 	return &DeleteResult{
 		ApiResponse: models.ApiResponse{
 			RequestID: requestID,
@@ -678,7 +755,7 @@ func (s *Session) Info() (*InfoResult, error) {
 		if errorCode == "InvalidMcpSession.NotFound" {
 			// This is an expected error - session doesn't exist
 			// Use info level logging without stack trace, but with red color for visibility
-			logInfoWithColor(fmt.Sprintf("Session not found: %s", s.SessionID))
+			LogInfo(fmt.Sprintf("Session not found: %s", s.SessionID))
 			LogDebug(fmt.Sprintf("GetMcpResource error details: %s", errorStr))
 			return &InfoResult{
 				ApiResponse: models.ApiResponse{

@@ -243,6 +243,10 @@ func (client *Client) CreateMcpSessionWithOptions(tmpReq *CreateMcpSessionReques
 		body["ContextId"] = request.ContextId
 	}
 
+	if !dara.IsNil(request.EnableRecord) {
+		body["EnableRecord"] = request.EnableRecord
+	}
+
 	if !dara.IsNil(request.ExternalUserId) {
 		body["ExternalUserId"] = request.ExternalUserId
 	}
@@ -449,6 +453,70 @@ func (client *Client) DeleteContextFile(request *DeleteContextFileRequest) (_res
 	runtime := &dara.RuntimeOptions{}
 	_result = &DeleteContextFileResponse{}
 	_body, _err := client.DeleteContextFileWithOptions(request, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_result = _body
+	return _result, _err
+}
+
+// Summary:
+//
+// # Delete session async
+//
+// @param request - DeleteSessionAsyncRequest
+//
+// @param runtime - runtime options for this request RuntimeOptions
+//
+// @return DeleteSessionAsyncResponse
+func (client *Client) DeleteSessionAsyncWithOptions(request *DeleteSessionAsyncRequest, runtime *dara.RuntimeOptions) (_result *DeleteSessionAsyncResponse, _err error) {
+	_err = request.Validate()
+	if _err != nil {
+		return _result, _err
+	}
+	body := map[string]interface{}{}
+	if !dara.IsNil(request.Authorization) {
+		body["Authorization"] = request.Authorization
+	}
+
+	if !dara.IsNil(request.SessionId) {
+		body["SessionId"] = request.SessionId
+	}
+
+	req := &openapiutil.OpenApiRequest{
+		Body: openapiutil.ParseToMap(body),
+	}
+	params := &openapiutil.Params{
+		Action:      dara.String("DeleteSessionAsync"),
+		Version:     dara.String("2025-05-06"),
+		Protocol:    dara.String("HTTPS"),
+		Pathname:    dara.String("/"),
+		Method:      dara.String("POST"),
+		AuthType:    dara.String("Anonymous"),
+		Style:       dara.String("RPC"),
+		ReqBodyType: dara.String("formData"),
+		BodyType:    dara.String("json"),
+	}
+	_result = &DeleteSessionAsyncResponse{}
+	_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, req, runtime)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = dara.Convert(_body, &_result)
+	return _result, _err
+}
+
+// Summary:
+//
+// # Delete session async
+//
+// @param request - DeleteSessionAsyncRequest
+//
+// @return DeleteSessionAsyncResponse
+func (client *Client) DeleteSessionAsync(request *DeleteSessionAsyncRequest) (_result *DeleteSessionAsyncResponse, _err error) {
+	runtime := &dara.RuntimeOptions{}
+	_result = &DeleteSessionAsyncResponse{}
+	_body, _err := client.DeleteSessionAsyncWithOptions(request, runtime)
 	if _err != nil {
 		return _result, _err
 	}
@@ -1928,7 +1996,7 @@ func (client *Client) GetCdpLink(request *GetCdpLinkRequest) (_result *GetCdpLin
 
 // Summary:
 //
-// Get Internal Context
+// # Get Internal Context
 //
 // @param request - GetAndLoadInternalContextRequest
 //
@@ -1979,7 +2047,7 @@ func (client *Client) GetAndLoadInternalContextWithOptions(request *GetAndLoadIn
 
 // Summary:
 //
-// Get Internal Context
+// # Get Internal Context
 //
 // @param request - GetAndLoadInternalContextRequest
 //

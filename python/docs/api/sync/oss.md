@@ -121,7 +121,7 @@ Initialize an Oss object.
 ```python
 def env_init(access_key_id: str,
              access_key_secret: str,
-             securityToken: str,
+             security_token: str,
              endpoint: Optional[str] = None,
              region: Optional[str] = None) -> OSSClientResult
 ```
@@ -150,7 +150,7 @@ session = agent_bay.create().session
 session.oss.env_init(
   access_key_id="your_sts_access_key_id",
   access_key_secret="your_sts_access_key_secret",
-  securityToken="your_sts_security_token"
+  security_token="your_sts_security_token"
 )
 session.delete()
 ```

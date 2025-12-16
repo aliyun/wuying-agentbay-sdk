@@ -414,6 +414,7 @@ client.Context.Update(contextResult.Context)
 type ContextListParams struct {
 	MaxResults	int32	// Number of results per page
 	NextToken	string	// Token for the next page
+	SessionId	string	// Optional session id filter
 }
 ```
 

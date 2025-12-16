@@ -13,6 +13,8 @@ type iCreateMcpSessionRequest interface {
 	GetAuthorization() *string
 	SetContextId(v string) *CreateMcpSessionRequest
 	GetContextId() *string
+	SetEnableRecord(v bool) *CreateMcpSessionRequest
+	GetEnableRecord() *bool
 	SetExternalUserId(v string) *CreateMcpSessionRequest
 	GetExternalUserId() *string
 	SetImageId(v string) *CreateMcpSessionRequest
@@ -38,6 +40,7 @@ type iCreateMcpSessionRequest interface {
 type CreateMcpSessionRequest struct {
 	Authorization       *string                                       `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
 	ContextId           *string                                       `json:"ContextId,omitempty" xml:"ContextId,omitempty"`
+	EnableRecord        *bool                                         `json:"EnableRecord,omitempty" xml:"EnableRecord,omitempty"`
 	ExternalUserId      *string                                       `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
 	ImageId             *string                                       `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels              *string                                       `json:"Labels,omitempty" xml:"Labels,omitempty"`
@@ -64,6 +67,10 @@ func (s *CreateMcpSessionRequest) GetAuthorization() *string {
 
 func (s *CreateMcpSessionRequest) GetContextId() *string {
 	return s.ContextId
+}
+
+func (s *CreateMcpSessionRequest) GetEnableRecord() *bool {
+	return s.EnableRecord
 }
 
 func (s *CreateMcpSessionRequest) GetExternalUserId() *string {
@@ -101,6 +108,11 @@ func (s *CreateMcpSessionRequest) SetAuthorization(v string) *CreateMcpSessionRe
 
 func (s *CreateMcpSessionRequest) SetContextId(v string) *CreateMcpSessionRequest {
 	s.ContextId = &v
+	return s
+}
+
+func (s *CreateMcpSessionRequest) SetEnableRecord(v bool) *CreateMcpSessionRequest {
+	s.EnableRecord = &v
 	return s
 }
 

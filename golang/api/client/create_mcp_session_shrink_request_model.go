@@ -13,6 +13,8 @@ type iCreateMcpSessionShrinkRequest interface {
 	GetAuthorization() *string
 	SetContextId(v string) *CreateMcpSessionShrinkRequest
 	GetContextId() *string
+	SetEnableRecord(v bool) *CreateMcpSessionShrinkRequest
+	GetEnableRecord() *bool
 	SetExternalUserId(v string) *CreateMcpSessionShrinkRequest
 	GetExternalUserId() *string
 	SetImageId(v string) *CreateMcpSessionShrinkRequest
@@ -38,6 +40,7 @@ type iCreateMcpSessionShrinkRequest interface {
 type CreateMcpSessionShrinkRequest struct {
 	Authorization             *string `json:"Authorization,omitempty" xml:"Authorization,omitempty"`
 	ContextId                 *string `json:"ContextId,omitempty" xml:"ContextId,omitempty"`
+	EnableRecord              *bool   `json:"EnableRecord,omitempty" xml:"EnableRecord,omitempty"`
 	ExternalUserId            *string `json:"ExternalUserId,omitempty" xml:"ExternalUserId,omitempty"`
 	ImageId                   *string `json:"ImageId,omitempty" xml:"ImageId,omitempty"`
 	Labels                    *string `json:"Labels,omitempty" xml:"Labels,omitempty"`
@@ -64,6 +67,10 @@ func (s *CreateMcpSessionShrinkRequest) GetAuthorization() *string {
 
 func (s *CreateMcpSessionShrinkRequest) GetContextId() *string {
 	return s.ContextId
+}
+
+func (s *CreateMcpSessionShrinkRequest) GetEnableRecord() *bool {
+	return s.EnableRecord
 }
 
 func (s *CreateMcpSessionShrinkRequest) GetExternalUserId() *string {
@@ -101,6 +108,11 @@ func (s *CreateMcpSessionShrinkRequest) SetAuthorization(v string) *CreateMcpSes
 
 func (s *CreateMcpSessionShrinkRequest) SetContextId(v string) *CreateMcpSessionShrinkRequest {
 	s.ContextId = &v
+	return s
+}
+
+func (s *CreateMcpSessionShrinkRequest) SetEnableRecord(v bool) *CreateMcpSessionShrinkRequest {
+	s.EnableRecord = &v
 	return s
 }
 

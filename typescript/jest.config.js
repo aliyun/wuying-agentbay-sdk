@@ -2,7 +2,7 @@ module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
     testTimeout: 60000, // Set global timeout to 60 seconds for all tests
-    moduleFileExtensions: ['ts', 'js', 'json'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
     transform: {
         '^.+\\.ts$': ['ts-jest', {
             tsconfig: 'tsconfig.json',
@@ -12,7 +12,7 @@ module.exports = {
         }]
     },
     transformIgnorePatterns: [
-        'node_modules/(?!(.*))' // Transform all node_modules to handle ES modules
+        'node_modules/(?!(zod|zod-to-json-schema)/)' // Transform zod and zod-to-json-schema to handle ES modules
     ],
     testMatch: ['**/tests/**/*.test.ts', '**/tests/**/*.test.js'],
     collectCoverageFrom: [
@@ -26,9 +26,13 @@ module.exports = {
         '/node_modules/',
         '/dist/'
     ],
-    // Add moduleNameMapper to handle Node.js built-in modules
+    // Add moduleNameMapper to handle Node.js built-in modules and ES modules
     moduleNameMapper: {
-        '^node:(.*)$': '$1'
+        '^node:(.*)$': '$1',
+        // Map zod ES modules to CommonJS versions
+        '^zod$': '<rootDir>/node_modules/zod/index.cjs',
+        '^zod/v3$': '<rootDir>/node_modules/zod/v3/index.cjs',
+        '^zod-to-json-schema$': '<rootDir>/node_modules/zod-to-json-schema/dist/cjs/index.js'
     },
     // Suppress console output during tests to avoid test noise
     // Set log level to only show critical errors

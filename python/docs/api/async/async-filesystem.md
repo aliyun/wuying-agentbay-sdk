@@ -110,6 +110,31 @@ Initialize FileSystem with FileTransfer capability.
     *args: Arguments to pass to BaseService
     **kwargs: Keyword arguments to pass to BaseService
 
+### get\_file\_transfer\_context\_path
+
+```python
+async def get_file_transfer_context_path() -> Optional[str]
+```
+
+Get the context path for file transfer operations.
+
+This method ensures the context ID is loaded and returns the associated
+context path that was retrieved from GetAndLoadInternalContext API.
+
+**Returns**:
+
+    Optional[str]: The context path if available, None otherwise.
+  
+
+**Example**:
+
+```python
+session = (await agent_bay.create(params)).session
+context_path = await session.file_system.get_file_transfer_context_path()
+if context_path:
+  print(f"Context path: {context_path}")
+```
+
 #### DEFAULT\_CHUNK\_SIZE
 
 ```python

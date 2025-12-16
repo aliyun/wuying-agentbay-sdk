@@ -178,7 +178,7 @@ Parameters for creating a new session in the AgentBay cloud environment.
 - `browser_context` _Optional[BrowserContext]_ - Optional configuration for browser data synchronization.
 - `is_vpc` _Optional[bool]_ - Whether to create a VPC-based session. Defaults to False.
 - `policy_id` _Optional[str]_ - Policy id to apply when creating the session.
-- `enable_browser_replay` _Optional[bool]_ - Whether to enable browser recording for the session. Defaults to False.
+- `enable_browser_replay` _Optional[bool]_ - Whether to enable browser recording for the session. It is enabled by default, so if enable_browser_replay is False, set enable_record to False
 - `extra_configs` _Optional[ExtraConfigs]_ - Advanced configuration parameters for mobile environments.
 - `framework` _Optional[str]_ - Framework name for tracking (e.g., "langchain"). Defaults to empty string (direct call).
 

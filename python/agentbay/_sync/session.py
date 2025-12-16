@@ -26,6 +26,7 @@ from .._common.models import (
 )
 from ..api.models import (
     CallMcpToolRequest,
+    DeleteSessionAsyncRequest,
     GetLabelRequest,
     GetLinkRequest,
     GetLinkResponse,
@@ -99,7 +100,7 @@ class Session:
 
         # Recording functionality
         self.enableBrowserReplay = (
-            False  # Whether browser recording is enabled for this session
+            True  # Whether browser recording is enabled for this session
         )
 
         # MCP tools available for this session
@@ -208,12 +209,12 @@ class Session:
                     # Continue with deletion even if sync fails
 
             # Proceed with session deletion
-            request = ReleaseMcpSessionRequest(
+            request = DeleteSessionAsyncRequest(
                 authorization=f"Bearer {self._get_api_key()}",
                 session_id=self.session_id,
             )
             client = self._get_client()
-            response = client.release_mcp_session(request)
+            response = client.delete_session_async(request)
 
             # Extract request ID
             request_id = extract_request_id(response)
@@ -226,7 +227,7 @@ class Session:
             if not success:
                 error_message = f"[{body.get('Code', 'Unknown')}] {body.get('Message', 'Failed to delete session')}"
                 _log_api_response_with_details(
-                    api_name="ReleaseMcpSession",
+                    api_name="DeleteSessionAsync",
                     request_id=request_id,
                     success=False,
                     full_response=json.dumps(body, ensure_ascii=False, indent=2),
@@ -237,9 +238,67 @@ class Session:
                     error_message=error_message,
                 )
 
+            # Poll for session deletion status
+            _logger.info(f"🔄 Waiting for session {self.session_id} to be deleted...")
+            poll_timeout = 50.0  # 50 seconds timeout
+            poll_interval = 1.0  # Poll every 1 second
+            poll_start_time = time.time()
+
+            while True:
+                # Check timeout
+                elapsed_time = time.time() - poll_start_time
+                if elapsed_time >= poll_timeout:
+                    error_message = f"Timeout waiting for session deletion after {poll_timeout}s"
+                    _logger.warning(f"⏱️  {error_message}")
+                    return DeleteResult(
+                        request_id=request_id,
+                        success=False,
+                        error_message=error_message,
+                    )
+
+                # Get session status
+                session_result = self.agent_bay.get_session(self.session_id)
+
+                # Check if session is deleted (NotFound error)
+                if not session_result.success:
+                    error_code = session_result.code or ""
+                    error_message = session_result.error_message or ""
+                    http_status_code = session_result.http_status_code or 0
+
+                    # Check for InvalidMcpSession.NotFound, 400 with "not found", or error_message containing "not found"
+                    is_not_found = (
+                        error_code == "InvalidMcpSession.NotFound" or
+                        (http_status_code == 400 and (
+                            "not found" in error_message.lower() or
+                            "NotFound" in error_message or
+                            "not found" in error_code.lower()
+                        )) or
+                        "not found" in error_message.lower()
+                    )
+
+                    if is_not_found:
+                        # Session is deleted
+                        _logger.info(f"✅ Session {self.session_id} successfully deleted (NotFound)")
+                        break
+                    else:
+                        # Other error, continue polling
+                        _logger.debug(f"⚠️  Get session error (will retry): {error_message}")
+                        # Continue to next poll iteration
+
+                # Check session status if we got valid data
+                elif session_result.data and session_result.data.status:
+                    status = session_result.data.status
+                    _logger.debug(f"📊 Session status: {status}")
+                    if status == "FINISH":
+                        _logger.info(f"✅ Session {self.session_id} successfully deleted")
+                        break
+
+                # Wait before next poll
+                time.sleep(poll_interval)
+
             # Log successful deletion
             _log_api_response_with_details(
-                api_name="ReleaseMcpSession",
+                api_name="DeleteSessionAsync",
                 request_id=request_id,
                 success=True,
                 key_fields={"session_id": self.session_id},
@@ -249,7 +308,7 @@ class Session:
             return DeleteResult(request_id=request_id, success=True)
 
         except Exception as e:
-            _log_operation_error("release_mcp_session", str(e), exc_info=True)
+            _log_operation_error("delete_session_async", str(e), exc_info=True)
             # In case of error, return failure result with error message
             return DeleteResult(
                 success=False,
@@ -656,6 +715,7 @@ class Session:
             # Check if this is a VPC session
             if self._is_vpc_enabled():
                 return self._call_mcp_tool_vpc(tool_name, args_json)
+
             # Non-VPC mode: use traditional API call
             result_data = self._call_mcp_tool_api(
                 tool_name, args_json, read_timeout, connect_timeout, auto_gen_session
@@ -803,6 +863,11 @@ class Session:
         """
         Handle traditional API-based MCP tool calls asynchronously.
         """
+        _log_api_call(
+            "CallMcpTool",
+            f"Tool={tool_name}, SessionId={self.session_id}, ArgsLength={len(args_json)}",
+        )
+
         request = CallMcpToolRequest(
             authorization=f"Bearer {self._get_api_key()}",
             session_id=self.session_id,
@@ -810,6 +875,7 @@ class Session:
             args=args_json,
             auto_gen_session=auto_gen_session,
         )
+
         try:
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
@@ -819,6 +885,7 @@ class Session:
 
             # Extract request ID
             request_id = extract_request_id(response)
+
             # Check for API-level errors
             response_map = response.to_map()
             if not response_map:
@@ -830,7 +897,6 @@ class Session:
                 )
 
             body = response_map.get("body", {})
-            
             if not body:
                 return McpToolResult(
                     request_id=request_id,
@@ -841,7 +907,6 @@ class Session:
 
             # Parse the Data field
             data_str = body.get("Data", "")
-            
             if not data_str:
                 return McpToolResult(
                     request_id=request_id,
@@ -871,15 +936,14 @@ class Session:
             # Extract content
             content = data_obj.get("content", [])
             is_error = data_obj.get("isError", False)
-            
+
             # Extract text from content
             text_content = ""
             if content and isinstance(content, list) and len(content) > 0:
                 first_content = content[0]
-                
                 if isinstance(first_content, dict):
                     text_content = first_content.get("text", "")
-                
+
             if is_error:
                 _log_operation_error(
                     "CallMcpTool", f"Tool returned error: {text_content}", False
@@ -898,6 +962,7 @@ class Session:
                 {"tool": tool_name},
                 text_content[:200] if text_content else "",
             )
+
             return McpToolResult(
                 request_id=request_id,
                 success=True,

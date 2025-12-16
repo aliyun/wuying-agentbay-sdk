@@ -208,6 +208,10 @@ export class Client extends OpenApi {
       body["ContextId"] = request.contextId;
     }
 
+    if (!$dara.isNull(request.enableRecord)) {
+      body["EnableRecord"] = request.enableRecord;
+    }
+
     if (!$dara.isNull(request.externalUserId)) {
       body["ExternalUserId"] = request.externalUserId;
     }
@@ -280,6 +284,53 @@ export class Client extends OpenApi {
     const runtime = new $dara.RuntimeOptions({});
     return await this.createMcpSessionWithOptions(request, runtime);
   }
+
+  /**
+   * Delete session 
+   * 
+   * @param request - DeleteSessionAsyncRequest
+   * @param runtime - runtime options for this request RuntimeOptions
+   * @returns DeleteSessionAsyncResponse
+   */
+  async deleteSessionAsyncWithOptions(request: $_model.DeleteSessionAsyncRequest, runtime: $dara.RuntimeOptions): Promise<$_model.DeleteSessionAsyncResponse> {
+    request.validate();
+    let body : {[key: string ]: any} = { };
+    if (!$dara.isNull(request.authorization)) {
+      body["Authorization"] = request.authorization;
+    }
+
+    if (!$dara.isNull(request.sessionId)) {
+      body["SessionId"] = request.sessionId;
+    }
+
+    let req = new $OpenApiUtil.OpenApiRequest({
+      body: OpenApiUtil.parseToMap(body),
+    });
+    let params = new $OpenApiUtil.Params({
+      action: "DeleteSessionAsync",
+      version: "2025-05-06",
+      protocol: "HTTPS",
+      pathname: "/",
+      method: "POST",
+      authType: "Anonymous",
+      style: "RPC",
+      reqBodyType: "formData",
+      bodyType: "json",
+    });
+    return $dara.cast<$_model.DeleteSessionAsyncResponse>(await this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new $_model.DeleteSessionAsyncResponse({}));
+  }
+
+  /**
+   * Delete session
+   * 
+   * @param request - DeleteSessionAsyncRequest
+   * @returns DeleteSessionAsyncResponse
+   */
+  async deleteSessionAsync(request: $_model.DeleteSessionAsyncRequest): Promise<$_model.DeleteSessionAsyncResponse> {
+    let runtime = new $dara.RuntimeOptions({ });
+    return await this.deleteSessionAsyncWithOptions(request, runtime);
+  }
+
 
   /**
    * Delete persistent context

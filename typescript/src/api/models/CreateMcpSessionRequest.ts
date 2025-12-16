@@ -6,6 +6,7 @@ import { CreateMcpSessionRequestPersistenceDataList } from "./CreateMcpSessionRe
 export class CreateMcpSessionRequest extends $dara.Model {
   authorization?: string;
   contextId?: string;
+  enableRecord?: boolean;
   externalUserId?: string;
   imageId?: string;
   labels?: string;
@@ -20,6 +21,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
     return {
       authorization: 'Authorization',
       contextId: 'ContextId',
+      enableRecord: 'EnableRecord',
       externalUserId: 'ExternalUserId',
       imageId: 'ImageId',
       labels: 'Labels',
@@ -37,6 +39,7 @@ export class CreateMcpSessionRequest extends $dara.Model {
     return {
       authorization: 'string',
       contextId: 'string',
+      enableRecord: 'boolean',
       externalUserId: 'string',
       imageId: 'string',
       labels: 'string',

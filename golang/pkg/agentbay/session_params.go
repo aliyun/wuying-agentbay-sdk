@@ -38,8 +38,9 @@ type CreateSessionParams struct {
 // NewCreateSessionParams creates a new CreateSessionParams with default values.
 func NewCreateSessionParams() *CreateSessionParams {
 	return &CreateSessionParams{
-		Labels:      make(map[string]string),
-		ContextSync: make([]*ContextSync, 0),
+		Labels:              make(map[string]string),
+		ContextSync:         make([]*ContextSync, 0),
+		EnableBrowserReplay: true, // browser replay is enabled by default
 	}
 }
 

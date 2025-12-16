@@ -446,6 +446,79 @@ class Client(OpenApiClient):
         runtime = RuntimeOptions()
         return await self.delete_context_with_options_async(request, runtime)
 
+    def delete_session_async_with_options(
+        self,
+        request: main_models.DeleteSessionAsyncRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DeleteSessionAsyncResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'DeleteSessionAsync',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.DeleteSessionAsyncResponse(),
+            self.do_rpcrequest(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, req, runtime)
+        )
+
+    async def delete_session_async_with_options_async(
+        self,
+        request: main_models.DeleteSessionAsyncRequest,
+        runtime: RuntimeOptions,
+    ) -> main_models.DeleteSessionAsyncResponse:
+        request.validate()
+        body = {}
+        if not DaraCore.is_null(request.authorization):
+            body['Authorization'] = request.authorization
+        if not DaraCore.is_null(request.session_id):
+            body['SessionId'] = request.session_id
+        req = open_api_util_models.OpenApiRequest(
+            body = Utils.parse_to_map(body)
+        )
+        params = open_api_util_models.Params(
+            action = 'DeleteSessionAsync',
+            version = '2025-05-06',
+            protocol = 'HTTPS',
+            pathname = '/',
+            method = 'POST',
+            auth_type = 'Anonymous',
+            style = 'RPC',
+            req_body_type = 'formData',
+            body_type = 'json'
+        )
+        return DaraCore.from_map(
+            main_models.DeleteSessionAsyncResponse(),
+            await self.do_rpcrequest_async(params.action, params.version, params.protocol, params.method, params.auth_type, params.body_type, req, runtime)
+        )
+
+    def delete_session_async(
+        self,
+        request: main_models.DeleteSessionAsyncRequest,
+    ) -> main_models.DeleteSessionAsyncResponse:
+        runtime = RuntimeOptions()
+        return self.delete_session_async_with_options(request, runtime)
+
+    async def delete_session_async_async(
+        self,
+        request: main_models.DeleteSessionAsyncRequest,
+    ) -> main_models.DeleteSessionAsyncResponse:
+        runtime = RuntimeOptions()
+        return await self.delete_session_async_with_options_async(request, runtime)
 
     def get_and_load_internal_context_with_options(
         self,

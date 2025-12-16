@@ -31,6 +31,9 @@ from ._delete_context_file_response_body import DeleteContextFileResponseBody
 from ._delete_context_request import DeleteContextRequest
 from ._delete_context_response import DeleteContextResponse
 from ._delete_context_response_body import DeleteContextResponseBody
+from ._delete_session_async_request import DeleteSessionAsyncRequest
+from ._delete_session_async_response import DeleteSessionAsyncResponse
+from ._delete_session_async_response_body import DeleteSessionAsyncResponseBody
 from ._describe_context_files_request import DescribeContextFilesRequest
 from ._describe_context_files_response import DescribeContextFilesResponse
 from ._describe_context_files_response_body import (
@@ -159,6 +162,9 @@ __all__ = [
     DescribeContextFilesRequest,
     DescribeContextFilesResponseBody,
     DescribeContextFilesResponse,
+    DeleteSessionAsyncRequest,
+    DeleteSessionAsyncResponseBody,
+    DeleteSessionAsyncResponse,
     GetContextRequest,
     GetContextResponseBody,
     GetContextResponse,
