@@ -136,6 +136,9 @@ var mappings = []docMapping{
 			"ensureDefaults",                 // Internal helper
 			"CallMcpToolForBrowser",          // Duplicate interface method
 			"GetLinkForBrowser",              // Duplicate interface method
+			"GetFileUploadUrl",               // Internal interface method
+			"GetFileDownloadUrl",             // Internal interface method
+			"GetContextService",              // Internal interface method
 		},
 		FuncNames: []string{
 			"NewSession",

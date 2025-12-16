@@ -66,11 +66,13 @@ func TestGetMethodRecoversSession(t *testing.T) {
 	// Verify that the recovered session has the same properties as the original
 	recoveredSession := getResult.Session
 	assert.Equal(t, suite.session.SessionID, recoveredSession.SessionID, "Session IDs should match")
-	
-	// Note: FileTransferContextID may be empty if no file-transfer-context- exists in the session
-	// This is expected behavior based on the current implementation
-	t.Logf("Original session FileTransferContextID: %s", suite.session.FileTransferContextID)
-	t.Logf("Recovered session FileTransferContextID: %s", recoveredSession.FileTransferContextID)
+
+	// Note: FileTransfer is available via session.FileSystem.GetFileTransfer() with lazy loading
+	// The context ID is loaded lazily when needed
+	originalFt, _ := suite.session.FileSystem.GetFileTransfer()
+	recoveredFt, _ := recoveredSession.FileSystem.GetFileTransfer()
+	t.Logf("Original session has FileTransfer: %v", originalFt != nil)
+	t.Logf("Recovered session has FileTransfer: %v", recoveredFt != nil)
 }
 
 // TestRecoveredSessionCanPerformFileOperations verifies that a session recovered
@@ -94,9 +96,10 @@ func TestRecoveredSessionCanPerformFileOperations(t *testing.T) {
 
 	recoveredSession := getResult.Session
 
-	// Check if FileTransferContextID is available
-	if recoveredSession.FileTransferContextID == "" {
-		t.Skip("Skipping file operations test: No file transfer context available for this session")
+	// Check if FileTransfer is available (lazy loaded)
+	ft, err := recoveredSession.FileSystem.GetFileTransfer()
+	if err != nil || ft == nil {
+		t.Skip("Skipping file operations test: FileTransfer not available for this session")
 	}
 
 	// Create a test file to upload
@@ -133,9 +136,10 @@ func TestOriginalAndRecoveredSessionBothWork(t *testing.T) {
 	// Wait a bit for session to be fully ready
 	time.Sleep(5 * time.Second)
 
-	// Check if original session has file transfer context
-	if suite.session.FileTransferContextID == "" {
-		t.Skip("Skipping file operations test: No file transfer context available for original session")
+	// Check if original session has FileTransfer (lazy loaded)
+	originalFt, err := suite.session.FileSystem.GetFileTransfer()
+	if err != nil || originalFt == nil {
+		t.Skip("Skipping file operations test: FileTransfer not available for original session")
 	}
 
 	// Test 1: Original session can write files
@@ -156,9 +160,10 @@ func TestOriginalAndRecoveredSessionBothWork(t *testing.T) {
 	require.True(t, getResult.Success, "Get method was not successful: %s", getResult.ErrorMessage)
 	recoveredSession := getResult.Session
 
-	// Check if recovered session has file transfer context
-	if recoveredSession.FileTransferContextID == "" {
-		t.Skip("Skipping recovered session file operations test: No file transfer context available for recovered session")
+	// Check if recovered session has FileTransfer (lazy loaded)
+	recoveredFt, err := recoveredSession.FileSystem.GetFileTransfer()
+	if err != nil || recoveredFt == nil {
+		t.Skip("Skipping recovered session file operations test: FileTransfer not available for recovered session")
 	}
 
 	// Test 3: Recovered session can write files

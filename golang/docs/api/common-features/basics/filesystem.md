@@ -4,6 +4,103 @@
 
 - [File Operations Guide](../../../../../docs/guides/common-features/basics/file-operations.md) - Complete guide to file system operations
 
+## Type ContextFileUrlResult
+
+```go
+type ContextFileUrlResult struct {
+	models.ApiResponse
+	Success		bool
+	Url		string
+	ExpireTime	*int64
+	ErrorMessage	string
+}
+```
+
+ContextFileUrlResult represents a presigned URL operation result. This type is defined here to avoid
+circular imports with the agentbay package.
+
+## Type ContextInfoResult
+
+```go
+type ContextInfoResult struct {
+	models.ApiResponse
+	Success			bool
+	ContextStatusData	[]ContextStatusData
+	ErrorMessage		string
+}
+```
+
+ContextInfoResult wraps context info result
+
+## Type ContextManager
+
+```go
+type ContextManager interface {
+	SyncWithParams(contextId, path, mode string) (*ContextSyncResult, error)
+	InfoWithParams(contextId, path, taskType string) (*ContextInfoResult, error)
+}
+```
+
+ContextManager interface for sync and info operations
+
+## Type ContextServiceAdapter
+
+```go
+type ContextServiceAdapter struct {
+	GetUploadURLFunc	func(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+	GetDownloadURLFunc	func(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+}
+```
+
+ContextServiceAdapter wraps the agentbay.ContextService to implement FileTransferContextService.
+This adapter is used to break the circular dependency between filesystem and agentbay packages.
+
+### Methods
+
+### GetFileDownloadUrl
+
+```go
+func (a *ContextServiceAdapter) GetFileDownloadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+```
+
+GetFileDownloadUrl implements FileTransferContextService interface
+
+### GetFileUploadUrl
+
+```go
+func (a *ContextServiceAdapter) GetFileUploadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+```
+
+GetFileUploadUrl implements FileTransferContextService interface
+
+## Type ContextStatusData
+
+```go
+type ContextStatusData struct {
+	ContextId	string	`json:"contextId"`
+	Path		string	`json:"path"`
+	ErrorMessage	string	`json:"errorMessage"`
+	Status		string	`json:"status"`
+	StartTime	int64	`json:"startTime"`
+	FinishTime	int64	`json:"finishTime"`
+	TaskType	string	`json:"taskType"`
+}
+```
+
+ContextStatusData represents parsed context status data
+
+## Type ContextSyncResult
+
+```go
+type ContextSyncResult struct {
+	models.ApiResponse
+	Success		bool
+	ErrorMessage	string
+}
+```
+
+ContextSyncResult wraps context sync result
+
 ## Type DirectoryEntry
 
 ```go
@@ -25,6 +122,34 @@ type DirectoryListResult struct {
 ```
 
 DirectoryListResult wraps directory listing result and RequestID
+
+## Type DownloadResult
+
+```go
+type DownloadResult struct {
+	models.ApiResponse
+	Success			bool
+	RequestIDDownloadURL	string
+	RequestIDSync		string
+	HTTPStatus		int
+	BytesReceived		int64
+	Path			string
+	LocalPath		string
+	Error			string
+}
+```
+
+DownloadResult represents the result of a file download operation.
+
+Fields:
+  - Success: Whether the download completed successfully
+  - RequestIDDownloadURL: Request ID from the GetFileDownloadUrl API call
+  - RequestIDSync: Request ID from the context sync API call
+  - HTTPStatus: HTTP status code from the OSS download request
+  - BytesReceived: Number of bytes downloaded
+  - Path: Remote path from which the file was downloaded
+  - LocalPath: Local path where the file was saved
+  - Error: Error message if the download failed
 
 ## Type FileChangeEvent
 
@@ -159,7 +284,7 @@ FileReadResult wraps file read operation result and RequestID
 
 ```go
 type FileSystem struct {
-	Session interface {
+	Session	interface {
 		GetAPIKey() string
 		GetClient() *mcp.Client
 		GetSessionId() string
@@ -169,6 +294,10 @@ type FileSystem struct {
 		FindServerForTool(toolName string) string
 		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
+
+	// Lazy-loaded file transfer instance
+	fileTransfer		*FileTransfer
+	fileTransferOnce	sync.Once
 }
 ```
 
@@ -203,6 +332,37 @@ client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(nil)
 defer result.Session.Delete()
 createResult, _ := result.Session.FileSystem.CreateDirectory("/tmp/test_directory")
+```
+
+### DownloadFile
+
+```go
+func (fs *FileSystem) DownloadFile(remotePath, localPath string, opts *FileTransferOptions) *DownloadResult
+```
+
+DownloadFile downloads a file from the remote cloud disk to local via OSS pre-signed URL.
+
+This is a convenience method that uses the session's FileTransfer. The remote path must be under
+/tmp/file-transfer/ directory for the transfer to work correctly.
+
+Parameters:
+  - remotePath: Absolute path in the cloud disk (must be under /tmp/file-transfer/)
+  - localPath: Absolute path where the file will be saved locally
+  - opts: Transfer options. If nil, defaults are used (Wait=true, Timeout=300s)
+
+Returns:
+  - *DownloadResult: Result containing success status, bytes received, HTTP status, and request IDs
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+downloadResult := result.Session.FileSystem.DownloadFile("/tmp/file-transfer/file.txt", "/local/file.txt", nil)
+if downloadResult.Success {
+	fmt.Printf("Downloaded %d bytes\n", downloadResult.BytesReceived)
+}
 ```
 
 ### EditFile
@@ -297,6 +457,32 @@ client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
 result, _ := client.Create(nil)
 defer result.Session.Delete()
 fileInfo, _ := result.Session.FileSystem.GetFileInfo("/etc/hostname")
+```
+
+### GetFileTransfer
+
+```go
+func (fs *FileSystem) GetFileTransfer() (*FileTransfer, error)
+```
+
+GetFileTransfer returns the FileTransfer instance, initializing it lazily if needed.
+
+FileTransfer provides upload/download functionality between local filesystem and cloud disk using
+OSS pre-signed URLs. Files are transferred to/from the /tmp/file-transfer/ directory on the cloud
+disk.
+
+Returns:
+  - *FileTransfer: The FileTransfer instance
+  - error: Error if the session doesn't support file transfer
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+ft, _ := result.Session.FileSystem.GetFileTransfer()
+uploadResult := ft.Upload("/local/file.txt", "/tmp/file-transfer/file.txt", nil)
 ```
 
 ### ListDirectory
@@ -452,6 +638,37 @@ defer result.Session.Delete()
 searchResult, _ := result.Session.FileSystem.SearchFiles("/tmp", "*.txt", []string{})
 ```
 
+### UploadFile
+
+```go
+func (fs *FileSystem) UploadFile(localPath, remotePath string, opts *FileTransferOptions) *UploadResult
+```
+
+UploadFile uploads a local file to the remote cloud disk via OSS pre-signed URL.
+
+This is a convenience method that uses the session's FileTransfer. The remote path must be under
+/tmp/file-transfer/ directory for the transfer to work correctly.
+
+Parameters:
+  - localPath: Absolute path to the local file to upload
+  - remotePath: Absolute path in the cloud disk (must be under /tmp/file-transfer/)
+  - opts: Transfer options. If nil, defaults are used (Wait=true, Timeout=30s)
+
+Returns:
+  - *UploadResult: Result containing success status, bytes sent, HTTP status, ETag, and request IDs
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+uploadResult := result.Session.FileSystem.UploadFile("/local/file.txt", "/tmp/file-transfer/file.txt", nil)
+if uploadResult.Success {
+	fmt.Printf("Uploaded %d bytes\n", uploadResult.BytesSent)
+}
+```
+
 ### WatchDirectory
 
 ```go
@@ -557,6 +774,236 @@ func NewFileSystem(session interface {
 
 NewFileSystem creates a new FileSystem instance
 
+## Type FileTransfer
+
+```go
+type FileTransfer struct {
+	session		FileTransferSession
+	contextSvc	FileTransferContextService
+	httpTimeout	time.Duration
+
+	// Lazy-loaded context information
+	contextID	string
+	contextPath	string
+
+	// Task completion states
+	finishedStates	map[string]bool
+}
+```
+
+FileTransfer provides file transfer functionality between local filesystem and cloud disk.
+
+It uses OSS pre-signed URLs for efficient file transfers and integrates with the Session Context
+synchronization mechanism to ensure files are properly synced between OSS and the cloud disk.
+
+The file transfer context is automatically loaded when first needed. Files must be transferred
+to/from the /tmp/file-transfer/ directory on the cloud disk.
+
+Workflow for Upload:
+ 1. Get OSS pre-signed URL via GetFileUploadUrl
+ 2. Upload file to OSS using HTTP PUT
+ 3. Trigger context sync (download mode) to copy from OSS to cloud disk
+ 4. Optionally wait for sync completion
+
+Workflow for Download:
+ 1. Trigger context sync (upload mode) to copy from cloud disk to OSS
+ 2. Wait for sync completion
+ 3. Get OSS pre-signed URL via GetFileDownloadUrl
+ 4. Download file from OSS using HTTP GET
+
+### Methods
+
+### Download
+
+```go
+func (ft *FileTransfer) Download(remotePath, localPath string, opts *FileTransferOptions) *DownloadResult
+```
+
+Download downloads a remote file from cloud disk to local via OSS pre-signed URL.
+
+The download process involves:
+ 1. Triggering context sync (upload mode) to copy from cloud disk to OSS
+ 2. Waiting for sync completion
+ 3. Getting an OSS pre-signed URL via GetFileDownloadUrl
+ 4. Downloading the file from OSS using HTTP GET
+
+Parameters:
+  - remotePath: Absolute path on cloud disk (must be under /tmp/file-transfer/)
+  - localPath: Absolute path where the file will be saved locally
+  - opts: Transfer options (nil for defaults with 300s timeout)
+
+Returns:
+  - *DownloadResult: Result containing success status, bytes received, request IDs, etc.
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+downloadResult := result.Session.FileSystem.DownloadFile("/tmp/file-transfer/file.txt", "/local/file.txt", nil)
+if downloadResult.Success {
+	fmt.Printf("Downloaded %d bytes\n", downloadResult.BytesReceived)
+}
+```
+
+### GetContextPath
+
+```go
+func (ft *FileTransfer) GetContextPath() string
+```
+
+GetContextPath returns the context path for file transfer operations.
+
+The context path is typically /tmp/file-transfer/ and is loaded lazily when first accessed. All file
+transfer operations should use paths within this directory.
+
+Returns:
+  - string: The context path (e.g., "/tmp/file-transfer/")
+
+### Upload
+
+```go
+func (ft *FileTransfer) Upload(localPath, remotePath string, opts *FileTransferOptions) *UploadResult
+```
+
+Upload uploads a local file to the remote cloud disk via OSS pre-signed URL.
+
+The upload process involves:
+ 1. Getting an OSS pre-signed URL via GetFileUploadUrl
+ 2. Uploading the local file to OSS using HTTP PUT
+ 3. Triggering context sync (download mode) to copy from OSS to cloud disk
+ 4. Optionally waiting for sync completion
+
+Parameters:
+  - localPath: Absolute path to the local file to upload
+  - remotePath: Absolute path on cloud disk (must be under /tmp/file-transfer/)
+  - opts: Transfer options (nil for defaults)
+
+Returns:
+  - *UploadResult: Result containing success status, bytes sent, request IDs, etc.
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+uploadResult := result.Session.FileSystem.UploadFile("/local/file.txt", "/tmp/file-transfer/file.txt", nil)
+if uploadResult.Success {
+	fmt.Printf("Uploaded %d bytes\n", uploadResult.BytesSent)
+}
+```
+
+### Related Functions
+
+### NewFileTransfer
+
+```go
+func NewFileTransfer(session FileTransferSession, contextSvc FileTransferContextService) *FileTransfer
+```
+
+NewFileTransfer creates a new FileTransfer instance.
+
+Parameters:
+  - session: Session interface providing API key, client, and session ID
+  - contextSvc: Context service interface for getting presigned URLs
+
+Returns:
+  - *FileTransfer: A new FileTransfer instance ready for upload/download operations
+
+## Type FileTransferCapableSession
+
+```go
+type FileTransferCapableSession interface {
+	FileTransferSession
+	// GetFileUploadUrl returns a presigned upload URL for the given context and file path
+	GetFileUploadUrl(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+	// GetFileDownloadUrl returns a presigned download URL for the given context and file path
+	GetFileDownloadUrl(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+}
+```
+
+FileTransferCapableSession extends the base session interface with methods required for file
+transfer operations (presigned URL generation).
+
+## Type FileTransferContextService
+
+```go
+type FileTransferContextService interface {
+	GetFileUploadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+	GetFileDownloadUrl(contextID string, filePath string) (*ContextFileUrlResult, error)
+}
+```
+
+FileTransferContextService defines the context service interface required by FileTransfer
+
+## Type FileTransferOptions
+
+```go
+type FileTransferOptions struct {
+	HTTPTimeout	time.Duration
+	FollowRedirects	bool
+	Wait		bool
+	WaitTimeout	time.Duration
+	PollInterval	time.Duration
+	ContentType	string
+	Overwrite	bool
+	ProgressCB	ProgressCallback
+}
+```
+
+FileTransferOptions contains configuration options for file transfer operations.
+
+Fields:
+  - HTTPTimeout: Timeout for HTTP requests (default: 60s)
+  - FollowRedirects: Whether to follow HTTP redirects (default: true)
+  - Wait: Whether to wait for sync completion (default: true)
+  - WaitTimeout: Maximum time to wait for sync completion (default: 30s for upload, 300s for
+    download)
+  - PollInterval: Interval between sync status polls (default: 1.5s)
+  - ContentType: Content-Type header for uploads (optional)
+  - Overwrite: Whether to overwrite existing local files on download (default: true)
+  - ProgressCB: Callback for progress tracking (optional)
+
+### Related Functions
+
+### DefaultFileTransferOptions
+
+```go
+func DefaultFileTransferOptions() *FileTransferOptions
+```
+
+DefaultFileTransferOptions returns the default options for file transfer operations.
+
+Default values:
+  - HTTPTimeout: 60 seconds
+  - FollowRedirects: true
+  - Wait: true
+  - WaitTimeout: 30 seconds
+  - PollInterval: 1.5 seconds
+  - Overwrite: true
+
+**Example:**
+
+```go
+opts := filesystem.DefaultFileTransferOptions()
+opts.WaitTimeout = 60 * time.Second
+uploadResult := session.FileSystem.UploadFile("/local/file.txt", "/tmp/file-transfer/file.txt", opts)
+```
+
+## Type FileTransferSession
+
+```go
+type FileTransferSession interface {
+	GetAPIKey() string
+	GetClient() *mcp.Client
+	GetSessionId() string
+}
+```
+
+FileTransferSession defines the session interface required by FileTransfer
+
 ## Type FileWriteResult
 
 ```go
@@ -568,6 +1015,15 @@ type FileWriteResult struct {
 
 FileWriteResult wraps file write operation result and RequestID
 
+## Type ProgressCallback
+
+```go
+type ProgressCallback func(bytesTransferred int64)
+```
+
+ProgressCallback is a callback function for tracking file transfer progress. It is called
+periodically during upload or download with the total bytes transferred so far.
+
 ## Type SearchFilesResult
 
 ```go
@@ -578,6 +1034,34 @@ type SearchFilesResult struct {
 ```
 
 SearchFilesResult wraps file search result and RequestID
+
+## Type UploadResult
+
+```go
+type UploadResult struct {
+	models.ApiResponse
+	Success			bool
+	RequestIDUploadURL	string
+	RequestIDSync		string
+	HTTPStatus		int
+	ETag			string
+	BytesSent		int64
+	Path			string
+	Error			string
+}
+```
+
+UploadResult represents the result of a file upload operation.
+
+Fields:
+  - Success: Whether the upload completed successfully
+  - RequestIDUploadURL: Request ID from the GetFileUploadUrl API call
+  - RequestIDSync: Request ID from the context sync API call
+  - HTTPStatus: HTTP status code from the OSS upload request
+  - ETag: ETag returned by OSS after successful upload
+  - BytesSent: Number of bytes uploaded
+  - Path: Remote path where the file was uploaded
+  - Error: Error message if the upload failed
 
 ## Related Resources
 

@@ -1923,6 +1923,24 @@ func (s *Session) GetEnableBrowserReplay() bool
 
 GetEnableBrowserReplay returns whether browser replay is enabled for this session.
 
+### GetFileDownloadUrl
+
+```go
+func (s *Session) GetFileDownloadUrl(contextID string, filePath string) (bool, string, string, string, *int64, error)
+```
+
+GetFileDownloadUrl returns a presigned download URL for the given context and file path. This method
+implements the FileTransferCapableSession interface for lazy loading.
+
+### GetFileUploadUrl
+
+```go
+func (s *Session) GetFileUploadUrl(contextID string, filePath string) (bool, string, string, string, *int64, error)
+```
+
+GetFileUploadUrl returns a presigned upload URL for the given context and file path. This method
+implements the FileTransferCapableSession interface for lazy loading.
+
 ### GetLabels
 
 ```go

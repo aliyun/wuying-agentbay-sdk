@@ -148,6 +148,10 @@ type FileSystem struct {
 		FindServerForTool(toolName string) string
 		CallMcpTool(toolName string, args interface{}, autoGenSession ...bool) (*models.McpToolResult, error)
 	}
+
+	// Lazy-loaded file transfer instance
+	fileTransfer     *FileTransfer
+	fileTransferOnce sync.Once
 }
 
 // FileInfo represents file or directory information
@@ -1074,4 +1078,137 @@ func (fs *FileSystem) WatchDirectory(
 	}()
 
 	return &wg
+}
+
+// FileTransferCapableSession extends the base session interface with methods
+// required for file transfer operations (presigned URL generation).
+type FileTransferCapableSession interface {
+	FileTransferSession
+	// GetFileUploadUrl returns a presigned upload URL for the given context and file path
+	GetFileUploadUrl(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+	// GetFileDownloadUrl returns a presigned download URL for the given context and file path
+	GetFileDownloadUrl(contextID string, filePath string) (success bool, url string, errMsg string, requestID string, expireTime *int64, err error)
+}
+
+// getOrCreateFileTransfer lazily initializes and returns the FileTransfer instance.
+// This implements lazy loading - FileTransfer is only created when first needed.
+func (fs *FileSystem) getOrCreateFileTransfer() (*FileTransfer, error) {
+	var initErr error
+
+	fs.fileTransferOnce.Do(func() {
+		// Check if session supports file transfer capabilities
+		ftSession, ok := fs.Session.(FileTransferCapableSession)
+		if !ok {
+			initErr = fmt.Errorf("session does not support file transfer operations")
+			return
+		}
+
+		// Create adapter that bridges the session's URL methods to FileTransferContextService
+		adapter := &ContextServiceAdapter{
+			GetUploadURLFunc:   ftSession.GetFileUploadUrl,
+			GetDownloadURLFunc: ftSession.GetFileDownloadUrl,
+		}
+
+		fs.fileTransfer = NewFileTransfer(ftSession, adapter)
+	})
+
+	if initErr != nil {
+		return nil, initErr
+	}
+
+	return fs.fileTransfer, nil
+}
+
+// GetFileTransfer returns the FileTransfer instance, initializing it lazily if needed.
+//
+// FileTransfer provides upload/download functionality between local filesystem
+// and cloud disk using OSS pre-signed URLs. Files are transferred to/from
+// the /tmp/file-transfer/ directory on the cloud disk.
+//
+// Returns:
+//   - *FileTransfer: The FileTransfer instance
+//   - error: Error if the session doesn't support file transfer
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	ft, _ := result.Session.FileSystem.GetFileTransfer()
+//	uploadResult := ft.Upload("/local/file.txt", "/tmp/file-transfer/file.txt", nil)
+func (fs *FileSystem) GetFileTransfer() (*FileTransfer, error) {
+	return fs.getOrCreateFileTransfer()
+}
+
+// UploadFile uploads a local file to the remote cloud disk via OSS pre-signed URL.
+//
+// This is a convenience method that uses the session's FileTransfer. The remote path
+// must be under /tmp/file-transfer/ directory for the transfer to work correctly.
+//
+// Parameters:
+//   - localPath: Absolute path to the local file to upload
+//   - remotePath: Absolute path in the cloud disk (must be under /tmp/file-transfer/)
+//   - opts: Transfer options. If nil, defaults are used (Wait=true, Timeout=30s)
+//
+// Returns:
+//   - *UploadResult: Result containing success status, bytes sent, HTTP status, ETag, and request IDs
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	uploadResult := result.Session.FileSystem.UploadFile("/local/file.txt", "/tmp/file-transfer/file.txt", nil)
+//	if uploadResult.Success {
+//		fmt.Printf("Uploaded %d bytes\n", uploadResult.BytesSent)
+//	}
+func (fs *FileSystem) UploadFile(localPath, remotePath string, opts *FileTransferOptions) *UploadResult {
+	// Lazy initialize FileTransfer
+	ft, err := fs.getOrCreateFileTransfer()
+	if err != nil {
+		return &UploadResult{
+			Success: false,
+			Path:    remotePath,
+			Error:   err.Error(),
+		}
+	}
+
+	return ft.Upload(localPath, remotePath, opts)
+}
+
+// DownloadFile downloads a file from the remote cloud disk to local via OSS pre-signed URL.
+//
+// This is a convenience method that uses the session's FileTransfer. The remote path
+// must be under /tmp/file-transfer/ directory for the transfer to work correctly.
+//
+// Parameters:
+//   - remotePath: Absolute path in the cloud disk (must be under /tmp/file-transfer/)
+//   - localPath: Absolute path where the file will be saved locally
+//   - opts: Transfer options. If nil, defaults are used (Wait=true, Timeout=300s)
+//
+// Returns:
+//   - *DownloadResult: Result containing success status, bytes received, HTTP status, and request IDs
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	downloadResult := result.Session.FileSystem.DownloadFile("/tmp/file-transfer/file.txt", "/local/file.txt", nil)
+//	if downloadResult.Success {
+//		fmt.Printf("Downloaded %d bytes\n", downloadResult.BytesReceived)
+//	}
+func (fs *FileSystem) DownloadFile(remotePath, localPath string, opts *FileTransferOptions) *DownloadResult {
+	// Lazy initialize FileTransfer
+	ft, err := fs.getOrCreateFileTransfer()
+	if err != nil {
+		return &DownloadResult{
+			Success:   false,
+			Path:      remotePath,
+			LocalPath: localPath,
+			Error:     err.Error(),
+		}
+	}
+
+	return ft.Download(remotePath, localPath, opts)
 }

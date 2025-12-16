@@ -169,7 +169,28 @@ func NewSession(agentBay *AgentBay, sessionID string) *Session {
 
 	// Initialize context manager
 	session.Context = NewContextManager(session)
+
 	return session
+}
+
+// GetFileUploadUrl returns a presigned upload URL for the given context and file path.
+// This method implements the FileTransferCapableSession interface for lazy loading.
+func (s *Session) GetFileUploadUrl(contextID string, filePath string) (bool, string, string, string, *int64, error) {
+	result, err := s.AgentBay.Context.GetFileUploadUrl(contextID, filePath)
+	if err != nil {
+		return false, "", err.Error(), "", nil, err
+	}
+	return result.Success, result.Url, result.ErrorMessage, result.RequestID, result.ExpireTime, nil
+}
+
+// GetFileDownloadUrl returns a presigned download URL for the given context and file path.
+// This method implements the FileTransferCapableSession interface for lazy loading.
+func (s *Session) GetFileDownloadUrl(contextID string, filePath string) (bool, string, string, string, *int64, error) {
+	result, err := s.AgentBay.Context.GetFileDownloadUrl(contextID, filePath)
+	if err != nil {
+		return false, "", err.Error(), "", nil, err
+	}
+	return result.Success, result.Url, result.ErrorMessage, result.RequestID, result.ExpireTime, nil
 }
 
 // GetAPIKey returns the API key for this session.
