@@ -160,7 +160,6 @@ class TestOssIntegration(unittest.TestCase):
             object_key = "test-object.txt"
             download_path = "/tmp/test_oss_download.txt"
             result = await self.session.oss.download(bucket, object_key, download_path)
-            print(f"Download result: {result.content[0]}")
 
             self.assertTrue(result.success)
             self.assertIsNotNone(result.request_id)
