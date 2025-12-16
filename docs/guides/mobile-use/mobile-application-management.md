@@ -102,7 +102,7 @@ Launch mobile applications using the "monkey -p" command format with package nam
 
 ```python
 # Use "monkey -p" format for Android package names
-start_cmd = "monkey -p com.android.settings"
+start_cmd = "monkey -p com.android.settings 1"
 
 result = session.mobile.start_app(start_cmd)
 
@@ -131,7 +131,7 @@ else:
 ### Start with Specific Activity (Android)
 
 ```python
-start_cmd = "monkey -p com.android.settings"
+start_cmd = "monkey -p com.android.settings 1"
 activity = ".Settings"
 
 result = session.mobile.start_app(
@@ -171,7 +171,7 @@ Stop running mobile applications using the stop command:
 
 ```python
 # Start an application
-start_result = session.mobile.start_app("monkey -p com.android.settings")
+start_result = session.mobile.start_app("monkey -p com.android.settings 1")
 
 if start_result.success:
     print("Application started successfully")
@@ -224,7 +224,7 @@ print(f"Session created: {session.session_id}")
 
 # Step 1: Launching application
 print("Step 1: Launching Settings application...")
-start_result = session.mobile.start_app("monkey -p com.android.settings")
+start_result = session.mobile.start_app("monkey -p com.android.settings 1")
 
 if not start_result.success:
     print(f"Failed to start app: {start_result.error_message}")
@@ -312,7 +312,7 @@ print("Workflow completed!")
 The `start_cmd` parameter must use the "monkey -p" format:
 
 ```python
-session.mobile.start_app("monkey -p com.android.settings")
+session.mobile.start_app("monkey -p com.android.settings 1")
 ```
 
 **Stop Command Format**
@@ -329,7 +329,7 @@ The `activity` parameter allows launching a specific activity:
 
 ```python
 session.mobile.start_app(
-    start_cmd="monkey -p com.android.settings",
+    start_cmd="monkey -p com.android.settings 1",
     activity=".Settings"
 )
 ```
@@ -352,7 +352,7 @@ These features enable you to build automated mobile workflows for testing, autom
 ## 📝 Platform Differences
 
 **Mobile vs. Desktop:**
-- **Mobile** (this guide): Uses "monkey -p" command format (e.g., `"monkey -p com.android.chrome"`) and supports Android activities
+- **Mobile** (this guide): Uses "monkey -p" command format (e.g., `"monkey -p com.android.chrome 1"`) and supports Android activities
 - **Desktop**: Uses executable paths (e.g., `/usr/bin/google-chrome-stable`) and supports working directories
 - **Window Management**: Only available for desktop environments; mobile apps use full-screen activities instead
 - **Application Discovery**: The current `mobile_latest` image returns an empty list from `get_installed_apps()`, but the API is available for future image versions
