@@ -656,11 +656,11 @@ class Session:
             # Check if this is a VPC session
             if self._is_vpc_enabled():
                 return self._call_mcp_tool_vpc(tool_name, args_json)
-
             # Non-VPC mode: use traditional API call
-            return self._call_mcp_tool_api(
+            result_data = self._call_mcp_tool_api(
                 tool_name, args_json, read_timeout, connect_timeout, auto_gen_session
             )
+            return result_data
         except Exception as e:
             _logger.error(f"❌ Failed to call MCP tool {tool_name}: {e}")
             return McpToolResult(
@@ -803,11 +803,6 @@ class Session:
         """
         Handle traditional API-based MCP tool calls asynchronously.
         """
-        _log_api_call(
-            "CallMcpTool",
-            f"Tool={tool_name}, SessionId={self.session_id}, ArgsLength={len(args_json)}",
-        )
-
         request = CallMcpToolRequest(
             authorization=f"Bearer {self._get_api_key()}",
             session_id=self.session_id,
@@ -815,7 +810,6 @@ class Session:
             args=args_json,
             auto_gen_session=auto_gen_session,
         )
-
         try:
             # Try async method first, fall back to sync wrapped in asyncio.to_thread
             client = self._get_client()
@@ -825,7 +819,6 @@ class Session:
 
             # Extract request ID
             request_id = extract_request_id(response)
-
             # Check for API-level errors
             response_map = response.to_map()
             if not response_map:
@@ -837,6 +830,7 @@ class Session:
                 )
 
             body = response_map.get("body", {})
+            
             if not body:
                 return McpToolResult(
                     request_id=request_id,
@@ -847,6 +841,7 @@ class Session:
 
             # Parse the Data field
             data_str = body.get("Data", "")
+            
             if not data_str:
                 return McpToolResult(
                     request_id=request_id,
@@ -876,14 +871,15 @@ class Session:
             # Extract content
             content = data_obj.get("content", [])
             is_error = data_obj.get("isError", False)
-
+            
             # Extract text from content
             text_content = ""
             if content and isinstance(content, list) and len(content) > 0:
                 first_content = content[0]
+                
                 if isinstance(first_content, dict):
                     text_content = first_content.get("text", "")
-
+                
             if is_error:
                 _log_operation_error(
                     "CallMcpTool", f"Tool returned error: {text_content}", False
@@ -902,7 +898,6 @@ class Session:
                 {"tool": tool_name},
                 text_content[:200] if text_content else "",
             )
-
             return McpToolResult(
                 request_id=request_id,
                 success=True,

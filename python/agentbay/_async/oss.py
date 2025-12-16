@@ -129,7 +129,7 @@ class AsyncOss(AsyncBaseService):
         self,
         access_key_id: str,
         access_key_secret: str,
-        securityToken: str,
+        security_token: str,
         endpoint: Optional[str] = None,
         region: Optional[str] = None,
     ) -> OSSClientResult:
@@ -139,7 +139,7 @@ class AsyncOss(AsyncBaseService):
         Args:
             access_key_id: The Access Key ID from STS temporary credentials.
             access_key_secret: The Access Key Secret from STS temporary credentials.
-            securityToken: Security token from STS temporary credentials. Required for security.
+            security_token: Security token from STS temporary credentials. Required for security.
             endpoint: The OSS service endpoint. If not specified, the default is used.
             region: The OSS region. If not specified, the default is used.
 
@@ -153,7 +153,7 @@ class AsyncOss(AsyncBaseService):
             await session.oss.env_init(
                 access_key_id="your_sts_access_key_id",
                 access_key_secret="your_sts_access_key_secret",
-                securityToken="your_sts_security_token"
+                security_token="your_sts_security_token"
             )
             await session.delete()
             ```
@@ -162,7 +162,7 @@ class AsyncOss(AsyncBaseService):
             args = {
                 "access_key_id": access_key_id,
                 "access_key_secret": access_key_secret,
-                "security_token": securityToken,
+                "security_token": security_token,
             }
 
             # Add optional parameters if provided
@@ -172,34 +172,27 @@ class AsyncOss(AsyncBaseService):
                 args["region"] = region
 
             result = await self.session.call_mcp_tool("oss_env_init", args)
-            try:
-                response_body = json.dumps(
-                    getattr(result, "body", result), ensure_ascii=False, indent=2
-                )
-                _log_api_response(response_body)
-            except Exception:
-                _logger.debug(f"📥 Response: {result}")
-
+            
             if result.success:
-                client_config_raw = result.data
-                try:
-                    if isinstance(client_config_raw, str):
-                        client_config = json.loads(client_config_raw)
-                    elif client_config_raw is None:
-                        client_config = {}
-                    else:
-                        client_config = client_config_raw
+                if(result.data):
+                    client_config_raw = result.data
+                    # Check if data contains "failed" field
+                    if isinstance(client_config_raw, str) and "failed" in client_config_raw.lower():
+                        return OSSClientResult(
+                            request_id=result.request_id,
+                            success=False,
+                            error_message=f"OSS environment initialization failed: {client_config_raw}",
+                        )
                     return OSSClientResult(
                         request_id=result.request_id,
                         success=True,
-                        client_config=client_config,
+                        client_config=client_config_raw,
                     )
-                except Exception as e:
+                else:
                     return OSSClientResult(
                         request_id=result.request_id,
                         success=False,
-                        client_config={},
-                        error_message=f"Failed to parse client configuration JSON: {e}",
+                        error_message="Failed to initialize OSS environment",
                     )
             else:
                 return OSSClientResult(
@@ -239,7 +232,7 @@ class AsyncOss(AsyncBaseService):
             await session.oss.env_init(
                 access_key_id="your_access_key_id",
                 access_key_secret="your_access_key_secret",
-                securityToken="your_sts_security_token",
+                security_token="your_sts_security_token",
             )
             result = await session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Upload result: {result.content}")
@@ -346,7 +339,7 @@ class AsyncOss(AsyncBaseService):
             await session.oss.env_init(
                 access_key_id="your_access_key_id",
                 access_key_secret="your_access_key_secret",
-                securityToken="your_sts_security_token",
+                security_token="your_sts_security_token",
             )
             result = await session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Download result: {result.content}")

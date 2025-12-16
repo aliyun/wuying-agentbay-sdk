@@ -656,9 +656,10 @@ class AsyncSession:
                 return await self._call_mcp_tool_vpc(tool_name, args_json)
 
             # Non-VPC mode: use traditional API call
-            return await self._call_mcp_tool_api(
+            result_data = await self._call_mcp_tool_api(
                 tool_name, args_json, read_timeout, connect_timeout, auto_gen_session
             )
+            return result_data
         except Exception as e:
             _logger.error(f"❌ Failed to call MCP tool {tool_name}: {e}")
             return McpToolResult(
