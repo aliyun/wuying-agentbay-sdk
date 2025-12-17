@@ -305,7 +305,7 @@ Get information about the currently active window:
 
 ```python
 # Note: May fail if no window is currently active
-result = session.computer.get_active_window(timeout_ms=5000)
+result = session.computer.get_active_window()
 
 if result.success:
     active_window = result.window
@@ -329,9 +329,6 @@ else:
     # Failed to get active window: Error in response (expected if no window is active)
     print(f"Failed to get active window: {result.error_message}")
 ```
-
-**Parameters:**
-- `timeout_ms` (int, optional): Timeout in milliseconds. Defaults to 3000.
 
 <a id="complete-workflow-example"></a>
 ## 🔄 Complete Workflow Example
@@ -457,7 +454,7 @@ print("Workflow completed!")
 | Method | Parameters | Returns | Description |
 |--------|------------|---------|-------------|
 | `list_root_windows()` | `timeout_ms: int = 3000` | `WindowListResult` | List all root windows |
-| `get_active_window()` | `timeout_ms: int = 3000` | `WindowInfoResult` | Get currently active window |
+| `get_active_window()` | None | `WindowInfoResult` | Get currently active window |
 | `activate_window()` | `window_id: int` | `BoolResult` | Activate a window |
 | `maximize_window()` | `window_id: int` | `BoolResult` | Maximize a window |
 | `minimize_window()` | `window_id: int` | `BoolResult` | Minimize a window |

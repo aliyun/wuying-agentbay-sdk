@@ -599,9 +599,9 @@ export class Computer {
    * }
    * ```
    */
-  async getActiveWindow(timeoutMs = 3000): Promise<WindowInfoResult> {
+  async getActiveWindow(): Promise<WindowInfoResult> {
     try {
-      const args = { timeout_ms: timeoutMs };
+      const args = {};
       const response = await this.session.callMcpTool('get_active_window', args);
 
       if (!response.success) {

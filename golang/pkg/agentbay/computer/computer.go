@@ -602,7 +602,7 @@ func (c *Computer) ListRootWindows(timeoutMs ...int) (*WindowListResult, error) 
 //	result, _ := client.Create(agentbay.NewCreateSessionParams().WithImageId("windows_latest"))
 //	defer result.Session.Delete()
 //	windowResult, _ := result.Session.Computer.GetActiveWindow()
-func (c *Computer) GetActiveWindow(timeoutMs ...int) (*WindowDetailResult, error) {
+func (c *Computer) GetActiveWindow() (*WindowDetailResult, error) {
 	args := map[string]interface{}{}
 
 	result, err := c.Session.CallMcpTool("get_active_window", args)

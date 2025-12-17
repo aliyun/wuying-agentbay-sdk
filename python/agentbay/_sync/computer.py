@@ -729,12 +729,9 @@ class Computer(BaseService):
                 error_message=f"Failed to list root windows: {str(e)}",
             )
 
-    def get_active_window(self, timeout_ms: int = 3000) -> WindowInfoResult:
+    def get_active_window(self) -> WindowInfoResult:
         """
         Gets the currently active window.
-
-        Args:
-            timeout_ms (int, optional): Timeout in milliseconds. Defaults to 3000.
 
         Returns:
             WindowInfoResult: Result object containing active window info and error message if any.
@@ -748,7 +745,7 @@ class Computer(BaseService):
             ```
         """
         try:
-            args = {"timeout_ms": timeout_ms}
+            args = {}
             result = self.session.call_mcp_tool("get_active_window", args)
 
             if not result.success:
