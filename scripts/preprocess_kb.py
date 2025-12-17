@@ -51,6 +51,8 @@ def main():
     total_files = len(processed_files)
     batch_size = 100
     
+    import hashlib
+
     for i in range(0, total_files, batch_size):
         batch_num = (i // batch_size) + 1
         batch_dir = os.path.join(OUTPUT_DIR, f"batch_{batch_num}")
@@ -64,6 +66,23 @@ def main():
             # 为了上传方便，这里采用"扁平化文件名"策略，
             # 文件名格式：docs_guides_README.md
             flat_name = rel_path.replace("/", "_").replace("\\", "_")
+            
+            # 如果文件名过长（超过80字符），则进行缩短处理
+            if len(flat_name) > 80:
+                # 使用路径的 MD5 哈希前8位
+                path_hash = hashlib.md5(rel_path.encode('utf-8')).hexdigest()[:8]
+                
+                # 获取文件名和父目录名
+                filename = os.path.basename(rel_path)
+                parent_dir = os.path.basename(os.path.dirname(rel_path))
+                
+                # 构建新文件名: parentDir_filename_hash
+                # 这样既保留了上下文（父目录+文件名），又保证了唯一性（hash），且控制了长度
+                # 注意：最终还会被追加 .md 后缀
+                flat_name = f"{parent_dir}_{filename}_{path_hash}"
+                # 再次替换可能存在的非法字符
+                flat_name = flat_name.replace(" ", "_")
+                
             process_file(abs_path, rel_path, batch_dir, flat_name)
             
     print(f"Successfully processed {total_files} files.")
