@@ -135,6 +135,33 @@ OSS Storage          Session Environment          OSS Storage After Upload
 | Use Case | Execute temporary tasks | Store project data, configurations, etc. |
 | Implementation | Local filesystem only | OSS directory + local filesystem sync |
 
+### Persistence Options: Built-in Context vs Custom OSS
+
+In addition to Context, AgentBay also supports integrating your own Object Storage Service (OSS) for data persistence. Here's how they compare:
+
+| Feature | Built-in Context | Custom OSS Integration |
+|---------|------------------|------------------------|
+| **Underlying Storage** | AgentBay-managed OSS | User-managed OSS (e.g., Alibaba Cloud OSS) |
+| **Mechanism** | Automatic synchronization (Context Sync) | Manual atomic operations (Upload/Download APIs) |
+| **Setup** | Zero configuration (just use Context ID) | Requires configuring credentials (STS) & buckets |
+| **Cost** | Storage fees charged by AgentBay | Storage fees paid directly to cloud provider |
+| **Use Case** | Seamless session state persistence, ease of use | Integration with existing data pipelines, fine-grained control |
+| **Data Sync** | Automatic sync on session start/end | Manual API calls required |
+
+**Context (Recommended for most users):**
+- Based on AgentBay's internal OSS implementation.
+- Provides a robust data synchronization mechanism (automatic download on start, upload on stop).
+- Storage costs are included in AgentBay's billing.
+- Best for persisting workspace state, configuration, and project files between sessions effortlessly.
+
+**Custom OSS (For advanced integration):**
+- Allows you to use your own OSS buckets for data persistence.
+- AgentBay provides atomic APIs for file operations (upload, download).
+- You manage the storage costs and credentials directly with the provider.
+- Best when you need to access existing data lakes, share data with external systems, or have specific compliance requirements.
+
+See the [OSS Integration Guide](../advanced/oss-integration.md) for details on using your own OSS.
+
 <a id="context-management"></a>
 ## 📦 Context Management
 
