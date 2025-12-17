@@ -3,7 +3,9 @@
  * Provides mouse, keyboard, and screen operations for desktop environments.
  */
 
+import { logInfo } from "../../src/utils/logger";
 import { OperationResult, WindowListResult, WindowInfoResult, BoolResult as WindowBoolResult } from "../types/api-response";
+import { convertObjectKeys, convertWindowData, convertWindowList } from "../utils/field-converter";
 
 export enum MouseButton {
   LEFT = 'left',
@@ -566,7 +568,11 @@ export class Computer {
         };
       }
 
-      const windows = response.data ? JSON.parse(response.data) : [];
+      const rawWindows = response.data ? JSON.parse(response.data) : [];
+      
+      // Convert snake_case fields to camelCase to match Go SDK behavior
+      const windows = convertWindowList(rawWindows);
+      logInfo('listRootWindows', `Windows: ${JSON.stringify(windows)}`);
       return {
         requestId: response.requestId,
         success: true,
@@ -613,7 +619,11 @@ export class Computer {
         };
       }
 
-      const window = response.data ? JSON.parse(response.data) : null;
+      const rawWindow = response.data ? JSON.parse(response.data) : null;
+      
+      // Convert snake_case fields to camelCase to match Go SDK behavior
+      const window = convertWindowData(rawWindow);
+      logInfo('getActiveWindow', `Window: ${JSON.stringify(window)}`);
       return {
         requestId: response.requestId,
         success: true,
@@ -967,7 +977,9 @@ export class Computer {
         };
       }
 
-      const apps = response.data ? JSON.parse(response.data) : [];
+      const rawApps = response.data ? JSON.parse(response.data) : [];
+      const apps = convertObjectKeys(rawApps);
+      logInfo('Found %d new apps', apps);
       return {
         requestId: response.requestId,
         success: true,
@@ -1020,7 +1032,9 @@ export class Computer {
         };
       }
 
-      const processes = response.data ? JSON.parse(response.data) : [];
+      const rawProcesses = response.data ? JSON.parse(response.data) : [];
+      const processes = convertObjectKeys(rawProcesses);
+      logInfo('Found %d processes', processes);
       return {
         requestId: response.requestId,
         success: true,
@@ -1178,7 +1192,9 @@ export class Computer {
         };
       }
 
-      const processes = response.data ? JSON.parse(response.data) : [];
+      const rawProcesses = response.data ? JSON.parse(response.data) : [];
+      const processes = convertObjectKeys(rawProcesses);
+      logInfo('Found %d processes', processes);
       return {
         requestId: response.requestId,
         success: true,
