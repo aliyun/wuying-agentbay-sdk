@@ -74,7 +74,7 @@ let currentRequestId = '';
 let currentLogLevel: LogLevel = (
   (process.env.LOG_LEVEL as LogLevel) ||
   (process.env.AGENTBAY_LOG_LEVEL as LogLevel) ||
-  'error'
+  'INFO'
 );
 
 /**
