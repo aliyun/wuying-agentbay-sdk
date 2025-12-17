@@ -9,6 +9,7 @@ The OSS module provides:
 - **Anonymous Operations**: Upload/download files using presigned URLs
 - **Session-scoped**: All OSS operations are executed within a cloud session environment
 - **Security-first**: Only STS temporary credentials are supported for authenticated operations
+- **Alternative**: For simple persistence, see [Context](../basics/data-persistence.md) which handles storage automatically.
 
 ## Prerequisites
 
