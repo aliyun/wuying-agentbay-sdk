@@ -178,6 +178,7 @@ describe('Computer Windows Integration Tests', () => {
     // Find Calculator window
     expect(windowsResult.windows.length).toBeGreaterThan(0)
     calculatorWindowID = windowsResult.windows[0].windowId
+    expect(calculatorWindowID).toBeDefined();
     expect(calculatorWindowID).toBeGreaterThan(0);
 
     // Step 3: Activate Window

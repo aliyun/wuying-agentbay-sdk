@@ -153,30 +153,41 @@ export interface LinkResult extends ApiResponse {
  * Interface for process list operation responses
  * Corresponds to Python's ProcessListResult type
  */
-export interface ProcessListResult extends ApiResponse {
-  /** Request identifier for tracking API calls */
-  requestId: string;
-  /** Whether the operation was successful */
-  success: boolean;
-  /** The list of process objects */
-  data: any[]; // Will be Process[] type, avoiding circular import
-  /** Optional error message if the operation failed */
-  errorMessage?: string;
+export interface Process {
+  pname: string;
+  pid: number;
+  cmdline?: string;
+}
+
+export interface ProcessListResult extends OperationResult {
+  data: Process[];
 }
 
 /**
  * Interface for installed app list operation responses
  * Corresponds to Python's InstalledAppListResult type
  */
-export interface InstalledAppListResult extends ApiResponse {
-  /** Request identifier for tracking API calls */
-  requestId: string;
-  /** Whether the operation was successful */
-  success: boolean;
-  /** The list of installed app objects */
-  data: any[]; // Will be InstalledApp[] type, avoiding circular import
-  /** Optional error message if the operation failed */
-  errorMessage?: string;
+// export interface InstalledAppListResult extends ApiResponse {
+//   /** Request identifier for tracking API calls */
+//   requestId: string;
+//   /** Whether the operation was successful */
+//   success: boolean;
+//   /** The list of installed app objects */
+//   data: any[]; // Will be InstalledApp[] type, avoiding circular import
+//   /** Optional error message if the operation failed */
+//   errorMessage?: string;
+// }
+
+
+export interface InstalledApp {
+  name: string;
+  startCmd: string;
+  stopCmd?: string;
+  workDirectory?: string;
+}
+
+export interface InstalledAppListResult extends OperationResult {
+  data: InstalledApp[];
 }
 
 /**
@@ -463,6 +474,13 @@ export interface UIElementListResult extends ApiResponse {
   errorMessage?: string;
 }
 
+export interface WindowInfo {
+  windowId: number;
+  title: string;
+  pid: number;
+  pname: string;
+}
+
 /**
  * Interface for window list operation responses
  * Corresponds to Python's WindowListResult type
@@ -473,9 +491,21 @@ export interface WindowListResult extends ApiResponse {
   /** Whether the operation was successful */
   success: boolean;
   /** List of windows */
-  windows: any[]; // Will be Window[] type, avoiding circular import
+  windows: WindowInfo[]; // Will be Window[] type, avoiding circular import
   /** Optional error message if the operation failed */
   errorMessage?: string;
+}
+
+export interface Window {
+  windowId: number;
+  title: string;
+  absoluteUpperLeftX?: number;
+  absoluteUpperLeftY?: number;
+  width?: number;
+  height?: number;
+  pid?: number;
+  pname?: string;
+  childWindows?: Window[];
 }
 
 /**
@@ -488,10 +518,11 @@ export interface WindowInfoResult extends ApiResponse {
   /** Whether the operation was successful */
   success: boolean;
   /** Window object */
-  window?: any; // Will be Window type, avoiding circular import
+  window?: Window[]; // Will be Window type, avoiding circular import
   /** Optional error message if the operation failed */
   errorMessage?: string;
 }
+
 
 /**
  * Interface for context operation responses
@@ -659,4 +690,32 @@ export interface SessionResumeResult extends ApiResponse {
   httpStatusCode?: number;
   /** Current status of the session. Possible values: "RUNNING", "PAUSED", "RESUMING" */
   status?: string;
+}
+
+/**
+ * Represents the screen dimensions and DPI scaling information.
+ * 
+ * @interface ScreenSize
+ * @extends OperationResult
+ */
+export interface ScreenSize extends OperationResult {
+  /** Screen width in pixels */
+  width: number;
+  /** Screen height in pixels */
+  height: number;
+  /** DPI scaling factor (e.g., 1.0 for 100%, 1.5 for 150%, 2.0 for 200%) */
+  dpiScalingFactor: number;
+}
+
+/**
+ * Represents the current cursor position on screen.
+ * 
+ * @interface CursorPosition
+ * @extends OperationResult
+ */
+export interface CursorPosition extends OperationResult {
+  /** X coordinate in pixels (0 is left edge of screen) */
+  x: number;
+  /** Y coordinate in pixels (0 is top edge of screen) */
+  y: number;
 }

@@ -3,9 +3,8 @@
  * Provides mouse, keyboard, and screen operations for desktop environments.
  */
 
-import { logInfo } from "../../src/utils/logger";
-import { OperationResult, WindowListResult, WindowInfoResult, BoolResult as WindowBoolResult } from "../types/api-response";
-import { convertObjectKeys, convertWindowData, convertWindowList } from "../utils/field-converter";
+import { OperationResult, WindowListResult, WindowInfoResult, BoolResult as WindowBoolResult, InstalledAppListResult, ProcessListResult, ScreenSize, CursorPosition } from "../types/api-response";
+import { convertObjectKeys, convertWindowData } from "../utils/field-converter";
 
 export enum MouseButton {
   LEFT = 'left',
@@ -19,25 +18,6 @@ export enum ScrollDirection {
   DOWN = 'down',
   LEFT = 'left',
   RIGHT = 'right'
-}
-
-export interface BoolResult extends OperationResult {
-  data?: boolean;
-}
-
-export interface CursorPosition extends OperationResult {
-  x: number;
-  y: number;
-}
-
-export interface ScreenSize extends OperationResult {
-  width: number;
-  height: number;
-  dpiScalingFactor: number;
-}
-
-export interface ScreenshotResult extends OperationResult {
-  data: string; // Screenshot URL
 }
 
 // Session interface for Computer module
@@ -76,7 +56,7 @@ export class Computer {
    * }
    * ```
    */
-  async clickMouse(x: number, y: number, button: MouseButton | string = MouseButton.LEFT): Promise<BoolResult> {
+  async clickMouse(x: number, y: number, button: MouseButton | string = MouseButton.LEFT): Promise<OperationResult> {
     const buttonStr = typeof button === 'string' ? button : button;
     const validButtons = Object.values(MouseButton);
     if (!validButtons.includes(buttonStr as MouseButton)) {
@@ -121,7 +101,7 @@ export class Computer {
    * }
    * ```
    */
-  async moveMouse(x: number, y: number): Promise<BoolResult> {
+  async moveMouse(x: number, y: number): Promise<OperationResult> {
     const args = { x, y };
     try {
       const result = await this.session.callMcpTool('move_mouse', args);
@@ -162,7 +142,7 @@ export class Computer {
    * }
    * ```
    */
-  async dragMouse(fromX: number, fromY: number, toX: number, toY: number, button: MouseButton | string = MouseButton.LEFT): Promise<BoolResult> {
+  async dragMouse(fromX: number, fromY: number, toX: number, toY: number, button: MouseButton | string = MouseButton.LEFT): Promise<OperationResult> {
     const buttonStr = typeof button === 'string' ? button : button;
     const validButtons = [MouseButton.LEFT, MouseButton.RIGHT, MouseButton.MIDDLE];
     if (!validButtons.includes(buttonStr as MouseButton)) {
@@ -207,7 +187,7 @@ export class Computer {
    * }
    * ```
    */
-  async scroll(x: number, y: number, direction: ScrollDirection | string = ScrollDirection.UP, amount = 1): Promise<BoolResult> {
+  async scroll(x: number, y: number, direction: ScrollDirection | string = ScrollDirection.UP, amount = 1): Promise<OperationResult> {
     const directionStr = typeof direction === 'string' ? direction : direction;
     const validDirections = Object.values(ScrollDirection);
     if (!validDirections.includes(directionStr as ScrollDirection)) {
@@ -249,7 +229,7 @@ export class Computer {
    * }
    * ```
    */
-  async inputText(text: string): Promise<BoolResult> {
+  async inputText(text: string): Promise<OperationResult> {
     const args = { text };
     try {
       const result = await this.session.callMcpTool('input_text', args);
@@ -287,7 +267,7 @@ export class Computer {
    * }
    * ```
    */
-  async pressKeys(keys: string[], hold = false): Promise<BoolResult> {
+  async pressKeys(keys: string[], hold = false): Promise<OperationResult> {
     const args = { keys, hold };
     try {
       const result = await this.session.callMcpTool('press_keys', args);
@@ -324,7 +304,7 @@ export class Computer {
    * }
    * ```
    */
-  async releaseKeys(keys: string[]): Promise<BoolResult> {
+  async releaseKeys(keys: string[]): Promise<OperationResult> {
     const args = { keys };
     try {
       const result = await this.session.callMcpTool('release_keys', args);
@@ -507,7 +487,7 @@ export class Computer {
    * }
    * ```
    */
-  async screenshot(): Promise<ScreenshotResult> {
+  async screenshot(): Promise<OperationResult> {
     try {
       const result = await this.session.callMcpTool('system_screenshot', {});
       
@@ -569,10 +549,7 @@ export class Computer {
       }
 
       const rawWindows = response.data ? JSON.parse(response.data) : [];
-      
-      // Convert snake_case fields to camelCase to match Go SDK behavior
-      const windows = convertWindowList(rawWindows);
-      logInfo('listRootWindows', `Windows: ${JSON.stringify(windows)}`);
+      const windows = convertWindowData(rawWindows);
       return {
         requestId: response.requestId,
         success: true,
@@ -614,16 +591,14 @@ export class Computer {
         return {
           requestId: response.requestId,
           success: false,
-          window: null,
+          window: [],
           errorMessage: response.errorMessage,
         };
       }
 
       const rawWindow = response.data ? JSON.parse(response.data) : null;
-      
       // Convert snake_case fields to camelCase to match Go SDK behavior
       const window = convertWindowData(rawWindow);
-      logInfo('getActiveWindow', `Window: ${JSON.stringify(window)}`);
       return {
         requestId: response.requestId,
         success: true,
@@ -633,7 +608,7 @@ export class Computer {
       return {
         requestId: '',
         success: false,
-        window: null,
+        window: [],
         errorMessage: `Failed to get active window: ${error}`,
       };
     }
@@ -957,8 +932,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getInstalledApps(startMenu = true, desktop = false, ignoreSystemApps = true): Promise<any> {
+  async getInstalledApps(startMenu = true, desktop = false, ignoreSystemApps = true): Promise<InstalledAppListResult> {
     try {
       const args = {
         start_menu: startMenu,
@@ -979,7 +953,6 @@ export class Computer {
 
       const rawApps = response.data ? JSON.parse(response.data) : [];
       const apps = convertObjectKeys(rawApps);
-      logInfo('Found %d new apps', apps);
       return {
         requestId: response.requestId,
         success: true,
@@ -1014,8 +987,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async startApp(startCmd: string, workDirectory = "", activity = ""): Promise<any> {
+  async startApp(startCmd: string, workDirectory = "", activity = ""): Promise<ProcessListResult> {
     try {
       const args: Record<string, string> = { start_cmd: startCmd };
       if (workDirectory) args.work_directory = workDirectory;
@@ -1034,7 +1006,6 @@ export class Computer {
 
       const rawProcesses = response.data ? JSON.parse(response.data) : [];
       const processes = convertObjectKeys(rawProcesses);
-      logInfo('Found %d processes', processes);
       return {
         requestId: response.requestId,
         success: true,
@@ -1067,8 +1038,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async stopAppByPName(pname: string): Promise<any> {
+  async stopAppByPName(pname: string): Promise<WindowBoolResult> {
     try {
       const args = { pname };
       const response = await this.session.callMcpTool('stop_app_by_pname', args);
@@ -1105,8 +1075,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async stopAppByPID(pid: number): Promise<any> {
+  async stopAppByPID(pid: number): Promise<WindowBoolResult> {
     try {
       const args = { pid };
       const response = await this.session.callMcpTool('stop_app_by_pid', args);
@@ -1142,8 +1111,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async stopAppByCmd(cmd: string): Promise<any> {
+  async stopAppByCmd(cmd: string): Promise<WindowBoolResult> {
     try {
       const args = { stop_cmd: cmd };
       const response = await this.session.callMcpTool('stop_app_by_cmd', args);
@@ -1178,8 +1146,7 @@ export class Computer {
    * }
    * ```
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async listVisibleApps(): Promise<any> {
+  async listVisibleApps(): Promise<ProcessListResult> {
     try {
       const response = await this.session.callMcpTool('list_visible_apps', {});
 
@@ -1194,7 +1161,6 @@ export class Computer {
 
       const rawProcesses = response.data ? JSON.parse(response.data) : [];
       const processes = convertObjectKeys(rawProcesses);
-      logInfo('Found %d processes', processes);
       return {
         requestId: response.requestId,
         success: true,
