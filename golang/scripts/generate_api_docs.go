@@ -176,12 +176,18 @@ var mappings = []docMapping{
 		},
 	},
 	{
-		Target:          "common-features/basics/session-params.md",
-		Title:           "Session Params",
-		PackagePath:     "pkg/agentbay",
-		ModuleName:      "session-params",
-		IncludeAllTypes: true,
-		IncludeAllFuncs: true,
+		Target:      "common-features/basics/session-params.md",
+		Title:       "Session Params",
+		PackagePath: "pkg/agentbay",
+		ModuleName:  "session-params",
+		TypeNames: []string{
+			"CreateSessionParams",
+			"ListSessionParams",
+		},
+		FuncNames: []string{
+			"NewCreateSessionParams",
+			"NewListSessionParams",
+		},
 	},
 	{
 		Target:      "common-features/basics/context-manager.md",
@@ -295,12 +301,17 @@ var mappings = []docMapping{
 		IncludeAllFuncs: true,
 	},
 	{
-		Target:          "mobile-use/mobile-simulate.md",
-		Title:           "Mobile Simulate",
-		PackagePath:     "pkg/agentbay",
-		ModuleName:      "mobile-simulate",
-		IncludeAllTypes: true,
-		IncludeAllFuncs: true,
+		Target:      "mobile-use/mobile-simulate.md",
+		Title:       "Mobile Simulate",
+		PackagePath: "pkg/agentbay",
+		ModuleName:  "mobile-simulate",
+		TypeNames: []string{
+			"MobileSimulateService",
+			"MobileSimulateUploadResult",
+		},
+		FuncNames: []string{
+			"NewMobileSimulateService",
+		},
 	},
 }
 
