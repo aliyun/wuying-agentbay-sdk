@@ -12,7 +12,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# NOTE:
+# Use an anchored pattern so we don't accidentally ignore source directories named "lib/"
+# under examples (e.g. cookbook/*) or other packages.
+/lib/
 lib64/
 parts/
 sdist/

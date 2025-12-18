@@ -15,6 +15,105 @@ interface ExecuteResult {
   chartUrls?: string[];
 }
 
+type ParsedRunCodeRich = {
+  text: string;
+  imageDataUris: string[];
+};
+
+function parseRunCodeRichOutput(runResult: any): ParsedRunCodeRich {
+  const imageDataUris: string[] = [];
+
+  // Newer SDKs may expose structured results directly.
+  if (Array.isArray(runResult?.results)) {
+    for (const res of runResult.results) {
+      if (res?.png && typeof res.png === 'string' && res.png.length > 0) {
+        imageDataUris.push(`data:image/png;base64,${res.png}`);
+      }
+      if (res?.jpeg && typeof res.jpeg === 'string' && res.jpeg.length > 0) {
+        imageDataUris.push(`data:image/jpeg;base64,${res.jpeg}`);
+      }
+    }
+
+    const textCandidate =
+      runResult?.result && typeof runResult.result === 'string' ? runResult.result : '';
+    return { text: textCandidate, imageDataUris };
+  }
+
+  // SDK v0.12.0 returns raw backend JSON as a string in `result`.
+  const rawText = runResult?.result && typeof runResult.result === 'string' ? runResult.result : '';
+  if (!rawText) {
+    return { text: '', imageDataUris: [] };
+  }
+
+  let raw: any;
+  try {
+    raw = JSON.parse(rawText);
+    if (typeof raw === 'string') {
+      try {
+        raw = JSON.parse(raw);
+      } catch {
+        // keep as string
+      }
+    }
+  } catch {
+    return { text: rawText, imageDataUris: [] };
+  }
+
+  const stdout: string[] = Array.isArray(raw?.stdout) ? raw.stdout : [];
+  const stderr: string[] = Array.isArray(raw?.stderr) ? raw.stderr : [];
+  const outputText = stdout.length > 0 ? stdout.join('') : stderr.length > 0 ? stderr.join('') : '';
+
+  const flattenedResultItems: any[] = [];
+  if (Array.isArray(raw?.result)) {
+    for (const entry of raw.result) {
+      if (Array.isArray(entry)) {
+        flattenedResultItems.push(...entry);
+      } else {
+        flattenedResultItems.push(entry);
+      }
+    }
+  }
+
+  let mainText = outputText;
+  for (const itemRaw of flattenedResultItems) {
+    let itemMap: any = itemRaw;
+    try {
+      if (typeof itemMap === 'string') {
+        itemMap = JSON.parse(itemMap);
+        if (typeof itemMap === 'string') {
+          itemMap = JSON.parse(itemMap);
+        }
+      }
+    } catch {
+      continue;
+    }
+
+    if (itemMap && typeof itemMap === 'object') {
+      const png = itemMap['image/png'];
+      if (typeof png === 'string' && png.length > 0) {
+        imageDataUris.push(`data:image/png;base64,${png}`);
+      }
+
+      const jpeg = itemMap['image/jpeg'];
+      if (typeof jpeg === 'string' && jpeg.length > 0) {
+        imageDataUris.push(`data:image/jpeg;base64,${jpeg}`);
+      }
+
+      const plain = itemMap['text/plain'];
+      const isMain = itemMap.isMainResult === true || itemMap.is_main_result === true;
+      if (!mainText && typeof plain === 'string' && plain.length > 0) {
+        mainText = plain;
+      }
+      if (isMain && typeof plain === 'string' && plain.length > 0) {
+        mainText = plain;
+      }
+    }
+  }
+
+  // If backend didn't produce a good text output, fall back to the raw JSON string.
+  return { text: mainText || rawText, imageDataUris };
+}
+
 export async function executeCode(clientSessionId: string, code: string): Promise<ExecuteResult> {
   const logs: string[] = [];
   logs.push('🚀 Initializing cloud environment...');
@@ -68,57 +167,14 @@ export async function executeCode(clientSessionId: string, code: string): Promis
       };
     }
 
-    const output = runResult.result || '';
+    const parsed = parseRunCodeRichOutput(runResult);
+    const output = parsed.text || '';
     logs.push('✅ Code executed successfully.');
 
     // 3. Check for generated charts
-    const chartUrls: string[] = [];
-    const chartPath = '/tmp/chart.png';
-    
-    // Try to read the chart file
-    const fileResult = await session.fileSystem.readFile(chartPath);
-    if (fileResult.success) {
-      logs.push('📊 Chart generated, downloading...');
-      // Assuming fileResult.content is text (as per SDK default?), 
-      // but for images we might need base64.
-      // The SDK readFile documentation says: "Read file content."
-      // If it's binary, the SDK might return it as string? 
-      // Let's assume the SDK handles base64 encoding for binary files or we check how to get binary.
-      // Looking at SDK source or docs is safer.
-      // Based on common patterns in this SDK, it likely returns content. 
-      // If it's an image, we hope it's base64 encoded or we can request it.
-      // But `readFile` usually returns string.
-      
-      // Let's assume for now we can get base64 if we use a specific API or the content is just raw string we can encode?
-      // Actually, standard `readFile` in this SDK (from earlier grep) returned `content`. 
-      // If `code_latest` python environment saves to `/tmp/chart.png`, 
-      // we might need to read it as base64.
-      // Hack: In python code, we can force base64 output if we are unsure about `readFile` binary support.
-      // But the prompt says "use plt.savefig('/tmp/chart.png')".
-      // I'll assume readFile works or try to read it.
-      
-      // Wait, if I cannot be sure about readFile binary support, 
-      // I can add a post-processing step in Python to base64 encode the image to a text file, 
-      // then read the text file. This is safer.
-      
-      const base64Code = `
-import base64
-import os
-if os.path.exists('${chartPath}'):
-    with open('${chartPath}', 'rb') as f:
-        print(base64.b64encode(f.read()).decode('utf-8'))
-else:
-    print("")
-`;
-      const base64Result = await session.code.runCode(base64Code, 'python');
-      if (base64Result.success && base64Result.result && base64Result.result.trim().length > 0) {
-        const base64Str = base64Result.result.trim();
-        // Determine mime type (png)
-        chartUrls.push(`data:image/png;base64,${base64Str}`);
-        
-        // Cleanup chart file
-        await session.command.executeCommand(`rm ${chartPath}`);
-      }
+    const chartUrls: string[] = parsed.imageDataUris;
+    if (chartUrls.length > 0) {
+      logs.push(`📊 Captured ${chartUrls.length} image output(s) from runCode rich result.`);
     }
 
     return {

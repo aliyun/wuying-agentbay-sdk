@@ -16,7 +16,7 @@ const TOOLS = [
     function: {
       name: 'execute_python',
       description:
-        'Execute Python code in a secure AgentBay cloud environment (code_latest image). The environment has the following packages PRE-INSTALLED and READY TO USE: pandas, numpy, matplotlib, seaborn, scikit-learn. You can directly import and use these packages without installation. Example for matplotlib: "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.savefig(\'/tmp/chart.png\')". Always try to execute the code - the packages ARE available.',
+        'Execute Python code in a secure AgentBay cloud environment (code_latest image). The environment has the following packages PRE-INSTALLED and READY TO USE: pandas, numpy, matplotlib, seaborn, scikit-learn. You can directly import and use these packages without installation. Example for matplotlib: "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.show()". Always try to execute the code - the packages ARE available.',
       parameters: {
         type: 'object',
         properties: {
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         const apiMessages = [
           {
             role: 'system',
-            content: 'You are a helpful coding assistant. You have access to a Python execution environment with pre-installed packages: pandas, numpy, matplotlib, seaborn, scikit-learn. These packages are ALWAYS available - do not refuse to use them. When creating matplotlib charts, use plt.savefig(\'/tmp/chart.png\') to save them.',
+            content: 'You are a helpful coding assistant. You have access to a Python execution environment with pre-installed packages: pandas, numpy, matplotlib, seaborn, scikit-learn. These packages are ALWAYS available - do not refuse to use them. When creating matplotlib charts, use plt.show() to display them.',
           },
           ...messages.map((msg: ChatMessage) => ({
             role: msg.role,
