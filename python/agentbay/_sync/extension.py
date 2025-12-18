@@ -128,18 +128,18 @@ class ExtensionsService:
     extensions_service = ExtensionsService(agent_bay, "browser_extensions")
 
     # Use the service immediately
-    extension = await extensions_service.create("/path/to/plugin.zip")
+    extension = extensions_service.create("/path/to/plugin.zip")
     ```
 
     **Integration with ExtensionOption (Simplified)**:
     ```python
     # Create extensions and configure for browser sessions
     extensions_service = ExtensionsService(agent_bay, "my_extensions")
-    ext1 = await extensions_service.create("/path/to/ext1.zip")
-    ext2 = await extensions_service.create("/path/to/ext2.zip")
+    ext1 = extensions_service.create("/path/to/ext1.zip")
+    ext2 = extensions_service.create("/path/to/ext2.zip")
 
     # Create extension option for browser integration (no context_id needed!)
-    ext_option = await extensions_service.create_extension_option([ext1.id, ext2.id])
+    ext_option = extensions_service.create_extension_option([ext1.id, ext2.id])
 
     # Use with BrowserContext for session creation
     browser_context = BrowserContext(
@@ -269,7 +269,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay, "my-extensions")
-            extensions = await extensions_service.list()
+            extensions = extensions_service.list()
             print(f"Found {len(extensions)} extensions")
             ```
         """
@@ -324,7 +324,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay, "my-extensions")
-            extension = await extensions_service.create("/path/to/extension.zip")
+            extension = extensions_service.create("/path/to/extension.zip")
             print(f"Created extension: {extension.id}")
             ```
         """
@@ -370,7 +370,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay, "my-extensions")
-            updated = await extensions_service.update("ext_abc123.zip", "/path/to/new_version.zip")
+            updated = extensions_service.update("ext_abc123.zip", "/path/to/new_version.zip")
             print(f"Updated extension: {updated.id}")
             ```
         """
@@ -432,7 +432,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay)
-            success = await extensions_service.cleanup()
+            success = extensions_service.cleanup()
             print(f"Cleanup success: {success}")
             ```
         """
@@ -471,7 +471,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay, "my-extensions")
-            success = await extensions_service.delete("ext_abc123.zip")
+            success = extensions_service.delete("ext_abc123.zip")
             print(f"Delete success: {success}")
             ```
         """
@@ -511,7 +511,7 @@ class ExtensionsService:
         Example:
             ```python
             extensions_service = ExtensionsService(agent_bay, "my-extensions")
-            ext_option = await extensions_service.create_extension_option(["ext1.zip", "ext2.zip"])
+            ext_option = extensions_service.create_extension_option(["ext1.zip", "ext2.zip"])
             print(f"Extension option: {ext_option}")
             ```
         """

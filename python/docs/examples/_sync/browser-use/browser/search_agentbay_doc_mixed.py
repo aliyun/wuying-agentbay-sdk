@@ -64,8 +64,8 @@ def main():
             agent.act(ActOptions(action="滚动页面到底部"), page=new_page)
 
             # 方式二： 也可不传page参数， 因上一步动作由Agent发起，Agent默认将焦点切到新打开的页面
-            # await agent.act(ActOptions(action="点击'帮助文档'"))
-            # await agent.act(ActOptions(action="滚动页面到底部"))
+            # agent.act(ActOptions(action="点击'帮助文档'"))
+            # agent.act(ActOptions(action="滚动页面到底部"))
 
             playwright_browser.close()
     finally:

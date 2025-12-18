@@ -155,8 +155,8 @@ Status: Files created successfully
         # Step 5: Verify persistent data in second session
         print("\n🔍 Step 5: Verifying persistent data in second session...")
         
-        # Note: await agent_bay.create() already waits for context synchronization to complete
-        print("✅ Context synchronization completed (handled by await agent_bay.create())")
+        # Note: agent_bay.create() already waits for context synchronization to complete
+        print("✅ Context synchronization completed (handled by agent_bay.create())")
         
         # Check if files exist
         files_to_check = [

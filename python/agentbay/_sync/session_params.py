@@ -345,9 +345,8 @@ class CreateSessionParams:
         self.browser_context = browser_context
         self.is_vpc = is_vpc if is_vpc is not None else False
         self.policy_id = policy_id
-        self.enable_browser_replay = (
-            enable_browser_replay if enable_browser_replay is not None else False
-        )
+        # Keep None if not provided to use default behavior (enabled by default)
+        self.enable_browser_replay = enable_browser_replay
         self.extra_configs = extra_configs
         self.framework = framework or ""
 

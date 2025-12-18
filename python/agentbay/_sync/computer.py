@@ -78,10 +78,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.click_mouse(100, 200)
-            await session.computer.click_mouse(300, 400, MouseButton.RIGHT)
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.click_mouse(100, 200)
+            session.computer.click_mouse(300, 400, MouseButton.RIGHT)
+            session.delete()
             ```
 
         Note:
@@ -139,11 +139,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.move_mouse(500, 300)
-            position = await session.computer.get_cursor_position()
+            session = agent_bay.create().session
+            session.computer.move_mouse(500, 300)
+            position = session.computer.get_cursor_position()
             print(f"Cursor at: {position.data}")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -209,10 +209,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.drag_mouse(100, 100, 300, 300)
-            await session.computer.drag_mouse(200, 200, 400, 400, MouseButton.RIGHT)
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.drag_mouse(100, 100, 300, 300)
+            session.computer.drag_mouse(200, 200, 400, 400, MouseButton.RIGHT)
+            session.delete()
             ```
 
         Note:
@@ -289,10 +289,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.scroll(500, 500, ScrollDirection.DOWN, 3)
-            await session.computer.scroll(500, 500, ScrollDirection.UP, 2)
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.scroll(500, 500, ScrollDirection.DOWN, 3)
+            session.computer.scroll(500, 500, ScrollDirection.UP, 2)
+            session.delete()
             ```
 
         Note:
@@ -349,11 +349,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.move_mouse(800, 600)
-            position = await session.computer.get_cursor_position()
+            session = agent_bay.create().session
+            session.computer.move_mouse(800, 600)
+            position = session.computer.get_cursor_position()
             print(f"Cursor is at x={position.data['x']}, y={position.data['y']}")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -403,10 +403,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.click_mouse(500, 300)
-            await session.computer.input_text("Hello, World!")
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.click_mouse(500, 300)
+            session.computer.input_text("Hello, World!")
+            session.delete()
             ```
 
         Note:
@@ -456,10 +456,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.press_keys(["Ctrl", "c"])
-            await session.computer.press_keys(["Ctrl", "v"])
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.press_keys(["Ctrl", "c"])
+            session.computer.press_keys(["Ctrl", "v"])
+            session.delete()
             ```
 
         Note:
@@ -509,11 +509,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.press_keys(["Shift"], hold=True)
-            await session.computer.input_text("hello")
-            await session.computer.release_keys(["Shift"])
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.press_keys(["Shift"], hold=True)
+            session.computer.input_text("hello")
+            session.computer.release_keys(["Shift"])
+            session.delete()
             ```
 
         Note:
@@ -562,10 +562,13 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            size = await session.computer.get_screen_size()
-            print(f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}")
-            await session.delete()
+            result = agent_bay.create()
+            session = result.session
+            size = session.computer.get_screen_size()
+            print(
+                f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}"
+            )
+            session.delete()
             ```
 
         Note:
@@ -588,10 +591,22 @@ class Computer(BaseService):
                     error_message=result.error_message,
                 )
 
+            data = result.data
+            if isinstance(data, str) and data:
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as e:
+                    return OperationResult(
+                        request_id=result.request_id,
+                        success=False,
+                        data=None,
+                        error_message=f"Failed to parse screen size JSON: {e}",
+                    )
+
             return OperationResult(
                 request_id=result.request_id,
                 success=True,
-                data=result.data,
+                data=data,
                 error_message="",
             )
         except Exception as e:
@@ -612,10 +627,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            screenshot = await session.computer.screenshot()
+            session = agent_bay.create().session
+            screenshot = session.computer.screenshot()
             print(f"Screenshot URL: {screenshot.data}")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -666,11 +681,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            windows = await session.computer.list_root_windows()
+            session = agent_bay.create().session
+            windows = session.computer.list_root_windows()
             for window in windows.windows:
                 print(f"Window: {window.title}, ID: {window.window_id}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -726,10 +741,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             print(f"Active window: {active.window.title}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -784,11 +799,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            windows = await session.computer.list_root_windows()
+            session = agent_bay.create().session
+            windows = session.computer.list_root_windows()
             if windows.windows:
-                await session.computer.activate_window(windows.windows[0].window_id)
-            await session.delete()
+                session.computer.activate_window(windows.windows[0].window_id)
+            session.delete()
             ```
 
         Note:
@@ -837,11 +852,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            windows = await session.computer.list_root_windows()
+            session = agent_bay.create().session
+            windows = session.computer.list_root_windows()
             if windows.windows:
-                await session.computer.close_window(windows.windows[0].window_id)
-            await session.delete()
+                session.computer.close_window(windows.windows[0].window_id)
+            session.delete()
             ```
 
         Note:
@@ -890,11 +905,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             if active.window:
-                await session.computer.maximize_window(active.window.window_id)
-            await session.delete()
+                session.computer.maximize_window(active.window.window_id)
+            session.delete()
             ```
 
         Note:
@@ -943,11 +958,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             if active.window:
-                await session.computer.minimize_window(active.window.window_id)
-            await session.delete()
+                session.computer.minimize_window(active.window.window_id)
+            session.delete()
             ```
 
         Note:
@@ -996,13 +1011,13 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             if active.window:
                 wid = active.window.window_id
-                await session.computer.minimize_window(wid)
-                await session.computer.restore_window(wid)
-            await session.delete()
+                session.computer.minimize_window(wid)
+                session.computer.restore_window(wid)
+            session.delete()
             ```
 
         Note:
@@ -1055,11 +1070,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             if active.window:
-                await session.computer.resize_window(active.window.window_id, 800, 600)
-            await session.delete()
+                session.computer.resize_window(active.window.window_id, 800, 600)
+            session.delete()
             ```
 
         Note:
@@ -1108,11 +1123,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            active = await session.computer.get_active_window()
+            session = agent_bay.create().session
+            active = session.computer.get_active_window()
             if active.window:
-                await session.computer.fullscreen_window(active.window.window_id)
-            await session.delete()
+                session.computer.fullscreen_window(active.window.window_id)
+            session.delete()
             ```
 
         Note:
@@ -1162,10 +1177,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.focus_mode(True)
-            await session.computer.focus_mode(False)
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.focus_mode(True)
+            session.computer.focus_mode(False)
+            session.delete()
             ```
 
         Note:
@@ -1222,11 +1237,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            apps = await session.computer.get_installed_apps()
+            session = agent_bay.create().session
+            apps = session.computer.get_installed_apps()
             for app in apps.data:
                 print(f"{app.name}: {app.start_cmd}")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -1292,10 +1307,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            processes = await session.computer.start_app("notepad.exe")
+            session = agent_bay.create().session
+            processes = session.computer.start_app("notepad.exe")
             print(f"Started {len(processes.data)} process(es)")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -1357,11 +1372,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            apps = await session.computer.list_visible_apps()
+            session = agent_bay.create().session
+            apps = session.computer.list_visible_apps()
             for app in apps.data:
                 print(f"App: {app.pname}, PID: {app.pid}")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -1415,10 +1430,10 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.computer.start_app("notepad.exe")
-            result = await session.computer.stop_app_by_pname("notepad.exe")
-            await session.delete()
+            session = agent_bay.create().session
+            session.computer.start_app("notepad.exe")
+            result = session.computer.stop_app_by_pname("notepad.exe")
+            session.delete()
             ```
 
         Note:
@@ -1454,11 +1469,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            processes = await session.computer.start_app("notepad.exe")
+            session = agent_bay.create().session
+            processes = session.computer.start_app("notepad.exe")
             pid = processes.data[0].pid
-            result = await session.computer.stop_app_by_pid(pid)
-            await session.delete()
+            result = session.computer.stop_app_by_pid(pid)
+            session.delete()
             ```
 
         Note:
@@ -1494,11 +1509,11 @@ class Computer(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            apps = await session.computer.get_installed_apps()
+            session = agent_bay.create().session
+            apps = session.computer.get_installed_apps()
             if apps.data and apps.data[0].stop_cmd:
-                result = await session.computer.stop_app_by_cmd(apps.data[0].stop_cmd)
-            await session.delete()
+                result = session.computer.stop_app_by_cmd(apps.data[0].stop_cmd)
+            session.delete()
             ```
 
         Note:

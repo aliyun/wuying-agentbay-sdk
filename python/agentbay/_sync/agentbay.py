@@ -359,11 +359,11 @@ class AgentBay:
 
         Example:
             ```python
-            result = await agent_bay.create()
+            result = agent_bay.create()
             session = result.session
-            info_result = await session.info()
+            info_result = session.info()
             print(f"Session ID: {info_result.session_id}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:

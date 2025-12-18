@@ -41,7 +41,7 @@ class BrowserFingerprintGenerator:
 
         Example:
             generator = AsyncBrowserFingerprintGenerator(headless=True)
-            fingerprint = await generator.generate_fingerprint()
+            fingerprint = generator.generate_fingerprint()
             if fingerprint:
                 print(fingerprint.headers.get("user-agent"))
         """
@@ -101,7 +101,7 @@ class BrowserFingerprintGenerator:
 
         Example:
             generator = AsyncBrowserFingerprintGenerator(use_chrome_channel=False)
-            success = await generator.generate_fingerprint_to_file("browser_fp.json")
+            success = generator.generate_fingerprint_to_file("browser_fp.json")
             print(f"Saved fingerprint: {success}")
         """
         try:
@@ -196,7 +196,7 @@ class BrowserFingerprintGenerator:
             async function getBatteryInfo() {
                 try {
                     if ('getBattery' in navigator) {
-                        const battery = await navigator.getBattery();
+                        const battery = navigator.getBattery();
                         return {
                             charging: battery.charging,
                             chargingTime: battery.chargingTime,
@@ -243,7 +243,7 @@ class BrowserFingerprintGenerator:
             async function getMultimediaDevices() {
                 try {
                     if ('mediaDevices' in navigator && 'enumerateDevices' in navigator.mediaDevices) {
-                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const devices = navigator.mediaDevices.enumerateDevices();
                         const speakers = [];
                         const micros = [];
                         const webcams = [];
@@ -329,10 +329,10 @@ class BrowserFingerprintGenerator:
             }
             
             // Get battery info
-            const batteryInfo = await getBatteryInfo();
+            const batteryInfo = getBatteryInfo();
             
             // Get multimedia devices
-            const multimediaDevices = await getMultimediaDevices();
+            const multimediaDevices = getMultimediaDevices();
             
             // Build the complete fingerprint object
             const fingerprint = {

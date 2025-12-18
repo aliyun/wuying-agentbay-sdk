@@ -37,7 +37,7 @@ def run_single_task(
         )
 
         result = task_module.run(agent, _logger, task_config)
-        # result = await agent.run_task(task_module, _logger, task_config)
+        # result = agent.run_task(task_module, _logger, task_config)
 
         status = "✅ Passed" if result.get("_success") else "❌ Failed"
         _logger.info(f"{status} - Task: {task_name}")

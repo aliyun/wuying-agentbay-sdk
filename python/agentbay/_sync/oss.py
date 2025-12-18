@@ -142,7 +142,7 @@ class Oss(BaseService):
         Args:
             access_key_id: The Access Key ID from STS temporary credentials.
             access_key_secret: The Access Key Secret from STS temporary credentials.
-            securityToken: Security token from STS temporary credentials. Required for security.
+            security_token: Security token from STS temporary credentials. Required for security.
             endpoint: The OSS service endpoint. If not specified, the default is used.
             region: The OSS region. If not specified, the default is used.
 
@@ -152,13 +152,13 @@ class Oss(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.oss.env_init(
+            session = agent_bay.create().session
+            session.oss.env_init(
                 access_key_id="your_sts_access_key_id",
                 access_key_secret="your_sts_access_key_secret",
                 security_token="your_sts_security_token"
             )
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -231,15 +231,15 @@ class Oss(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.oss.env_init(
+            session = agent_bay.create().session
+            session.oss.env_init(
                 access_key_id="your_access_key_id",
                 access_key_secret="your_access_key_secret",
-                securityToken="your_sts_security_token",
+                security_token="your_sts_security_token",
             )
-            result = await session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
+            result = session.oss.upload("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Upload result: {result.content}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -283,13 +283,13 @@ class Oss(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            result = await session.oss.upload_anonymous(
+            session = agent_bay.create().session
+            result = session.oss.upload_anonymous(
                 "https://example.com/upload",
                 "/local/path/file.txt"
             )
             print(f"Upload result: {result.content}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -338,15 +338,15 @@ class Oss(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            await session.oss.env_init(
+            session = agent_bay.create().session
+            session.oss.env_init(
                 access_key_id="your_access_key_id",
                 access_key_secret="your_access_key_secret",
-                securityToken="your_sts_security_token",
+                security_token="your_sts_security_token",
             )
-            result = await session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
+            result = session.oss.download("my-bucket", "file.txt", "/local/path/file.txt")
             print(f"Download result: {result.content}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -390,13 +390,13 @@ class Oss(BaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
-            result = await session.oss.download_anonymous(
+            session = agent_bay.create().session
+            result = session.oss.download_anonymous(
                 "https://example.com/file.txt",
                 "/local/path/file.txt"
             )
             print(f"Download result: {result.content}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:

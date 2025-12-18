@@ -662,8 +662,8 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(params)).session
-            context_path = await session.file_system.get_file_transfer_context_path()
+            session = (agent_bay.create(params)).session
+            context_path = session.file_system.get_file_transfer_context_path()
             if context_path:
                 print(f"Context path: {context_path}")
             ```
@@ -706,10 +706,10 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            create_result = await session.file_system.create_directory("/tmp/mydir")
-            nested_result = await session.file_system.create_directory("/tmp/parent/child/grandchild")
-            await session.delete()
+            session = (agent_bay.create()).session
+            create_result = session.file_system.create_directory("/tmp/mydir")
+            nested_result = session.file_system.create_directory("/tmp/parent/child/grandchild")
+            session.delete()
             ```
         """
         args = {"path": path}
@@ -750,11 +750,11 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.write_file("/tmp/config.txt", "DEBUG=false\\nLOG_LEVEL=info")
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/config.txt", "DEBUG=false\\nLOG_LEVEL=info")
             edits = [{"oldText": "false", "newText": "true"}]
-            edit_result = await session.file_system.edit_file("/tmp/config.txt", edits)
-            await session.delete()
+            edit_result = session.file_system.edit_file("/tmp/config.txt", edits)
+            session.delete()
             ```
         """
         args = {"path": path, "edits": edits, "dryRun": dry_run}
@@ -790,11 +790,11 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.write_file("/tmp/test.txt", "Sample content")
-            info_result = await session.file_system.get_file_info("/tmp/test.txt")
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/test.txt", "Sample content")
+            info_result = session.file_system.get_file_info("/tmp/test.txt")
             print(info_result.file_info)
-            await session.delete()
+            session.delete()
             ```
         """
 
@@ -886,12 +886,12 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.create_directory("/tmp/testdir")
-            await session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
-            list_result = await session.file_system.list_directory("/tmp/testdir")
+            session = (agent_bay.create()).session
+            session.file_system.create_directory("/tmp/testdir")
+            session.file_system.write_file("/tmp/testdir/file1.txt", "Content 1")
+            list_result = session.file_system.list_directory("/tmp/testdir")
             print(f"Found {len(list_result.entries)} entries")
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -998,11 +998,11 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.write_file("/tmp/original.txt", "Test content")
-            move_result = await session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
-            read_result = await session.file_system.read_file("/tmp/moved.txt")
-            await session.delete()
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/original.txt", "Test content")
+            move_result = session.file_system.move_file("/tmp/original.txt", "/tmp/moved.txt")
+            read_result = session.file_system.read_file("/tmp/moved.txt")
+            session.delete()
             ```
         """
         args = {"source": source, "destination": destination}
@@ -1091,13 +1091,13 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.write_file("/tmp/file1.txt", "Content of file 1")
-            await session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
-            await session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/file1.txt", "Content of file 1")
+            session.file_system.write_file("/tmp/file2.txt", "Content of file 2")
+            session.file_system.write_file("/tmp/file3.txt", "Content of file 3")
             paths = ["/tmp/file1.txt", "/tmp/file2.txt", "/tmp/file3.txt"]
-            read_result = await session.file_system.read_multiple_files(paths)
-            await session.delete()
+            read_result = session.file_system.read_multiple_files(paths)
+            session.delete()
             ```
         """
 
@@ -1212,12 +1212,12 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            await session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
-            await session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
-            await session.file_system.write_file("/tmp/test/other.txt", "text content")
-            search_result = await session.file_system.search_files("/tmp/test", "test_*")
-            await session.delete()
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/test/test_file1.py", "print('hello')")
+            session.file_system.write_file("/tmp/test/test_file2.py", "print('world')")
+            session.file_system.write_file("/tmp/test/other.txt", "text content")
+            search_result = session.file_system.search_files("/tmp/test", "test_*")
+            session.delete()
             ```
         """
         args = {"path": path, "pattern": pattern}
@@ -1322,11 +1322,11 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            write_result = await session.file_system.write_file("/tmp/test.txt", "Hello, World!")
-            read_result = await session.file_system.read_file("/tmp/test.txt")
+            session = (agent_bay.create()).session
+            write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
+            read_result = session.file_system.read_file("/tmp/test.txt")
             print(read_result.content)
-            await session.delete()
+            session.delete()
             ```
 
         Note:
@@ -1428,11 +1428,11 @@ class FileSystem(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create()).session
-            write_result = await session.file_system.write_file("/tmp/test.txt", "Hello, World!")
-            append_result = await session.file_system.write_file("/tmp/test.txt", "\\nNew line", mode="append")
-            read_result = await session.file_system.read_file("/tmp/test.txt")
-            await session.delete()
+            session = (agent_bay.create()).session
+            write_result = session.file_system.write_file("/tmp/test.txt", "Hello, World!")
+            append_result = session.file_system.write_file("/tmp/test.txt", "\\nNew line", mode="append")
+            read_result = session.file_system.read_file("/tmp/test.txt")
+            session.delete()
             ```
 
         Note:
@@ -1513,9 +1513,9 @@ class FileSystem(BaseService):
         Example:
             ```python
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-            session = (await agent_bay.create(params)).session
-            upload_result = await session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
-            await session.delete()
+            session = (agent_bay.create(params)).session
+            upload_result = session.file_system.upload_file("/local/file.txt", "/workspace/file.txt")
+            session.delete()
             ```
         """
         try:
@@ -1572,9 +1572,9 @@ class FileSystem(BaseService):
         Example:
             ```python
             params = CreateSessionParams(context_syncs=[ContextSync(context_id="ctx-xxx", path="/workspace")])
-            session = (await agent_bay.create(params)).session
-            download_result = await session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
-            await session.delete()
+            session = (agent_bay.create(params)).session
+            download_result = session.file_system.download_file("/workspace/file.txt", "/local/file.txt")
+            session.delete()
             ```
         """
 
@@ -1706,13 +1706,13 @@ class FileSystem(BaseService):
             ```python
             def on_changes(events):
                 print(f"Detected {len(events)} changes")
-            session = (await agent_bay.create()).session
-            await session.file_system.create_directory("/tmp/watch_test")
+            session = (agent_bay.create()).session
+            session.file_system.create_directory("/tmp/watch_test")
             monitor_thread = session.file_system.watch_directory("/tmp/watch_test", on_changes)
             monitor_thread.start()
-            await session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
-            await session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
-            await session.delete()
+            session.file_system.write_file("/tmp/watch_test/test1.txt", "content 1")
+            session.file_system.write_file("/tmp/watch_test/test2.txt", "content 2")
+            session.delete()
             ```
         """
 

@@ -247,6 +247,11 @@ def generate_sync():
                     # Fix playwright import
                     content = content.replace("playwright.async_api", "playwright.sync_api")
 
+                    # Docstring/examples cleanup: unasync does not reliably transform docstrings.
+                    # Apply only to generated SDK sync code and sync examples (avoid mutating tests).
+                    if root.startswith(SYNC_DIR) or root.startswith(EXAMPLES_SYNC_DIR):
+                        content = re.sub(r"\bawait\s+", "", content)
+
                     # Custom Replacements
                     # Force replace asyncio.sleep if unasync missed it (common with await removal)
                     content = content.replace("asyncio.sleep", "time.sleep")

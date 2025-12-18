@@ -63,8 +63,8 @@ def main():
         # Demonstrate task status checking (conceptual)
         print("\n4. Task status monitoring pattern...")
         print("In real implementation:")
-        print("  - result = await session.agent.async_execute_task(task)")
-        print("  - status = await session.agent.get_task_status(result.task_id)")
+        print("  - result = session.agent.async_execute_task(task)")
+        print("  - status = session.agent.get_task_status(result.task_id)")
         print("  - Poll until status indicates completion")
 
         print("\n=== Example completed successfully ===")

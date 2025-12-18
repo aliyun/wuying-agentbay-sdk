@@ -44,7 +44,7 @@ def main():
 def context_sync_demo(agent_bay):
     """Context sync demonstration - wait for completion"""
     print("\n🔄 Context Sync Demo")
-    print("📤 This method uses await to wait for sync completion")
+    print("📤 This method uses to wait for sync completion")
     print("⏳ Function waits until sync is complete")
     
     # Create context and session
@@ -104,8 +104,8 @@ def context_sync_demo(agent_bay):
     # Track sync timing
     sync_start_time = time.time()
     
-    # Call context sync with await - wait for completion
-    print("\n📤 Calling await session.context.sync()...")
+    # Call context sync with - wait for completion
+    print("\n📤 Calling session.context.sync()...")
     sync_result = session.context.sync()
     
     sync_duration = time.time() - sync_start_time

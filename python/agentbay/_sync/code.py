@@ -264,10 +264,10 @@ class Code(BaseService):
                 from agentbay import AgentBay, CreateSessionParams
 
                 agent_bay = AgentBay(api_key="your_api_key")
-                result = await agent_bay.create(CreateSessionParams(image_id="code_latest"))
-                code_result = await result.session.code.run_code("print('Hello')", "python")
+                result = agent_bay.create(CreateSessionParams(image_id="code_latest"))
+                code_result = result.session.code.run_code("print('Hello')", "python")
                 print(code_result.result)
-                await result.session.delete()
+                result.session.delete()
         """
         try:
             # Validate language

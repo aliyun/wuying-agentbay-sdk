@@ -388,10 +388,43 @@ class TestBrowserFingerprintIntegration:
 
             page = context.new_page()
             page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = page.evaluate(
-                "() => JSON.parse(document.querySelector('pre').textContent)"
-            )
-            user_agent = response["user-agent"]
+            
+            # Wait for page to load and try different selectors
+            page.wait_for_load_state("networkidle", timeout=30000)
+            
+            # Try to get the response text using different methods
+            response_text = None
+            try:
+                # First try the pre tag
+                response_text = page.evaluate("() => document.querySelector('pre')?.textContent")
+            except Exception:
+                pass
+                
+            if not response_text:
+                try:
+                    # Try getting the body text
+                    response_text = page.evaluate("() => document.body.textContent")
+                except Exception:
+                    pass
+            
+            if not response_text:
+                # Fallback: get page content
+                response_text = page.content()
+                
+            print(f"Response text: {response_text[:200]}...")
+            
+            # Parse JSON from response text
+            import json
+            import re
+            
+            # Try to extract JSON from the response
+            json_match = re.search(r'\{[^}]+\}', response_text)
+            if json_match:
+                response = json.loads(json_match.group())
+                user_agent = response.get("user-agent")
+            else:
+                # If no JSON found, assume the whole response is the user agent
+                user_agent = response_text.strip()
             print(f"Remote user agent: {user_agent}")
             print(
                 f"Local user agent: {fingerprint_format.fingerprint.navigator.userAgent}"
@@ -475,10 +508,43 @@ class TestBrowserFingerprintIntegration:
 
             page = context.new_page()
             page.goto("https://httpbin.org/user-agent", timeout=60000)
-            response = page.evaluate(
-                "() => JSON.parse(document.querySelector('pre').textContent)"
-            )
-            user_agent = response["user-agent"]
+            
+            # Wait for page to load and try different selectors
+            page.wait_for_load_state("networkidle", timeout=30000)
+            
+            # Try to get the response text using different methods
+            response_text = None
+            try:
+                # First try the pre tag
+                response_text = page.evaluate("() => document.querySelector('pre')?.textContent")
+            except Exception:
+                pass
+                
+            if not response_text:
+                try:
+                    # Try getting the body text
+                    response_text = page.evaluate("() => document.body.textContent")
+                except Exception:
+                    pass
+            
+            if not response_text:
+                # Fallback: get page content
+                response_text = page.content()
+                
+            print(f"Response text: {response_text[:200]}...")
+            
+            # Parse JSON from response text
+            import json
+            import re
+            
+            # Try to extract JSON from the response
+            json_match = re.search(r'\{[^}]+\}', response_text)
+            if json_match:
+                response = json.loads(json_match.group())
+                user_agent = response.get("user-agent")
+            else:
+                # If no JSON found, assume the whole response is the user agent
+                user_agent = response_text.strip()
             print(f"Remote user agent: {user_agent}")
             print(
                 f"Expected user agent: {fingerprint_format.fingerprint.navigator.userAgent}"

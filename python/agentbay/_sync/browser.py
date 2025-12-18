@@ -48,14 +48,14 @@ class Browser(BaseService):
 
         Example:
             ```python
-            create_result = await agent_bay.create()
+            create_result = agent_bay.create()
             session = create_result.session
             # Use default options
-            await session.browser.initialize()
+            session.browser.initialize()
             # Or with specific options
             browser_option = BrowserOption(use_stealth=True)
-            await session.browser.initialize(browser_option)
-            await session.delete()
+            session.browser.initialize(browser_option)
+            session.delete()
             ```
         """
         if self.is_initialized():
@@ -165,7 +165,7 @@ class Browser(BaseService):
 
         try:
             # Wait for page to load
-            # await page.wait_for_load_state("networkidle")
+            # page.wait_for_load_state("networkidle")
             page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_load_state("domcontentloaded", timeout=30000)
             # Scroll to load all content (especially for lazy-loaded elements)
@@ -249,13 +249,13 @@ class Browser(BaseService):
 
         Example:
             ```python
-            create_result = await agent_bay.create()
+            create_result = agent_bay.create()
             session = create_result.session
             browser_option = BrowserOption()
-            await session.browser.initialize(browser_option)
-            endpoint_url = await session.browser.get_endpoint_url()
+            session.browser.initialize(browser_option)
+            endpoint_url = session.browser.get_endpoint_url()
             print(f"CDP Endpoint: {endpoint_url}")
-            await session.delete()
+            session.delete()
             ```
         """
         if not self.is_initialized():
@@ -299,13 +299,13 @@ class Browser(BaseService):
 
         Example:
             ```python
-            create_result = await agent_bay.create()
+            create_result = agent_bay.create()
             session = create_result.session
             browser_option = BrowserOption(use_stealth=True)
-            await session.browser.initialize(browser_option)
+            session.browser.initialize(browser_option)
             current_options = session.browser.get_option()
             print(f"Stealth mode: {current_options.use_stealth}")
-            await session.delete()
+            session.delete()
             ```
         """
         return self._option
@@ -319,13 +319,13 @@ class Browser(BaseService):
 
         Example:
             ```python
-            create_result = await agent_bay.create()
+            create_result = agent_bay.create()
             session = create_result.session
             print(f"Initialized: {session.browser.is_initialized()}")
             browser_option = BrowserOption()
-            await session.browser.initialize(browser_option)
+            session.browser.initialize(browser_option)
             print(f"Initialized: {session.browser.is_initialized()}")
-            await session.delete()
+            session.delete()
             ```
         """
         return self._initialized

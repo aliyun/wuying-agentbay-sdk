@@ -275,9 +275,9 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.list()
+            result = agent_bay.context.list()
             params = ContextListParams(max_results=20, next_token=result.next_token)
-            next_result = await agent_bay.context.list(params)
+            next_result = agent_bay.context.list(params)
             ```
         """
         try:
@@ -408,9 +408,9 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="my-context")
-            result = await agent_bay.context.get(name="new-context", create=True)
-            result = await agent_bay.context.get(context_id="ctx-04bdwfj7u22a1s30g")
+            result = agent_bay.context.get(name="my-context")
+            result = agent_bay.context.get(name="new-context", create=True)
+            result = agent_bay.context.get(context_id="ctx-04bdwfj7u22a1s30g")
             ```
 
         Note:
@@ -547,7 +547,7 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.create("my-new-context")
+            result = agent_bay.context.create("my-new-context")
             ```
         """
         return self.get(name, create=True)
@@ -571,9 +571,9 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="old-name")
+            result = agent_bay.context.get(name="old-name")
             result.context.name = "new-name"
-            update_result = await agent_bay.context.update(result.context)
+            update_result = agent_bay.context.update(result.context)
             ```
 
         Note:
@@ -648,8 +648,8 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="my-context")
-            delete_result = await agent_bay.context.delete(result.context)
+            result = agent_bay.context.get(name="my-context")
+            delete_result = agent_bay.context.delete(result.context)
             ```
         """
         try:
@@ -717,8 +717,8 @@ class ContextService:
 
         Example:
             ```python
-            ctx_result = await agent_bay.context.get(name="my-context", create=True)
-            url_result = await agent_bay.context.get_file_download_url(ctx_result.context_id, "/path/to/file.txt")
+            ctx_result = agent_bay.context.get(name="my-context", create=True)
+            url_result = agent_bay.context.get_file_download_url(ctx_result.context_id, "/path/to/file.txt")
             print(url_result.url)
             ```
         """
@@ -781,8 +781,8 @@ class ContextService:
 
         Example:
             ```python
-            ctx_result = await agent_bay.context.get(name="my-context", create=True)
-            url_result = await agent_bay.context.get_file_upload_url(ctx_result.context_id, "/path/to/file.txt")
+            ctx_result = agent_bay.context.get(name="my-context", create=True)
+            url_result = agent_bay.context.get_file_upload_url(ctx_result.context_id, "/path/to/file.txt")
             print(url_result.url)
             ```
         """
@@ -842,8 +842,8 @@ class ContextService:
 
         Example:
             ```python
-            ctx_result = await agent_bay.context.get(name="my-context", create=True)
-            delete_result = await agent_bay.context.delete_file(ctx_result.context_id, "/path/to/file.txt")
+            ctx_result = agent_bay.context.get(name="my-context", create=True)
+            delete_result = agent_bay.context.delete_file(ctx_result.context_id, "/path/to/file.txt")
             ```
         """
         _log_api_call(
@@ -902,8 +902,8 @@ class ContextService:
 
         Example:
             ```python
-            ctx_result = await agent_bay.context.get(name="my-context", create=True)
-            files_result = await agent_bay.context.list_files(ctx_result.context_id, "/")
+            ctx_result = agent_bay.context.get(name="my-context", create=True)
+            files_result = agent_bay.context.list_files(ctx_result.context_id, "/")
             print(f"Found {len(files_result.entries)} files")
             ```
         """
@@ -971,8 +971,8 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="my-context", create=True)
-            clear_result = await agent_bay.context.clear_async(result.context_id)
+            result = agent_bay.context.get(name="my-context", create=True)
+            clear_result = agent_bay.context.clear_async(result.context_id)
             ```
         """
         try:
@@ -1056,9 +1056,9 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="my-context", create=True)
-            await agent_bay.context.clear_async(result.context_id)
-            status_result = await agent_bay.context.get_clear_status(result.context_id)
+            result = agent_bay.context.get(name="my-context", create=True)
+            agent_bay.context.clear_async(result.context_id)
+            status_result = agent_bay.context.get_clear_status(result.context_id)
             print(status_result.status)
             ```
         """
@@ -1162,8 +1162,8 @@ class ContextService:
 
         Example:
             ```python
-            result = await agent_bay.context.get(name="my-context", create=True)
-            clear_result = await agent_bay.context.clear(result.context_id, timeout=60)
+            result = agent_bay.context.get(name="my-context", create=True)
+            clear_result = agent_bay.context.clear(result.context_id, timeout=60)
             ```
         """
         # 1. Asynchronously start the clearing task

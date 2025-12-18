@@ -65,9 +65,9 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.tap(500, 800)
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.tap(500, 800)
+            session.delete()
             ```
 
         See Also:
@@ -123,9 +123,9 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.swipe(100, 1000, 100, 200, duration_ms=500)
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.swipe(100, 1000, 100, 200, duration_ms=500)
+            session.delete()
             ```
         """
         args = {
@@ -172,9 +172,9 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.input_text("Hello Mobile!")
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.input_text("Hello Mobile!")
+            session.delete()
             ```
         """
         args = {"text": text}
@@ -221,9 +221,9 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.send_key(4)  # Press BACK button
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.send_key(4)  # Press BACK button
+            session.delete()
             ```
         """
         args = {"key": key}
@@ -268,10 +268,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            result = await session.mobile.get_clickable_ui_elements()
+            session = (agent_bay.create(image="mobile_latest")).session
+            result = session.mobile.get_clickable_ui_elements()
             print(f"Found {len(result.elements)} clickable elements")
-            await session.delete()
+            session.delete()
             ```
         """
         args = {"timeout_ms": timeout_ms}
@@ -325,10 +325,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            result = await session.mobile.get_all_ui_elements()
+            session = (agent_bay.create(image="mobile_latest")).session
+            result = session.mobile.get_all_ui_elements()
             print(f"Found {len(result.elements)} UI elements")
-            await session.delete()
+            session.delete()
             ```
         """
         args = {"timeout_ms": timeout_ms}
@@ -415,10 +415,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            apps = await session.mobile.get_installed_apps(True, False, True)
+            session = (agent_bay.create(image="mobile_latest")).session
+            apps = session.mobile.get_installed_apps(True, False, True)
             print(f"Found {len(apps.data)} apps")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -479,10 +479,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            processes = await session.mobile.start_app("monkey -p com.android.settings 1")
+            session = (agent_bay.create(image="mobile_latest")).session
+            processes = session.mobile.start_app("monkey -p com.android.settings 1")
             print(f"Started {len(processes.data)} process(es)")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -535,10 +535,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            result = await session.mobile.stop_app_by_cmd("com.android.settings")
+            session = (agent_bay.create(image="mobile_latest")).session
+            result = session.mobile.stop_app_by_cmd("com.android.settings")
             print(f"Stop successful: {result.success}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -564,10 +564,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            result = await session.mobile.screenshot()
+            session = (agent_bay.create(image="mobile_latest")).session
+            result = session.mobile.screenshot()
             print(f"Screenshot URL: {result.data}")
-            await session.delete()
+            session.delete()
             ```
         """
         args = {}
@@ -616,11 +616,11 @@ class Mobile(BaseService):
             ```python
             from agentbay import AgentBay, CreateSessionParams, MobileExtraConfig
             agent_bay = AgentBay(api_key="your_api_key")
-            result = await agent_bay.create(CreateSessionParams(image_id="mobile_latest"))
+            result = agent_bay.create(CreateSessionParams(image_id="mobile_latest"))
             session = result.session
             mobile_config = MobileExtraConfig(lock_resolution=True)
-            await session.mobile.configure(mobile_config)
-            await agent_bay.delete(session)
+            session.mobile.configure(mobile_config)
+            agent_bay.delete(session)
             ```
 
         Note:
@@ -677,10 +677,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.set_resolution_lock(True)
-            await session.mobile.set_resolution_lock(False)
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.set_resolution_lock(True)
+            session.mobile.set_resolution_lock(False)
+            session.delete()
             ```
         """
         self._set_resolution_lock(enable)
@@ -694,10 +694,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
+            session = (agent_bay.create(image="mobile_latest")).session
             whitelist = ["com.android.settings", "com.android.chrome"]
-            await session.mobile.set_app_whitelist(whitelist)
-            await session.delete()
+            session.mobile.set_app_whitelist(whitelist)
+            session.delete()
             ```
 
         Notes:
@@ -719,10 +719,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
+            session = (agent_bay.create(image="mobile_latest")).session
             blacklist = ["com.example.app1", "com.example.app2"]
-            await session.mobile.set_app_blacklist(blacklist)
-            await session.delete()
+            session.mobile.set_app_blacklist(blacklist)
+            session.delete()
             ```
 
         Notes:
@@ -743,10 +743,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
-            await session.mobile.set_navigation_bar_visibility(hide=True)
-            await session.mobile.set_navigation_bar_visibility(hide=False)
-            await session.delete()
+            session = (agent_bay.create(image="mobile_latest")).session
+            session.mobile.set_navigation_bar_visibility(hide=True)
+            session.mobile.set_navigation_bar_visibility(hide=False)
+            session.delete()
             ```
 
         Notes:
@@ -764,10 +764,10 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
+            session = (agent_bay.create(image="mobile_latest")).session
             protected_apps = ["com.android.settings", "com.android.chrome"]
-            await session.mobile.set_uninstall_blacklist(protected_apps)
-            await session.delete()
+            session.mobile.set_uninstall_blacklist(protected_apps)
+            session.delete()
             ```
 
         Notes:
@@ -801,11 +801,11 @@ class Mobile(BaseService):
 
         Example:
             ```python
-            session = (await agent_bay.create(image="mobile_latest")).session
+            session = (agent_bay.create(image="mobile_latest")).session
             adbkey_pub = "your_adb_public_key"
-            adb_result = await session.mobile.get_adb_url(adbkey_pub)
+            adb_result = session.mobile.get_adb_url(adbkey_pub)
             print(f"ADB URL: {adb_result.data}")
-            await session.delete()
+            session.delete()
             ```
         """
         try:
@@ -820,7 +820,7 @@ class Mobile(BaseService):
             # NOTE: We need to use the async version of the client method here, but it's on session.agent_bay.client
             # The session.agent_bay.client is the sync/async client.
             # In async session, session.agent_bay is AgentBay, and client is AsyncClient.
-            # So we should await the method call.
+            # So we should the method call.
 
             request = GetAdbLinkRequest(
                 authorization=f"Bearer {self.session.agent_bay.api_key}",

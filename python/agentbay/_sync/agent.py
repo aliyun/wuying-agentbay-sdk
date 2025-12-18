@@ -70,13 +70,13 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.computer.execute_task("Open Chrome browser")
+                result = session.agent.computer.execute_task("Open Chrome browser")
                 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
-                status = await session.agent.computer.get_task_status(result.task_id)
+                status = session.agent.computer.get_task_status(result.task_id)
                 print(f"Task status: {status.task_status}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -134,11 +134,11 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
+                result = session.agent.computer.execute_task_and_wait("Open Chrome browser", max_try_times=20)
                 print(f"Task result: {result.task_result}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -233,12 +233,12 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
-                status = await session.agent.computer.get_task_status(result.task_id)
+                result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
+                status = session.agent.computer.get_task_status(result.task_id)
                 print(f"Status: {status.task_status}, Action: {status.task_action}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -294,12 +294,12 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
-                terminate_result = await session.agent.computer.terminate_task(result.task_id)
+                result = session.agent.computer.execute_task("Query the weather in Shanghai with Baidu")
+                terminate_result = session.agent.computer.terminate_task(result.task_id)
                 print(f"Terminated: {terminate_result.success}")
-                await session.delete()
+                session.delete()
                 ```
             """
             _logger.info("Terminating task")
@@ -366,12 +366,12 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
                 options:AgentOptions = AgentOptions(use_vision=False, output_schema="")
-                initialize_result = await session.agent.browser.initialize(options)
+                initialize_result = session.agent.browser.initialize(options)
                 print(f"Initialized: {initialize_result.success}")
-                await session.delete()
+                session.delete()
                 ```
             """
             _logger.info("Initialize Browser Use Agent...")
@@ -429,13 +429,13 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
+                result = session.agent.browser.execute_task("Query the weather in Shanghai with Baidu")
                 print(f"Task ID: {result.task_id}, Status: {result.task_status}")
-                status = await session.agent.browser.get_task_status(result.task_id)
+                status = session.agent.browser.get_task_status(result.task_id)
                 print(f"Task status: {status.task_status}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -493,11 +493,11 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
+                result = session.agent.browser.execute_task_and_wait("Query the weather in Shanghai with Baidu", max_try_times=20)
                 print(f"Task result: {result.task_result}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -594,12 +594,12 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.browser.execute_task("Open Chrome browser")
-                status = await session.agent.browser.get_task_status(result.task_id)
+                result = session.agent.browser.execute_task("Open Chrome browser")
+                status = session.agent.browser.get_task_status(result.task_id)
                 print(f"Status: {status.task_status}, Action: {status.task_action}")
-                await session.delete()
+                session.delete()
                 ```
             """
             try:
@@ -657,12 +657,12 @@ class Agent(BaseService):
 
             Example:
                 ```python
-                session_result = await agent_bay.create()
+                session_result = agent_bay.create()
                 session = session_result.session
-                result = await session.agent.browser.execute_task("Open Chrome browser")
-                terminate_result = await session.agent.browser.terminate_task(result.task_id)
+                result = session.agent.browser.execute_task("Open Chrome browser")
+                terminate_result = session.agent.browser.terminate_task(result.task_id)
                 print(f"Terminated: {terminate_result.success}")
-                await session.delete()
+                session.delete()
                 ```
             """
             _logger.info("Terminating task")

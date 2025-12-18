@@ -338,7 +338,7 @@ class LocalSession(Session):
         """
         Async stub for local mode. Keeps call signature compatible with the async
         browser agent, which awaits session.call_mcp_tool. We return a real
-        OperationResult instance to avoid 'await OperationResult' errors.
+        OperationResult instance to avoid 'OperationResult' errors.
         """
         return self.browser.agent._call_mcp_tool_async(name, args)
 

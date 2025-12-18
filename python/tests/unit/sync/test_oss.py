@@ -1,11 +1,12 @@
 import unittest
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, MagicMock
 
 from agentbay import McpToolResult, OperationResult
 from agentbay import Oss
 
-class TestOss(unittest.TestCase):
+
+class TestAsyncOss(unittest.TestCase):
     def setUp(self):
         self.mock_session = MagicMock()
         self.session = self.mock_session  # Add session reference
@@ -56,10 +57,10 @@ class TestOss(unittest.TestCase):
         self.assertEqual(result.client_config, {"foo": "bar"})
 
     @pytest.mark.sync
-
-
     def test_env_init_parse_error(self):
         # Successful call but with invalid JSON content
+        # The current implementation doesn't parse JSON, so this will succeed
+        # and return the invalid JSON string as client_config
         mock_result = McpToolResult(
             request_id="test-request-id",
             success=True,
@@ -256,5 +257,7 @@ class TestOss(unittest.TestCase):
         self.assertEqual(result.request_id, "test-request-id")
         self.assertEqual(result.content, "")
         self.assertEqual(result.error_message, "Failed to download anonymously")
+
+
 if __name__ == "__main__":
     unittest.main()

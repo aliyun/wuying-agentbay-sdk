@@ -328,7 +328,9 @@ class TestComputer:
         mock_result = Mock()
         mock_result.success = True
         mock_result.request_id = "test-123"
-        mock_result.data = {"width": 1920, "height": 1080, "dpiScalingFactor": 1.0}
+        # Session.call_mcp_tool returns McpToolResult.data as string (content[0].text),
+        # for structured results it is usually a JSON string.
+        mock_result.data = '{"width": 1920, "height": 1080, "dpiScalingFactor": 1.0}'
 
         self.session.call_mcp_tool = AsyncMock(return_value=mock_result)
 
@@ -338,6 +340,7 @@ class TestComputer:
         # Assert
         assert isinstance(result, OperationResult)
         assert result.success is True
+        assert isinstance(result.data, dict)
         assert result.data["width"] == 1920
         assert result.data["height"] == 1080
         self.session.call_mcp_tool.assert_called_once_with("get_screen_size", {})

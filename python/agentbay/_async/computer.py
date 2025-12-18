@@ -559,9 +559,12 @@ class AsyncComputer(AsyncBaseService):
 
         Example:
             ```python
-            session = await agent_bay.create().session
+            result = await agent_bay.create()
+            session = result.session
             size = await session.computer.get_screen_size()
-            print(f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}")
+            print(
+                f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}"
+            )
             await session.delete()
             ```
 
@@ -585,10 +588,22 @@ class AsyncComputer(AsyncBaseService):
                     error_message=result.error_message,
                 )
 
+            data = result.data
+            if isinstance(data, str) and data:
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError as e:
+                    return OperationResult(
+                        request_id=result.request_id,
+                        success=False,
+                        data=None,
+                        error_message=f"Failed to parse screen size JSON: {e}",
+                    )
+
             return OperationResult(
                 request_id=result.request_id,
                 success=True,
-                data=result.data,
+                data=data,
                 error_message="",
             )
         except Exception as e:
