@@ -112,6 +112,7 @@ Located in `codespace/`
 
 **Code Execution:**
 - `code_execution_example.py` - Code execution patterns
+- `jupyter_context_persistence.py` - Jupyter-like Python context persistence across consecutive `run_code()` calls within the same session
 
 ### 3. Common-features Examples
 

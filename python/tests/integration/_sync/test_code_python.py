@@ -150,3 +150,35 @@ print('Completed after 1 second')
     assert result.success, f"Python with timeout failed: {result.error_message}"
     assert "Completed" in result.result, "Should complete within timeout"
     print(f"Python output:\n{result.result}")
+
+
+@pytest.mark.sync
+def test_python_context_persistence_within_same_session(session):
+    """Test that Python execution context is preserved within the same session (Jupyter-like behavior)."""
+    print("\nTest: Python context persistence within the same session...")
+
+    setup_code = """
+x = 41
+
+def add(a, b):
+    return a + b
+
+print("CONTEXT_SETUP_DONE")
+""".strip()
+
+    setup_result = session.code.run_code(setup_code, "python")
+    assert setup_result.success, f"Setup failed: {setup_result.error_message}"
+    assert "CONTEXT_SETUP_DONE" in setup_result.result
+
+    use_code = """
+print(f"CONTEXT_VALUE:{x + 1}")
+print(f"CONTEXT_FUNC:{add(1, 2)}")
+""".strip()
+
+    use_result = session.code.run_code(use_code, "python")
+    assert use_result.success, f"Context use failed: {use_result.error_message}"
+    assert "CONTEXT_VALUE:42" in use_result.result
+    assert "CONTEXT_FUNC:3" in use_result.result
+
+    if setup_result.execution_count is not None and use_result.execution_count is not None:
+        assert use_result.execution_count == setup_result.execution_count + 1

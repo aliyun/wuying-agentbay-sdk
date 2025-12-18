@@ -15,6 +15,7 @@ Codespace environment (`linux_latest` image) provides cloud-based code execution
 
 ### Code Execution
 - **code_execution_example.py**: Basic Python and JavaScript code execution
+- **jupyter_context_persistence.py**: Jupyter-like Python context persistence across consecutive `run_code()` calls within the same session
 - **python_development.py**: Python development workflow
 - **nodejs_development.py**: Node.js development setup
 - **web_server_setup.py**: Web server configuration

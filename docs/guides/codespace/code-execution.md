@@ -8,6 +8,7 @@ This guide covers code execution capabilities in AgentBay SDK's CodeSpace enviro
 - [CodeSpace Environment](#codespace-environment)
 - [Enhanced Code Execution](#enhanced-code-execution)
 - [Python Code Execution](#python-code-execution)
+- [Jupyter-like Python Execution (Context Persistence)](#jupyter-like-python-execution-context-persistence)
 - [JavaScript Code Execution](#javascript-code-execution)
 - [Rich Output Formats](#rich-output-formats)
 - [Code Execution with File I/O](#code-execution-with-file-io)
@@ -207,6 +208,54 @@ print(f"Squares: {squares}")
     
     agent_bay.delete(session)
 ```
+
+<a id="jupyter-like-python-execution-context-persistence"></a>
+## 📓 Jupyter-like Python Execution (Context Persistence)
+
+When you call `session.code.run_code()` multiple times within the **same session**, the Python runtime may preserve an interactive execution context (similar to a Jupyter kernel). This enables workflows like:
+
+- Defining variables and functions once, then reusing them in later calls
+- Iterative exploration and debugging
+- Notebook-style step-by-step execution
+
+Notes:
+
+- This behavior applies to **Python** in the CodeSpace environment (`image_id="code_latest"`).
+- Context persistence is **scoped to a single session**. Creating a new session starts a new context.
+- If your workflow relies on persistence, avoid calling `session.delete()` until the end.
+
+### Example: Define Once, Use Later
+
+```python
+from agentbay import AgentBay, CreateSessionParams
+
+agent_bay = AgentBay(api_key="your-api-key")
+session_result = agent_bay.create(CreateSessionParams(image_id="code_latest"))
+session = session_result.session
+
+setup = """
+x = 41
+def add(a, b):
+    return a + b
+print("CONTEXT_SETUP_DONE")
+""".strip()
+
+use = """
+print(f"CONTEXT_VALUE:{x + 1}")
+print(f"CONTEXT_FUNC:{add(1, 2)}")
+""".strip()
+
+session.code.run_code(setup, "python")
+result = session.code.run_code(use, "python")
+print(result.result)
+
+session.delete()
+```
+
+You can also run the verified end-to-end examples in this repository:
+
+- Async: `python/docs/examples/_async/codespace/jupyter_context_persistence.py`
+- Sync: `python/docs/examples/_sync/codespace/jupyter_context_persistence.py`
 
 <a id="javascript-code-execution"></a>
 ## 🟨 JavaScript Code Execution
