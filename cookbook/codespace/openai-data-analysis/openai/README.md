@@ -35,7 +35,7 @@ This example shows how to:
 2. Upload datasets to the cloud environment
 3. Use Bailian's function calling to generate Python code dynamically
 4. Execute the generated code in the remote CodeSpace
-5. Capture and download visualization results automatically
+5. Capture visualization results automatically via rich output support
 
 ## Prerequisites
 
@@ -110,7 +110,7 @@ cd ../common/src
 python generate_ecommerce_data.py
 ```
 
-This will create `ecommerce_sales.csv` in the current directory with 5000 sample orders.
+This will create `ecommerce_sales.csv` in the `common/data` directory with 5000 sample orders.
 
 ### 2. Run the Analysis
 
@@ -127,7 +127,7 @@ The script will:
 3. Upload the dataset to the CodeSpace
 4. Send an analysis request to OpenAI
 5. Execute the generated Python code in the remote CodeSpace
-6. Download and save the visualization as `sales_analysis.png`
+6. Automatically capture the generated visualization and save it as `sales_analysis.png`
 7. Clean up the session
 
 ### Expected Output
@@ -170,6 +170,11 @@ import matplotlib.pyplot as plt
 --------------------------------------------------------------------------------
 
 🔧 Executing Python code in AgentBay session...
+[Code Execution Result]
+...
+
+📊 Visualization detected in execution results...
+✓ Visualization saved to sales_analysis.png
 
 ================================================================================
 Analysis Results:
@@ -208,9 +213,9 @@ The `execute_python` function is defined in the Bailian tools schema, allowing t
 #### 3. Code Execution
 
 The `execute_python_code()` function uses AgentBay's native `run_code` API:
-- Appends matplotlib save commands to the generated code
 - Executes code using `session.code.run_code()` API
-- Detects saved plots and downloads them using `session.file_system.download_file()`
+- Detects rich outputs (images) in the execution result
+- Decodes base64-encoded images and saves them to local files
 - Returns structured results (result, error, png_path)
 
 #### 4. Workflow
@@ -233,14 +238,14 @@ completion = llm_client.chat.completions.create(
 )
 
 # 4. Execute generated code using run_code API
-result = session.code.run_code(code_with_save, "python", timeout_s=60)
+result = session.code.run_code(code, "python", timeout_s=60)
 
-# 5. Download visualization if generated
-if "PLOT_SAVED:" in result.result:
-    download_result = session.file_system.download_file(
-        '/tmp/output.png',
-        'sales_analysis.png'
-    )
+# 5. Save visualization if generated
+for res in result.results:
+    if res.png:
+        with open('sales_analysis.png', "wb") as f:
+            f.write(base64.b64decode(res.png))
+        break
 
 # 6. Cleanup
 session.delete()
@@ -307,12 +312,10 @@ Available Bailian models:
 
 The code execution mechanism uses AgentBay's native `run_code` API:
 
-1. Appends matplotlib save commands to the user's code
-2. Executes code using `session.code.run_code(code, "python", timeout_s=60)`
-3. Checks execution result for success/failure
-4. Detects saved plots by looking for "PLOT_SAVED:" marker in output
-5. Downloads visualization files using `session.file_system.download_file()`
-6. Returns structured output with result text, error (if any), and local PNG path
+1. Executes code using `session.code.run_code(code, "python", timeout_s=60)`
+2. The API automatically captures stdout, stderr, and rich outputs (images, etc.)
+3. Returns structured output including text results and base64-encoded images
+4. The client script decodes images and saves them locally
 
 ### File Upload
 

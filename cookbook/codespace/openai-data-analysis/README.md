@@ -7,52 +7,42 @@ This project demonstrates how to integrate AgentBay with Alibaba Cloud DashScope
 - Create and manage AgentBay sessions with `code_latest` image
 - Upload datasets to AgentBay cloud environments
 - Use DashScope (OpenAI-compatible) function calling to generate and execute Python code remotely
-- Capture matplotlib visualizations from cloud execution
+- Capture matplotlib visualizations from cloud execution using native rich output support
 - Perform comprehensive data analysis including metrics, trends, and visualizations
 - Handle stdout, stderr, and error reporting from remote execution
 
 ## Framework Integration Guides
 
-This project is structured to support multiple agent frameworks. Please refer to the specific framework integration guide for detailed setup and usage instructions:
+Please refer to the detailed integration guide:
 
-- [DashScope (OpenAI-compatible) Integration Guide (Sync)](./sync/openai/README.md) - Complete setup and usage instructions for function calling (synchronous version)
-- [DashScope (OpenAI-compatible) Integration Guide (Async)](./async/openai/README.md) - Complete setup and usage instructions for function calling (asynchronous version)
+- [DashScope (OpenAI-compatible) Integration Guide](./openai/README.md) - Complete setup and usage instructions for function calling
 
 ## Project Structure
 
-This project follows a modular structure that separates core functionality from framework-specific integrations:
+This project follows a modular structure:
 
 ```
 ├── README.md              # This documentation
 ├── .env.example           # Environment variable template
-├── sync/                  # Synchronous implementation
-│   ├── common/            # Sync shared resources
-│   │   ├── data/          # Sample datasets
-│   │   └── src/           # Data generation scripts
-│   └── openai/            # Sync OpenAI integration
-│       ├── README.md      # Integration documentation
-│       ├── requirements.txt # Dependencies
-│       └── src/           # OpenAI-specific code
-└── async/                 # Asynchronous implementation
-    ├── common/            # Async shared resources
-    │   ├── data/          # Sample datasets
-    │   └── src/           # Data generation scripts
-    └── openai/            # Async OpenAI integration
-        ├── README.md      # Integration documentation
-        ├── requirements.txt # Dependencies
-        └── src/           # OpenAI-specific code
+├── common/                # Shared resources
+│   ├── data/              # Sample datasets
+│   └── src/               # Data generation scripts
+└── openai/                # OpenAI integration
+    ├── README.md          # Integration documentation
+    ├── requirements.txt   # Dependencies
+    └── src/               # OpenAI-specific code
 ```
 
 ### Common Module
 
-The `common/` directories contain shared resources that can be used across different framework integrations, with separate implementations for synchronous and asynchronous patterns:
+The `common/` directory contains shared resources:
 
 - **Sample dataset**: Synthetic e-commerce sales data with 5000+ orders
 - **Data generator**: Script to create custom datasets with configurable parameters
 
-### Framework Integration Modules
+### OpenAI Module
 
-Framework-specific directories (like `sync/openai/` and `async/openai/`) contain integration code that demonstrates how to use AgentBay with specific AI frameworks and tools using different execution patterns.
+The `openai/` directory contains the integration code that demonstrates how to use AgentBay with DashScope/OpenAI.
 
 ## Use Case
 
@@ -93,7 +83,7 @@ This example demonstrates the following AgentBay SDK capabilities:
 - **Session Management**: Create and manage sessions with `code_latest` image using `agentbay.create(CreateSessionParams(image_id="code_latest"))`
 - **File Upload**: Upload datasets to cloud environments using `session.file_system.upload_file()`
 - **Code Execution**: Run Python code remotely using `session.code.run_code()` API
-- **File Download**: Download generated visualizations using `session.file_system.download_file()`
+- **Rich Outputs**: Capture images/charts directly from code execution results
 - **Resource Management**: Automatic session cleanup with `session.delete()`
 
 ## Learn More

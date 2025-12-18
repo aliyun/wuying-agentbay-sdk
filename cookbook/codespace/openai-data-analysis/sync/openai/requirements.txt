@@ -1,7 +1,0 @@
-# OpenAI SDK for Bailian compatibility (uses OpenAI-compatible API)
-openai>=1.0.0
-
-# AgentBay SDK for cloud code execution
-# Note: Install from local path or PyPI when available
-# For local development: pip install /path/to/wuying-agentbay-sdk/python
-wuying-agentbay-sdk>=0.10.0

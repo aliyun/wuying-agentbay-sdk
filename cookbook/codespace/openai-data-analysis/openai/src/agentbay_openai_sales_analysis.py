@@ -15,6 +15,7 @@ Features:
 
 import os
 import json
+import base64
 from openai import OpenAI
 from agentbay import AgentBay, CreateSessionParams
 
@@ -94,19 +95,9 @@ def execute_python_code(session, code: str) -> dict:
     """
     print("🔧 Executing Python code in AgentBay session...")
 
-    # Modify code to save matplotlib plots to a file
-    code_with_save = code + '''
-
-# Save matplotlib figure if it exists
-import matplotlib.pyplot as plt
-if plt.get_fignums():
-    plt.savefig('/tmp/output.png', format='png', bbox_inches='tight', dpi=150)
-    print("PLOT_SAVED: /tmp/output.png")
-    plt.close('all')
-'''
-
     # Execute code using session.code.run_code API
-    result = session.code.run_code(code_with_save, "python", timeout_s=60)
+    # The run_code API automatically captures rich outputs including images
+    result = session.code.run_code(code, "python", timeout_s=60)
 
     parsed_result = {
         'result': '',
@@ -123,21 +114,30 @@ if plt.get_fignums():
     parsed_result['result'] = result.result
     print(f"[Code Execution Result]\n{result.result}")
 
-    # Check if a plot was saved
-    if "PLOT_SAVED:" in result.result:
-        print("📊 Visualization detected, downloading...")
-        # Download the plot file
-        local_path = 'sales_analysis.png'
-        download_result = session.file_system.download_file(
-            '/tmp/output.png',
-            local_path
-        )
-
-        if download_result.success:
-            parsed_result['png_path'] = local_path
-            print(f"✓ Visualization downloaded to {local_path}")
-        else:
-            print(f"⚠️  Failed to download visualization: {download_result.error}")
+    # Check for image results in the execution output
+    for res in result.results:
+        if res.png:
+            print("📊 Visualization detected in execution results...")
+            local_path = 'sales_analysis.png'
+            try:
+                with open(local_path, "wb") as f:
+                    f.write(base64.b64decode(res.png))
+                parsed_result['png_path'] = local_path
+                print(f"✓ Visualization saved to {local_path}")
+            except Exception as e:
+                print(f"⚠️  Failed to save visualization: {e}")
+            break # Save the first image found
+        elif res.jpeg:
+            print("📊 Visualization (JPEG) detected in execution results...")
+            local_path = 'sales_analysis.jpg'
+            try:
+                with open(local_path, "wb") as f:
+                    f.write(base64.b64decode(res.jpeg))
+                parsed_result['png_path'] = local_path # We keep the key name for compatibility
+                print(f"✓ Visualization saved to {local_path}")
+            except Exception as e:
+                print(f"⚠️  Failed to save visualization: {e}")
+            break
 
     return parsed_result
 
@@ -198,14 +198,28 @@ def upload_dataset(session, local_path: str, remote_path: str = '/tmp/user/ecomm
     if not os.path.exists(local_path):
         raise FileNotFoundError(f'Dataset file not found: {local_path}')
 
-    # Upload file using session file_system.upload_file
-    result = session.file_system.upload_file(local_path, remote_path)
+    # Read local file
+    try:
+        with open(local_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except UnicodeDecodeError:
+        # Fallback for binary or non-utf8 files if needed, but CSV should be text
+        print("⚠️  Warning: File might be binary, reading as text might fail.")
+        with open(local_path, 'r', encoding='latin-1') as f:
+             content = f.read()
+
+    # Upload file using session file_system.write_file (works without file_transfer context)
+    # Ensure directory exists
+    remote_dir = os.path.dirname(remote_path)
+    session.file_system.create_directory(remote_dir)
+    
+    result = session.file_system.write_file(remote_path, content)
 
     if result.success:
         print(f'✓ Uploaded to {remote_path}')
         return remote_path
     else:
-        raise Exception(f'Failed to upload dataset: {result.error}')
+        raise Exception(f'Failed to upload dataset: {result.error_message}')
 
 
 def validate_dataset(session, remote_path: str):
@@ -227,7 +241,7 @@ print(f"Categories: {{', '.join(df['Category'].unique())}}")
     if result.get('result'):
         print(f"✓ Dataset validation results:")
         for line in result['result'].split('\n'):
-            if line.strip() and not line.startswith('PLOT_SAVED'):
+            if line.strip():
                 print(f"  {line}")
 
 
@@ -250,7 +264,7 @@ def main():
 
     # Create a CodeSpace session
     print("📦 Creating AgentBay CodeSpace environment...")
-    params = CreateSessionParams(image_id="linux_latest")
+    params = CreateSessionParams(image_id="code_latest")
     result = agentbay.create(params)
 
     if not result.success:
@@ -269,8 +283,8 @@ def main():
         repo_root = os.path.abspath(repo_root)  # Convert to absolute path
         
         possible_paths = [
-            '../../common/data/ecommerce_sales.csv',  # Relative path from sync/openai/src/ to sync/common/data/
-            os.path.join(repo_root, 'cookbook', 'codespace', 'openai-data-analysis', 'sync', 'common', 'data', 'ecommerce_sales.csv'),  # Absolute path
+            '../../common/data/ecommerce_sales.csv',  # Relative path
+            os.path.join(repo_root, 'cookbook', 'codespace', 'openai-data-analysis', 'common', 'data', 'ecommerce_sales.csv'),  # Absolute path
             os.path.join(current_dir, '..', '..', 'common', 'data', 'ecommerce_sales.csv'),  # Absolute path from current script
             './ecommerce_sales.csv',  # If run from data directory
         ]
@@ -322,10 +336,7 @@ def main():
 
         if code_result.get('result'):
             print('\nAnalysis Output:')
-            # Filter out PLOT_SAVED line from output
-            for line in code_result['result'].split('\n'):
-                if not line.startswith('PLOT_SAVED:'):
-                    print(line)
+            print(code_result['result'])
 
         if code_result.get('error'):
             print('⚠️  Error occurred:', code_result['error'])

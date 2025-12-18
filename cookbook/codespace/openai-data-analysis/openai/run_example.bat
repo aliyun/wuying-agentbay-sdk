@@ -14,9 +14,9 @@ if "%AGENTBAY_API_KEY%"=="" (
     exit /b 1
 )
 
-if "%OPENAI_API_KEY%"=="" (
-    echo ❌ Error: OPENAI_API_KEY environment variable is not set
-    echo Please set it with: set OPENAI_API_KEY=your_api_key
+if "%DASHSCOPE_API_KEY%"=="" (
+    echo ❌ Error: DASHSCOPE_API_KEY environment variable is not set
+    echo Please set it with: set DASHSCOPE_API_KEY=your_api_key
     pause
     exit /b 1
 )

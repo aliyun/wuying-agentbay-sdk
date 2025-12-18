@@ -15,9 +15,9 @@ if [ -z "$AGENTBAY_API_KEY" ]; then
     exit 1
 fi
 
-if [ -z "$OPENAI_API_KEY" ]; then
-    echo "❌ Error: OPENAI_API_KEY environment variable is not set"
-    echo "Please set it with: export OPENAI_API_KEY=your_api_key"
+if [ -z "$DASHSCOPE_API_KEY" ]; then
+    echo "❌ Error: DASHSCOPE_API_KEY environment variable is not set"
+    echo "Please set it with: export DASHSCOPE_API_KEY=your_api_key"
     exit 1
 fi
 
