@@ -6,10 +6,11 @@ The AgentBay SDK Cookbook is a collection of practical examples and use cases de
 
 Examples are organized by session environments. A session environment in AgentBay refers to an isolated cloud computing environment where specific types of operations can be performed safely and efficiently. Each environment provides specialized capabilities for different use cases.
 
-Currently, two distinct session environments are implemented:
+Currently, distinct session environments are implemented:
 
 1. **browser** - A web browser session environment that provides capabilities for web automation, including form filling, web scraping, and UI interactions.
 2. **codespace** - A code execution session environment that provides capabilities for running and testing code in isolated environments.
+3. **mobile** - A mobile device session environment (Android) that allows automation of mobile applications.
 
 ## Table of Contents
 
@@ -23,6 +24,10 @@ Currently, two distinct session environments are implemented:
 3. [Auto Testing Agent](./codespace/auto-testing-agent/) - Shows how to automate Python testing workflows in cloud environments
 4. [OpenAI Data Analysis](./codespace/openai-data-analysis/) - Demonstrates AI-powered data analysis using OpenAI function calling with AgentBay code execution
 5. [AI Code Assistant](./codespace/ai-code-assistant/) - An interactive web-based AI code assistant with real-time Python execution and visualization powered by Alibaba Cloud Bailian
+
+### Mobile Environment
+
+6. [App Login Persistence](./mobile/app-login-persistence/) - Demonstrates how to maintain login state for mobile applications (Xiaohongshu, Pinduoduo, Weibo, Ele.me) across sessions
 
 ## Overview
 
@@ -68,6 +73,15 @@ This cookbook demonstrates how to build an interactive web-based AI code assista
 - Pre-installed data science packages (pandas, numpy, matplotlib, scikit-learn, seaborn)
 - Session persistence for continuous development workflow
 - Dark mode UI with responsive design
+
+### App Login Persistence (Mobile)
+This cookbook demonstrates how to persist mobile application login states across session lifecycles using Context Synchronization. It includes examples for:
+- **Xiaohongshu (Red)**
+- **Pinduoduo**
+- **Weibo**
+- **Ele.me**
+
+It shows how to mount application data directories to persistent Contexts so that you don't need to re-login every time you start a new mobile agent session.
 
 ## Framework Integration
 
