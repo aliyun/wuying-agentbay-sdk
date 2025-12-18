@@ -100,6 +100,7 @@ jobs:
       - uses: setup-env
         inputs:
           python-version: '3.10'
+          pip-cache: true
       
       - id: python-lint
         continue-on-error: true
@@ -107,8 +108,6 @@ jobs:
         when: "${{params.python_enabled}}"
         run: |
           cd python
-          python -m pip config set global.timeout 300
-          python -m pip config set global.retries 3
           python -m pip install --upgrade pip
           # Install tools for linting
           pip install black isort flake8 mypy bandit pip-audit
@@ -127,34 +126,6 @@ jobs:
           echo "Executing pip-audit dependency vulnerability scan..."
           pip-audit --desc
           echo "Dependency vulnerability scan completed"
-      
-      - id: python-test
-        continue-on-error: false
-        when: "${{params.python_enabled}}"
-        name: "Python Unit Tests"
-        run: |
-          cd python
-          python -m pip config set global.timeout 600
-          python -m pip config set global.retries 5
-          python -m pip install --upgrade pip
-          # Install all dependencies directly (avoid poetry timeout issues)
-          pip install "darabonba-core>=1.0.0,<2.0.0" \
-                      "alibabacloud-tea-openapi>=0.4.0rc3" \
-                      "cryptography>=44.0.0" \
-                      "httpx>=0.28.1" \
-                      "alibabacloud-tea-util>=0.3.13" \
-                      "python-dotenv>=1.0.0" \
-                      "pydantic>=2.0" \
-                      "playwright>=1.5.0" \
-                      "loguru>=0.7.0"
-          # Install test dependencies with specific versions for compatibility
-          pip install pytest>=8.2.2 pytest-cov>=6.0.0 pytest-asyncio>=0.25.0
-          # Install documentation generation dependencies
-          pip install pydoc-markdown
-          # Add current directory to PYTHONPATH so tests can import agentbay
-          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-          # Run tests with asyncio mode enabled
-          pytest tests/unit -v --asyncio-mode=strict
 
   # TypeScript testing job
   typescript-lint-test:
@@ -173,8 +144,8 @@ jobs:
       - uses: setup-env
         inputs:
           node-version: "18"
-          npm-version: "10"
-          npm-cache: true
+          tnpm-version: "10"
+          tnpm-cache: true
         
       - id: typescript-lint
         continue-on-error: true
@@ -182,26 +153,16 @@ jobs:
         when: "${{params.typescript_enabled}}"
         run: |
           cd typescript
-          # Set npm timeout and retry strategy
-          npm config set fetch-timeout 300000
-          npm config set fetch-retry-mintimeout 20000
-          npm config set fetch-retry-maxtimeout 120000
-          npm ci --prefer-offline --no-audit
-          npm run lint
-      - id: typescript-test-unit
-        continue-on-error: false
-        when: "${{params.typescript_enabled}}"
-        name: "TypeScript Unit Tests"
-        run: |
-          cd typescript
-          # Set npm timeout and retry strategy
-          npm config set fetch-timeout 300000
-          npm config set fetch-retry-mintimeout 20000
-          npm config set fetch-retry-maxtimeout 120000
-          # Ensure dependencies are installed (in case lint step failed)
-          npm ci --prefer-offline --no-audit
-          npm run build
-          npm run test:unit
+          # Set tnpm timeout and retry strategy
+          # Only install lint-related packages for better performance
+          tnpm install --prefer-offline --no-audit \
+            eslint@8.35.0 \
+            @typescript-eslint/eslint-plugin@5.54.0 \
+            @typescript-eslint/parser@5.54.0 \
+            typescript@4.9.5
+          # Run lint using fallback script
+          node scripts/run_with_fallback.js eslint eslint@8.35.0 "src/**/*.ts"
+      
 
   # Golang testing job
   golang-lint-test:
@@ -230,9 +191,6 @@ jobs:
         when: "${{params.golang_enabled}}"
         run: |
           # Configure Go environment
-          go env -w GOPROXY=https://goproxy.cn,direct
-          go env -w GOSUMDB=sum.golang.org
-          go env -w GONOSUMDB=""
           cd golang
           # Download dependencies (use go-mod-cache from setup-env)
           go mod download
@@ -252,20 +210,6 @@ jobs:
             echo "All files are properly formatted"
           fi
       
-      - id: golang-unit-test
-        continue-on-error: false
-        when: "${{params.golang_enabled}}"
-        name: "Golang Unit Tests"
-        run: |
-          # Configure Go environment
-          go env -w GOPROXY=https://goproxy.cn,direct
-          go env -w GOSUMDB=sum.golang.org
-          go env -w GONOSUMDB=""
-          cd golang
-          # Dependencies already downloaded in lint step, just verify
-          go mod verify
-          # Run tests with race detector
-          go test -race -v ./tests/pkg/unit/...
 
   summary:
     name: "Multi-Language Quality Check Summary"
@@ -281,9 +225,9 @@ jobs:
           echo "All prerequisite jobs have completed successfully!"
           echo ""
           echo "✅ Documentation Quality Check: PASSED"
-          echo "✅ Python Lint & Unit Tests: PASSED"
-          echo "✅ TypeScript Lint & Unit Tests: PASSED"
-          echo "✅ Golang Lint & Unit Tests: PASSED"
+          echo "✅ Python Lint: PASSED"
+          echo "✅ TypeScript Lint: PASSED"
+          echo "✅ Golang Lint: PASSED"
           echo ""
           echo "=========================================="
           echo "✅ All Quality Checks: PASSED"

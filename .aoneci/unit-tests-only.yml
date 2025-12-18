@@ -1,0 +1,178 @@
+# agentbay SDK Multi-Language Unit Tests Only Pipeline
+name: "agentbay SDK Multi-Language Unit Tests"
+
+triggers:
+  merge_request:
+    types:
+      - opened
+      - reopened
+    target-branches:
+      - "**"
+
+# Strategy configuration to prevent jobs from being accidentally cancelled
+strategy:
+  cancel-in-progress: false
+  fail-fast: false
+
+params:
+  python_enabled:
+    name: Enable Python Unit Testing
+    type: boolean
+    default: true
+  typescript_enabled:
+    name: Enable TypeScript Unit Testing
+    type: boolean
+    default: true
+  golang_enabled:
+    name: Enable Golang Unit Testing
+    type: boolean
+    default: true
+  runs_on_resources:
+    name: Resource Specification
+    description: "Runtime container resource specification"
+    default: "4-16Gi"
+    options:
+      - "4-16Gi"
+      - "8-32Gi"
+      - "16-64Gi"
+
+jobs:
+  # Python Unit Tests Only
+  python-unit-test:
+    name: "Python Unit Tests"
+    when: "${{params.python_enabled}}"
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    image: alios-8u
+    timeout: 30m
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          python-version: '3.10'
+          pip-cache: true
+      
+      - id: python-test
+        continue-on-error: false
+        when: "${{params.python_enabled}}"
+        name: "Python Unit Tests"
+        run: |
+          cd python
+          python -m pip install --upgrade pip
+          # Only install essential test-related packages for better performance
+          pip install --prefer-binary \
+            pytest==8.2.2 \
+            pytest-asyncio==0.25.0 \
+            loguru==0.7.0 \
+            python-dotenv==1.0.0 \
+            pydantic==2.10.4 \
+            httpx==0.28.1 \
+            "darabonba-core>=1.0.0,<2.0.0" \
+            "alibabacloud-tea-openapi>=0.4.0rc3" \
+            "alibabacloud-tea-util>=0.3.13" \
+            "playwright>=1.5.0" \
+            pydoc-markdown \
+            docspec
+          # Install agentbay in development mode (minimal dependencies)
+            pip install pytest>=8.2.2 pytest-asyncio>=0.25.0
+          # Add current directory to PYTHONPATH so tests can import agentbay
+          export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+          # Run tests with asyncio mode enabled using python -m to ensure it's found
+          python -m pytest tests/unit -v --asyncio-mode=strict
+
+  # TypeScript Unit Tests Only
+  typescript-unit-test:
+    name: "TypeScript Unit Tests"
+    when: "${{params.typescript_enabled}}"
+    image: alios-8u
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          node-version: "18"
+          tnpm-version: "10"
+          tnpm-cache: true
+        
+      - id: typescript-test-unit
+        continue-on-error: false
+        when: "${{params.typescript_enabled}}"
+        name: "TypeScript Unit Tests"
+        run: |
+          cd typescript
+          # Only install test-related packages for better performance
+          tnpm install --prefer-offline --no-audit \
+            jest@26.6.3 \
+            ts-jest@26.5.6 \
+            @types/jest@26.0.24 \
+            typescript@4.9.5 \
+            @types/node@18.19.130
+          # Run tests using fallback script
+          tnpm run build
+          node scripts/run_with_fallback.js jest jest@26.6.3 tests/unit
+
+  # Golang Unit Tests Only
+  golang-unit-test:
+    name: "Golang Unit Tests"
+    when: "${{params.golang_enabled}}"
+    image: alios-8u
+    runs-on:
+      - "${{params.runs_on_resources}}"
+    retry:
+      max: 2
+      when:
+        - runner_system_failure
+        - stuck_or_timeout_failure
+    steps:
+      - uses: checkout
+      - uses: setup-env
+        inputs:
+          go-version: "1.24.3"
+          go-mod-cache: true
+          go-cache: true
+      
+      - id: golang-unit-test
+        continue-on-error: false
+        when: "${{params.golang_enabled}}"
+        name: "Golang Unit Tests"
+        run: |
+          # Configure Go environment
+          cd golang
+          # Download and verify dependencies
+          go mod download
+          go mod verify
+          # Run tests with race detector
+          go test -race -v ./tests/pkg/unit/...
+
+  # Unit Tests Summary
+  unit-tests-summary:
+    name: "Multi-Language Unit Tests Summary"
+    needs: ["python-unit-test", "typescript-unit-test", "golang-unit-test"]
+    runs-on:
+      - "4-16Gi"
+    steps:
+      - run: |
+          echo "=========================================="
+          echo "    agentbay SDK Multi-Language Unit Tests Summary"
+          echo "=========================================="
+          echo ""
+          echo "All unit tests have completed successfully!"
+          echo ""
+          echo "✅ Python Unit Tests: PASSED"
+          echo "✅ TypeScript Unit Tests: PASSED"
+          echo "✅ Golang Unit Tests: PASSED"
+          echo ""
+          echo "=========================================="
+          echo "✅ All Unit Tests: PASSED"
+          echo "=========================================="
