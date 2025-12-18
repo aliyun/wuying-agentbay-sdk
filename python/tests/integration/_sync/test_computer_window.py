@@ -5,9 +5,10 @@ import time
 """Integration tests for Computer window management functionality."""
 
 import os
-import requests
+import aiohttp
 from pathlib import Path
 
+import pytest
 import pytest
 
 from agentbay import AgentBay
@@ -21,7 +22,6 @@ def agent_bay():
     if not api_key:
         pytest.skip("AGENTBAY_API_KEY environment variable not set")
     return AgentBay(api_key=api_key)
-
 
 @pytest.fixture
 def session(agent_bay):
@@ -40,7 +40,7 @@ def save_screenshot_from_url(screenshot_url: str, filename: str) -> None:
     """Download screenshot from URL and save as PNG file in python/screenshots directory."""
     # Get the current file's directory and navigate to python root
     current_dir = Path(__file__).parent
-    python_root = current_dir.parent.parent.parent  # Go up from tests/integration/_sync to python root
+    python_root = current_dir.parent.parent.parent  # Go up from tests/integration/_async to python root
     screenshots_dir = python_root / "screenshots"
     
     # Create screenshots directory if it doesn't exist
@@ -48,20 +48,22 @@ def save_screenshot_from_url(screenshot_url: str, filename: str) -> None:
     
     print(f"DEBUG: Downloading screenshot from URL: {screenshot_url}")
     
-    # Download the screenshot from URL
-    response = requests.get(screenshot_url)
-    response.raise_for_status()
+    # Download the screenshot from URL using aiohttp
+    with aiohttp.ClientSession() as session:
+        with session.get(screenshot_url) as response:
+            response.raise_for_status()
+            image_data = response.read()
     
     # Validate that we have some image data
-    if len(response.content) == 0:
+    if len(image_data) == 0:
         raise ValueError("Downloaded image data is empty")
     
-    print(f"DEBUG: Downloaded image data length: {len(response.content)} bytes")
+    print(f"DEBUG: Downloaded image data length: {len(image_data)} bytes")
     
     # Write to file
     file_path = screenshots_dir / filename
     with open(file_path, 'wb') as f:
-        f.write(response.content)
+        f.write(image_data)
     
     print(f"DEBUG: Successfully saved screenshot to {file_path}")
 
@@ -76,12 +78,12 @@ def test_window_management_lifecycle(session):
     if installed_apps_result.success and len(installed_apps_result.data) > 0:
         print(f"  ✅ Found {len(installed_apps_result.data)} installed applications")
         
-        # Find a suitable app to work with (prefer Google Chrome, fallback to first app)
+        # Find a suitable app to work with (prefer Calculator, fallback to first app)
         target_app = None
         for app in installed_apps_result.data:
-            if hasattr(app, 'name') and app.name == "Calculator":
+            if hasattr(app, 'name') and ("calculator" in app.name.lower() or "计算器" in app.name.lower()):
                 target_app = app
-                print(f"  🎯 Selected Google Chrome for demonstration")
+                print(f"  🎯 Selected Calculator for demonstration")
                 break
         
         if target_app is None:
@@ -147,10 +149,9 @@ def test_window_management_lifecycle(session):
     assert active_result.window is not None, "Active window should not be None"
     
     if active_result.window:
-        print(f"Active window: {active_result.window.title} (ID: {active_result.window.window_id})")
+        print(f"Active window: {active_result.window.title} (ID: {active_result.window.window_id})({calculator_window_id})")
         # The active window should be Calculator or match our Calculator window ID
-        assert (active_result.window.window_id == calculator_window_id), \
-               "Active window should be Calculator or match our Calculator window ID"
+        assert (active_result.window.window_id == calculator_window_id), "Active window should be Calculator or match our Calculator window ID"
     
     # Test FocusMode
     print("Testing focus_mode...")
@@ -259,6 +260,12 @@ def test_window_management_lifecycle(session):
         print(f"Screenshot failed or returned empty data: {screenshot_result.error_message}")
     
     # Cleanup - CloseWindow
+    print("Cleaning up: Closing Calculator window...")
+    close_result = session.computer.close_window(calculator_window_id)
+    if close_result.success:
+        print("Calculator window closed successfully")
+    else:
+        print(f"Warning: Failed to close Calculator window: {close_result.error_message}")
 
 @pytest.mark.sync
 def test_list_root_windows(session):
@@ -299,6 +306,23 @@ def test_get_active_window(session):
         print("No active window found")
 
 @pytest.mark.sync
+def test_focus_mode(session):
+    """Test focus mode functionality."""
+    print("\nTest: Focus mode...")
+    
+    # Test enabling focus mode
+    result_on = session.computer.focus_mode(True)
+    assert result_on.success, f"Focus mode on failed: {result_on.error_message}"
+    print("Focus mode enabled successfully")
+    
+    time.sleep(1)
+    
+    # Test disabling focus mode
+    result_off = session.computer.focus_mode(False)
+    assert result_off.success, f"Focus mode off failed: {result_off.error_message}"
+    print("Focus mode disabled successfully")
+
+@pytest.mark.sync
 def test_screenshot(session):
     """Test screenshot functionality."""
     print("\nTest: Screenshot...")
@@ -320,3 +344,4 @@ def test_screenshot(session):
             print("Test screenshot saved as test_screenshot.png")
         except Exception as e:
             print(f"Warning: Failed to save test screenshot: {e}")
+

@@ -30,11 +30,9 @@ File operations in cloud environments:
 - File editing and moving
 - File searching
 - Large file operations with chunking
-
-### [filesystem_example](basics/filesystem_example/)
-Practical filesystem use cases:
-- **file_transfer_example.py**: File transfer between local and cloud
-- **watch_directory_example.py**: Directory monitoring and change detection
+- Practical filesystem use cases:
+  - **file_transfer_example.py**: File transfer between local and cloud
+  - **watch_directory_example.py**: Directory monitoring and change detection
 
 ### [context_management](basics/context_management/)
 Context creation and management:
