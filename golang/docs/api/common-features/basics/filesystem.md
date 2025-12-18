@@ -334,6 +334,35 @@ defer result.Session.Delete()
 createResult, _ := result.Session.FileSystem.CreateDirectory("/tmp/test_directory")
 ```
 
+### DeleteFile
+
+```go
+func (fs *FileSystem) DeleteFile(path string) (*FileWriteResult, error)
+```
+
+DeleteFile deletes a file at the specified path.
+
+Parameters:
+  - path: Absolute path to the file to delete
+
+Returns:
+  - *FileWriteResult: Result containing success status and request ID
+  - error: Error if the operation fails
+
+Behavior:
+
+- Deletes the file at the given path - Fails if the file doesn't exist
+
+**Example:**
+
+```go
+client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+result, _ := client.Create(nil)
+defer result.Session.Delete()
+result.Session.FileSystem.WriteFile("/tmp/to_delete.txt", "hello", "overwrite")
+deleteResult, _ := result.Session.FileSystem.DeleteFile("/tmp/to_delete.txt")
+```
+
 ### DownloadFile
 
 ```go

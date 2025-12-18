@@ -21,8 +21,7 @@ type TestSession struct {
 func GetTestAPIKey(t *testing.T) string {
 	apiKey := os.Getenv("AGENTBAY_API_KEY")
 	if apiKey == "" {
-		apiKey = "akm-xxx" // Replace with your test API key
-		t.Logf("Warning: Using default API key. Set AGENTBAY_API_KEY environment variable for testing.")
+		t.Skip("AGENTBAY_API_KEY environment variable not set")
 	}
 	return apiKey
 }

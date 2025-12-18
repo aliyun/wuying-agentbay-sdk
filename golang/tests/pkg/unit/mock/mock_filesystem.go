@@ -51,6 +51,21 @@ func (mr *MockFileSystemInterfaceMockRecorder) CreateDirectory(arg0 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDirectory", reflect.TypeOf((*MockFileSystemInterface)(nil).CreateDirectory), arg0)
 }
 
+// DeleteFile mocks base method.
+func (m *MockFileSystemInterface) DeleteFile(arg0 string) (*filesystem.FileWriteResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFile", arg0)
+	ret0, _ := ret[0].(*filesystem.FileWriteResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteFile indicates an expected call of DeleteFile.
+func (mr *MockFileSystemInterfaceMockRecorder) DeleteFile(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFile", reflect.TypeOf((*MockFileSystemInterface)(nil).DeleteFile), arg0)
+}
+
 // EditFile mocks base method.
 func (m *MockFileSystemInterface) EditFile(arg0 string, arg1 []map[string]string, arg2 bool) (*filesystem.FileWriteResult, error) {
 	m.ctrl.T.Helper()

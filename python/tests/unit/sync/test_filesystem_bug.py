@@ -18,6 +18,7 @@ class TestAsyncFileSystemBugVerification:
         """Verify all file operation methods are async functions."""
         async_methods = [
             "create_directory",
+            "delete_file",
             "edit_file",
             "get_file_info",
             "list_directory",

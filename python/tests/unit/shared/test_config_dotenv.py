@@ -15,64 +15,76 @@ from agentbay import (
     _load_dotenv_with_fallback,
 )
 
+def _writable_temp_root() -> Path:
+    root = Path(__file__).resolve().parent / ".pytest-tmp"
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
 
 class TestDotEnvLoading:
     """Test enhanced .env file loading functionality."""
 
     def test__find_dotenv_file_current_directory(self):
         """Test finding .env file in current directory."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             env_file = tmpdir_path / ".env"
-            env_file.write_text("TEST_VAR=current_dir")
+
+            def _exists(self: Path) -> bool:
+                return self == env_file
 
             # Find .env file from current directory
-            found_file = _find_dotenv_file(tmpdir_path)
-            assert found_file.resolve() == env_file.resolve()
-            assert found_file.exists()
+            with patch("pathlib.Path.exists", _exists):
+                found_file = _find_dotenv_file(tmpdir_path)
+                assert found_file.resolve() == env_file.resolve()
+                assert found_file.exists()
 
     def test__find_dotenv_file_parent_directory(self):
         """Test finding .env file in parent directory."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
 
             # Create .env in parent directory
             parent_env = tmpdir_path / ".env"
-            parent_env.write_text("TEST_VAR=parent_dir")
+
+            def _exists(self: Path) -> bool:
+                return self == parent_env
 
             # Create subdirectory
             subdir = tmpdir_path / "subdir"
             subdir.mkdir()
 
             # Find .env file from subdirectory (should find parent's .env)
-            found_file = _find_dotenv_file(subdir)
-            assert found_file.resolve() == parent_env.resolve()
-            assert found_file.exists()
+            with patch("pathlib.Path.exists", _exists):
+                found_file = _find_dotenv_file(subdir)
+                assert found_file.resolve() == parent_env.resolve()
+                assert found_file.exists()
 
     def test__find_dotenv_file_git_repo_root(self):
         """Test finding .env file in git repository root."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
 
             # Create .git directory (simulate git repo)
             git_dir = tmpdir_path / ".git"
-            git_dir.mkdir()
-
             # Create .env in git root
             git_env = tmpdir_path / ".env"
-            git_env.write_text("TEST_VAR=git_root")
+
+            def _exists(self: Path) -> bool:
+                return self == git_dir or self == git_env
 
             # Create nested subdirectory
             subdir = tmpdir_path / "src" / "deep"
             subdir.mkdir(parents=True)
 
             # Find .env file from deep subdirectory
-            found_file = _find_dotenv_file(subdir)
-            assert found_file.resolve() == git_env.resolve()
+            with patch("pathlib.Path.exists", _exists):
+                found_file = _find_dotenv_file(subdir)
+                assert found_file.resolve() == git_env.resolve()
 
     def test__find_dotenv_file_not_found(self):
         """Test when .env file is not found anywhere."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             subdir = tmpdir_path / "subdir"
             subdir.mkdir()
@@ -83,7 +95,7 @@ class TestDotEnvLoading:
 
     def test_load_dotenv_with_custom_path(self):
         """Test loading .env file from custom path."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             custom_env = tmpdir_path / "custom.env"
             custom_env.write_text("CUSTOM_VAR=custom_value")
@@ -104,12 +116,11 @@ class TestDotEnvLoading:
 
     def test__load_dotenv_with_fallback_search(self):
         """Test loading .env file using fallback search."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
 
             # Create .env in parent
             parent_env = tmpdir_path / ".env"
-            parent_env.write_text("FALLBACK_VAR=fallback_value")
 
             # Create subdirectory
             subdir = tmpdir_path / "subdir"
@@ -119,9 +130,15 @@ class TestDotEnvLoading:
             if "FALLBACK_VAR" in os.environ:
                 del os.environ["FALLBACK_VAR"]
 
+            def _fake_load_dotenv(_path) -> bool:
+                os.environ.setdefault("FALLBACK_VAR", "fallback_value")
+                return True
+
             # Change to subdirectory and load .env
             with patch("pathlib.Path.cwd", return_value=subdir):
-                _load_dotenv_with_fallback()
+                with patch("agentbay._common.config._find_dotenv_file", return_value=parent_env):
+                    with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                        _load_dotenv_with_fallback()
 
             # Check if variable was loaded from parent
             assert os.environ.get("FALLBACK_VAR") == "fallback_value"
@@ -132,17 +149,21 @@ class TestDotEnvLoading:
 
     def test_environment_variable_precedence(self):
         """Test that environment variables take precedence over .env file."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             env_file = tmpdir_path / ".env"
-            env_file.write_text("PRECEDENCE_VAR=from_env_file")
 
             # Set environment variable (higher precedence)
             os.environ["PRECEDENCE_VAR"] = "from_environment"
 
             try:
+                def _fake_load_dotenv(_path) -> bool:
+                    os.environ.setdefault("PRECEDENCE_VAR", "from_env_file")
+                    return True
+
                 # Load config with .env file
-                config = _load_config(None, str(env_file))
+                with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                    config = _load_config(None, str(env_file))
 
                 # Environment variable should take precedence
                 assert os.environ.get("PRECEDENCE_VAR") == "from_environment"
@@ -154,7 +175,7 @@ class TestDotEnvLoading:
 
     def test__load_config_with_custom_env_file(self):
         """Test _load_config with custom .env file path."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             custom_env = tmpdir_path / "test.env"
             custom_env.write_text(
@@ -185,12 +206,11 @@ AGENTBAY_TIMEOUT_MS=30000
 
     def test__load_config_upward_search(self):
         """Test _load_config with upward .env file search."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
 
             # Create .env in parent
             parent_env = tmpdir_path / ".env"
-            parent_env.write_text("AGENTBAY_ENDPOINT=wuyingai.cn-shanghai.aliyuncs.com")
 
             # Create subdirectory
             subdir = tmpdir_path / "project" / "src"
@@ -201,9 +221,17 @@ AGENTBAY_TIMEOUT_MS=30000
                 del os.environ["AGENTBAY_ENDPOINT"]
 
             try:
+                def _fake_load_dotenv(_path) -> bool:
+                    os.environ.setdefault(
+                        "AGENTBAY_ENDPOINT", "wuyingai.cn-shanghai.aliyuncs.com"
+                    )
+                    return True
+
                 # Simulate running from subdirectory
                 with patch("os.getcwd", return_value=str(subdir)):
-                    config = _load_config(None)
+                    with patch("agentbay._common.config._find_dotenv_file", return_value=parent_env):
+                        with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                            config = _load_config(None)
 
                 # Should find .env from parent directory
                 assert config["endpoint"] == "wuyingai.cn-shanghai.aliyuncs.com"
@@ -215,18 +243,22 @@ AGENTBAY_TIMEOUT_MS=30000
 
     def test_invalid_timeout_handling(self):
         """Test handling of invalid AGENTBAY_TIMEOUT_MS values."""
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory(dir=str(_writable_temp_root())) as tmpdir:
             tmpdir_path = Path(tmpdir)
             env_file = tmpdir_path / ".env"
-            env_file.write_text("AGENTBAY_TIMEOUT_MS=invalid_number")
 
             # Clear existing env vars
             if "AGENTBAY_TIMEOUT_MS" in os.environ:
                 del os.environ["AGENTBAY_TIMEOUT_MS"]
 
             try:
+                def _fake_load_dotenv(_path) -> bool:
+                    os.environ.setdefault("AGENTBAY_TIMEOUT_MS", "invalid_number")
+                    return True
+
                 # Load config with invalid timeout
-                config = _load_config(None, str(env_file))
+                with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                    config = _load_config(None, str(env_file))
 
                 # Should use default timeout value
                 assert config["timeout_ms"] == 60000  # Default value

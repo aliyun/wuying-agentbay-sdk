@@ -12,6 +12,7 @@ Handles file operations in the AgentBay cloud environment.
 ### Methods
 
 - [createDirectory](#createdirectory)
+- [deleteFile](#deletefile)
 - [downloadFile](#downloadfile)
 - [editFile](#editfile)
 - [listDirectory](#listdirectory)
@@ -53,6 +54,41 @@ if (result.success) {
   const createResult = await result.session.fileSystem.createDirectory('/tmp/mydir');
   console.log('Directory created:', createResult.success);
   await result.session.delete();
+}
+```
+
+___
+
+### deleteFile
+
+▸ **deleteFile**(`path`): `Promise`\<`BoolResult`\>
+
+Deletes a file at the specified path.
+Corresponds to Python's delete_file() method
+
+#### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `path` | `string` | Path to the file to delete. |
+
+#### Returns
+
+`Promise`\<`BoolResult`\>
+
+BoolResult with deletion result and requestId
+
+**`Example`**
+
+```typescript
+const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+const result = await agentBay.create();
+if (result.success) {
+  const session = result.session;
+  await session.fileSystem.writeFile('/tmp/to_delete.txt', 'hello');
+  const deleteResult = await session.fileSystem.deleteFile('/tmp/to_delete.txt');
+  console.log('File deleted:', deleteResult.success);
+  await session.delete();
 }
 ```
 

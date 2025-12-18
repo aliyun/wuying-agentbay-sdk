@@ -23,6 +23,9 @@ type FileSystemInterface interface {
 	// CreateDirectory creates a directory
 	CreateDirectory(path string) (*filesystem.FileDirectoryResult, error)
 
+	// DeleteFile deletes a file at the specified path
+	DeleteFile(path string) (*filesystem.FileWriteResult, error)
+
 	// GetFileInfo gets information about a file or directory
 	GetFileInfo(path string) (*filesystem.FileInfoResult, error)
 

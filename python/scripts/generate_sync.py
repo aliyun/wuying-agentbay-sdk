@@ -46,6 +46,13 @@ def _apply_custom_replacements(content: str, file_path: str) -> str:
     return content
 
 def generate_sync():
+    # Clean target directories to avoid stale generated files drifting over time.
+    # Sync outputs must be fully derived from async sources.
+    for d in [SYNC_DIR, TEST_SYNC_DIR, EXAMPLES_SYNC_DIR, UNIT_TEST_SYNC_DIR]:
+        if os.path.exists(d):
+            shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d, exist_ok=True)
+
     # Define rules for unasync
     common_replacements = {
         # Class Renames

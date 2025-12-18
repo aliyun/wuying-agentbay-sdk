@@ -304,6 +304,49 @@ func (fs *FileSystem) CreateDirectory(path string) (*FileDirectoryResult, error)
 	}, nil
 }
 
+// DeleteFile deletes a file at the specified path.
+//
+// Parameters:
+//   - path: Absolute path to the file to delete
+//
+// Returns:
+//   - *FileWriteResult: Result containing success status and request ID
+//   - error: Error if the operation fails
+//
+// Behavior:
+//
+// - Deletes the file at the given path
+// - Fails if the file doesn't exist
+//
+// Example:
+//
+//	client, _ := agentbay.NewAgentBay(os.Getenv("AGENTBAY_API_KEY"), nil)
+//	result, _ := client.Create(nil)
+//	defer result.Session.Delete()
+//	result.Session.FileSystem.WriteFile("/tmp/to_delete.txt", "hello", "overwrite")
+//	deleteResult, _ := result.Session.FileSystem.DeleteFile("/tmp/to_delete.txt")
+func (fs *FileSystem) DeleteFile(path string) (*FileWriteResult, error) {
+	args := map[string]string{
+		"path": path,
+	}
+
+	result, err := fs.Session.CallMcpTool("delete_file", args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete file: %w", err)
+	}
+
+	if !result.Success {
+		return nil, fmt.Errorf("delete file failed: %s", result.ErrorMessage)
+	}
+
+	return &FileWriteResult{
+		ApiResponse: models.ApiResponse{
+			RequestID: result.RequestID,
+		},
+		Success: true,
+	}, nil
+}
+
 // EditFile edits a file with specified changes.
 //
 // Parameters:

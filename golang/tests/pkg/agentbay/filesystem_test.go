@@ -178,6 +178,46 @@ func TestFileSystem_CreateDirectory(t *testing.T) {
 	}
 }
 
+func TestFileSystem_DeleteFile(t *testing.T) {
+	// Setup session with cleanup and ImageId set to linux_latest
+	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")
+	session, cleanup := testutil.SetupAndCleanup(t, sessionParams)
+	defer cleanup()
+
+	if session.FileSystem == nil {
+		t.Logf("Note: FileSystem interface is nil, skipping delete file test")
+		return
+	}
+
+	testFilePath := TestPathPrefix + "/test_delete.txt"
+	testContent := "This is a test file content for DeleteFile test."
+
+	writeResult, err := session.FileSystem.WriteFile(testFilePath, testContent, "overwrite")
+	if err != nil {
+		t.Fatalf("Failed to create file for DeleteFile: %v", err)
+	}
+	if writeResult.RequestID == "" {
+		t.Logf("Warning: Empty RequestID returned from WriteFile")
+	}
+
+	deleteResult, err := session.FileSystem.DeleteFile(testFilePath)
+	if err != nil {
+		t.Fatalf("DeleteFile failed: %v", err)
+	}
+	if !deleteResult.Success {
+		t.Fatalf("DeleteFile returned false")
+	}
+	if deleteResult.RequestID == "" {
+		t.Logf("Warning: Empty RequestID returned from DeleteFile")
+	}
+
+	// Verify file is gone
+	_, err = session.FileSystem.GetFileInfo(testFilePath)
+	if err == nil {
+		t.Fatalf("Expected GetFileInfo to fail after DeleteFile, but got nil error")
+	}
+}
+
 func TestFileSystem_EditFile(t *testing.T) {
 	// Setup session with cleanup and ImageId set to linux_latest
 	sessionParams := agentbay.NewCreateSessionParams().WithImageId("linux_latest")

@@ -145,6 +145,19 @@ async function main() {
     } catch (error) {
       log(`Error moving file: ${error}`);
     }
+
+    // 9. Delete file
+    log(`\nDeleting file: ${newFilePath}`);
+    try {
+      const deleteResponse = await session.fileSystem.deleteFile(newFilePath);
+      log(`File deleted successfully: ${deleteResponse.success}`);
+      log(`Delete File RequestId: ${deleteResponse.requestId}`);
+
+      const infoAfterDelete = await session.fileSystem.getFileInfo(newFilePath);
+      log(`Get File Info After Delete: success=${infoAfterDelete.success}`);
+    } catch (error) {
+      log(`Error deleting file: ${error}`);
+    }
   } finally {
     // Clean up by deleting the session when we're done
     log('\nDeleting the session...');

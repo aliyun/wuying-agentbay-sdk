@@ -8,11 +8,16 @@ from unittest.mock import mock_open, patch
 from agentbay import Config
 from agentbay import _default_config, _load_config
 
+def _writable_temp_root() -> Path:
+    root = Path(__file__).resolve().parent / ".pytest-tmp"
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
 
 class LoadConfigTestCase(unittest.TestCase):
     def setUp(self):
         # Create temporary .env file directory
-        self.test_dir = tempfile.TemporaryDirectory()
+        self.test_dir = tempfile.TemporaryDirectory(dir=str(_writable_temp_root()))
         self.env_file = Path(self.test_dir.name) / ".env"
 
     def tearDown(self):
@@ -32,17 +37,18 @@ class LoadConfigTestCase(unittest.TestCase):
 
     def test_load_from_env_file(self):
         """Test loading configuration from .env file"""
-        with open(self.env_file, "w") as f:
-            f.write("AGENTBAY_ENDPOINT=env-endpoint\n" "AGENTBAY_TIMEOUT_MS=10000\n")
-
-        with os.scandir(self.test_dir.name) as it:
-            print("Files in temp dir:", [entry.name for entry in it])
-
         os.environ.pop("AGENTBAY_ENDPOINT", None)
         os.environ.pop("AGENTBAY_TIMEOUT_MS", None)
 
         os.chdir(self.test_dir.name)
-        result = _load_config(None)
+        def _fake_load_dotenv(_path) -> bool:
+            os.environ.setdefault("AGENTBAY_ENDPOINT", "env-endpoint")
+            os.environ.setdefault("AGENTBAY_TIMEOUT_MS", "10000")
+            return True
+
+        with patch("agentbay._common.config._find_dotenv_file", return_value=self.env_file):
+            with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                result = _load_config(None)
 
         self.assertEqual(result["endpoint"], "env-endpoint")
         self.assertEqual(result["timeout_ms"], 10000)
@@ -75,10 +81,10 @@ class LoadConfigTestCase(unittest.TestCase):
 
     def test_config_precedence_order(self):
         """Test configuration priority order"""
-        # Create .env file
-        os.chdir(self.test_dir.name)
-        with open(self.env_file, "w") as f:
-            f.write("AGENTBAY_ENDPOINT=env-endpoint\n" "AGENTBAY_TIMEOUT_MS=10000\n")
+        def _fake_load_dotenv(_path) -> bool:
+            os.environ.setdefault("AGENTBAY_ENDPOINT", "env-endpoint")
+            os.environ.setdefault("AGENTBAY_TIMEOUT_MS", "10000")
+            return True
 
         os.chdir(self.test_dir.name)
         # Set environment variables
@@ -98,14 +104,18 @@ class LoadConfigTestCase(unittest.TestCase):
         self.assertEqual(result["timeout_ms"], 2000)
 
         # 2. When explicit configuration is None, should use environment variables
-        result = _load_config(None)
+        with patch("agentbay._common.config._find_dotenv_file", return_value=self.env_file):
+            with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                result = _load_config(None)
         self.assertEqual(result["endpoint"], "sys-endpoint")
         self.assertEqual(result["timeout_ms"], 15000)
 
         # 3. After clearing environment variables, should use .env file
         os.environ.pop("AGENTBAY_ENDPOINT")
         os.environ.pop("AGENTBAY_TIMEOUT_MS")
-        result = _load_config(None)
+        with patch("agentbay._common.config._find_dotenv_file", return_value=self.env_file):
+            with patch("agentbay._common.config.dotenv.load_dotenv", side_effect=_fake_load_dotenv):
+                result = _load_config(None)
         self.assertEqual(result["endpoint"], "env-endpoint")
         self.assertEqual(result["timeout_ms"], 10000)
 

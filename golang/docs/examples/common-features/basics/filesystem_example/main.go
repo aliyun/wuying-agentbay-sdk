@@ -150,6 +150,18 @@ func main() {
 		fmt.Printf("   ❌ Failed to modify file\n")
 	}
 
+	// Delete a file
+	fmt.Println("\n   Deleting example2.txt...")
+	deletePath := fmt.Sprintf("%s/example2.txt", testDir)
+	deleteResult, err := session.FileSystem.DeleteFile(deletePath)
+	if err != nil {
+		fmt.Printf("   ❌ Failed to delete file: %v\n", err)
+	} else if deleteResult.Success {
+		fmt.Println("   ✅ Deleted example2.txt")
+	} else {
+		fmt.Printf("   ❌ Failed to delete file\n")
+	}
+
 	// Wait a bit more to capture all events
 	fmt.Println("\n⏳ Waiting for final events...")
 	time.Sleep(3 * time.Second)

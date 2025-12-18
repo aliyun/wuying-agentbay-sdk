@@ -155,6 +155,41 @@ class TestAsyncFileSystem(unittest.TestCase):
         self.assertEqual(result.error_message, "Directory creation failed")
 
     @pytest.mark.sync
+    def test_delete_file_success(self):
+        """
+        Test delete_file method with successful response.
+        """
+        mock_result = McpToolResult(request_id="request-123", success=True, data="True")
+        self.session.call_mcp_tool.return_value = mock_result
+
+        result = self.fs.delete_file("/path/to/file.txt")
+        self.assertIsInstance(result, BoolResult)
+        self.assertTrue(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertTrue(result.data)
+        self.session.call_mcp_tool.assert_called_once_with(
+            "delete_file", {"path": "/path/to/file.txt"}
+        )
+
+    @pytest.mark.sync
+    def test_delete_file_error(self):
+        """
+        Test delete_file method with error response.
+        """
+        mock_result = McpToolResult(
+            request_id="request-123",
+            success=False,
+            error_message="Delete failed",
+        )
+        self.session.call_mcp_tool.return_value = mock_result
+
+        result = self.fs.delete_file("/path/to/file.txt")
+        self.assertIsInstance(result, BoolResult)
+        self.assertFalse(result.success)
+        self.assertEqual(result.request_id, "request-123")
+        self.assertEqual(result.error_message, "Delete failed")
+
+    @pytest.mark.sync
 
 
     def test_edit_file_success(self):

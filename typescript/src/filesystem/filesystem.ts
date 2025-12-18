@@ -305,6 +305,53 @@ export class FileSystem {
   }
 
   /**
+   * Deletes a file at the specified path.
+   * Corresponds to Python's delete_file() method
+   *
+   * @param path - Path to the file to delete.
+   * @returns BoolResult with deletion result and requestId
+   *
+   * @example
+   * ```typescript
+   * const agentBay = new AgentBay({ apiKey: 'your_api_key' });
+   * const result = await agentBay.create();
+   * if (result.success) {
+   *   const session = result.session;
+   *   await session.fileSystem.writeFile('/tmp/to_delete.txt', 'hello');
+   *   const deleteResult = await session.fileSystem.deleteFile('/tmp/to_delete.txt');
+   *   console.log('File deleted:', deleteResult.success);
+   *   await session.delete();
+   * }
+   * ```
+   */
+  async deleteFile(path: string): Promise<BoolResult> {
+    try {
+      const args = { path };
+      const result = await this.session.callMcpTool("delete_file", args);
+
+      if (!result.success) {
+        return {
+          requestId: result.requestId,
+          success: false,
+          errorMessage: result.errorMessage,
+        };
+      }
+
+      return {
+        requestId: result.requestId,
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      return {
+        requestId: "",
+        success: false,
+        errorMessage: `Failed to delete file: ${error}`,
+      };
+    }
+  }
+
+  /**
    * Edits a file by replacing occurrences of oldText with newText.
    * Corresponds to Python's edit_file() method
    *

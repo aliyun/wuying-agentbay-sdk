@@ -101,6 +101,42 @@ describe("TestFileSystem", () => {
     });
   });
 
+  describe("test_delete_file_success", () => {
+    it("should delete file successfully", async () => {
+      callMcpToolStub.resolves({
+        success: true,
+        data: "True",
+        errorMessage: "",
+        requestId: "test-request-id",
+      });
+
+      const result = await mockFileSystem.deleteFile("/path/to/file.txt");
+
+      expect(result.success).toBe(true);
+      expect(result.requestId).toBe("test-request-id");
+      expect(result.data).toBe(true);
+      expect(result.errorMessage).toBeUndefined();
+
+      expect(callMcpToolStub.calledOnce).toBe(true);
+      const callArgs = callMcpToolStub.getCall(0).args;
+      expect(callArgs[0]).toBe("delete_file");
+      expect(callArgs[1]).toEqual({ path: "/path/to/file.txt" });
+    });
+  });
+
+  describe("test_delete_file_failure", () => {
+    it("should handle delete file error", async () => {
+      callMcpToolStub.rejects(new Error("Delete failed"));
+
+      const result = await mockFileSystem.deleteFile("/path/to/file.txt");
+
+      expect(result.success).toBe(false);
+      expect(result.requestId).toBe("");
+      expect(result.data).toBeUndefined();
+      expect(result.errorMessage).toContain("Failed to delete file");
+    });
+  });
+
   describe("test_create_directory_failure", () => {
     it("should handle create directory error", async () => {
       callMcpToolStub.rejects(new Error("Directory creation failed"));

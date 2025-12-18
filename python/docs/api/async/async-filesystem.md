@@ -169,6 +169,33 @@ nested_result = await session.file_system.create_directory("/tmp/parent/child/gr
 await session.delete()
 ```
 
+### delete\_file
+
+```python
+async def delete_file(path: str) -> BoolResult
+```
+
+Delete a file at the specified path.
+
+**Arguments**:
+
+    path: The path of the file to delete.
+  
+
+**Returns**:
+
+    BoolResult: Result object containing success status and error message if any.
+  
+
+**Example**:
+
+```python
+session = (await agent_bay.create()).session
+await session.file_system.write_file("/tmp/to_delete.txt", "hello")
+delete_result = await session.file_system.delete_file("/tmp/to_delete.txt")
+await session.delete()
+```
+
 ### edit\_file
 
 ```python

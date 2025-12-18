@@ -94,6 +94,26 @@ func TestFileSystem_WriteFile_WithMockClient(t *testing.T) {
 	assert.True(t, result.Success)
 }
 
+func TestFileSystem_DeleteFile_WithMockClient(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Create mock FileSystem
+	mockFS := mock.NewMockFileSystemInterface(ctrl)
+
+	// Set expected behavior
+	expectedResult := &filesystem.FileWriteResult{Success: true}
+	mockFS.EXPECT().DeleteFile("/test/file.txt").Return(expectedResult, nil)
+
+	// Test DeleteFile method call
+	result, err := mockFS.DeleteFile("/test/file.txt")
+
+	// Verify call success
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.True(t, result.Success)
+}
+
 func TestFileSystem_Error_WithMockClient(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

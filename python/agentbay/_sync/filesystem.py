@@ -733,6 +733,45 @@ class FileSystem(BaseService):
                 error_message=f"Failed to create directory: {e}",
             )
 
+    def delete_file(self, path: str) -> BoolResult:
+        """
+        Delete a file at the specified path.
+
+        Args:
+            path: The path of the file to delete.
+
+        Returns:
+            BoolResult: Result object containing success status and error message if any.
+
+        Example:
+            ```python
+            session = (agent_bay.create()).session
+            session.file_system.write_file("/tmp/to_delete.txt", "hello")
+            delete_result = session.file_system.delete_file("/tmp/to_delete.txt")
+            session.delete()
+            ```
+        """
+        args = {"path": path}
+        try:
+            result = self.session.call_mcp_tool("delete_file", args)
+            _logger.debug(f"📥 delete_file response: {result}")
+            if result.success:
+                return BoolResult(request_id=result.request_id, success=True, data=True)
+            else:
+                return BoolResult(
+                    request_id=result.request_id,
+                    success=False,
+                    error_message=result.error_message,
+                )
+        except FileError as e:
+            return BoolResult(request_id="", success=False, error_message=str(e))
+        except Exception as e:
+            return BoolResult(
+                request_id="",
+                success=False,
+                error_message=f"Failed to delete file: {e}",
+            )
+
     def edit_file(
         self, path: str, edits: List[Dict[str, str]], dry_run: bool = False
     ) -> BoolResult:

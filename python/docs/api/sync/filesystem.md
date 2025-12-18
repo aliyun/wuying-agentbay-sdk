@@ -167,6 +167,33 @@ nested_result = session.file_system.create_directory("/tmp/parent/child/grandchi
 session.delete()
 ```
 
+### delete\_file
+
+```python
+def delete_file(path: str) -> BoolResult
+```
+
+Delete a file at the specified path.
+
+**Arguments**:
+
+    path: The path of the file to delete.
+  
+
+**Returns**:
+
+    BoolResult: Result object containing success status and error message if any.
+  
+
+**Example**:
+
+```python
+session = (agent_bay.create()).session
+session.file_system.write_file("/tmp/to_delete.txt", "hello")
+delete_result = session.file_system.delete_file("/tmp/to_delete.txt")
+session.delete()
+```
+
 ### edit\_file
 
 ```python

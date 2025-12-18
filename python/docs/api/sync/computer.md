@@ -454,9 +454,12 @@ Gets the screen size and DPI scaling factor.
 **Example**:
 
 ```python
-session = agent_bay.create().session
+result = agent_bay.create()
+session = result.session
 size = session.computer.get_screen_size()
-print(f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}")
+print(
+  f"Screen: {size.data['width']}x{size.data['height']}, DPI: {size.data['dpiScalingFactor']}"
+)
 session.delete()
 ```
 
