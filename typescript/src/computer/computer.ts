@@ -6,6 +6,12 @@
 import { OperationResult, WindowListResult, WindowInfoResult, BoolResult as WindowBoolResult, InstalledAppListResult, ProcessListResult, ScreenSize, CursorPosition } from "../types/api-response";
 import { convertObjectKeys, convertWindowData } from "../utils/field-converter";
 
+export type { BoolResult, CursorPosition, ScreenSize } from "../types/api-response";
+
+export interface ScreenshotResult extends OperationResult {
+  data: string; // Screenshot URL
+}
+
 export enum MouseButton {
   LEFT = 'left',
   RIGHT = 'right',
@@ -487,7 +493,7 @@ export class Computer {
    * }
    * ```
    */
-  async screenshot(): Promise<OperationResult> {
+  async screenshot(): Promise<ScreenshotResult> {
     try {
       const result = await this.session.callMcpTool('system_screenshot', {});
       

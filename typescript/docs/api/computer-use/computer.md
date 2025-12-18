@@ -99,7 +99,7 @@ ___
 
 ### clickMouse
 
-▸ **clickMouse**(`x`, `y`, `button?`): `Promise`\<`BoolResult`\>
+▸ **clickMouse**(`x`, `y`, `button?`): `Promise`\<`OperationResult`\>
 
 Click mouse at specified coordinates.
 
@@ -113,7 +113,7 @@ Click mouse at specified coordinates.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -166,7 +166,7 @@ ___
 
 ### dragMouse
 
-▸ **dragMouse**(`fromX`, `fromY`, `toX`, `toY`, `button?`): `Promise`\<`BoolResult`\>
+▸ **dragMouse**(`fromX`, `fromY`, `toX`, `toY`, `button?`): `Promise`\<`OperationResult`\>
 
 Drag mouse from one position to another.
 
@@ -182,7 +182,7 @@ Drag mouse from one position to another.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -265,7 +265,7 @@ if (result.success) {
 
 ### inputText
 
-▸ **inputText**(`text`): `Promise`\<`BoolResult`\>
+▸ **inputText**(`text`): `Promise`\<`OperationResult`\>
 
 Input text at the current cursor position.
 
@@ -277,7 +277,7 @@ Input text at the current cursor position.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -328,13 +328,13 @@ ___
 
 ### listVisibleApps
 
-▸ **listVisibleApps**(): `Promise`\<`any`\>
+▸ **listVisibleApps**(): `Promise`\<`ProcessListResult`\>
 
 Lists all visible applications.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`ProcessListResult`\>
 
 Promise resolving to result containing array of visible application processes
 
@@ -420,7 +420,7 @@ ___
 
 ### moveMouse
 
-▸ **moveMouse**(`x`, `y`): `Promise`\<`BoolResult`\>
+▸ **moveMouse**(`x`, `y`): `Promise`\<`OperationResult`\>
 
 Move mouse to specified coordinates.
 
@@ -433,7 +433,7 @@ Move mouse to specified coordinates.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -454,7 +454,7 @@ ___
 
 ### pressKeys
 
-▸ **pressKeys**(`keys`, `hold?`): `Promise`\<`BoolResult`\>
+▸ **pressKeys**(`keys`, `hold?`): `Promise`\<`OperationResult`\>
 
 Press one or more keys.
 
@@ -467,7 +467,7 @@ Press one or more keys.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -487,7 +487,7 @@ ___
 
 ### releaseKeys
 
-▸ **releaseKeys**(`keys`): `Promise`\<`BoolResult`\>
+▸ **releaseKeys**(`keys`): `Promise`\<`OperationResult`\>
 
 Release previously pressed keys.
 
@@ -499,7 +499,7 @@ Release previously pressed keys.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -614,7 +614,7 @@ ___
 
 ### scroll
 
-▸ **scroll**(`x`, `y`, `direction?`, `amount?`): `Promise`\<`BoolResult`\>
+▸ **scroll**(`x`, `y`, `direction?`, `amount?`): `Promise`\<`OperationResult`\>
 
 Scroll at specified coordinates.
 
@@ -629,7 +629,7 @@ Scroll at specified coordinates.
 
 #### Returns
 
-`Promise`\<`BoolResult`\>
+`Promise`\<`OperationResult`\>
 
 Promise resolving to result with success status
 
@@ -648,7 +648,7 @@ ___
 
 ### startApp
 
-▸ **startApp**(`startCmd`, `workDirectory?`, `activity?`): `Promise`\<`any`\>
+▸ **startApp**(`startCmd`, `workDirectory?`, `activity?`): `Promise`\<`ProcessListResult`\>
 
 Starts the specified application.
 
@@ -662,7 +662,7 @@ Starts the specified application.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`ProcessListResult`\>
 
 Promise resolving to result containing array of started processes
 
@@ -682,7 +682,7 @@ ___
 
 ### stopAppByCmd
 
-▸ **stopAppByCmd**(`cmd`): `Promise`\<`any`\>
+▸ **stopAppByCmd**(`cmd`): `Promise`\<`BoolResult`\>
 
 Stops an application by stop command.
 
@@ -694,7 +694,7 @@ Stops an application by stop command.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`BoolResult`\>
 
 Promise resolving to result with success status
 
@@ -714,7 +714,7 @@ ___
 
 ### stopAppByPID
 
-▸ **stopAppByPID**(`pid`): `Promise`\<`any`\>
+▸ **stopAppByPID**(`pid`): `Promise`\<`BoolResult`\>
 
 Stops an application by process ID.
 
@@ -726,7 +726,7 @@ Stops an application by process ID.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`BoolResult`\>
 
 Promise resolving to result with success status
 
@@ -747,7 +747,7 @@ ___
 
 ### stopAppByPName
 
-▸ **stopAppByPName**(`pname`): `Promise`\<`any`\>
+▸ **stopAppByPName**(`pname`): `Promise`\<`BoolResult`\>
 
 Stops an application by process name.
 
@@ -759,7 +759,7 @@ Stops an application by process name.
 
 #### Returns
 
-`Promise`\<`any`\>
+`Promise`\<`BoolResult`\>
 
 Promise resolving to result with success status
 
