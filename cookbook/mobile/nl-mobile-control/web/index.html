@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NL Web Mobile Control</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: rgba(255, 255, 255, 0.08);
+        --panel2: rgba(255, 255, 255, 0.06);
+        --border: rgba(255, 255, 255, 0.14);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.70);
+        --muted2: rgba(255, 255, 255, 0.55);
+        --ok: #33d17a;
+        --bad: #ff5a7a;
+        --brand: #7c5cff;
+        --brand2: #00d4ff;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        color: var(--text);
+        background:
+          radial-gradient(900px 500px at 15% 10%, rgba(124, 92, 255, 0.25), transparent 60%),
+          radial-gradient(700px 500px at 80% 30%, rgba(0, 212, 255, 0.18), transparent 60%),
+          linear-gradient(180deg, #070a14 0%, #0b1020 60%, #070a14 100%);
+      }
+      .container {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 26px 18px 40px;
+      }
+      .header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.2px;
+      }
+      .subtitle {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .badge {
+        font-size: 12px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 14px;
+        align-items: start;
+      }
+      @media (max-width: 960px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .row.space {
+        justify-content: space-between;
+      }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      .muted { color: var(--muted); }
+      .muted2 { color: var(--muted2); }
+      .ok { color: var(--ok); }
+      .bad { color: var(--bad); }
+      a { color: rgba(255, 255, 255, 0.90); word-break: break-all; }
+
+      .btn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 8px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.05s ease, background 0.12s ease, border-color 0.12s ease;
+      }
+      .btn:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.22); }
+      .btn:active { transform: translateY(1px); }
+      .btn.primary {
+        border-color: rgba(124, 92, 255, 0.55);
+        background: linear-gradient(135deg, rgba(124, 92, 255, 0.45), rgba(0, 212, 255, 0.22));
+      }
+      .btn.danger {
+        border-color: rgba(255, 90, 122, 0.55);
+        background: rgba(255, 90, 122, 0.14);
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 150px;
+        font-size: 14px;
+        line-height: 1.4;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        outline: none;
+        color: var(--text);
+        background: rgba(0, 0, 0, 0.22);
+      }
+      textarea:focus {
+        border-color: rgba(124, 92, 255, 0.8);
+        box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.18);
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: rgba(0, 0, 0, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: 12px;
+        border-radius: 14px;
+        margin: 0;
+        min-height: 120px;
+      }
+      .sectionTitle {
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 0.2px;
+        margin: 2px 0 10px;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 10px 12px;
+        align-items: start;
+      }
+      .divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.10);
+        margin: 12px 0;
+      }
+      .frameWrap {
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.20);
+      }
+      iframe {
+        width: 100%;
+        height: 760px;
+        border: 0;
+        display: block;
+        background: #fff;
+      }
+      @media (max-width: 960px) {
+        iframe { height: 680px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>NL Web Mobile Control</h1>
+          <div class="subtitle">
+            Create a session → preview the cloud phone → type a natural-language instruction → run the agent → watch the result on the phone.
+          </div>
+        </div>
+        <div class="badge mono">FastAPI · LangChain tools · resource_url</div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="card">
+            <div class="row space">
+              <div class="row">
+                <button class="btn primary" id="btnCreate">Create Session</button>
+                <button class="btn danger" id="btnDelete">Delete Session</button>
+              </div>
+              <div id="sessionStatus" class="mono muted">session: (none)</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="row space">
+              <div>
+                <div class="sectionTitle">Cloud Phone</div>
+                <div class="muted2">Open the live phone page and watch the execution result.</div>
+              </div>
+              <div class="row">
+                <button class="btn" id="btnOpenSameTab">Open (this tab)</button>
+                <button class="btn" id="btnOpenNewTab">Open (new tab)</button>
+              </div>
+            </div>
+            <div class="muted2" style="margin-top: 10px;">
+              If the phone page blocks embedding (X-Frame-Options / CSP), the iframe may stay blank.
+            </div>
+            <div id="iframeHint" class="mono muted2" style="margin-top: 6px;"></div>
+          </div>
+
+          <div class="card" style="margin-top: 14px;">
+            <div class="row space" style="margin-bottom: 10px;">
+              <div>
+                <div class="sectionTitle">Instruction</div>
+                <div class="muted2">Be specific: goal, constraints, retry policy, and when to stop.</div>
+              </div>
+              <div id="jobStatus" class="mono muted">job: (idle)</div>
+            </div>
+            <textarea id="prompt" placeholder="Example: Open the app, dismiss popups, go to search, search for 'Bluetooth earbuds', and stop on the results page."></textarea>
+            <div class="row" style="margin-top: 10px;">
+              <button class="btn primary" id="btnRun">Run Agent</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="sectionTitle">Execution Logs</div>
+            <pre id="logs" class="mono muted2"></pre>
+
+            <div class="divider"></div>
+
+            <div class="sectionTitle">Final Answer</div>
+            <pre id="final" class="mono muted2"></pre>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="row space" style="margin-bottom: 10px;">
+              <div class="sectionTitle">Cloud Phone Preview (Portrait)</div>
+              <div class="mono muted2">iframe</div>
+            </div>
+            <div class="frameWrap">
+              <iframe id="phoneFrame" title="cloud-phone" src="about:blank"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const qs = (id) => document.getElementById(id);
+      let currentResourceUrl = "";
+
+      function setText(id, text, cls) {
+        const el = qs(id);
+        el.textContent = text;
+        el.className = cls || el.className;
+      }
+
+      async function api(path, opts) {
+        const res = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, opts || {}));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data && data.error ? data.error : (res.status + " " + res.statusText);
+          throw new Error(msg);
+        }
+        return data;
+      }
+
+      async function refreshSession() {
+        try {
+          const s = await api("/api/session");
+          if (s && s.session_id) {
+            setText("sessionStatus", `session: ${s.session_id}`, "mono ok");
+            currentResourceUrl = s.resource_url || "";
+            const frame = qs("phoneFrame");
+            const hint = qs("iframeHint");
+            if (currentResourceUrl) {
+              hint.textContent = "Loading iframe...";
+              hint.className = "mono muted2";
+              frame.src = currentResourceUrl;
+              const startedAt = Date.now();
+              frame.onload = () => {
+                const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+                hint.textContent = `iframe loaded (if blank, it may be blocked by X-Frame-Options/CSP) in ${elapsed}s`;
+                hint.className = "mono muted2";
+              };
+              setTimeout(() => {
+                if (hint.textContent === "Loading iframe...") {
+                  hint.textContent = "iframe still loading... if it stays blank, use 'Open in this tab' or 'Open in new tab'.";
+                  hint.className = "mono bad";
+                }
+              }, 6000);
+            } else {
+              currentResourceUrl = "";
+              hint.textContent = "";
+              frame.src = "about:blank";
+            }
+          } else {
+            setText("sessionStatus", "session: (none)", "mono muted");
+            currentResourceUrl = "";
+            qs("phoneFrame").src = "about:blank";
+            qs("iframeHint").textContent = "";
+          }
+        } catch (e) {
+          setText("sessionStatus", "session: (error) " + e.message, "mono bad");
+        }
+      }
+
+      async function createSession() {
+        setText("logs", "Creating session...", "mono muted");
+        const s = await api("/api/session/create", { method: "POST", body: JSON.stringify({}) });
+        setText("logs", "Session created.", "mono muted");
+        await refreshSession();
+        return s;
+      }
+
+      async function deleteSession() {
+        setText("logs", "Deleting session...", "mono muted");
+        await api("/api/session/delete", { method: "POST", body: JSON.stringify({}) });
+        setText("logs", "Session deleted.", "mono muted");
+        await refreshSession();
+      }
+
+      async function pollJob(jobId) {
+        const statusEl = qs("jobStatus");
+        const logsEl = qs("logs");
+        const finalEl = qs("final");
+        while (true) {
+          const j = await api(`/api/agent/jobs/${encodeURIComponent(jobId)}`);
+          statusEl.textContent = `job: ${jobId} status=${j.status}`;
+          logsEl.textContent = (j.logs || []).join("\n");
+          finalEl.textContent = j.final_answer || "";
+          if (j.status === "succeeded") {
+            statusEl.className = "mono ok";
+            break;
+          }
+          if (j.status === "failed") {
+            statusEl.className = "mono bad";
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+      }
+
+      async function runPrompt() {
+        const p = qs("prompt").value || "";
+        if (!p.trim()) {
+          alert("Please enter an instruction.");
+          return;
+        }
+        setText("jobStatus", "job: (starting)", "mono muted");
+        setText("logs", "", "mono muted");
+        setText("final", "", "mono muted");
+        const r = await api("/api/agent/run", { method: "POST", body: JSON.stringify({ prompt: p }) });
+        await pollJob(r.job_id);
+      }
+
+      qs("btnCreate").addEventListener("click", () => createSession().catch((e) => alert(e.message)));
+      qs("btnDelete").addEventListener("click", () => deleteSession().catch((e) => alert(e.message)));
+      qs("btnRun").addEventListener("click", () => runPrompt().catch((e) => alert(e.message)));
+      qs("btnOpenNewTab").addEventListener("click", () => {
+        const url = currentResourceUrl;
+        if (!url) {
+          alert("resource_url is empty. Please create a session first.");
+          return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+      qs("btnOpenSameTab").addEventListener("click", () => {
+        const url = currentResourceUrl;
+        if (!url) {
+          alert("resource_url is empty. Please create a session first.");
+          return;
+        }
+        window.location.href = url;
+      });
+      refreshSession();
+    </script>
+  </body>
+</html>
+
+
