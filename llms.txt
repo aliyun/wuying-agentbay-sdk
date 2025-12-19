@@ -164,7 +164,6 @@ Directory structure:
     │               │       │   └── README.md
     │               │       ├── file_system/
     │               │       │   └── README.md
-    │               │       ├── filesystem_example -> file_system
     │               │       ├── get/
     │               │       │   └── README.md
     │               │       ├── label_management/
@@ -4266,6 +4265,7 @@ Located in `codespace/`
 
 **Code Execution:**
 - `code_execution_example.py` - Code execution patterns
+- `jupyter_context_persistence.py` - Jupyter-like Python context persistence across consecutive `run_code()` calls within the same session
 
 ### 3. Common-features Examples
 
@@ -5003,6 +5003,7 @@ Codespace environment (`linux_latest` image) provides cloud-based code execution
 
 ### Code Execution
 - **code_execution_example.py**: Basic Python and JavaScript code execution
+- **jupyter_context_persistence.py**: Jupyter-like Python context persistence across consecutive `run_code()` calls within the same session
 - **python_development.py**: Python development workflow
 - **nodejs_development.py**: Node.js development setup
 - **web_server_setup.py**: Web server configuration
@@ -5129,11 +5130,9 @@ File operations in cloud environments:
 - File editing and moving
 - File searching
 - Large file operations with chunking
-
-### [filesystem_example](basics/filesystem_example/)
-Practical filesystem use cases:
-- **file_transfer_example.py**: File transfer between local and cloud
-- **watch_directory_example.py**: Directory monitoring and change detection
+- Practical filesystem use cases:
+  - **file_transfer_example.py**: File transfer between local and cloud
+  - **watch_directory_example.py**: Directory monitoring and change detection
 
 ### [context_management](basics/context_management/)
 Context creation and management:
@@ -7760,6 +7759,7 @@ Codespace environment (`linux_latest` image) provides cloud-based code execution
 
 ### Code Execution
 - **code_execution_example.py**: Basic Python and JavaScript code execution
+- **jupyter_context_persistence.py**: Jupyter-like Python context persistence across consecutive `run_code()` calls within the same session
 - **python_development.py**: Python development workflow
 - **nodejs_development.py**: Node.js development setup
 - **web_server_setup.py**: Web server configuration
@@ -7886,11 +7886,9 @@ File operations in cloud environments:
 - File editing and moving
 - File searching
 - Large file operations with chunking
-
-### [filesystem_example](basics/filesystem_example/)
-Practical filesystem use cases:
-- **file_transfer_example.py**: File transfer between local and cloud
-- **watch_directory_example.py**: Directory monitoring and change detection
+- Practical filesystem use cases:
+  - **file_transfer_example.py**: File transfer between local and cloud
+  - **watch_directory_example.py**: Directory monitoring and change detection
 
 ### [context_management](basics/context_management/)
 Context creation and management:
@@ -8761,12 +8759,6 @@ Each section of the examples is clearly marked and includes verification steps t
 ## API Reference
 
 For more detailed information on the FileSystem API methods, refer to the SDK documentation.
-
-
-================================================
-SYMLINK: python/docs/examples/_sync/common-features/basics/filesystem_example -> file_system
-================================================
-
 
 
 ================================================
@@ -11308,7 +11300,7 @@ const contextSync = newContextSync(
 ### Session Creation with Context Sync
 
 ```typescript
-const sessionParams: CreateSessionParams = {
+const sessionParams = {
   labels: {
     example: `archive-mode-${uniqueId}`,
     type: "archive-upload-demo",
@@ -11580,7 +11572,7 @@ const contextSync = newContextSync(
 ### Session Creation with Context Sync
 
 ```typescript
-const sessionParams: CreateSessionParams = {
+const sessionParams = {
   labels: {
     example: `archive-mode-${uniqueId}`,
     type: "archive-upload-demo",

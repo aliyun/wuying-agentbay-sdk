@@ -2,6 +2,69 @@
 
 All notable changes to the Wuying AgentBay SDK will be documented in this file.
 
+## [0.13.0] - 2025-12-19
+
+### Core SDK capabilities (user-visible)
+
+#### 🐍 Python API architecture (migration required)
+- **Sync/async split**: Python SDK now provides separate sync and async APIs (`AgentBay` vs `AsyncAgentBay`, etc.).
+- **Unified naming**: Removed `_async` suffix from method names; async APIs are `await`-able with the same method names as sync.
+- **Unified imports**: Public imports were consolidated under `agentbay`.
+
+#### 🧑‍💻 Code Execution (`run_code`)
+- **Rich outputs (backward compatible)**: Added `EnhancedCodeExecutionResult` to support multi-format outputs (HTML/Markdown/images/SVG/LaTeX/charts) while keeping compatibility with `CodeExecutionResult`. (See commit `46cffd02`.)
+- **Jupyter-like persistence**: Added docs/examples for long-lived code execution workflows in CodeSpace.
+
+#### 🧾 Command execution
+- **Structured outputs**: Standardized command execution outputs to expose `stdout` and `stderr` as explicit fields across SDKs. (See commit `c404ae48`.)
+- **Correctness**: Fixed parsing of `exit_code` from command execution responses. (See commit `25d543cb`.)
+
+#### 🤖 Agent module
+- **BrowserUseAgent task API**: Introduced/extended task-oriented APIs for BrowserUseAgent. (See commit `c69b3596`.)
+- **`execute_task` refinement**: Refined task execution API and updated docs/examples/tests accordingly. (See commit `aa98c5d8`.)
+
+#### 📁 Context filesystem
+- **`delete_file` (all languages)**: Added `delete_file` support with tests and examples.
+- **Internal context loading**: Switched to `GetAndLoadInternalContext` to avoid incorrect context listing behavior.
+
+#### 🔄 Context sync API
+- **`sync_context` → `sync` (breaking)**: Renamed context sync API for consistency across SDKs and removed the legacy alias.
+
+#### 🌍 Multi-region configuration
+- **`region_id` support across SDKs**: Added region selection support for Python/TypeScript/Go.
+
+#### 🖥️ Computer & window automation
+- **Window API simplification (breaking)**: Removed `timeout` parameter from `get_active_window` across languages.
+- **Typed screenshot results (TypeScript)**: `computer.screenshot()` returns a typed `ScreenshotResult`.
+- **Cross-platform reliability**: Added/expanded window management integration tests (Python + Go).
+
+#### 📱 Mobile automation
+- **Mobile UI bounds**: Added `bounds_rect` support for mobile UI elements (Python), including tests and examples.
+
+#### ☁️ OSS
+- **Parameter naming**: Standardized Python OSS client `securityToken` → `security_token` and updated tests/docs.
+
+#### 🐹 Go SDK
+- **File transfer**: Added file transfer support in Go SDK with integration tests.
+- **Session deletion semantics**: Adjusted delete session flow to align with async deletion API behavior.
+
+### Developer experience (docs & reference)
+
+- **Async programming docs**: Added/updated sync-vs-async comparison and v0.12.x → v0.13.x migration guide.
+- **API reference**: Regenerated API docs for Python/TypeScript/Go and improved doc generation metadata filtering.
+
+### Examples & cookbook (end-to-end usage)
+
+- **Mobile login persistence cookbook**: Added `cookbook/mobile/app-login-persistence` examples covering cross-session login state for multiple apps. (See commit `0e47976b`.)
+- **NL mobile control cookbook**: Added a LangChain-based NL mobile control example with a web demo and tests.
+
+### Quality, CI, and release tooling
+
+- **Smart integration test workflow**: Added/iterated `.aoneci/smart-integration-test.yaml` (multi-language, improved reporting, AI analysis prompts, and stability improvements).
+- **Examples inspection workflow**: Added/iterated `.aoneci/example-check.yaml` (multi-language examples verification with AI analysis and DingTalk notifications).
+- **KB preprocessing**: Added/iterated `preprocess_kb` pipeline to generate knowledge-base-friendly docs in batches.
+- **llms artifacts**: Updated `llms.txt` / `llms-full.txt` generation workflow and content.
+
 ## [0.12.0] - 2025-11-28
 
 ### Added

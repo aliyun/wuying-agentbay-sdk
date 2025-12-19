@@ -167,7 +167,7 @@ FullscreenWindow makes the specified window fullscreen
 ### GetActiveWindow
 
 ```go
-func (c *Computer) GetActiveWindow(timeoutMs ...int) (*WindowDetailResult, error)
+func (c *Computer) GetActiveWindow() (*WindowDetailResult, error)
 ```
 
 GetActiveWindow gets the currently active window

@@ -40,7 +40,7 @@ def _get_version() -> str:
             with open(pyproject_path, "r", encoding="utf-8") as f:
                 for line in f:
                     if line.strip().startswith("version = "):
-                        # Extract version from: version = "0.12.0"
+                        # Extract version from: version = "0.13.0"
                         version_str = line.split("=")[1].strip().strip('"')
                         return version_str
     except Exception:
