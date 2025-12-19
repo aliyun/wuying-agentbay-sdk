@@ -361,9 +361,8 @@ export class Session {
         const syncStartTime = Date.now();
 
         try {
-          let syncResult: ContextSyncResult;
           // Sync all contexts
-          syncResult = await this.context.sync();
+          const syncResult: ContextSyncResult = await this.context.sync();
           logInfo("🔄 Synced all contexts");
 
           const syncDuration = Date.now() - syncStartTime;

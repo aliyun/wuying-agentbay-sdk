@@ -294,7 +294,7 @@ export class Client extends OpenApi {
    */
   async deleteSessionAsyncWithOptions(request: $_model.DeleteSessionAsyncRequest, runtime: $dara.RuntimeOptions): Promise<$_model.DeleteSessionAsyncResponse> {
     request.validate();
-    let body : {[key: string ]: any} = { };
+    const body : {[key: string ]: any} = { };
     if (!$dara.isNull(request.authorization)) {
       body["Authorization"] = request.authorization;
     }
@@ -303,10 +303,10 @@ export class Client extends OpenApi {
       body["SessionId"] = request.sessionId;
     }
 
-    let req = new $OpenApiUtil.OpenApiRequest({
+    const req = new $OpenApiUtil.OpenApiRequest({
       body: OpenApiUtil.parseToMap(body),
     });
-    let params = new $OpenApiUtil.Params({
+    const params = new $OpenApiUtil.Params({
       action: "DeleteSessionAsync",
       version: "2025-05-06",
       protocol: "HTTPS",
@@ -327,7 +327,7 @@ export class Client extends OpenApi {
    * @returns DeleteSessionAsyncResponse
    */
   async deleteSessionAsync(request: $_model.DeleteSessionAsyncRequest): Promise<$_model.DeleteSessionAsyncResponse> {
-    let runtime = new $dara.RuntimeOptions({ });
+    const runtime = new $dara.RuntimeOptions({ });
     return await this.deleteSessionAsyncWithOptions(request, runtime);
   }
 
@@ -872,11 +872,11 @@ export class Client extends OpenApi {
    */
   async getAndLoadInternalContextWithOptions(request: $_model.GetAndLoadInternalContextRequest, runtime: $dara.RuntimeOptions): Promise<$_model.GetAndLoadInternalContextResponse> {
     request.validate();
-    let query = OpenApiUtil.query(request.toMap());
-    let req = new $OpenApiUtil.OpenApiRequest({
+    const query = OpenApiUtil.query(request.toMap());
+    const req = new $OpenApiUtil.OpenApiRequest({
       query: OpenApiUtil.query(query),
     });
-    let params = new $OpenApiUtil.Params({
+    const params = new $OpenApiUtil.Params({
       action: "GetAndLoadInternalContext",
       version: "2025-05-06",
       protocol: "HTTPS",
@@ -897,7 +897,7 @@ export class Client extends OpenApi {
    * @returns GetAndLoadInternalContextResponse
    */
   async getAndLoadInternalContext(request: $_model.GetAndLoadInternalContextRequest): Promise<$_model.GetAndLoadInternalContextResponse> {
-    let runtime = new $dara.RuntimeOptions({ });
+    const runtime = new $dara.RuntimeOptions({ });
     return await this.getAndLoadInternalContextWithOptions(request, runtime);
   }
 
