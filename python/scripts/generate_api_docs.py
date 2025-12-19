@@ -1088,6 +1088,9 @@ def format_markdown(
     # Ensure constructor signatures keep the self parameter
     content = ensure_init_signatures_include_self(content)
 
+    # Standardize Deprecated sections into a consistent markdown block
+    content = standardize_deprecated_sections(content)
+
     # Only fix async references for sync docs
     if not is_async:
         content = fix_async_references_in_sync_docs(content)
@@ -1166,6 +1169,58 @@ def format_markdown(
     # Add footer
     content = content.rstrip() + "\n\n---\n\n*Documentation generated automatically from source code using pydoc-markdown.*\n"
     return content
+
+
+def standardize_deprecated_sections(content: str) -> str:
+    """
+    Convert "Deprecated:" sections rendered by pydoc-markdown into a consistent markdown block.
+
+    We keep this conservative to avoid unintended formatting changes:
+    - Match a line that is exactly "Deprecated:" with optional indentation
+    - Collect subsequent bullet lines (indented) until a blank line
+    - Render as a blockquote:
+        > **Deprecated**
+        > - ...
+    """
+    import re
+
+    lines = content.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if re.match(r"^\s*Deprecated:\s*$", line):
+            bullets: list[str] = []
+            i += 1
+            while i < len(lines):
+                nxt = lines[i]
+                if nxt.strip() == "":
+                    break
+                if re.match(r"^\s*-\s+", nxt):
+                    bullets.append(re.sub(r"^\s*", "", nxt))
+                    i += 1
+                    continue
+                # Stop if the next section starts (e.g. "Example:" / "Args:" / "Returns:")
+                if re.match(r"^\s*[A-Z][A-Za-z ]+:\s*$", nxt):
+                    break
+                # Otherwise, treat as a continuation line for the previous bullet
+                if bullets:
+                    bullets[-1] = bullets[-1] + " " + nxt.strip()
+                    i += 1
+                    continue
+                break
+
+            out.append("> **Deprecated**")
+            for b in bullets:
+                out.append(f"> {b}")
+            out.append("")
+            # Do not consume the blank line here; let the main loop handle it.
+            continue
+
+        out.append(line)
+        i += 1
+
+    return "\n".join(out)
 
 
 def write_readme() -> None:

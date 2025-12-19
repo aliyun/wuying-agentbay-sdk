@@ -174,6 +174,9 @@ class TestMobile:
         assert result.success is True
         assert len(result.elements) == 1
         assert result.elements[0]["id"] == "button1"
+        # New stable field for bounds normalization (recommended)
+        assert "bounds_rect" in result.elements[0]
+        assert result.elements[0]["bounds_rect"] is None
         self.session.call_mcp_tool.assert_called_once_with(
             "get_clickable_ui_elements", {"timeout_ms": 2000}
         )
@@ -221,14 +224,17 @@ class TestMobile:
         assert len(result.elements) == 2
         # Verify first element structure and fields
         assert result.elements[0]["bounds"] == "[0,0][100,100]"
+        assert result.elements[0]["bounds_rect"] == {"left": 0, "top": 0, "right": 100, "bottom": 100}
         assert result.elements[0]["className"] == "Button"
         assert result.elements[0]["text"] == "Click me"
         assert result.elements[0]["resourceId"] == "btn1"
         # Verify children are parsed
         assert len(result.elements[0]["children"]) == 1
         assert result.elements[0]["children"][0]["text"] == "Label"
+        assert result.elements[0]["children"][0]["bounds_rect"] == {"left": 10, "top": 10, "right": 90, "bottom": 90}
         # Verify second element
         assert result.elements[1]["text"] == "Hello"
+        assert result.elements[1]["bounds_rect"] == {"left": 0, "top": 100, "right": 100, "bottom": 200}
         assert result.elements[1]["children"] == []
         self.session.call_mcp_tool.assert_called_once_with(
             "get_all_ui_elements", {"timeout_ms": 2000}

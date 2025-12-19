@@ -544,15 +544,10 @@ await session.delete()
 ### get\_active\_window
 
 ```python
-async def get_active_window(timeout_ms: int = 3000) -> WindowInfoResult
+async def get_active_window() -> WindowInfoResult
 ```
 
 Gets the currently active window.
-
-**Arguments**:
-
-- `timeout_ms` _int, optional_ - Timeout in milliseconds. Defaults to 3000.
-  
 
 **Returns**:
 

@@ -542,15 +542,10 @@ session.delete()
 ### get\_active\_window
 
 ```python
-def get_active_window(timeout_ms: int = 3000) -> WindowInfoResult
+def get_active_window() -> WindowInfoResult
 ```
 
 Gets the currently active window.
-
-**Arguments**:
-
-- `timeout_ms` _int, optional_ - Timeout in milliseconds. Defaults to 3000.
-  
 
 **Returns**:
 

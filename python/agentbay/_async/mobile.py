@@ -31,6 +31,61 @@ _logger = get_logger("mobile")
 from .._common.models.mobile import UIElementListResult, KeyCode
 
 
+def _parse_bounds_rect(bounds: Any) -> Optional[Dict[str, int]]:
+    """
+    Normalize mobile UI element bounds into a stable dict shape.
+
+    Compatibility notes:
+    - Some backends return bounds as a dict: {"left":..,"top":..,"right":..,"bottom":..}
+    - Others return bounds as a string like "left,top,right,bottom" or "[0,0][100,100]"
+
+    Returns:
+        A dict with keys: left, top, right, bottom, or None if parsing fails.
+    """
+    if bounds is None:
+        return None
+
+    if isinstance(bounds, dict):
+        left = bounds.get("left")
+        top = bounds.get("top")
+        right = bounds.get("right")
+        bottom = bounds.get("bottom")
+        if all(isinstance(v, int) for v in [left, top, right, bottom]):
+            return {"left": left, "top": top, "right": right, "bottom": bottom}
+        return None
+
+    if isinstance(bounds, str):
+        import re
+
+        nums = re.findall(r"-?\d+", bounds)
+        if len(nums) >= 4:
+            left, top, right, bottom = (int(nums[0]), int(nums[1]), int(nums[2]), int(nums[3]))
+            return {"left": left, "top": top, "right": right, "bottom": bottom}
+        return None
+
+    return None
+
+
+def _augment_bounds_rect(elem: Any) -> Any:
+    """
+    Add `bounds_rect` to element dicts recursively, keeping `bounds` unchanged.
+
+    Deprecated field:
+        - element["bounds"] is deprecated. It may be a string or dict depending on backend.
+          Use element["bounds_rect"] (stable dict) instead.
+    """
+    if not isinstance(elem, dict):
+        return elem
+
+    out = dict(elem)
+    out["bounds_rect"] = _parse_bounds_rect(out.get("bounds"))
+
+    children = out.get("children")
+    if isinstance(children, list):
+        out["children"] = [_augment_bounds_rect(c) for c in children]
+    return out
+
+
 class AsyncMobile(AsyncBaseService):
     """
     Handles mobile UI automation operations and configuration in the AgentBay cloud environment.
@@ -263,6 +318,10 @@ class AsyncMobile(AsyncBaseService):
             UIElementListResult: Result object containing clickable UI elements and
                 error message if any.
 
+        Deprecated:
+            - Each returned element may include `bounds` from backend which is not stable in type.
+              Use `bounds_rect` (dict with left/top/right/bottom) instead.
+
         Example:
             ```python
             session = (await agent_bay.create(image="mobile_latest")).session
@@ -288,6 +347,8 @@ class AsyncMobile(AsyncBaseService):
                 import json
 
                 elements = json.loads(result.data)
+                if isinstance(elements, list):
+                    elements = [_augment_bounds_rect(e) for e in elements]
                 return UIElementListResult(
                     request_id=request_id,
                     success=True,
@@ -320,6 +381,10 @@ class AsyncMobile(AsyncBaseService):
             UIElementListResult: Result object containing UI elements and error
                 message if any.
 
+        Deprecated:
+            - Each returned element may include `bounds` from backend which is not stable in type.
+              Use `bounds_rect` (dict with left/top/right/bottom) instead.
+
         Example:
             ```python
             session = (await agent_bay.create(image="mobile_latest")).session
@@ -340,8 +405,10 @@ class AsyncMobile(AsyncBaseService):
             Returns:
                 Dict[str, Any]: The parsed UI element.
             """
+            raw_bounds = element.get("bounds", "")
             parsed = {
-                "bounds": element.get("bounds", ""),
+                "bounds": raw_bounds,
+                "bounds_rect": _parse_bounds_rect(raw_bounds),
                 "className": element.get("className", ""),
                 "text": element.get("text", ""),
                 "type": element.get("type", ""),

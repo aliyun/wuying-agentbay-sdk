@@ -188,6 +188,10 @@ Retrieves all clickable UI elements within the specified timeout.
     UIElementListResult: Result object containing clickable UI elements and
   error message if any.
   
+> **Deprecated**
+> - Each returned element may include `bounds` from backend which is not stable in type. Use `bounds_rect` (dict with left/top/right/bottom) instead.
+
+  
 
 **Example**:
 
@@ -215,6 +219,10 @@ Retrieves all UI elements within the specified timeout.
 
     UIElementListResult: Result object containing UI elements and error
   message if any.
+  
+> **Deprecated**
+> - Each returned element may include `bounds` from backend which is not stable in type. Use `bounds_rect` (dict with left/top/right/bottom) instead.
+
   
 
 **Example**:

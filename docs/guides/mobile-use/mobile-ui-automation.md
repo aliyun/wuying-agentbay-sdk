@@ -167,9 +167,12 @@ result = session.mobile.get_all_ui_elements(timeout_ms=2000)
 if result.success:
     print(f"Found {len(result.elements)} UI elements")  # Output: Found 2172 UI elements
     for element in result.elements:
-        # Element structure varies, inspect element data
-        print(f"Element: {element}")
-        # Output example: Element data contains UI hierarchy information
+        # `element["bounds"]` is deprecated (its type may vary across backends).
+        # Prefer `element["bounds_rect"]` for stable bounds:
+        #   {"left": int, "top": int, "right": int, "bottom": int} or None
+        print(
+            f'text={element.get("text")}, bounds_rect={element.get("bounds_rect")}'
+        )
 else:
     print(f"Failed: {result.error_message}")
 
@@ -192,8 +195,10 @@ if result.success:
     print(f"Found {len(result.elements)} clickable elements")  # Output: Found 3 clickable elements
     for element in result.elements:
         # Process clickable elements
-        print(f"Clickable element: {element}")
-        # Output example: Clickable element data with interaction capabilities
+        # `element["bounds"]` is deprecated. Prefer `bounds_rect` for stable bounds.
+        print(
+            f'text={element.get("text")}, bounds_rect={element.get("bounds_rect")}'
+        )
 else:
     print(f"Failed: {result.error_message}")
 
