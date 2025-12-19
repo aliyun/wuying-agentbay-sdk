@@ -38,7 +38,7 @@ async with AgentBay() as agent_bay:
 
 # After (v0.13.0+)
 from agentbay import AgentBay
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
 # operations
 ```
 
@@ -51,11 +51,11 @@ async with AgentBay() as agent_bay:
 
 # After (v0.13.0+)
 from agentbay import AsyncAgentBay
-agent_bay = AsyncAgentBay()
+agent_bay = AsyncAgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
 # operations (still async)
 ```
 
-### 2. Method Name Changes
+### 3. Method Name Changes
 
 Remove `_async` suffix from all method names:
 
@@ -103,7 +103,9 @@ from agentbay import (
 )
 ```
 
-## Complete Method Mapping
+## Common Method Mapping
+
+This section lists common renames. It is not an exhaustive list of all methods.
 
 ### Core Session Methods
 ```python
@@ -131,6 +133,15 @@ close_async() → close()
 upload_async() → upload()
 download_async() → download()
 ```
+
+## File Operations (Important Clarification)
+
+In v0.13.0+, file APIs follow the same sync/async split as other modules:
+
+- Sync: use `FileSystem` / `FileTransfer` without `await`
+- Async: use `AsyncFileSystem` / `AsyncFileTransfer` with `await`
+
+If you migrate an old async codebase, make sure you are not accidentally calling sync file APIs from an async server handler.
 
 
 
@@ -168,18 +179,18 @@ async with AgentBay() as agent_bay:
 ### v0.13.0+ Version
 ```python
 # Sync approach
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
 result = agent_bay.create(params)
 session = result.session
 # ... use session
-agent_bay.delete(session)
+session.delete()
 
 # Async approach
-agent_bay = AsyncAgentBay()
+agent_bay = AsyncAgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
 result = await agent_bay.create(params)
 session = result.session
 # ... use session
-await agent_bay.delete(session)
+await session.delete()
 ```
 
 ## Common Migration Patterns
@@ -201,12 +212,12 @@ asyncio.run(main())
 # After (v0.13.0+ sync)
 from agentbay import AgentBay
 
-agent_bay = AgentBay()
+agent_bay = AgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
 result = agent_bay.create(params)
 session = result.session
 result = session.command.execute_command("ls")
 print(result.output)
-agent_bay.delete(session)
+session.delete()
 ```
 
 ### Pattern 2: Web Server Migration
@@ -220,11 +231,11 @@ async def handle_request():
 
 # After (v0.13.0+ async)
 async def handle_request():
-    agent_bay = AsyncAgentBay()
+    agent_bay = AsyncAgentBay(api_key="your_api_key")  # Or set AGENTBAY_API_KEY
     result = await agent_bay.create(params)
     session = result.session
     result = await session.command.execute_command(cmd)
-    await agent_bay.delete(session)
+    await session.delete()
     return result.output
 ```
 
@@ -240,9 +251,8 @@ After migration:
 
 ## Notes
 
-- **File operations** remain synchronous in both APIs
-- **API compatibility** maintained except for async/sync differences
-- **New features** available in current version not in backup
-- **Performance** may differ due to architectural changes
+- **Cleanup**: `session.delete()` / `await session.delete()` is the most direct cleanup path. `agent_bay.delete(session)` also exists, but it delegates to `session.delete()`.
+- **API compatibility**: Most changes are mechanical (imports + `await` + removing `_async` suffix).
+- **Performance**: behavior may differ slightly due to the new sync/async split.
 
 For API comparison, see [Sync vs Async Guide](sync-vs-async.md).
