@@ -756,10 +756,12 @@ console.log('Content script fully initialized for {manifest['name']} on', window
             context_info = await session.context.info()
 
             for item in context_info.context_status_data:
-                if (
-                    item.context_id == self.context_id
-                    and item.path == "/tmp/extensions/"
-                ):
+                print(f"----- Context ID: {item.context_id}")
+                print(f"      Path: {item.path}")
+                print(f"      Status: {item.status}")
+                print(f"      Error Message: {item.error_message}")
+                print(f"      self.context_id: {self.context_id}")
+                if (item.path == "/tmp/extensions/"):
                     if item.status == "Success":
                         print("  ✅ Extension synchronization completed")
                         return

@@ -58,7 +58,10 @@ async def test_screenshot_with_valid_page(browser_session):
 
     async with async_playwright() as p:
         playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await playwright_browser.new_page()
+        contexts = playwright_browser.contexts
+        context = contexts[0] if contexts else await playwright_browser.new_context()
+        pages = context.pages
+        page = pages[0] if pages else await context.new_page()
         await page.goto("https://www.baidu.com", timeout=30000)
 
         try:
@@ -94,7 +97,10 @@ async def test_screenshot_with_full_page(browser_session):
 
     async with async_playwright() as p:
         playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await playwright_browser.new_page()
+        contexts = playwright_browser.contexts
+        context = contexts[0] if contexts else await playwright_browser.new_context()
+        pages = context.pages
+        page = pages[0] if pages else await context.new_page()
         await page.goto("https://www.baidu.com", timeout=30000)
 
         try:
@@ -130,7 +136,10 @@ async def test_screenshot_with_custom_options(browser_session):
 
     async with async_playwright() as p:
         playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await playwright_browser.new_page()
+        contexts = playwright_browser.contexts
+        context = contexts[0] if contexts else await playwright_browser.new_context()
+        pages = context.pages
+        page = pages[0] if pages else await context.new_page()
         await page.goto("https://www.baidu.com", timeout=30000)
 
         try:
@@ -171,7 +180,10 @@ async def test_screenshot_function_parameter_priority(browser_session):
 
     async with async_playwright() as p:
         playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await playwright_browser.new_page()
+        contexts = playwright_browser.contexts
+        context = contexts[0] if contexts else await playwright_browser.new_context()
+        pages = context.pages
+        page = pages[0] if pages else await context.new_page()
         await page.goto("https://www.baidu.com", timeout=30000)
 
         try:
@@ -254,7 +266,10 @@ async def test_screenshot_with_multiple_pages(browser_session):
 
         for i, url in enumerate(urls):
             try:
-                page = await playwright_browser.new_page()
+                contexts = playwright_browser.contexts
+                context = contexts[0] if contexts else await playwright_browser.new_context()
+                pages = context.pages
+                page = pages[0] if pages else await context.new_page()
                 await page.goto(url, timeout=30000)
 
                 try:
@@ -304,7 +319,10 @@ async def test_screenshot_performance(browser_session):
 
     async with async_playwright() as p:
         playwright_browser = await p.chromium.connect_over_cdp(endpoint_url)
-        page = await playwright_browser.new_page()
+        contexts = playwright_browser.contexts
+        context = contexts[0] if contexts else await playwright_browser.new_context()
+        pages = context.pages
+        page = pages[0] if pages else await context.new_page()
         await page.goto("https://www.baidu.com", timeout=30000)
 
         try:
