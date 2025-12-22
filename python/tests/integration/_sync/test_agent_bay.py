@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 import unittest
 
 from agentbay import AgentBay
@@ -408,9 +409,19 @@ class TestBrowserContext(unittest.TestCase):
         """Test creating session with BrowserContext using default RecyclePolicy."""
         print("Testing session creation with BrowserContext (default RecyclePolicy)...")
 
-        # Create BrowserContext with default RecyclePolicy
+        # Create a browser context first
+        context_name = f"test-browser-context-default-{int(time.time())}"
+        context_result = self.agent_bay.context.get(context_name, create=True)
+        if not context_result.success or not context_result.context:
+            self.skipTest("Failed to create browser context")
+
+        context = context_result.context
+        context_id = context.id
+        print(f"Created browser context: {context_name} (ID: {context_id})")
+
+        # Create BrowserContext with default RecyclePolicy using the created context ID
         browser_context = BrowserContext(
-            context_id="test-browser-context-default", auto_upload=True
+            context_id=context_id, auto_upload=True
         )
 
         print(f"BrowserContext context_id: {browser_context.context_id}")
@@ -444,6 +455,13 @@ class TestBrowserContext(unittest.TestCase):
         print(
             "Session with BrowserContext (default RecyclePolicy) created and verified successfully"
         )
+
+        # Clean up the created context
+        try:
+            self.agent_bay.context.delete(context)
+            print(f"Browser context deleted: {context_id}")
+        except Exception as e:
+            print(f"Warning: Failed to delete browser context: {e}")
 
 
 if __name__ == "__main__":
