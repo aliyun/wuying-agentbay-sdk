@@ -244,10 +244,10 @@ describe("Session Parameters", () => {
     });
 
     describe("CreateSessionParams class enableBrowserReplay functionality", () => {
-        it("should have enableBrowserReplay field with default undefined value", () => {
+        it("should have enableBrowserReplay field with default true value", () => {
             const params = new (require("../../src/session-params").CreateSessionParams)();
 
-            expect(params.enableBrowserReplay).toBeUndefined();
+            expect(params.enableBrowserReplay).toBe(true);
         });
 
         it("should support withEnableRecord method", () => {
