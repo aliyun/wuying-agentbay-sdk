@@ -15,6 +15,28 @@ INCLUDE_DIRS = [
     "typescript/docs",  # TypeScript SDK 文档与示例
 ]
 
+# 需要排除的目录（避免处理依赖包、缓存等）
+EXCLUDE_DIRS = {
+    "node_modules",     # Node.js 依赖包
+    "__pycache__",      # Python 缓存
+    ".git",            # Git 目录
+    "dist",            # 构建产物
+    "build",           # 构建目录
+    ".pytest_cache",   # pytest 缓存
+    ".coverage",       # 覆盖率文件
+    ".venv",           # 虚拟环境
+    "venv",            # 虚拟环境
+    ".tox",            # tox 环境
+    ".mypy_cache",     # mypy 缓存
+    ".vscode",         # VS Code 配置
+    ".idea",           # IntelliJ IDEA 配置
+    "target",          # Rust/Cargo 构建目录
+    "bin",             # 可执行文件目录
+    "obj",             # 编译对象文件
+    "test_cases",      # 测试用例目录
+    "tests",           # 测试目录
+}
+
 # 需要包含的文件扩展名
 INCLUDE_EXTENSIONS = {".md", ".py", ".go", ".ts", ".tsx", ".js"}
 
@@ -36,6 +58,17 @@ def main():
             continue
             
         for root, _, files in os.walk(src_dir):
+            # 检查当前路径是否包含需要排除的目录
+            rel_root = os.path.relpath(root, PROJECT_ROOT)
+            should_exclude = False
+            for exclude_dir in EXCLUDE_DIRS:
+                if exclude_dir in rel_root.split(os.sep):
+                    should_exclude = True
+                    break
+            
+            if should_exclude:
+                continue
+                
             for file in files:
                 ext = os.path.splitext(file)[1]
                 if ext not in INCLUDE_EXTENSIONS:
@@ -44,6 +77,20 @@ def main():
                 # 计算相对路径
                 abs_path = os.path.join(root, file)
                 rel_path = os.path.relpath(abs_path, PROJECT_ROOT)
+                
+                # 排除测试文件
+                if "test_" in file or "_test.py" in file or ".test.py" in file:
+                    continue
+                
+                # 排除空的__init__.py文件
+                if file == "__init__.py" and ext == ".py":
+                    try:
+                        with open(abs_path, "r", encoding="utf-8") as f:
+                            content = f.read().strip()
+                        if not content or content == "":
+                            continue
+                    except Exception:
+                        continue
                 
                 processed_files.append((abs_path, rel_path))
     
