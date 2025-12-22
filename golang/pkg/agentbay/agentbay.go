@@ -132,6 +132,9 @@ func NewAgentBayWithDefaults(apiKey string) (*AgentBay, error) {
 func (a *AgentBay) Create(params *CreateSessionParams) (*SessionResult, error) {
 	if params == nil {
 		params = NewCreateSessionParams()
+	} else {
+		// Create a deep copy of params to avoid modifying the original object
+		params = a.copyCreateSessionParams(params)
 	}
 
 	// Flag to indicate if we need to wait for mobile simulate
@@ -1136,4 +1139,45 @@ func (ab *AgentBay) Resume(session *Session, timeout int, pollInterval float64) 
 // GetRegionID returns the region ID from config
 func (a *AgentBay) GetRegionID() string {
 	return a.config.RegionID
+}
+
+// copyCreateSessionParams creates a deep copy of CreateSessionParams to avoid modifying the original object.
+func (a *AgentBay) copyCreateSessionParams(params *CreateSessionParams) *CreateSessionParams {
+	copy := &CreateSessionParams{
+		ImageId:             params.ImageId,
+		IsVpc:               params.IsVpc,
+		PolicyId:            params.PolicyId,
+		Framework:           params.Framework,
+		EnableBrowserReplay: params.EnableBrowserReplay,
+	}
+
+	// Deep copy Labels map
+	if params.Labels != nil {
+		copy.Labels = make(map[string]string)
+		for k, v := range params.Labels {
+			copy.Labels[k] = v
+		}
+	}
+
+	// Deep copy ContextSync slice
+	if params.ContextSync != nil {
+		copy.ContextSync = make([]*ContextSync, 0, len(params.ContextSync))
+		for _, cs := range params.ContextSync {
+			csCopy := &ContextSync{
+				ContextID: cs.ContextID,
+				Path:      cs.Path,
+			}
+			// Copy Policy if it exists (assuming SyncPolicy is a struct that can be shallow copied)
+			if cs.Policy != nil {
+				csCopy.Policy = cs.Policy
+			}
+			copy.ContextSync = append(copy.ContextSync, csCopy)
+		}
+	}
+
+	// Copy ExtraConfigs (shallow copy as it's a pointer to a complex struct)
+	// If deep copy is needed, we would need to implement a deep copy method for ExtraConfigs
+	copy.ExtraConfigs = params.ExtraConfigs
+
+	return copy
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay"
+	"github.com/aliyun/wuying-agentbay-sdk/golang/pkg/agentbay/models"
 	"github.com/aliyun/wuying-agentbay-sdk/golang/tests/pkg/agentbay/testutil"
 )
 
@@ -523,4 +524,136 @@ func contains(s, substr string) bool {
 				}
 				return false
 			}())))
+}
+
+// TestAgentBay_Create_DoesNotModifyParams tests that Create() method does not modify the original params object
+func TestAgentBay_Create_DoesNotModifyParams(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create params with context syncs
+	params := agentbay.NewCreateSessionParams()
+	params.Labels = map[string]string{"env": "test"}
+
+	// Create context syncs
+	contextSync1 := &agentbay.ContextSync{
+		ContextID: "ctx-1",
+		Path:      "/path1",
+	}
+	contextSync2 := &agentbay.ContextSync{
+		ContextID: "ctx-2",
+		Path:      "/path2",
+	}
+	params.ContextSync = []*agentbay.ContextSync{contextSync1, contextSync2}
+
+	// Store original values
+	originalLabels := make(map[string]string)
+	for k, v := range params.Labels {
+		originalLabels[k] = v
+	}
+	originalContextSyncs := make([]*agentbay.ContextSync, len(params.ContextSync))
+	copy(originalContextSyncs, params.ContextSync)
+	originalLabelsPtr := &params.Labels
+	originalContextSyncsPtr := &params.ContextSync
+
+	// Create a session (this may fail in unit test without API key, but we can still check params are not modified)
+	// The important part is that params should not be modified even if the API call fails
+	_, err = agentBay.Create(params)
+	// We don't care about the error here - we just want to verify params wasn't modified
+	_ = err
+
+	// Verify the original params object was not modified
+	if len(params.Labels) != len(originalLabels) {
+		t.Errorf("Labels map length changed: expected %d, got %d", len(originalLabels), len(params.Labels))
+	}
+	for k, v := range originalLabels {
+		if params.Labels[k] != v {
+			t.Errorf("Label %s was modified: expected %s, got %s", k, v, params.Labels[k])
+		}
+	}
+	if &params.Labels != originalLabelsPtr {
+		t.Error("Labels map pointer was replaced (should be the same object)")
+	}
+	if len(params.ContextSync) != len(originalContextSyncs) {
+		t.Errorf("ContextSync slice length changed: expected %d, got %d", len(originalContextSyncs), len(params.ContextSync))
+	}
+	if &params.ContextSync != originalContextSyncsPtr {
+		t.Error("ContextSync slice pointer was replaced (should be the same object)")
+	}
+	for i, originalCS := range originalContextSyncs {
+		if params.ContextSync[i].ContextID != originalCS.ContextID {
+			t.Errorf("ContextSync[%d].ContextID was modified: expected %s, got %s", i, originalCS.ContextID, params.ContextSync[i].ContextID)
+		}
+		if params.ContextSync[i].Path != originalCS.Path {
+			t.Errorf("ContextSync[%d].Path was modified: expected %s, got %s", i, originalCS.Path, params.ContextSync[i].Path)
+		}
+	}
+}
+
+// TestAgentBay_Create_WithMobileSimulate_DoesNotModifyParams tests that Create() method does not modify params when mobile simulate config is provided
+func TestAgentBay_Create_WithMobileSimulate_DoesNotModifyParams(t *testing.T) {
+	// Initialize AgentBay client
+	apiKey := testutil.GetTestAPIKey(t)
+	agentBay, err := agentbay.NewAgentBay(apiKey)
+	if err != nil {
+		t.Fatalf("Error initializing AgentBay client: %v", err)
+	}
+
+	// Create params with mobile simulate config
+	params := agentbay.NewCreateSessionParams()
+	params.Labels = map[string]string{"env": "test"}
+
+	// Create mobile simulate config
+	simulateConfig := &models.MobileSimulateConfig{
+		SimulatedContextID: "mobile-sim-ctx-123",
+		Simulate:           false,
+	}
+	mobileConfig := &models.MobileExtraConfig{
+		SimulateConfig: simulateConfig,
+	}
+	extraConfigs := &models.ExtraConfigs{
+		Mobile: mobileConfig,
+	}
+	params.ExtraConfigs = extraConfigs
+
+	// Store original values
+	originalLabels := make(map[string]string)
+	for k, v := range params.Labels {
+		originalLabels[k] = v
+	}
+	originalContextSyncs := params.ContextSync
+	originalLabelsPtr := &params.Labels
+	originalContextSyncsPtr := &params.ContextSync
+
+	// Create a session (this may fail in unit test without API key, but we can still check params are not modified)
+	// The important part is that params should not be modified even if the API call fails
+	_, err = agentBay.Create(params)
+	// We don't care about the error here - we just want to verify params wasn't modified
+	_ = err
+
+	// Verify the original params object was not modified
+	if len(params.Labels) != len(originalLabels) {
+		t.Errorf("Labels map length changed: expected %d, got %d", len(originalLabels), len(params.Labels))
+	}
+	for k, v := range originalLabels {
+		if params.Labels[k] != v {
+			t.Errorf("Label %s was modified: expected %s, got %s", k, v, params.Labels[k])
+		}
+	}
+	if &params.Labels != originalLabelsPtr {
+		t.Error("Labels map pointer was replaced (should be the same object)")
+	}
+	if params.ContextSync != nil && originalContextSyncs == nil {
+		t.Error("ContextSync was initialized when it should remain nil")
+	}
+	if params.ContextSync == nil && originalContextSyncs != nil {
+		t.Error("ContextSync was set to nil when it should remain initialized")
+	}
+	if &params.ContextSync != originalContextSyncsPtr {
+		t.Error("ContextSync slice pointer was replaced (should be the same object)")
+	}
 }

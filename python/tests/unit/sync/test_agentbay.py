@@ -684,6 +684,189 @@ class TestAgentBay(unittest.TestCase):
         # Verify the URL length is greater than 50 characters
         self.assertGreater(len(logged_url), 50)
 
+    @patch("agentbay._sync.agentbay.extract_request_id")
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+    def test_create_session_does_not_modify_params(
+        self, mock_mcp_client, mock_load_config, mock_extract_request_id
+    ):
+        """Test that create() method does not modify the original params object"""
+        # Mock configuration and request ID
+        mock_load_config.return_value = {
+            "region_id": "cn-hangzhou",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+        mock_extract_request_id.return_value = "create-request-id"
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {
+                    "SessionId": "new-session-id",
+                    "ResourceUrl": "http://resource.url",
+                }
+            }
+        }
+        mock_client.create_mcp_session = MagicMock(return_value=mock_response)
+
+        # Mock context info response
+        mock_context_response = MagicMock()
+        mock_context_response.to_map.return_value = {
+            "body": {"Data": {"ContextStatusDataList": []}, "Success": True}
+        }
+        mock_client.get_context_info = MagicMock(
+            return_value=mock_context_response
+        )
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay(api_key="test-key")
+
+        # Mock context service
+        mock_context = MagicMock()
+        mock_context.get = MagicMock(
+            return_value=MagicMock(success=True, context_id="test-context")
+        )
+        agent_bay.context = mock_context
+
+        # Create params with context_syncs
+        from agentbay import ContextSync
+        original_context_syncs = [
+            ContextSync(context_id="ctx-1", path="/path1"),
+            ContextSync(context_id="ctx-2", path="/path2"),
+        ]
+        params = CreateSessionParams(
+            labels={"env": "test"},
+            context_syncs=original_context_syncs,
+        )
+
+        # Store original values
+        original_labels = params.labels.copy()
+        original_context_syncs_list = list(params.context_syncs) if params.context_syncs else []
+        original_labels_id = id(params.labels)
+        original_context_syncs_id = id(params.context_syncs) if params.context_syncs else None
+
+        # Test creating a session
+        result = agent_bay.create(params)
+
+        # Verify the original params object was not modified
+        self.assertEqual(params.labels, original_labels)
+        self.assertEqual(id(params.labels), original_labels_id, "Labels map should not be replaced")
+        if params.context_syncs:
+            self.assertEqual(len(params.context_syncs), len(original_context_syncs_list))
+            self.assertEqual(id(params.context_syncs), original_context_syncs_id, "ContextSyncs list should not be replaced")
+            for i, original_cs in enumerate(original_context_syncs_list):
+                self.assertEqual(params.context_syncs[i].context_id, original_cs.context_id)
+                self.assertEqual(params.context_syncs[i].path, original_cs.path)
+
+    @patch("agentbay._sync.agentbay.extract_request_id")
+    @patch("agentbay._sync.agentbay._load_config")
+    @patch("agentbay._sync.agentbay.mcp_client")
+    @pytest.mark.sync
+    def test_create_session_with_mobile_simulate_does_not_modify_params(
+        self, mock_mcp_client, mock_load_config, mock_extract_request_id
+    ):
+        """Test that create() method does not modify params when mobile simulate config is provided"""
+        # Mock configuration and request ID
+        mock_load_config.return_value = {
+            "region_id": "cn-hangzhou",
+            "endpoint": "test.endpoint.com",
+            "timeout_ms": 30000,
+            "region_id": None,
+        }
+        mock_extract_request_id.return_value = "create-request-id"
+
+        # Mock client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.to_map.return_value = {
+            "body": {
+                "Data": {
+                    "SessionId": "new-session-id",
+                    "ResourceUrl": "http://resource.url",
+                }
+            }
+        }
+        mock_client.create_mcp_session = MagicMock(return_value=mock_response)
+
+        # Mock context info response
+        mock_context_response = MagicMock()
+        mock_context_response.to_map.return_value = {
+            "body": {"Data": {"ContextStatusDataList": []}, "Success": True}
+        }
+        mock_client.get_context_info = MagicMock(
+            return_value=mock_context_response
+        )
+        mock_mcp_client.return_value = mock_client
+
+        # Create AgentBay instance
+        agent_bay = AgentBay(api_key="test-key")
+
+        # Mock context service
+        mock_context = MagicMock()
+        mock_context.get = MagicMock(
+            return_value=MagicMock(success=True, context_id="test-context")
+        )
+        agent_bay.context = mock_context
+
+        # Create params with mobile simulate config
+        from agentbay.api.models import MobileSimulateConfig
+        mobile_sim_config = MobileSimulateConfig(
+            simulated_context_id="mobile-sim-ctx-123",
+            simulate=False,
+        )
+        params = CreateSessionParams(
+            labels={"env": "test"},
+            extra_configs=ExtraConfigs(
+                mobile=MobileExtraConfig(simulate_config=mobile_sim_config)
+            ),
+        )
+
+        # Store original values
+        original_labels = params.labels.copy()
+        # Note: CreateSessionParams converts None context_syncs to [] in __init__
+        # So params.context_syncs will be [] if not provided, not None
+        original_context_syncs = list(params.context_syncs) if params.context_syncs else []
+        original_context_syncs_length = len(params.context_syncs) if params.context_syncs else 0
+        original_labels_id = id(params.labels)
+        original_context_syncs_id = id(params.context_syncs) if params.context_syncs else None
+        # Store original extra_configs reference and values
+        original_extra_configs_id = id(params.extra_configs) if params.extra_configs else None
+        original_simulated_context_id = (
+            params.extra_configs.mobile.simulate_config.simulated_context_id
+            if params.extra_configs and params.extra_configs.mobile and params.extra_configs.mobile.simulate_config
+            else None
+        )
+
+        # Test creating a session
+        result = agent_bay.create(params)
+
+        # Verify the original params object was not modified
+        self.assertEqual(params.labels, original_labels)
+        self.assertEqual(id(params.labels), original_labels_id, "Labels map should not be replaced")
+        # Verify context_syncs list was not modified (should still be empty if it was originally empty)
+        self.assertEqual(len(params.context_syncs), original_context_syncs_length, "ContextSyncs list length should not change")
+        if original_context_syncs_id is not None:
+            self.assertEqual(id(params.context_syncs), original_context_syncs_id, "ContextSyncs list should not be replaced")
+        # If original was empty list, it should still be empty
+        if original_context_syncs_length == 0:
+            self.assertEqual(len(params.context_syncs), 0, "ContextSyncs should remain empty if it was originally empty")
+        # Verify extra_configs was not modified
+        if original_extra_configs_id is not None and params.extra_configs is not None:
+            self.assertEqual(id(params.extra_configs), original_extra_configs_id, "ExtraConfigs object should not be replaced")
+            # Verify the simulated_context_id is still the same
+            if original_simulated_context_id and params.extra_configs.mobile and params.extra_configs.mobile.simulate_config:
+                self.assertEqual(
+                    params.extra_configs.mobile.simulate_config.simulated_context_id,
+                    original_simulated_context_id,
+                    "SimulatedContextId should not be modified"
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

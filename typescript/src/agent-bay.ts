@@ -247,21 +247,23 @@ export class AgentBay {
    */
   async create(params: CreateSessionParams | CreateSeesionWithParams): Promise<SessionResult> {
     try {
-      logDebug(`default context syncs length: ${params.contextSync?.length}`);
+      // Create a deep copy of params to avoid modifying the original object
+      const paramsCopy = this.deepCopyParams(params);
+      logDebug(`default context syncs length: ${paramsCopy.contextSync?.length}`);
 
       // Add context syncs for mobile simulate if provided
-      if (params.extraConfigs?.mobile?.simulateConfig) {
-        const mobileSimContextId = params.extraConfigs.mobile.simulateConfig.simulatedContextId;
+      if (paramsCopy.extraConfigs?.mobile?.simulateConfig) {
+        const mobileSimContextId = paramsCopy.extraConfigs.mobile.simulateConfig.simulatedContextId;
         if (mobileSimContextId) {
           const mobileSimContextSync = new ContextSync(
             mobileSimContextId,
             "/data/agentbay_mobile_info"
           );
-          if (!params.contextSync) {
-            params.contextSync = [];
+          if (!paramsCopy.contextSync) {
+            paramsCopy.contextSync = [];
           }
           logInfo(`Adding context sync for mobile simulate: ${JSON.stringify(mobileSimContextSync)}`);
-          params.contextSync.push(mobileSimContextSync);
+          paramsCopy.contextSync.push(mobileSimContextSync);
         }
       }
 
@@ -270,12 +272,12 @@ export class AgentBay {
       });
 
       // browser replay is enabled by default, so if enableBrowserReplay is False, set enableRecord to False
-      if (params.enableBrowserReplay === false) {
+      if (paramsCopy.enableBrowserReplay === false) {
         request.enableRecord = false;
       }
 
       // Add SDK stats for tracking
-      const framework = params?.framework || "";
+      const framework = paramsCopy?.framework || "";
       const sdkStatsJson = `{"source":"sdk","sdk_language":"typescript","sdk_version":"${VERSION}","is_release":${IS_RELEASE},"framework":"${framework}"}`;
       request.sdkStats = sdkStatsJson;
 
@@ -285,22 +287,22 @@ export class AgentBay {
       }
 
       // Add labels if provided
-      if (params.labels) {
-        request.labels = JSON.stringify(params.labels);
+      if (paramsCopy.labels) {
+        request.labels = JSON.stringify(paramsCopy.labels);
       }
 
       // Add image_id if provided
-      if (params.imageId) {
-        request.imageId = params.imageId;
+      if (paramsCopy.imageId) {
+        request.imageId = paramsCopy.imageId;
       }
 
       // Add PolicyId if provided
-      if (params.policyId) {
-        request.mcpPolicyId = params.policyId;
+      if (paramsCopy.policyId) {
+        request.mcpPolicyId = paramsCopy.policyId;
       }
 
       // Add VPC resource if specified
-      request.vpcResource = params.isVpc || false;
+      request.vpcResource = paramsCopy.isVpc || false;
 
       // Flag to indicate if we need to wait for context synchronization
       let needsContextSync = false;
@@ -311,9 +313,9 @@ export class AgentBay {
       let mobileSimPath: string | undefined = undefined;
 
       // Add context sync configurations if provided
-      if (params.contextSync && params.contextSync.length > 0) {
+      if (paramsCopy.contextSync && paramsCopy.contextSync.length > 0) {
         const persistenceDataList: CreateMcpSessionRequestPersistenceDataList[] = [];
-        for (const contextSync of params.contextSync) {
+        for (const contextSync of paramsCopy.contextSync) {
           const persistenceItem = new CreateMcpSessionRequestPersistenceDataList({
             contextId: contextSync.contextId,
             path: contextSync.path,
@@ -331,10 +333,10 @@ export class AgentBay {
       }
 
       // Add BrowserContext as a ContextSync if provided
-      if (params.browserContext) {
+      if (paramsCopy.browserContext) {
         // Create a simple sync policy for browser context
         const syncPolicy = {
-          uploadPolicy: { autoUpload: params.browserContext.autoUpload },
+          uploadPolicy: { autoUpload: paramsCopy.browserContext.autoUpload },
           downloadPolicy: null,
           deletePolicy: null,
           bwList: null,
@@ -343,7 +345,7 @@ export class AgentBay {
 
         // Create browser context sync item
         const browserContextSync = new CreateMcpSessionRequestPersistenceDataList({
-          contextId: params.browserContext.contextId,
+          contextId: paramsCopy.browserContext.contextId,
           path: BROWSER_DATA_PATH, // Using a constant path for browser data
           policy: JSON.stringify(syncPolicy)
         });
@@ -357,28 +359,28 @@ export class AgentBay {
       }
 
       // Add extra configs if provided
-      if (params.extraConfigs) {
-        request.extraConfigs = JSON.stringify(params.extraConfigs);
+      if (paramsCopy.extraConfigs) {
+        request.extraConfigs = JSON.stringify(paramsCopy.extraConfigs);
 
         // Check mobile simulate config
-        if (params.extraConfigs.mobile?.simulateConfig?.simulate) {
-          mobileSimPath = params.extraConfigs.mobile.simulateConfig.simulatePath;
+        if (paramsCopy.extraConfigs.mobile?.simulateConfig?.simulate) {
+          mobileSimPath = paramsCopy.extraConfigs.mobile.simulateConfig.simulatePath;
           if (!mobileSimPath) {
             logInfo("mobile_sim_path is not set now, skip mobile simulate operation");
           } else {
             needsMobileSim = true;
-            mobileSimMode = params.extraConfigs.mobile.simulateConfig.simulateMode;
+            mobileSimMode = paramsCopy.extraConfigs.mobile.simulateConfig.simulateMode;
           }
         }
       }
 
       // Log API request
       logAPICall("CreateMcpSession", {
-        labels: params.labels,
-        imageId: params.imageId,
-        policyId: params.policyId,
-        isVpc: params.isVpc,
-        persistenceDataCount: params.contextSync ? params.contextSync.length : 0,
+        labels: paramsCopy.labels,
+        imageId: paramsCopy.imageId,
+        policyId: paramsCopy.policyId,
+        isVpc: paramsCopy.isVpc,
+        persistenceDataCount: paramsCopy.contextSync ? paramsCopy.contextSync.length : 0,
       });
 
       const response = await this.client.createMcpSession(request);
@@ -492,7 +494,7 @@ export class AgentBay {
       const session = new Session(this, sessionId);
 
       // Set VPC-related information from response
-      session.isVpc = params.isVpc || false;
+      session.isVpc = paramsCopy.isVpc || false;
       if (data.networkInterfaceIp) {
         session.networkInterfaceIp = data.networkInterfaceIp;
       }
@@ -507,16 +509,16 @@ export class AgentBay {
       session.resourceUrl = resourceUrl;
 
       // Set browser recording state
-      session.enableBrowserReplay = params.enableBrowserReplay || false;
+      session.enableBrowserReplay = paramsCopy.enableBrowserReplay || false;
 
       // Store imageId used for this session
-      (session as any).imageId = params.imageId;
+      (session as any).imageId = paramsCopy.imageId;
 
       // Apply mobile configuration if provided
-      if (params.extraConfigs && params.extraConfigs.mobile) {
+      if (paramsCopy.extraConfigs && paramsCopy.extraConfigs.mobile) {
         log("Applying mobile configuration...");
         try {
-          const configResult = await session.mobile.configure(params.extraConfigs.mobile);
+          const configResult = await session.mobile.configure(paramsCopy.extraConfigs.mobile);
           if (configResult.success) {
             log("Mobile configuration applied successfully");
           } else {
@@ -530,7 +532,7 @@ export class AgentBay {
       }
 
       // For VPC sessions, automatically fetch MCP tools information
-      if (params.isVpc) {
+      if (paramsCopy.isVpc) {
         logDebug("VPC session detected, automatically fetching MCP tools...");
         try {
           const toolsResult = await session.listMcpTools();
@@ -1132,6 +1134,49 @@ export class AgentBay {
         errorMessage: `Failed to resume session ${session.sessionId}: ${error}`,
       };
     }
+  }
+
+  /**
+   * Creates a deep copy of CreateSessionParams to avoid modifying the original object.
+   * @param params - The original params object to copy
+   * @returns A deep copy of the params object
+   */
+  private deepCopyParams(params: CreateSessionParams | CreateSeesionWithParams): CreateSessionParams | CreateSeesionWithParams {
+    // Use JSON serialization for deep copy (works for plain objects and arrays)
+    const copied = JSON.parse(JSON.stringify(params)) as any;
+
+    // Reconstruct ContextSync objects if they exist (since they might be class instances)
+    if (copied.contextSync && Array.isArray(copied.contextSync)) {
+      copied.contextSync = copied.contextSync.map((cs: any) => {
+        // Reconstruct from plain object (JSON.parse converts class instances to plain objects)
+        return new ContextSync(cs.contextId, cs.path, cs.policy);
+      });
+    }
+
+    // Reconstruct BrowserContext if it exists
+    if (copied.browserContext) {
+      const bc = copied.browserContext as any;
+      // Create a shallow copy of BrowserContext properties
+      copied.browserContext = {
+        contextId: bc.contextId,
+        autoUpload: bc.autoUpload,
+        fingerprintContext: bc.fingerprintContext,
+        fingerprintContextId: bc.fingerprintContextId,
+        fingerprintContextSync: bc.fingerprintContextSync ? new ContextSync(
+          bc.fingerprintContextSync.contextId,
+          bc.fingerprintContextSync.path,
+          bc.fingerprintContextSync.policy
+        ) : undefined,
+        extensionOption: bc.extensionOption,
+        extensionContextId: bc.extensionContextId,
+        extensionIds: bc.extensionIds ? [...bc.extensionIds] : undefined,
+        extensionContextSyncs: bc.extensionContextSyncs ? bc.extensionContextSyncs.map((cs: any) =>
+          new ContextSync(cs.contextId, cs.path, cs.policy)
+        ) : undefined,
+      } as BrowserContext;
+    }
+
+    return copied as CreateSessionParams | CreateSeesionWithParams;
   }
 }
 

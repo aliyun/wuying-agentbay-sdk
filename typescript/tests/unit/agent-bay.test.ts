@@ -59,6 +59,7 @@ describe("AgentBay", () => {
             listSession: sinon.stub(),
             deleteSessionAsync: sinon.stub(),
             getSession: sinon.stub(),
+            getContextInfo: sinon.stub(),
         };
 
         // Get references to stubs for easier access
@@ -66,6 +67,18 @@ describe("AgentBay", () => {
         listSessionStub = mockClient.listSession;
         deleteSessionAsyncStub = mockClient.deleteSessionAsync;
         getSessionStub = mockClient.getSession;
+
+        // Mock getContextInfo to return successful response with empty context status list
+        mockClient.getContextInfo.resolves({
+            statusCode: 200,
+            body: {
+                success: true,
+                data: {
+                    contextStatusDataList: [],
+                },
+                requestId: "mock-request-id-context-info",
+            },
+        });
 
         // Set environment variables for config instead of stubbing loadConfig
         process.env.AGENTBAY_ENDPOINT = mockConfigData.endpoint;
@@ -409,6 +422,96 @@ describe("AgentBay", () => {
             expect(createMcpSessionStub.calledOnce).toBe(true);
             const createCallArgs = createMcpSessionStub.getCall(0).args[0];
             expect(createCallArgs.mcpPolicyId).toBe(policyId);
+        });
+    });
+
+    describe("create does not modify params", () => {
+        let agentBay: AgentBay;
+
+        beforeEach(() => {
+            const apiKey = "test-api-key";
+            agentBay = new AgentBay({ apiKey });
+        });
+
+        it("should not modify original params object when creating session with contextSync", async () => {
+            const createMockResponse = {
+                body: {
+                    success: true,
+                    data: mockSessionData,
+                    requestId: "mock-request-id-create",
+                },
+            };
+            createMcpSessionStub.resolves(createMockResponse);
+
+            const { ContextSync } = require("../../src/context-sync");
+            const originalContextSyncs = [
+                new ContextSync("ctx-1", "/path1"),
+                new ContextSync("ctx-2", "/path2"),
+            ];
+            const params: any = {
+                labels: { env: "test" },
+                contextSync: originalContextSyncs,
+            };
+
+            // Store original values
+            const originalLabels = { ...params.labels };
+            const originalContextSyncsList = [...params.contextSync];
+            const originalLabelsRef = params.labels;
+            const originalContextSyncsRef = params.contextSync;
+
+            await agentBay.create(params);
+
+            // Verify the original params object was not modified
+            expect(params.labels).toEqual(originalLabels);
+            expect(params.labels).toBe(originalLabelsRef); // Should be the same object reference
+            expect(params.contextSync).toBe(originalContextSyncsRef); // Should be the same array reference
+            expect(params.contextSync.length).toBe(originalContextSyncsList.length);
+            for (let i = 0; i < originalContextSyncsList.length; i++) {
+                expect(params.contextSync[i].contextId).toBe(originalContextSyncsList[i].contextId);
+                expect(params.contextSync[i].path).toBe(originalContextSyncsList[i].path);
+            }
+        });
+
+        it("should not modify original params object when creating session with mobile simulate config", async () => {
+            const createMockResponse = {
+                body: {
+                    success: true,
+                    data: mockSessionData,
+                    requestId: "mock-request-id-create",
+                },
+            };
+            createMcpSessionStub.resolves(createMockResponse);
+
+            const params: any = {
+                labels: { env: "test" },
+                extraConfigs: {
+                    mobile: {
+                        simulateConfig: {
+                            simulatedContextId: "mobile-sim-ctx-123",
+                            simulate: false,
+                        },
+                    },
+                },
+            };
+
+            // Store original values
+            const originalLabels = { ...params.labels };
+            const originalContextSync = params.contextSync;
+            const originalLabelsRef = params.labels;
+            const originalContextSyncRef = params.contextSync;
+
+            await agentBay.create(params);
+
+            // Verify the original params object was not modified
+            expect(params.labels).toEqual(originalLabels);
+            expect(params.labels).toBe(originalLabelsRef); // Should be the same object reference
+            // If contextSync was undefined, it should remain undefined
+            // If it was an array, it should remain the same array reference
+            if (originalContextSync === undefined) {
+                expect(params.contextSync).toBeUndefined();
+            } else {
+                expect(params.contextSync).toBe(originalContextSyncRef);
+            }
         });
     });
 });

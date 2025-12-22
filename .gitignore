@@ -98,3 +98,4 @@ screenshot_*.png
 result_*.png
 current_page.*
 after_wait.*
+test.py

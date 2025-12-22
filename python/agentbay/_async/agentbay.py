@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import os
 import random
@@ -367,6 +368,9 @@ class AsyncAgentBay:
         try:
             if params is None:
                 params = CreateSessionParams()
+            else:
+                # Create a deep copy of params to avoid modifying the original object
+                params = copy.deepcopy(params)
 
             # Add context syncs for mobile simulate if simulated_context_id is provided
             if hasattr(params, "extra_configs") and params.extra_configs:
@@ -378,6 +382,7 @@ class AsyncAgentBay:
                         mobile_sim_context_sync = ContextSync(
                             context_id=mobile_sim_context_id,
                             path=_MOBILE_INFO_DEFAULT_PATH)
+                        # params is already a copy, so we can safely modify it
                         if not hasattr(params, "context_syncs") or params.context_syncs is None:
                             params.context_syncs = []
                         _logger.info(
