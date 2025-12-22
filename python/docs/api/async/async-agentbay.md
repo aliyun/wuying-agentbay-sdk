@@ -10,18 +10,6 @@
 
 
 
-## Config
-
-```python
-class Config()
-```
-
-### \_\_init\_\_
-
-```python
-def __init__(self, endpoint: str, timeout_ms: int)
-```
-
 ## AsyncAgentBay
 
 ```python

@@ -43,7 +43,7 @@ All synchronous API classes are in the `sync/` directory:
 - [Mobile](sync/mobile.md) - `agentbay.mobile`
 - [BrowserFingerprint](sync/fingerprint.md) - `agentbay.fingerprint`
 - [MobileSimulate](sync/mobile-simulate.md) - `agentbay.mobile_simulate`
-- [SessionParams](sync/session-params.md) - `agentbay.session_params`
+- [SessionParams](sync/session-params.md) - `agentbay.agentbay._common.params.session_params`
 
 ## Asynchronous API
 
@@ -65,7 +65,7 @@ All asynchronous API classes are in the `async/` directory:
 - [AsyncMobile](async/async-mobile.md) - `agentbay.mobile`
 - [AsyncBrowserFingerprint](async/async-fingerprint.md) - `agentbay.fingerprint`
 - [AsyncMobileSimulate](async/async-mobile-simulate.md) - `agentbay.mobile_simulate`
-- [AsyncSessionParams](async/async-session-params.md) - `agentbay.session_params`
+- [AsyncSessionParams](async/async-session-params.md) - `agentbay.agentbay._common.params.session_params`
 
 ## Common Classes
 
