@@ -291,7 +291,7 @@ export interface CreateSessionParamsConfig {
   isVpc?: boolean;
   /** Policy id to apply when creating the session. */
   policyId?: string;
-  /** Whether to enable browser recording for the session. Defaults to false. */
+  /** Whether to enable browser recording for the session. Defaults to true. */
   enableBrowserReplay?: boolean;
   /** Extra configuration settings for different session types (e.g., mobile) */
   extraConfigs?: ExtraConfigs;
@@ -325,7 +325,7 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
   /** Policy id to apply when creating the session. */
   public policyId?: string;
 
-  /** Whether to enable browser recording for the session. Defaults to undefined (use default behavior, enabled by default). */
+  /** Whether to enable browser recording for the session. Defaults to true. */
   public enableBrowserReplay?: boolean;
 
   /** Extra configuration settings for different session types (e.g., mobile) */
@@ -338,8 +338,8 @@ export class CreateSessionParams implements CreateSessionParamsConfig {
     this.labels = {};
     this.contextSync = [];
     this.isVpc = false;
-    // enableBrowserReplay is undefined by default to use default behavior (enabled by default)
-    this.enableBrowserReplay = undefined;
+    // enableBrowserReplay defaults to true
+    this.enableBrowserReplay = true;
   }
 
   /**

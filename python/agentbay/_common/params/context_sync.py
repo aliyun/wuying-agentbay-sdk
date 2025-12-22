@@ -1,4 +1,5 @@
 import re
+import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
@@ -67,6 +68,14 @@ class UploadPolicy:
         """Creates a new upload policy with default values"""
         return cls()
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            auto_upload=self.auto_upload,
+            upload_strategy=self.upload_strategy,
+            upload_mode=self.upload_mode,
+        )
+
     def __dict__(self):
         return {
             "autoUpload": self.auto_upload,
@@ -95,6 +104,13 @@ class DownloadPolicy:
         """Creates a new download policy with default values"""
         return cls()
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            auto_download=self.auto_download,
+            download_strategy=self.download_strategy,
+        )
+
     def __dict__(self):
         return {
             "autoDownload": self.auto_download,
@@ -120,6 +136,10 @@ class DeletePolicy:
         """Creates a new delete policy with default values"""
         return cls()
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(sync_local_file=self.sync_local_file)
+
     def __dict__(self):
         return {"syncLocalFile": self.sync_local_file}
 
@@ -142,6 +162,14 @@ class ExtractPolicy:
     def default(cls):
         """Creates a new extract policy with default values"""
         return cls()
+
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            extract=self.extract,
+            delete_src_file=self.delete_src_file,
+            extract_current_folder=self.extract_current_folder,
+        )
 
     def __dict__(self):
         return {
@@ -209,6 +237,13 @@ class RecyclePolicy:
         """Creates a new recycle policy with default values"""
         return cls()
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            lifecycle=self.lifecycle,
+            paths=copy.deepcopy(self.paths, memo),
+        )
+
     def __dict__(self):
         return {
             "lifecycle": self.lifecycle.value if self.lifecycle else None,
@@ -248,6 +283,13 @@ class WhiteList:
         """Check if path contains wildcard characters"""
         return bool(re.search(r"[*?\[\]]", path))
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            path=self.path,
+            exclude_paths=copy.deepcopy(self.exclude_paths, memo),
+        )
+
     def __dict__(self):
         return {"path": self.path, "excludePaths": self.exclude_paths}
 
@@ -262,6 +304,12 @@ class BWList:
     """
 
     white_lists: List[WhiteList] = field(default_factory=list)
+
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            white_lists=copy.deepcopy(self.white_lists, memo),
+        )
 
     def __dict__(self):
         return {
@@ -286,6 +334,10 @@ class MappingPolicy:
     def default(cls):
         """Creates a new mapping policy with default values"""
         return cls()
+
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(path=self.path)
 
     def __dict__(self):
         return {"path": self.path}
@@ -341,6 +393,18 @@ class SyncPolicy:
             bw_list=BWList(white_lists=[WhiteList(path="", exclude_paths=[])]),
         )
 
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            upload_policy=copy.deepcopy(self.upload_policy, memo) if self.upload_policy else None,
+            download_policy=copy.deepcopy(self.download_policy, memo) if self.download_policy else None,
+            delete_policy=copy.deepcopy(self.delete_policy, memo) if self.delete_policy else None,
+            extract_policy=copy.deepcopy(self.extract_policy, memo) if self.extract_policy else None,
+            recycle_policy=copy.deepcopy(self.recycle_policy, memo) if self.recycle_policy else None,
+            bw_list=copy.deepcopy(self.bw_list, memo) if self.bw_list else None,
+            mapping_policy=copy.deepcopy(self.mapping_policy, memo) if self.mapping_policy else None,
+        )
+
     def __dict__(self):
         result = {}
         if self.upload_policy:
@@ -379,6 +443,14 @@ class ContextSync:
     def new(cls, context_id: str, path: str, policy: Optional[SyncPolicy] = None):
         """Creates a new context sync configuration"""
         return cls(context_id=context_id, path=path, policy=policy)
+
+    def __deepcopy__(self, memo):
+        """Support deepcopy for dataclass with __dict__() method"""
+        return self.__class__(
+            context_id=self.context_id,
+            path=self.path,
+            policy=copy.deepcopy(self.policy, memo) if self.policy else None,
+        )
 
     def with_policy(self, policy: SyncPolicy):
         """Sets the policy"""

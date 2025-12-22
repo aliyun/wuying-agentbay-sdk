@@ -279,7 +279,7 @@ class CreateSessionParams:
         browser_context (Optional[BrowserContext]): Optional configuration for browser data synchronization.
         is_vpc (Optional[bool]): Whether to create a VPC-based session. Defaults to False.
         policy_id (Optional[str]): Policy id to apply when creating the session.
-        enable_browser_replay (Optional[bool]): Whether to enable browser recording for the session. Defaults to False.
+        enable_browser_replay (Optional[bool]): Whether to enable browser recording for the session. It is enabled by default, so if enable_browser_replay is False, set enable_record to False
         extra_configs (Optional[ExtraConfigs]): Advanced configuration parameters for mobile environments.
         framework (Optional[str]): Framework name for tracking (e.g., "langchain"). Defaults to empty string (direct call).
     """
@@ -342,9 +342,8 @@ class CreateSessionParams:
         self.browser_context = browser_context
         self.is_vpc = is_vpc if is_vpc is not None else False
         self.policy_id = policy_id
-        self.enable_browser_replay = (
-            enable_browser_replay if enable_browser_replay is not None else False
-        )
+        # Default to True if not provided (browser replay is enabled by default)
+        self.enable_browser_replay = enable_browser_replay if enable_browser_replay is not None else True
         self.extra_configs = extra_configs
         self.framework = framework or ""
 
