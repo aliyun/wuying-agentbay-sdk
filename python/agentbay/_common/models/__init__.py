@@ -13,6 +13,7 @@ from .mcp_tool import *
 from .mobile import *
 from .mobile_simulate import *
 from .response import *
+from .extension import *
 
 # Re-export all from submodules
 __all__ = []

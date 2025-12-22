@@ -67,7 +67,6 @@ def generate_sync():
         "AsyncComputer": "Computer",
         "AsyncMobile": "Mobile",
         "AsyncFileTransfer": "FileTransfer",
-        "AsyncContextSync": "ContextSync",
         "AsyncOss": "Oss",
         "AsyncAgent": "Agent",
         "AsyncBrowserAgent": "BrowserAgent",

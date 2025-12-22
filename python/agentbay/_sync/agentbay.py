@@ -14,7 +14,12 @@ from typing import Any, Dict, Optional
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_tea_openapi.exceptions._client import ClientException
 
-from .._common.config import _BROWSER_DATA_PATH, _MOBILE_INFO_DEFAULT_PATH, _load_config
+from .._common.config import (
+    Config as Config,
+    _BROWSER_DATA_PATH,
+    _MOBILE_INFO_DEFAULT_PATH,
+    _load_config,
+)
 from .._common.logger import (
     _log_api_call,
     _log_api_response_with_details,
@@ -40,16 +45,10 @@ from ..api.client import Client as mcp_client
 from ..api.models import CreateMcpSessionRequest, GetSessionRequest, ListSessionRequest, ResumeSessionAsyncRequest
 from .context import ContextService
 from .session import Session
-from .session_params import CreateSessionParams
+from .._common.params.session_params import CreateSessionParams
 
 # Initialize logger for this module
 _logger = get_logger("agentbay")
-
-
-class Config:
-    def __init__(self, endpoint: str, timeout_ms: int):
-        self.endpoint = endpoint
-        self.timeout_ms = timeout_ms
 
 
 class AgentBay:
@@ -379,7 +378,7 @@ class AgentBay:
                 if params.extra_configs.mobile and params.extra_configs.mobile.simulate_config:
                     mobile_sim_context_id = params.extra_configs.mobile.simulate_config.simulated_context_id
                     if mobile_sim_context_id:
-                        from .context_sync import ContextSync
+                        from .._common.params.context_sync import ContextSync
 
                         mobile_sim_context_sync = ContextSync(
                             context_id=mobile_sim_context_id,
@@ -446,7 +445,7 @@ class AgentBay:
             # Add BrowserContext as a ContextSync if provided
             if hasattr(params, "browser_context") and params.browser_context:
                 from ..api.models import CreateMcpSessionRequestPersistenceDataList
-                from .context_sync import (
+                from .._common.params.context_sync import (
                     BWList,
                     RecyclePolicy,
                     SyncPolicy,

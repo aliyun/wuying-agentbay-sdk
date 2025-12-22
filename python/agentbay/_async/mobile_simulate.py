@@ -13,10 +13,10 @@ from .._common.config import (
 from .._common.logger import get_logger
 from .._common.models import MobileSimulateUploadResult
 from ..api.models import MobileSimulateConfig, MobileSimulateMode
-from .context_sync import WhiteList
+from .._common.params.context_sync import WhiteList
 
 if TYPE_CHECKING:
-    from .context_sync import ContextSync
+    from .._common.params.context_sync import ContextSync
     from .agentbay import AsyncAgentBay
     from .context import AsyncContextService, Context
 
