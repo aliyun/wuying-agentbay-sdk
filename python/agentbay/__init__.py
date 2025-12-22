@@ -62,7 +62,7 @@ from .api.models import ExtraConfigs, MobileExtraConfig, AppManagerRule, MobileS
 
 # Sync API (Default)
 from ._sync.agentbay import AgentBay
-from ._sync.session import Session
+from ._sync.session import Session, SessionInfo
 from ._sync.fingerprint import BrowserFingerprintGenerator
 from ._sync.browser import (
     Browser,
@@ -111,7 +111,7 @@ from ._sync.filesystem import (
     FileSearchResult,
     MultipleFileContentResult,
 )
-from ._sync.oss import Oss
+from ._sync.oss import Oss, OSSClientResult, OSSDownloadResult, OSSUploadResult
 from ._sync.context_manager import ContextManager
 from ._common.models.context import ContextInfoResult, ContextSyncResult
 from ._common.models.context import ContextStatusData
@@ -123,6 +123,7 @@ from ._sync.context import (
     ContextListResult,
     ContextFileEntry,
     ContextFileListResult,
+    FileUrlResult,
     ClearContextResult,
     ContextService,
 )
@@ -158,6 +159,7 @@ __all__ = [
     "AgentBay",
     "AsyncAgentBay",
     "Session",
+    "SessionInfo",
     "AsyncSession",
     # Functional Modules
     "Browser",
@@ -174,6 +176,9 @@ __all__ = [
     "AsyncFileSystem",
     "Oss",
     "AsyncOss",
+    "OSSClientResult",
+    "OSSUploadResult",
+    "OSSDownloadResult",
     "ContextManager",
     "AsyncContextManager",
     "Code",
@@ -236,6 +241,7 @@ __all__ = [
     "ContextListResult",
     "ContextFileEntry",
     "ContextFileListResult",
+    "FileUrlResult",
     "ClearContextResult",
     "ContextStatusData",
     # Browser Agent types BEGIN
