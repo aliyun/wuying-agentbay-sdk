@@ -58,7 +58,7 @@ def _is_release_build() -> bool:
     The CI/CD workflow will replace __AGENTBAY_IS_RELEASE_BUILD__ with True for release builds.
     """
     # This placeholder will be replaced by the build process
-    # For release builds: sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__/True/g' agentbay/version.py
+    # For release builds: sed -i 's/__AGENTBAY_IS_RELEASE_BUILD__/True/g' agentbay/_common/version.py
     return __AGENTBAY_IS_RELEASE_BUILD__  # Default: False for development builds
 
 
