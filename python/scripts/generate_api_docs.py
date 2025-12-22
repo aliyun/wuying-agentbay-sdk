@@ -49,7 +49,7 @@ DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("sync/mobile.md", "Mobile", ("agentbay._sync.mobile",)),
     DocMapping("sync/fingerprint.md", "BrowserFingerprint", ("agentbay._sync.fingerprint",)),
     DocMapping("sync/mobile-simulate.md", "MobileSimulate", ("agentbay._sync.mobile_simulate",)),
-    DocMapping("sync/session-params.md", "SessionParams", ("agentbay._sync.session_params",)),
+    DocMapping("sync/session-params.md", "SessionParams", ("agentbay._common.params.session_params",)),
 )
 
 # Async API docs
@@ -70,7 +70,7 @@ ASYNC_DOC_MAPPINGS: Sequence[DocMapping] = (
     DocMapping("async/async-mobile.md", "AsyncMobile", ("agentbay._async.mobile",)),
     DocMapping("async/async-fingerprint.md", "AsyncBrowserFingerprint", ("agentbay._async.fingerprint",)),
     DocMapping("async/async-mobile-simulate.md", "AsyncMobileSimulate", ("agentbay._async.mobile_simulate",)),
-    DocMapping("async/async-session-params.md", "AsyncSessionParams", ("agentbay._async.session_params",)),
+    DocMapping("async/async-session-params.md", "AsyncSessionParams", ("agentbay._common.params.session_params",)),
 )
 
 # Common/Shared docs (Config, Exceptions, etc.)
