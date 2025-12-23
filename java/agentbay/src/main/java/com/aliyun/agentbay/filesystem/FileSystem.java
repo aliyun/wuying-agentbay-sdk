@@ -40,6 +40,11 @@ public class FileSystem extends BaseService {
         return fileTransfer;
     }
 
+    public String getFileTransferContextPath() {
+        FileTransfer transfer = ensureFileTransfer();
+        return transfer.getContextPath();
+    }
+
     /**
      * Read a file
      *
@@ -49,7 +54,14 @@ public class FileSystem extends BaseService {
      */
     public String read(String path) throws AgentBayException {
         logger.debug("Reading file: {}", path);
-        return session.getAgent().readFile(path);
+        Map<String, Object> args = new HashMap<>();
+        args.put("path", path);
+        OperationResult result = callMcpTool("read_file", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -62,7 +74,15 @@ public class FileSystem extends BaseService {
      */
     public String write(String path, String content) throws AgentBayException {
         logger.debug("Writing file: {}", path);
-        return session.getAgent().writeFile(path, content);
+        Map<String, Object> args = new HashMap<>();
+        args.put("path", path);
+        args.put("content", content);
+        OperationResult result = callMcpTool("write_file", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -74,7 +94,14 @@ public class FileSystem extends BaseService {
      */
     public String list(String path) throws AgentBayException {
         logger.debug("Listing directory: {}", path);
-        return session.getAgent().listDirectory(path);
+        Map<String, Object> args = new HashMap<>();
+        args.put("path", path);
+        OperationResult result = callMcpTool("list_directory", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -86,9 +113,11 @@ public class FileSystem extends BaseService {
      */
     public boolean exists(String path) throws AgentBayException {
         try {
-            String result = session.getAgent().executeCommand("test -e \"" + path + "\" && echo 'exists' || echo 'not exists'");
-            return result != null && result.trim().equals("exists");
-        } catch (AgentBayException e) {
+            Map<String, Object> args = new HashMap<>();
+            args.put("command", "test -e \"" + path + "\" && echo 'exists' || echo 'not exists'");
+            OperationResult result = callMcpTool("shell", args);
+            return result.isSuccess() && result.getData() != null && result.getData().trim().equals("exists");
+        } catch (Exception e) {
             logger.warn("Failed to check if path exists: {}", path, e);
             return false;
         }
@@ -103,7 +132,14 @@ public class FileSystem extends BaseService {
      */
     public String mkdir(String path) throws AgentBayException {
         logger.debug("Creating directory: {}", path);
-        return session.getAgent().executeCommand("mkdir -p \"" + path + "\"");
+        Map<String, Object> args = new HashMap<>();
+        args.put("command", "mkdir -p \"" + path + "\"");
+        OperationResult result = callMcpTool("shell", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -115,7 +151,14 @@ public class FileSystem extends BaseService {
      */
     public String remove(String path) throws AgentBayException {
         logger.debug("Removing path: {}", path);
-        return session.getAgent().executeCommand("rm -rf \"" + path + "\"");
+        Map<String, Object> args = new HashMap<>();
+        args.put("command", "rm -rf \"" + path + "\"");
+        OperationResult result = callMcpTool("shell", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -128,7 +171,14 @@ public class FileSystem extends BaseService {
      */
     public String copy(String source, String destination) throws AgentBayException {
         logger.debug("Copying from {} to {}", source, destination);
-        return session.getAgent().executeCommand("cp -r \"" + source + "\" \"" + destination + "\"");
+        Map<String, Object> args = new HashMap<>();
+        args.put("command", "cp -r \"" + source + "\" \"" + destination + "\"");
+        OperationResult result = callMcpTool("shell", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -141,7 +191,14 @@ public class FileSystem extends BaseService {
      */
     public String move(String source, String destination) throws AgentBayException {
         logger.debug("Moving from {} to {}", source, destination);
-        return session.getAgent().executeCommand("mv \"" + source + "\" \"" + destination + "\"");
+        Map<String, Object> args = new HashMap<>();
+        args.put("command", "mv \"" + source + "\" \"" + destination + "\"");
+        OperationResult result = callMcpTool("shell", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -153,7 +210,14 @@ public class FileSystem extends BaseService {
      */
     public String getInfo(String path) throws AgentBayException {
         logger.debug("Getting file info: {}", path);
-        return session.getAgent().executeCommand("ls -la \"" + path + "\"");
+        Map<String, Object> args = new HashMap<>();
+        args.put("command", "ls -la \"" + path + "\"");
+        OperationResult result = callMcpTool("shell", args);
+        if (result.isSuccess()) {
+            return result.getData();
+        } else {
+            throw new AgentBayException(result.getErrorMessage());
+        }
     }
 
     /**
@@ -624,19 +688,21 @@ public class FileSystem extends BaseService {
         float waitTimeout,
         float pollInterval
     ) {
+        return uploadFile(localPath, remotePath, contentType, wait, waitTimeout, pollInterval, null);
+    }
+
+    public UploadResult uploadFile(
+        String localPath,
+        String remotePath,
+        String contentType,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
         try {
             FileTransfer transfer = ensureFileTransfer();
-            UploadResult result = transfer.upload(localPath, remotePath, contentType, wait, waitTimeout, pollInterval);
-
-            if (result.isSuccess() && session.getFileTransferContextId() != null) {
-                String contextId = session.getFileTransferContextId();
-                try {
-                    session.getAgentBay().getContextService().deleteFile(contextId, remotePath);
-                } catch (Exception deleteError) {
-                    logger.warn("Error deleting uploaded file from OSS: {}", deleteError.getMessage());
-                }
-            }
-
+            UploadResult result = transfer.upload(localPath, remotePath, contentType, wait, waitTimeout, pollInterval, progressCallback);
             return result;
         } catch (Exception e) {
             return new UploadResult(
@@ -658,19 +724,21 @@ public class FileSystem extends BaseService {
         float waitTimeout,
         float pollInterval
     ) {
+        return downloadFile(remotePath, localPath, overwrite, wait, waitTimeout, pollInterval, null);
+    }
+
+    public DownloadResult downloadFile(
+        String remotePath,
+        String localPath,
+        boolean overwrite,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
         try {
             FileTransfer transfer = ensureFileTransfer();
-            DownloadResult result = transfer.download(remotePath, localPath, overwrite, wait, waitTimeout, pollInterval);
-
-            if (result.isSuccess() && session.getFileTransferContextId() != null) {
-                String contextId = session.getFileTransferContextId();
-                try {
-                    session.getAgentBay().getContextService().deleteFile(contextId, remotePath);
-                } catch (Exception deleteError) {
-                    logger.warn("Error deleting downloaded file from OSS: {}", deleteError.getMessage());
-                }
-            }
-
+            DownloadResult result = transfer.download(remotePath, localPath, overwrite, wait, waitTimeout, pollInterval, progressCallback);
             return result;
         } catch (Exception e) {
             return new DownloadResult(
@@ -686,5 +754,90 @@ public class FileSystem extends BaseService {
 
     public DownloadResult downloadFile(String remotePath) {
         return downloadFile(remotePath, null);
+    }
+
+    /**
+     * Upload byte array to remote path using pre-signed URLs.
+     * This is a Java SDK extension that allows uploading data from memory without writing to disk first.
+     *
+     * @param content Byte array content to upload
+     * @param remotePath Remote file path to upload to
+     * @param contentType Optional content type for the file
+     * @param wait Whether to wait for the sync operation to complete
+     * @param waitTimeout Timeout for waiting for sync completion (seconds)
+     * @param pollInterval Interval between polling for sync completion (seconds)
+     * @param progressCallback Callback for upload progress updates
+     * @return UploadResult containing the result of the upload operation
+     */
+    public UploadResult uploadFileBytes(
+        byte[] content,
+        String remotePath,
+        String contentType,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
+        try {
+            FileTransfer transfer = ensureFileTransfer();
+            UploadResult result = transfer.uploadBytes(content, remotePath, contentType, wait, waitTimeout, pollInterval, progressCallback);
+            return result;
+        } catch (Exception e) {
+            return new UploadResult(
+                "", false, null, null, null, null, 0, remotePath,
+                "Upload failed: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Upload byte array to remote path with default parameters.
+     *
+     * @param content Byte array content to upload
+     * @param remotePath Remote file path to upload to
+     * @return UploadResult containing the result of the upload operation
+     */
+    public UploadResult uploadFileBytes(byte[] content, String remotePath) {
+        return uploadFileBytes(content, remotePath, null, true, 30.0f, 1.5f, null);
+    }
+
+    /**
+     * Download file from remote path to byte array using pre-signed URLs.
+     * This is a Java SDK extension that allows downloading data to memory without writing to disk.
+     *
+     * @param remotePath Remote file path to download from
+     * @param wait Whether to wait for the sync operation to complete
+     * @param waitTimeout Timeout for waiting for sync completion (seconds)
+     * @param pollInterval Interval between polling for sync completion (seconds)
+     * @param progressCallback Callback for download progress updates
+     * @return DownloadResult containing the downloaded byte array in the content field
+     */
+    public DownloadResult downloadFileBytes(
+        String remotePath,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
+        try {
+            FileTransfer transfer = ensureFileTransfer();
+            DownloadResult result = transfer.downloadBytes(remotePath, wait, waitTimeout, pollInterval, progressCallback);
+            return result;
+        } catch (Exception e) {
+            return new DownloadResult(
+                "", false, null, null, null, 0, remotePath, null, null,
+                "Download failed: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Download file from remote path to byte array with default parameters.
+     *
+     * @param remotePath Remote file path to download from
+     * @return DownloadResult containing the downloaded byte array in the content field
+     */
+    public DownloadResult downloadFileBytes(String remotePath) {
+        return downloadFileBytes(remotePath, true, 30.0f, 1.5f, null);
     }
 }

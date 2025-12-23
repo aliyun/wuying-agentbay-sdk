@@ -5,6 +5,7 @@ import com.aliyun.agentbay.client.ApiClient;
 import com.aliyun.agentbay.context.*;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.AuthenticationException;
+import com.aliyun.agentbay.mobile.MobileSimulate;
 import com.aliyun.agentbay.model.GetSessionData;
 import com.aliyun.agentbay.model.GetSessionResult;
 import com.aliyun.agentbay.model.SessionParams;
@@ -12,6 +13,7 @@ import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.Session;
 import com.aliyun.agentbay.session.CreateSessionParams;
 import com.aliyun.agentbay.util.ResponseUtil;
+import com.aliyun.agentbay.util.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.aliyun.teaopenapi.models.Config;
 import com.aliyun.wuyingai20250506.Client;
@@ -37,6 +39,7 @@ public class AgentBay {
     private Client client;
     private ApiClient apiClient;
     private ConcurrentHashMap<String, Session> sessions;
+    private MobileSimulate mobileSimulate;
 
     public AgentBay(String apiKey) throws AgentBayException {
         this(apiKey, new com.aliyun.agentbay.Config());
@@ -68,6 +71,7 @@ public class AgentBay {
 
             this.client = new Client(clientConfig);
             this.apiClient = new ApiClient(this.client, apiKey);
+            this.mobileSimulate = new MobileSimulate(this);
 
             logger.info("AgentBay client initialized successfully");
         } catch (Exception e) {
@@ -443,6 +447,18 @@ public class AgentBay {
                 }
             }
 
+            // Add SDK stats for tracking
+            String framework = params.getFramework() != null ? params.getFramework() : "";
+            String sdkStatsJson = String.format(
+                "{\"source\":\"sdk\",\"sdk_language\":\"%s\",\"sdk_version\":\"%s\",\"is_release\":%s,\"framework\":\"%s\"}",
+                Version.getSdkLanguage(),
+                Version.getVersionString(),
+                Version.isRelease(),
+                framework
+            );
+            request.setSdkStats(sdkStatsJson);
+            logger.debug("Added SDK stats: {}", sdkStatsJson);
+
             CreateMcpSessionResponse response = client.createMcpSession(request);
 
             if (response == null || response.getBody() == null) {
@@ -612,6 +628,15 @@ public class AgentBay {
      */
     public com.aliyun.agentbay.context.ContextService getContext() {
         return getContextService();
+    }
+
+    /**
+     * Get mobile simulate service for this AgentBay instance
+     *
+     * @return MobileSimulate instance
+     */
+    public MobileSimulate getMobileSimulate() {
+        return mobileSimulate;
     }
 
     /**

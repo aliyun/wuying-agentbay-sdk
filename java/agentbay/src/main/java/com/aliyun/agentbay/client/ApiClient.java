@@ -97,6 +97,40 @@ public class ApiClient {
 
 
     /**
+     * Get ADB connection link for mobile sessions
+     *
+     * @param sessionId The session ID
+     * @param adbkeyPub The ADB public key
+     * @return GetAdbLinkResponse
+     * @throws AgentBayException if the call fails
+     */
+    public GetAdbLinkResponse getAdbLink(String sessionId, String adbkeyPub) throws AgentBayException {
+        try {
+            GetAdbLinkRequest request = new GetAdbLinkRequest();
+            request.setAuthorization("Bearer " + apiKey);
+            request.setSessionId(sessionId);
+            
+            // Build options JSON with adbkey_pub
+            String optionsJson = String.format("{\"adbkey_pub\":\"%s\"}", adbkeyPub);
+            request.setOption(optionsJson);
+
+            logger.debug("Getting ADB link for session: {} with adbkey_pub", sessionId);
+
+            GetAdbLinkResponse response = client.getAdbLink(request);
+
+            logger.debug("ADB link retrieved successfully for session: {}", sessionId);
+            return response;
+        } catch (Exception e) {
+            logger.error("Failed to get ADB link for session: {}", sessionId, e);
+            throw new ApiException(String.format(
+                    "Failed to get ADB link for session '%s': %s",
+                    sessionId,
+                    e.getMessage()
+            ), e);
+        }
+    }
+
+    /**
      * Simple session deletion - stub implementation
      *
      * @param sessionId The session ID

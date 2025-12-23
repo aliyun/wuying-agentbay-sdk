@@ -75,6 +75,36 @@ public class GetSessionResponseBody extends TeaModel {
         return this.success;
     }
 
+    public static class GetSessionResponseBodyDataContexts extends TeaModel {
+        @NameInMap("id")
+        public String id;
+
+        @NameInMap("name")
+        public String name;
+
+        public static GetSessionResponseBodyDataContexts build(java.util.Map<String, ?> map) throws Exception {
+            GetSessionResponseBodyDataContexts self = new GetSessionResponseBodyDataContexts();
+            return TeaModel.build(map, self);
+        }
+
+        public GetSessionResponseBodyDataContexts setId(String id) {
+            this.id = id;
+            return this;
+        }
+        public String getId() {
+            return this.id;
+        }
+
+        public GetSessionResponseBodyDataContexts setName(String name) {
+            this.name = name;
+            return this;
+        }
+        public String getName() {
+            return this.name;
+        }
+
+    }
+
     public static class GetSessionResponseBodyData extends TeaModel {
         @NameInMap("AppInstanceId")
         public String appInstanceId;
@@ -94,11 +124,17 @@ public class GetSessionResponseBody extends TeaModel {
         @NameInMap("SessionId")
         public String sessionId;
 
+        @NameInMap("Status")
+        public String status;
+
         @NameInMap("Token")
         public String token;
 
         @NameInMap("VpcResource")
         public Boolean vpcResource;
+
+        @NameInMap("contexts")
+        public java.util.List<GetSessionResponseBodyDataContexts> contexts;
 
         public static GetSessionResponseBodyData build(java.util.Map<String, ?> map) throws Exception {
             GetSessionResponseBodyData self = new GetSessionResponseBodyData();
@@ -153,6 +189,14 @@ public class GetSessionResponseBody extends TeaModel {
             return this.sessionId;
         }
 
+        public GetSessionResponseBodyData setStatus(String status) {
+            this.status = status;
+            return this;
+        }
+        public String getStatus() {
+            return this.status;
+        }
+
         public GetSessionResponseBodyData setToken(String token) {
             this.token = token;
             return this;
@@ -167,6 +211,14 @@ public class GetSessionResponseBody extends TeaModel {
         }
         public Boolean getVpcResource() {
             return this.vpcResource;
+        }
+
+        public GetSessionResponseBodyData setContexts(java.util.List<GetSessionResponseBodyDataContexts> contexts) {
+            this.contexts = contexts;
+            return this;
+        }
+        public java.util.List<GetSessionResponseBodyDataContexts> getContexts() {
+            return this.contexts;
         }
 
     }

@@ -85,6 +85,9 @@ public class CreateMcpSessionResponseBody extends TeaModel {
         @NameInMap("HttpPort")
         public String httpPort;
 
+        @NameInMap("LinkUrl")
+        public String linkUrl;
+
         @NameInMap("NetworkInterfaceIp")
         public String networkInterfaceIp;
 
@@ -102,6 +105,9 @@ public class CreateMcpSessionResponseBody extends TeaModel {
 
         @NameInMap("Token")
         public String token;
+
+        @NameInMap("ToolList")
+        public String toolList;
 
         @NameInMap("VpcResource")
         public Boolean vpcResource;
@@ -133,6 +139,14 @@ public class CreateMcpSessionResponseBody extends TeaModel {
         }
         public String getHttpPort() {
             return this.httpPort;
+        }
+
+        public CreateMcpSessionResponseBodyData setLinkUrl(String linkUrl) {
+            this.linkUrl = linkUrl;
+            return this;
+        }
+        public String getLinkUrl() {
+            return this.linkUrl;
         }
 
         public CreateMcpSessionResponseBodyData setNetworkInterfaceIp(String networkInterfaceIp) {
@@ -181,6 +195,14 @@ public class CreateMcpSessionResponseBody extends TeaModel {
         }
         public String getToken() {
             return this.token;
+        }
+
+        public CreateMcpSessionResponseBodyData setToolList(String toolList) {
+            this.toolList = toolList;
+            return this;
+        }
+        public String getToolList() {
+            return this.toolList;
         }
 
         public CreateMcpSessionResponseBodyData setVpcResource(Boolean vpcResource) {

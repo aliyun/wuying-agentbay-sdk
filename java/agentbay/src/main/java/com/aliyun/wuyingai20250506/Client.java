@@ -175,6 +175,14 @@ public class Client extends com.aliyun.teaopenapi.Client {
             body.put("ContextId", request.contextId);
         }
 
+        if (!com.aliyun.teautil.Common.isUnset(request.directLink)) {
+            body.put("DirectLink", request.directLink);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.enableRecord)) {
+            body.put("EnableRecord", request.enableRecord);
+        }
+
         if (!com.aliyun.teautil.Common.isUnset(request.externalUserId)) {
             body.put("ExternalUserId", request.externalUserId);
         }
@@ -394,6 +402,54 @@ public class Client extends com.aliyun.teaopenapi.Client {
 
     /**
      * <b>summary</b> : 
+     * <p>休眠</p>
+     * 
+     * @param request DeleteSessionAsyncRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return DeleteSessionAsyncResponse
+     */
+    public DeleteSessionAsyncResponse deleteSessionAsyncWithOptions(DeleteSessionAsyncRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "DeleteSessionAsync"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new DeleteSessionAsyncResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>休眠</p>
+     * 
+     * @param request DeleteSessionAsyncRequest
+     * @return DeleteSessionAsyncResponse
+     */
+    public DeleteSessionAsyncResponse deleteSessionAsync(DeleteSessionAsyncRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.deleteSessionAsyncWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
      * <p>查询context特定目录文件</p>
      * 
      * @param request DescribeContextFilesRequest
@@ -508,6 +564,158 @@ public class Client extends com.aliyun.teaopenapi.Client {
     public DescribeNetworkResponse describeNetwork(DescribeNetworkRequest request) throws Exception {
         com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
         return this.describeNetworkWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取ADB链接</p>
+     * 
+     * @param request GetAdbLinkRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return GetAdbLinkResponse
+     */
+    public GetAdbLinkResponse getAdbLinkWithOptions(GetAdbLinkRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.option)) {
+            body.put("Option", request.option);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "GetAdbLink"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new GetAdbLinkResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取ADB链接</p>
+     * 
+     * @param request GetAdbLinkRequest
+     * @return GetAdbLinkResponse
+     */
+    public GetAdbLinkResponse getAdbLink(GetAdbLinkRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.getAdbLinkWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取并加载内部Context</p>
+     * 
+     * @param request GetAndLoadInternalContextRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return GetAndLoadInternalContextResponse
+     */
+    public GetAndLoadInternalContextResponse getAndLoadInternalContextWithOptions(GetAndLoadInternalContextRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.contextTypes)) {
+            body.put("ContextTypes", request.contextTypes);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "GetAndLoadInternalContext"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new GetAndLoadInternalContextResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取并加载内部Context</p>
+     * 
+     * @param request GetAndLoadInternalContextRequest
+     * @return GetAndLoadInternalContextResponse
+     */
+    public GetAndLoadInternalContextResponse getAndLoadInternalContext(GetAndLoadInternalContextRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.getAndLoadInternalContextWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取CDP链接</p>
+     * 
+     * @param request GetCdpLinkRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return GetCdpLinkResponse
+     */
+    public GetCdpLinkResponse getCdpLinkWithOptions(GetCdpLinkRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "GetCdpLink"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new GetCdpLinkResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>获取CDP链接</p>
+     * 
+     * @param request GetCdpLinkRequest
+     * @return GetCdpLinkResponse
+     */
+    public GetCdpLinkResponse getCdpLink(GetCdpLinkRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.getCdpLinkWithOptions(request, runtime);
     }
 
     /**
@@ -1017,12 +1225,20 @@ public class Client extends com.aliyun.teaopenapi.Client {
             body.put("Authorization", request.authorization);
         }
 
+        if (!com.aliyun.teautil.Common.isUnset(request.contextType)) {
+            body.put("ContextType", request.contextType);
+        }
+
         if (!com.aliyun.teautil.Common.isUnset(request.maxResults)) {
             body.put("MaxResults", request.maxResults);
         }
 
         if (!com.aliyun.teautil.Common.isUnset(request.nextToken)) {
             body.put("NextToken", request.nextToken);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
         }
 
         com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
@@ -1216,6 +1432,54 @@ public class Client extends com.aliyun.teaopenapi.Client {
 
     /**
      * <b>summary</b> : 
+     * <p>休眠</p>
+     * 
+     * @param request PauseSessionAsyncRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return PauseSessionAsyncResponse
+     */
+    public PauseSessionAsyncResponse pauseSessionAsyncWithOptions(PauseSessionAsyncRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "PauseSessionAsync"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new PauseSessionAsyncResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>休眠</p>
+     * 
+     * @param request PauseSessionAsyncRequest
+     * @return PauseSessionAsyncResponse
+     */
+    public PauseSessionAsyncResponse pauseSessionAsync(PauseSessionAsyncRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.pauseSessionAsyncWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
      * <p>释放 mcp session</p>
      * 
      * @param request ReleaseMcpSessionRequest
@@ -1260,6 +1524,54 @@ public class Client extends com.aliyun.teaopenapi.Client {
     public ReleaseMcpSessionResponse releaseMcpSession(ReleaseMcpSessionRequest request) throws Exception {
         com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
         return this.releaseMcpSessionWithOptions(request, runtime);
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>异步休眠中恢复</p>
+     * 
+     * @param request ResumeSessionAsyncRequest
+     * @param runtime runtime options for this request RuntimeOptions
+     * @return ResumeSessionAsyncResponse
+     */
+    public ResumeSessionAsyncResponse resumeSessionAsyncWithOptions(ResumeSessionAsyncRequest request, com.aliyun.teautil.models.RuntimeOptions runtime) throws Exception {
+        com.aliyun.teautil.Common.validateModel(request);
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        if (!com.aliyun.teautil.Common.isUnset(request.authorization)) {
+            body.put("Authorization", request.authorization);
+        }
+
+        if (!com.aliyun.teautil.Common.isUnset(request.sessionId)) {
+            body.put("SessionId", request.sessionId);
+        }
+
+        com.aliyun.teaopenapi.models.OpenApiRequest req = com.aliyun.teaopenapi.models.OpenApiRequest.build(TeaConverter.buildMap(
+            new TeaPair("body", com.aliyun.openapiutil.Client.parseToMap(body))
+        ));
+        com.aliyun.teaopenapi.models.Params params = com.aliyun.teaopenapi.models.Params.build(TeaConverter.buildMap(
+            new TeaPair("action", "ResumeSessionAsync"),
+            new TeaPair("version", "2025-05-06"),
+            new TeaPair("protocol", "HTTPS"),
+            new TeaPair("pathname", "/"),
+            new TeaPair("method", "POST"),
+            new TeaPair("authType", "Anonymous"),
+            new TeaPair("style", "RPC"),
+            new TeaPair("reqBodyType", "formData"),
+            new TeaPair("bodyType", "json")
+        ));
+        return TeaModel.toModel(this.doRPCRequest(params.action, params.version, params.protocol, params.method, params.authType, params.bodyType, req, runtime), new ResumeSessionAsyncResponse());
+    }
+
+    /**
+     * <b>summary</b> : 
+     * <p>异步休眠中恢复</p>
+     * 
+     * @param request ResumeSessionAsyncRequest
+     * @return ResumeSessionAsyncResponse
+     */
+    public ResumeSessionAsyncResponse resumeSessionAsync(ResumeSessionAsyncRequest request) throws Exception {
+        com.aliyun.teautil.models.RuntimeOptions runtime = new com.aliyun.teautil.models.RuntimeOptions();
+        return this.resumeSessionAsyncWithOptions(request, runtime);
     }
 
     /**

@@ -3,7 +3,7 @@ package com.aliyun.agentbay.test;
 import com.aliyun.agentbay.AgentBay;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.SessionException;
-import com.aliyun.agentbay.model.CodeExecutionResult;
+import com.aliyun.agentbay.model.code.EnhancedCodeExecutionResult;
 import com.aliyun.agentbay.model.DeleteResult;
 import com.aliyun.agentbay.model.SessionResult;
 import com.aliyun.agentbay.session.CreateSessionParams;
@@ -46,7 +46,7 @@ public class TestCodeExecution {
 
         // Create a session with Linux image for code execution
         CreateSessionParams params = new CreateSessionParams();
-        params.setImageId("linux_latest");
+        params.setImageId("code_latest");
         SessionResult sessionResult = agentBay.create(params);
 
         assertTrue("Failed to create session: " + sessionResult.getErrorMessage(), 
@@ -85,7 +85,7 @@ public class TestCodeExecution {
         System.out.println("\n🐍 Testing Python code execution...");
         
         String pythonCode = "print(\"hello world\")";
-        CodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
 
         // Verify execution was successful
         assertTrue("Python code execution failed: " + result.getErrorMessage(), 
@@ -107,7 +107,7 @@ public class TestCodeExecution {
         System.out.println("\n🔢 Testing Python math operations...");
         
         String pythonCode = "result = 5 + 3\nprint(f'5 + 3 = {result}')";
-        CodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
 
         assertTrue("Python math code execution failed: " + result.getErrorMessage(), 
                    result.isSuccess());
@@ -127,7 +127,7 @@ public class TestCodeExecution {
         System.out.println("\n🟨 Testing JavaScript code execution...");
         
         String jsCode = "console.log('Hello from JavaScript!');\nconst result = 5 * 4;\nconsole.log(`5 * 4 = ${result}`);";
-        CodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
 
         assertTrue("JavaScript code execution failed: " + result.getErrorMessage(), 
                    result.isSuccess());
@@ -150,7 +150,7 @@ public class TestCodeExecution {
         System.out.println("\n✨ Testing JavaScript simple operations...");
         
         String jsCode = "const greeting = 'Hello World';\nconsole.log(greeting);";
-        CodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
 
         assertTrue("JavaScript simple code execution failed: " + result.getErrorMessage(), 
                    result.isSuccess());
@@ -170,9 +170,9 @@ public class TestCodeExecution {
         System.out.println("\n🔄 Testing Python loop execution...");
         
         String pythonCode = "for i in range(3):\n    print(f'Number: {i}')";
-        CodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
 
-        assertTrue("Python loop execution failed: " + result.getErrorMessage(), 
+        assertTrue("Python loop execution failed: " + result.getErrorMessage(),
                    result.isSuccess());
         assertNotNull("Result is null", result.getResult());
         assertTrue("Output should contain 'Number: 0'", 
@@ -194,7 +194,7 @@ public class TestCodeExecution {
         System.out.println("\n📝 Testing Python multiline code execution...");
         
         String pythonCode = "x = 10\ny = 20\nsum_result = x + y\nprint(f'{x} + {y} = {sum_result}')";
-        CodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(pythonCode, "python");
 
         assertTrue("Python multiline execution failed: " + result.getErrorMessage(), 
                    result.isSuccess());
@@ -214,7 +214,7 @@ public class TestCodeExecution {
         System.out.println("\n📦 Testing JavaScript array operations...");
         
         String jsCode = "const numbers = [1, 2, 3, 4, 5];\nconst sum = numbers.reduce((a, b) => a + b, 0);\nconsole.log(`Sum: ${sum}`);";
-        CodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
+        EnhancedCodeExecutionResult result = session.getCode().runCode(jsCode, "javascript");
 
         assertTrue("JavaScript array operations failed: " + result.getErrorMessage(), 
                    result.isSuccess());
@@ -231,12 +231,12 @@ public class TestCodeExecution {
      */
     @Test
     public void testInvalidPythonCode() {
-        System.out.println("\n❌ Testing invalid Python code handling...");
+        System.out.println("\n Testing invalid Python code handling...");
         
         String invalidPythonCode = "print('Hello'\nprint('Missing closing parenthesis')";
         
         try {
-            CodeExecutionResult result = session.getCode().runCode(invalidPythonCode, "python");
+            EnhancedCodeExecutionResult result = session.getCode().runCode(invalidPythonCode, "python");
             // The execution might complete but should indicate an error
             if (result.isSuccess()) {
                 // Some systems might still return success but with error output
@@ -258,7 +258,7 @@ public class TestCodeExecution {
         
         // Create a new session (separate from the one in setUp)
         CreateSessionParams params = new CreateSessionParams();
-        params.setImageId("linux_latest");
+        params.setImageId("code_latest");
         SessionResult sessionResult = agentBay.create(params);
 
         assertTrue("Session creation failed", sessionResult.isSuccess());
@@ -271,7 +271,7 @@ public class TestCodeExecution {
 
         // Execute some code to verify session is working
         String pythonCode = "print('Session test')";
-        CodeExecutionResult codeResult = testSession.getCode().runCode(pythonCode, "python");
+        EnhancedCodeExecutionResult codeResult = testSession.getCode().runCode(pythonCode, "python");
         assertTrue("Code execution failed", codeResult.isSuccess());
         System.out.println("✅ Code executed in session");
 

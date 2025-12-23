@@ -4,6 +4,8 @@ import com.aliyun.agentbay.AgentBay;
 import com.aliyun.agentbay.agent.Agent;
 import com.aliyun.agentbay.browser.Browser;
 import com.aliyun.agentbay.browser.BrowserOption;
+import com.aliyun.agentbay.computer.Computer;
+import com.aliyun.agentbay.mobile.Mobile;
 import com.aliyun.agentbay.context.*;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.filesystem.FileSystem;
@@ -41,6 +43,8 @@ public class Session {
     private Command command;
     private ContextManager contextManager;
     private Browser browser;
+    private Computer computer;
+    private Mobile mobile;
     private String fileTransferContextId;
     private String httpPort;
     private String token;
@@ -62,6 +66,8 @@ public class Session {
         this.command = new Command(this);
         this.contextManager = new ContextManager(this);
         this.browser = new Browser(this);
+        this.computer = new Computer(this);
+        this.mobile = new Mobile(this);
         this.mcpTools = new java.util.ArrayList<>();
     }
 
@@ -276,6 +282,24 @@ public class Session {
      */
     public Browser getBrowser() {
         return browser;
+    }
+
+    /**
+     * Get the computer service for this session
+     *
+     * @return Computer instance
+     */
+    public Computer getComputer() {
+        return computer;
+    }
+
+    /**
+     * Get the mobile service for this session
+     *
+     * @return Mobile instance
+     */
+    public Mobile getMobile() {
+        return mobile;
     }
 
     /**
