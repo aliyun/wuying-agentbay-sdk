@@ -1,14 +1,13 @@
 package com.aliyun.agentbay.filesystem;
 
 import com.aliyun.agentbay.AgentBay;
-import com.aliyun.agentbay.context.ContextManager;
-import com.aliyun.agentbay.context.ContextService;
 import com.aliyun.agentbay.context.ContextInfoResult;
-import com.aliyun.agentbay.context.ContextSyncResult;
+import com.aliyun.agentbay.context.ContextService;
 import com.aliyun.agentbay.context.ContextStatusData;
+import com.aliyun.agentbay.context.ContextSyncResult;
+import com.aliyun.agentbay.model.DownloadResult;
 import com.aliyun.agentbay.model.FileUrlResult;
 import com.aliyun.agentbay.model.UploadResult;
-import com.aliyun.agentbay.model.DownloadResult;
 import com.aliyun.agentbay.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.nio.charset.StandardCharsets;
 
 public class FileTransfer {
     private static final Logger logger = LoggerFactory.getLogger(FileTransfer.class);
@@ -30,7 +27,8 @@ public class FileTransfer {
     private final Session session;
     private final int httpTimeout;
     private final boolean followRedirects;
-    private final String contextId;
+    private String contextId;
+    private String contextPath;
 
     private static final Set<String> FINISHED_STATES = new HashSet<>();
 
@@ -44,6 +42,74 @@ public class FileTransfer {
         FINISHED_STATES.add("complete");
     }
 
+    private EnsureContextResult ensureContextId() {
+        if (contextId != null) {
+            return new EnsureContextResult(true, null);
+        }
+
+        try {
+            com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextRequest request =
+                new com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextRequest();
+            request.setAuthorization("Bearer " + agentBay.getApiKey());
+            request.setSessionId(session.getSessionId());
+            java.util.List<String> contextTypes = new java.util.ArrayList<>();
+            contextTypes.add("file_transfer");
+            request.setContextTypes(contextTypes);
+
+            logger.debug("Calling GetAndLoadInternalContext: SessionId={}, ContextTypes=file_transfer", session.getSessionId());
+
+            com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextResponse response =
+                agentBay.getApiClient().getClient().getAndLoadInternalContext(request);
+
+            if (response == null || response.getBody() == null) {
+                logger.error("GetAndLoadInternalContext returned null response");
+                return new EnsureContextResult(false, "GetAndLoadInternalContext returned null response");
+            }
+
+            com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextResponseBody body = response.getBody();
+            String requestId = body.getRequestId();
+
+            logger.debug("GetAndLoadInternalContext response: requestId={}, success={}", requestId, body.getSuccess());
+
+            if (body.getSuccess() == null || !body.getSuccess()) {
+                String errorMsg = body.getMessage() != null ? body.getMessage() : "Unknown error";
+                logger.error("GetAndLoadInternalContext failed: {}", errorMsg);
+                return new EnsureContextResult(false, errorMsg);
+            }
+
+            java.util.List<com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextResponseBody.GetAndLoadInternalContextResponseBodyData> dataList =
+                body.getData();
+
+            if (dataList != null && !dataList.isEmpty()) {
+                for (com.aliyun.wuyingai20250506.models.GetAndLoadInternalContextResponseBody.GetAndLoadInternalContextResponseBodyData item : dataList) {
+                    String ctxId = item.getContextId();
+                    String ctxPath = item.getContextPath();
+
+                    if (ctxId != null && !ctxId.isEmpty() && ctxPath != null && !ctxPath.isEmpty()) {
+                        this.contextId = ctxId;
+                        this.contextPath = ctxPath;
+                        logger.info("Loaded file_transfer context: contextId={}, contextPath={}", contextId, contextPath);
+                        return new EnsureContextResult(true, null);
+                    }
+                }
+            }
+
+            logger.warn("GetAndLoadInternalContext response contains no valid data");
+            return new EnsureContextResult(false, "Response contains no data");
+
+        } catch (Exception e) {
+            logger.error("Failed to call GetAndLoadInternalContext", e);
+            return new EnsureContextResult(false, "Failed to call GetAndLoadInternalContext: " + e.getMessage());
+        }
+    }
+
+    public String getContextPath() {
+        if (contextId == null) {
+            ensureContextId();
+        }
+        return contextPath;
+    }
+
     public FileTransfer(AgentBay agentBay, Session session) {
         this(agentBay, session, 60000, true);
     }
@@ -54,7 +120,8 @@ public class FileTransfer {
         this.session = session;
         this.httpTimeout = httpTimeout;
         this.followRedirects = followRedirects;
-        this.contextId = session.getFileTransferContextId();
+        this.contextId = null;
+        this.contextPath = null;
     }
 
     public UploadResult upload(
@@ -63,7 +130,8 @@ public class FileTransfer {
         String contentType,
         boolean wait,
         float waitTimeout,
-        float pollInterval
+        float pollInterval,
+        ProgressCallback progressCallback
     ) {
         File localFile = new File(localPath);
         if (!localFile.isFile()) {
@@ -74,18 +142,21 @@ public class FileTransfer {
         }
 
         if (contextId == null) {
-            return new UploadResult(
-                "", false, null, null, null, null, 0, remotePath,
-                "No context ID"
-            );
+            EnsureContextResult ensureResult = ensureContextId();
+            if (!ensureResult.success) {
+                return new UploadResult(
+                    "", false, null, null, null, null, 0, remotePath,
+                    ensureResult.message
+                );
+            }
         }
 
         try {
             logger.info("Starting upload: localPath={}, remotePath={}, wait={}, waitTimeout={}",
                 localPath, remotePath, wait, waitTimeout);
-            logger.info("Getting file upload URL");
+            logger.debug("Getting file upload URL");
             FileUrlResult urlResult = contextService.getFileUploadUrl(contextId, remotePath);
-            logger.info("URL result: success={}", urlResult.isSuccess());
+            logger.debug("URL result: success={}", urlResult.isSuccess());
             if (!urlResult.isSuccess() || urlResult.getUrl() == null || urlResult.getUrl().isEmpty()) {
                 return new UploadResult(
                     "", false, urlResult.getRequestId(), null, null, null, 0, remotePath,
@@ -98,10 +169,10 @@ public class FileTransfer {
 
             logger.info("Uploading {} to {}", localPath, uploadUrl);
 
-            PutFileResult putResult = putFileSync(uploadUrl, localPath, contentType);
+            PutFileResult putResult = putFileSync(uploadUrl, localPath, contentType, progressCallback);
             logger.info("Upload completed with HTTP {}", putResult.statusCode);
 
-            if (putResult.statusCode < 200 || putResult.statusCode >= 300) {
+            if (putResult.statusCode != 200 && putResult.statusCode != 201 && putResult.statusCode != 204) {
                 return new UploadResult(
                     "", false, reqIdUpload, null, putResult.statusCode, putResult.etag,
                     putResult.bytesSent, remotePath,
@@ -109,15 +180,16 @@ public class FileTransfer {
                 );
             }
 
-            logger.info("Triggering sync to cloud disk");
-            String reqIdSync = awaitSync("download", remotePath, contextId);
+            logger.debug("Triggering sync to cloud disk");
+            String remoteDir = getDirectoryPath(remotePath);
+            String reqIdSync = awaitSync("download", remoteDir, contextId);
 
-            logger.info("Sync request ID: {}", reqIdSync);
+            logger.debug("Sync request ID: {}", reqIdSync);
 
             if (wait) {
-                logger.info("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
-                WaitResult waitResult = waitForTask(contextId, remotePath, "download", waitTimeout, pollInterval);
-                logger.info("Wait result: success={}, error={}", waitResult.success, waitResult.error);
+                logger.debug("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
+                WaitResult waitResult = waitForTask(contextId, remoteDir, "download", waitTimeout, pollInterval);
+                logger.debug("Wait result: success={}, error={}", waitResult.success, waitResult.error);
                 if (!waitResult.success) {
                     return new UploadResult(
                         "", false, reqIdUpload, reqIdSync, putResult.statusCode, putResult.etag,
@@ -149,26 +221,30 @@ public class FileTransfer {
         boolean overwrite,
         boolean wait,
         float waitTimeout,
-        float pollInterval
+        float pollInterval,
+        ProgressCallback progressCallback
     ) {
         if (contextId == null) {
-            return new DownloadResult(
-                "", false, null, null, null, 0, remotePath, localPath, null,
-                "No context ID"
-            );
+            EnsureContextResult ensureResult = ensureContextId();
+            if (!ensureResult.success) {
+                return new DownloadResult(
+                    "", false, null, null, null, 0, remotePath, localPath, null,
+                    ensureResult.message
+                );
+            }
         }
 
         try {
             logger.info("Starting download: remotePath={}, localPath={}, wait={}, waitTimeout={}",
                 remotePath, localPath, wait, waitTimeout);
-            logger.info("Triggering sync from cloud disk to OSS");
+            logger.debug("Triggering sync from cloud disk to OSS");
             String reqIdSync = awaitSync("upload", remotePath, contextId);
-            logger.info("Sync completed: reqIdSync={}", reqIdSync);
+            logger.debug("Sync completed: reqIdSync={}", reqIdSync);
 
             if (wait) {
-                logger.info("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
+                logger.debug("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
                 WaitResult waitResult = waitForTask(contextId, remotePath, "upload", waitTimeout, pollInterval);
-                logger.info("Wait result: success={}, error={}", waitResult.success, waitResult.error);
+                logger.debug("Wait result: success={}, error={}", waitResult.success, waitResult.error);
                 if (!waitResult.success) {
                     return new DownloadResult(
                         "", false, null, reqIdSync, null, 0, remotePath, localPath, null,
@@ -177,9 +253,9 @@ public class FileTransfer {
                 }
             }
 
-            logger.info("Getting file download URL");
+            logger.debug("Getting file download URL");
             FileUrlResult urlResult = contextService.getFileDownloadUrl(contextId, remotePath);
-            logger.info("URL result: success={}, url={}", urlResult.isSuccess(),
+            logger.debug("URL result: success={}, url={}", urlResult.isSuccess(),
                 urlResult.getUrl() != null ? urlResult.getUrl().substring(0, Math.min(50, urlResult.getUrl().length())) + "..." : "null");
             if (!urlResult.isSuccess() || urlResult.getUrl() == null || urlResult.getUrl().isEmpty()) {
                 return new DownloadResult(
@@ -191,9 +267,9 @@ public class FileTransfer {
             String downloadUrl = urlResult.getUrl();
             String reqIdDownload = urlResult.getRequestId();
 
-            logger.info("Starting HTTP download");
-            GetFileResult getResult = getFileSync(downloadUrl, localPath);
-            logger.info("HTTP result: statusCode={}, bytesReceived={}", getResult.statusCode, getResult.bytesReceived);
+            logger.debug("Starting HTTP download");
+            GetFileResult getResult = getFileSync(downloadUrl, localPath, progressCallback);
+            logger.debug("HTTP result: statusCode={}, bytesReceived={}", getResult.statusCode, getResult.bytesReceived);
 
             if (getResult.statusCode != 200) {
                 return new DownloadResult(
@@ -203,16 +279,16 @@ public class FileTransfer {
                 );
             }
 
-            long actualFileSize = getResult.bytesReceived;
+            long actualFileSize = 0;
             if (localPath != null && !localPath.isEmpty()) {
                 File downloadedFile = new File(localPath);
-                actualFileSize = downloadedFile.exists() ? downloadedFile.length() : getResult.bytesReceived;
+                actualFileSize = downloadedFile.exists() ? downloadedFile.length() : 0;
             }
             logger.info("Download completed successfully: actualFileSize={}", actualFileSize);
 
             return new DownloadResult(
                 "", true, reqIdDownload, reqIdSync, 200,
-                actualFileSize, remotePath, localPath, getResult.content, null
+                actualFileSize, remotePath, localPath, null, null
             );
 
         } catch (Exception e) {
@@ -224,11 +300,190 @@ public class FileTransfer {
         }
     }
 
+    public UploadResult uploadBytes(
+        byte[] content,
+        String remotePath,
+        String contentType,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
+        if (content == null) {
+            return new UploadResult(
+                "", false, null, null, null, null, 0, remotePath,
+                "Content cannot be null"
+            );
+        }
+
+        if (contextId == null) {
+            EnsureContextResult ensureResult = ensureContextId();
+            if (!ensureResult.success) {
+                return new UploadResult(
+                    "", false, null, null, null, null, 0, remotePath,
+                    ensureResult.message
+                );
+            }
+        }
+
+        try {
+            logger.info("Starting byte array upload: remotePath={}, size={}, wait={}, waitTimeout={}",
+                remotePath, content.length, wait, waitTimeout);
+            logger.debug("Getting file upload URL");
+            FileUrlResult urlResult = contextService.getFileUploadUrl(contextId, remotePath);
+            logger.debug("URL result: success={}", urlResult.isSuccess());
+            if (!urlResult.isSuccess() || urlResult.getUrl() == null || urlResult.getUrl().isEmpty()) {
+                return new UploadResult(
+                    "", false, urlResult.getRequestId(), null, null, null, 0, remotePath,
+                    "get_file_upload_url failed: " + urlResult.getErrorMessage()
+                );
+            }
+
+            String uploadUrl = urlResult.getUrl();
+            String reqIdUpload = urlResult.getRequestId();
+
+            logger.info("Uploading byte array to {}", uploadUrl);
+
+            PutFileBytesResult putResult = putFileBytesSync(uploadUrl, content, contentType, progressCallback);
+            logger.info("Upload completed with HTTP {}", putResult.statusCode);
+
+            if (putResult.statusCode != 200 && putResult.statusCode != 201 && putResult.statusCode != 204) {
+                return new UploadResult(
+                    "", false, reqIdUpload, null, putResult.statusCode, putResult.etag,
+                    putResult.bytesSent, remotePath,
+                    "Upload failed with HTTP " + putResult.statusCode
+                );
+            }
+
+            logger.debug("Triggering sync to cloud disk");
+            String remoteDir = getDirectoryPath(remotePath);
+            String reqIdSync = awaitSync("download", remoteDir, contextId);
+
+            logger.debug("Sync request ID: {}", reqIdSync);
+
+            if (wait) {
+                logger.debug("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
+                WaitResult waitResult = waitForTask(contextId, remoteDir, "download", waitTimeout, pollInterval);
+                logger.debug("Wait result: success={}, error={}", waitResult.success, waitResult.error);
+                if (!waitResult.success) {
+                    return new UploadResult(
+                        "", false, reqIdUpload, reqIdSync, putResult.statusCode, putResult.etag,
+                        putResult.bytesSent, remotePath,
+                        "Upload sync not finished: " + (waitResult.error != null ? waitResult.error : "timeout or unknown")
+                    );
+                }
+            }
+
+            logger.info("Byte array upload completed successfully: bytesSent={}", putResult.bytesSent);
+
+            return new UploadResult(
+                "", true, reqIdUpload, reqIdSync, putResult.statusCode, putResult.etag,
+                putResult.bytesSent, remotePath, null
+            );
+
+        } catch (Exception e) {
+            logger.error("Byte array upload exception", e);
+            return new UploadResult(
+                "", false, null, null, null, null, 0, remotePath,
+                "Upload exception: " + e.getMessage()
+            );
+        }
+    }
+
+    public DownloadResult downloadBytes(
+        String remotePath,
+        boolean wait,
+        float waitTimeout,
+        float pollInterval,
+        ProgressCallback progressCallback
+    ) {
+        if (contextId == null) {
+            EnsureContextResult ensureResult = ensureContextId();
+            if (!ensureResult.success) {
+                return new DownloadResult(
+                    "", false, null, null, null, 0, remotePath, null, null,
+                    ensureResult.message
+                );
+            }
+        }
+
+        try {
+            logger.info("Starting byte array download: remotePath={}, wait={}, waitTimeout={}",
+                remotePath, wait, waitTimeout);
+            logger.debug("Triggering sync from cloud disk to OSS");
+            String reqIdSync = awaitSync("upload", remotePath, contextId);
+            logger.debug("Sync completed: reqIdSync={}", reqIdSync);
+
+            if (wait) {
+                logger.debug("Waiting for task completion: timeout={}, interval={}", waitTimeout, pollInterval);
+                WaitResult waitResult = waitForTask(contextId, remotePath, "upload", waitTimeout, pollInterval);
+                logger.debug("Wait result: success={}, error={}", waitResult.success, waitResult.error);
+                if (!waitResult.success) {
+                    return new DownloadResult(
+                        "", false, null, reqIdSync, null, 0, remotePath, null, null,
+                        "Download sync not finished: " + (waitResult.error != null ? waitResult.error : "timeout or unknown")
+                    );
+                }
+            }
+
+            logger.debug("Getting file download URL");
+            FileUrlResult urlResult = contextService.getFileDownloadUrl(contextId, remotePath);
+            logger.debug("URL result: success={}, url={}", urlResult.isSuccess(),
+                urlResult.getUrl() != null ? urlResult.getUrl().substring(0, Math.min(50, urlResult.getUrl().length())) + "..." : "null");
+            if (!urlResult.isSuccess() || urlResult.getUrl() == null || urlResult.getUrl().isEmpty()) {
+                return new DownloadResult(
+                    "", false, urlResult.getRequestId(), reqIdSync, null, 0, remotePath, null, null,
+                    "get_file_download_url failed: " + urlResult.getErrorMessage()
+                );
+            }
+
+            String downloadUrl = urlResult.getUrl();
+            String reqIdDownload = urlResult.getRequestId();
+
+            logger.debug("Starting HTTP download to byte array");
+            GetFileBytesResult getResult = getFileBytesSync(downloadUrl, progressCallback);
+            logger.debug("HTTP result: statusCode={}, bytesReceived={}", getResult.statusCode, getResult.bytesReceived);
+
+            if (getResult.statusCode != 200) {
+                return new DownloadResult(
+                    "", false, reqIdDownload, reqIdSync, getResult.statusCode,
+                    getResult.bytesReceived, remotePath, null, null,
+                    "Download failed with HTTP " + getResult.statusCode
+                );
+            }
+
+            logger.info("Byte array download completed successfully: bytesReceived={}", getResult.bytesReceived);
+
+            return new DownloadResult(
+                "", true, reqIdDownload, reqIdSync, 200,
+                getResult.bytesReceived, remotePath, null, getResult.data, null
+            );
+
+        } catch (Exception e) {
+            logger.error("Byte array download exception", e);
+            return new DownloadResult(
+                "", false, null, null, null, 0, remotePath, null, null,
+                "Download exception: " + e.getMessage()
+            );
+        }
+    }
+
     private String awaitSync(String mode, String remotePath, String contextId) {
-        logger.info("session.context.sync(mode={}, path={}, context_id={})", mode, remotePath, contextId);
+        logger.debug("session.context.sync(mode={}, path={}, context_id={})", mode, remotePath, contextId);
         ContextSyncResult result = session.getContext().sync(contextId, remotePath, mode);
-        logger.info("   Result: {}", result.isSuccess());
+        logger.debug("   Result: {}", result.isSuccess());
         return result.getRequestId();
+    }
+
+    private String getDirectoryPath(String remotePath) {
+        if (remotePath == null || remotePath.isEmpty()) {
+            return "/";
+        }
+        int lastSlashIndex = remotePath.lastIndexOf('/');
+        if (lastSlashIndex <= 0) {
+            return "/";
+        }
+        return remotePath.substring(0, lastSlashIndex + 1);
     }
 
     private WaitResult waitForTask(
@@ -280,7 +535,7 @@ public class FileTransfer {
         return new WaitResult(false, lastErr != null ? lastErr : "timeout");
     }
 
-    private PutFileResult putFileSync(String url, String filePath, String contentType) throws IOException {
+    private PutFileResult putFileSync(String url, String filePath, String contentType, ProgressCallback progressCallback) throws IOException {
         File file = new File(filePath);
         long fileSize = file.length();
 
@@ -295,12 +550,21 @@ public class FileTransfer {
             conn.setRequestProperty("Content-Type", contentType);
         }
 
+        long bytesSent = 0;
         try (FileInputStream fis = new FileInputStream(file);
              OutputStream os = conn.getOutputStream()) {
             byte[] buffer = new byte[8192];
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) != -1) {
                 os.write(buffer, 0, bytesRead);
+                bytesSent += bytesRead;
+                if (progressCallback != null) {
+                    try {
+                        progressCallback.onProgress(bytesSent);
+                    } catch (Exception e) {
+                        logger.warn("Progress callback failed", e);
+                    }
+                }
             }
         }
 
@@ -311,7 +575,7 @@ public class FileTransfer {
         return new PutFileResult(statusCode, etag, fileSize);
     }
 
-    private GetFileResult getFileSync(String url, String destPath) throws IOException {
+    private GetFileResult getFileSync(String url, String destPath, ProgressCallback progressCallback) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setRequestMethod("GET");
         conn.setConnectTimeout(httpTimeout);
@@ -320,34 +584,111 @@ public class FileTransfer {
 
         int statusCode = conn.getResponseCode();
         long bytesReceived = 0;
-        byte[] content = null;
 
         if (statusCode == 200) {
-            try (InputStream is = conn.getInputStream()) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    baos.write(buffer, 0, bytesRead);
-                    bytesReceived += bytesRead;
+            if (destPath != null && !destPath.isEmpty()) {
+                File destFile = new File(destPath);
+                File parentDir = destFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    parentDir.mkdirs();
                 }
-                content = baos.toByteArray();
 
-                if (destPath != null && !destPath.isEmpty()) {
-                    File destFile = new File(destPath);
-                    File parentDir = destFile.getParentFile();
-                    if (parentDir != null && !parentDir.exists()) {
-                        parentDir.mkdirs();
+                try (InputStream is = conn.getInputStream();
+                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(destPath))) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        bos.write(buffer, 0, bytesRead);
+                        bytesReceived += bytesRead;
+                        if (progressCallback != null) {
+                            try {
+                                progressCallback.onProgress(bytesReceived);
+                            } catch (Exception e) {
+                                logger.warn("Progress callback failed", e);
+                            }
+                        }
                     }
-                    try (FileOutputStream fos = new FileOutputStream(destPath)) {
-                        fos.write(content);
+                }
+            } else {
+                try (InputStream is = conn.getInputStream()) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        bytesReceived += bytesRead;
                     }
                 }
             }
         }
 
         conn.disconnect();
-        return new GetFileResult(statusCode, bytesReceived, content);
+        return new GetFileResult(statusCode, bytesReceived);
+    }
+
+    private PutFileBytesResult putFileBytesSync(String url, byte[] content, String contentType, ProgressCallback progressCallback) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("PUT");
+        conn.setDoOutput(true);
+        conn.setConnectTimeout(httpTimeout);
+        conn.setReadTimeout(httpTimeout);
+        conn.setInstanceFollowRedirects(followRedirects);
+
+        if (contentType != null && !contentType.isEmpty()) {
+            conn.setRequestProperty("Content-Type", contentType);
+        }
+
+        long bytesSent = 0;
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(content);
+            bytesSent = content.length;
+            if (progressCallback != null) {
+                try {
+                    progressCallback.onProgress(bytesSent);
+                } catch (Exception e) {
+                    logger.warn("Progress callback failed", e);
+                }
+            }
+        }
+
+        int statusCode = conn.getResponseCode();
+        String etag = conn.getHeaderField("ETag");
+
+        conn.disconnect();
+        return new PutFileBytesResult(statusCode, etag, bytesSent);
+    }
+
+    private GetFileBytesResult getFileBytesSync(String url, ProgressCallback progressCallback) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setConnectTimeout(httpTimeout);
+        conn.setReadTimeout(httpTimeout);
+        conn.setInstanceFollowRedirects(followRedirects);
+
+        int statusCode = conn.getResponseCode();
+        byte[] data = null;
+        long bytesReceived = 0;
+
+        if (statusCode == 200) {
+            try (InputStream is = conn.getInputStream();
+                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    baos.write(buffer, 0, bytesRead);
+                    bytesReceived += bytesRead;
+                    if (progressCallback != null) {
+                        try {
+                            progressCallback.onProgress(bytesReceived);
+                        } catch (Exception e) {
+                            logger.warn("Progress callback failed", e);
+                        }
+                    }
+                }
+                data = baos.toByteArray();
+            }
+        }
+
+        conn.disconnect();
+        return new GetFileBytesResult(statusCode, bytesReceived, data);
     }
 
     private static class PutFileResult {
@@ -365,12 +706,20 @@ public class FileTransfer {
     private static class GetFileResult {
         int statusCode;
         long bytesReceived;
-        byte[] content;
 
-        GetFileResult(int statusCode, long bytesReceived, byte[] content) {
+        GetFileResult(int statusCode, long bytesReceived) {
             this.statusCode = statusCode;
             this.bytesReceived = bytesReceived;
-            this.content = content;
+        }
+    }
+
+    private static class EnsureContextResult {
+        boolean success;
+        String message;
+
+        EnsureContextResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
         }
     }
 
@@ -381,6 +730,30 @@ public class FileTransfer {
         WaitResult(boolean success, String error) {
             this.success = success;
             this.error = error;
+        }
+    }
+
+    private static class PutFileBytesResult {
+        int statusCode;
+        String etag;
+        long bytesSent;
+
+        PutFileBytesResult(int statusCode, String etag, long bytesSent) {
+            this.statusCode = statusCode;
+            this.etag = etag;
+            this.bytesSent = bytesSent;
+        }
+    }
+
+    private static class GetFileBytesResult {
+        int statusCode;
+        long bytesReceived;
+        byte[] data;
+
+        GetFileBytesResult(int statusCode, long bytesReceived, byte[] data) {
+            this.statusCode = statusCode;
+            this.bytesReceived = bytesReceived;
+            this.data = data;
         }
     }
 }

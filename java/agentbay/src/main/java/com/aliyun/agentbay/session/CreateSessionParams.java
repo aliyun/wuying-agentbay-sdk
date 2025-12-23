@@ -19,6 +19,7 @@ public class CreateSessionParams {
     private Map<String, String> metadata;
     private List<ContextSync> contextSyncs;
     private BrowserContext browserContext;
+    private String framework;
 
     public CreateSessionParams() {
         this.contextSyncs = new ArrayList<>();
@@ -120,6 +121,26 @@ public class CreateSessionParams {
     
     public BrowserContext getBrowserContext() {
         return browserContext;
+    }
+    
+    /**
+     * Get the framework name (e.g., "spring-ai", "langchain4j").
+     * This is used for SDK statistics tracking.
+     * 
+     * @return framework name, or null if not set
+     */
+    public String getFramework() {
+        return framework;
+    }
+    
+    /**
+     * Set the framework name (e.g., "spring-ai", "langchain4j").
+     * This is used for SDK statistics tracking.
+     * 
+     * @param framework framework name
+     */
+    public void setFramework(String framework) {
+        this.framework = framework;
     }
 
 }

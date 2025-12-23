@@ -1,7 +1,7 @@
 package com.aliyun.agentbay.examples;
 
 import com.aliyun.agentbay.AgentBay;
-import com.aliyun.agentbay.model.CodeExecutionResult;
+import com.aliyun.agentbay.model.code.EnhancedCodeExecutionResult;
 import com.aliyun.agentbay.exception.AgentBayException;
 import com.aliyun.agentbay.exception.SessionException;
 import com.aliyun.agentbay.model.DeleteResult;
@@ -29,7 +29,7 @@ public class CodeExecutionExample {
             // Create a session
             System.out.println("Creating session...");
             CreateSessionParams params = new CreateSessionParams();
-            params.setImageId("linux_latest");
+            params.setImageId("code_latest");
             SessionResult sessionResult = agentBay.create(params);
 
             if (!sessionResult.isSuccess()) {
@@ -46,7 +46,7 @@ public class CodeExecutionExample {
             // Example 1: Execute Python code
             System.out.println("\n🐍 Executing Python code...");
             String pythonCode = "print(\"hello world\")";
-            CodeExecutionResult pythonResult = session.getCode().runCode(pythonCode, "python");
+            EnhancedCodeExecutionResult pythonResult = session.getCode().runCode(pythonCode, "python");
 
             if (pythonResult.isSuccess()) {
                 System.out.println("✅ Python code executed successfully!");
@@ -59,7 +59,7 @@ public class CodeExecutionExample {
             // Example 2: Execute JavaScript code
             System.out.println("\n🟨 Executing JavaScript code...");
             String jsCode = "console.log('Hello from JavaScript!');\nconst result = 5 * 4;\nconsole.log(`5 * 4 = ${result}`);";
-            CodeExecutionResult jsResult = session.getCode().runCode(jsCode, "javascript");
+            EnhancedCodeExecutionResult jsResult = session.getCode().runCode(jsCode, "javascript");
 
             if (jsResult.isSuccess()) {
                 System.out.println("✅ JavaScript code executed successfully!");

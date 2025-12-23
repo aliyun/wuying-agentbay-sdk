@@ -362,6 +362,262 @@ mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.CodeExecutionExampl
 
 ---
 
+### Mobile Use
+
+#### 11. MobileSystemExample.java
+
+**Purpose**: Demonstrates comprehensive mobile device UI automation and management
+
+**Features:**
+- Get installed mobile applications
+- Start and stop mobile applications
+- Touch operations (tap, swipe)
+- Input text and send key events
+- Get UI elements (clickable and all)
+- Take screenshots
+- Mobile device configuration
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.MobileSystemExample"
+```
+
+**Key Concepts:**
+- Mobile API for touch operations
+- Application lifecycle management on mobile
+- UI element discovery and interaction
+- Screen gestures (tap, swipe)
+- Key event handling
+- Screenshot capture
+
+**Example Code Snippet:**
+```java
+Session session = agentBay.create(params).getSession();
+
+// 1. Get installed apps
+InstalledAppListResult appsResult = session.getMobile()
+    .getInstalledApps(true, false, true);
+for (InstalledApp app : appsResult.getData()) {
+    System.out.println("App: " + app.getName());
+}
+
+// 2. Start an application
+ProcessListResult result = session.getMobile().startApp(
+    "monkey -p com.android.settings -c android.intent.category.LAUNCHER 1"
+);
+
+// 3. Perform tap
+BoolResult tapResult = session.getMobile().tap(500, 800);
+
+// 4. Swipe gesture
+BoolResult swipeResult = session.getMobile().swipe(500, 1000, 500, 500);
+
+// 5. Input text
+BoolResult inputResult = session.getMobile().inputText("Hello!");
+
+// 6. Send key event
+import com.aliyun.agentbay.mobile.KeyCode;
+BoolResult keyResult = session.getMobile().sendKey(KeyCode.HOME);
+
+// 7. Take screenshot
+OperationResult screenshot = session.getMobile().screenshot();
+System.out.println("Screenshot: " + screenshot.getData());
+
+// 8. Stop application
+session.getMobile().stopAppByCmd("am force-stop com.android.settings");
+```
+
+**Related API Documentation:**
+- [Mobile API Reference](../api/mobile-use/mobile.md)
+
+---
+
+#### 12. MobileAppOperationsExample.java
+
+**Purpose**: Demonstrates mobile application operations and device info retrieval
+
+**Features:**
+- Get ADB connection info
+- List installed packages
+- Get device information
+- Check screen status
+- Execute device commands
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.MobileAppOperationsExample"
+```
+
+**Key Concepts:**
+- ADB connection for mobile devices
+- Command execution on mobile
+- Device property retrieval
+- Package management
+
+**Example Code Snippet:**
+```java
+// Create mobile session
+CreateSessionParams params = new CreateSessionParams();
+params.setImageId("mobile_latest");
+Session session = agentBay.create(params).getSession();
+
+// List installed packages
+CommandResult result = session.getCommand()
+    .executeCommand("pm list packages | head -10");
+System.out.println("Packages: " + result.getOutput());
+
+// Get device info
+result = session.getCommand().executeCommand("getprop ro.product.model");
+System.out.println("Device model: " + result.getOutput());
+
+// Check screen status
+result = session.getCommand()
+    .executeCommand("dumpsys power | grep 'Display Power'");
+```
+
+---
+
+#### 13. MobileUiAutomationExample.java
+
+**Purpose**: Demonstrates mobile UI automation with screen operations
+
+**Features:**
+- Get screen information
+- Simulate touch operations
+- Swipe gestures
+- Take screenshots
+- Query active app info
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.MobileUiAutomationExample"
+```
+
+**Key Concepts:**
+- Screen dimension retrieval
+- Touch coordinate calculation
+- Gesture automation
+- UI state inspection
+
+---
+
+#### 14. MobileGetAdbUrlExample.java
+
+**Purpose**: Demonstrates how to get ADB connection URL for mobile devices
+
+**Features:**
+- Retrieve ADB connection URL
+- Generate ADB keys
+- Connect to mobile device via ADB
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.MobileGetAdbUrlExample"
+```
+
+**Key Concepts:**
+- ADB authentication with public key
+- Remote ADB connection
+- Mobile device debugging
+
+**Example Code Snippet:**
+```java
+// Read ADB public key
+String adbkeyPub = new String(Files.readAllBytes(
+    Paths.get(System.getProperty("user.home") + "/.android/adbkey.pub")
+));
+
+// Get ADB URL
+AdbUrlResult result = session.getMobile().getAdbUrl(adbkeyPub);
+if (result.isSuccess()) {
+    System.out.println("ADB URL: " + result.getData());
+    // Output: adb connect <IP>:<Port>
+}
+```
+
+---
+
+### Computer Use / Application Management
+
+#### 15. ComputerStartAppExample.java
+
+**Purpose**: Demonstrates Computer application lifecycle management - starting, stopping, and listing applications
+
+**Features:**
+- Get installed applications from the system
+- Start applications with simple commands (e.g., `sleep 30`)
+- Start applications with work directory and npm projects
+- List visible/running applications
+- Stop applications by process name or PID
+- Proper environment setup before starting applications
+
+**Example Usage:**
+```bash
+mvn exec:java -Dexec.mainClass="com.aliyun.agentbay.examples.ComputerStartAppExample"
+```
+
+**Key Concepts:**
+- Computer API for application management
+- FileSystem API for environment setup
+- Process management and tracking
+- Handling systemd service tracking
+- Error handling patterns
+
+**Example Code Snippet:**
+```java
+Session session = agentBay.create(params).getSession();
+
+// Example 1: Start a simple application
+ProcessListResult result = session.getComputer().startApp("sleep 30");
+if (result.isSuccess()) {
+    Process process = result.getData().get(0);
+    System.out.println("Started PID: " + process.getPid());
+}
+
+// Example 2: Start application with work directory
+// First, ensure directory exists and has required files
+String workDir = "/tmp/app/my-project";
+session.getFileSystem().createDirectory(workDir);
+
+String packageJson = "{\n" +
+    "  \"name\": \"my-app\",\n" +
+    "  \"scripts\": { \"dev\": \"node -e \\\"setInterval(() => {}, 1000);\\\"\" }\n" +
+    "}";
+session.getFileSystem().writeFile(workDir + "/package.json", packageJson);
+
+// Now start the application
+ProcessListResult startResult = session.getComputer().startApp("npm run dev", workDir);
+
+// Example 3: Stop application by PID
+session.getComputer().stopAppByPID(process.getPid());
+
+// Example 4: Stop application by process name
+session.getComputer().stopAppByPName("sleep");
+
+// Example 5: List visible applications
+ProcessListResult visibleApps = session.getComputer().listVisibleApps();
+for (Process app : visibleApps.getData()) {
+    System.out.println("Visible app: " + app.getPname());
+}
+
+session.delete();
+```
+
+**Important Notes:**
+- Simple commands like `sleep 30` are reliable for testing
+- When using work directories, ensure:
+  1. Directory exists (use `FileSystem.createDirectory()`)
+  2. Required files exist (e.g., `package.json`)
+- The error "Failed to get main PID from systemd" usually means:
+  - Work directory doesn't exist
+  - Required files are missing
+  - Command format incompatible with systemd tracking
+
+**Related API Documentation:**
+- [Computer API Reference](../api/computer-use/computer.md)
+
+---
+
 ## 💡 Common Patterns
 
 ### Basic Session Creation
@@ -433,6 +689,15 @@ try {
 **Code Execution:**
 - CodeExecutionExample
 
+**Computer Use / Application Management:**
+- ComputerStartAppExample
+
+**Mobile Use / Mobile Automation:**
+- MobileSystemExample
+- MobileAppOperationsExample
+- MobileUiAutomationExample
+- MobileGetAdbUrlExample
+
 ### By Complexity
 
 **Beginner:**
@@ -445,6 +710,11 @@ try {
 - PlaywrightExample
 - BrowserContextExample
 - OSSManagementExample
+- ComputerStartAppExample
+- MobileSystemExample
+- MobileAppOperationsExample
+- MobileUiAutomationExample
+- MobileGetAdbUrlExample
 
 **Advanced:**
 - FileTransferExample
@@ -471,6 +741,18 @@ try {
 1. **SessionContextExample** - Context and persistence
 2. **FileTransferExample** - Large file handling
 3. **OSSManagementExample** - Object storage integration
+
+### For Computer/Desktop Automation
+
+1. **ComputerStartAppExample** - Application lifecycle management
+2. **FileSystemExample** - File operations for environment setup
+
+### For Mobile Automation
+
+1. **MobileAppOperationsExample** - Basic mobile app operations
+2. **MobileSystemExample** - Comprehensive mobile automation
+3. **MobileUiAutomationExample** - Mobile UI interactions
+4. **MobileGetAdbUrlExample** - ADB connection and debugging
 
 ## 🔧 Configuration
 

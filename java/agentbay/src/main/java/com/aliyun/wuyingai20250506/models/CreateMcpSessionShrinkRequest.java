@@ -10,6 +10,16 @@ public class CreateMcpSessionShrinkRequest extends TeaModel {
     @NameInMap("ContextId")
     public String contextId;
 
+    @NameInMap("DirectLink")
+    public Boolean directLink;
+
+    /**
+     * <strong>if can be null:</strong>
+     * <p>true</p>
+     */
+    @NameInMap("EnableRecord")
+    public Boolean enableRecord;
+
     @NameInMap("ExternalUserId")
     public String externalUserId;
 
@@ -59,6 +69,22 @@ public class CreateMcpSessionShrinkRequest extends TeaModel {
     }
     public String getContextId() {
         return this.contextId;
+    }
+
+    public CreateMcpSessionShrinkRequest setDirectLink(Boolean directLink) {
+        this.directLink = directLink;
+        return this;
+    }
+    public Boolean getDirectLink() {
+        return this.directLink;
+    }
+
+    public CreateMcpSessionShrinkRequest setEnableRecord(Boolean enableRecord) {
+        this.enableRecord = enableRecord;
+        return this;
+    }
+    public Boolean getEnableRecord() {
+        return this.enableRecord;
     }
 
     public CreateMcpSessionShrinkRequest setExternalUserId(String externalUserId) {

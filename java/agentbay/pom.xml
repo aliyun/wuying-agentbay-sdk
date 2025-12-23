@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>agentbay-sdk</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.7</version>
     <packaging>jar</packaging>
 
     <name>AgentBay Java SDK</name>
@@ -57,6 +57,9 @@
         <jackson.version>2.15.2</jackson.version>
         <slf4j.version>1.7.36</slf4j.version>
         <logback.version>1.2.12</logback.version>
+        <!-- SDK release flag: set to true when publishing to Maven Central -->
+        <!-- Usage: mvn deploy -Dagentbay.is.release.build=true -->
+        <agentbay.is.release.build>false</agentbay.is.release.build>
     </properties>
 
     <dependencies>
@@ -167,6 +170,25 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
+                </configuration>
+            </plugin>
+
+            <!-- JAR插件 - 确保MANIFEST.MF包含版本信息和发布标志 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <!-- Custom attribute for release build detection -->
+                            <AgentBay-Is-Release>${agentbay.is.release.build}</AgentBay-Is-Release>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
 

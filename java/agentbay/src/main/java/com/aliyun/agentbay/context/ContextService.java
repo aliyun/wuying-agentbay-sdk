@@ -133,7 +133,9 @@ public class ContextService {
 
             Context context = new Context();
             context.setContextId(contextId);
-            context.setName(data.getName() != null ? data.getName() : name);
+            // Use name from response if it's not null and not empty, otherwise use the provided name
+            String contextName = data.getName();
+            context.setName((contextName != null && !contextName.isEmpty()) ? contextName : name);
             context.setState(data.getState() != null ? data.getState() : "available");
             context.setCreatedAt(data.getCreateTime());
             context.setUpdatedAt(data.getLastUsedTime());
@@ -380,5 +382,87 @@ public class ContextService {
             logger.error("Failed to delete file for context {} and file {}", contextId, filePath, e);
             throw new AgentBayException("Failed to delete file: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Lists files under a specific folder path in a context.
+     *
+     * @param contextId The ID of the context.
+     * @param parentFolderPath The parent folder path to list files from.
+     * @param pageNumber The page number for pagination. Default is 1.
+     * @param pageSize The number of items per page. Default is 50.
+     * @return ContextFileListResult containing the list of files and request ID.
+     */
+    public ContextFileListResult listFiles(String contextId, String parentFolderPath, int pageNumber, int pageSize) {
+        try {
+            logger.debug("Listing files - ContextId={}, ParentFolderPath={}, PageNumber={}, PageSize={}", 
+                contextId, parentFolderPath, pageNumber, pageSize);
+
+            DescribeContextFilesRequest request = new DescribeContextFilesRequest();
+            request.setAuthorization("Bearer " + agentBay.getApiKey());
+            request.setContextId(contextId);
+            request.setParentFolderPath(parentFolderPath);
+            request.setPageNumber(pageNumber);
+            request.setPageSize(pageSize);
+
+            DescribeContextFilesResponse response = agentBay.getClient().describeContextFiles(request);
+
+            logger.debug("DescribeContextFiles response received");
+
+            String requestId = ResponseUtil.extractRequestId(response);
+
+            if (response == null || response.getBody() == null) {
+                return new ContextFileListResult(
+                    requestId, false, new ArrayList<>(), null, "Invalid response from API"
+                );
+            }
+
+            DescribeContextFilesResponseBody body = response.getBody();
+
+            if (!Boolean.TRUE.equals(body.getSuccess())) {
+                String code = body.getCode() != null ? body.getCode() : "Unknown";
+                String message = body.getMessage() != null ? body.getMessage() : "Unknown error";
+                return new ContextFileListResult(
+                    requestId, false, new ArrayList<>(), null, "[" + code + "] " + message
+                );
+            }
+
+            List<FileInfo> entries = new ArrayList<>();
+            if (body.getData() != null) {
+                for (DescribeContextFilesResponseBody.DescribeContextFilesResponseBodyData data : body.getData()) {
+                    FileInfo fileInfo = new FileInfo();
+                    fileInfo.setFileId(data.getFileId());
+                    fileInfo.setFileName(data.getFileName());
+                    fileInfo.setFilePath(data.getFilePath());
+                    fileInfo.setFileType(data.getFileType());
+                    fileInfo.setGmtCreate(data.getGmtCreate());
+                    fileInfo.setGmtModified(data.getGmtModified());
+                    fileInfo.setSize(data.getSize());
+                    fileInfo.setStatus(data.getStatus());
+                    entries.add(fileInfo);
+                }
+            }
+
+            return new ContextFileListResult(
+                requestId, true, entries, body.getCount(), ""
+            );
+
+        } catch (Exception e) {
+            logger.error("Failed to list files for context {} and path {}", contextId, parentFolderPath, e);
+            return new ContextFileListResult(
+                "", false, new ArrayList<>(), null, "Failed to list files: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * Lists files under a specific folder path in a context with default pagination.
+     *
+     * @param contextId The ID of the context.
+     * @param parentFolderPath The parent folder path to list files from.
+     * @return ContextFileListResult containing the list of files and request ID.
+     */
+    public ContextFileListResult listFiles(String contextId, String parentFolderPath) {
+        return listFiles(contextId, parentFolderPath, 1, 50);
     }
 }
