@@ -798,7 +798,7 @@ public class TestFileTransfer {
     public void testUploadNullBytes() {
         System.out.println("\n===== TEST 17: Upload Null Byte Array (Error Handling) =====");
 
-        String remotePath = testDirectory + "null_bytes.txt";
+        String remotePath = testDirectory + "null_bytes.txt
 
         System.out.println("📤 Attempting to upload null byte array...");
         UploadResult uploadResult = fs.uploadFileBytes(null, remotePath);

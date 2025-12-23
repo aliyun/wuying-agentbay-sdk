@@ -17,7 +17,7 @@ Add the dependency to your `pom.xml`:
 Or if you're using Gradle:
 
 ```gradle
-implementation 'com.aliyun:agentbay-sdk:0.0.3'
+implementation 'com.aliyun:agentbay-sdk:0.0.5'
 ```
 
 ## 🚀 Prerequisites
