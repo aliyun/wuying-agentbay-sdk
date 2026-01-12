@@ -22,7 +22,7 @@ Or compile and run directly:
 
 ```bash
 mvn clean package
-java -cp target/agentbay-sdk-0.0.7.jar com.aliyun.agentbay.examples.SessionMetricsExample
+java -cp target/agentbay-sdk-0.14.0.jar com.aliyun.agentbay.examples.SessionMetricsExample
 ```
 
 ## Code Example
